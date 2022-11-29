@@ -24,24 +24,28 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleRepository;
 import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.ValueObjectFlags;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,17 +53,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("sampleService")
+@RequiredArgsConstructor
 @Slf4j
 public class SampleServiceImpl implements SampleService {
 
-	@Autowired
-	private SumarisConfiguration configuration;
+	private final SumarisConfiguration configuration;
 
-	@Autowired
-	protected SampleRepository sampleRepository;
+	protected final SampleRepository sampleRepository;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+	protected final MeasurementDao measurementDao;
+
+	protected final ImageAttachmentRepository imageAttachmentRepository;
 
 	@Override
 	public Long countByFilter(SampleFilterVO filter) {
@@ -88,8 +92,19 @@ public class SampleServiceImpl implements SampleService {
 	}
 
 	@Override
-	public SampleVO get(int saleId) {
-		return sampleRepository.get(saleId);
+	public List<SampleVO> getAllByLandingId(int landingId, SampleFetchOptions fetchOptions) {
+		return sampleRepository.findAll(SampleFilterVO.builder().landingId(landingId).build(),
+				fetchOptions);
+	}
+
+	@Override
+	public SampleVO get(int id) {
+		return sampleRepository.get(id);
+	}
+
+	@Override
+	public SampleVO get(int id, SampleFetchOptions fetchOptions) {
+		return sampleRepository.get(id, fetchOptions);
 	}
 
 	@Override
@@ -97,8 +112,17 @@ public class SampleServiceImpl implements SampleService {
 
 		List<SampleVO> result = sampleRepository.saveByOperationId(operationId, sources);
 
-		// Save measurements
-		saveMeasurements(result);
+		// Excluded samples with same hash (= unchanged - not need to save children)
+		List<SampleVO> changes = result.stream()
+				.filter(sample -> sample.hasNotFlag(ValueObjectFlags.SAME_HASH))
+				.collect(Collectors.toList());
+
+		if (CollectionUtils.isNotEmpty(changes)) {
+			// Save measurements
+			boolean enableSampleUniqueTag = configuration.enableSampleUniqueTag();
+			changes.forEach(sample -> saveMeasurements(sample, enableSampleUniqueTag));
+
+		}
 
 		return result;
 	}
@@ -108,8 +132,19 @@ public class SampleServiceImpl implements SampleService {
 
 		List<SampleVO> result = sampleRepository.saveByLandingId(landingId, sources);
 
-		// Save measurements
-		saveMeasurements(result);
+		// Excluded samples with same hash (= unchanged - not need to save children)
+		List<SampleVO> changes = result.stream()
+			.filter(sample -> sample.hasNotFlag(ValueObjectFlags.SAME_HASH))
+			.collect(Collectors.toList());
+
+		if (CollectionUtils.isNotEmpty(changes)) {
+			// Save measurements
+			boolean enableSampleUniqueTag = configuration.enableSampleUniqueTag();
+			changes.forEach(sample -> saveMeasurements(sample, enableSampleUniqueTag));
+
+			// Save images
+			changes.forEach(this::saveImageAttachments);
+		}
 
 		return result;
 	}
@@ -117,11 +152,26 @@ public class SampleServiceImpl implements SampleService {
 	@Override
 	public SampleVO save(SampleVO sample) {
 		Preconditions.checkNotNull(sample);
-		Preconditions.checkArgument((sample.getOperation() != null && sample.getOperation().getId() != null) || sample.getOperationId() != null, "Missing sample.operation or sample.operationId");
+		Preconditions.checkArgument((sample.getOperation() != null && sample.getOperation().getId() != null)
+				|| sample.getOperationId() != null
+				|| (sample.getLanding() != null && sample.getLanding().getId() != null)
+				|| sample.getLandingId() != null,
+				"Missing sample.operation or sample.operationId, or sample.landing.id or sample.landingId");
 		Preconditions.checkNotNull(sample.getRecorderDepartment(), "Missing sample.recorderDepartment");
 		Preconditions.checkNotNull(sample.getRecorderDepartment().getId(), "Missing sample.recorderDepartment.id");
 
-		return sampleRepository.save(sample);
+		SampleVO result = sampleRepository.save(sample);
+
+		// Excluded samples with same hash (= unchanged - not need to save children)
+		if (result.hasNotFlag(ValueObjectFlags.SAME_HASH)) {
+			// Save measurements
+			saveMeasurements(result, configuration.enableSampleUniqueTag());
+
+			// Save images
+			saveImageAttachments(result);
+		}
+
+		return result;
 	}
 
 	@Override
@@ -177,28 +227,50 @@ public class SampleServiceImpl implements SampleService {
 
 	/* -- protected methods -- */
 
-	protected void saveMeasurements(List<SampleVO> result) {
-		result.stream()
-			// Excluded samples with same hash (= unchanged = not need to save children)
-			.filter(sample -> sample.hasNotFlag(ValueObjectFlags.SAME_HASH))
-			.forEach(sample -> {
-				// Make sure sample tag is unique
-				checkUniqueTag(sample);
+	protected void saveMeasurements(SampleVO sample, boolean enableSampleUniqueTag) {
+		// Make sure sample tag is unique
+		if (enableSampleUniqueTag) checkSampleUniqueTag(sample);
 
-				// Save measurements
-				if (sample.getMeasurementValues() != null) {
-					measurementDao.saveSampleMeasurementsMap(sample.getId(), sample.getMeasurementValues());
-				} else {
-					List<MeasurementVO> measurements = Beans.getList(sample.getMeasurements());
-					measurements.forEach(m -> fillDefaultProperties(sample, m, SampleMeasurement.class));
-					measurements = measurementDao.saveSampleMeasurements(sample.getId(), measurements);
-					sample.setMeasurements(measurements);
-				}
-			});
+		// Save measurements
+		if (sample.getMeasurementValues() != null) {
+			measurementDao.saveSampleMeasurementsMap(sample.getId(), sample.getMeasurementValues());
+		} else {
+			List<MeasurementVO> measurements = Beans.getList(sample.getMeasurements());
+			measurements.forEach(m -> fillDefaultProperties(sample, m, SampleMeasurement.class));
+			measurements = measurementDao.saveSampleMeasurements(sample.getId(), measurements);
+			sample.setMeasurements(measurements);
+		}
 	}
 
-	private void checkUniqueTag(SampleVO savedSample) {
-		if (!configuration.enableSampleUniqueTag()) return;
+
+	private void saveImageAttachments(SampleVO sample) {
+		List<Integer> existingIdsToRemove = imageAttachmentRepository.getIdsFromObject(sample.getId(), ObjectTypeEnum.SAMPLE.getId());
+		sample.getImages()
+			.stream()
+			.filter(Objects::nonNull)
+			.forEach(image -> {
+				boolean exists = existingIdsToRemove.remove(image.getId());
+
+				// Skip image when already saved, and no content
+				if (exists && image.getContent() == null) {
+					log.debug("Skipping save of an existing image (content not set)");
+				}
+				else {
+					// Fill defaults
+					fillDefaultProperties(image, sample);
+
+					// Save
+					imageAttachmentRepository.save(image);
+				}
+			});
+
+		// Remove
+		if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
+			imageAttachmentRepository.deleteAllById(existingIdsToRemove);
+		}
+	}
+
+	private void checkSampleUniqueTag(SampleVO savedSample) {
 		String savedSampleTagId = null;
 
 		// Get tag_id measurement
@@ -257,5 +329,21 @@ public class SampleServiceImpl implements SampleService {
 
 		sample.setParentId(parent.getId());
 		sample.setOperationId(parent.getOperationId());
+	}
+
+	protected void fillDefaultProperties(ImageAttachmentVO image, SampleVO parent) {
+		if (image == null) return;
+
+		// Set default recorder department
+		DataBeans.setDefaultRecorderDepartment(image, parent.getRecorderDepartment());
+
+		// Fill date
+		if (image.getDateTime() == null) {
+			image.setDateTime(parent.getSampleDate());
+		}
+
+		// Link to sample
+		image.setObjectId(parent.getId());
+		image.setObjectTypeId(ObjectTypeEnum.SAMPLE.getId());
 	}
 }

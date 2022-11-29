@@ -35,6 +35,7 @@ public interface IProgressionModel extends Serializable {
         String TOTAL = "total";
         String CURRENT = "current";
         String MESSAGE = "message";
+        String JOB_ID = "jobId";
     }
 
     /**
@@ -59,4 +60,10 @@ public interface IProgressionModel extends Serializable {
 
     void setMessage(String message);
     String getMessage();
+
+    void setJobId(Integer jobId);
+
+    Integer getJobId();
+
+    public boolean isCompleted();
 }

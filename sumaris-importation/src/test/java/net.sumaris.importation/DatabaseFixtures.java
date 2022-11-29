@@ -30,4 +30,7 @@ package net.sumaris.importation;
  */
 public class DatabaseFixtures {
 
+    public int getRecorderUserid() {
+        return 5; // Admin user
+    }
 }

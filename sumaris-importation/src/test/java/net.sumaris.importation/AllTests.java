@@ -25,6 +25,7 @@ package net.sumaris.importation;
  */
 
 import net.sumaris.importation.service.rdb.RdbLoaderWriteTest;
+import net.sumaris.importation.service.vessel.SiopVesselLoaderWriteTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -34,10 +35,11 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-		// DAO
+	// DAO
 
-		// Service
-		RdbLoaderWriteTest.class
+	// Service
+	RdbLoaderWriteTest.class,
+	SiopVesselLoaderWriteTest.class
 })
 public class AllTests {
 

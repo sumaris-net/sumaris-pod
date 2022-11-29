@@ -29,35 +29,15 @@ import java.util.Arrays;
 
 public enum EventTypeEnum implements Serializable {
 
-    DEBUG_DATA("DEBUG_DATA"),
+    DEBUG_DATA,
+    INBOX_MESSAGE,
+    EMAIL,
+    FEED,
+    JOB;
 
-    INBOX_MESSAGE("INBOX_MESSAGE"),
-
-    EMAIL("EMAIL"),
-
-    FEED("FEED")
-    ;
-
-
-    public static EventTypeEnum byLabel(@NonNull final String label) {
-        return Arrays.stream(values())
-                .filter(item -> label.equals(item.label))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown EventTypeEnum: " + label));
+    public static EventTypeEnum valueOfOrNull(final String level) {
+        return Arrays.stream(values()).filter(enumValue -> enumValue.name().equalsIgnoreCase(level))
+            .findFirst()
+            .orElse(null);
     }
-
-    private String label;
-
-    EventTypeEnum(String label) {
-        this.label = label;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
 }

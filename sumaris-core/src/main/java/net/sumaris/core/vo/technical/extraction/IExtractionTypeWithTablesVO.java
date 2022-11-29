@@ -22,7 +22,7 @@
 
 package net.sumaris.core.vo.technical.extraction;
 
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;

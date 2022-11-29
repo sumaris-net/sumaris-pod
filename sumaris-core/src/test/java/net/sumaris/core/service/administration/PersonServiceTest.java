@@ -31,6 +31,7 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -206,12 +207,14 @@ public class PersonServiceTest extends AbstractServiceTest{
     public void getAvatarByPubkey() {
 
         // Observer (has an avatar)
-        ImageAttachmentVO avatar = service.getAvatarByPubkey(fixtures.getObserverPubkey());
+        ImageAttachmentVO avatar = service.getAvatarByPubkey(fixtures.getObserverPubkey(), ImageAttachmentFetchOptions.WITH_CONTENT);
         Assert.assertNotNull(avatar);
+        Assert.assertNotNull(avatar.getContentType());
+        Assert.assertNotNull(avatar.getContent());
 
         // Admin (no avatar)
         try {
-            service.getAvatarByPubkey(fixtures.getAdminPubkey());
+            service.getAvatarByPubkey(fixtures.getAdminPubkey(), ImageAttachmentFetchOptions.WITH_CONTENT);
             Assert.fail("should throw exception");
         } catch (Exception e) {
             Assert.assertNotNull(e);

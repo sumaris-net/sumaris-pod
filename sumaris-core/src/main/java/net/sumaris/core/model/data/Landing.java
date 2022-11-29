@@ -23,7 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -39,7 +39,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "landing")
@@ -61,6 +64,8 @@ public class Landing implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LANDING_SEQ")
     @SequenceGenerator(name = "LANDING_SEQ", sequenceName="LANDING_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)

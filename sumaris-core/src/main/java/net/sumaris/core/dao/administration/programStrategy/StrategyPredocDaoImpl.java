@@ -29,7 +29,7 @@ import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.ReferentialExternalDao;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;

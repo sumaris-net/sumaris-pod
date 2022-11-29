@@ -51,7 +51,7 @@ import java.util.Properties;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
-@TestPropertySource(locations= "classpath:sumaris-core-importation-test.properties")
+@TestPropertySource(locations= "classpath:application-test-hsqldb.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
 public abstract class AbstractServiceTest {

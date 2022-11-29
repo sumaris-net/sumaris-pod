@@ -111,6 +111,9 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.weightLengthConversion");
         I18n.n("sumaris.persistence.table.roundWeightConversion");
         I18n.n("sumaris.persistence.table.unitConversion");
+        // Job
+        I18n.n("sumaris.persistence.table.processingType");
+        I18n.n("sumaris.persistence.table.processingStatus");
     }
 
     public static final List<Class<? extends IReferentialEntity>> ROOT_CLASSES = ImmutableList.of(
@@ -167,7 +170,9 @@ public class ReferentialEntities {
                 // Technical
                 SystemVersion.class,
                 OriginItemType.class,
-                ProcessingFrequency.class
+                ProcessingFrequency.class,
+                ProcessingType.class,
+                ProcessingStatus.class
         );
 
     public static final List<Class<? extends IReferentialEntity>> SUB_CLASSES = ImmutableList.of(

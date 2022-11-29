@@ -22,11 +22,14 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.ModelVocabularies;
 import net.sumaris.core.model.administration.programStrategy.ReferenceTaxonStrategy;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import org.hibernate.annotations.Cascade;
@@ -39,23 +42,24 @@ import java.util.List;
  * Un référence stable (un identifiant unique) de taxon réel.
  *
  */
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "reference_taxon")
+@OntologyEntity(vocab = ModelVocabularies.TAXON)
 public class ReferenceTaxon implements IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "REFERENCE_TAXON_SEQ")
     @SequenceGenerator(name = "REFERENCE_TAXON_SEQ", sequenceName="REFERENCE_TAXON_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
-
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonName.class, mappedBy = TaxonName.Fields.REFERENCE_TAXON)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)

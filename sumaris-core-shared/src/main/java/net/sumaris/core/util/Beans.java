@@ -29,7 +29,7 @@ import com.google.common.collect.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -457,6 +457,12 @@ public class Beans {
     public static <T> T clone(T source, Class<T> sourceClass) {
         T target = newInstance(sourceClass);
         copyProperties(source, target);
+        return target;
+    }
+
+    public static <T> T clone(T source, Class<T> sourceClass, String... excludedPropertyNames) {
+        T target = newInstance(sourceClass);
+        copyProperties(source, target, excludedPropertyNames);
         return target;
     }
 

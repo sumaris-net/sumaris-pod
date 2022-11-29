@@ -22,7 +22,7 @@ package net.sumaris.core.model.administration.user;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
@@ -39,8 +39,10 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "person")
@@ -66,7 +68,8 @@ public class Person implements IReferentialWithStatusEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")
     @SequenceGenerator(name = "PERSON_SEQ", sequenceName="PERSON_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -88,7 +91,7 @@ public class Person implements IReferentialWithStatusEntity<Integer> {
     private String lastName;
 
     @Column(name="email", nullable = false, unique = true)
-    @ToString.Include
+    
     private String email;
 
     @Column(name="email_md5", unique = true)

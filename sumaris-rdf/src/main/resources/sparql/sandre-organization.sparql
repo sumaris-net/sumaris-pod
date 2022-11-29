@@ -1,0 +1,135 @@
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX or: <http://openresearch.org/vocab/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX inc: <http://id.eaufrance.fr/ddd/INC/1.0/>
+PREFIX org: <http://www.w3.org/ns/org#>
+PREFIX com: <http://id.eaufrance.fr/ddd/COM/4/>
+PREFIX s: <http://schema.org/>
+PREFIX sirene: <https://sireneld.io/vocab/sirene#>
+PREFIX shr: <${shr}>
+PREFIX tscb: <${tscb}>
+PREFIX tscbItem: <${tscb}TranscribingItem#>
+CONSTRUCT {
+  ?sub a foaf:Organization ;
+    a org:Organization ;
+    org:identifier ?identifier ;
+    dc:identifier ?identifier ;
+    rdfs:label ?label ;
+    dc:title ?label ;
+    dc:created ?created ;
+    dcterms:created ?created ;
+    dc:modified ?modified ;
+    dcterms:modified ?modified ;
+    owl:sameAs ?match ;
+    rdfs:seeAlso ?seeAlso ;
+    foaf:page ?webSite ;
+    a ?uniteLegale ;
+    a ?formalOrganization ;
+    a ?organizationalUnit ;
+    a ?organizationalCollaboration ;
+    org:hasprimarySite _:site ;
+    ?hasRegisteredSite _:site ;
+    shr:validityStatus ?validityStatusUri ;
+    shr:status ?statusUri .
+  _:site a org:Site ;
+    a ?etablissement ;
+    org:siteAddress _:address ;
+    a ?siege ;
+    sirene:siret ?siret .
+  ?sub shr:transcribingItem _:edmo .
+    _:edmo a tscb:TranscribingItem ;
+  	tscbItem:type ?edmoTypeUri ;
+    rdfs:label ?edmo .
+  _:address a s:PostalAddress ;
+      s:streetAddress ?streetAddress ;
+      s:postalCode ?postalCode ;
+      s:addressLocality ?city ;
+      s:addressCountry ?addressCountry
+}
+WHERE {
+  ?sub rdf:type inc:Interlocuteur ;
+       inc:CdInterlocuteur ?identifier ;
+       inc:DateCreInterlocuteur ?created ;
+       inc:DateMAJInterlocuteur ?modified ;
+       inc:StInterlocuteur ?validityStatusUri ;
+       inc:EtatInterlocuteur ?statusUri ;
+       inc:CdAlternatifInt _:simm .
+  _:simm inc:OrCdAlternInterlocuteur "SIMM" .
+  OPTIONAL { ?sub inc:WebInterlocuteur ?webSite }
+  OPTIONAL { ?sub rdfs:label ?label }
+  OPTIONAL { ?sub dcterms:modified ?modifiedDateTime }
+  OPTIONAL {
+    ?sub inc:AdresseInterlocuteur ?bnAddress .
+    OPTIONAL { ?bnAddress inc:Compl2Adresse ?addressCompl2 . }
+    OPTIONAL { ?bnAddress inc:Compl3Adresse ?addressCompl3 . }
+    OPTIONAL { ?bnAddress inc:NumLbVoieAdresse ?addressRoad . }
+    OPTIONAL { ?bnAddress inc:LgAcheAdresse ?postalCodeAndCity . }
+    BIND(
+      REPLACE(REPLACE(
+          CONCAT(?addressCompl2, '|', ?addressCompl3, '|', ?addressRoad),
+          '^[|]+', '', 'i'),
+        '[|]+', ', ', 'i')
+      as ?streetAddress
+    )
+    BIND(
+      REPLACE(?postalCodeAndCity, '[A-Z ]+', '', 'i') as ?postalCode
+    )
+    BIND(
+      REPLACE(?postalCodeAndCity, '^[0-9 ]+', '', 'i') as ?city
+    )
+    BIND(
+      REPLACE(REPLACE(
+          CONCAT(?streetAddress, '|', ?postalCodeAndCity),
+          '^[|]+', '', 'i'),
+        '[|]+', ', ', 'i')
+      as ?siteAddress
+    )
+  }
+  OPTIONAL {
+    ?sub inc:PaysInterlocuteur|inc:Pays _:country .
+    _:country com:NomPays ?addressCountry .
+  }
+  OPTIONAL {
+    ?sub skos:exactMatch|owl:sameAs ?match .
+  }
+  OPTIONAL {
+    ?sub rdf:seeAlso|rdfs:seeAlso|foaf:page ?seeAlso .
+  }
+  OPTIONAL {
+    ?sub inc:Etablissement ?bnEtab .
+    ?bnEtab inc:NomEtab ?siteName .
+    BIND(sirene:UniteLegale as ?uniteLegale)
+    BIND(sirene:Etablissement as ?etablissement)
+    OPTIONAL {
+      ?bnEtab sirene:siret|inc:CdSIRETEtab ?siret .
+    }
+    OPTIONAL {
+      ?bnEtab inc:EtabSiege ?isMain .
+      FILTER(?isMain="1")
+      BIND(org:FormalOrganization as ?formalOrganization)
+      BIND(org:hasRegisteredSite as ?hasRegisteredSite)
+      BIND(sirene:Siege as ?siege)
+	}
+    OPTIONAL {
+      ?bnEtab inc:EtabSiege ?isMain .
+      FILTER(?isMain="0")
+      BIND(org:OrganizationalUnit as ?organizationalUnit)
+	}
+  }
+  OPTIONAL {
+    ?sub inc:Structure ?bnStructure .
+    BIND(org:OrganizationalCollaboration as ?organizationalCollaboration)
+  }
+  OPTIONAL {
+    ?sub inc:CdAlternatifInt _:edmoNode .
+      _:edmoNode inc:OrCdAlternInterlocuteur "EDMO" ;
+        inc:CdAlternInterlocuteur ?edmo .
+    BIND( URI("http://id.milieumarinfrance.fr/data/tscb/TranscribingItemType/EDMO") as ?edmoTypeUri )
+  }
+}

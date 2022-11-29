@@ -23,9 +23,9 @@
 package net.sumaris.rdf.core.model.adapter.schema;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.ITreeNodeEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;

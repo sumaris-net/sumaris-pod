@@ -22,8 +22,8 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;

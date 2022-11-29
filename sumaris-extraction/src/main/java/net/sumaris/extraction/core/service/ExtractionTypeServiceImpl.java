@@ -56,6 +56,7 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -177,6 +178,9 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
         if (enableProduct && (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT)) {
             types.addAll(findProductsByFilter(filter));
         }
+
+        sortAttribute = Optional.ofNullable(sortAttribute)
+                .orElse(ExtractionTypeVO.Fields.FORMAT);
 
         return types.stream()
             .filter(ExtractionTypeFilterVO.toPredicate(filter))

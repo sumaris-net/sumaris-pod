@@ -22,6 +22,7 @@ package net.sumaris.importation;
  * #L%
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.sumaris.core.config.SumarisConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,13 +30,15 @@ import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfigura
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+@org.springframework.boot.test.context.TestConfiguration
 public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-importation";
     public static final String DATASOURCE_PLATFORM = "hsqldb";
-    public static final String CONFIG_FILE_PREFIX = MODULE_NAME + "-test";
+    public static final String CONFIG_FILE_PREFIX = "application-test";
     public static final String CONFIG_FILE_NAME = CONFIG_FILE_PREFIX + ".properties";
     public static final String I18N_BUNDLE_NAME = MODULE_NAME + "-i18n";
 
@@ -47,5 +50,17 @@ public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
     @Override
     protected String getI18nBundleName() {
         return I18N_BUNDLE_NAME;
+    }
+
+    @Bean
+    public DatabaseFixtures fixtures() {
+        return new DatabaseFixtures();
+    }
+
+    @Bean
+    public static ObjectMapper jacksonObjectMapper() {
+        return new Jackson2ObjectMapperBuilder()
+            .indentOutput(true) // For test only
+            .build();
     }
 }

@@ -29,14 +29,15 @@ public interface ModelVocabularies {
 
 
     // Shared (e.g. Status, ValidityStatus, Transcribing)
-    String COMMON = "shr";
+    String SHARED = "shr";
     String TRANSCRIBING = "tscb";
 
     // Functional referential
+    String TAXON = "taxon";
 
     // Functional data
 
     // Default vocab
-    String DEFAULT = COMMON;
+    String DEFAULT = SHARED;
 
 }

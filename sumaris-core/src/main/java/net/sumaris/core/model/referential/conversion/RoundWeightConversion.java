@@ -22,7 +22,8 @@
 
 package net.sumaris.core.model.referential.conversion;
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
@@ -51,8 +52,9 @@ import java.util.Date;
  * FAO (1998): Guidelines for the routine collection of capture fishery data. FAO Fish. Tech. Pap, 382: 113 p.
  * </p>
  */
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "round_weight_conversion")
@@ -90,7 +92,8 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity<Integ
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ROUND_WEIGHT_CONVERSION_SEQ")
     @SequenceGenerator(name = "ROUND_WEIGHT_CONVERSION_SEQ", sequenceName="ROUND_WEIGHT_CONVERSION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -110,7 +113,7 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity<Integ
     private OriginItemType originItemType;
 
     @Column(name = "conversion_coefficient", nullable = false)
-    @ToString.Include
+
     private Double conversionCoefficient;
 
     private String description;
@@ -120,12 +123,12 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity<Integ
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "taxon_group_fk", nullable = false)
-    @ToString.Include
+
     private TaxonGroup taxonGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_fk", nullable = false)
-    @ToString.Include
+
     private Location location;
 
     /**
@@ -133,7 +136,7 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity<Integ
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "preserving_fk", nullable = false)
-    @ToString.Include
+
     private QualitativeValue preserving;
 
     /**
@@ -141,11 +144,11 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity<Integ
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dressing_fk", nullable = false)
-    @ToString.Include
+
     private QualitativeValue dressing;
 
     @Column(name = "start_date", nullable = false)
-    @ToString.Include
+
     private Date startDate;
 
     @Column(name = "end_date")

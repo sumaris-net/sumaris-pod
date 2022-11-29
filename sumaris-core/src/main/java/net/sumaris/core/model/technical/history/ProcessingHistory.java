@@ -22,9 +22,13 @@ package net.sumaris.core.model.technical.history;
  * #L%
  */
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingType;
@@ -41,15 +45,21 @@ import java.util.Date;
  *
  *  L’exécution des traitements en erreur peuvent également être tracée.
  */
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "processing_history")
-public class ProcessingHistory implements IEntity<Integer> {
+@Table(name = "processing_history",
+    indexes = @Index(name = "processing_history_address_idx", columnList = "data_transfert_address")
+)
+@Comment("Liste des traitements lancés")
+public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_HISTORY_SEQ")
     @SequenceGenerator(name = "PROCESSING_HISTORY_SEQ", sequenceName="PROCESSING_HISTORY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     /**
@@ -61,7 +71,8 @@ public class ProcessingHistory implements IEntity<Integer> {
     private String name;
 
     @Column(name = "processing_date", nullable = false)
-    private Date date;
+    @Comment("Date d'execution du traitement. Généralement, la date de fin du traitement, renseigné via sysdate.")
+    private Date processingDate;
 
     /**
      * S'il s'agit d'un traitement manipulant des données (importation ou exportation) :
@@ -90,18 +101,21 @@ public class ProcessingHistory implements IEntity<Integer> {
      * Configuration du traitement, par exemple les paramètres utilisés dans la ligne de commande.
      */
     @Column(name="configuration")
+    @Lob()
     private String configuration;
 
     /**
      * La configuration, sous forme XML (utilisé par les traitements CQ automatique)
      */
     @Column(name="xml_configuration", length = 3000)
+    @Lob()
     private String xmlConfiguration;
 
     /**
      * Use to store execution reports
      */
     @Column(name="xml_report", length = 3000)
+    @Lob()
     private String xmlReport;
 
     /* -- quality insurance -- */
@@ -110,6 +124,7 @@ public class ProcessingHistory implements IEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
+    /* -- type and status -- */
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ProcessingType.class)
     @JoinColumn(name = "processing_type_fk", nullable = false)
@@ -120,7 +135,6 @@ public class ProcessingHistory implements IEntity<Integer> {
     private ProcessingStatus processingStatus;
 
     /* -- child entities -- */
-
 
 
 }

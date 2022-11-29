@@ -516,12 +516,21 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * <p>getDbAttachmentDirectory.</p>
+     * <p>getMeasFileDirectory.</p>
      *
      * @return a {@link File} object.
      */
-    public File getDbAttachmentDirectory() {
-        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.DB_ATTACHMENT_DIRECTORY.getKey());
+    public File getMeasFileDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.MEASUREMENT_FILE_DIRECTORY.getKey());
+    }
+
+    /**
+     * <p>getImageAttachmentDirectory.</p>
+     *
+     * @return a {@link File} object.
+     */
+    public File getImageAttachmentDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.IMAGE_ATTACHMENT_DIRECTORY.getKey());
     }
 
 
@@ -1034,6 +1043,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public boolean enableActiveMQPool() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ACTIVEMQ_POOL_ENABLED.getKey());
+    }
+
+    public boolean enableDataImages() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DATA_IMAGES_ENABLE.getKey());
     }
 
     /* -- protected methods -- */

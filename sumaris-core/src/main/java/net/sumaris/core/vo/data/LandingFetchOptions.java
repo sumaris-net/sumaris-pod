@@ -26,6 +26,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 
 @Data
 @AllArgsConstructor
@@ -73,4 +74,6 @@ public class LandingFetchOptions implements IDataFetchOptions {
     @Builder.Default
     private boolean withTripExpectedSales = false;
 
+    @Builder.Default
+    private SampleFetchOptions sampleFetchOptions = null;
 }

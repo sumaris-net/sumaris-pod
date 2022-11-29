@@ -1,0 +1,187 @@
+:root {
+    /* Bootstrap v4
+    --primary: #315da8;
+    --secondary: #9DC53A;
+    --success: #198754;
+    --light: #37B9C6;
+    --dark: #8A8D91;
+    --font-family-sans-serif: "Source Sans Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"
+    --font-family-monospace: "Source Sans Pro", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --body-font-family: var(--font-family-sans-serif);
+    */
+
+    /* Specific au theme */
+    --blue: #315da8;
+    --indigo: #6610f2;
+    --purple: #6f42c1;
+    --pink: #e83e8c;
+    --red: #dc3545;
+    --orange: #fd7e14;
+    --yellow: #ffc107;
+    --green: #9dc53a;
+    --teal: #20c997;
+    --cyan: #37b9c6;
+    --white: #fff;
+    --gray: #585857;
+    --gray-dark: #343a40;
+    --gray-light: #8a8d91;
+    --black: #000;
+
+    /* Bootstrap v5+ */
+    --bs-primary: #144391;
+    --bs-secondary: #75C4FD;
+    --bs-success: #10dc60;
+    --bs-info: #37b9c6;
+    --bs-warning: #ffce00;
+    --bs-danger: #f53d3d;
+    --bs-light: #f4f5f8;
+    --bs-dark: #222428;
+    --bs-primary-rgb: 20, 67, 145;
+    --bs-secondary-rgb: 117, 196, 253;
+    --bs-success-rgb: 16, 220, 96;
+    --bs-info-rgb: 55, 185, 198;
+    --bs-warning-rgb: 255, 206, 0;
+    --bs-danger-rgb: 245, 61, 61;
+    --bs-light-rgb: 244, 245, 248;
+    --bs-dark-rgb: 34, 36, 40;
+    /*--bs-font-sans-serif: "Source Sans Pro",-apple-system,"BlinkMacSystemFont","Segoe UI","Roboto","Helvetica Neue","Arial","Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";*/
+    /*--bs-font-monospace: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;*/
+    /*--bs-body-font-family: var(--bs-font-sans-serif);*/
+    /*--bs-body-font-size: 1rem;*/
+    /*--bs-body-font-weight: 400;*/
+    /*--bs-body-line-height: 1.5;*/
+    --bs-body-bg: #fff;
+
+    /* App variables */
+    --menu-height: 70px;
+}
+html {
+    font-family: sans-serif;
+    line-height: 1.15;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+body {
+    /*font-family: var(--bs-body-font-family);*/
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #000;
+    text-align: left;
+    background-color: var(--bs-body-bg);
+}
+a {
+    color: var(--bs-primary);
+    text-decoration: none;
+    background-color: transparent;
+}
+a:hover {
+    color: var(--bs-primary);
+    text-decoration: underline;
+}
+a.btn:hover {
+    text-decoration: none !important;
+}
+
+.title-header {
+    text-align: center;
+    padding: 2.5rem 0;
+    background: var(--blue);
+    text-shadow: 0 0 0.4rem rgb(0 0 0 / 80%);
+    box-sizing: border-box;
+
+}
+.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+}
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+h1 {
+    color: #fff;
+    background: var(--blue);
+}
+h2 {
+    margin-top: 2rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--blue);
+}
+
+/* --  menu-- */
+
+
+/* buttons */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+.btn-primary:hover {
+    background-color: #2f9da8;
+    border-color: #2c949e;
+}
+.btn-secondary {
+    background-color: var(--bs-secondary);
+}
+.btn-secondary:hover {
+    background-color: #284d8a;
+    border-color: #254781;
+}
+
+/* -- Navbar (top header) --*/
+
+.navbar {
+    background-color: var(--white);
+    height: var(--menu-height, 70px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    min-width: 320px;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 50%);
+}
+a.navbar-brand:hover {
+    text-decoration: none;
+}
+.navbar,
+.navbar-brand,
+.nav-link {
+    color: var(--bs-dark)
+}
+.nav-link:hover,
+.nav-item a:hover{
+    text-decoration: none;
+}
+.menu-title {
+    padding: 15px 40px;
+    font-size: .9375rem;
+    line-height: 1.05rem;
+    color: #585857;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    vertical-align: middle;
+}
+
+/* breadcrumb */
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+.breadcrumb-item+.breadcrumb-item {
+    padding-left: 0.5rem;
+}
+.breadcrumb-item {
+    display: flex;
+}
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+    background-color: unset !important;
+    border-radius: 0.25rem;
+}

@@ -23,7 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -48,8 +48,9 @@ import java.util.*;
                 @FetchProfile.FetchOverride(association = "recorderDepartment", entity = ObservedLocation.class, mode = FetchMode.JOIN)
             })
 })
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
 @FieldNameConstants
 @Entity
 @Table(name="observed_location")
@@ -70,7 +71,8 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_SEQ")
     @SequenceGenerator(name = "OBSERVED_LOCATION_SEQ", sequenceName="OBSERVED_LOCATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -112,7 +114,7 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     private QualityFlag qualityFlag;
 
     @Column(name = "start_date_time", nullable = false)
-    @ToString.Include
+    
     private Date startDateTime;
 
     @Column(name = "end_date_time", nullable = false)
@@ -120,7 +122,7 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
 
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
     @JoinColumn(name = "location_fk", nullable = false)
-    @ToString.Include
+    
     private Location location;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)

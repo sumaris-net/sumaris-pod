@@ -25,7 +25,7 @@ package net.sumaris.server.http.security;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.server.security.IAuthService;
+import net.sumaris.server.security.ISecurityContext;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -36,7 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-public interface AuthService extends IAuthService<PersonVO> {
+public interface AuthService extends ISecurityContext<PersonVO> {
 
     String AUTHORITY_PREFIX = "ROLE_";
 
@@ -71,16 +71,14 @@ public interface AuthService extends IAuthService<PersonVO> {
 
     AuthTokenVO createNewChallenge();
 
-    @Transactional(readOnly = true)
     Optional<PersonVO> getAuthenticatedUser();
 
-    @Transactional(readOnly = true)
     Optional<Integer> getAuthenticatedUserId();
 
-    @Transactional
+    Optional<String> getAuthenticatedUsername();
+
     UserDetails authenticateByToken(String token) throws AuthenticationException;
 
-    @Transactional
     UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

@@ -25,12 +25,20 @@ package net.sumaris.core.service.referential;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class LocationServiceReadTest extends AbstractServiceTest {
 
@@ -49,6 +57,26 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 		// Check label with a position inside the Mediterranean sea
 		label = service.getLocationLabelByLatLong(42.27f, 5.4f);
 		assertEquals("M24C2", label);
+	}
+
+	@Test
+	public void findByFilterName() {
+		LocationVO existingLocation = service.get(fixtures.getLocationPortId(0));
+		Assume.assumeNotNull(existingLocation);
+		Assume.assumeNotNull(existingLocation.getName());
+		Assume.assumeTrue(existingLocation.getStatusId() == StatusEnum.ENABLE.getId());
+
+		LocationFilterVO filter = LocationFilterVO.builder()
+			.statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
+			.levelIds(new Integer[]{LocationLevelEnum.HARBOUR.getId()})
+			.name(existingLocation.getName())
+			.build();
+
+		List<LocationVO> matches = service.findByFilter(filter);
+		assertNotNull(matches);
+		assertEquals(1, matches.size());
+		LocationVO match = matches.get(0);
+		assertEquals(existingLocation.getId(), match.getId());
 	}
 
 }

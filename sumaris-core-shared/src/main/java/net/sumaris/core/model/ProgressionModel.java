@@ -46,6 +46,8 @@ public class ProgressionModel implements IProgressionModel {
     private double rate = DEFAULT_RATE;
     private String message;
 
+    private Integer jobId;
+
     private transient PropertyChangeSupport pcs;
 
     public ProgressionModel() {
@@ -119,6 +121,18 @@ public class ProgressionModel implements IProgressionModel {
         String oldMessage = getMessage();
         this.message = message;
         firePropertyChange(Fields.MESSAGE, oldMessage, message);
+    }
+
+    public void setJobId(Integer jobId) {
+        this.jobId = jobId;
+    }
+
+    public Integer getJobId() {
+        return jobId;
+    }
+
+    public boolean isCompleted() {
+        return total > 0 && total == current;
     }
 
     /* PropertyChangeSupport methods */

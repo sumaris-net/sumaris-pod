@@ -625,8 +625,6 @@
                               STATION_NUMBER="999" TRIP_CODE="62627" VESSEL_FLAG_COUNTRY="TST" YEAR="2012"/>
 
 
-
-
     <P01_RDB_STATION ID="100" AGGREGATION_LEVEL="T" AREA="99.9.c" CATCH_REGISTRATION="LAN" DATE="2012-03-20"
                        GEAR_TYPE="XXX" LANDING_COUNTRY="TST" EU_METIER_LEVEL5="UNK_MZZ" EU_METIER_LEVEL6="UNK_MZZ_0_0_0"
                        PROJECT="TEST_PROJECT" SAMPLING_TYPE="M" SPECIES_REGISTRATION="PAR" STATION_NUMBER="999"
@@ -651,6 +649,31 @@
     <P01_RDB_TRIP ID="200" HARBOUR="GBLOW" LANDING_COUNTRY="TST" PROJECT="TEST_PROJECT" SAMPLING_COUNTRY="TST"
                     SAMPLING_TYPE="M" TRIP_CODE="62627" VESSEL_FLAG_COUNTRY="TST" VESSEL_LENGTH="9" VESSEL_POWER="164"
                     VESSEL_SIZE="5" VESSEL_TYPE="4" YEAR="2012"/>
+
+
+    <PROCESSING_HISTORY ID="1" NAME="Extraction RDB"
+                        DATA_TRANSFERT_ADDRESS="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
+                        PROCESSING_DATE="2022-11-03" UPDATE_DATE="2022-11-03"
+                        PROCESSING_TYPE_FK="2" PROCESSING_STATUS_FK="1"/>
+    <PROCESSING_HISTORY ID="2" NAME="Importation des navires"
+                        DATA_TRANSFERT_ADDRESS="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB" DATA_TRANSFERT_DATE="2022-11-11 09:41:00.000"
+                        PROCESSING_DATE="2022-11-11"  UPDATE_DATE="2022-11-11 09:41:00.000"
+                        PROCESSING_TYPE_FK="3" PROCESSING_STATUS_FK="2"/>
+
+    <USER_EVENT ID="1" CONTENT="{&quot;id&quot;: 1, &quot;status&quot;: &quot;ERROR&quot;, &quot;type&quot;: &quot;SUMARIS_EXTRACTION&quot;, &quot;name&quot;: &quot;Extraction RDB&quot;}"
+                EVENT_TYPE="JOB"
+                EVENT_LEVEL="ERROR"
+                SOURCE="job:1"
+                ISSUER="SYSTEM"
+                RECIPIENT="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
+                UPDATE_DATE="2022-11-03" CREATION_DATE="2022-11-03"/>
+    <USER_EVENT ID="2" CONTENT="{&quot;id&quot;: 2, &quot;status&quot;: &quot;SUCCESS&quot;, &quot;type&quot;: &quot;SIOP_VESSELS_IMPORTATION&quot;, &quot;name&quot;: &quot;Import des navires&quot;}"
+                EVENT_TYPE="JOB"
+                EVENT_LEVEL="INFO"
+                SOURCE="job:2"
+                ISSUER="SYSTEM"
+                RECIPIENT="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
+                CREATION_DATE="2022-11-11 02:00:00.000" UPDATE_DATE="2022-11-11 09:41:00.000"/>
 
 
 </dataset>

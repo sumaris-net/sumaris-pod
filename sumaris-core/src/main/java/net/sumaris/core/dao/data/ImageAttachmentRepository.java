@@ -22,14 +22,25 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import net.sumaris.core.vo.filter.IDataFilter;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 /**
  * @author peck7 on 31/08/2020.
  */
-public interface ImageAttachmentRepository extends DataRepository<ImageAttachment, ImageAttachmentVO, IDataFilter, IFetchOptions> {
+public interface ImageAttachmentRepository
+        extends DataRepository<ImageAttachment, ImageAttachmentVO, ImageAttachmentFilterVO, ImageAttachmentFetchOptions>,
+        ImageAttachmentSpecifications {
 
+    @Query("select id from ImageAttachment where objectId=:objectId and objectType.id=:objectTypeId")
+    List<Integer> getIdsFromObject(@Param("objectId") int objectId, @Param("objectTypeId") int objectTypeId);
+
+    @Query("from ImageAttachment where objectId=:objectId and objectType.id=:objectTypeId")
+    List<ImageAttachment> findAllByObject(@Param("objectId") int objectId, @Param("objectTypeId") int objectTypeId);
 }

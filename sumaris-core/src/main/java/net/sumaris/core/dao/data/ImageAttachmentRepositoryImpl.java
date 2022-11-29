@@ -24,33 +24,51 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.ObjectType;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import net.sumaris.core.vo.filter.IDataFilter;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 31/08/2020.
  */
 @Slf4j
 public class ImageAttachmentRepositoryImpl
-    extends DataRepositoryImpl<ImageAttachment, ImageAttachmentVO, IDataFilter, DataFetchOptions> {
+    extends DataRepositoryImpl<ImageAttachment, ImageAttachmentVO, ImageAttachmentFilterVO, ImageAttachmentFetchOptions>
+    implements ImageAttachmentSpecifications {
 
     protected ImageAttachmentRepositoryImpl(EntityManager entityManager) {
         super(ImageAttachment.class, ImageAttachmentVO.class, entityManager);
-        setLockForUpdate(true);
+        setLockForUpdate(false);
+        setCheckUpdateDate(false);
     }
 
     @Override
     public ImageAttachmentVO save(ImageAttachmentVO source) {
         Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getContent());
         Preconditions.checkNotNull(source.getContentType());
         Preconditions.checkNotNull(source.getDateTime());
         Preconditions.checkNotNull(source.getRecorderDepartment());
         Preconditions.checkNotNull(source.getRecorderDepartment().getId());
+        Preconditions.checkArgument(StringUtils.isNotBlank(source.getPath()) || source.getContent() != null);
+        Preconditions.checkArgument(
+                (source.getObjectId() == null && source.getObjectTypeId() == null)
+                || (source.getObjectId() != null && source.getObjectTypeId() != null));
 
         return super.save(source);
     }
@@ -60,6 +78,44 @@ public class ImageAttachmentRepositoryImpl
         super.toEntity(source, target, copyIfNull);
         // Recorder person
         DataDaos.copyRecorderPerson(getEntityManager(), source, target, copyIfNull);
+
+        // Object type
+        if (source.getObjectTypeId() != null || copyIfNull) {
+            if (source.getObjectTypeId() == null) {
+                target.setObjectType(null);
+            }
+            else {
+                target.setObjectType(getReference(ObjectType.class, source.getObjectTypeId()));
+            }
+        }
+    }
+
+    @Override
+    public void toVO(ImageAttachment source, ImageAttachmentVO target, ImageAttachmentFetchOptions fetchOptions, boolean copyIfNull) {
+
+        Beans.copyProperties(source, target, ImageAttachment.Fields.CONTENT /*Avoid to fetch Lob properties*/);
+
+        // Quality flag
+        target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Recorder department
+        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) {
+            DepartmentVO recorderDepartment = departmentRepository.toVO(source.getRecorderDepartment());
+            target.setRecorderDepartment(recorderDepartment);
+        }
+
+        // Object type
+        if (source.getObjectType() != null) {
+            target.setObjectTypeId(source.getObjectType().getId());
+        }
+        else {
+            target.setObjectTypeId(null);
+        }
+
+        // Fetch content only not a file image (no path) and when need to be fetched (e.g. from ImageRestController)
+        if (target.getPath() == null && fetchOptions != null && fetchOptions.isWithContent()) {
+            target.setContent(source.getContent());
+        }
     }
 
     @Override
@@ -75,9 +131,17 @@ public class ImageAttachmentRepositoryImpl
     @Override
     protected void onAfterSaveEntity(ImageAttachmentVO vo, ImageAttachment savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
+
         if (isNew) {
             vo.setCreationDate(savedEntity.getCreationDate());
         }
     }
 
+    @Override
+    protected Specification<ImageAttachment> toSpecification(ImageAttachmentFilterVO filter, ImageAttachmentFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
+                .and(hasRecorderPersonId(filter.getRecorderPersonId()))
+                .and(hasObjectId(filter.getObjectId()))
+                .and(hasObjectTypeId(filter.getObjectTypeId()));
+    }
 }

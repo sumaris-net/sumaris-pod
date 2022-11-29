@@ -22,7 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -38,8 +38,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
 @FieldNameConstants
 @Entity
 @Table(name = "vessel")
@@ -51,7 +52,8 @@ public class Vessel implements IRootDataEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_SEQ")
     @SequenceGenerator(name = "VESSEL_SEQ", sequenceName="VESSEL_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -94,7 +96,7 @@ public class Vessel implements IRootDataEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselType.class)
     @JoinColumn(name="vessel_type_fk", nullable = false)
-    @ToString.Include
+    
     private VesselType vesselType;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -111,7 +113,7 @@ public class Vessel implements IRootDataEntity<Integer> {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselRegistrationPeriod.class, mappedBy = VesselRegistrationPeriod.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    @ToString.Include
+    
     private List<VesselRegistrationPeriod> vesselRegistrationPeriods = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselOwnerPeriod.class, mappedBy = VesselOwnerPeriod.Fields.VESSEL)

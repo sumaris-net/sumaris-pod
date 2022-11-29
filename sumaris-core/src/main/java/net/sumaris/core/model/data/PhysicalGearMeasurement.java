@@ -22,7 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
@@ -34,7 +34,8 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @FieldNameConstants
 @Entity
 @Table(name="physical_gear_measurement")

@@ -214,9 +214,10 @@ public class VesselServiceImpl implements VesselService {
         Preconditions.checkNotNull(source.getVesselType(), "Missing vesselId or vesselTypeId");
 
         if (source.getVesselFeatures() != null) {
-            Preconditions.checkNotNull(source.getVesselFeatures().getBasePortLocation().getId(), "Missing basePortLocation.id");
-            Preconditions.checkNotNull(source.getVesselFeatures().getStartDate(), "Missing start date");
-            Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselFeatures().getExteriorMarking()), "Missing exterior marking");
+			Preconditions.checkNotNull(source.getVesselFeatures().getBasePortLocation(), "Missing features basePortLocation");
+			Preconditions.checkNotNull(source.getVesselFeatures().getBasePortLocation().getId(), "Missing features basePortLocation.id");
+            Preconditions.checkNotNull(source.getVesselFeatures().getStartDate(), "Missing features start date");
+            Preconditions.checkArgument(StringUtils.isNotBlank(source.getVesselFeatures().getExteriorMarking()), "Missing features exterior marking");
         }
 
         if (source.getVesselRegistrationPeriod() != null) {

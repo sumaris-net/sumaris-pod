@@ -25,6 +25,7 @@ package net.sumaris.server.config;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.server.http.filter.CORSFilter;
 import net.sumaris.server.http.rest.RestPaths;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -47,13 +48,20 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
     @Bean
     public WebMvcConfigurer configureStaticPages() {
         return new WebMvcConfigurer() {
+
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
 
+                // 404 error
+                registry.addViewController("/404")
+                    .setStatusCode(HttpStatus.NOT_FOUND)
+                    .setViewName("forward:/api/404.html");
+
                 // Error path
                 registry.addViewController("/error")
-                        .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .setViewName("forward:/core/error.html");
+                    .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .setViewName("forward:/api/error.html");
+
                 registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
                 // API path
@@ -62,7 +70,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
                     registry.addRedirectViewController("/", API_PATH);
                     registry.addRedirectViewController(API_PATH + "/", API_PATH);
                     registry.addViewController(API_PATH)
-                            .setViewName("forward:/core/index.html");
+                            .setViewName("forward:/api/index.html");
                 }
 
                 // GraphiQL path
@@ -97,15 +105,17 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
 
             @Override
             public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(false);
+                configurer.setUseSuffixPatternMatch(true);
             }
         };
     }
 
     @Bean(name = {"applicationTaskExecutor", "taskExecutor"})
+    @ConditionalOnMissingBean(name = {"applicationTaskExecutor", "taskExecutor"})
     @Lazy
     public ThreadPoolTaskExecutor taskExecutor(TaskExecutorBuilder builder) {
         return builder.build();
     }
+
 
 }

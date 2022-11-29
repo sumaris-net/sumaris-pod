@@ -27,15 +27,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
-import net.sumaris.core.dao.technical.model.IWithFlagsValueObject;
+import net.sumaris.core.model.ITreeNodeEntity;
+import net.sumaris.core.model.IWithFlagsValueObject;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.IRootDataVO;
-import net.sumaris.core.vo.data.LandingVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
@@ -108,4 +105,6 @@ public class SampleVO implements IRootDataVO<Integer>,
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     private int flags = 0;
+
+    private List<ImageAttachmentVO> images;
 }

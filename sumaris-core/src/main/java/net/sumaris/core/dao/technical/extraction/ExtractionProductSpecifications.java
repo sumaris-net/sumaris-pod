@@ -22,8 +22,9 @@ package net.sumaris.core.dao.technical.extraction;
  * #L%
  */
 
+import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
@@ -37,7 +38,7 @@ import java.util.List;
 /**
  * @author peck7 on 21/08/2020.
  */
-public interface ExtractionProductSpecifications {
+public interface ExtractionProductSpecifications extends IEntitySpecifications<Integer, ExtractionProduct> {
 
     String DEPARTMENT_ID_PARAM = "departmentId";
     String PERSON_ID_ID_PARAM = "personId";

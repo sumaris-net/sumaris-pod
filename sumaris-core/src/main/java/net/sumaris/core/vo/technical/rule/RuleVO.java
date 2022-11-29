@@ -24,8 +24,8 @@ package net.sumaris.core.vo.technical.rule;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;

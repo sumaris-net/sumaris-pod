@@ -23,9 +23,14 @@ package net.sumaris.core.dao.social;
  */
 
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.model.social.EventLevelEnum;
+import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,7 +39,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
+import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author <benoit.lavenier@e-is.pro> on 08/07/2020.
@@ -50,6 +58,11 @@ public class UserEventRepositoryImpl
     }
 
     @Override
+    public long count(@NonNull UserEventFilterVO filter) {
+        return count(toSpecification(filter));
+    }
+
+    @Override
     public Page<UserEventVO> findAllVO(@Nullable Specification<UserEvent> spec, net.sumaris.core.dao.technical.Page page) {
         return findAllVO(spec, page.asPageable());
     }
@@ -60,21 +73,53 @@ public class UserEventRepositoryImpl
     }
 
     @Override
+    public List<UserEventVO> findAllVO(@NonNull UserEventFilterVO filter, @Nullable net.sumaris.core.dao.technical.Page page) {
+        return super.findAll(toSpecification(filter), page != null ? page.asPageable(): Pageable.unpaged())
+            .map(this::toVO)
+            .stream().collect(Collectors.toList());
+    }
+
+    @Override
     public void toEntity(UserEventVO source, UserEvent target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
 
-        boolean isNew = source.getId() == null;
-        if (isNew) {
-            target.setCreationDate(new Date());
-        }
+        target.setLevel(source.getLevel().name());
+        target.setType(source.getType().name());
+    }
+
+    @Override
+    public void toVO(UserEvent source, UserEventVO target, boolean copyIfNull) {
+        Beans.copyProperties(source, target, UserEventVO.Fields.CONTENT /*skip content here*/);
+
+        target.setLevel(EventLevelEnum.valueOfOrNull(source.getLevel()));
+        target.setType(EventTypeEnum.valueOfOrNull(source.getType()));
+
+
+    }
+
+    @Override
+    public Timestamp getDatabaseCurrentTimestamp() {
+        return super.getDatabaseCurrentTimestamp();
     }
 
     /* -- protected methods -- */
 
+    @Override
+    protected void onBeforeSaveEntity(UserEventVO source, UserEvent target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
+
+        // When new entity: set the creation date
+        if (isNew || target.getCreationDate() == null) {
+            target.setCreationDate(target.getUpdateDate());
+        }
+    }
+
     protected void onAfterSaveEntity(UserEventVO vo, UserEvent savedEntity, boolean isNew) {
-        vo.setId(savedEntity.getId());
-        vo.setCreationDate(savedEntity.getCreationDate());
-        vo.setUpdateDate(savedEntity.getUpdateDate());
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        if (isNew) {
+            vo.setCreationDate(savedEntity.getCreationDate());
+        }
     }
 
 }

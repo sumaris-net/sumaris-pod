@@ -83,7 +83,7 @@ public class ExtractionDaoDispatcherImpl implements ExtractionDaoDispatcher {
                         // Check if unique, by format
                         if (daoByType.containsKey(type)) {
                             throw new BeanInitializationException(
-                                String.format("More than one AggregationDao class found for the format %s v%s: [%s, %s]",
+                                String.format("More than one ExtractionDao class found for the format %s v%s: [%s, %s]",
                                     type.getLabel(),
                                     type.getVersion(),
                                     daoByType.get(type).getClass().getSimpleName(),

@@ -33,4 +33,6 @@ public interface RdfRestPaths {
 
     String SPARQL_ENDPOINT = "/sparql";
     String WEBVOWL_BASE_PATH = "/webvowl";
+
+    String WEBVOWL_DATA_FILE_PATH = WEBVOWL_BASE_PATH + "/data/{prefix}.{format}";
 }

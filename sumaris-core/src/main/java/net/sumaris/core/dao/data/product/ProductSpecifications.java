@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data.product;
 
 import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Product;
 import net.sumaris.core.vo.data.ProductVO;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * @author peck7 on 30/03/2020.
  */
-public interface ProductSpecifications extends DataSpecifications<Product> {
+public interface ProductSpecifications extends DataSpecifications<Integer, Product> {
 
     String LANDING_ID_PARAM = "landingId";
     String OPERATION_ID_PARAM = "operationId";

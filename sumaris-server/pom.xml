@@ -59,6 +59,11 @@
     </dependency>
     <dependency>
       <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-importation</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sumaris</groupId>
       <artifactId>sumaris-rdf</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -286,6 +291,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compilerPluginVersion}</version>
         <configuration>
           <source>${javaVersion}</source>
           <target>${javaVersion}</target>

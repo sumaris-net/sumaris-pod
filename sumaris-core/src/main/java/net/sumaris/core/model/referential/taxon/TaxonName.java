@@ -22,10 +22,13 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.model.ITreeNodeEntity;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.Status;
@@ -41,8 +44,10 @@ import java.util.List;
  * Cette classe regroupe les taxons valides, provisoires, obsolètes, virtuels et les synonymes.
  * On garde l'historique du passage en taxon valide, puis du passage en synonyme (date de fin référent).
  */
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "taxon_name")
@@ -52,6 +57,7 @@ import java.util.List;
                         "FROM TaxonName " +
                         "WHERE id=:id")
 })
+@OntologyEntity(vocab = ModelVocabularies.TAXON)
 public class TaxonName implements IItemReferentialEntity<Integer>,
         IWithDescriptionAndCommentEntity<Integer>,
     ITreeNodeEntity<Integer, TaxonName> {
@@ -59,7 +65,8 @@ public class TaxonName implements IItemReferentialEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_NAME_SEQ")
     @SequenceGenerator(name = "TAXON_NAME_SEQ", sequenceName="TAXON_NAME_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -110,7 +117,7 @@ public class TaxonName implements IItemReferentialEntity<Integer>,
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ReferenceTaxon.class)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
-    @ToString.Include
+    
     private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonomicLevel.class)

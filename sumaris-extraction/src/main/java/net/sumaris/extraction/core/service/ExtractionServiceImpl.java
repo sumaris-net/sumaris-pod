@@ -79,7 +79,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.nuiton.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
@@ -117,19 +116,14 @@ public class ExtractionServiceImpl implements ExtractionService {
     private final LocationService locationService;
     private final ReferentialService referentialService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-    @Autowired(required = false)
-    private CacheManager cacheManager;
+    private final ObjectMapper objectMapper;
+    private final Optional<CacheManager> cacheManager;
 
-    @Autowired
-    private ExtractionDaoDispatcher extractionDao;
+    private final ExtractionDaoDispatcher extractionDaoDispatcher;
 
-    @Autowired
-    private AggregationDaoDispatcher aggregationDao;
+    private final AggregationDaoDispatcher aggregationDaoDispatcher;
 
-    @Autowired
-    private ExtractionTypeService extractionTypeService;
+    private final ExtractionTypeService extractionTypeService;
 
     private boolean enableCache = false;
     private boolean enableProduct = false;
@@ -144,29 +138,35 @@ public class ExtractionServiceImpl implements ExtractionService {
                                  ExtractionCsvDao extractionCsvDao,
                                  ExtractionProductService productService,
                                  LocationService locationService,
-                                 ReferentialService referentialService
-    ) {
+                                 ReferentialService referentialService,
+                                 ObjectMapper objectMapper,
+                                 Optional<CacheManager> cacheManager,
+                                 ExtractionDaoDispatcher extractionDaoDispatcher,
+                                 AggregationDaoDispatcher aggregationDaoDispatcher, ExtractionTypeService extractionTypeService) {
         this.configuration = configuration;
         this.dataSource = dataSource;
         this.databaseMetadata = databaseMetadata;
-
         this.extractionRdbTripDao = extractionRdbTripDao;
         this.extractionStrategyDao = extractionStrategyDao;
         this.extractionCsvDao = extractionCsvDao;
-
         this.productService = productService;
         this.locationService = locationService;
         this.referentialService = referentialService;
+        this.objectMapper = objectMapper;
+        this.cacheManager = cacheManager;
+        this.extractionDaoDispatcher = extractionDaoDispatcher;
+        this.aggregationDaoDispatcher = aggregationDaoDispatcher;
+        this.extractionTypeService = extractionTypeService;
     }
 
     @PostConstruct
     protected void init() {
         enableProduct = configuration.enableExtractionProduct();
-        enableCache = configuration.enableCache() && this.cacheManager != null;
+        enableCache = configuration.enableCache() && this.cacheManager.isPresent();
 
         // Register enum extraction types
-        this.extractionTypeService.registerLiveTypes(extractionDao.getManagedTypes());
-        this.extractionTypeService.registerLiveTypes(aggregationDao.getManagedTypes());
+        this.extractionTypeService.registerLiveTypes(extractionDaoDispatcher.getManagedTypes());
+        this.extractionTypeService.registerLiveTypes(aggregationDaoDispatcher.getManagedTypes());
 
         // Update technical tables (if option changed)
         if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
@@ -283,7 +283,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
             // Aggregation
             if (ExtractionTypes.isAggregation(source)) {
-                return aggregationDao.execute(source, parent, filter, strata);
+                return aggregationDaoDispatcher.execute(source, parent, filter, strata);
             }
             else if (ExtractionTypes.isProduct(parent)) {
                 // TODO: merge filter, to add it to existing ?
@@ -297,7 +297,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             .format(source.getFormat())
             .version(source.getVersion())
             .build());
-        return extractionDao.execute(type, filter);
+        return extractionDaoDispatcher.execute(type, filter);
     }
 
     @Override
@@ -467,7 +467,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID, allEntries = true)
     })
     protected void clearCache() {
-        if (this.cacheManager == null) return; // Skip
+        if (this.cacheManager.isEmpty()) return; // Skip
 
         log.debug("Cleaning {Extraction} caches...");
 
@@ -475,7 +475,7 @@ public class ExtractionServiceImpl implements ExtractionService {
         Arrays.stream(CacheTTL.values())
             .map(ttl -> {
                 try {
-                    return cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+                    return cacheManager.get().getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
                 }
                 catch (Exception e) {
                     // Cache not exists: skip
@@ -507,12 +507,12 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public AggregationTechResultVO readByTech(IExtractionType type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, String sort, SortDirection direction) {
-        return aggregationDao.readByTech(type, filter, strata, sort, direction);
+        return aggregationDaoDispatcher.readByTech(type, filter, strata, sort, direction);
     }
 
     @Override
     public MinMaxVO getTechMinMax(IExtractionType type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
-        return aggregationDao.getTechMinMax(type, filter, strata);
+        return aggregationDaoDispatcher.getTechMinMax(type, filter, strata);
     }
 
     @Override
@@ -657,11 +657,11 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Use aggregation dao
         if (ExtractionTypes.isAggregation(type)) {
-            return aggregationDao.read(type, filter, strata, page);
+            return aggregationDaoDispatcher.read(type, filter, strata, page);
         }
         // Or simple extraction dao
         else {
-            return extractionDao.read(type, filter, page);
+            return extractionDaoDispatcher.read(type, filter, page);
         }
     }
 
@@ -744,9 +744,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected CompletableFuture<Void> asyncClean(ExtractionContextVO context) {
         if (context != null) {
             if (ExtractionTypes.isAggregation(context)) {
-                aggregationDao.clean((AggregationContextVO) context);
+                aggregationDaoDispatcher.clean((AggregationContextVO) context);
             } else {
-                extractionDao.clean(context);
+                extractionDaoDispatcher.clean(context);
             }
         }
         return CompletableFuture.completedFuture(null);
@@ -912,7 +912,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         Integer cacheKey = computeCacheKey(type, filter, strata, page);
 
         // Get the cache
-        Cache<Integer, R> cache = cacheManager.getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+        Cache<Integer, R> cache = cacheManager.get()
+            .getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
 
         // Reuse cached value if exists
         R result = cache.get(cacheKey);

@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.technical.extraction.IExtractionType;

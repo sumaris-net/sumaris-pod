@@ -32,10 +32,14 @@
         <meta name="robots" content="noindex,nofollow" />
 
         <title>Pod Api - SparQL editor</title>
+
+        <base href="/sparql/ui/">
+
         <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
-        <link rel="stylesheet" href="/core/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="/core/css/bootstrap-grid.min.css" />
+        <link rel="stylesheet" href="/api/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/api/css/bootstrap-grid.min.css" />
+        <link rel="stylesheet" href="/api/css/theme.css" />
 
         <link href="/yasgui/css/yasgui.min.css" rel="stylesheet" type="text/css" />
         <link href="/yasgui/css/app-yasgui.css" rel="stylesheet" type="text/css" />
@@ -45,8 +49,15 @@
 
         <div id="menu"></div>
 
+        <div class="container-fluid mb-5 title-header">
+            <h1>Semantic web</h1>
+        </div>
+
         <div class="container padding-top">
-            <h1>SparQL editor</h1>
+
+            <h2 class="text-center">Semantic web</h2>
+
+            <p class="text-center"><a href="https://web-semantique.developpez.com/tutoriels/jena/arq/introduction-sparql/" target="_blank">SparQL</a> editor to access referential data.</p>
 
             <div class="form-group">
                 <p id="examples"></p>
@@ -58,20 +69,25 @@
         </div>
     </body>
 
-    <script type="text/javascript" src="/core/js/jquery.slim.min.js"></script>
-    <script type="text/javascript" src="/core/js/popper.min.js"></script>
-    <script type="text/javascript" src="/core/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="/core/js/app-menu.js"></script>
-    <script type="text/javascript" src="/rdfuri/js/rdf-helper.js"></script>
+    <script type="text/javascript" src="/api/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/api/js/popper.min.js"></script>
+    <script type="text/javascript" src="/api/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/api/js/app-utils.js"></script>
+    <script type="text/javascript" src="/api/js/app-menu.js"></script>
+    <script type="text/javascript" src="/uri/js/rdf-helper.js"></script>
 
     <script type="text/javascript" src="/yasgui/js/yasgui.min.js"></script>
+    <script type="text/javascript" src="/yasgui/js/app-yasgui-i18n.js"></script>
     <script type="text/javascript" src="/yasgui/js/app-yasgui.js"></script>
 
-    <script language="javascript" type="text/javascript">
+    <script type="text/javascript">
         const menu = new AppMenu("#menu", {active: '#nav-item-tools'});
 
-        const app = new AppYasgui("yasgui");
-        app.displayExamples("examples");
-        app.displayPrefixes("prefixes");
+        const app = new AppYasgui("yasgui", {
+            ids: {
+                examples: 'examples',
+                prefixes: 'prefixes'
+            }
+        });
     </script>
 </html>

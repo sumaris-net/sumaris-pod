@@ -22,10 +22,10 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ITreeNodeEntity;
+import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -41,8 +41,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
 @FieldNameConstants
 @Entity
 @Table(name = "sample")
@@ -52,11 +53,12 @@ public class Sample implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLE_SEQ")
     @SequenceGenerator(name = "SAMPLE_SEQ", sequenceName="SAMPLE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(length = 40, nullable = false)
-    @ToString.Include
+    
     private String label;
 
     @Column(name = "rank_order", nullable = false)

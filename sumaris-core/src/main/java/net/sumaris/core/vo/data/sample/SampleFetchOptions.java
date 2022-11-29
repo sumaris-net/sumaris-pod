@@ -41,6 +41,9 @@ public class SampleFetchOptions implements IDataFetchOptions {
     @Builder.Default
     private boolean withMeasurementValues = false;
 
+    @Builder.Default
+    private boolean withImages = false;
+
     @Override
     public boolean isWithObservers() {
         return false;

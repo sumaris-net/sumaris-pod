@@ -22,21 +22,27 @@
 
 package net.sumaris.server.http.rest;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
+import net.sumaris.server.http.MediaTypes;
 import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
@@ -44,13 +50,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.servlet.ServletContext;
+import java.io.*;
 
 @RestController
 @Slf4j
 public class ImageRestController implements ResourceLoaderAware {
+
+    @Autowired
+    private ServletContext servletContext;
 
     @Autowired
     private PersonService personService;
@@ -76,56 +84,36 @@ public class ImageRestController implements ResourceLoaderAware {
     @ResponseBody
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<byte[]> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) {
-        ImageAttachmentVO image  = personService.getAvatarByPubkey(pubkey);
+    public ResponseEntity<?> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) throws IOException {
+        ImageAttachmentVO image  = personService.getAvatarByPubkey(pubkey, ImageAttachmentFetchOptions.WITH_CONTENT);
         if (image == null) {
             return ResponseEntity.notFound().build();
         }
-
-        byte[] bytes = Base64.decodeBase64(image.getContent());
-        return ResponseEntity.ok()
-                .contentLength(bytes.length)
-                .contentType(MediaType.parseMediaType(image.getContentType()))
-                .body(bytes);
+        return getImageResponse(image);
 
     }
 
     @ResponseBody
     @RequestMapping(value = RestPaths.DEPARTMENT_LOGO_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<byte[]> getDepartmentLogo(@PathVariable(name="label") String label) {
+    public ResponseEntity<?> getDepartmentLogo(@PathVariable(name="label") String label) throws IOException {
         ImageAttachmentVO image = departmentService.getLogoByLabel(label);
-        if (image == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        byte[] bytes = Base64.decodeBase64(image.getContent());
-        return ResponseEntity.ok()
-                .contentLength(bytes.length)
-                .contentType(MediaType.parseMediaType(image.getContentType()))
-                .body(bytes);
+        return getImageResponse(image);
     }
 
     @ResponseBody
     @RequestMapping(value = RestPaths.IMAGE_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<byte[]> getImage(@PathVariable(name="id") String id) {
-        ImageAttachmentVO image = imageService.find(Integer.parseInt(id));
-        if (image == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        byte[] bytes = Base64.decodeBase64(image.getContent());
-        return ResponseEntity.ok()
-                .contentLength(bytes.length)
-                .contentType(MediaType.parseMediaType(image.getContentType()))
-                .body(bytes);
+    public ResponseEntity<?> getImage(@NonNull @PathVariable(name="id") Integer id) throws IOException {
+        ImageAttachmentVO image = imageService.find(id, ImageAttachmentFetchOptions.WITH_CONTENT);
+        return getImageResponse(image);
     }
 
     @ResponseBody
     @RequestMapping(value = RestPaths.FAVICON, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public Object getFavicon() {
+    @Cacheable(cacheNames = ServerCacheConfiguration.Names.FAVICON)
+    public Object getFavicon() throws IOException {
 
         SoftwareVO software = configurationService.getCurrentSoftware();
         if (software == null) return ResponseEntity.notFound().build();
@@ -135,13 +123,14 @@ public class ImageRestController implements ResourceLoaderAware {
             return ResponseEntity.notFound().build();
         }
 
+        // Parse URI like 'image:<ID>'
         if (favicon.startsWith(ImageService.URI_IMAGE_SUFFIX)) {
             String imageId = favicon.substring(ImageService.URI_IMAGE_SUFFIX.length());
-            return getImage(imageId);
+            return getImage(Integer.parseInt(imageId));
         }
 
         // Redirect to the URL
-        if (favicon.startsWith("http")) {
+        if (favicon.startsWith("https://") || favicon.startsWith("http://")) {
             return new RedirectView(favicon);
         }
 
@@ -166,4 +155,52 @@ public class ImageRestController implements ResourceLoaderAware {
         return new RedirectView(configuration.getServerUrl() + (favicon.startsWith("/") ? "" : "/") + favicon);
 
     }
+
+    protected ResponseEntity<?> getImageResponse(ImageAttachmentVO image) throws IOException {
+        if (image == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Read the file content
+        String filename = image.getPath();
+        if (StringUtils.isNotBlank(filename)) {
+            // Avoid '..' in the path
+            if (!RestPaths.isSecuredPath(filename)) {
+                log.warn("Reject request to a file {} - Unsecured path", filename);
+                return ResponseEntity.badRequest().build();
+            }
+
+            MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename)
+                .orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+            File file = new File(configuration.getImageAttachmentDirectory(), filename);
+            if (!file.exists()) {
+                log.warn("Reject request to image {} - File not found, or invalid path", file.getAbsolutePath());
+                return ResponseEntity.notFound().build();
+            }
+            if (!file.canRead()) {
+                log.warn("Reject request to image {} - File not readable", file.getAbsolutePath());
+                return ResponseEntity.badRequest().build();
+            }
+
+            log.debug("Request to image {} of type {}", filename, mediaType);
+            InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+
+            return ResponseEntity.ok()
+                // Content-Type
+                .contentType(mediaType)
+                // Content-Length
+                .contentLength(file.length())
+                .body(resource);
+        }
+
+        byte[] bytes = Base64.decodeBase64(image.getContent());
+        return ResponseEntity.ok()
+            // Content-Type
+            .contentType(MediaType.parseMediaType(image.getContentType()))
+            // Content-Length
+            .contentLength(bytes.length)
+            .body(bytes);
+    }
+
 }

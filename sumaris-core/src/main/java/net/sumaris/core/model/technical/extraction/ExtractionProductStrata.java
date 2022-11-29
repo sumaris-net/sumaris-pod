@@ -22,9 +22,9 @@
 
 package net.sumaris.core.model.technical.extraction;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -32,18 +32,20 @@ import net.sumaris.core.model.referential.Status;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Cacheable
 @Table(name = "extraction_product_strata")
-@EqualsAndHashCode
 public class ExtractionProductStrata implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_STRATA_SEQ")
     @SequenceGenerator(name = "EXTRACTION_PRODUCT_STRATA_SEQ", sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @EqualsAndHashCode.Exclude
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
@@ -69,14 +71,10 @@ public class ExtractionProductStrata implements IItemReferentialEntity<Integer> 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_product_fk", nullable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private ExtractionProduct product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraction_table_fk")
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     private ExtractionProductTable table;
 
     @ManyToOne(fetch = FetchType.LAZY)

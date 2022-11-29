@@ -17,20 +17,20 @@ HOME=`eval echo "~$USER"`
 APP_BASEDIR="${PROJECT_ROOT}/.local"
 LOG_DIR="${APP_BASEDIR}/log/sumaris-pod.log"
 DB_URL="jdbc:hsqldb:hsql://localhost/sumaris"
-#CONFIG_DIR="${PROJECT_ROOT}/.local/config/"
+CONFIG_DIR="${PROJECT_ROOT}/.local/config"
 ARGS=$*
-PROFILE=hsqldb
+PROFILE=hsqldb $ARGS
 
 echo "Project root: ${PROJECT_ROOT}"
 mkdir -p ${APP_BASEDIR}
 
 
 # ------------------------------------
-echo "${LOG_PREFIX} Installing [core-shared], [core] and [server]... ${LOG_PREFIX}"
+echo "${LOG_PREFIX} Building [core-shared], [core] and [server]... ${LOG_PREFIX}"
 # ------------------------------------
 cd ${PROJECT_ROOT}
 #mvn install -pl sumaris-core-shared,sumaris-core,sumaris-server $MVN_INSTALL_OPTS
-mvn install -pl sumaris-core-shared,sumaris-core,sumaris-rdf,sumaris-server $MVN_INSTALL_OPTS
+mvn install -pl sumaris-core-shared,sumaris-core,sumaris-extraction,sumaris-importation,sumaris-rdf,sumaris-server $MVN_INSTALL_OPTS
 [[ $? -ne 0 ]] && exit 1
 
 cd ${PROJECT_DIR}
@@ -45,7 +45,7 @@ JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${LOG_DIR}"
 JAVA_OPTS="$JAVA_OPTS -Dspring.datasource.url=${DB_URL}"
 #JAVA_OPTS="$JAVA_OPTS -Drdf.enabled=true"
 if [[ -d "${CONFIG_DIR}" ]]; then
-  JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${PROJECT_ROOT}/.local/config/"
+  JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${CONFIG_DIR}/"
 fi;
 [[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"
 

@@ -23,6 +23,8 @@
 package net.sumaris.core.vo.data.batch;
 
 import com.google.common.base.Joiner;
+import net.sumaris.core.dao.data.batch.BatchSpecifications;
+import net.sumaris.core.util.UnicodeChars;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,7 +45,12 @@ public class DenormalizedBatches {
     }
 
     public static boolean isExhaustiveInventory(DenormalizedBatchVO b) {
-        return b.getInheritedTaxonName() != null || Boolean.TRUE.equals(b.getExhaustiveInventory());
+        return !DenormalizedBatches.isCatchBatch(b)
+            && (b.getInheritedTaxonName() != null || Boolean.TRUE.equals(b.getExhaustiveInventory()));
+    }
+
+    public static boolean isCatchBatch(DenormalizedBatchVO b) {
+        return !b.hasParent() || BatchSpecifications.DEFAULT_ROOT_BATCH_LABEL.equals(b.getLabel());
     }
 
     public static boolean isSamplingBatch(DenormalizedBatchVO b) {
@@ -88,44 +95,55 @@ public class DenormalizedBatches {
                 .map(source -> {
                     String treeIndent = useUnicode ? replaceTreeUnicode(source.getTreeIndent()) : source.getTreeIndent();
                     String hierarchicalLabel = withHierarchicalLabel ? generateHierarchicalLabel(source) : null;
+                    boolean hasSpecies = source.getTaxonGroup() != null || source.getTaxonName() != null;
                     return joiner.join(
                             treeIndent,
                             hierarchicalLabel != null ? (hierarchicalLabel + " -") : null,
 
-                            // Taxon group
-                            getExhaustiveInventoryAsString(source, true),
-                            getLabelOrNull(source.getTaxonGroup(), false),
+                        // Is exhaustive inventory ?
+                        getExhaustiveInventoryAsString(source, true),
 
-                            // Taxon name
-                            getLabelOrNull(source.getTaxonName(), false),
+                        // Fish icon
+                        useUnicode && hasSpecies ? UnicodeChars.FISH : null,
 
-                            // Sorting values, or '%' if fraction
-                            source.getParent() == null ? source.getLabel() :
-                                    (isSamplingBatch(source) ? "fraction" : source.getSortingValuesText()),
+                        // Taxon group
+                        getLabelOrNull(source.getTaxonGroup(), false),
 
-                            // Sampling ratio
-                            StringUtils.trimToNull(source.getSamplingRatioText()),
+                        // Taxon name
+                        getLabelOrNull(source.getTaxonName(), false),
 
-                            // Weight
-                            (source.getWeight() != null ? String.format("(%s kg)", source.getWeight()) : ""),
+                        // Sorting values, or '%' if fraction
+                        source.getParent() == null ? source.getLabel() :
+                                (isSamplingBatch(source) ? "fraction" : source.getSortingValuesText()),
 
-                            // Indirect weight
-                            ((source.getIndirectWeight() != null && !Objects.equals(source.getIndirectWeight(), source.getWeight()))
-                                    ? String.format("(~%s kg)", source.getIndirectWeight()) : ""),
+                        // Sampling ratio
+                        StringUtils.trimToNull(source.getSamplingRatioText()),
 
-                            // Elevated weight
-                            (source.getElevateWeight() != null ? String.format("=> %s kg", source.getElevateWeight()) : ""),
+                        // Weight
+                        (source.getWeight() != null ? String.format("[%s kg]", source.getWeight()) : null),
 
-                            // Individual count
-                            (source.getIndividualCount() != null ? String.format("(%s indiv)", source.getIndividualCount()) : ""),
+                        // Indirect weight
+                        ((source.getIndirectWeight() != null && !Objects.equals(source.getIndirectWeight(), source.getWeight()))
+                                ? String.format("(%s %s kg)", useUnicode ? UnicodeChars.ARROW_DOWN : "~", source.getIndirectWeight()) : null),
 
-                            // Indirect individual count
-                            ((source.getIndirectIndividualCount() != null && !Objects.equals(source.getIndirectIndividualCount(), source.getIndividualCount()))
-                                    ? String.format("(~%s indiv)", source.getIndirectIndividualCount()) : ""),
 
-                            // Elevated individual count
-                            (source.getElevateIndividualCount() != null ? String.format("=> %s indiv", source.getElevateIndividualCount()) : "")
+                        // Individual count
+                        (source.getIndividualCount() != null ? String.format("[%s indiv]", source.getIndividualCount()) : null),
 
+                        // Indirect individual count
+                        ((source.getIndirectIndividualCount() != null && !Objects.equals(source.getIndirectIndividualCount(), source.getIndividualCount()))
+                                ? String.format("(%s %s indiv)", useUnicode ? UnicodeChars.ARROW_DOWN : "~", source.getIndirectIndividualCount()) : null),
+
+                        "=>",
+
+                        // Elevated weight
+                        (source.getElevateWeight() != null ? String.format("%s kg", source.getElevateWeight()) : null),
+
+                        // Elevated individual count
+                        (source.getElevateIndividualCount() != null ? String.format("%s indiv", source.getElevateIndividualCount()) : null)
+
+                        // Elevation factor
+                        //, String.format("(x %s)", ((TempDenormalizedBatchVO)source).getElevateFactor())
                     ).replace("[ ]+", " ");
                 }).collect(Collectors.joining("\n"));
     }
@@ -143,7 +161,7 @@ public class DenormalizedBatches {
         if (source.getTaxonGroup() == null) return null;
         boolean exhaustiveInventory = source.getExhaustiveInventory() != null ? source.getExhaustiveInventory() : false;
         if (useUnicode) {
-            return exhaustiveInventory ? "\u2611" : "\u2610";
+            return exhaustiveInventory ? "\u2705" : "\u274E";
         }
         return exhaustiveInventory ? "[x]" : "[ ]";
     }

@@ -96,15 +96,26 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Override
     public List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers) {
-
         Preconditions.checkNotNull(metiers);
-
         return operationGroupRepository.saveMetiersByTripId(tripId, metiers);
     }
 
     @Override
     public OperationGroupVO getMainUndefinedOperationGroup(int tripId) {
-        return operationGroupRepository.getMainUndefinedOperationGroup(tripId);
+        List<OperationGroupVO> operationGroups = operationGroupRepository.findAll(
+            OperationGroupFilterVO.builder().tripId(tripId).onlyUndefined(true).build()
+        );
+        // Get the first (main ?) undefined operation group
+        // todo maybe add is_main_operation and manage metier order in app
+        if (CollectionUtils.size(operationGroups) > 0) {
+            return operationGroups.get(0);
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getMainUndefinedOperationGroupId(int tripId) {
+        return operationGroupRepository.getMainUndefinedOperationGroupId(tripId);
     }
 
     @Override

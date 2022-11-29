@@ -22,23 +22,32 @@ package net.sumaris.server.service.administration;
  * #L%
  */
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.rest.RestPaths;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service("imageService")
 @Slf4j
@@ -71,8 +80,24 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public ImageAttachmentVO find(int id) {
-        return imageAttachmentService.find(id);
+    public List<ImageAttachmentVO> getImagesForObject(int objectId, ObjectTypeEnum objectType) {
+        List<ImageAttachmentVO> images = imageAttachmentService.findAllByObject(objectId, objectType, null);
+
+        images.forEach(this::fillUrl);
+        images.forEach(this::cleanDataUrl); // Should not be sent to App, if URL has been set
+
+        return images;
+    }
+
+    @Override
+    public List<ImageAttachmentVO> findAllByFilter(@NonNull ImageAttachmentFilterVO filter, @NonNull Page page, ImageAttachmentFetchOptions fetchOptions) {
+        return imageAttachmentService.findAllByFilter(filter, page, fetchOptions);
+    }
+
+    @Override
+    @Cacheable(cacheNames = ServerCacheConfiguration.Names.IMAGE_BY_ID, unless = "#result==null")
+    public ImageAttachmentVO find(int id, ImageAttachmentFetchOptions fetchOptions) {
+        return imageAttachmentService.find(id, fetchOptions);
     }
 
     public void fillAvatar(PersonVO person) {
@@ -93,8 +118,19 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
+    public void fillUrl(ImageAttachmentVO image) {
+        if (image == null || image.getId() == null) return;
+        if (image.getUrl() != null) return; // Already fill
+
+        image.setUrl(getImageUrlById(image.getId()));
+    }
+
+    public void cleanDataUrl(ImageAttachmentVO image) {
+        image.setDataUrl(null);
+    }
+
     @Override
-    public String getImageUrl(String imageUri) {
+    public String getImageUrlByUri(String imageUri) {
         if (StringUtils.isBlank(imageUri) || imageUrl == null) return null;
 
         // Resolve URI like 'image:<ID>'
@@ -103,6 +139,11 @@ public class ImageServiceImpl implements ImageService {
         }
         // should be a URL, so return it
         return imageUri;
+    }
+
+    @Override
+    public String getImageUrlById(int id) {
+        return imageUrl.replace("{id}", String.valueOf(id));
     }
 
     /* -- protected methods -- */

@@ -25,6 +25,7 @@ package net.sumaris.extraction.server.graphql;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLContext;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
@@ -48,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 @GraphQLApi
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
@@ -58,14 +59,6 @@ public class ExtractionTypeGraphQLService {
     private final ExtractionSecurityService extractionSecurityService;
     private final ExtractionTypeService extractionTypeService;
     private String documentationUrl;
-
-    public ExtractionTypeGraphQLService(
-        ExtractionSecurityService extractionSecurityService,
-        ExtractionTypeService extractionTypeService) {
-
-        this.extractionSecurityService = extractionSecurityService;
-        this.extractionTypeService = extractionTypeService;
-    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     protected void onConfigurationReady(ConfigurationEvent event) {
@@ -82,7 +75,6 @@ public class ExtractionTypeGraphQLService {
     }
 
     @GraphQLQuery(name = "extractionTypes", description = "Get all available extraction types", deprecationReason = "Use liveExtractionTypes and aggregationTypes")
-    @Transactional(readOnly = true)
     public List<ExtractionTypeVO> findAllByFilter(
         @GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter,
         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
