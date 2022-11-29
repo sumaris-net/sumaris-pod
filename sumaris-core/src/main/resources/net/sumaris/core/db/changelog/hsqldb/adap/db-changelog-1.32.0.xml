@@ -51,4 +51,25 @@
         </insert>
     </changeSet>
 
+    <!-- enable data images -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.data.images.enable' AND SOFTWARE_FK=2
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="SOFTWARE_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
+            <column name="LABEL" value="sumaris.data.images.enable"/>
+            <column name="NAME" value="true"/>
+            <column name="SOFTWARE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
+    </changeSet>
+
 </databaseChangeLog>
