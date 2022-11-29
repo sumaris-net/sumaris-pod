@@ -27,6 +27,8 @@ import net.sumaris.core.event.config.ConfigurationEventListener;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.PersistenceException;
+
 @Transactional(readOnly = true)
 public interface ConfigurationService {
 
@@ -36,6 +38,7 @@ public interface ConfigurationService {
 
     boolean isReady();
 
+    @Transactional(readOnly = false, noRollbackFor = PersistenceException.class)
     void applySoftwareProperties();
 
     void addListener(ConfigurationEventListener listener);

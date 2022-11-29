@@ -22,9 +22,20 @@ package net.sumaris.core.dao.technical.hibernate.spatial.dialect;
  * #L%
  */
 
+import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
+
 /**
- * @deprecated Synonym of OracleSpatial10gDialect
+ * @author peck7 on 16/10/2019.
  */
-public class OracleSpatialDialect extends OracleSpatial10gDialect {
+public class OracleSpatial10gDialect extends org.hibernate.spatial.dialect.oracle.OracleSpatial10gDialect {
+
+    public OracleSpatial10gDialect() {
+        super();
+
+        // Register additional functions
+        for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
+            registerFunction(function.name(), function.asRegisterFunction());
+        }
+    }
 
 }

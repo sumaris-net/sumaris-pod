@@ -85,6 +85,8 @@ public interface ExtractionService {
 
     File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter);
 
+    ExtractionResultVO executeAndReadStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter, Page page);
+
     @Transactional(rollbackFor = IOException.class, timeout = 10000000)
     File executeAndDump(IExtractionType type, ExtractionFilterVO filter, AggregationStrataVO strata) throws IOException;
 
