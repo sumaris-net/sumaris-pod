@@ -84,23 +84,18 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
     private Date updateDate;
 
     @Column(name = "conversion_coefficient_a", nullable = false)
-    
     private Double conversionCoefficientA;
 
     @Column(name = "conversion_coefficient_b", nullable = false)
-    
     private Double conversionCoefficientB;
 
     @Column(name = "start_month", nullable = false)
-    
     private Integer startMonth;
 
     @Column(name = "end_month", nullable = false)
-    
     private Integer endMonth;
 
     @Column(name = "year")
-    
     private Integer year;
 
     private String description;
@@ -119,17 +114,14 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "length_parameter_fk", nullable = false)
-    
     private Parameter lengthParameter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "length_unit_fk", nullable = false)
-    
     private Unit lengthUnit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reference_taxon_fk", nullable = false)
-    
     private ReferenceTaxon referenceTaxon;
 
     @ManyToOne(fetch = FetchType.LAZY)
