@@ -139,6 +139,26 @@ public interface ExtractionStrategyDao<C extends ExtractionStrategyContextVO, F 
                     .build());
         }
 
+        // Strategy (label)
+        if (CollectionUtils.isNotEmpty(source.getStrategyLabels())) {
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .sheetName(strategySheetName)
+                    .name(StratSpecification.COLUMN_STRATEGY)
+                    .operator(ExtractionFilterOperatorEnum.IN.getSymbol())
+                    .values(source.getStrategyLabels().toArray(String[]::new))
+                    .build());
+        }
+
+        // Strategy (ids)
+        if (CollectionUtils.isNotEmpty(source.getStrategyIds())) {
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .sheetName(strategySheetName)
+                    .name(StratSpecification.COLUMN_STRATEGY_ID)
+                    .operator(ExtractionFilterOperatorEnum.IN.getSymbol())
+                    .values(source.getStrategyIds().stream().map(Object::toString).toArray(String[]::new))
+                    .build());
+        }
+
         return target;
     }
 }

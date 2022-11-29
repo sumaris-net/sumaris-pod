@@ -65,7 +65,6 @@
     <from join="true">LEFT OUTER JOIN TRIP FT ON FT.ID = L.TRIP_FK</from>
     <from join="true">LEFT OUTER JOIN OPERATION O ON O.TRIP_FK = FT.ID</from>
     <from join="true">LEFT OUTER JOIN SAMPLE S ON S.OPERATION_FK = O.ID</from>
-    <!--from join="true">LEFT OUTER JOIN SAMPLE S ON S.LANDING_FK = L.ID</from-->
     <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = S.ID AND SM.PMFM_FK = &amp;tagIdPmfmId</from>
 
     <groupby>

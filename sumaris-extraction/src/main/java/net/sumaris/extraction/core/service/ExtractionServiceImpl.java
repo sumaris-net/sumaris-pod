@@ -331,6 +331,13 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
+    public ExtractionResultVO executeAndReadStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO strategyFilter, Page page) {
+        String strategySheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : StratSpecification.ST_SHEET_NAME;
+        ExtractionFilterVO filter = extractionStrategyDao.toExtractionFilterVO(strategyFilter, strategySheetName);
+        return executeAndRead(format, filter, null, page, true);
+    }
+
+    @Override
     public File dumpTablesToFile(ExtractionContextVO context,
                                  @Nullable ExtractionFilterVO filter) {
         Preconditions.checkNotNull(context);
@@ -535,7 +542,11 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public ObjectNode[] toJson(ExtractionResultVO source) {
-        if (source == null || CollectionUtils.isNotEmpty(source.getColumns())) return null;
+        if (source == null) return null;
+        if (CollectionUtils.isEmpty(source.getColumns())) {
+            log.warn("Cannot convert extraction result: missing columns. Is the result empty ?");
+            return null;
+        }
 
         String[] columnNames = source.getColumns().stream()
             .map(ExtractionTableColumnVO::getLabel)
@@ -590,7 +601,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     protected <R extends ExtractionResultVO> R executeAndRead(@NonNull IExtractionType type,
                                                               @NonNull ExtractionFilterVO filter,
                                                               @Nullable AggregationStrataVO strata,
-                                                              Page page,
+                                                              @NonNull Page page,
                                                               boolean skipFetchType) {
         // Fetch type (if need)
         type = skipFetchType ? type : getByExample(type);
@@ -605,6 +616,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
             // Result has not the expected sheetname: skip
             if (filter.getSheetName() != null && !context.hasSheet(filter.getSheetName())) {
+                log.warn("No sheetName to read, in extraction #{}. Skipping", context.getId());
                 return (R)createEmptyResult();
             }
 

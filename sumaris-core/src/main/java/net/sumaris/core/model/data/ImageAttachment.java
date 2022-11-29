@@ -50,7 +50,7 @@ public class ImageAttachment implements IDataEntity<Integer>,
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "IMAGE_ATTACHMENT_SEQ")
-    @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
