@@ -44,6 +44,7 @@
   <PROGRAM_PROPERTY ID="73" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.program.strategy.predoc.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="74" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.landing.samples.weightUnit" NAME="g"/>
   <PROGRAM_PROPERTY ID="75" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.report.enable" NAME="true"/> <!-- DEV only - not in production -->
+  <PROGRAM_PROPERTY ID="76" STATUS_FK="1" PROGRAM_FK="40" CREATION_DATE="2020-09-29"  LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
 
   <PROGRAM2PERSON ID="40" PROGRAM_FK="40" PERSON_FK="3" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2020-09-29"/>
   <PROGRAM2PERSON ID="41" PROGRAM_FK="40" PERSON_FK="2" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2020-09-29"/>
