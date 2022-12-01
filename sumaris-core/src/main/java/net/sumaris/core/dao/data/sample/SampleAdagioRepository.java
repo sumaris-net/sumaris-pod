@@ -38,9 +38,9 @@ import java.util.Set;
 @Repository
 @ConditionalOnProperty(
         prefix = "sumaris.persistence",
-        name = {"adagio.optimization"},
-        havingValue = "true",
-        matchIfMissing = false
+        name = {"adagio.schema"},
+        havingValue = "SIH2_ADAGIO_DBA",
+        matchIfMissing = true
 )
 public interface SampleAdagioRepository
     extends JpaRepository<Sample, Integer> {
