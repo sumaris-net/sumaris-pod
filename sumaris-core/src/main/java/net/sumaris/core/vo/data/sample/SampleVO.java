@@ -23,23 +23,29 @@
 package net.sumaris.core.vo.data.sample;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Preconditions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.IWithFlagsValueObject;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Data
 @ToString(onlyExplicitlyIncluded = true)
@@ -48,6 +54,10 @@ import java.util.Map;
 public class SampleVO implements IRootDataVO<Integer>,
     IWithFlagsValueObject<Integer>,
     ITreeNodeEntity<Integer, SampleVO> {
+
+    public interface GetterFields {
+        String TAG_ID = "tagId";
+    }
 
     @EqualsAndHashCode.Exclude
     @ToString.Include
@@ -107,4 +117,24 @@ public class SampleVO implements IRootDataVO<Integer>,
     private int flags = 0;
 
     private List<ImageAttachmentVO> images;
+
+    @JsonIgnore
+    public String getTagId() {
+
+        // Read measurements, if any
+        String tagId;
+        if (getMeasurementValues() != null) {
+            tagId = getMeasurementValues().get(PmfmEnum.TAG_ID.getId());
+        } else if (getMeasurements() != null) {
+            tagId = getMeasurements().stream()
+                    .filter(m -> PmfmEnum.TAG_ID.getId().equals(m.getPmfmId()))
+                    .map(MeasurementVO::getAlphanumericalValue)
+                    .findFirst().orElse(null);
+        }
+        else {
+            return null;
+        }
+
+        return StringUtils.isBlank(tagId) ? null : tagId;
+    }
 }

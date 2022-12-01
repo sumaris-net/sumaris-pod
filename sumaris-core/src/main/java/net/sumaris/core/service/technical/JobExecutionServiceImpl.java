@@ -30,6 +30,7 @@ import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.event.job.JobProgressionVO;
 import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.jms.JmsJobEventProducer;
 import net.sumaris.core.model.social.EventLevelEnum;
@@ -42,20 +43,22 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
-import net.sumaris.core.event.job.JobProgressionVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
-import org.reactivestreams.Publisher;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.jms.Message;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -159,7 +162,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
     }
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS)
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS, initialDelay = 1)
+    @Transactional
     public void cleanJobs() {
         // Get pending or running jobs started 24 hours ago
         Timestamp startedBefore = new Timestamp(Dates.addDays(new Date(), -1).getTime());

@@ -22,6 +22,9 @@ package net.sumaris.core.util;
  * #L%
  */
 
+import lombok.NonNull;
+
+import javax.annotation.Nullable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -103,4 +106,22 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return org.springframework.util.StringUtils.cleanPath(path);
     }
 
+    /**
+     * Get last part of a string.
+     * <p>'22PLEUPLA002-0349' will return '0349'</p>
+     *
+     * @param value
+     * @param separator
+     * @param defaultValue default value, when separator not found
+     * @return characters found after the last separator. Can be empty string "", when separator is the last element
+     */
+    public static String getSuffixOrDefault(@NonNull String value,
+                                            @NonNull String separator,
+                                            @Nullable String defaultValue) {
+        int separatorIndex = value.lastIndexOf(separator);
+        if (separatorIndex != -1 && value.length() >= separatorIndex+1) {
+            return value.substring(separatorIndex + 1); // Can be the empty string ""
+        }
+        return defaultValue;
+    }
 }

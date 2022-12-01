@@ -682,6 +682,20 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "",
         String.class,
         false),
+
+    DB_ADAGIO_SCHEMA(
+            "sumaris.persistence.adagio.schema",
+            n("sumaris.config.option.persistence.adagio.schema.description"),
+            "SIH2_ADAGIO_DBA",
+            String.class,
+            false),
+
+    ENABLE_ADAGIO_OPTIMIZATION(
+            "sumaris.persistence.adagio.optimization",
+            n("sumaris.config.option.persistence.adagio.optimization.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
     ;
 
     /**

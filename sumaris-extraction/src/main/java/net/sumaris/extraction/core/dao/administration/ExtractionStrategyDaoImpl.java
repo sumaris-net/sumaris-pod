@@ -26,6 +26,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -42,10 +45,12 @@ import net.sumaris.extraction.core.vo.administration.ExtractionStrategyContextVO
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceException;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.nuiton.i18n.I18n.t;
@@ -64,6 +69,35 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.ST_SHEET_NAME + "_%s";
     private static final String SM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.SM_SHEET_NAME + "_%s";
 
+    private boolean enableAdagioOptimization = false;
+    private String adagioSchema = null;
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    protected void onConfigurationReady(ConfigurationEvent event) {
+        // Read some config options
+        String adagioSchema = this.configuration.getAdagioSchema();
+        boolean enableAdagioOptimization = StringUtils.isNotBlank(adagioSchema)
+                && this.configuration.enableAdagioOptimization()
+                && this.databaseType == DatabaseType.oracle;
+
+        // Check if there is some changes
+        boolean hasChanges = !Objects.equals(this.adagioSchema, adagioSchema)
+                || this.enableAdagioOptimization != enableAdagioOptimization;
+
+        // Apply changes if need
+        if (hasChanges) {
+            this.adagioSchema = adagioSchema;
+            this.enableAdagioOptimization = enableAdagioOptimization;
+
+            if (this.enableAdagioOptimization) {
+                log.info("Enabled Extraction format {}, using optimization for schema '{}'", StratSpecification.FORMAT, this.adagioSchema);
+            }
+            else {
+                log.info("Enabled Extraction format {} (without schema optimization)", StratSpecification.FORMAT);
+            }
+
+        }
+    }
 
     @Override
     public Set<IExtractionType> getManagedTypes() {
@@ -244,9 +278,11 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         xmlQuery.bind("strategyLabelPmfmId", String.valueOf(PmfmEnum.STRATEGY_LABEL.getId()));
         xmlQuery.bind("tagIdPmfmId", String.valueOf(PmfmEnum.TAG_ID.getId()));
 
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
         return xmlQuery;
     }
-
-
 
 }

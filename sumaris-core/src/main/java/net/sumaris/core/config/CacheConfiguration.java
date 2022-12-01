@@ -46,7 +46,6 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.Duration;
 import java.util.Date;
 
 @Configuration(proxyBeanMethods = false)
@@ -127,6 +126,9 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Other
         String GEAR_BY_ID = "net.sumaris.core.dao.referential.gear.gearById";
         String ANALYTIC_REFERENCES_BY_FILTER = "net.sumaris.core.dao.referential.analyticReferenceByFilter";
+
+        // Data
+        String MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID = "net.sumaris.core.dao.data.operation.mainUndefinedOperationGroupId";
     }
 
     @Bean
@@ -208,6 +210,10 @@ public class CacheConfiguration extends CachingConfigurerSupport {
 
             // Other entities
             Caches.createEternalCollectionHeapCache(cacheManager, Names.ANALYTIC_REFERENCES_BY_FILTER, ReferentialVO.class, 100);
+
+            // Data
+            Caches.createHeapCache(cacheManager, Names.MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID, Integer.class, Integer.class, CacheTTL.DATA_DEFAULT.asDuration(), 100);
+
         };
     }
 

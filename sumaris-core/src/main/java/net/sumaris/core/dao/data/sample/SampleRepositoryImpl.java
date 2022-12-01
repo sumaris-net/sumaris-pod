@@ -101,13 +101,15 @@ public class SampleRepositoryImpl
     @Override
     protected Specification<Sample> toSpecification(SampleFilterVO filter, SampleFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(hasOperationId(filter.getOperationId()))
-            .and(hasLandingId(filter.getLandingId()))
-            .and(hasObservedLocationId(filter.getObservedLocationId()))
-            .and(inObservedLocationIds(filter.getObservedLocationIds()))
-            .and(hasTagId(filter.getTagId()))
-            .and(withTagId(filter.getWithTagId()))
-            .and(addJoinFetch(fetchOptions, true));
+                .and(hasOperationId(filter.getOperationId()))
+                .and(hasLandingId(filter.getLandingId()))
+                .and(hasObservedLocationId(filter.getObservedLocationId()))
+                .and(inObservedLocationIds(filter.getObservedLocationIds()))
+                .and(hasTagId(filter.getTagId()))
+                .and(withTagId(filter.getWithTagId()))
+                .and(addJoinFetch(fetchOptions, true))
+                .and(includedIds(filter.getIncludedIds()))
+                .and(excludedIds(filter.getExcludedIds()));
     }
 
     @Override

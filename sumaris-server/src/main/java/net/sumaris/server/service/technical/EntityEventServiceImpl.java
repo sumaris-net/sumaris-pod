@@ -439,9 +439,11 @@ public class EntityEventServiceImpl implements EntityEventService {
         String cacheKey = computeCacheKey(entityClass, targetClass, id);
         int cacheDuration = minIntervalInSeconds / 2;
         return watchEntityByUpdateEvent(entityClass, targetClass, id,
-            cacheManager.cacheable(
-               () -> findAndConvert(entityClass, targetClass, id),
-                cacheKey, cacheDuration)
+            // We use cache to avoid to many fetch of the same entity, from many user sessions
+            cacheManager.cacheable(null,
+                    cacheKey,
+                    () -> findAndConvert(entityClass, targetClass, id),
+                    cacheDuration, TimeUnit.SECONDS)
         );
     }
 
@@ -502,10 +504,11 @@ public class EntityEventServiceImpl implements EntityEventService {
         String cacheKey = computeCacheKey(entityClass, targetClass, id);
         int cacheDuration = Math.round((float) Math.max(minIntervalInSeconds, intervalInSecond) / 2);
         return watchAtInterval(
-            cacheManager.cacheable(
-                () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
-                cacheKey, cacheDuration
-            ),
+            // We use cache to avoid to many fetch of the same entity, from many user sessions
+            cacheManager.cacheable(null,
+                    cacheKey,
+                    () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
+                    cacheDuration, TimeUnit.SECONDS),
             intervalInSecond);
     }
 

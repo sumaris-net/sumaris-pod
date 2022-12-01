@@ -101,21 +101,18 @@ public class ProcessingHistory implements IEntity<Integer>, IUpdateDateEntity<In
      * Configuration du traitement, par exemple les paramètres utilisés dans la ligne de commande.
      */
     @Column(name="configuration")
-    @Lob()
     private String configuration;
 
     /**
      * La configuration, sous forme XML (utilisé par les traitements CQ automatique)
      */
     @Column(name="xml_configuration", length = 3000)
-    @Lob()
     private String xmlConfiguration;
 
     /**
      * Use to store execution reports
      */
     @Column(name="xml_report", length = 3000)
-    @Lob()
     private String xmlReport;
 
     /* -- quality insurance -- */

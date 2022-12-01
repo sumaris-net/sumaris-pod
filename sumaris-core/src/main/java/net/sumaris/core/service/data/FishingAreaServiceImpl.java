@@ -54,7 +54,7 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
     @Override
     public FishingAreaVO getByFishingTripId(int tripId) {
-        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroupId(tripId))
+        return operationGroupRepository.getMainUndefinedOperationGroupId(tripId)
             .flatMap(operationGroupId -> fishingAreaRepository.getAllByOperationId(operationGroupId)
                 .stream()
                 // Get the first, order by id (should be the first saved)
@@ -71,14 +71,14 @@ public class FishingAreaServiceImpl implements FishingAreaService {
 
     @Override
     public List<FishingAreaVO> getAllByFishingTripId(int tripId) {
-        return Optional.ofNullable(operationGroupRepository.getMainUndefinedOperationGroupId(tripId))
+        return operationGroupRepository.getMainUndefinedOperationGroupId(tripId)
                 .map(fishingAreaRepository::getAllByOperationId)
                 .orElse(null);
     }
 
     @Override
     public List<FishingAreaVO> saveAllByFishingTripId(int tripId, List<FishingAreaVO> fishingAreas) {
-        Integer operationGroupId = operationGroupRepository.getMainUndefinedOperationGroupId(tripId);
+        Integer operationGroupId = operationGroupRepository.getMainUndefinedOperationGroupId(tripId).orElse(null);
         if (operationGroupId == null) {
             if (fishingAreas == null || CollectionUtils.isEmpty(fishingAreas)) {
                 return null; // Nothing to delete

@@ -39,7 +39,6 @@ import net.sumaris.core.util.env.ConfigurableEnvironments;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.*;
-import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -981,6 +980,15 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public boolean enablePhysicalGearHashOptimization() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_PHYSICAL_GEAR_HASH_OPTIMIZATION.getKey());
     }
+
+
+    public boolean enableAdagioOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ADAGIO_OPTIMIZATION.getKey());
+    }
+    public String getAdagioSchema() {
+        return applicationConfig.getOption(SumarisConfigurationOption.DB_ADAGIO_SCHEMA.getKey());
+    }
+
 
     /**
      * Prefer ProgramEnum.SIH.getLabel()

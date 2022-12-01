@@ -155,7 +155,7 @@ public class LandingServiceImpl implements LandingService {
                 trip.setHasExpectedSales(false);
 
                 // Get the main undefined operation group
-                mainUndefinedOperationGroupId = operationGroupService.getMainUndefinedOperationGroupId(target.getTripId());
+                mainUndefinedOperationGroupId = operationGroupService.getMainUndefinedOperationGroupId(target.getTripId()).orElse(null);
             }
 
             // Get samples by operation if a main undefined operation group exists
@@ -350,7 +350,7 @@ public class LandingServiceImpl implements LandingService {
             source.setTrip(savedTrip);
 
             // Get the main undefined operation group
-            mainUndefinedOperationGroupId = operationGroupService.getMainUndefinedOperationGroupId(savedTrip.getId());
+            mainUndefinedOperationGroupId = operationGroupService.getMainUndefinedOperationGroupId(savedTrip.getId()).orElse(null);
         }
 
         // Save samples

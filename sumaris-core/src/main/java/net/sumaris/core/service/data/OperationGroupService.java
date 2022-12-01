@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author ludovic.pecquot@e-is.pro
@@ -51,11 +52,16 @@ public interface OperationGroupService {
     @Transactional(readOnly = true)
     OperationGroupVO get(int id);
 
+    /**
+     * @deprecated Use cacheable method getMainUndefinedOperationGroupId() instead
+     * @param tripId
+     * @return
+     */
     @Transactional(readOnly = true)
     OperationGroupVO getMainUndefinedOperationGroup(int tripId);
 
     @Transactional(readOnly = true)
-    Integer getMainUndefinedOperationGroupId(int tripId);
+    Optional<Integer> getMainUndefinedOperationGroupId(int tripId);
 
     List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 

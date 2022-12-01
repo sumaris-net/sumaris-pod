@@ -24,8 +24,10 @@ package net.sumaris.server.http.graphql.technical;
 
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.cache.CacheManager;
+import net.sumaris.core.dao.technical.cache.ICacheManager;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsAdmin;
@@ -38,11 +40,11 @@ import java.util.Map;
 @Slf4j
 @Component
 @GraphQLApi
-@ConditionalOnBean({CacheManager.class})
+@RequiredArgsConstructor
+@ConditionalOnBean({CacheManager.class, ICacheManager.class})
 public class CacheGraphQLService {
 
-    @Resource(name = "applicationCacheManager")
-    private CacheManager cacheManager;
+    private final ICacheManager cacheManager;
 
     @GraphQLQuery(name = "cacheStatistics", description = "Get cache statistics")
     @IsAdmin

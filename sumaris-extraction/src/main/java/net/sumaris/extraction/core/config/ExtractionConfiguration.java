@@ -107,6 +107,12 @@ public class ExtractionConfiguration {
         return getApplicationConfig().getOptionAsBoolean(SumarisConfigurationOption.ENABLE_TECHNICAL_TABLES_UPDATE.getKey());
     }
 
+    public boolean enableAdagioOptimization() {
+        return getApplicationConfig().getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ADAGIO_OPTIMIZATION.getKey());
+    }
+    public String getAdagioSchema() {
+        return getApplicationConfig().getOption(SumarisConfigurationOption.DB_ADAGIO_SCHEMA.getKey());
+    }
 
     public File getTempDirectory() {
         return getApplicationConfig().getOptionAsFile(SumarisConfigurationOption.TMP_DIRECTORY.getKey());

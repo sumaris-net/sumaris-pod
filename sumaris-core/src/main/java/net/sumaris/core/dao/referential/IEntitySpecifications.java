@@ -52,6 +52,18 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
 
     default Specification<E> includedIds(ID... includedIds) {
         if (ArrayUtils.isEmpty(includedIds)) return null;
+
+        // Use equal, instead of in, when possible
+        if (includedIds.length == 1) {
+            ID includedId = includedIds[0];
+            return BindableSpecification.<E>where((root, query, cb) -> {
+                    ParameterExpression<ID> param = cb.parameter((Class<ID>) includedId.getClass(), INCLUDED_IDS_PARAMETER);
+                    return cb.equal(root.get(IEntity.Fields.ID), param);
+                })
+                .addBind(INCLUDED_IDS_PARAMETER, includedId);
+        }
+
+
         return BindableSpecification.<E>where((root, query, cb) -> {
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
                 return cb.in(root.get(IEntity.Fields.ID)).value(param);
@@ -61,6 +73,18 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
 
     default Specification<E> excludedIds(ID... excludedIds) {
         if (ArrayUtils.isEmpty(excludedIds)) return null;
+
+        // Use notEquals, instead of notIn, when possible
+        if (excludedIds.length == 1) {
+            ID excludedId = excludedIds[0];
+            return BindableSpecification.<E>where((root, query, cb) -> {
+                    ParameterExpression<ID> param = cb.parameter((Class<ID>)excludedId.getClass(),
+                        EXCLUDED_IDS_PARAMETER);
+                    return cb.notEqual(root.get(IEntity.Fields.ID), param);
+                })
+                .addBind(EXCLUDED_IDS_PARAMETER, excludedId);
+        }
+
         return BindableSpecification.<E>where((root, query, cb) -> {
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
                 return cb.not(

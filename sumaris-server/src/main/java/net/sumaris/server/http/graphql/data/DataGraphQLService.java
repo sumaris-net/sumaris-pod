@@ -914,9 +914,9 @@ public class DataGraphQLService {
 
         // Get samples by operation if a main undefined operation group exists
         List<SampleVO> samples;
-        Integer operationId = getMainUndefinedOperationGroupId(landing);
-        if (operationId != null) {
-            samples = sampleService.getAllByOperationId(operationId, fetchOptions);
+        Optional<Integer> operationId = getMainUndefinedOperationGroupId(landing);
+        if (operationId.isPresent()) {
+            samples = sampleService.getAllByOperationId(operationId.get(), fetchOptions);
         } else {
             samples = sampleService.getAllByLandingId(landing.getId(), fetchOptions);
         }
@@ -933,9 +933,9 @@ public class DataGraphQLService {
 
         // Get samples by operation if a main undefined operation group exists
         SampleFilterVO filter = SampleFilterVO.builder().withTagId(true).build();
-        Integer operationId = getMainUndefinedOperationGroupId(landing);
-        if (operationId != null) {
-            filter.setOperationId(operationId);
+        Optional<Integer> operationId = getMainUndefinedOperationGroupId(landing);
+        if (operationId.isPresent()) {
+            filter.setOperationId(operationId.get());
         } else {
             filter.setLandingId(landing.getId());
         }
@@ -1193,36 +1193,49 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "fishingArea", description = "Get trip's fishing area")
     public FishingAreaVO getTripFishingArea(@GraphQLContext TripVO trip) {
-
-        // FIXME: after the first save (when id = null), the id is not set
-        //if (trip.getFishingArea() != null) return trip.getFishingArea();
-        if (trip.getId() == null) return null;
-
+        if (trip.getId() == null) return null; // Cannot load
         return fishingAreaService.getByFishingTripId(trip.getId());
     }
 
     @GraphQLQuery(name = "fishingAreas", description = "Get trip's fishing areas")
     public List<FishingAreaVO> getTripFishingAreas(@GraphQLContext TripVO trip) {
-        // FIXME: after the first save (when id = null), the id is not set
-        //if (trip.getFishingAreas() != null) return trip.getFishingAreas();
+        if (trip.getFishingAreas() != null) {
+            // FIXME: after the first save (when id = null), the id is not set
+            boolean hasAllIds = trip.getFishingAreas().stream()
+                    .map(FishingAreaVO::getId)
+                    .noneMatch(Objects::isNull);
+            if (hasAllIds) return trip.getFishingAreas();
+        }
 
-        if (trip.getId() == null) return null;
+        if (trip.getId() == null) return null; // Cannot load
+
         return fishingAreaService.getAllByFishingTripId(trip.getId());
     }
 
     @GraphQLQuery(name = "fishingAreas", description = "Get operation's fishing areas")
     public List<FishingAreaVO> getOperationFishingAreas(@GraphQLContext OperationVO operation) {
-        // FIXME: after the first save (when id = null), the id is not set
-        //if (operation.getFishingAreas() != null) return operation.getFishingAreas();
+        if (operation.getFishingAreas() != null) {
+            // FIXME: after the first save (when id = null), the id is not set
+            boolean hasAllIds = operation.getFishingAreas().stream()
+                    .map(FishingAreaVO::getId)
+                    .noneMatch(Objects::isNull);
+            if (hasAllIds) return operation.getFishingAreas();
+        }
 
-        if (operation.getId() == null) return null;
+        if (operation.getId() == null) return null; // Cannot load
+
         return fishingAreaService.getAllByOperationId(operation.getId());
     }
 
     @GraphQLQuery(name = "fishingAreas", description = "Get operation group's fishing areas")
     public List<FishingAreaVO> getOperationGroupFishingAreas(@GraphQLContext OperationGroupVO operationGroup) {
-        // FIXME: after the first save (when id = null), the id is not set
-        //if (operationGroup.getFishingAreas() != null) return operationGroup.getFishingAreas();
+        if (operationGroup.getFishingAreas() != null) {
+            // FIXME: after the first save (when id = null), the id is not set
+            boolean hasAllIds = operationGroup.getFishingAreas().stream()
+                    .map(FishingAreaVO::getId)
+                    .noneMatch(Objects::isNull);
+            if (hasAllIds) return operationGroup.getFishingAreas();
+        }
 
         if (operationGroup.getId() == null) return null;
         return fishingAreaService.getAllByOperationId(operationGroup.getId());
@@ -1462,6 +1475,13 @@ public class DataGraphQLService {
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(landing, fields);
 
+        // Add landing to child trip, if need (will avoid a reload of the same landing)
+        if (landing.getTrip() != null
+            && landing.getTrip().getLandingId() == landing.getId()
+            && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.LANDING, IEntity.Fields.ID))) {
+            landing.getTrip().setLanding(landing);
+        }
+
         return landing;
     }
 
@@ -1646,10 +1666,8 @@ public class DataGraphQLService {
         return filter;
     }
 
-    private Integer getMainUndefinedOperationGroupId(LandingVO landing) {
-        if (landing.getTripId() != null) {
-            return operationGroupService.getMainUndefinedOperationGroupId(landing.getTripId());
-        }
-        return null;
+    private Optional<Integer> getMainUndefinedOperationGroupId(LandingVO landing) {
+        return Optional.ofNullable(landing.getTripId())
+                .flatMap(operationGroupService::getMainUndefinedOperationGroupId);
     }
 }

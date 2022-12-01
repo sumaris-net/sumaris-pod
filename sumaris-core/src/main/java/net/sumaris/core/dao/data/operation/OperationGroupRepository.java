@@ -22,15 +22,17 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import java.util.Optional;
 
 /**
  * @author peck7 on 01/09/2020.
@@ -38,7 +40,9 @@ import java.util.List;
 public interface OperationGroupRepository
     extends DataRepository<Operation, OperationGroupVO, OperationGroupFilterVO, DataFetchOptions>, OperationGroupSpecifications {
 
-    @Query("select min(o.id) from Operation o inner join o.trip t where t.id=:tripId and o.startDateTime = t.departureDateTime and o.endDateTime = t.returnDateTime")
-    Integer getMainUndefinedOperationGroupId(@Param("tripId") int tripId);
+    @Cacheable(cacheNames = CacheConfiguration.Names.MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID, key="#p0", unless="#result==null")
+    @Query("select min(o.id) from Operation o inner join o.trip t where o.trip.id=:tripId and o.startDateTime = t.departureDateTime and o.endDateTime = t.returnDateTime")
+    Optional<Integer> getMainUndefinedOperationGroupId(@Param("tripId") int tripId);
+
 
 }

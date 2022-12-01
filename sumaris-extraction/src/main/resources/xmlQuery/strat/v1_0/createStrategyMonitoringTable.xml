@@ -49,7 +49,7 @@
     <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
 
     <!-- landing strategy link -->
-    <from join="true">
+    <from join="true" group="!adagio">
       LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
         AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
         AND L.LANDING_DATE_TIME &lt; APP.END_DATE + INTERVAL '1' DAY
@@ -62,9 +62,26 @@
     </from>
 
     <!-- landing sample link -->
-    <from join="true">LEFT OUTER JOIN TRIP FT ON FT.ID = L.TRIP_FK</from>
-    <from join="true">LEFT OUTER JOIN OPERATION O ON O.TRIP_FK = FT.ID</from>
-    <from join="true">LEFT OUTER JOIN SAMPLE S ON S.OPERATION_FK = O.ID</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN TRIP FT ON FT.ID = L.TRIP_FK</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN OPERATION O ON O.TRIP_FK = FT.ID</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN SAMPLE S ON S.OPERATION_FK = O.ID</from>
+
+    <!-- Use optimization for ADAGIO (fix IMAGINE issue) -->
+    <from join="true" group="adagio">
+      LEFT OUTER JOIN &amp;adagioSchema.LANDING L ON L.PROGRAM_FK = ST.PROJECT
+      AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
+      AND L.LANDING_DATE_TIME &lt; APP.END_DATE + INTERVAL '1' DAY
+      AND EXISTS (
+      SELECT 1 FROM &amp;adagioSchema.LANDING_MEASUREMENT LM
+      WHERE LM.LANDING_FK = L.ID
+      AND LM.PMFM_FK = &amp;strategyLabelPmfmId
+      AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+      )
+    </from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.FISHING_TRIP FT ON FT.ID = L.FISHING_TRIP_FK</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.OPERATION O ON O.FISHING_TRIP_FK = FT.ID</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.SAMPLE S ON S.FISHING_OPERATION_FK = O.ID</from>
+
     <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = S.ID AND SM.PMFM_FK = &amp;tagIdPmfmId</from>
 
     <groupby>

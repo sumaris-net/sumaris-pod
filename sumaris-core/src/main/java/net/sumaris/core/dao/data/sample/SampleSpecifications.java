@@ -135,4 +135,5 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
 
     List<SampleVO> saveByLandingId(int landingId, List<SampleVO> samples);
 
+
 }

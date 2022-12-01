@@ -22,11 +22,14 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.Date;
 import java.util.List;
@@ -40,6 +43,12 @@ public interface OperationGroupSpecifications
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups);
 
+    /**
+     * @deprecated use the cacheable function getMainUndefinedOperationGroupId() instead
+     * @param tripId
+     * @param fetchOptions
+     * @return
+     */
     OperationGroupVO getMainUndefinedOperationGroup(int tripId, DataFetchOptions fetchOptions);
 
     void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
@@ -52,5 +61,10 @@ public interface OperationGroupSpecifications
      */
     List<MetierVO> getMetiersByTripId(int tripId);
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID, key = "#root.args[0]")
+            }
+    )
     List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 }
