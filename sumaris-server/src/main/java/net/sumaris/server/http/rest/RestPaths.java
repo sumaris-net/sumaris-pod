@@ -26,29 +26,27 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.server.exception.InvalidPathException;
 
-import java.util.Optional;
-
 public interface RestPaths {
 
-    String BASE_PATH = "/api";
+    String BASE_API_PATH = "/api";
 
-    String REGISTER_CONFIRM_PATH = BASE_PATH + "/confirmEmail";
+    String REGISTER_CONFIRM_PATH = BASE_API_PATH + "/confirmEmail";
 
-    String PERSON_AVATAR_PATH = BASE_PATH + "/avatar/{pubkey}";
+    String PERSON_AVATAR_PATH = BASE_API_PATH + "/avatar/{pubkey}";
 
-    String DEPARTMENT_LOGO_PATH = BASE_PATH + "/logo/{label}";
+    String DEPARTMENT_LOGO_PATH = BASE_API_PATH + "/logo/{label}";
 
-    String IMAGE_PATH = BASE_PATH + "/image/{id}";
+    String IMAGE_PATH = BASE_API_PATH + "/image/{id}";
 
     String DOWNLOAD_PATH = "/download";
 
     String UPLOAD_PATH = "/upload";
 
-    String FAVICON = BASE_PATH + "/favicon";
+    String FAVICON = BASE_API_PATH + "/favicon";
 
-    String NODE_INFO_PATH = BASE_PATH + "/node/info";
+    String NODE_INFO_PATH = BASE_API_PATH + "/node/info";
 
-    String NODE_HEALTH_PATH = BASE_PATH + "/node/health";
+    String NODE_HEALTH_PATH = BASE_API_PATH + "/node/health";
 
     static void checkSecuredPath(String path) throws InvalidPathException {
         if (!isSecuredPath(path)) throw new InvalidPathException("Invalid path: " + path);

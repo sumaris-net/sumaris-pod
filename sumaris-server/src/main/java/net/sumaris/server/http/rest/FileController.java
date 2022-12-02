@@ -128,6 +128,7 @@ public class FileController implements IFileController {
     public ResponseEntity<UploadFileResponse>  uploadFile(@RequestParam("file") MultipartFile file,
                                                           @RequestParam("resourceType") String resourceType,
                                                           @RequestParam("resourceId") String resourceId,
+                                                          @RequestParam(value = "action", required = false, defaultValue = "none") String action,
                                                           @RequestParam(value = "replace", defaultValue = "false", required = false) String replaceStr) throws IOException {
 
         boolean replace = Boolean.parseBoolean(replaceStr);

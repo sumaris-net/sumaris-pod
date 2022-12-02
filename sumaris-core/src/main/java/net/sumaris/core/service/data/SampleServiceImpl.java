@@ -37,6 +37,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.NotUniqueException;
+import net.sumaris.core.model.IWithFlagsValueObject;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
@@ -133,30 +134,27 @@ public class SampleServiceImpl implements SampleService {
 
 		List<SampleVO> result = sampleRepository.saveByOperationId(operationId, sources);
 
+		// Excluded samples with same hash (= unchanged - not need to save children)
+		List<SampleVO> changes = IWithFlagsValueObject.collectMissingFlag(result, ValueObjectFlags.SAME_HASH);
+
+		if (CollectionUtils.isEmpty(changes)) return result; // No changes: skip
+
 		// Check all samples have the same programId
+		// /!\ should be the full list, not only changes
 		int programId = extractSingleProgramId(result);
 
-		// Excluded samples with same hash (= unchanged - not need to save children)
-		List<SampleVO> changes = result.stream()
-				.filter(sample -> sample.hasNotFlag(ValueObjectFlags.SAME_HASH))
-				.collect(Collectors.toList());
+		// Check all sample's tag ids are unique
+		if (this.enableSampleUniqueTag) {
+			// Check inside the input list
+			// /!\ should be the full list, not only changes
+			checkSamplesUniqueTagInList(result);
 
-		if (CollectionUtils.isNotEmpty(changes)) {
-
-			// Check all sample's tag ids are unique
-			if (this.enableSampleUniqueTag) {
-				// Check inside the input list
-				// /!\ should be the full list, not only changes
-				checkSamplesUniqueTagInList(result);
-
-				// Check inside the program
-				checkSamplesUniqueTagInProgram(programId, changes);
-			}
-
-			// Save measurements
-			changes.forEach(this::saveMeasurements);
-
+			// Check inside the program
+			checkSamplesUniqueTagInProgram(programId, changes);
 		}
+
+		// Save measurements
+		changes.forEach(this::saveMeasurements);
 
 		return result;
 	}
@@ -167,33 +165,29 @@ public class SampleServiceImpl implements SampleService {
 		List<SampleVO> result = sampleRepository.saveByLandingId(landingId, sources);
 
 		// Excluded samples with same hash (= unchanged - not need to save children)
-		List<SampleVO> changes = result.stream()
-			.filter(sample -> sample.hasNotFlag(ValueObjectFlags.SAME_HASH))
-			.collect(Collectors.toList());
+		List<SampleVO> changes = IWithFlagsValueObject.collectMissingFlag(result, ValueObjectFlags.SAME_HASH);
 
-		if (CollectionUtils.isNotEmpty(changes)) {
+		if (CollectionUtils.isEmpty(changes)) return result; // No changes: skip
 
-			// Check all sample's have the same program
-			// /!\ should be done in the full list, not only changes
-			int programId = extractSingleProgramId(result);
+		// Check all sample's have the same program
+		// /!\ should be done in the full list, not only changes
+		int programId = extractSingleProgramId(result);
 
+		// Check all sample's tag ids are uniques
+		if (this.enableSampleUniqueTag) {
+			// Check inside the input list
+			// /!\ should be the full list, not only changes
+			checkSamplesUniqueTagInList(result);
 
-			// Check all sample's tag ids are uniques
-			if (this.enableSampleUniqueTag) {
-				// Check inside the input list
-				// /!\ should be the full list, not only changes
-				checkSamplesUniqueTagInList(result);
-
-				// Check inside the program
-				checkSamplesUniqueTagInProgram(programId, changes);
-			}
-
-			// Save measurements
-			changes.forEach(this::saveMeasurements);
-
-			// Save images
-			changes.forEach(this::saveImageAttachments);
+			// Check inside the program
+			checkSamplesUniqueTagInProgram(programId, changes);
 		}
+
+		// Save measurements
+		changes.forEach(this::saveMeasurements);
+
+		// Save images
+		changes.forEach(this::saveImageAttachments);
 
 		return result;
 	}

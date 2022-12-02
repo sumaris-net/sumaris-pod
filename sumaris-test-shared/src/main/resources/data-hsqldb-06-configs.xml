@@ -28,7 +28,7 @@
     <SOFTWARE_PROPERTY ID="23" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.forum.url" NAME="https://forum.sumaris.net/"/>
     <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.help.url" NAME="https://github.com/sumaris-net/sumaris-doc/blob/master/user-manual/index.md"/>
     <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2022-11-11" LABEL="sumaris.data.images.enable" NAME="true"/>
-
+    <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.import.enable" NAME="true"/> <!-- DEV only, not in production (option for ADAP only) -->
 
     <!-- ****** ADAP properties ****** -->
 

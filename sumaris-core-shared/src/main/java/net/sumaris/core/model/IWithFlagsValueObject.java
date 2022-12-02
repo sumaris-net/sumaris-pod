@@ -25,11 +25,26 @@ package net.sumaris.core.model;
 import net.sumaris.core.util.Flags;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public interface IWithFlagsValueObject<ID extends Serializable> extends IValueObject<ID> {
 
     interface Fields extends IEntity.Fields {
         String FLAGS = "flags";
+    }
+
+    static <T extends IWithFlagsValueObject<?>> List<T> collectHasFlag(Collection<T> items, int flag) {
+        return items.stream()
+            .filter(item -> item.hasFlag(flag))
+            .collect(Collectors.toList());
+    }
+
+    static <T extends IWithFlagsValueObject<?>> List<T> collectMissingFlag(Collection<T> items, int flag) {
+        return items.stream()
+            .filter(item -> item.hasNotFlag(flag))
+            .collect(Collectors.toList());
     }
 
     int getFlags();

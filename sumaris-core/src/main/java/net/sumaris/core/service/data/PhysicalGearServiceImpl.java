@@ -124,20 +124,20 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	protected void saveMeasurements(List<PhysicalGearVO> result) {
 		result.stream()
-		// Exclude already unchanged entities
-		.filter(source -> source.hasNotFlag(ValueObjectFlags.SAME_HASH))
+			// Exclude already unchanged entities
+			.filter(source -> source.hasNotFlag(ValueObjectFlags.SAME_HASH))
 			// Save measurements
-		.forEach(source -> {
-			if (source.getMeasurementValues() != null) {
-				measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
-			}
-			else {
-				List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
-				measurements.forEach(m -> fillDefaultProperties(source, m, PhysicalGearMeasurement.class));
-				measurements = measurementDao.savePhysicalGearMeasurements(source.getId(), measurements);
-				source.setMeasurements(measurements);
-			}
-		});
+			.forEach(source -> {
+				if (source.getMeasurementValues() != null) {
+					measurementDao.savePhysicalGearMeasurementsMap(source.getId(), source.getMeasurementValues());
+				}
+				else {
+					List<MeasurementVO> measurements = Beans.getList(source.getMeasurements());
+					measurements.forEach(m -> fillDefaultProperties(source, m, PhysicalGearMeasurement.class));
+					measurements = measurementDao.savePhysicalGearMeasurements(source.getId(), measurements);
+					source.setMeasurements(measurements);
+				}
+			});
 	}
 
 	protected void fillDefaultProperties(PhysicalGearVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
