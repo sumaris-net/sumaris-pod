@@ -78,14 +78,16 @@ git status
 mvn gitflow:release-finish
 [[ $? -ne 0 ]] && exit 1
 
-# Remove local release branch
-git branch -d "release/$version"
-
 echo "---- Push changes to upstream [OK]"
 echo ""
 
-# Uploading artifacts to Github
+echo "---- Removing local release branch ..."
+echo ""
+git branch -d "release/$version"
+# NOTE: can fail, but continu
+
 echo "---- Uploading artifacts to Github..."
+echo ""
 
 # Pause (wait propagation to from gitlab to github)
 echo " Waiting 40s, for propagation to github..." && sleep 40s
