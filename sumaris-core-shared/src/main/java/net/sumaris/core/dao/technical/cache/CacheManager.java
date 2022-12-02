@@ -23,62 +23,68 @@
 package net.sumaris.core.dao.technical.cache;
 
 import com.google.common.collect.Maps;
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import javax.cache.Cache;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component(value = "applicationCacheManager")
-@ConditionalOnProperty(
-    prefix = "spring",
-    name = {"cache.enabled"},
-    havingValue = "true",
-    matchIfMissing = true
-)
-public class CacheManager {
+@RequiredArgsConstructor
+public class CacheManager implements ICacheManager {
 
-    @Autowired(required = false)
-    private javax.cache.CacheManager cacheManager;
+    private final Optional<javax.cache.CacheManager> cacheManager;
 
-    private final Map<Integer, com.google.common.cache.Cache<String, Object>> callableCachesByDuration = Maps.newConcurrentMap();
+    private final Map<String, com.google.common.cache.Cache<String, Object>> internalCaches = Maps.newConcurrentMap();
 
     public Map<String, Map<String, Long>> getCacheStats() {
-        if (cacheManager == null) return Maps.newHashMap();
-        return Caches.getStatistics(cacheManager);
+       return cacheManager.map(Caches::getStatistics).orElseGet(Maps::newHashMap);
     }
 
     public boolean clearAllCaches() {
-        if (cacheManager == null) return false;
-        try {
-            log.info("Clearing caches...");
-            Caches.clearAll(cacheManager);
-            log.info("Caches cleared");
-            return true;
-        } catch (RuntimeException e) {
-            log.error("Error while clearing caches", e);
-            return false;
+        log.info("Clearing caches...");
+
+        // Clear using the delegate cache manager (JCache)
+        if (!cacheManager.isEmpty()) {
+            try {
+                Caches.clearAll(cacheManager.get());
+            } catch (RuntimeException e) {
+                log.error("Error while clearing JCache caches", e);
+                return false;
+            }
         }
+
+        // Clear custom callable caches
+        if (!internalCaches.isEmpty()) {
+            try {
+                internalCaches.values()
+                        .forEach(com.google.common.cache.Cache::cleanUp);
+            } catch (RuntimeException e) {
+                log.error("Error while clearing custom caches", e);
+                return false;
+            }
+        }
+
+        log.info("Caches cleared");
+        return true;
     }
 
     public boolean clearCache(@NonNull String name) {
-        if (cacheManager == null) return false;
+        if (cacheManager.isEmpty()) return false;
 
         try {
             log.info("Clearing cache ({})...", name);
-            Cache cache = cacheManager.getCache(name);
+            Cache cache = cacheManager.get().getCache(name);
             if (cache != null) cache.removeAll();
             log.info("Cache cleared ({})", name);
             return true;
@@ -88,31 +94,63 @@ public class CacheManager {
         }
     }
 
+
+    @Override
+    public <R> Callable<R> cacheable(@NonNull String key, @NonNull Callable<R> callable, long cacheDurationInSeconds) {
+        return cacheable(null, key, callable, cacheDurationInSeconds, TimeUnit.SECONDS);
+    }
+
     /**
-     * Decorare a callable, using a cache with the given duration (in seconds)
-     * @param loader
+     * Decorate a callable, using a cache with the given duration (in seconds)
+     * @param callable
      * @param key
-     * @param cacheDurationInSeconds
      * @param <R>
      * @return
      * @throws ExecutionException
      */
-    public <R> Callable<R> cacheable(Callable<R> loader, String key, Integer cacheDurationInSeconds) {
-        // Get the cache for the expected duration
-        com.google.common.cache.Cache<String, Object> cache = callableCachesByDuration.computeIfAbsent(cacheDurationInSeconds,
-            (d) -> com.google.common.cache.CacheBuilder.newBuilder()
-                .expireAfterWrite(d, TimeUnit.SECONDS)
-                .maximumSize(500)
-                .build());
+    public <R> Callable<R> cacheable(@Nullable String cacheGroupName,
+                                     @NonNull String key,
+                                     @NonNull Callable<R> callable,
+                                     long timeToLive, TimeUnit timeUnit) {
+        // Get the cache, with the expected duration
+        String cacheName = String.valueOf(timeUnit.toNanos(timeToLive));
+        com.google.common.cache.Cache<String, Object> cache = getCache(
+                cacheGroupName,
+                cacheName,
+                timeToLive, timeUnit);
 
         // Create a new callable
         return () -> {
             try {
-                return (R) cache.get(key, loader);
+                return (R) cache.get(key, callable);
             }
             catch (ExecutionException e) {
                 throw new SumarisTechnicalException(e);
             }
         };
     }
+
+    /**
+     * Decorare a callable, using a cache with the given duration (in seconds)
+     * @param ttl
+     * @throws ExecutionException
+     */
+    public com.google.common.cache.Cache<String, Object> getCache(
+            @Nullable final String cacheNamePrefix,
+            @NonNull final String cacheName,
+            final long ttl,
+            @NonNull final TimeUnit timeUnit) {
+        final String fullCacheName = StringUtils.isNotBlank(cacheNamePrefix)
+                ? cacheNamePrefix + "#" + cacheName
+                : cacheName;
+
+        // Get the cache for the expected duration
+        return internalCaches.computeIfAbsent(fullCacheName,
+                (n) -> com.google.common.cache.CacheBuilder.newBuilder()
+                        .expireAfterWrite(ttl, timeUnit)
+                        .concurrencyLevel(3)
+                        .maximumSize(500)
+                        .build());
+    }
+
 }

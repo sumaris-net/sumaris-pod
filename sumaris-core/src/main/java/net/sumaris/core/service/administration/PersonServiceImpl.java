@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -38,12 +39,14 @@ import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -132,7 +135,7 @@ public class PersonServiceImpl implements PersonService {
 		List<PersonVO> matches = findByFilter(
 			PersonFilterVO.builder()
 				.email(email)
-				.build(), null).getContent();
+				.build(), Pageable.unpaged()).getContent();
 		if (CollectionUtils.size(matches) != 1) throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
 		return matches.get(0);
 	}
@@ -149,8 +152,8 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-	public ImageAttachmentVO getAvatarByPubkey(final String pubkey) {
-		Preconditions.checkNotNull(pubkey);
+	@Cacheable(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, unless = "#result==null")
+	public ImageAttachmentVO getAvatarByPubkey(@NonNull final String pubkey, ImageAttachmentFetchOptions fetchOptions) {
 		Optional<Person> person = personRepository.findByPubkey(pubkey)
 			.flatMap(vo -> personRepository.findById(vo.getId()));
 
@@ -159,7 +162,7 @@ public class PersonServiceImpl implements PersonService {
 			.map(ImageAttachment::getId)
 			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.person.avatar.notFound")));
 
-		return imageAttachmentService.find(avatarId);
+		return imageAttachmentService.find(avatarId, fetchOptions);
 	}
 
 	@Override

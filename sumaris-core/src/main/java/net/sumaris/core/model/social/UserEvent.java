@@ -22,27 +22,36 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.ISignedEntity;
+import net.sumaris.core.model.ISignedEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 
 import javax.persistence.*;
 import java.util.Date;
 
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "user_event")
+@Table(name = "user_event", indexes = {
+    @Index(name = "user_event_source_idx", columnList = "source"),
+    @Index(name = "user_event_recipient_idx", columnList = "recipient")
+})
 @Cacheable
-public class UserEvent implements ISignedEntity<Integer, Date> {
+public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntity<Integer, Date> {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_EVENT_SEQ")
     @SequenceGenerator(name = "USER_EVENT_SEQ", sequenceName="USER_EVENT_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -54,28 +63,37 @@ public class UserEvent implements ISignedEntity<Integer, Date> {
     private Date updateDate;
 
     @Column(name = "issuer", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
-    @ToString.Include
     private String issuer;
 
     @Column(name = "recipient", nullable = false, length = CRYPTO_PUBKEY_LENGTH)
     private String recipient;
 
-    @Column(name = "event_type", nullable = false, length = 30)
-    @ToString.Include(rank = 1)
-    private String eventType;
+    @Column(name = "event_type", nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    @Comment("Le type de l'évènement (INBOX_MESSAGE, FEED, JOB, etc.)")
+    private String type;
+
+    @Column(name = "event_level", nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    @Comment("Le niveau de l'évènement (INFO, ERROR, etc.)")
+    private String level;
 
     @Lob
     @Column(length=20971520)
+    @Basic(fetch = FetchType.LAZY)
     private String content;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
-    @ToString.Include
     private String hash;
 
     @Column(name = "signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String signature;
 
+    @Column(name = "read_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date readDate;
+
     @Column(name = "read_signature", length = CRYPTO_SIGNATURE_LENGTH)
     private String readSignature;
 
+    @Column(name = "source", length = IItemReferentialEntity.LENGTH_LABEL)
+    private String source;
 }

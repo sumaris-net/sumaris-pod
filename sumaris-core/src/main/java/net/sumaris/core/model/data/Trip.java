@@ -23,7 +23,7 @@ package net.sumaris.core.model.data;
  */
 
 import com.google.common.collect.Sets;
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -38,8 +38,9 @@ import org.nuiton.i18n.I18n;
 import javax.persistence.*;
 import java.util.*;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
 @FieldNameConstants
 @Entity
 @Table(name = "trip")
@@ -65,7 +66,8 @@ public class Trip implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")
     @SequenceGenerator(name = "TRIP_SEQ", sequenceName="TRIP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "creation_date", nullable = false)
@@ -111,7 +113,7 @@ public class Trip implements IRootDataEntity<Integer>,
     private Vessel vessel;
 
     @Column(name = "departure_date_time", nullable = false)
-    @ToString.Include
+    
     private Date departureDateTime;
 
     @Column(name = "return_date_time", nullable = false)

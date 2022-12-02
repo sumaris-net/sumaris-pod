@@ -142,9 +142,21 @@ public class ProgramRepositoryImpl
     }
 
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID)
+    public ProgramVO get(Integer integer) {
+        return super.get(integer);
+    }
+
+    @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL)
     public Optional<ProgramVO> findByLabel(String label) {
         return super.findByLabel(label);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL)
+    public ProgramVO getByLabel(String label) {
+        return super.getByLabel(label);
     }
 
     @Override

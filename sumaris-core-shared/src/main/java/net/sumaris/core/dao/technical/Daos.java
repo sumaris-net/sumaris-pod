@@ -30,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jdbc.PostgresqlStatements;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
@@ -45,6 +45,7 @@ import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.Versions;
@@ -110,6 +111,18 @@ public class Daos {
      */
     protected Daos() {
         // helper class does not instantiate
+    }
+
+    public static Session getSession(EntityManager entityManager) {
+        return (Session) entityManager.getDelegate();
+    }
+
+    public static SessionFactoryImplementor getSessionFactory(EntityManager entityManager) {
+        return (SessionFactoryImplementor) getSession(entityManager).getSessionFactory();
+    }
+
+    public static Dialect getDialect(EntityManager entityManager) {
+        return getSessionFactory(entityManager).getJdbcServices().getDialect();
     }
 
     /**

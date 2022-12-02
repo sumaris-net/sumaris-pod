@@ -41,6 +41,6 @@ public class DatabaseFixtures {
 	}
 
 	public String getRemoteOntologyVocabulary() {
-		return ModelVocabularies.COMMON;
+		return ModelVocabularies.SHARED;
 	}
 }

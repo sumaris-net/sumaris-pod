@@ -25,14 +25,12 @@ package net.sumaris.server.http;
 /**
  * Application specific HTTP headers
  */
-public final class HttpHeaders {
+public final class HttpHeaders extends org.springframework.http.HttpHeaders {
 
-    public static String AUTHORIZATION = org.apache.http.HttpHeaders.AUTHORIZATION;
-    public static String USER_AGENT = org.apache.http.HttpHeaders.USER_AGENT;
-
+    /**
+     * Allow to store entities ID that some deletion have been denied
+     */
     public static String ACCESS_CONTROL_DENY_DELETION_ENTITIES = "Access-Control-Deny-Deletion-Entities";
-
-    public static String HEADER_USER_AGENT = "User-Agent";
 
 
 

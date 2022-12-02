@@ -22,30 +22,54 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.referential.ObjectType;
+import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.QualityFlag;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name="image_attachment")
+@Table(name="image_attachment",
+    indexes = @Index(name="image_attachment_object_idx", columnList = "object_type_fk,object_id")
+)
 public class ImageAttachment implements IDataEntity<Integer>,
         IWithRecorderPersonEntity<Integer, Person>,
         IWithRecorderDepartmentEntity<Integer, Department> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "IMAGE_ATTACHMENT_SEQ")
-    @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "IMAGE_ATTACHMENT_SEQ", sequenceName="IMAGE_ATTACHMENT_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
+
+    @Column(name = "date_time")
+    private Date dateTime;
+
+    @Column(name = "content_type", nullable = false, length = 100)
+    private String contentType;
+
+    @Column(length=20971520)
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    private String content;
+
+    @Column()
+    private String path;
+
+    @Column(length = LENGTH_COMMENTS)
+    private String comments;
 
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -62,12 +86,6 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
-
-    @Column(length = LENGTH_COMMENTS)
-    private String comments;
-
-    @Column()
-    private String path;
 
     @Column(name="control_date")
     @Temporal(TemporalType.TIMESTAMP)
@@ -88,13 +106,11 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @Column(name = "date_time")
-    private Date dateTime;
 
-    @Column(name = "content_type", nullable = false, length = 100)
-    private String contentType;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
+    @JoinColumn(name = "object_type_fk", nullable = true) // Nullable for SUMARiS compatibility (e.g. for Department logo or Person avatar)
+    private ObjectType objectType;
 
-    @Column(length=20971520)
-    private String content;
-
+    @Column(name = "object_id", nullable = true) // Nullable for SUMARiS compatibility (e.g. for Department logo or Person avatar)
+    private Integer objectId;
 }

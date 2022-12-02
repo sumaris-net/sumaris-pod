@@ -22,10 +22,10 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;
@@ -36,7 +36,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "expected_sale")
@@ -47,6 +50,8 @@ public class ExpectedSale implements IEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXPECTED_SALE_SEQ")
     @SequenceGenerator(name = "EXPECTED_SALE_SEQ", sequenceName = "EXPECTED_SALE_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "sale_date")

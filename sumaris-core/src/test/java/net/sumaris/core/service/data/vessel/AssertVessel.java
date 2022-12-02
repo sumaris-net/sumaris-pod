@@ -23,7 +23,7 @@
 package net.sumaris.core.service.data.vessel;
 
 import com.google.common.collect.Sets;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselVO;
 import org.junit.Assert;

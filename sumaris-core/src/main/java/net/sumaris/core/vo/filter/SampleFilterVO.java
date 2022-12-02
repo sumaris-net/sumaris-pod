@@ -41,6 +41,7 @@ import java.util.Date;
 @FieldNameConstants
 public class SampleFilterVO implements IRootDataFilter {
 
+
     private Date startDate;
     private Date endDate;
     private String programLabel;
@@ -64,4 +65,7 @@ public class SampleFilterVO implements IRootDataFilter {
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
 
+
+    private Integer[] includedIds;
+    private Integer[] excludedIds;
 }

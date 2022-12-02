@@ -30,12 +30,12 @@ import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.JmsConfiguration;
+import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.dao.technical.cache.CacheManager;
-import net.sumaris.core.dao.technical.model.Entities;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.Entities;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
@@ -46,8 +46,8 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.server.dao.technical.EntityDao;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.Nullable;
 import org.nuiton.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.TaskExecutor;
@@ -77,20 +77,25 @@ public class EntityEventServiceImpl implements EntityEventService {
     @Value("${sumaris.entity.watch.minIntervalInSeconds:10}")
     private int minIntervalInSeconds;
 
-    @Autowired(required = false)
-    protected TaskExecutor taskExecutor;
 
-    @Autowired
-    private EntityDao dataChangeDao;
+    protected final Optional<TaskExecutor> taskExecutor;
 
-    @Autowired
-    private ConversionService conversionService;
+    private final EntityDao entityDao;
 
-    @Autowired
-    private CacheManager cacheManager;
+    private final ConversionService conversionService;
+
+    private final CacheManager cacheManager;
 
     private final AtomicLong timerObserverCount = new AtomicLong(0);
     private final Map<String, List<Listener>> listenersById = Maps.newConcurrentMap();
+
+
+    public EntityEventServiceImpl(Optional<TaskExecutor> taskExecutor, EntityDao entityDao, ConversionService conversionService, CacheManager cacheManager) {
+        this.taskExecutor = taskExecutor;
+        this.entityDao = entityDao;
+        this.conversionService = conversionService;
+        this.cacheManager = cacheManager;
+    }
 
     @Override
     public <K extends Serializable, D extends Date, T extends IUpdateDateEntity<K, D>, V extends IUpdateDateEntity<K, D>> Observable<V>
@@ -353,6 +358,46 @@ public class EntityEventServiceImpl implements EntityEventService {
         });
     }
 
+    @Override
+    public <ID extends Serializable, D extends Date, T extends IUpdateDateEntity<ID, D>, V extends IUpdateDateEntity<ID, D>, L extends Collection<V>> Observable<Long> watchEntitiesCount(Class<T> entityClass, Callable<Optional<L>> loader, @Nullable Integer intervalInSeconds, boolean startWithActualValue) {
+        AtomicReference<Integer> hashCode = new AtomicReference<>();
+
+        // Watch entity events
+        Observable<Long> result = watchEntityEvents(entityClass)
+            .map(event -> loader.call())
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(vs -> ((long) vs.size()));
+
+        // Add timer
+        if (intervalInSeconds != null && intervalInSeconds > 0) {
+            result = Observable.merge(result,
+                watchCollectionSize(entityClass, loader, intervalInSeconds, false));
+        }
+
+        // Distinguish changed (by hash code)
+        result = Observables.distinctUntilChanged(result, hashCode);
+
+        if (startWithActualValue) {
+            try {
+                L initialVOs = loader.call().orElse(null);
+                if (initialVOs != null) {
+                    hashCode.set(initialVOs.hashCode());
+                    result = result.startWith((long) initialVOs.size());
+                }
+            } catch (Exception e) {
+                throw new SumarisTechnicalException(e);
+            }
+        }
+
+        String listenerId = computeListenerId(entityClass);
+
+        return result.doOnLifecycle(
+            (subscription) -> log.debug("Watching count updates on {} every {}s (observer count: {})", listenerId, intervalInSeconds, timerObserverCount.get() + 1),
+            () -> log.debug("Stop watching count updates on {} (observer count: {})", listenerId, timerObserverCount.get())
+        );
+    }
+
     /* -- Listeners management -- */
 
     @JmsListener(destination = JmsEntityEvents.DESTINATION,
@@ -394,9 +439,11 @@ public class EntityEventServiceImpl implements EntityEventService {
         String cacheKey = computeCacheKey(entityClass, targetClass, id);
         int cacheDuration = minIntervalInSeconds / 2;
         return watchEntityByUpdateEvent(entityClass, targetClass, id,
-            cacheManager.cacheable(
-               () -> findAndConvert(entityClass, targetClass, id),
-                cacheKey, cacheDuration)
+            // We use cache to avoid to many fetch of the same entity, from many user sessions
+            cacheManager.cacheable(null,
+                    cacheKey,
+                    () -> findAndConvert(entityClass, targetClass, id),
+                    cacheDuration, TimeUnit.SECONDS)
         );
     }
 
@@ -457,10 +504,11 @@ public class EntityEventServiceImpl implements EntityEventService {
         String cacheKey = computeCacheKey(entityClass, targetClass, id);
         int cacheDuration = Math.round((float) Math.max(minIntervalInSeconds, intervalInSecond) / 2);
         return watchAtInterval(
-            cacheManager.cacheable(
-                () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
-                cacheKey, cacheDuration
-            ),
+            // We use cache to avoid to many fetch of the same entity, from many user sessions
+            cacheManager.cacheable(null,
+                    cacheKey,
+                    () -> findNewerById(entityClass, targetClass, id, lastUpdateDate.get()),
+                    cacheDuration, TimeUnit.SECONDS),
             intervalInSecond);
     }
 
@@ -470,7 +518,7 @@ public class EntityEventServiceImpl implements EntityEventService {
 
         return Observable
             .interval(intervalInSecond, TimeUnit.SECONDS)
-            .observeOn(taskExecutor == null ? Schedulers.io() : Schedulers.from(taskExecutor))
+            .observeOn(taskExecutor.map(Schedulers::from).orElseGet(Schedulers::io))
             .map(n -> getter.call())
             .filter(Optional::isPresent)
             .map(Optional::get);
@@ -555,7 +603,7 @@ public class EntityEventServiceImpl implements EntityEventService {
                               Date lastUpdateDate) {
 
         log.debug("Checking update on {}#{}...", entityClass.getSimpleName(), id);
-        T entity = dataChangeDao.find(entityClass, id);
+        T entity = entityDao.find(entityClass, id);
         // Entity has been deleted
         if (entity == null) {
             return Optional.empty();
@@ -586,7 +634,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         Class<V> targetClass,
         K id) {
 
-        T entity = dataChangeDao.find(entityClass, id);
+        T entity = entityDao.find(entityClass, id);
 
         // Entity has been deleted
         if (entity == null) {
@@ -607,11 +655,53 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     @Transactional(readOnly = true)
     protected <K extends Serializable, D extends Date, T extends IUpdateDateEntity<K, D>> T find(Class<T> entityClass, K id) {
-        return dataChangeDao.find(entityClass, id);
+        return entityDao.find(entityClass, id);
     }
 
     protected void checkInterval(int intervalInSeconds) {
         Preconditions.checkArgument(intervalInSeconds >= minIntervalInSeconds,
             String.format("interval must be zero (no timer) or greater than %ss (actual : %ss)", minIntervalInSeconds, intervalInSeconds));
     }
+
+    protected  <ID extends Serializable,
+        D extends Date,
+        V extends IUpdateDateEntity<ID, D>,
+        L extends Collection<?>> Observable<Long> watchCollectionSize(final Class<V> entityClass,
+                                                                      final Callable<Optional<L>> loader,
+                                                                      int intervalInSeconds,
+                                                                      boolean startWithActualValue) {
+        checkInterval(intervalInSeconds);
+
+        final AtomicReference<Integer> lastHashCode = new AtomicReference<>();
+
+        Observable<Long> result = Observables.distinctUntilChanged(
+            watchAtInterval(loader, intervalInSeconds).map(objects -> (long) objects.size()),
+            lastHashCode
+        );
+
+        // Add debug log, when subscribe/unsubscribe
+//        if (log.isDebugEnabled()) {
+//            result = result.doOnLifecycle(
+//                disposable -> log.debug("watchAtInterval:onSubscribe {}", entityClass.getSimpleName()),
+//                () -> log.debug("watchAtInterval:onDispose {}", entityClass.getSimpleName())
+//            );
+//        }
+
+        // Sending the initial values when starting
+        if (startWithActualValue) {
+            try {
+                L initialValue = loader.call().orElseThrow(() -> new DataNotFoundException("Unable to get actual values: data not found"));
+                lastHashCode.set(initialValue.hashCode());
+                result = result.startWith((long) initialValue.size());
+            } catch (Exception e) {
+                throw new SumarisTechnicalException(e);
+            }
+        }
+
+        return result.doOnLifecycle(
+            (subscription) -> timerObserverCount.incrementAndGet(),
+            timerObserverCount::decrementAndGet
+        );
+    }
+
 }

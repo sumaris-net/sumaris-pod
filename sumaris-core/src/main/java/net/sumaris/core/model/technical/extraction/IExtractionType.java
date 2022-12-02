@@ -23,7 +23,7 @@
 package net.sumaris.core.model.technical.extraction;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 
 public interface IExtractionType<P extends IEntity<Integer>, D extends IEntity<Integer>>  {

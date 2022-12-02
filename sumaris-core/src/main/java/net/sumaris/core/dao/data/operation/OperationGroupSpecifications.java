@@ -22,18 +22,15 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataSpecifications;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
 import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
-import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
-import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 import java.util.List;
 
@@ -41,12 +38,18 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationGroupSpecifications
-    extends DataSpecifications<Operation> {
+    extends DataSpecifications<Integer, Operation> {
 
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups);
 
-    OperationGroupVO getMainUndefinedOperationGroup(int tripId);
+    /**
+     * @deprecated use the cacheable function getMainUndefinedOperationGroupId() instead
+     * @param tripId
+     * @param fetchOptions
+     * @return
+     */
+    OperationGroupVO getMainUndefinedOperationGroup(int tripId, DataFetchOptions fetchOptions);
 
     void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 
@@ -58,5 +61,10 @@ public interface OperationGroupSpecifications
      */
     List<MetierVO> getMetiersByTripId(int tripId);
 
+    @Caching(
+            evict = {
+                    @CacheEvict(cacheNames = CacheConfiguration.Names.MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID, key = "#root.args[0]")
+            }
+    )
     List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 }

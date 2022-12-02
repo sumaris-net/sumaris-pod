@@ -22,9 +22,9 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.location.Location;
@@ -32,7 +32,10 @@ import net.sumaris.core.model.referential.location.Location;
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "strategy2department")
@@ -52,6 +55,8 @@ public class StrategyDepartment implements IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY2DEPARTMENT_SEQ")
     @SequenceGenerator(name = "STRATEGY2DEPARTMENT_SEQ", sequenceName="STRATEGY2DEPARTMENT_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "update_date")

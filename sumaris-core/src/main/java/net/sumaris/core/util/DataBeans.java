@@ -22,7 +22,7 @@ package net.sumaris.core.util;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;

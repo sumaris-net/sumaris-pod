@@ -23,8 +23,8 @@
 package net.sumaris.core.vo.data;
 
 import lombok.Data;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
 
 import java.util.Date;
 

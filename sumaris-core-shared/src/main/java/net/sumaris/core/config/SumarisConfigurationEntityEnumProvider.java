@@ -23,7 +23,7 @@ package net.sumaris.core.config;
  */
 
 
-import net.sumaris.core.dao.technical.model.annotation.EntityEnums;
+import net.sumaris.core.model.annotation.EntityEnums;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigActionDef;
 import org.nuiton.config.ConfigOptionDef;

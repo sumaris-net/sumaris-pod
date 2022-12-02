@@ -33,7 +33,8 @@ import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import io.leangen.graphql.util.Utils;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.server.http.filter.CORSFilter;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -69,23 +70,6 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         this.context = context;
         this.objectMapper = objectMapper;
     }
-
-    @Bean
-    public WebMvcConfigurer configureGraphQL() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                // Enable Global CORS support for the application
-                //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
-                registry.addMapping(GraphQLPaths.BASE_PATH)
-                    .allowedOriginPatterns("*")
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                    .allowCredentials(true);
-            }
-        };
-    }
-
 
     @Bean
     public GraphQLSchema graphQLSchema() {

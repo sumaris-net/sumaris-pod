@@ -25,10 +25,10 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
-import net.sumaris.core.dao.data.batch.BatchRepository;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
@@ -37,12 +37,11 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.ValueObjectFlags;
+import net.sumaris.core.vo.data.MeasurementVO;
+import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.QuantificationMeasurementVO;
-import net.sumaris.core.vo.data.sample.SampleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -153,46 +152,46 @@ public class BatchServiceImpl implements BatchService {
 			// Save measurements
 			.forEach(batch -> {
 
-			// If only one maps: distinguish each item
-			if (batch.getMeasurementValues() != null) {
+				// If only one maps: distinguish each item
+				if (batch.getMeasurementValues() != null) {
 
-				Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
-				Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
+					Map<Integer, String> quantificationMeasurements = Maps.newLinkedHashMap();
+					Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
 
-				batch.getMeasurementValues().forEach((pmfmId, value) -> {
-					if (pmfmService.isWeightPmfm(pmfmId)) {
-						quantificationMeasurements.putIfAbsent(pmfmId, value);
-					}
-					else {
-						if (sortingMeasurements.containsKey(pmfmId)) {
-							log.warn(String.format("Duplicate measurement width {pmfmId: %s} on batch {id: %s}", pmfmId, batch.getId()));
+					batch.getMeasurementValues().forEach((pmfmId, value) -> {
+						if (pmfmService.isWeightPmfm(pmfmId)) {
+							quantificationMeasurements.putIfAbsent(pmfmId, value);
 						}
 						else {
-							sortingMeasurements.putIfAbsent(pmfmId, value);
+							if (sortingMeasurements.containsKey(pmfmId)) {
+								log.warn(String.format("Duplicate measurement width {pmfmId: %s} on batch {id: %s}", pmfmId, batch.getId()));
+							}
+							else {
+								sortingMeasurements.putIfAbsent(pmfmId, value);
+							}
 						}
+					});
+					measurementDao.saveBatchSortingMeasurementsMap(batch.getId(), sortingMeasurements);
+					measurementDao.saveBatchQuantificationMeasurementsMap(batch.getId(), quantificationMeasurements);
+				}
+				else {
+					// Sorting measurement
+					{
+						List<MeasurementVO> measurements = Beans.getList(batch.getSortingMeasurements());
+						measurements.forEach(m -> fillDefaultProperties(batch, m, BatchSortingMeasurement.class));
+						measurements = measurementDao.saveBatchSortingMeasurements(batch.getId(), measurements);
+						batch.setSortingMeasurements(measurements);
 					}
-				});
-				measurementDao.saveBatchSortingMeasurementsMap(batch.getId(), sortingMeasurements);
-				measurementDao.saveBatchQuantificationMeasurementsMap(batch.getId(), quantificationMeasurements);
-			}
-			else {
-				// Sorting measurement
-				{
-					List<MeasurementVO> measurements = Beans.getList(batch.getSortingMeasurements());
-					measurements.forEach(m -> fillDefaultProperties(batch, m, BatchSortingMeasurement.class));
-					measurements = measurementDao.saveBatchSortingMeasurements(batch.getId(), measurements);
-					batch.setSortingMeasurements(measurements);
-				}
 
-				// Quantification measurement
-				{
-					List<QuantificationMeasurementVO> measurements = Beans.getList(batch.getQuantificationMeasurements());
-					measurements.forEach(m -> fillDefaultProperties(batch, m, BatchQuantificationMeasurement.class));
-					measurements = measurementDao.saveBatchQuantificationMeasurements(batch.getId(), measurements);
-					batch.setQuantificationMeasurements(measurements);
+					// Quantification measurement
+					{
+						List<QuantificationMeasurementVO> measurements = Beans.getList(batch.getQuantificationMeasurements());
+						measurements.forEach(m -> fillDefaultProperties(batch, m, BatchQuantificationMeasurement.class));
+						measurements = measurementDao.saveBatchQuantificationMeasurements(batch.getId(), measurements);
+						batch.setQuantificationMeasurements(measurements);
+					}
 				}
-			}
-		});
+			});
 	}
 	protected void fillDefaultProperties(BatchVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
 		if (measurement == null) return;

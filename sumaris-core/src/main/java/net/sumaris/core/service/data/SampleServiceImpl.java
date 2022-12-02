@@ -24,42 +24,68 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.sample.SampleAdagioRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.NotUniqueException;
+import net.sumaris.core.model.IWithFlagsValueObject;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.DataBeans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.ValueObjectFlags;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("sampleService")
+@RequiredArgsConstructor
 @Slf4j
 public class SampleServiceImpl implements SampleService {
 
-	@Autowired
-	private SumarisConfiguration configuration;
+	private final SumarisConfiguration configuration;
 
-	@Autowired
-	protected SampleRepository sampleRepository;
+	protected final SampleRepository sampleRepository;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+	protected final Optional<SampleAdagioRepository> sampleAdagioRepository;
+
+	protected final MeasurementDao measurementDao;
+
+	protected final ProgramService programService;
+
+	protected final ImageAttachmentRepository imageAttachmentRepository;
+
+	protected boolean enableSampleUniqueTag = false;
+	protected boolean enableAdagioOptimization = false;
+
+	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+	public void onConfigurationReady(ConfigurationEvent event) {
+		this.enableSampleUniqueTag = event.getConfiguration().enableSampleUniqueTag();
+		this.enableAdagioOptimization = event.getConfiguration().enableAdagioOptimization();
+	}
 
 	@Override
 	public Long countByFilter(SampleFilterVO filter) {
@@ -88,8 +114,19 @@ public class SampleServiceImpl implements SampleService {
 	}
 
 	@Override
-	public SampleVO get(int saleId) {
-		return sampleRepository.get(saleId);
+	public List<SampleVO> getAllByLandingId(int landingId, SampleFetchOptions fetchOptions) {
+		return sampleRepository.findAll(SampleFilterVO.builder().landingId(landingId).build(),
+				fetchOptions);
+	}
+
+	@Override
+	public SampleVO get(int id) {
+		return sampleRepository.get(id);
+	}
+
+	@Override
+	public SampleVO get(int id, SampleFetchOptions fetchOptions) {
+		return sampleRepository.get(id, fetchOptions);
 	}
 
 	@Override
@@ -97,8 +134,27 @@ public class SampleServiceImpl implements SampleService {
 
 		List<SampleVO> result = sampleRepository.saveByOperationId(operationId, sources);
 
+		// Excluded samples with same hash (= unchanged - not need to save children)
+		List<SampleVO> changes = IWithFlagsValueObject.collectMissingFlag(result, ValueObjectFlags.SAME_HASH);
+
+		if (CollectionUtils.isEmpty(changes)) return result; // No changes: skip
+
+		// Check all samples have the same programId
+		// /!\ should be the full list, not only changes
+		int programId = extractSingleProgramId(result);
+
+		// Check all sample's tag ids are unique
+		if (this.enableSampleUniqueTag) {
+			// Check inside the input list
+			// /!\ should be the full list, not only changes
+			checkSamplesUniqueTagInList(result);
+
+			// Check inside the program
+			checkSamplesUniqueTagInProgram(programId, changes);
+		}
+
 		// Save measurements
-		saveMeasurements(result);
+		changes.forEach(this::saveMeasurements);
 
 		return result;
 	}
@@ -108,8 +164,30 @@ public class SampleServiceImpl implements SampleService {
 
 		List<SampleVO> result = sampleRepository.saveByLandingId(landingId, sources);
 
+		// Excluded samples with same hash (= unchanged - not need to save children)
+		List<SampleVO> changes = IWithFlagsValueObject.collectMissingFlag(result, ValueObjectFlags.SAME_HASH);
+
+		if (CollectionUtils.isEmpty(changes)) return result; // No changes: skip
+
+		// Check all sample's have the same program
+		// /!\ should be done in the full list, not only changes
+		int programId = extractSingleProgramId(result);
+
+		// Check all sample's tag ids are uniques
+		if (this.enableSampleUniqueTag) {
+			// Check inside the input list
+			// /!\ should be the full list, not only changes
+			checkSamplesUniqueTagInList(result);
+
+			// Check inside the program
+			checkSamplesUniqueTagInProgram(programId, changes);
+		}
+
 		// Save measurements
-		saveMeasurements(result);
+		changes.forEach(this::saveMeasurements);
+
+		// Save images
+		changes.forEach(this::saveImageAttachments);
 
 		return result;
 	}
@@ -117,11 +195,29 @@ public class SampleServiceImpl implements SampleService {
 	@Override
 	public SampleVO save(SampleVO sample) {
 		Preconditions.checkNotNull(sample);
-		Preconditions.checkArgument((sample.getOperation() != null && sample.getOperation().getId() != null) || sample.getOperationId() != null, "Missing sample.operation or sample.operationId");
+		Preconditions.checkArgument((sample.getOperation() != null && sample.getOperation().getId() != null)
+				|| sample.getOperationId() != null
+				|| (sample.getLanding() != null && sample.getLanding().getId() != null)
+				|| sample.getLandingId() != null,
+				"Missing sample.operation or sample.operationId, or sample.landing.id or sample.landingId");
 		Preconditions.checkNotNull(sample.getRecorderDepartment(), "Missing sample.recorderDepartment");
 		Preconditions.checkNotNull(sample.getRecorderDepartment().getId(), "Missing sample.recorderDepartment.id");
 
-		return sampleRepository.save(sample);
+		SampleVO result = sampleRepository.save(sample);
+
+		// Excluded samples with same hash (= unchanged - not need to save children)
+		if (result.hasNotFlag(ValueObjectFlags.SAME_HASH)) {
+			// Check tag is unique, inside the program
+			if (enableSampleUniqueTag) checkSamplesUniqueTagInProgram(sample);
+
+			// Save measurements
+			saveMeasurements(result);
+
+			// Save images
+			saveImageAttachments(result);
+		}
+
+		return result;
 	}
 
 	@Override
@@ -177,51 +273,136 @@ public class SampleServiceImpl implements SampleService {
 
 	/* -- protected methods -- */
 
-	protected void saveMeasurements(List<SampleVO> result) {
-		result.stream()
-			// Excluded samples with same hash (= unchanged = not need to save children)
-			.filter(sample -> sample.hasNotFlag(ValueObjectFlags.SAME_HASH))
-			.forEach(sample -> {
-				// Make sure sample tag is unique
-				checkUniqueTag(sample);
+	protected void saveMeasurements(SampleVO sample) {
 
-				// Save measurements
-				if (sample.getMeasurementValues() != null) {
-					measurementDao.saveSampleMeasurementsMap(sample.getId(), sample.getMeasurementValues());
-				} else {
-					List<MeasurementVO> measurements = Beans.getList(sample.getMeasurements());
-					measurements.forEach(m -> fillDefaultProperties(sample, m, SampleMeasurement.class));
-					measurements = measurementDao.saveSampleMeasurements(sample.getId(), measurements);
-					sample.setMeasurements(measurements);
-				}
-			});
+		// Save measurements
+		if (sample.getMeasurementValues() != null) {
+			measurementDao.saveSampleMeasurementsMap(sample.getId(), sample.getMeasurementValues());
+		} else {
+			List<MeasurementVO> measurements = Beans.getList(sample.getMeasurements());
+			measurements.forEach(m -> fillDefaultProperties(sample, m, SampleMeasurement.class));
+			measurements = measurementDao.saveSampleMeasurements(sample.getId(), measurements);
+			sample.setMeasurements(measurements);
+		}
 	}
 
-	private void checkUniqueTag(SampleVO savedSample) {
-		if (!configuration.enableSampleUniqueTag()) return;
-		String savedSampleTagId = null;
 
-		// Get tag_id measurement
-		if (savedSample.getMeasurementValues() != null) {
-			savedSampleTagId = savedSample.getMeasurementValues().get(PmfmEnum.TAG_ID.getId());
-		} else if (savedSample.getMeasurements() != null) {
-			savedSampleTagId = savedSample.getMeasurements().stream()
-					.filter(m -> PmfmEnum.TAG_ID.getId().equals(m.getPmfmId()))
-					.map(MeasurementVO::getAlphanumericalValue)
-					.findFirst().orElse(null);
+	private void saveImageAttachments(SampleVO sample) {
+		List<Integer> existingIdsToRemove = imageAttachmentRepository.getIdsFromObject(sample.getId(), ObjectTypeEnum.SAMPLE.getId());
+		sample.getImages()
+			.stream()
+			.filter(Objects::nonNull)
+			.forEach(image -> {
+				boolean exists = existingIdsToRemove.remove(image.getId());
+
+				// Skip image when already saved, and no content
+				if (exists && image.getContent() == null) {
+					log.debug("Skipping save of an existing image (content not set)");
+				}
+				else {
+					// Fill defaults
+					fillDefaultProperties(image, sample);
+
+					// Save
+					imageAttachmentRepository.save(image);
+				}
+			});
+
+		// Remove
+		if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
+			imageAttachmentRepository.deleteAllById(existingIdsToRemove);
 		}
+	}
 
-		// Check if tag_id is unique by program
-		if (savedSampleTagId != null) {
-			long count = sampleRepository.findAll(SampleFilterVO.builder()
-					.programLabel(savedSample.getProgram().getLabel()).tagId(savedSampleTagId).build())
-					.stream()
-					.filter(s -> savedSample.getId() == null || !Objects.equals(s.getId(), savedSample.getId()))
-					.count();
-			if (count > 0) {
-				throw new NotUniqueException(String.format("Sample tag measurement '%s' already exists", savedSampleTagId));
+
+	/**
+	 * Check all tag_id are unique in the input list (and NOT in the DB table)
+	 * @param samples
+	 */
+	private void checkSamplesUniqueTagInList(List<SampleVO> samples) {
+		Set<String> duplicatedTagIds = Beans.<String, SampleVO>splitByNotUniqueProperty(samples, SampleVO.GetterFields.TAG_ID)
+				.asMap().entrySet().stream()
+				// Filter more than one sample for the same tag id
+				.filter(e -> e.getValue().size() > 1)
+				.map(Map.Entry::getKey)
+				.collect(Collectors.toSet());
+
+		if (CollectionUtils.isNotEmpty(duplicatedTagIds)) {
+			// Get suffix only
+			List<String> duplicatedTagIdSuffixes = Beans.transformCollection(duplicatedTagIds, this::getTagIdSuffix);
+
+			throw new NotUniqueException(String.format("Duplicated tag_id (in list): %s", String.join(",", duplicatedTagIdSuffixes)));
+		}
+	}
+
+	private void checkSamplesUniqueTagInProgram(SampleVO sample) {
+		int programId = extractProgramId(sample);
+		this.checkSamplesUniqueTagInProgram(programId, ImmutableList.of(sample));
+	}
+	private void checkSamplesUniqueTagInProgram(int programId, List<SampleVO> samples) {
+
+		List<Integer> sampleIds = Beans.collectIds(samples);
+		Set<String> tagIds = Beans.transformCollection(samples, SampleVO::getTagId)
+				.stream()
+				.filter(Objects::nonNull)
+				.collect(Collectors.toSet());
+
+		// Check if tagIds are uniques by program
+		if (CollectionUtils.isNotEmpty(tagIds) && PmfmEnum.TAG_ID.getId() != -1) {
+			Set<String> duplicatedTagIds;
+			if (this.enableAdagioOptimization && sampleAdagioRepository.isPresent()) {
+				String programLabel = programService.get(programId).getLabel();
+				duplicatedTagIds = sampleAdagioRepository.get().getDuplicatedTagIdsByProgramLabel(
+						programLabel,
+						PmfmEnum.TAG_ID.getId(),
+						tagIds,
+						sampleIds);
+			}
+			else {
+				duplicatedTagIds = sampleRepository.getDuplicatedTagIdsByProgramId(
+									programId,
+									PmfmEnum.TAG_ID.getId(),
+									tagIds,
+									sampleIds);
+			}
+
+			if (CollectionUtils.isNotEmpty(duplicatedTagIds)) {
+				// Get suffix only
+				List<String> duplicatedTagIdSuffixes = Beans.transformCollection(duplicatedTagIds, this::getTagIdSuffix);
+
+				throw new NotUniqueException(String.format("Duplicated tag_id (in program): %s", String.join(",", duplicatedTagIdSuffixes)));
 			}
 		}
+	}
+
+	/**
+	 * Get last part of the tag_id (characters after the last separator).
+	 * <p>'22PLEUPLA002-0349' will return '0349'</p>
+	 *
+	 * @param tagId
+	 * @return
+	 */
+	public String getTagIdSuffix(@NonNull String tagId) {
+		return StringUtils.defaultIfBlank(StringUtils.getSuffixOrDefault(tagId, "-", null), tagId);
+	}
+
+	public int extractSingleProgramId(@NonNull List<SampleVO> samples) {
+		Preconditions.checkArgument(samples.size() > 0, "Required a not empty samples list");
+		int programId = extractProgramId(samples.get(0));
+
+		// Check all have the same program id
+		Preconditions.checkArgument(samples.stream()
+						.filter(s -> extractProgramId(s) != programId)
+						.findFirst().isEmpty(),
+				"All samples should have the same 'program.id'");
+
+		return programId;
+	}
+
+	public int extractProgramId(@NonNull SampleVO sample) {
+		Preconditions.checkNotNull(sample.getProgram(), "Missing required argument 'sample.program'");
+		Preconditions.checkNotNull(sample.getProgram().getId(), "Missing required argument 'sample.program.id'");
+		return sample.getProgram().getId();
 	}
 
 	protected void fillDefaultProperties(SampleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
@@ -257,5 +438,21 @@ public class SampleServiceImpl implements SampleService {
 
 		sample.setParentId(parent.getId());
 		sample.setOperationId(parent.getOperationId());
+	}
+
+	protected void fillDefaultProperties(ImageAttachmentVO image, SampleVO parent) {
+		if (image == null) return;
+
+		// Set default recorder department
+		DataBeans.setDefaultRecorderDepartment(image, parent.getRecorderDepartment());
+
+		// Fill date
+		if (image.getDateTime() == null) {
+			image.setDateTime(parent.getSampleDate());
+		}
+
+		// Link to sample
+		image.setObjectId(parent.getId());
+		image.setObjectTypeId(ObjectTypeEnum.SAMPLE.getId());
 	}
 }

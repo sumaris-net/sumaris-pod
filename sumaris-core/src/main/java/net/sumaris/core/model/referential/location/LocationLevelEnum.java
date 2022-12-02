@@ -23,7 +23,7 @@ package net.sumaris.core.model.referential.location;
  */
 
 import lombok.NonNull;
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -34,10 +34,13 @@ public enum LocationLevelEnum implements Serializable {
     COUNTRY(1, "Country"),
     HARBOUR(2, "Port"),
     AUCTION(3, "Auction"),
+    MARITIME_DISTRICT(8, "Maritime District"), // Quartier maritime
+
     RECTANGLE_ICES(4, "ICES_RECTANGLE"),
     RECTANGLE_GFCM(5, "GFCM_RECTANGLE"),
     SQUARE_10(6, "SQUARE_10"), // 10' x 10'
     SQUARE_3(7, "SQUARE_3"), // 3' x 3'
+
 
     AREA_FAO(101, "FAO_AREA"),  // Zone FAO
     SUB_AREA_ICES(110, "ICES_SUB_AREA"), // Sous-zone CIEM (=ICES)
@@ -45,7 +48,8 @@ public enum LocationLevelEnum implements Serializable {
     SUB_DIVISION_ICES(112, "ICES_SUB_DIVISION"), // Sous-Division CIEM (=ICES)
     SUB_AREA_GFCM(140, "GFCM_SUB_AREA"), // Sous-zone CGPM (=GFCM)
     DIVISION_GFCM(141, "GFCM_DIVISION"), // Division CGPM (=GFCM)
-    SUB_DIVISION_GFCM(142, "GFCM_SUB_DIVISION") // Sous-Division CGPM (=GFCM)
+    SUB_DIVISION_GFCM(142, "GFCM_SUB_DIVISION"), // Sous-Division CGPM (=GFCM)
+
     ;
 
     public static LocationLevelEnum valueOf(final int id) {

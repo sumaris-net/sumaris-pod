@@ -26,8 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.technical.Page;
@@ -44,50 +44,31 @@ import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author peck7 on 28/11/2019.
  */
 @Service("operationGroupService")
 @Slf4j
+@RequiredArgsConstructor
 public class OperationGroupServiceImpl implements OperationGroupService {
 
-    @Autowired
-    protected SumarisConfiguration config;
+    private final OperationGroupRepository operationGroupRepository;
 
-    @Autowired
-    private OperationGroupRepository operationGroupRepository;
+    private final MeasurementDao measurementDao;
 
-    @Autowired
-    protected MeasurementDao measurementDao;
+    private final PmfmService pmfmService;
 
-    @Autowired
-    protected BatchService batchService;
+    private final ProductService productService;
 
-    @Autowired
-    protected PhysicalGearService physicalGearService;
+    private final PacketService packetService;
 
-    @Autowired
-    protected PmfmService pmfmService;
+    private final FishingAreaService fishingAreaService;
 
-    @Autowired
-    protected ProductService productService;
-
-    @Autowired
-    protected PacketService packetService;
-
-    @Autowired
-    protected FishingAreaService fishingAreaService;
-
-    @Autowired
-    protected SampleService sampleService;
+    private final SampleService sampleService;
 
     @Override
     public List<MetierVO> getMetiersByTripId(int tripId) {
@@ -96,20 +77,30 @@ public class OperationGroupServiceImpl implements OperationGroupService {
 
     @Override
     public List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers) {
-
         Preconditions.checkNotNull(metiers);
-
         return operationGroupRepository.saveMetiersByTripId(tripId, metiers);
     }
 
     @Override
     public OperationGroupVO getMainUndefinedOperationGroup(int tripId) {
-        return operationGroupRepository.getMainUndefinedOperationGroup(tripId);
+        List<OperationGroupVO> operationGroups = operationGroupRepository.findAll(
+            OperationGroupFilterVO.builder().tripId(tripId).onlyUndefined(true).build()
+        );
+        // Get the first (main ?) undefined operation group
+        // todo maybe add is_main_operation and manage metier order in app
+        if (CollectionUtils.size(operationGroups) > 0) {
+            return operationGroups.get(0);
+        }
+        return null;
+    }
+
+    @Override
+    public Optional<Integer> getMainUndefinedOperationGroupId(int tripId) {
+        return operationGroupRepository.getMainUndefinedOperationGroupId(tripId);
     }
 
     @Override
     public void updateUndefinedOperationDates(int tripId, @NonNull Date startDate, @NonNull Date endDate) {
-
         operationGroupRepository.updateUndefinedOperationDates(tripId, startDate, endDate);
     }
 

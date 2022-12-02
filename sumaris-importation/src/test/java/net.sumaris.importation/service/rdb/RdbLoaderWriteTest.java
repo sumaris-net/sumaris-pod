@@ -24,6 +24,7 @@ package net.sumaris.importation.service.rdb;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Files;
+import net.sumaris.importation.core.service.rdb.RdbDataLoaderServiceImpl;
 import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -39,9 +40,8 @@ public class RdbLoaderWriteTest extends AbstractServiceTest {
     private RdbDataLoaderServiceImpl service = null;
 
     @Test
-    @Ignore
     public void loadTestFiles() {
-        String basePath = "src/test/data/import/";
+        String basePath = "src/test/data/rdb/";
 
         // Import FRA sample file
         File file = new File(basePath, "FRA-CL-test.csv");

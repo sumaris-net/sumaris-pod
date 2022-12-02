@@ -23,8 +23,8 @@ package net.sumaris.server.service.technical;
  */
 
 import io.reactivex.Observable;
-import net.sumaris.core.dao.technical.model.IEntity;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.event.entity.IEntityEvent;
 
 import javax.annotation.Nullable;
@@ -68,6 +68,15 @@ public interface EntityEventService {
     watchCollection(Callable<Optional<L>> loader,
                     int intervalInSeconds,
                     boolean startWithActualValue);
+
+    <ID extends Serializable, D extends Date,
+        T extends IUpdateDateEntity<ID, D>,
+        V extends IUpdateDateEntity<ID, D>,
+        L extends Collection<V>> Observable<Long>
+    watchEntitiesCount(Class<T> entityClass,
+                       Callable<Optional<L>> loader,
+                       @Nullable Integer intervalInSeconds,
+                       boolean startWithActualValue);
 
     <ID extends Serializable, T extends IEntity<ID>>
     Observable<IEntityEvent> watchEntityEvents(Class<T> entityClass);

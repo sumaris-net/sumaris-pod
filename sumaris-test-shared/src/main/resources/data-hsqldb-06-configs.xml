@@ -2,10 +2,9 @@
     
     <SOFTWARE ID="1" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="SUMARiS" NAME="European shared database for management of skate stocks." />
     <SOFTWARE ID="2" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="ADAP" NAME="Application d’assistance à l’auto-échantillonnage en mer et aux contrôles en criées." />
-    <SOFTWARE ID="3" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="SAR" NAME="Service d'Administration des Référentiels Marins" />
     <SOFTWARE ID="4" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="OBSDEB" NAME="Application de saisie des débarquements observés" />
     <SOFTWARE ID="5" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="IMAGINE" NAME="Suivi des paramètres biologique" />
-    <SOFTWARE ID="6" STATUS_FK="1" CREATION_DATE="2021-08-01" LABEL="OPEN" NAME="Application d’assistance à l’auto-échantillonnage en mer" />
+    <SOFTWARE ID="6" STATUS_FK="1" CREATION_DATE="2021-08-01" LABEL="OPEN" NAME="Base de données ouverte, pour la collecte de données halieutiques" />
 
     <!-- ****** SUMARiS properties ****** -->
 
@@ -28,45 +27,30 @@
     <SOFTWARE_PROPERTY ID="22" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="23" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.forum.url" NAME="https://forum.sumaris.net/"/>
     <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.help.url" NAME="https://github.com/sumaris-net/sumaris-doc/blob/master/user-manual/index.md"/>
-
+    <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2022-11-11" LABEL="sumaris.data.images.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.import.enable" NAME="true"/> <!-- DEV only, not in production (option for ADAP only) -->
 
     <!-- ****** ADAP properties ****** -->
 
-    <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:18"/>
-    <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:53"/>
-    <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:8"/>
-    <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:30,image:31,image:32,image:33,image:34,image:35,image:36"/>
+    <SOFTWARE_PROPERTY ID="35" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:18"/>
+    <SOFTWARE_PROPERTY ID="36" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:53"/>
+    <SOFTWARE_PROPERTY ID="37" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:8"/>
+    <SOFTWARE_PROPERTY ID="38" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:30,image:31,image:32,image:33,image:34,image:35,image:36"/>
 
-    <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
-    <SOFTWARE_PROPERTY ID="30" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
-    <SOFTWARE_PROPERTY ID="31" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
-
-    <SOFTWARE_PROPERTY ID="32" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:54"/>
-    <SOFTWARE_PROPERTY ID="33" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="34" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.AUCTION_OCCASIONS"/>
-    <SOFTWARE_PROPERTY ID="35" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="36" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.testing.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="37" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="38" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="39" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="40" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
-
-
-    <!-- ****** SIMM properties ****** -->
-    <SOFTWARE_PROPERTY ID="50" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:20"/>
-    <SOFTWARE_PROPERTY ID="51" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:20"/>
-    <SOFTWARE_PROPERTY ID="52" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:10,department:3"/>
-    <SOFTWARE_PROPERTY ID="54" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:20"/>
-    <SOFTWARE_PROPERTY ID="55" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
-    <SOFTWARE_PROPERTY ID="56" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="57" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="58" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://www.milieumarinfrance.fr/var/storage/images/_aliases/fullsize/media/medias-simm/a-propos/illustration-a-propos/17785-2-fre-FR/Illustration-A-Propos.jpg,https://www.milieumarinfrance.fr/var/storage/images/_aliases/c_slideshow-carousel_default/media/medias-simm/a-propos/actualites/illustration-du-sar/30658-6-fre-FR/Illustration-du-SAR,https://www.milieumarinfrance.fr/var/storage/images/_aliases/c_slideshow-carousel_default/media/medias-simm/a-propos/actualites/limite-terre-mer-illustration-du-littoral/27725-1-fre-FR/Limite-terre-mer-illustration-du-littoral.png"/>
-    <SOFTWARE_PROPERTY ID="59" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="60" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="61" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="62" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="63" STATUS_FK="1" SOFTWARE_FK="3" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
-
+    <SOFTWARE_PROPERTY ID="39" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLocale" NAME="fr"/>
+    <SOFTWARE_PROPERTY ID="40" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.defaultLatLongFormat" NAME="DDMM"/>
+    <SOFTWARE_PROPERTY ID="41" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="42" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:54"/>
+    <SOFTWARE_PROPERTY ID="43" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="44" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.AUCTION_OCCASIONS"/>
+    <SOFTWARE_PROPERTY ID="45" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="46" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.testing.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="47" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="48" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="49" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="50" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="51" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.import.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="52" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2022-11-11" LABEL="sumaris.data.images.enable" NAME="true"/>
 
     <!-- ****** OBSDEB properties ****** -->
     <SOFTWARE_PROPERTY ID="70" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:22"/>

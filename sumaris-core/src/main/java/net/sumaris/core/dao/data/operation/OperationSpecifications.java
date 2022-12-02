@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data.operation;
 import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.PhysicalGear;
@@ -51,7 +51,7 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationSpecifications
-    extends DataSpecifications<Operation> {
+    extends DataSpecifications<Integer, Operation> {
 
     String TRIP_ID_PARAM = "tripId";
     String VESSEL_ID_PARAM = "vesselId";
@@ -95,25 +95,7 @@ public interface OperationSpecifications
         }).addBind(TRIP_ID_PARAM, tripId);
     }
 
-    default Specification<Operation> includedIds(Integer[] includedIds) {
-        if (ArrayUtils.isEmpty(includedIds)) return null;
-        return BindableSpecification.<Operation>where((root, query, cb) -> {
-                ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
-                return cb.in(root.get(IEntity.Fields.ID)).value(param);
-            })
-            .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
-    }
 
-    default Specification<Operation> excludedIds(Integer[] excludedIds) {
-        if (ArrayUtils.isEmpty(excludedIds)) return null;
-        return BindableSpecification.<Operation>where((root, query, cb) -> {
-                ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_IDS_PARAMETER);
-                return cb.not(
-                    cb.in(root.get(IEntity.Fields.ID)).value(param)
-                );
-            })
-            .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
-    }
 
     default Specification<Operation> hasProgramLabel(String programLabel) {
         if (StringUtils.isBlank(programLabel)) return null;

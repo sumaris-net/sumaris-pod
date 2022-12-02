@@ -23,7 +23,6 @@ package net.sumaris.core.service.data;
  */
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.referential.MetierVO;
@@ -31,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author ludovic.pecquot@e-is.pro
@@ -52,9 +52,18 @@ public interface OperationGroupService {
     @Transactional(readOnly = true)
     OperationGroupVO get(int id);
 
-    List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
-
+    /**
+     * @deprecated Use cacheable method getMainUndefinedOperationGroupId() instead
+     * @param tripId
+     * @return
+     */
+    @Transactional(readOnly = true)
     OperationGroupVO getMainUndefinedOperationGroup(int tripId);
+
+    @Transactional(readOnly = true)
+    Optional<Integer> getMainUndefinedOperationGroupId(int tripId);
+
+    List<MetierVO> saveMetiersByTripId(int tripId, List<MetierVO> metiers);
 
     void updateUndefinedOperationDates(int tripId, Date startDate, Date endDate);
 

@@ -22,13 +22,42 @@
 
 package net.sumaris.core.vo.social;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.*;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.social.EventTypeEnum;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldNameConstants
+@EqualsAndHashCode
 public class UserEventFilterVO {
 
+    public static UserEventFilterVO nullToEmpty(UserEventFilterVO f) {
+        return f != null ? f : UserEventFilterVO.builder().build();
+    }
+
+    @Deprecated
     private String issuer;
+    @Deprecated
     private String recipient;
+
+    private Integer[] includedIds;
+    private String[] types;
+    private String[] levels;
+    private String[] recipients;
+    private String[] issuers;
+    private Date startDate;
+    private boolean excludeRead = false;
+
+    private String source;
 }

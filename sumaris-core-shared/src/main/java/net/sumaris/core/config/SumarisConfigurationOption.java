@@ -96,10 +96,16 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "${sumaris.data.directory}/db",
         File.class),
 
-    DB_ATTACHMENT_DIRECTORY(
-        "sumaris.persistence.db.attachment.directory",
-        n("sumaris.config.option.persistence.db.attachment.directory.description"),
+    MEASUREMENT_FILE_DIRECTORY(
+        "sumaris.measurement.file.directory",
+        n("sumaris.config.option.measurement.file.directory.description"),
         "${sumaris.data.directory}/meas_files",
+        File.class),
+
+    IMAGE_ATTACHMENT_DIRECTORY(
+        "sumaris.persistence.image.directory",
+        n("sumaris.config.option.persistence.image.directory.description"),
+        "${sumaris.data.directory}/photos",
         File.class),
 
     DB_NAME(
@@ -234,6 +240,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     // ------------------------------------------------------------------------//
     // -- DATA CONSTANTS --------------------------------------------------//
     // ------------------------------------------------------------------------//
+
+    DATA_IMAGES_ENABLE("sumaris.data.images.enable",
+        n("sumaris.config.option.data.images.enable.description"),
+        Boolean.FALSE.toString(),
+        boolean.class,
+        false),
 
     IMPORT_NB_YEARS_DATA_HISTORY(
         "sumaris.synchro.import.nbYearDataHistory",
@@ -670,6 +682,20 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "",
         String.class,
         false),
+
+    DB_ADAGIO_SCHEMA(
+            "sumaris.persistence.adagio.schema",
+            n("sumaris.config.option.persistence.adagio.schema.description"),
+            "SIH2_ADAGIO_DBA",
+            String.class,
+            false),
+
+    ENABLE_ADAGIO_OPTIMIZATION(
+            "sumaris.persistence.adagio.optimization",
+            n("sumaris.config.option.persistence.adagio.optimization.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
     ;
 
     /**

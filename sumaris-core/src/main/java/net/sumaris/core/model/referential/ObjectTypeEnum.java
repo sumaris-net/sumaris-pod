@@ -22,9 +22,8 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -32,7 +31,9 @@ import java.util.Arrays;
 @EntityEnum(entity = ObjectType.class, joinAttributes = ObjectType.Fields.LABEL)
 public enum ObjectTypeEnum implements Serializable {
 
-    VESSEL(1, "VESSEL");
+    VESSEL(1, "VESSEL"),
+    SAMPLE(2, "SAMPLE")
+    ;
 
     public static ObjectTypeEnum valueOf(final int id) {
         return Arrays.stream(values())

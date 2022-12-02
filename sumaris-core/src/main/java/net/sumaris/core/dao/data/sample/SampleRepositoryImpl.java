@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.sample;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -34,6 +35,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.pmfm.Matrix;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
@@ -43,8 +45,12 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
 import net.sumaris.core.vo.filter.SampleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -74,6 +80,9 @@ public class SampleRepositoryImpl
     @Autowired
     private TaxonNameRepository taxonNameRepository;
 
+    @Autowired
+    private ImageAttachmentRepository imageAttachmentRepository;
+
     private boolean enableHashOptimization;
 
     @Autowired
@@ -92,13 +101,15 @@ public class SampleRepositoryImpl
     @Override
     protected Specification<Sample> toSpecification(SampleFilterVO filter, SampleFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(hasOperationId(filter.getOperationId()))
-            .and(hasLandingId(filter.getLandingId()))
-            .and(hasObservedLocationId(filter.getObservedLocationId()))
-            .and(inObservedLocationIds(filter.getObservedLocationIds()))
-            .and(hasTagId(filter.getTagId()))
-            .and(withTagId(filter.getWithTagId()))
-            .and(addJoinFetch(fetchOptions, true));
+                .and(hasOperationId(filter.getOperationId()))
+                .and(hasLandingId(filter.getLandingId()))
+                .and(hasObservedLocationId(filter.getObservedLocationId()))
+                .and(inObservedLocationIds(filter.getObservedLocationIds()))
+                .and(hasTagId(filter.getTagId()))
+                .and(withTagId(filter.getWithTagId()))
+                .and(addJoinFetch(fetchOptions, true))
+                .and(includedIds(filter.getIncludedIds()))
+                .and(excludedIds(filter.getExcludedIds()));
     }
 
     @Override
@@ -153,6 +164,15 @@ public class SampleRepositoryImpl
         Integer sampleId = source.getId();
         if (fetchOptions != null && fetchOptions.isWithMeasurementValues() && sampleId != null) {
             target.setMeasurementValues(measurementDao.toMeasurementsMap(source.getMeasurements()));
+        }
+
+        // Fetch images
+        if (fetchOptions != null && fetchOptions.isWithImages() && sampleId != null) {
+            List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
+                    .objectId(sampleId)
+                    .objectTypeId(ObjectTypeEnum.SAMPLE.getId())
+                    .build(), ImageAttachmentFetchOptions.MINIMAL);
+            target.setImages(images);
         }
     }
 
@@ -357,7 +377,7 @@ public class SampleRepositoryImpl
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
-        // Save each entities
+        // Link to parent
         samples.forEach(sample -> {
             sample.setOperationId(null);
             sample.setLandingId(landingId);

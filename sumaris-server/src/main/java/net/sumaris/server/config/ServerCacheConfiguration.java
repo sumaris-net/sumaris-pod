@@ -39,6 +39,10 @@ import java.util.Optional;
 public class ServerCacheConfiguration {
 
     public interface Names {
+        String FAVICON = "net.sumaris.server.http.rest.imageRestController.favicon";
+
+        String AVATAR_BY_PUBKEY = "net.sumaris.server.http.rest.imageRestController.avatarByPubkey";
+        String IMAGE_BY_ID = "net.sumaris.server.http.rest.imageRestController.imageById";
         String CHANGES_PUBLISHER_FIND_IF_NEWER = "net.sumaris.server.service.technical.changePublisherServer.findIfNewer";
     }
 
@@ -47,6 +51,10 @@ public class ServerCacheConfiguration {
 
         return cacheManager -> {
             log.info("Adding {Server} caches...");
+
+            // Image cache
+            Caches.createEternalHeapCache(cacheManager, Names.FAVICON, Object.class, 1);
+            Caches.createHeapCache(cacheManager, Names.IMAGE_BY_ID, Object.class, Duration.ofSeconds(600) /*10 min*/, 50);
 
             // Change listener
             Caches.createHeapCache(cacheManager, Names.CHANGES_PUBLISHER_FIND_IF_NEWER, Optional.class, Duration.ofSeconds(5), 600);

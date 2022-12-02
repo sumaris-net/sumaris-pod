@@ -90,7 +90,7 @@ public class IndividualServicesTest extends AbstractTest {
     @Test
     public void executeQuery() {
         Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-            .vocabulary(ModelVocabularies.COMMON)
+            .vocabulary(ModelVocabularies.SHARED)
             .withEquivalences(false)
             .build());
 
@@ -115,12 +115,12 @@ public class IndividualServicesTest extends AbstractTest {
     @Test
     public void executeUsingConnectionQuery() throws IOException {
         Model instances = service.getIndividuals(RdfIndividualFetchOptions.builder()
-            .vocabulary(ModelVocabularies.COMMON)
+            .vocabulary(ModelVocabularies.SHARED)
             .className(Status.class.getSimpleName())
             .build());
 
         Model schema = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-            .vocabulary(ModelVocabularies.COMMON)
+            .vocabulary(ModelVocabularies.SHARED)
             .className(Status.class.getSimpleName())
             .withEquivalences(true)
             .build());
@@ -147,7 +147,7 @@ public class IndividualServicesTest extends AbstractTest {
 
     protected File createSchemaModelFile(boolean forceIfExists)  throws IOException {
         Model model = schemaService.getOntology(RdfSchemaFetchOptions.builder()
-            .vocabulary(ModelVocabularies.COMMON)
+            .vocabulary(ModelVocabularies.SHARED)
             .reasoningLevel(ReasoningLevel.NONE)
             .className(Status.class.getSimpleName())
             .build());
@@ -156,7 +156,7 @@ public class IndividualServicesTest extends AbstractTest {
 
     protected File createDataModelFile(boolean forceIfExists)  throws IOException {
         Model model = service.getIndividuals(RdfIndividualFetchOptions.builder()
-            .vocabulary(ModelVocabularies.COMMON)
+            .vocabulary(ModelVocabularies.SHARED)
             .reasoningLevel(ReasoningLevel.NONE)
             .className(Status.class.getSimpleName())
             .build());

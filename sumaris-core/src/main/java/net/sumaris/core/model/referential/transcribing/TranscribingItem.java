@@ -22,26 +22,32 @@ package net.sumaris.core.model.referential.transcribing;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.ModelVocabularies;
+import net.sumaris.core.model.annotation.OntologyEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
 import java.util.Date;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "transcribing_item")
+@OntologyEntity(vocab = ModelVocabularies.TRANSCRIBING)
 public class TranscribingItem implements IItemReferentialEntity<Integer>  {
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TRANSCRIBING_ITEM_SEQ")
     @SequenceGenerator(name = "TRANSCRIBING_ITEM_SEQ", sequenceName="TRANSCRIBING_ITEM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -57,11 +63,11 @@ public class TranscribingItem implements IItemReferentialEntity<Integer>  {
     private Date updateDate;
 
     @Column(name = "object_id")
-    @ToString.Include
+    
     private Integer objectId;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    @ToString.Include
+    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)
@@ -74,6 +80,5 @@ public class TranscribingItem implements IItemReferentialEntity<Integer>  {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "transcribing_item_type_fk", nullable = false)
-    @ToString.Include
     private TranscribingItemType type;
 }

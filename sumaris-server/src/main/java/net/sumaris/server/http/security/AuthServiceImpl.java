@@ -25,7 +25,7 @@ package net.sumaris.server.http.security;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.JmsConfiguration;
+import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.model.referential.UserProfileEnum;
@@ -46,6 +46,7 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.Attributes2GrantedAuthoritiesMapper;
@@ -299,6 +300,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Optional<Integer> getAuthenticatedUserId() {
         return getAuthenticatedUser().map(PersonVO::getId);
+    }
+
+    @Override
+    public Optional<String> getAuthenticatedUsername() {
+        return getAuthPrincipal().map(UserDetails::getUsername);
     }
 
     @Override

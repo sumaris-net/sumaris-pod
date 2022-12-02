@@ -22,10 +22,10 @@ package net.sumaris.core.model.file;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.IReferentialEntity;
@@ -37,8 +37,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Data
-@ToString(onlyExplicitlyIncluded = true)
+@Getter
+@Setter
+
 @FieldNameConstants
 @Entity
 @Table(name = "file")
@@ -47,11 +48,12 @@ public class File implements Serializable, IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_SEQ")
     @SequenceGenerator(name = "FILE_SEQ", sequenceName="FILE_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    @ToString.Include
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(nullable = false)
-    @ToString.Include
+    
     private String name;
 
     @Column(nullable = false, name = "content_type")

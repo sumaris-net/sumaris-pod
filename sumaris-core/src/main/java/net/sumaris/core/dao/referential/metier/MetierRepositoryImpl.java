@@ -23,6 +23,7 @@ package net.sumaris.core.dao.referential.metier;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -39,12 +40,15 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -70,19 +74,23 @@ public class MetierRepositoryImpl
             String sortAttribute,
             SortDirection sortDirection) {
 
-        Preconditions.checkNotNull(filter);
-
         // Prepare query parameters
         String searchJoinClass = StringUtils.capitalize(filter.getSearchJoin());
         String searchJoinProperty = StringUtils.uncapitalize(filter.getSearchJoin());
         final boolean enableSearchOnJoin = (searchJoinProperty != null);
 
-        // Create page (do NOT sort if searchJoin : will be done later)
+        // Compute sort (do NOT sort if searchJoin : will be done later)
         boolean sortingOutsideQuery = enableSearchOnJoin && !ReferentialVO.Fields.ID.equals(sortAttribute);
-        Pageable pageable = Pageables.create(offset, size, !sortingOutsideQuery ? sortAttribute : null, !sortingOutsideQuery ? sortDirection : null);
+        Sort.Direction direction = Optional.ofNullable(sortDirection)
+                .map(SortDirection::name)
+                .map(Sort.Direction::fromString)
+                .orElse(Sort.Direction.ASC);
+        Sort sort = !sortingOutsideQuery && StringUtils.isNotBlank(sortAttribute)
+                ? Sort.by(direction, sortAttribute)
+                : Sort.unsorted();
 
         // Create the query
-        TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, pageable);
+        TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, sort);
 
         return query
             .setFirstResult(offset)

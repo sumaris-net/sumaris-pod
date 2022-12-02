@@ -136,7 +136,7 @@ public class WeightLengthConversionGraphQLService {
     public ReferentialVO getLengthParameter(@GraphQLContext WeightLengthConversionVO source) {
         if (source.getLengthParameter() != null) return source.getLengthParameter();
         if (source.getLengthParameterId() == null) return null;
-        return referentialService.get(Parameter.class, source.getLengthUnitId());
+        return referentialService.get(Parameter.class, source.getLengthParameterId());
     }
 
     @GraphQLQuery(name = "lengthUnit", description = "Get weight length conversion's length unit")

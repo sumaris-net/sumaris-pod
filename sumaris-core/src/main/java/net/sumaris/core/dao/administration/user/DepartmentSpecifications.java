@@ -36,8 +36,6 @@ public interface DepartmentSpecifications extends ReferentialSpecifications<Inte
 
     default Specification<Department> withLogo(Boolean withLogo) {
         if (!Boolean.TRUE.equals(withLogo)) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            return cb.isNotNull(root.get(Department.Fields.LOGO));
-        });
+        return (root, query, cb) -> cb.isNotNull(root.get(Department.Fields.LOGO));
     }
 }

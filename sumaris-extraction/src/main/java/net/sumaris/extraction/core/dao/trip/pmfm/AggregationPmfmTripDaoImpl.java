@@ -202,7 +202,7 @@ public class AggregationPmfmTripDaoImpl<
         xmlQuery.setGroup("euMetierLevel6", stationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", stationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        // Add PMFM columns (souhld be AFTER "individual_count")
+        // Add PMFM columns (should be AFTER column "individual_count")
         SumarisTableMetadata rawSampleTable = databaseMetadata.getTable(rawSampleTableName);
         List<String> columnNames = rawSampleTable.getColumnNames().stream()
             .map(String::toLowerCase)

@@ -38,6 +38,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -53,13 +54,15 @@ import java.io.IOException;
     scanBasePackages = {
         "net.sumaris.core",
         "net.sumaris.extraction",
+        "net.sumaris.importation",
         "net.sumaris.rdf",
         "net.sumaris.server"
     },
     exclude = {
         LiquibaseAutoConfiguration.class,
         FreeMarkerAutoConfiguration.class,
-        JsonbAutoConfiguration.class
+        JsonbAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class,
     }
 )
 @EnableEmailTools
@@ -98,6 +101,8 @@ public class Application extends SpringBootServletInitializer {
         return config;
     }
 
+
+
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
@@ -118,8 +123,11 @@ public class Application extends SpringBootServletInitializer {
             // Data directory
             FileUtils.forceMkdir(config.getDataDirectory());
 
-            // DB attachment directory
-            FileUtils.forceMkdir(config.getDbAttachmentDirectory());
+            // Meas files directory
+            FileUtils.forceMkdir(config.getMeasFileDirectory());
+
+            // Image attachment directory
+            FileUtils.forceMkdir(config.getImageAttachmentDirectory());
 
             // DB backup directory
             FileUtils.forceMkdir(config.getDbBackupDirectory());

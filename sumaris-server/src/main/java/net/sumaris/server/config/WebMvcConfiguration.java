@@ -23,16 +23,15 @@
 package net.sumaris.server.config;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.server.http.filter.CORSFilter;
+import net.sumaris.server.http.graphql.GraphQLPaths;
 import net.sumaris.server.http.rest.RestPaths;
-import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -46,13 +45,20 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
     @Bean
     public WebMvcConfigurer configureStaticPages() {
         return new WebMvcConfigurer() {
+
             @Override
             public void addViewControllers(ViewControllerRegistry registry) {
 
+                // 404 error
+                registry.addViewController("/404")
+                    .setStatusCode(HttpStatus.NOT_FOUND)
+                    .setViewName("forward:/api/404.html");
+
                 // Error path
                 registry.addViewController("/error")
-                        .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .setViewName("forward:/core/error.html");
+                    .setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .setViewName("forward:/api/error.html");
+
                 registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 
                 // API path
@@ -61,7 +67,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
                     registry.addRedirectViewController("/", API_PATH);
                     registry.addRedirectViewController(API_PATH + "/", API_PATH);
                     registry.addViewController(API_PATH)
-                            .setViewName("forward:/core/index.html");
+                            .setViewName("forward:/api/index.html");
                 }
 
                 // GraphiQL path
@@ -84,27 +90,26 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
             }
 
             @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                // Enable Global CORS support for the application
-                //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
-                registry.addMapping(RestPaths.BASE_PATH + "/**")
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                        .allowCredentials(true);
-            }
-
-            @Override
             public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(false);
+                configurer.setUseSuffixPatternMatch(true);
             }
         };
     }
 
-    @Bean(name = {"applicationTaskExecutor", "taskExecutor"})
-    @Lazy
-    public ThreadPoolTaskExecutor taskExecutor(TaskExecutorBuilder builder) {
-        return builder.build();
-    }
 
+    @Bean
+    public WebMvcConfigurer configureCORS() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                // Enable Global CORS support for the application
+                //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
+                registry.addMapping("/**")
+                    .allowedOriginPatterns("*")
+                    .allowedMethods(CORSFilter.ALLOWED_METHODS)
+                    .allowedHeaders(CORSFilter.ALLOWED_HEADERS)
+                    .allowCredentials(CORSFilter.ALLOWED_CREDENTIALS);
+            }
+        };
+    }
 }

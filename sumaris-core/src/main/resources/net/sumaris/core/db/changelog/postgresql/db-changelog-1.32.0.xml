@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-1.32.0.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-1" failOnError="false">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<not><columnExists tableName="vessel_features" columnName="auxiliary_power"/></not>
+				<not><columnExists tableName="vessel_features" columnName="construction_year"/></not>
+				<not><columnExists tableName="vessel_features" columnName="ircs"/></not>
+				<not><columnExists tableName="vessel_features" columnName="hull_material_qv_fk"/></not>
+			</and>
+		</preConditions>
+		<addColumn tableName="vessel_features">
+			<column name="auxiliary_power" type="integer"/>
+			<column name="construction_year" type="integer"/>
+			<column name="ircs" type="VARCHAR(10)"/>
+			<column name="hull_material_qv_fk" type="integer"/>
+		</addColumn>
+		<addForeignKeyConstraint constraintName="vessel_features_hull_mat_fkc"
+														 baseTableName="vessel_features" baseColumnNames="hull_material_qv_fk"
+														 referencedTableName="qualitative_value" referencedColumnNames="id"/>
+	</changeSet>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-2">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="user_event" columnName="event_level"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="user_event">
+			<column name="event_level" type="VARCHAR(30)">
+			</column>
+		</addColumn>
+		<sql endDelimiter=";">
+			update USER_EVENT set EVENT_LEVEL='DEBUG' where EVENT_TYPE='DEBUG_DATA' and EVENT_LEVEL is null;
+			update USER_EVENT set EVENT_LEVEL='INFO' where EVENT_LEVEL is null;
+			commit;
+		</sql>
+		<addNotNullConstraint tableName="user_event" columnName="event_level"/>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-3">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="user_event" columnName="read_date"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="user_event">
+			<column name="read_date" type="TIMESTAMP"/>
+		</addColumn>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-4">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="user_event" columnName="source"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="user_event">
+			<column name="source" type="VARCHAR(50)"/>
+		</addColumn>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-5">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists tableName="user_event" indexName="user_event_source_idx" columnNames="source"/>
+			</not>
+		</preConditions>
+		<createIndex tableName="user_event" indexName="user_event_source_idx">
+			<column name="source"/>
+		</createIndex>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-6">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists tableName="processing_history" indexName="processing_history_address_idx" columnNames="data_transfert_address"/>
+			</not>
+		</preConditions>
+		<createIndex tableName="processing_history" indexName="processing_history_address_idx">
+			<column name="data_transfert_address"/>
+		</createIndex>
+	</changeSet>
+
+	<!-- Add columns into IMAGE_ATTACHMENT -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-7">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="image_attachment" columnName="object_type_fk"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="image_attachment">
+			<column name="object_type_fk" type="INT"/>
+		</addColumn>
+		<addForeignKeyConstraint baseColumnNames="object_type_fk" baseTableName="image_attachment"
+								 constraintName="image_attachment_object_type_fkc"
+								 referencedColumnNames="id" referencedTableName="object_type"/>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-8">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<columnExists tableName="image_attachment" columnName="object_id"/>
+			</not>
+		</preConditions>
+		<addColumn tableName="image_attachment">
+			<column name="object_id" type="INT"/>
+		</addColumn>
+	</changeSet>
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-9">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<indexExists tableName="image_attachment" indexName="image_attachment_object_idx" columnNames="object_type_fk,object_id"/>
+			</not>
+		</preConditions>
+		<createIndex tableName="image_attachment" indexName="image_attachment_object_idx">
+			<column name="object_type_fk"/>
+			<column name="object_id"/>
+		</createIndex>
+	</changeSet>
+
+	<!-- update SYSTEM_VERSION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229090086-200" runOnChange="true">
+		<delete tableName="SYSTEM_VERSION">
+			<where>LABEL='1.32.0'</where>
+		</delete>
+		<insert tableName="SYSTEM_VERSION">
+			<column name="ID" valueComputed="nextval('system_version_seq')"/>
+			<column name="LABEL">1.32.0</column>
+			<column name="DESCRIPTION">
+				- Add some columns into VESSEL_FEATURES
+				- Add some columns into USER_EVENT
+				- Add more PROCESSING_TYPE
+			</column>
+			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
+			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+			<column name="COMMENTS">
+				- Add some columns into VESSEL_FEATURES
+				- Add columns EVENT_LEVEL,READ_DATE and SOURCE into USER_EVENT
+				- Add more PROCESSING_TYPE (RUNNING, CANCELLED)
+			</column>
+		</insert>
+	</changeSet>
+</databaseChangeLog>

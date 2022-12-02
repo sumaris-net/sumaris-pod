@@ -22,7 +22,7 @@
 
 package net.sumaris.core.model.referential.conversion;
 
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.pmfm.Unit;
 
@@ -45,7 +45,9 @@ import java.util.Date;
  *   une nouvelle recherche doit être lancée sur les coefficients ayant le sexe du lot considéré
  * </p>
  */
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "unit_conversion")
@@ -55,11 +57,13 @@ public class UnitConversion implements Serializable {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "from_unit_fk")
+    @EqualsAndHashCode.Include
     private Unit fromUnit;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "to_unit_fk")
+    @EqualsAndHashCode.Include
     private Unit toUnit;
 
     @Column(name = "conversion_coefficient", nullable = false)

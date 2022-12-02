@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
@@ -85,6 +85,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     protected static Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> initParentPropertiesMap() {
         Multimap<Class<? extends IMeasurementEntity>, PropertyDescriptor> result = ArrayListMultimap.create();
+
+        // Vessel
+        result.put(VesselPhysicalMeasurement.class, BeanUtils.getPropertyDescriptor(VesselPhysicalMeasurement.class, VesselPhysicalMeasurement.Fields.VESSEL_FEATURES));
 
         // Trip
         result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.Fields.TRIP));

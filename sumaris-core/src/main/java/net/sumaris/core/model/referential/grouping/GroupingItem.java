@@ -22,9 +22,11 @@ package net.sumaris.core.model.referential.grouping;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 
@@ -33,7 +35,10 @@ import javax.persistence.*;
 /**
  * GroupingItem permet de lister les entités du référentiel qui appartiennent à un regroupement.
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "grouping_item")
@@ -42,6 +47,8 @@ public class GroupingItem implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GROUPING_ITEM_SEQ")
     @SequenceGenerator(name = "GROUPING_ITEM_SEQ", sequenceName="GROUPING_ITEM_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name = "object_id")

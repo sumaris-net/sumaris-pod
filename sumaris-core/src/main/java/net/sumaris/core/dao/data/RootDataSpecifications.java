@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import org.apache.commons.lang3.ArrayUtils;
@@ -37,9 +37,8 @@ import java.util.Collection;
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface RootDataSpecifications<E extends IRootDataEntity<? extends Serializable>>
-        extends DataSpecifications<E> {
-
+public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
+        extends DataSpecifications<Integer, E> {
 
     String RECORDER_PERSON_ID_PARAM = "recorderPersonId";
     String PROGRAM_LABEL_PARAM = "programLabel";

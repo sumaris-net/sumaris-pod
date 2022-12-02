@@ -25,8 +25,10 @@ package net.sumaris.core.vo.social;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IUpdateDateEntity;
-import net.sumaris.core.dao.technical.model.IValueObject;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
+import net.sumaris.core.model.social.EventLevelEnum;
+import net.sumaris.core.model.social.EventTypeEnum;
 
 import java.util.Date;
 
@@ -44,10 +46,23 @@ public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntity<Int
     private Date updateDate;
     private String issuer;
     private String recipient;
-    private String eventType;
+
+    private EventTypeEnum type;
+    private EventLevelEnum level;
 
     private String hash;
     private String content;
     private String signature;
+    private Date readDate;
     private String readSignature;
+
+    private String source;
+
+    /**
+     * Compatibility with version < 1.29.0 (to send DEBUG_DATA)
+     * @deprecated
+     */
+    @Deprecated
+    private String eventType;
+
 }

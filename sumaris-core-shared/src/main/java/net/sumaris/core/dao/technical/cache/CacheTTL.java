@@ -22,9 +22,6 @@
 
 package net.sumaris.core.dao.technical.cache;
 
-import lombok.NonNull;
-import net.sumaris.core.util.StringUtils;
-
 import javax.annotation.Nullable;
 import java.time.Duration;
 
@@ -35,9 +32,18 @@ public enum CacheTTL {
 
     NONE(-1), // No cache
 
-    DEFAULT(1500), // 25 min;
+    DATA_SHORT(10), // 10s;
+
+    DATA_DEFAULT(30), // 30s; // Average time of a basic transaction
+
+    DATA_MEDIUM(60), // 1 min;
+
+    DATA_LONG(5 * 60), // 5 min;
 
     SHORT(10 * 60), // 10 min
+
+    DEFAULT(1500), // 25 min;
+
     MEDIUM(60 * 60), // 1 h
     LONG(12 * 60 * 60), // 12 h
 

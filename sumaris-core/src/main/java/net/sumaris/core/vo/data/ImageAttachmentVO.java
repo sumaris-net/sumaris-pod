@@ -22,16 +22,25 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 
 import java.util.Date;
 
-@Data
+@Setter
+@Getter
+@EqualsAndHashCode
 @FieldNameConstants
+@Slf4j
 public class ImageAttachmentVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
@@ -49,6 +58,33 @@ public class ImageAttachmentVO implements IDataVO<Integer>,
 
     private Date dateTime;
     private String contentType;
-    private String content;
 
+    @EqualsAndHashCode.Exclude
+    private String content;
+    private String path;
+
+    private Integer objectTypeId;
+    private Integer objectId;
+
+    @EqualsAndHashCode.Exclude
+    private String url;
+
+    @JsonGetter
+    public String getDataUrl() {
+        if (content == null || contentType == null) return null;
+        return new StringBuffer().append("data:")
+            .append(contentType).append(";base64,")
+            .append(content)
+            .toString();
+    }
+
+    @JsonSetter
+    public void setDataUrl(String dataUrl) {
+        if (dataUrl == null) return;
+        int separatorIndex = dataUrl.indexOf(";base64,");
+        if (!dataUrl.startsWith("data:") || separatorIndex == -1) throw new IllegalArgumentException("Invalid 'dataUrl'. Should be a base64 data URL.");
+
+        this.contentType = dataUrl.substring(5, separatorIndex);
+        this.content = dataUrl.substring(separatorIndex + 8);
+    }
 }

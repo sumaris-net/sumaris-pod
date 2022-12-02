@@ -31,6 +31,7 @@ import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
+import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;

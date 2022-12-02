@@ -22,7 +22,7 @@ package net.sumaris.core.model.referential.order;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;

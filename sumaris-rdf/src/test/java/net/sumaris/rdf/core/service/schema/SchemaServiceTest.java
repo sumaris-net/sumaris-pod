@@ -24,13 +24,9 @@ package net.sumaris.rdf.core.service.schema;
 
 import net.sumaris.core.model.ModelVocabularyEnum;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.taxon.TaxonName;
-import net.sumaris.rdf.DatabaseResource;
-import net.sumaris.rdf.core.model.ModelVocabulary;
-import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
 import net.sumaris.rdf.AbstractTest;
-import net.sumaris.rdf.core.util.ModelUtils;
-import net.sumaris.rdf.core.util.RdfFormat;
+import net.sumaris.rdf.DatabaseResource;
+import net.sumaris.rdf.core.model.reasoner.ReasoningLevel;
 import org.apache.jena.atlas.lib.StrUtils;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
@@ -38,10 +34,8 @@ import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.tdwg.rs.DWC;
 
 
 public class SchemaServiceTest extends AbstractTest {

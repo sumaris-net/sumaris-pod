@@ -38,6 +38,7 @@ import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.*;
+import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,33 +52,17 @@ import java.io.IOException;
 public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
-    private ExtractionService service;
+    protected ExtractionService service;
     @Autowired
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     @Autowired
-    private ExtractionProductService productService;
+    protected ExtractionProductService productService;
 
 
     @Test
     public void executeStrat() throws IOException {
-
-        // Test the Strategy format
-        File outputFile = service.executeAndDumpStrategies(LiveExtractionTypeEnum.STRAT, null);
-        File root = unpack(outputFile, LiveExtractionTypeEnum.STRAT.getLabel());
-
-        // ST.csv (strategy)
-        {
-            File strategyFile = new File(root, StratSpecification.ST_SHEET_NAME + ".csv");
-            Assert.assertTrue(countLineInCsvFile(strategyFile) > 1);
-
-        }
-        // SM.csv (strategy monitoring)
-        {
-            File monitoringFile = new File(root, StratSpecification.SM_SHEET_NAME + ".csv");
-            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
-
-        }
+        executeStrat(null);
     }
 
     @Test
@@ -645,6 +630,26 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
 
     /* -- protected methods -- */
+
+    protected File executeStrat(ExtractionStrategyFilterVO filter) throws IOException {
+
+        // Test the Strategy format
+        File outputFile = service.executeAndDumpStrategies(LiveExtractionTypeEnum.STRAT, filter);
+        File root = unpack(outputFile, LiveExtractionTypeEnum.STRAT.getLabel());
+
+        // ST.csv (strategy)
+        {
+            File strategyFile = new File(root, StratSpecification.ST_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(strategyFile) > 1);
+        }
+        // SM.csv (strategy monitoring)
+        {
+            File monitoringFile = new File(root, StratSpecification.SM_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+        }
+
+        return root;
+    }
 
     protected void assertHasColumn(File file, String columnName) throws IOException {
         String headerName = StringUtils.underscoreToChangeCase(columnName);

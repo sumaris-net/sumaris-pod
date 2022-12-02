@@ -49,7 +49,7 @@ import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.extraction.server.util.QueryParamUtils;
 import net.sumaris.server.http.MediaTypes;
-import net.sumaris.server.security.IDownloadController;
+import net.sumaris.server.security.IFileController;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -107,7 +107,7 @@ public class ExtractionRestController implements ExtractionRestPaths {
     private ExtractionSecurityService extractionSecurityService;
 
     @Autowired
-    private IDownloadController downloadController;
+    private IFileController downloadController;
 
     @PostConstruct
     public void init() {

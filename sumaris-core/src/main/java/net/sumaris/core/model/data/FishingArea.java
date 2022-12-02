@@ -22,10 +22,10 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.Data;
+import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.DepthGradient;
 import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.NearbySpecificArea;
@@ -39,7 +39,10 @@ import java.util.Date;
 /**
  * @author peck7 on 08/06/2020.
  */
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "fishing_area")
@@ -48,6 +51,8 @@ public class FishingArea implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FISHING_AREA_SEQ")
     @SequenceGenerator(name = "FISHING_AREA_SEQ", sequenceName="FISHING_AREA_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Column(name="qualification_date")

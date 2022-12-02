@@ -24,7 +24,7 @@ package net.sumaris.core.dao.data.fishingArea;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
-import net.sumaris.core.dao.technical.model.IEntity;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import org.springframework.data.jpa.domain.Specification;
