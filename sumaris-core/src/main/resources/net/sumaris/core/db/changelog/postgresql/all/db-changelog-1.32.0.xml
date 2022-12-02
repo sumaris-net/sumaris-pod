@@ -25,7 +25,7 @@
 	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.32.0.xml">
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/all/db-changelog-1.32.0.xml">
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
@@ -38,12 +38,12 @@
 				<sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROCESSING_STATUS WHERE LABEL='RUNNING'</sqlCheck>
 			</and>
 		</preConditions>
-		<insert tableName="PROCESSING_STATUS">
+		<insert tableName="processing_status">
 			<column name="ID" valueNumeric="6"/>
 			<column name="LABEL">RUNNING</column>
 			<column name="NAME">Job is running</column>
 			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
 		</insert>
 	</changeSet>
@@ -59,7 +59,7 @@
 			<column name="LABEL">CANCELLED</column>
 			<column name="NAME">Job has been cancelled</column>
 			<column name="STATUS_FK" valueNumeric="1"/>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
 		</insert>
 	</changeSet>
