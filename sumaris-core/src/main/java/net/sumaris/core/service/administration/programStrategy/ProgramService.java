@@ -59,6 +59,10 @@ public interface ProgramService {
 	ProgramVO getByLabel(String label, ProgramFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
+	int getIdByLabel(String label);
+
+
+	@Transactional(readOnly = true)
 	Optional<ProgramVO> findNewerById(int id, final Date updateDate, ProgramFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)

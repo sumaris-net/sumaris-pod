@@ -76,4 +76,9 @@ public class TripFetchOptions implements IDataFetchOptions {
     @Builder.Default
     private boolean withLanding = true;
 
+    @Builder.Default
+    private boolean withLocations = true;
+
+    @Builder.Default
+    private boolean withProgram = true;
 }

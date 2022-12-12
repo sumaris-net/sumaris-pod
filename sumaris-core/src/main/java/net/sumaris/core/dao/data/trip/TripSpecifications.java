@@ -26,11 +26,14 @@ import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +47,8 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
     String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
     String INCLUDED_IDS_PARAM = "includedIds";
     String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
+
+    String OBSERVED_LOCATION_ID_PARAM = "observedLocationId";
 
     default Specification<Trip> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
@@ -73,6 +78,16 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
             return cb.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param);
         }).addBind(VESSEL_ID_PARAM, vesselId);
+    }
+
+
+    default Specification<Trip> hasObservedLocationId(Integer observedLocationId) {
+        if (observedLocationId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, OBSERVED_LOCATION_ID_PARAM);
+            ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.INNER);
+            return cb.equal(landingJoin.get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID), param);
+        }).addBind(OBSERVED_LOCATION_ID_PARAM, observedLocationId);
     }
 
     default Specification<Trip> betweenDate(Date startDate, Date endDate) {

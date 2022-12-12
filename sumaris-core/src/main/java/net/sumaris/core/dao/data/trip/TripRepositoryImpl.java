@@ -65,6 +65,7 @@ public class TripRepositoryImpl
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasLocationIds(filter.getLocationIds()))
+            .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasVesselId(filter.getVesselId()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
@@ -155,15 +156,19 @@ public class TripRepositoryImpl
     protected void configureQuery(TypedQuery<Trip> query, @Nullable TripFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
-        // Prepare load graph
-        EntityManager em = getEntityManager();
-        EntityGraph<?> entityGraph = em.getEntityGraph(Trip.GRAPH_LOCATIONS_AND_PROGRAM);
-        if (fetchOptions == null || fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Trip.Fields.RECORDER_PERSON);
-        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Trip.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions == null || fetchOptions.isWithLocations() || fetchOptions.isWithProgram()) {
+            // Prepare load graph
+            EntityManager em = getEntityManager();
+            EntityGraph<?> entityGraph = em.getEntityGraph(Trip.GRAPH_LOCATIONS_AND_PROGRAM);
+            if (fetchOptions == null || fetchOptions.isWithRecorderPerson())
+                entityGraph.addSubgraph(Trip.Fields.RECORDER_PERSON);
+            if (fetchOptions == null || fetchOptions.isWithRecorderDepartment())
+                entityGraph.addSubgraph(Trip.Fields.RECORDER_DEPARTMENT);
 
-        // WARNING: should not enable this fetch, because page cannot be applied
-        //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
+            // WARNING: should not enable this fetch, because page cannot be applied
+            //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
 
-        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+            query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+        }
     }
 }

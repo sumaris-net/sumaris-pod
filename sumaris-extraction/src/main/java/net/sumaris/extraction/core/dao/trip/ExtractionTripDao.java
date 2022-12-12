@@ -22,6 +22,7 @@ package net.sumaris.extraction.core.dao.trip;
  * #L%
  */
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import net.sumaris.extraction.core.dao.ExtractionDao;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
@@ -34,6 +35,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nullable;
 import java.util.Calendar;
@@ -158,6 +160,24 @@ public interface ExtractionTripDao<
                     .name(RdbSpecification.COLUMN_TRIP_CODE)
                     .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
                     .value(source.getTripId().toString())
+                    .build());
+        }
+
+        // Included ids
+        if (ArrayUtils.isNotEmpty(source.getIncludedIds())) {
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .name(RdbSpecification.COLUMN_TRIP_CODE)
+                    .operator(ExtractionFilterOperatorEnum.IN.getSymbol())
+                    .value(Joiner.on(',').join(source.getIncludedIds()))
+                    .build());
+        }
+
+        // Excluded ids
+        if (ArrayUtils.isNotEmpty(source.getExcludedIds())) {
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                    .name(RdbSpecification.COLUMN_TRIP_CODE)
+                    .operator(ExtractionFilterOperatorEnum.NOT_IN.getSymbol())
+                    .value(Joiner.on(',').join(source.getExcludedIds()))
                     .build());
         }
 

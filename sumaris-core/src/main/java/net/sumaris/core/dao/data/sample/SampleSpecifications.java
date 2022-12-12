@@ -23,21 +23,19 @@ package net.sumaris.core.dao.data.sample;
  */
 
 import net.sumaris.core.dao.data.RootDataSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.Sample;
-import net.sumaris.core.model.data.SampleMeasurement;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -74,11 +72,18 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         return BindableSpecification.where((root, query, cb) -> {
             query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
             ParameterExpression<Integer> param = cb.parameter(Integer.class, LandingVO.Fields.OBSERVED_LOCATION_ID);
-            return cb.equal(
-                    root.join(Sample.Fields.LANDING, JoinType.INNER)
-                            .join(Landing.Fields.OBSERVED_LOCATION, JoinType.INNER)
-                            .get(IEntity.Fields.ID),
-                    param);
+            Root<ObservedLocation> observedLocationFrom = query.from(ObservedLocation.class);
+            ListJoin<ObservedLocation, Landing> landingsJoin = Daos.composeJoinList(observedLocationFrom, StringUtils.doting(ObservedLocation.Fields.LANDINGS), JoinType.INNER);
+            Join<Landing, Trip> tripJoin = Daos.composeJoin(landingsJoin, StringUtils.doting(Landing.Fields.TRIP), JoinType.LEFT);
+            ListJoin<Trip, Operation> operationsTrip = Daos.composeJoinList(tripJoin, Trip.Fields.OPERATIONS, JoinType.LEFT);
+
+            return cb.and(
+                    cb.equal(observedLocationFrom.get(IEntity.Fields.ID), param),
+                    cb.or(
+                            cb.equal(landingsJoin, root.get(Sample.Fields.LANDING)),
+                            cb.equal(operationsTrip, root.get(Sample.Fields.OPERATION))
+                    )
+            );
         }).addBind(LandingVO.Fields.OBSERVED_LOCATION_ID, observedLocationId);
     }
 
@@ -87,11 +92,18 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         return BindableSpecification.where((root, query, cb) -> {
             query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
             ParameterExpression<Collection> param = cb.parameter(Collection.class, OBSERVED_LOCATION_IDS);
-            return cb.in(
-                    root.join(Sample.Fields.LANDING, JoinType.INNER)
-                            .join(Landing.Fields.OBSERVED_LOCATION, JoinType.INNER)
-                            .get(IEntity.Fields.ID))
-                    .value(param);
+            Root<ObservedLocation> observedLocationFrom = query.from(ObservedLocation.class);
+            ListJoin<ObservedLocation, Landing> landingsJoin = Daos.composeJoinList(observedLocationFrom, StringUtils.doting(ObservedLocation.Fields.LANDINGS), JoinType.INNER);
+            Join<Landing, Trip> tripJoin = Daos.composeJoin(landingsJoin, StringUtils.doting(Landing.Fields.TRIP), JoinType.LEFT);
+            ListJoin<Trip, Operation> operationsTrip = Daos.composeJoinList(tripJoin, Trip.Fields.OPERATIONS, JoinType.LEFT);
+
+            return cb.and(
+                cb.in(observedLocationFrom.get(IEntity.Fields.ID)).value(param),
+                cb.or(
+                    cb.equal(landingsJoin, root.get(Sample.Fields.LANDING)),
+                    cb.equal(operationsTrip, root.get(Sample.Fields.OPERATION))
+                )
+            );
         }).addBind(OBSERVED_LOCATION_IDS, Arrays.asList(observedLocationIds));
     }
 
