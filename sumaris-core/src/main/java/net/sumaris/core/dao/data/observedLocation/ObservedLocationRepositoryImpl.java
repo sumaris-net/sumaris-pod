@@ -23,7 +23,6 @@ package net.sumaris.core.dao.data.observedLocation;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.ObservedLocation;
@@ -33,6 +32,7 @@ import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
@@ -49,15 +49,14 @@ public class ObservedLocationRepositoryImpl
     implements ObservedLocationSpecifications {
 
     private final LocationRepository locationRepository;
-    private final PersonRepository personRepository;
 
     @Autowired
     public ObservedLocationRepositoryImpl(EntityManager entityManager,
                                           LocationRepository locationRepository,
-                                          PersonRepository personRepository) {
+                                          ConverterRegistry converterRegistry) {
         super(ObservedLocation.class, ObservedLocationVO.class, entityManager);
         this.locationRepository = locationRepository;
-        this.personRepository = personRepository;
+        converterRegistry.addConverter(ObservedLocation.class, ObservedLocationVO.class, this::toVO);
     }
 
     @Override

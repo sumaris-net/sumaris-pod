@@ -58,8 +58,10 @@ import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.mail.internet.AddressException;
@@ -81,7 +83,7 @@ public class AccountServiceImpl implements AccountService {
     private final PersonService personService;
     private final UserMessageService userMessageService;
     private final ServerCryptoService serverCryptoService;
-    private final GenericConversionService conversionService;
+    private final ConverterRegistry converterRegistry;
 
     @Autowired
     private AccountService self; // loop back to force transactional handling
@@ -94,7 +96,7 @@ public class AccountServiceImpl implements AccountService {
                               UserSettingsRepository userSettingsRepository,
                               UserTokenRepository userTokenRepository,
                               ServerCryptoService serverCryptoService,
-                              GenericConversionService conversionService,
+                              ConverterRegistry converterRegistry,
                               UserMessageService userMessageService) {
         this.personService = personService;
         this.personRepository = personRepository;
@@ -102,15 +104,15 @@ public class AccountServiceImpl implements AccountService {
         this.userTokenRepository = userTokenRepository;
         this.configuration = serverConfiguration;
         this.serverCryptoService = serverCryptoService;
-        this.conversionService = conversionService;
+        this.converterRegistry = converterRegistry;
         this.userMessageService = userMessageService;
     }
 
     @PostConstruct
     public void init() {
         log.debug("Register {Account} converters");
-        conversionService.addConverter(PersonVO.class, AccountVO.class, p -> self.toAccountVO(p));
-        conversionService.addConverter(Person.class, AccountVO.class, p -> self.getByPubkey(p.getPubkey()));
+        converterRegistry.addConverter(PersonVO.class, AccountVO.class, p -> self.toAccountVO(p));
+        converterRegistry.addConverter(Person.class, AccountVO.class, p -> self.getByPubkey(p.getPubkey()));
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})

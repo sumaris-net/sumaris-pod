@@ -42,6 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
@@ -63,13 +64,17 @@ public class LandingRepositoryImpl
     private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
-    public LandingRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository) {
+    public LandingRepositoryImpl(EntityManager entityManager,
+                                 LocationRepository locationRepository,
+                                 ConverterRegistry converterRegistry) {
         super(Landing.class, LandingVO.class, entityManager);
         this.locationRepository = locationRepository;
 
         // FIXME BLA 30/09/2021 - temporary workaround for issue IMAGINE-540
         setCheckUpdateDate(false);
         setLockForUpdate(false);
+
+        converterRegistry.addConverter(Landing.class, LandingVO.class, this::toVO);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})

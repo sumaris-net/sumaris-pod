@@ -34,7 +34,6 @@ import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFact
 import io.leangen.graphql.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.server.http.filter.CORSFilter;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -44,8 +43,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;

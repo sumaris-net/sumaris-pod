@@ -132,7 +132,9 @@ public class ExtractionRestController implements ExtractionRestPaths {
         ExtractionTypeFilterVO filter = new ExtractionTypeFilterVO();
         filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
 
-        return extractionTypeService.findAllByFilter(filter, null);
+        List<ExtractionTypeVO> result = extractionTypeService.findAllByFilter(filter, null);
+
+        return result;
     }
 
     @GetMapping(

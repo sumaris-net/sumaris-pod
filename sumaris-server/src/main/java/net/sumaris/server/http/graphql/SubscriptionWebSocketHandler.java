@@ -23,6 +23,7 @@
 package net.sumaris.server.http.graphql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import graphql.ExecutionInput;
@@ -68,7 +69,10 @@ import java.util.function.Consumer;
 @Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler implements SubProtocolCapable {
 
-    private static final List<String> GRAPHQL_WS_PROTOCOLS = Collections.singletonList("graphql-transport-ws");
+    private static final List<String> GRAPHQL_WS_PROTOCOLS = ImmutableList.of(
+        "graphql-transport-ws", // The new protocols
+        "graphql-ws" // The deprecated protocol
+    );
 
     public interface GqlTypes {
         String GQL_CONNECTION_INIT = "connection_init";

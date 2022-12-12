@@ -61,15 +61,17 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-@Order(10)
+@Order(1)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final RequestMatcher ACTUATOR_URLS = new OrRequestMatcher(
-        new AntPathRequestMatcher("/api/node/health")
-    );
+//    private static final RequestMatcher ACTUATOR_URLS = new OrRequestMatcher(
+//        new AntPathRequestMatcher("/api/node/health")
+//    );
     private static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
         new AntPathRequestMatcher("/"),
         new AntPathRequestMatcher("/api/**"),
+        new AntPathRequestMatcher("/core/**"),
+        new AntPathRequestMatcher("/graphiql/**"),
         new AntPathRequestMatcher("/graphql/websocket/**"),
         new AntPathRequestMatcher("/vendor/**"),
         new AntPathRequestMatcher("/error"),
@@ -103,10 +105,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         delegates.forEach(auth::authenticationProvider);
     }
 
-    @Override
-    public void configure(WebSecurity web) {
-        web.ignoring().requestMatchers(PUBLIC_URLS);
-    }
+//    @Override
+//    public void configure(WebSecurity web) {
+//        web.ignoring().requestMatchers(PUBLIC_URLS);
+//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -114,21 +116,28 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .sessionCreationPolicy(STATELESS)
 
             // Authorized actuator
+            //.and()
+            //.authorizeRequests()
+            //.requestMatchers(ACTUATOR_URLS)
+            //.permitAll()
+
+            // Public API
             .and()
             .authorizeRequests()
-            .requestMatchers(ACTUATOR_URLS)
+            .requestMatchers(PUBLIC_URLS)
             .permitAll()
+
             // Configure authentification
             .and()
             .exceptionHandling()
-            // this entry point handles when you request a protected page and you are not yet
-            // authenticated
+            // this entry point handles when you request a protected page and you are not yet authenticated
             .defaultAuthenticationEntryPointFor(forbiddenEntryPoint(), PROTECTED_URLS)
             .and()
             .addFilterBefore(restAuthenticationFilter(), AnonymousAuthenticationFilter.class)
             .authorizeRequests()
             .requestMatchers(PROTECTED_URLS)
             .authenticated()
+
             .and()
             .csrf().disable()
             .formLogin().disable()

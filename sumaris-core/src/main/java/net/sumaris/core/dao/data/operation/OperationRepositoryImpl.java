@@ -48,7 +48,7 @@ import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -65,34 +65,40 @@ public class OperationRepositoryImpl
         extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, OperationFetchOptions>
         implements OperationSpecifications {
 
-    @Autowired
-    private PhysicalGearRepository physicalGearRepository;
+    private final PhysicalGearRepository physicalGearRepository;
 
-    @Autowired
-    private MetierRepository metierRepository;
+    private final MetierRepository metierRepository;
 
-    @Autowired
-    private MeasurementDao measurementDao;
+    private final MeasurementDao measurementDao;
 
-    @Autowired
-    private SampleRepository sampleRepository;
+    private final SampleRepository sampleRepository;
 
-    @Autowired
-    private FishingAreaRepository fishingAreaRepository;
+    private final FishingAreaRepository fishingAreaRepository;
 
-    @Autowired
-    private BatchRepository batchRepository;
+    private final BatchRepository batchRepository;
 
-    @Autowired
-    private TripRepository tripRepository;
+    private final TripRepository tripRepository;
 
-    @Autowired
-    protected VesselPositionDao vesselPositionDao;
+    private final VesselPositionDao vesselPositionDao;
 
 
-    protected OperationRepositoryImpl(EntityManager entityManager) {
+    protected OperationRepositoryImpl(EntityManager entityManager, ConverterRegistry converterRegistry,
+                                      PhysicalGearRepository physicalGearRepository,
+                                      MetierRepository metierRepository, MeasurementDao measurementDao,
+                                      SampleRepository sampleRepository, FishingAreaRepository fishingAreaRepository,
+                                      BatchRepository batchRepository, TripRepository tripRepository,
+                                      VesselPositionDao vesselPositionDao) {
         super(Operation.class, OperationVO.class, entityManager);
+        this.physicalGearRepository = physicalGearRepository;
+        this.metierRepository = metierRepository;
+        this.measurementDao = measurementDao;
+        this.sampleRepository = sampleRepository;
+        this.fishingAreaRepository = fishingAreaRepository;
+        this.batchRepository = batchRepository;
+        this.tripRepository = tripRepository;
+        this.vesselPositionDao = vesselPositionDao;
         setLockForUpdate(true);
+        converterRegistry.addConverter(Operation.class, OperationVO.class, this::toVO);
     }
 
     @Override

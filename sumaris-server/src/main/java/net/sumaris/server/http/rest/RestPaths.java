@@ -38,15 +38,16 @@ public interface RestPaths {
 
     String IMAGE_PATH = BASE_API_PATH + "/image/{id}";
 
-    String DOWNLOAD_PATH = "/download";
-
-    String UPLOAD_PATH = "/upload";
-
     String FAVICON = BASE_API_PATH + "/favicon";
 
     String NODE_INFO_PATH = BASE_API_PATH + "/node/info";
 
     String NODE_HEALTH_PATH = BASE_API_PATH + "/node/health";
+
+    String DOWNLOAD_PATH = "/download";
+
+    String UPLOAD_PATH = "/upload";
+
 
     static void checkSecuredPath(String path) throws InvalidPathException {
         if (!isSecuredPath(path)) throw new InvalidPathException("Invalid path: " + path);

@@ -52,6 +52,8 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -74,12 +76,15 @@ public class PersonRepositoryImpl
     extends SumarisJpaRepositoryImpl<Person, Integer, PersonVO>
     implements PersonSpecifications {
 
-    @Autowired
-    protected DepartmentRepository departmentRepository;
+    protected final DepartmentRepository departmentRepository;
 
-    protected PersonRepositoryImpl(EntityManager entityManager) {
+    protected PersonRepositoryImpl(EntityManager entityManager,
+                                   DepartmentRepository departmentRepository,
+                                   ConverterRegistry converterRegistry) {
         super(Person.class, PersonVO.class, entityManager);
+        this.departmentRepository = departmentRepository;
         setPublishEvent(true);
+        converterRegistry.addConverter(Person.class, PersonVO.class, p -> this.get(p.getId()));
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
