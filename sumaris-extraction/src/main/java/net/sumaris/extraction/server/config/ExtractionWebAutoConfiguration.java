@@ -68,13 +68,8 @@ public class ExtractionWebAutoConfiguration {
                     registry.addRedirectViewController(DOC_BASE_PATH + "/", DOC_BASE_PATH);
                     registry.addRedirectViewController(ExtractionRestController.BASE_PATH, DOC_BASE_PATH);
                     registry.addRedirectViewController(ExtractionRestController.BASE_PATH + "/", DOC_BASE_PATH);
-                    registry.addViewController(DOC_BASE_PATH).setViewName("forward:/doc/index.html");
+                    registry.addViewController(DOC_BASE_PATH).setViewName("forward:/api/extraction/index.html");
                 }
-            }
-
-            @Override
-            public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(false);
             }
         };
     }

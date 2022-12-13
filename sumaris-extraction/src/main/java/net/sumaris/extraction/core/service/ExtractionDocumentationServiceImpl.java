@@ -60,7 +60,7 @@ import java.util.Optional;
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionDocumentationServiceImpl implements ExtractionDocumentationService {
 
-    protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/doc/md/";
+    protected static final String MANUAL_CLASSPATH_DIR = ResourceLoader.CLASSPATH_URL_PREFIX + "static/api/extraction/md/";
 
     @Autowired
     private SumarisConfiguration configuration;

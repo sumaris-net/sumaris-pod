@@ -34,7 +34,8 @@ function AppDocSelector() {
         previewDiv,
         sourceDiv,
         markdownDiv,
-        types;
+        types,
+        debug = false;
 
     function init() {
         inputUri = document.getElementById("baseUri");
@@ -233,12 +234,23 @@ function AppDocSelector() {
         window.open(path, '_system', null, true);
     }
 
-    window.addEventListener("load", init, false);
+    function showDebug(value) {
+        debug = (value !== undefined) ? value : !debug;
+        if (debug) {
+            $('.debug').removeClass('d-none');
+        }
+        else {
+            $('.debug').addClass('d-none');
+        }
+    }
+
+    $(document).ready(() => init());
 
     const exports = {
         clearScreen,
         executeRequest,
-        openManual
+        openManual,
+        showDebug
     };
 
     return exports;

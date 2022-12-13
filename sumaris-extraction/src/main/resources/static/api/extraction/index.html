@@ -27,39 +27,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <title>Pod Api - Extraction documentation</title>
-    <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="icon" href="/api/favicon" type="image/x-icon" />
     <link rel="stylesheet" href="/api/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/doc/css/app-doc.css" />
+    <link rel="stylesheet" href="/api/css/theme.css" />
+    <link rel="stylesheet" href="/api/extraction/css/app-extraction-doc.css" />
 
 </head>
 <body>
 <!-- Top menu-->
 <div id="menu"></div>
 
+<!-- title header -->
+<div class="container-fluid mb-5 title-header">
+    <h1>Extraction documentation</h1>
+</div>
+
 <div class="container">
 
-    <h1>Extraction documentation</h1>
+    <p class="text-center">This tools build the documentation of a public extraction.</p>
 
-    <div class="form-group">
+    <div class="form-group d-none" id="baseUriGroup">
         <label for="baseUri">Server API URL</label>
         <input type="text" name="baseUri" id="baseUri" class="form-control" placeholder="http://server/path">
     </div>
 
-    <div class="form-group">
-        <label for="baseUri">Request URL:</label>
 
-        <div class="form-inline" style="padding-left: 8px; color: rgba(0,0,0,0.7);">
+    <div class="form-inline d-flex justify-content-center" style="padding-bottom: 16px;">
 
-            <div id="uriDiv"></div>
-
-            <span>&nbsp;/&nbsp;</span>
+        <div class="input-group">
+            <span class="input-group-text">
+                <div id="uriDiv">...</div>
+            </span>
 
             <!-- extraction type (Filled by JS) -->
-            <select name="extractionType" id="extractionType">
+            <select name="extractionType" id="extractionType" class="form-control">
+
             </select>
 
-            <span>&nbsp;?format=</span>
+            <span class="input-group-text">?format=</span>
 
             <!-- format -->
             <select name="format" id="format">
@@ -68,31 +76,40 @@
             </select>
 
             <div id="paramsDiv"></div>
+
+            <div>&nbsp;</div>
+
+            <button type="button" onclick="app.executeRequest()" class="btn btn-primary" tabindex="-1">Execute</button>
+            <button type="button" onclick="app.openManual()" class="btn btn-outline-secondary">View</button>
         </div>
     </div>
 
-    <div class="form-group text-center">
-        <button type="button" onclick="app.clearScreen()" class="btn btn-light btn-lg ">Clear</button>
-        <button type="button" onclick="app.executeRequest()" class="btn btn-primary btn-lg">Execute</button>
-        <button type="button" onclick="app.openManual()" class="btn btn-light btn-lg">View</button>
+    <div class="d-flex justify-content-center mb-2">
+        <!-- debug -->
+        <div>
+            <input type="checkbox" id="showDebug" name="showDebug" onclick="app.showDebug(this.checked)">
+            <label for="showDebug" style="cursor: pointer">debug</label>
+        </div>
     </div>
 
-    <div class="container">
+
+    <div class="container response d-none">
+
         <div class="row">
             <!-- Output header -->
-            <div class="col col-8">
+            <div class="col">
                 <h2>Response:</h2>
             </div>
 
             <!-- Log header -->
-            <div class="col col-4">
-                <h2>Log:</h2>
+            <div class="col col-4 debug -d-none">
+                <h2>Log: <button type="button" onclick="app.clearScreen()" class="btn btn-small btn-outline-secondary">Clear</button></h2>
             </div>
         </div>
 
         <div class="row">
             <!-- Output -->
-            <div class="col col-8">
+            <div class="col">
 
                 <div id="output" class="container d-none">
 
@@ -120,32 +137,28 @@
 
 
                 </div>
-                <!--<textarea name="output" id="outputTextarea" rows="30" class="form-control d-none" placeholder="Output result"></textarea><br/>-->
             </div>
 
             <!-- Log -->
-            <div class="col col-4" id="logDiv">
+            <div class="col col-4 debug d-none" id="logDiv">
             </div>
         </div>
     </div>
 
-
 </div>
 
 
+    <script type="text/javascript" src="/api/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/api/js/popper.min.js"></script>
+    <script type="text/javascript" src="/api/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/api/js/app-menu.js"></script>
 
-<script type="text/javascript" src="/api/js/jquery.slim.min.js" crossorigin="anonymous"></script>
-<script type="text/javascript" src="/api/js/popper.min.js" crossorigin="anonymous"></script>
-<script type="text/javascript" src="/api/js/bootstrap.min.js" crossorigin="anonymous"></script>
-<script type="text/javascript" src="/api/js/app-menu.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="/api/extraction/js/marked.min.js"></script>
+    <script type="text/javascript" src="/api/extraction/js/app-doc-selector.js"></script>
 
-<script type="text/javascript" src="/doc/js/marked.min.js"></script>
-<script type="text/javascript" src="/doc/js/app-doc-selector.js"></script>
-<script type="text/javascript" src="/doc/js/marked.min.js"></script>
-
-<script language="JavaScript" type="text/javascript">
-    const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
-    const app = new AppDocSelector();
-</script>
+    <script type="text/javascript">
+        const menu = new AppMenu('#menu', {active: '#nav-item-tools'});
+        const app = new AppDocSelector();
+    </script>
 </body>
 </html>

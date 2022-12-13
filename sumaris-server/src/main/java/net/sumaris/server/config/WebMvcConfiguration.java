@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.server.http.filter.CORSFilters;
 import net.sumaris.server.http.graphql.GraphQLPaths;
 import net.sumaris.server.http.rest.RestPaths;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -42,6 +42,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableAsync
 @Slf4j
 public class WebMvcConfiguration extends SpringBootServletInitializer {
+
+    @Value("${spring.graphql.graphiql.enabled:false}")
+    private boolean enableGraphiQL;
 
     @Bean
     public WebMvcConfigurer configureStaticPages() {
@@ -72,7 +75,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
                 }
 
                 // GraphiQL path
-                {
+                if (enableGraphiQL) {
                     final String GRAPHIQL_PATH = "/api/graphiql";
                     registry.addRedirectViewController(GRAPHIQL_PATH + "/", GRAPHIQL_PATH);
                     registry.addRedirectViewController("/graphiql", GRAPHIQL_PATH);
@@ -86,13 +89,8 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
                     registry.addRedirectViewController(RestPaths.BASE_API_PATH + WS_TEST_PATH, WS_TEST_PATH);
                     registry.addRedirectViewController(RestPaths.BASE_API_PATH + WS_TEST_PATH + "/", WS_TEST_PATH);
                     registry.addViewController(WS_TEST_PATH)
-                        .setViewName("forward:/websocket/index.html");
+                        .setViewName("forward:/api/websocket/index.html");
                 }
-            }
-
-            @Override
-            public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(true);
             }
         };
     }
