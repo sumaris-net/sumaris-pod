@@ -75,7 +75,7 @@
   </mailingLists>
 
   <prerequisites>
-    <maven>3.5.4</maven>
+    <maven>3.6.3</maven>
   </prerequisites>
 
   <properties>
@@ -83,7 +83,7 @@
     <file.encoding>UTF-8</file.encoding>
 
     <!-- Project properties -->
-    <javaVersion>11</javaVersion>
+    <javaVersion>17</javaVersion>
     <!--<signatureArtifactId>java18</signatureArtifactId>
     <signatureVersion>1.0</signatureVersion>-->
 
@@ -101,7 +101,8 @@
     <xml-apis.version>2.0.2</xml-apis.version>
     <elasticsearch.version>7.10.2</elasticsearch.version>
     <jna.version>5.9.0</jna.version>
-    <jackson.version>2.12.1</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
+    <jackson.version>2.14.1</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
+    <geojson-jackson.version>1.14</geojson-jackson.version>
     <stringtemplate.version>4.1</stringtemplate.version><!-- TODO try 4.3.4 -->
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
     <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
@@ -140,7 +141,6 @@
     <jnr-ffi.version>2.2.2</jnr-ffi.version>
     <kalium.version>0.8.2</kalium.version>
     <scrypt.version>1.4.0</scrypt.version>
-    <geojson-jackson.version>1.14</geojson-jackson.version>
     <graphql-java.version>19.2</graphql-java.version>
     <graphql-java-tools.version>13.0.2</graphql-java-tools.version>
     <graphiql-spring-boot.version>11.1.0</graphiql-spring-boot.version>

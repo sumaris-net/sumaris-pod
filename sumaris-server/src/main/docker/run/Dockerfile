@@ -1,5 +1,5 @@
 ARG IMAGE_REGISTRY
-ARG DOCKER_IMAGE="openjdk:11-jdk-slim"
+ARG DOCKER_IMAGE="openjdk:17-jdk-slim"
 FROM $IMAGE_REGISTRY$DOCKER_IMAGE
 
 # Build arg

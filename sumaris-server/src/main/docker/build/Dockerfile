@@ -1,5 +1,5 @@
 ARG IMAGE_REGISTRY
-ARG DOCKER_IMAGE="maven:3.8.4-openjdk-11-slim"
+ARG DOCKER_IMAGE="maven:3.8.5-openjdk-17-slim"
 FROM $IMAGE_REGISTRY$DOCKER_IMAGE
 ARG MAVEN_LOCAL_REPO="/root/.m2/repository/"
 WORKDIR /tmp/.build-cache
