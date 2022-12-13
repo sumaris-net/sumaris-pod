@@ -455,7 +455,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     ACTIVEMQ_PREFETCH_LIMIT(
         "spring.activemq.prefetch.limit",
         n("sumaris.config.option.spring.activemq.prefetch.limit.description"),
-        "10",
+        "1000",
         Integer.class,
         false),
 
