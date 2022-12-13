@@ -27,8 +27,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
-import io.reactivex.Observable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.job.JobProgressionVO;
@@ -212,7 +212,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
         return observable
             .observeOn(Schedulers.io())
-            .startWith(() -> Iterators.cycle(startProgression))
+            .startWithItem(startProgression)
             .takeUntil(Observable.interval(1, TimeUnit.SECONDS).filter(o -> !hasListeners(id))) // use a timer to watch listeners exists
             .doOnLifecycle(
                 (subscription) -> log.debug("Watching job progression (id={})", id),

@@ -26,8 +26,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import io.reactivex.Observable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.jms.JmsConfiguration;
@@ -126,7 +126,7 @@ public class EntityEventServiceImpl implements EntityEventService {
             V initialVO = findAndConvert(entityClass, targetClass, id)
                 .orElseThrow(() -> new DataNotFoundException("Unable to get actual value: data not found"));
             lastUpdateDate.set(initialVO.getUpdateDate());
-            result = result.startWith(initialVO);
+            result = result.startWithItem(initialVO);
         }
 
         String listenerId = computeListenerId(entityClass, id);
@@ -159,7 +159,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         if (startWithActualValue) {
             V initialVO = getter.apply(null).orElseThrow(() -> new DataNotFoundException("Unable to get actual value: data not found"));
             lastUpdateDate.set(initialVO.getUpdateDate());
-            result = result.startWith(initialVO);
+            result = result.startWithItem(initialVO);
         }
 
         return result.doOnLifecycle(
@@ -200,7 +200,7 @@ public class EntityEventServiceImpl implements EntityEventService {
                 L initialVOs = loader.call().orElse(null);
                 if (initialVOs != null) {
                     hashCode.set(initialVOs.hashCode());
-                    result = result.startWith(initialVOs);
+                    result = result.startWithItem(initialVOs);
                 }
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
@@ -226,7 +226,7 @@ public class EntityEventServiceImpl implements EntityEventService {
                 O initial = loader.call().orElse(null);
                 if (initial != null) {
                     hashCode.set(initial.hashCode());
-                    result = result.startWith(initial);
+                    result = result.startWithItem(initial);
                 }
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
@@ -289,7 +289,7 @@ public class EntityEventServiceImpl implements EntityEventService {
             if (entities.isPresent()) {
                 D newUpdateDate = Entities.maxUpdateDate(entities.get());
                 lastUpdateDate.set(newUpdateDate);
-                result = result.startWith(entities.get());
+                result = result.startWithItem(entities.get());
             }
         }
 
@@ -318,7 +318,7 @@ public class EntityEventServiceImpl implements EntityEventService {
             try {
                 L initialValue = loader.call().orElseThrow(() -> new DataNotFoundException("Unable to get actual values: data not found"));
                 lastHashCode.set(initialValue.hashCode());
-                result = result.startWith(initialValue);
+                result = result.startWithItem(initialValue);
             }
             catch(Exception e) {
                 throw new SumarisTechnicalException(e);
@@ -383,7 +383,7 @@ public class EntityEventServiceImpl implements EntityEventService {
                 L initialVOs = loader.call().orElse(null);
                 if (initialVOs != null) {
                     hashCode.set(initialVOs.hashCode());
-                    result = result.startWith((long) initialVOs.size());
+                    result = result.startWithItem((long) initialVOs.size());
                 }
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
@@ -692,7 +692,7 @@ public class EntityEventServiceImpl implements EntityEventService {
             try {
                 L initialValue = loader.call().orElseThrow(() -> new DataNotFoundException("Unable to get actual values: data not found"));
                 lastHashCode.set(initialValue.hashCode());
-                result = result.startWith((long) initialValue.size());
+                result = result.startWithItem((long) initialValue.size());
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
             }

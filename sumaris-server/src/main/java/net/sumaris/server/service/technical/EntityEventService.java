@@ -22,7 +22,7 @@ package net.sumaris.server.service.technical;
  * #L%
  */
 
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.event.entity.IEntityEvent;

@@ -22,6 +22,7 @@ package net.sumaris.core.service.referential.taxon;
  * #L%
  */
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -38,6 +39,7 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -46,19 +48,16 @@ import java.util.List;
 
 @Service("taxonGroupService")
 @Slf4j
+@RequiredArgsConstructor
 public class TaxonGroupServiceImpl implements TaxonGroupService {
 
-    @Autowired
-    protected SumarisConfiguration configuration;
+    protected final SumarisConfiguration configuration;
 
-    @Autowired
-    protected TaxonGroupRepository taxonGroupRepository;
+    protected final TaxonGroupRepository taxonGroupRepository;
 
-    @Autowired
-    protected TaxonGroupService self;
+    protected final DatabaseSchemaDao databaseSchemaDao;
 
-    @Autowired
-    protected DatabaseSchemaDao databaseSchemaDao;
+    protected final ApplicationContext applicationContext;
 
     private boolean enableTechnicalTablesUpdate = false;
 
@@ -69,7 +68,9 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
             enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
             if (enableTechnicalTablesUpdate) {
-                self.updateTaxonGroupHierarchies(); // Force transaction creation, using self
+                // Force transaction creation, using self
+                applicationContext.getBean(TaxonGroupService.class)
+                        .updateTaxonGroupHierarchies();
             }
         }
     }

@@ -54,8 +54,7 @@ import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
 
 import javax.annotation.Nonnull;
@@ -79,22 +78,22 @@ public class DenormalizedBatchRepositoryImpl
     private final PmfmRepository pmfmRepository;
     private final ParameterRepository parameterRepository;
 
-    @Autowired
-    @Lazy
-    private DenormalizedBatchRepository self;
+    private final TaxonNameRepository taxonNameRepository;
 
-    @Autowired
-    private TaxonNameRepository taxonNameRepository;
+    private final ApplicationContext applicationContext;
 
-    @Autowired
     public DenormalizedBatchRepositoryImpl(EntityManager entityManager,
                                            SumarisConfiguration config,
                                            PmfmRepository pmfmRepository,
-                                           ParameterRepository parameterRepository) {
+                                           ParameterRepository parameterRepository,
+                                           TaxonNameRepository taxonNameRepository,
+                                           ApplicationContext applicationContext) {
         super(DenormalizedBatch.class, entityManager);
         this.config = config;
         this.pmfmRepository = pmfmRepository;
         this.parameterRepository = parameterRepository;
+        this.taxonNameRepository = taxonNameRepository;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -233,7 +232,7 @@ public class DenormalizedBatchRepositoryImpl
         sources.forEach(b -> b.setOperationId(operationId));
 
         // Get existing fishing areas
-        Set<Integer> existingIds = self.getAllIdByOperationId(operationId);
+        Set<Integer> existingIds = getRepository().getAllIdByOperationId(operationId);
 
         // Save
         sources.forEach(b -> {
@@ -254,7 +253,7 @@ public class DenormalizedBatchRepositoryImpl
         sources.forEach(b -> b.setSaleId(saleId));
 
         // Get existing fishing areas
-        Set<Integer> existingIds = self.getAllIdBySaleId(saleId);
+        Set<Integer> existingIds = getRepository().getAllIdBySaleId(saleId);
 
         // Save
         sources.forEach(b -> {
@@ -270,12 +269,8 @@ public class DenormalizedBatchRepositoryImpl
 
     public DenormalizedBatch toEntity(DenormalizedBatchVO vo) {
         Preconditions.checkNotNull(vo);
-        DenormalizedBatch entity = null;
-
-        entity = createEntity();
-
+        DenormalizedBatch entity = createEntity();
         toEntity(vo, entity, true);
-
         return entity;
     }
 
@@ -532,5 +527,13 @@ public class DenormalizedBatchRepositoryImpl
 
 
         return result.toString();
+    }
+
+    private DenormalizedBatchRepository repository;
+    protected DenormalizedBatchRepository getRepository() {
+        if (repository == null) {
+            repository = this.applicationContext.getBean(DenormalizedBatchRepository.class);
+        }
+        return repository;
     }
 }
