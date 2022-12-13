@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: maven:3.8.5-openjdk-17-slim
+image: maven:3.8.5-eclipse-temurin-17-alpine
 
 # stages (main steps of pipeline)
 stages:
@@ -20,7 +20,7 @@ stages:
 # ---------------------------------------------------------------
 
 variables:
-    DOCKER_IMAGE: maven:3.8.5-openjdk-17-slim
+    DOCKER_IMAGE: maven:3.8.5-eclipse-temurin-17-alpine
     DOCKER_IMAGE_REGISTRY:
     #DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
     CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
