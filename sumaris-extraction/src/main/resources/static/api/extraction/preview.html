@@ -28,9 +28,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
         <title>Pod Api - Extraction documentation</title>
-        <link rel="icon" href="/api/favicon" type="image/x-icon" />
 
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="/api/favicon" type="image/x-icon" />
         <link rel="stylesheet" href="/api/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/api/css/theme.css" />
         <link rel="stylesheet" href="/api/extraction/css/app-extraction-doc.css" />
 
 
@@ -40,15 +43,24 @@
         <!-- Top menu-->
         <div id="menu"></div>
 
+        <!-- title header -->
+        <div class="container-fluid mb-5 title-header">
+            <h1>Extraction documentation</h1>
+        </div>
+
         <div class="container">
 
-            <ul class="nav nav-tabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="preview-tab" data-toggle="tab" href="#preview" role="tab" aria-controls="preview"
-                       aria-selected="true">Manual</a>
+            <ul class="nav nav-tabs" id="nav-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="preview-tab"
+                       data-bs-toggle="tab" data-bs-target="#preview"
+                       role="tab" aria-controls="preview"
+                       aria-selected="true">Documentation</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="source-tab" data-toggle="tab" href="#source" role="tab" aria-controls="source"
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="source-tab"
+                       data-bs-toggle="tab" data-bs-target="#source"
+                       role="tab" aria-controls="source"
                        aria-selected="false">Source</a>
                 </li>
 
@@ -58,10 +70,12 @@
             </ul>
             <div class="tab-content">
 
-                <div class="tab-pane fade show active" id="preview" role="tabpanel" aria-labelledby="preview-tab">
+                <div class="tab-pane fade show active" id="preview" role="tabpanel"
+                     aria-labelledby="preview-tab">
 
                 </div>
-                <div class="tab-pane fade" id="source" role="tabpanel" aria-labelledby="source-tab">
+                <div class="tab-pane fade" id="source" role="tabpanel"
+                     aria-labelledby="source-tab">
                     <pre id="markdown">{{markdown}}</pre>
                 </div>
             </div>
@@ -72,6 +86,7 @@
         <script type="text/javascript" src="/api/js/popper.min.js" crossorigin="anonymous"></script>
         <script type="text/javascript" src="/api/js/bootstrap.min.js" crossorigin="anonymous"></script>
         <script type="text/javascript" src="/api/js/app-menu.js" crossorigin="anonymous"></script>
+
         <script type="text/javascript" src="/api/extraction/js/marked.min.js"></script>
         <script type="text/javascript" src="/api/extraction/js/app-doc-preview.js"></script>
 

@@ -25,7 +25,6 @@ function AppDocSelector() {
         inputUri,
         baseUri,
         uriDiv,
-        inputCategory,
         inputExtractionType,
         inputFormat,
         paramsDiv,
@@ -99,8 +98,8 @@ function AppDocSelector() {
         const params = [];
         let needFormat = false;
 
-        if (inputFormat.value !== "md") {
-            params.push('format=' + inputFormat.value) // True by default
+        if (inputFormat.value !== "html") {
+            params.push('format=' + inputFormat.value)
             needFormat = true;
         }
 
@@ -130,10 +129,6 @@ function AppDocSelector() {
         let path = computeBaseUri();
         path += 'doc/';
 
-        // Add category
-        const category = inputCategory.value;
-        path += category + '/';
-
         // Add extraction type
         const extractionType = inputExtractionType.value;
         path += extractionType;
@@ -153,9 +148,10 @@ function AppDocSelector() {
             logInfo("GET: " + requestUri, "text-muted");
             const request = new XMLHttpRequest();
             const now = Date.now();
+            $('.response').removeClass('d-none'); // Show response
             request.onreadystatechange = function () {
                 if (request.readyState === XMLHttpRequest.OPENED) {
-                    request.setRequestHeader('Accept', acceptHeader || 'application/html, text/markdown, text/plain')
+                    request.setRequestHeader('Accept', acceptHeader || 'text/html, text/markdown, text/plain')
                 } else if (request.readyState === XMLHttpRequest.LOADING) {   // XMLHttpRequest.LOADING == 3
                     previewDiv.innerHTML = '<br/><i>Loading...</i>';
                     sourceDiv.innerHTML = '';
@@ -163,7 +159,7 @@ function AppDocSelector() {
 
                 } else if (request.readyState === XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
                     if (request.status === 200) {
-                        var execTimeMs = Date.now() - now;
+                        const execTimeMs = Date.now() - now;
                         logInfo('Response received in ' + execTimeMs + 'ms');
 
                         // Send response to callback, if any
@@ -173,7 +169,6 @@ function AppDocSelector() {
 
                         // Other wise, add response to output div
                         else {
-
                             if (inputFormat.value === "md") {
                                 previewDiv.innerHTML = marked(request.responseText);
                                 sourceDiv.innerHTML = '<pre>' + request.responseText + '</pre>';
@@ -190,7 +185,7 @@ function AppDocSelector() {
                                 $('#output .nav-tabs').addClass('d-none'); // Hide tabs header
                             }
 
-                            outputDiv.classList.remove('d-none'); // Show output
+                            $('#output').removeClass('d-none'); // Show output
 
                         }
                     } else if (request.status === 400 || request.status === 404) {
