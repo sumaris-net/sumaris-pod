@@ -114,10 +114,6 @@
     <hibernate-spatial.version>5.5.9.Final</hibernate-spatial.version>
     <hibernate-validator.version>6.2.3.Final</hibernate-validator.version>
     <hibernate-commons-annotations.version>5.1.2.Final</hibernate-commons-annotations.version>
-    <spring.version>5.3.24</spring.version>
-    <spring-web.version>5.3.24</spring-web.version>
-    <spring-data.version>2.7.6</spring-data.version>
-    <spring-security.version>5.7.5</spring-security.version>
     <querydsl.version>5.0.0</querydsl.version>
     <aspectj.version>1.9.9.1</aspectj.version>
     <javassist.version>3.29.2-GA</javassist.version>
@@ -127,16 +123,18 @@
     <xmlquery.version>1.8</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
-    <!--spring-boot.version>2.7.4</spring-boot.version>
-    <spring-boot-plugin.version>2.7.4</spring-boot-plugin.version-->
-    <spring-boot.version>2.5.8</spring-boot.version>
-    <spring-boot-plugin.version>2.5.8</spring-boot-plugin.version>
+    <spring.version>5.3.24</spring.version>
+    <spring-web.version>5.3.24</spring-web.version>
+    <spring-data.version>2.7.6</spring-data.version>
+    <spring-security.version>5.7.5</spring-security.version>
+    <spring-boot.version>2.7.6</spring-boot.version>
+    <spring-boot-plugin.version>2.7.6</spring-boot-plugin.version>
     <micrometer.version>1.10.2</micrometer.version>
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.12</reflections.version>
-    <rxjava2.version>2.2.21</rxjava2.version>
-    <activemq.version>5.16.2</activemq.version>
-    <jakarta.version>2.0.3</jakarta.version>
+    <rxjava3.version>3.1.5</rxjava3.version>
+    <activemq.version>5.17.3</activemq.version>
+    <jakarta-jms.version>2.0.3</jakarta-jms.version>
 
     <jnr-ffi.version>2.2.2</jnr-ffi.version>
     <kalium.version>0.8.2</kalium.version>
@@ -426,12 +424,6 @@
         <groupId>org.apache.activemq</groupId>
         <artifactId>activemq-broker</artifactId>
         <version>${activemq.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jms_1.1_spec</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
@@ -441,12 +433,12 @@
       <dependency>
         <groupId>jakarta.jms</groupId>
         <artifactId>jakarta.jms-api</artifactId>
-        <version>${jakarta.version}</version>
+        <version>${jakarta-jms.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.reactivex.rxjava2</groupId>
+        <groupId>io.reactivex.rxjava3</groupId>
         <artifactId>rxjava</artifactId>
-        <version>${rxjava2.version}</version>
+        <version>${rxjava3.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -489,6 +481,10 @@
           <exclusion>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
           </exclusion>
         </exclusions>
       </dependency>

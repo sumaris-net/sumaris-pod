@@ -133,8 +133,8 @@ public class EntityEventServiceImpl implements EntityEventService {
 
         return result
             .doOnLifecycle(
-                (subscription) -> log.info("Watching updates on {} every {}s (observer count: {})", listenerId, intervalInSeconds, timerObserverCount.get() + 1),
-                () -> log.info("Stop watching updates on {} (observer count: {})", listenerId, timerObserverCount.get())
+                (subscription) -> log.info("Watching {} every {}s ({} observers)", listenerId, intervalInSeconds, timerObserverCount.get() + 1),
+                () -> log.info("Stop watching {} ({} observers)", listenerId, timerObserverCount.get())
             );
 
     }
@@ -393,8 +393,8 @@ public class EntityEventServiceImpl implements EntityEventService {
         String listenerId = computeListenerId(entityClass);
 
         return result.doOnLifecycle(
-            (subscription) -> log.debug("Watching count updates on {} every {}s (observer count: {})", listenerId, intervalInSeconds, timerObserverCount.get() + 1),
-            () -> log.debug("Stop watching count updates on {} (observer count: {})", listenerId, timerObserverCount.get())
+            (subscription) -> log.debug("Watching count on {} every {}s ({} observers)", listenerId, intervalInSeconds, timerObserverCount.get() + 1),
+            () -> log.debug("Stop watching count on {} ({} observers)", listenerId, timerObserverCount.get())
         );
     }
 
@@ -553,7 +553,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         synchronized (listenersById) {
             List<Listener> listeners = listenersById.computeIfAbsent(key, k -> Lists.newCopyOnWriteArrayList());
 
-            log.debug("Listening updates on {} (listener count: {})", key, listeners.size() + 1);
+            //log.debug("Listening updates on {} (listener count: {})", key, listeners.size() + 1);
 
             synchronized (listeners) {
                 listeners.add(listener);
@@ -566,7 +566,7 @@ public class EntityEventServiceImpl implements EntityEventService {
             List<Listener> listeners = this.listenersById.get(key);
             if (listeners == null) return;
 
-            log.debug("Stop listening updates on {} (listener count: {})", key, listeners.size() - 1);
+            //log.debug("Stop listening updates on {} (listener count: {})", key, listeners.size() - 1);
 
             synchronized (listeners) {
                 listeners.remove(listener);

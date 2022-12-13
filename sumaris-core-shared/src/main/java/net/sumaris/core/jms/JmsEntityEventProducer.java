@@ -29,7 +29,6 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.jms.core.JmsTemplate;
@@ -43,6 +42,7 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -52,17 +52,22 @@ import java.util.stream.Collectors;
 public class JmsEntityEventProducer {
 
     // WARN: @ConditionOnBean over this class is not working well, that why we use required=false
-    @Autowired(required = false)
-    private JmsTemplate jmsTemplate;
+    private final JmsTemplate jmsTemplate;
 
     @Value("${spring.jms.enabled:false}")
     private boolean jmsEnabled;
 
+    public JmsEntityEventProducer(Optional<JmsTemplate> jmsTemplate) {
+        this.jmsTemplate = jmsTemplate.orElse(null);
+    }
+
     @PostConstruct
     protected void init() {
         if (jmsTemplate == null) {
-            // Display a warn log, if should be enabled. Otherwise: silent
-            if (jmsEnabled) log.warn("Cannot start JMS entity events producer: missing a bean of class {}", JmsTemplate.class.getName());
+            // Warn when enabled but template is missing.
+            if (jmsEnabled) {
+                log.warn("Cannot start JMS entity events producer: missing a bean of class {}", JmsTemplate.class.getName());
+            }
             return;
         }
 
