@@ -91,7 +91,7 @@ public class RdfSchemaServiceImpl implements RdfSchemaService {
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Clean options cache
         rdfConfiguration.cleanCache();
         // Recompute prefix and base uri

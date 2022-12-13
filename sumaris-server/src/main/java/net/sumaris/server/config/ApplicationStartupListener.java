@@ -44,12 +44,12 @@ public class ApplicationStartupListener {
     }
 
     @EventListener
-    protected void onApplicationEvent(final ApplicationReadyEvent event) {
+    public void onApplicationEvent(final ApplicationReadyEvent event) {
         ServiceLocator.init(event.getApplicationContext());
     }
 
     @EventListener
-    protected void onConfigurationReadyEvent(final ConfigurationReadyEvent event) {
+    public void onConfigurationReadyEvent(final ConfigurationReadyEvent event) {
         log.info(I18n.t("sumaris.server.started", this.port));
     }
 }

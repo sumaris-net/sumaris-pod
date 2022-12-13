@@ -146,7 +146,7 @@ public class DataGraphQLService {
     private final TimeLog timeLog = new TimeLog(DataGraphQLService.class);
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         this.enableImageAttachments = event.getConfiguration().enableDataImages();
     }
 

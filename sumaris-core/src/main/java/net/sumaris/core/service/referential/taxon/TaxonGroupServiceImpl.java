@@ -41,7 +41,12 @@ import org.nuiton.version.VersionBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.Date;
 import java.util.List;
@@ -61,16 +66,18 @@ public class TaxonGroupServiceImpl implements TaxonGroupService {
 
     private boolean enableTechnicalTablesUpdate = false;
 
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    @Async
+    @TransactionalEventListener(
+        value = {ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class},
+        phase = TransactionPhase.AFTER_COMPLETION)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         // Update technical tables (if option changed)
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
             enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
             if (enableTechnicalTablesUpdate) {
-                // Force transaction creation, using self
-                applicationContext.getBean(TaxonGroupService.class)
-                        .updateTaxonGroupHierarchies();
+                updateTaxonGroupHierarchies();
             }
         }
     }

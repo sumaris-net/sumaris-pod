@@ -66,7 +66,7 @@ public class ImageServiceImpl implements ImageService {
 
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         // Prepare URL for String formatter
         personAvatarUrl = configuration.getServerUrl() + RestPaths.PERSON_AVATAR_PATH;

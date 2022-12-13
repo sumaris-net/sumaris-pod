@@ -53,7 +53,6 @@ import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -80,25 +79,28 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final String currentSoftwareLabel;
     private boolean ready;
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
-    @Autowired
-    private SoftwareService softwareService;
+    private final SoftwareService softwareService;
 
-    @Autowired
-    private DatabaseSchemaService databaseSchemaService;
+    private final DatabaseSchemaService databaseSchemaService;
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
 
     private Version dbVersion;
 
     private final List<ConfigurationEventListener> listeners = new CopyOnWriteArrayList<>();
 
-    @Autowired
-    public ConfigurationServiceImpl(SumarisConfiguration configuration) {
+    public ConfigurationServiceImpl(SumarisConfiguration configuration,
+                                    EntityManager entityManager,
+                                    SoftwareService softwareService,
+                                    DatabaseSchemaService databaseSchemaService,
+                                    ApplicationEventPublisher publisher) {
         this.configuration = configuration;
+        this.entityManager = entityManager;
+        this.softwareService = softwareService;
+        this.databaseSchemaService = databaseSchemaService;
+        this.publisher = publisher;
         this.currentSoftwareLabel = configuration.getAppName();
         Preconditions.checkNotNull(currentSoftwareLabel);
         this.ready = !configuration.enableConfigurationDbPersistence(); // Mark as ready, if configuration not loaded from DB
@@ -125,7 +127,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Async
     @EventListener({SchemaUpdatedEvent.class, SchemaReadyEvent.class})
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    protected void onSchemaUpdatedOrReady(SchemaEvent event) {
+    public void onSchemaUpdatedOrReady(SchemaEvent event) {
         if (this.dbVersion == null || !this.dbVersion.equals(event.getSchemaVersion())) {
             this.dbVersion = event.getSchemaVersion();
 

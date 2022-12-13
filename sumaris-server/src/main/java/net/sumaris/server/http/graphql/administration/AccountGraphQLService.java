@@ -41,6 +41,7 @@ import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
+import net.sumaris.server.service.administration.UserSettingsService;
 import net.sumaris.server.service.technical.EntityEventService;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
@@ -63,6 +64,9 @@ public class AccountGraphQLService {
 
     @Resource
     private AccountService accountService;
+
+    @Resource
+    private UserSettingsService userSettingsService;
 
     @Resource
     private EntityEventService entityEventService;
@@ -135,7 +139,7 @@ public class AccountGraphQLService {
         PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
         settings.setIssuer(user.getPubkey());
 
-        return accountService.saveSettings(settings);
+        return userSettingsService.save(settings);
     }
 
     /* -- Subscriptions -- */

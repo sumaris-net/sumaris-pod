@@ -32,7 +32,7 @@ import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
@@ -53,10 +53,10 @@ public class ObservedLocationRepositoryImpl
     @Autowired
     public ObservedLocationRepositoryImpl(EntityManager entityManager,
                                           LocationRepository locationRepository,
-                                          ConverterRegistry converterRegistry) {
+                                          GenericConversionService conversionService) {
         super(ObservedLocation.class, ObservedLocationVO.class, entityManager);
         this.locationRepository = locationRepository;
-        converterRegistry.addConverter(ObservedLocation.class, ObservedLocationVO.class, this::toVO);
+        conversionService.addConverter(ObservedLocation.class, ObservedLocationVO.class, this::toVO);
     }
 
     @Override

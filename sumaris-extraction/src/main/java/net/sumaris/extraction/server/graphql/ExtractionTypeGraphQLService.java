@@ -61,7 +61,7 @@ public class ExtractionTypeGraphQLService {
     private String documentationUrl;
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         // Prepare URL for String formatter
         String serverUrl = event.getConfiguration().getApplicationConfig().getOption("server.url");

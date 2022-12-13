@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
 import net.sumaris.core.jms.JmsConfiguration;
@@ -45,13 +46,13 @@ import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -63,6 +64,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service("trashService")
+@RequiredArgsConstructor
 @Slf4j
 public class TrashServiceImpl implements TrashService {
 
@@ -73,8 +75,7 @@ public class TrashServiceImpl implements TrashService {
     private boolean enable;
     private File trashDirectory;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     @Override
     public <V> Page<V> findAll(@NonNull String entityName, @NonNull Pageable pageable, Class<? extends V> clazz) {
@@ -101,7 +102,7 @@ public class TrashServiceImpl implements TrashService {
         // Get all files in trash
         List<File> files = FileUtils.listFiles(directory, new String[]{JSON_FILE_EXTENSION}, false).stream()
             // Sort by date
-            .sorted((f1, f2) -> Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()) * (isDescending ? 1 : -1))
+            .sorted((f1, f2) -> Long.compare(f1.lastModified(), f2.lastModified()) * (isDescending ? 1 : -1))
             .collect(Collectors.toList());
 
         // Slice result
@@ -223,11 +224,12 @@ public class TrashServiceImpl implements TrashService {
         }
     }
 
+    @Async
     @JmsListener(selector = "entityName = 'Trip' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     @JmsListener(selector = "entityName = 'Operation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     @JmsListener(selector = "entityName = 'ObservedLocation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
     @JmsListener(selector = "entityName = 'Landing' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    protected void onEntityDeleted(IValueObject data) throws IOException {
+    public void onEntityDeleted(IValueObject data) throws IOException {
         if (!this.enable) return; // Skip
 
         Preconditions.checkNotNull(data);

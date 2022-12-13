@@ -96,7 +96,7 @@ public class UserMessageServiceImpl implements UserMessageService {
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         boolean emailEnable = (emailService != null && configuration.enableMailService());
 

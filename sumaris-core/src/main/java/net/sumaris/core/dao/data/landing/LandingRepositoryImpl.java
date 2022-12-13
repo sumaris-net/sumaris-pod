@@ -41,8 +41,10 @@ import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
@@ -66,7 +68,7 @@ public class LandingRepositoryImpl
     @Autowired
     public LandingRepositoryImpl(EntityManager entityManager,
                                  LocationRepository locationRepository,
-                                 ConverterRegistry converterRegistry) {
+                                 GenericConversionService conversionService) {
         super(Landing.class, LandingVO.class, entityManager);
         this.locationRepository = locationRepository;
 
@@ -74,11 +76,11 @@ public class LandingRepositoryImpl
         setCheckUpdateDate(false);
         setLockForUpdate(false);
 
-        converterRegistry.addConverter(Landing.class, LandingVO.class, this::toVO);
+        conversionService.addConverter(Landing.class, LandingVO.class, this::toVO);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         isOracleDatabase = event.getConfiguration().isOracleDatabase();
         enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
     }

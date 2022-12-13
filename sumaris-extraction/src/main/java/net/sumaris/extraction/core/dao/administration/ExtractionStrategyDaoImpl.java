@@ -73,7 +73,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
     private String adagioSchema = null;
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Read some config options
         String adagioSchema = this.configuration.getAdagioSchema();
         boolean enableAdagioOptimization = StringUtils.isNotBlank(adagioSchema)

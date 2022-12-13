@@ -68,6 +68,7 @@ public class JmsEntityEventProducer {
             if (jmsEnabled) {
                 log.warn("Cannot start JMS entity events producer: missing a bean of class {}", JmsTemplate.class.getName());
             }
+            this.jmsEnabled = false;
             return;
         }
 
@@ -84,7 +85,9 @@ public class JmsEntityEventProducer {
             value = {EntityInsertEvent.class, EntityUpdateEvent.class, EntityDeleteEvent.class},
             phase = TransactionPhase.AFTER_COMMIT)
     public void onEntityEvent(IEntityEvent event) {
-        if (jmsTemplate == null) return; // Skip
+        log.trace("Receiving event {}", event.getClass().getSimpleName());
+
+        if (!jmsEnabled) return; // Skip
 
         Preconditions.checkNotNull(event);
         Preconditions.checkNotNull(event.getOperation());

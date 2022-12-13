@@ -51,6 +51,10 @@ public class JmsConfiguration {
 
     public static final String CONTAINER_FACTORY = "jmsListenerContainerFactory";
 
+    public static final String CONCURRENCY = "1-10";
+
+    public static final long RECEIVE_TIMEOUT_MS = 10000L; // 10 s
+
     @Bean
     public JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory,
                                    MessageConverter messageConverter) {
@@ -69,6 +73,8 @@ public class JmsConfiguration {
         factory.setConnectionFactory(cachingConnectionFactory);
         factory.setMessageConverter(messageConverter);
         factory.setTaskExecutor(taskExecutor);
+        //factory.setConcurrency(CONCURRENCY);
+        //factory.setReceiveTimeout(RECEIVE_TIMEOUT_MS);
         factory.setErrorHandler(t -> log.error("An error has occurred in the JMS transaction: " + t.getMessage(), t));
         return factory;
     }
@@ -86,7 +92,9 @@ public class JmsConfiguration {
 
     @Bean
     public CachingConnectionFactory cachingConnectionFactory(ConnectionFactory connectionFactory) {
-        return new CachingConnectionFactory(connectionFactory);
+        CachingConnectionFactory factory = new CachingConnectionFactory(connectionFactory);
+        factory.setSessionCacheSize(10);
+        return factory;
     }
 
     @Bean
@@ -100,7 +108,7 @@ public class JmsConfiguration {
         if (prefetchLimit > 0) {
             ActiveMQPrefetchPolicy prefetchPolicy = new ActiveMQPrefetchPolicy();
             prefetchPolicy.setQueuePrefetch(prefetchLimit);
-            prefetchPolicy.setMaximumPendingMessageLimit(prefetchLimit);
+            prefetchPolicy.setMaximumPendingMessageLimit(prefetchLimit); // TODO check this value
             connectionFactory.setPrefetchPolicy(prefetchPolicy);
         }
 

@@ -48,7 +48,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,17 +56,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ReferentialServiceImpl implements ReferentialService {
 
-	@Autowired
-	protected ReferentialDao dao;
-
-	@Autowired
-	protected GenericConversionService conversionService;
-
-	@Autowired
-	private ApplicationEventPublisher publisher;
+	protected final ReferentialDao referentialDao;
+	private final ApplicationEventPublisher publisher;
 
 	private boolean enableTrash = false;
 
+
+	@Autowired
+	public ReferentialServiceImpl(ReferentialDao referentialDao,
+								  GenericConversionService conversionService,
+								  ApplicationEventPublisher publisher) {
+		this.referentialDao = referentialDao;
+		this.publisher = publisher;
+
+		// Entity->ReferentialVO converters
+		ReferentialEntities.ROOT_CLASSES.forEach(entityClass -> {
+			conversionService.addConverter(entityClass, ReferentialVO.class, this.referentialDao::toVO);
+		});
+	}
 	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
 	public void onConfigurationReady(ConfigurationEvent event) {
 		this.enableTrash = event.getConfiguration().enableEntityTrash();
@@ -75,37 +81,37 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Override
 	public Date getLastUpdateDate() {
-		return dao.getLastUpdateDate();
+		return referentialDao.getLastUpdateDate();
 	}
 
 	@Override
 	public List<ReferentialTypeVO> getAllTypes() {
-		return dao.getAllTypes();
+		return referentialDao.getAllTypes();
 	}
 
 	@Override
 	public ReferentialVO get(String entityName, int id) {
-		return dao.get(entityName, id);
+		return referentialDao.get(entityName, id);
 	}
 
 	@Override
 	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id) {
-		return dao.get(entityClass, id);
+		return referentialDao.get(entityClass, id);
 	}
 
 	@Override
 	public List<ReferentialVO> getAllLevels(final String entityName) {
-		return dao.getAllLevels(entityName);
+		return referentialDao.getAllLevels(entityName);
 	}
 
 	@Override
 	public ReferentialVO getLevelById(String entityName, int levelId) {
-		return dao.getLevelById(entityName, levelId);
+		return referentialDao.getLevelById(entityName, levelId);
 	}
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
-		return dao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
+		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
 				sortDirection);
 	}
 
@@ -122,14 +128,14 @@ public class ReferentialServiceImpl implements ReferentialService {
 		if (filter == null) {
 			return count(entityName);
 		}
-		return dao.countByFilter(entityName, filter);
+		return referentialDao.countByFilter(entityName, filter);
 	}
 
 	@Override
 	public ReferentialVO findByUniqueLabel(String entityName, String label) {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);
-		return dao.findByUniqueLabel(entityName, label)
+		return referentialDao.findByUniqueLabel(entityName, label)
 			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityName, label)));
 	}
 
@@ -140,7 +146,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 		// Create events (before deletion, to be able to join VO)
 		ReferentialVO eventData = enableTrash ? get(entityName, id) : null;
 
-		dao.delete(entityName, id);
+		referentialDao.delete(entityName, id);
 
 		// Emit event
 		// TODO: move this into the HibernateDaoSupport ? See SumarisJpaRepositoryImpl
@@ -158,13 +164,13 @@ public class ReferentialServiceImpl implements ReferentialService {
 	@Override
 	public Long count(String entityName) {
 		Preconditions.checkNotNull(entityName);
-		return dao.count(entityName);
+		return referentialDao.count(entityName);
 	}
 
 	@Override
 	public Long countByLevelId(String entityName, Integer... levelIds) {
 		Preconditions.checkNotNull(entityName);
-		return dao.countByLevelId(entityName, levelIds);
+		return referentialDao.countByLevelId(entityName, levelIds);
 	}
 
 	@Override
@@ -175,7 +181,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 		boolean isNew = source.getId() == null;
 
-		ReferentialVO target = dao.save(source);
+		ReferentialVO target = referentialDao.save(source);
 
 		// Emit event
 		// TODO: move this into the HibernateDaoSupport ? See SumarisJpaRepositoryImpl
@@ -195,14 +201,5 @@ public class ReferentialServiceImpl implements ReferentialService {
 		return beans.stream()
 				.map(this::save)
 				.collect(Collectors.toList());
-	}
-
-	@PostConstruct
-	private void initConverters() {
-
-		// Entity->ReferentialVO converters
-		ReferentialEntities.ROOT_CLASSES.forEach(entityClass -> {
-			conversionService.addConverter(entityClass, ReferentialVO.class, dao::toVO);
-		});
 	}
 }

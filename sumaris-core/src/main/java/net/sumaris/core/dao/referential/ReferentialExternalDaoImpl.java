@@ -79,7 +79,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         boolean enableAnalyticReferences = event.getConfiguration().enableAnalyticReferencesService();
 

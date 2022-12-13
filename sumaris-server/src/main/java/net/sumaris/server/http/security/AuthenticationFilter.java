@@ -71,7 +71,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         this.configuration = this.configuration != null ? this.configuration : SumarisServerConfiguration.getInstance();
 

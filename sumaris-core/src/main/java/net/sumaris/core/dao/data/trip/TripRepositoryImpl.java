@@ -35,7 +35,9 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
@@ -52,14 +54,15 @@ public class TripRepositoryImpl
     private final LocationRepository locationRepository;
     private final LandingRepository landingRepository;
 
+    @Autowired
     public TripRepositoryImpl(EntityManager entityManager,
                               LocationRepository locationRepository,
                               LandingRepository landingRepository,
-                              ConverterRegistry converterRegistry) {
+                              GenericConversionService conversionService) {
         super(Trip.class, TripVO.class, entityManager);
         this.locationRepository = locationRepository;
         this.landingRepository = landingRepository;
-        converterRegistry.addConverter(Trip.class, TripVO.class, this::toVO);
+        conversionService.addConverter(Trip.class, TripVO.class, this::toVO);
     }
 
     @Override

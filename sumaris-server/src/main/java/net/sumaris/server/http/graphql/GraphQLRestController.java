@@ -57,7 +57,7 @@ public class GraphQLRestController {
     }
 
     @EventListener({ConfigurationReadyEvent.class})
-    protected void onConfigurationReady(ConfigurationReadyEvent event) {
+    public void onConfigurationReady(ConfigurationReadyEvent event) {
         ready = true;
     }
 

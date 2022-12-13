@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -53,6 +54,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
@@ -68,44 +70,39 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service("locationService")
+@RequiredArgsConstructor
 @Slf4j
 public class LocationServiceImpl implements LocationService {
 
-    @Autowired
-    protected LocationRepository locationRepository;
+    protected final LocationRepository locationRepository;
 
-    @Autowired
-    protected LocationAreaRepository locationAreaRepository;
+    protected final LocationAreaRepository locationAreaRepository;
 
-    @Autowired
-    protected StatusRepository statusRepository;
+    protected final StatusRepository statusRepository;
 
-    @Autowired
-    protected ValidityStatusRepository validityStatusRepository;
+    protected final ValidityStatusRepository validityStatusRepository;
 
-    @Autowired
-    protected LocationLevelRepository locationLevelRepository;
+    protected final LocationLevelRepository locationLevelRepository;
 
-    @Autowired
-    protected LocationClassificationRepository locationClassificationRepository;
+    protected final LocationClassificationRepository locationClassificationRepository;
 
-    @Autowired
-    protected ReferentialDao referentialDao;
+    protected final ReferentialDao referentialDao;
 
-    @Autowired
-    private ResourceLoader resourceLoader;
+    protected final ResourceLoader resourceLoader;
 
-    @Autowired
-    protected SumarisConfiguration configuration;
+    protected final SumarisConfiguration configuration;
+
+    protected final ApplicationContext applicationContext;
 
     private boolean enableTechnicalTablesUpdate = false;
 
     @Async
     @TransactionalEventListener(
-        value = {ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class},
-        phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    protected void onConfigurationReady(ConfigurationEvent event) {
+            value = {ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class},
+            phase = TransactionPhase.AFTER_COMPLETION
+    )
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         // Update technical tables (if option changed)
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {

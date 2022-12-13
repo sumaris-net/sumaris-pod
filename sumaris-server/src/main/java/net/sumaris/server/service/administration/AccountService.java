@@ -48,7 +48,6 @@ public interface AccountService {
 
     AccountVO updateAccount(AccountVO account);
 
-    UserSettingsVO saveSettings(UserSettingsVO settings);
 
     void confirmEmail(String email, String signatureHash) throws InvalidEmailConfirmationException;
 

@@ -62,12 +62,13 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -104,8 +105,9 @@ public class ProgramRepositoryImpl
         return log;
     }
 
+    @Autowired
     public ProgramRepositoryImpl(EntityManager entityManager,
-                                 ConverterRegistry converterRegistry,
+                                 GenericConversionService conversionService,
                                  ReferentialDao referentialDao,
                                  TaxonGroupRepository taxonGroupRepository,
                                  StrategyRepository strategyRepository,
@@ -125,11 +127,11 @@ public class ProgramRepositoryImpl
         this.acquisitionLevelRepository = acquisitionLevelRepository;
         setLockForUpdate(true);
         setPublishEvent(true);
-        converterRegistry.addConverter(Program.class, ProgramVO.class, this::toVO);
+        conversionService.addConverter(Program.class, ProgramVO.class, this::toVO);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Force clear cache, because authorized programs can depends on the configuration
         clearCache();
     }

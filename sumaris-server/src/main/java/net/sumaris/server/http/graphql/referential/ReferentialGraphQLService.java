@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
@@ -56,26 +57,21 @@ import java.util.List;
 @Service
 @GraphQLApi
 @Transactional
+@RequiredArgsConstructor
 @Slf4j
 public class ReferentialGraphQLService {
 
-    @Autowired
-    private ReferentialService referentialService;
+    private final ReferentialService referentialService;
 
-    @Autowired
-    private TaxonGroupService taxonGroupService;
+    private final TaxonGroupService taxonGroupService;
 
-    @Autowired
-    private MetierRepository metierRepository;
+    private final MetierRepository metierRepository;
 
-    @Autowired
-    private EntityEventService entityEventService;
+    private final EntityEventService entityEventService;
 
-    @Autowired
-    private DataAccessControlService dataAccessControlService;
+    private final DataAccessControlService dataAccessControlService;
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
     /* -- Referential queries -- */
 

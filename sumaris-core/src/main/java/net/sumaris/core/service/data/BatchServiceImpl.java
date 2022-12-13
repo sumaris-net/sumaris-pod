@@ -26,6 +26,7 @@ package net.sumaris.core.service.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.batch.BatchRepository;
@@ -52,20 +53,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("batchService")
+@RequiredArgsConstructor
 @Slf4j
 public class BatchServiceImpl implements BatchService {
 
-	@Autowired
-	protected BatchRepository batchRepository;
+	protected final BatchRepository batchRepository;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+	protected final MeasurementDao measurementDao;
 
-	@Autowired
-	protected PmfmService pmfmService;
+	protected final PmfmService pmfmService;
 
-	@Autowired
-	private ApplicationEventPublisher publisher;
+	private final ApplicationEventPublisher publisher;
 
 	@Override
 	public List<BatchVO> getAllByOperationId(int operationId) {

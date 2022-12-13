@@ -27,6 +27,9 @@ import org.springframework.boot.task.TaskExecutorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
@@ -37,7 +40,9 @@ public class TaskExecutorConfiguration {
     @ConditionalOnMissingBean(name = {"applicationTaskExecutor", "taskExecutor"})
     @Lazy
     public ThreadPoolTaskExecutor applicationTaskExecutor(TaskExecutorBuilder builder) {
-        return builder.build();
+        return builder
+                .threadNamePrefix("task-")
+                .build();
     }
 
     // task executor for job
@@ -48,9 +53,17 @@ public class TaskExecutorConfiguration {
             .threadNamePrefix("job-")
             .corePoolSize(1)
             .maxPoolSize(10)
-            .queueCapacity(10)
+            .queueCapacity(100)
             .build();
     }
 
+    /*@Bean(name = "applicationEventMulticaster")
+    @Lazy
+    public ApplicationEventMulticaster simpleApplicationEventMulticaster(TaskExecutor taskExecutor) {
+        SimpleApplicationEventMulticaster eventMulticaster =
+                new SimpleApplicationEventMulticaster();
+        eventMulticaster.setTaskExecutor(taskExecutor);
+        return eventMulticaster;
+    }*/
 
 }

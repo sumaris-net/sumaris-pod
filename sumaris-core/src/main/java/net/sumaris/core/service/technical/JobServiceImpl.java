@@ -46,8 +46,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
@@ -72,21 +76,22 @@ public class JobServiceImpl implements JobService {
     private final ApplicationContext applicationContext;
 
 
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    @Async
+    @TransactionalEventListener(value = {ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class},
+            phase = TransactionPhase.AFTER_COMPLETION)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         // Update technical tables (if option changed)
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
             enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
-            if (enableTechnicalTablesUpdate) {
-                // Get self (by interface) to force transaction creation
-                JobService self = applicationContext.getBean(JobService.class);
 
+            if (enableTechnicalTablesUpdate) {
                 // Insert missing processing status
-                self.updateProcessingStatus();
+                updateProcessingStatus();
 
                 // Insert missing processing types
-                self.updateProcessingTypes();
+                updateProcessingTypes();
             }
         }
     }

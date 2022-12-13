@@ -28,10 +28,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.administration.user.UserSettingsRepository;
 import net.sumaris.core.dao.administration.user.UserTokenRepository;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -58,12 +56,9 @@ import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.nio.charset.StandardCharsets;
@@ -78,45 +73,42 @@ public class AccountServiceImpl implements AccountService {
 
     private final SumarisServerConfiguration configuration;
     private final PersonRepository personRepository;
-    private final UserSettingsRepository userSettingsRepository;
+
+    private final UserSettingsService userSettingsService;
+
     private final UserTokenRepository userTokenRepository;
     private final PersonService personService;
     private final UserMessageService userMessageService;
     private final ServerCryptoService serverCryptoService;
-    private final ConverterRegistry converterRegistry;
 
-    @Autowired
     private AccountService self; // loop back to force transactional handling
 
     private String serverUrl;
 
+    @Autowired
     public AccountServiceImpl(SumarisServerConfiguration serverConfiguration,
                               PersonService personService,
                               PersonRepository personRepository,
-                              UserSettingsRepository userSettingsRepository,
+                              UserSettingsService userSettingsService,
                               UserTokenRepository userTokenRepository,
                               ServerCryptoService serverCryptoService,
-                              ConverterRegistry converterRegistry,
+                              GenericConversionService conversionService,
                               UserMessageService userMessageService) {
         this.personService = personService;
         this.personRepository = personRepository;
-        this.userSettingsRepository = userSettingsRepository;
+        this.userSettingsService =userSettingsService;
         this.userTokenRepository = userTokenRepository;
         this.configuration = serverConfiguration;
         this.serverCryptoService = serverCryptoService;
-        this.converterRegistry = converterRegistry;
         this.userMessageService = userMessageService;
-    }
 
-    @PostConstruct
-    public void init() {
         log.debug("Register {Account} converters");
-        converterRegistry.addConverter(PersonVO.class, AccountVO.class, p -> self.toAccountVO(p));
-        converterRegistry.addConverter(Person.class, AccountVO.class, p -> self.getByPubkey(p.getPubkey()));
+        conversionService.addConverter(PersonVO.class, AccountVO.class, this::toAccountVO);
+        conversionService.addConverter(Person.class, AccountVO.class, p -> this.getByPubkey(p.getPubkey()));
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Get server URL
         this.serverUrl = configuration.getServerUrl();
     }
@@ -129,7 +121,7 @@ public class AccountServiceImpl implements AccountService {
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
+        UserSettingsVO settings = userSettingsService.findByIssuer(account.getPubkey()).orElse(null);
         account.setSettings(settings);
 
         return account;
@@ -143,7 +135,7 @@ public class AccountServiceImpl implements AccountService {
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
+        UserSettingsVO settings = userSettingsService.findByIssuer(account.getPubkey()).orElse(null);
         account.setSettings(settings);
 
         return account;
@@ -198,7 +190,8 @@ public class AccountServiceImpl implements AccountService {
         UserSettingsVO settings = account.getSettings();
         if (settings != null) {
             settings.setIssuer(account.getPubkey());
-            saveSettings(settings);
+            settings = userSettingsService.save(settings);
+            account.setSettings(settings);
         }
 
         // Send confirmation Email
@@ -234,7 +227,7 @@ public class AccountServiceImpl implements AccountService {
         UserSettingsVO settings = account.getSettings();
         if (settings != null) {
             settings.setIssuer(account.getPubkey());
-            settings = userSettingsRepository.save(settings);
+            settings = userSettingsService.save(settings);
             account.setSettings(settings);
         }
 
@@ -347,16 +340,10 @@ public class AccountServiceImpl implements AccountService {
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
 
-        UserSettingsVO settings = userSettingsRepository.findByIssuer(account.getPubkey()).orElse(null);
+        UserSettingsVO settings = userSettingsService.findByIssuer(account.getPubkey()).orElse(null);
         account.setSettings(settings);
 
         return account;
-    }
-
-    @Override
-    public UserSettingsVO saveSettings(@NonNull UserSettingsVO settings) {
-        Preconditions.checkNotNull(settings.getIssuer());
-        return userSettingsRepository.save(settings);
     }
 
     /* -- protected methods -- */

@@ -48,7 +48,8 @@ import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -81,8 +82,9 @@ public class OperationRepositoryImpl
 
     private final VesselPositionDao vesselPositionDao;
 
-
-    protected OperationRepositoryImpl(EntityManager entityManager, ConverterRegistry converterRegistry,
+    @Autowired
+    protected OperationRepositoryImpl(EntityManager entityManager,
+                                      GenericConversionService conversionService,
                                       PhysicalGearRepository physicalGearRepository,
                                       MetierRepository metierRepository, MeasurementDao measurementDao,
                                       SampleRepository sampleRepository, FishingAreaRepository fishingAreaRepository,
@@ -98,7 +100,7 @@ public class OperationRepositoryImpl
         this.tripRepository = tripRepository;
         this.vesselPositionDao = vesselPositionDao;
         setLockForUpdate(true);
-        converterRegistry.addConverter(Operation.class, OperationVO.class, this::toVO);
+        conversionService.addConverter(Operation.class, OperationVO.class, this::toVO);
     }
 
     @Override

@@ -22,7 +22,6 @@ package net.sumaris.core.dao.administration.user;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
@@ -46,22 +45,18 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -80,15 +75,15 @@ public class PersonRepositoryImpl
 
     protected PersonRepositoryImpl(EntityManager entityManager,
                                    DepartmentRepository departmentRepository,
-                                   ConverterRegistry converterRegistry) {
+                                   GenericConversionService conversionService) {
         super(Person.class, PersonVO.class, entityManager);
         this.departmentRepository = departmentRepository;
         setPublishEvent(true);
-        converterRegistry.addConverter(Person.class, PersonVO.class, p -> this.get(p.getId()));
+        conversionService.addConverter(Person.class, PersonVO.class, p -> this.get(p.getId()));
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Force clear cache, because UserProfileEnum can have changed, to VO profiles can changed also
         clearCache();
     }
