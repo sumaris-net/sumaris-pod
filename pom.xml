@@ -193,7 +193,7 @@
     <gitflowPluginVersion>1.14.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
-    <jreVersion>11.0.16</jreVersion>
+    <jreVersion>17.0.5</jreVersion>
 
     <!-- nuiton maven plugins version -->
     <helperPluginVersion>2.3.2</helperPluginVersion>
@@ -1415,8 +1415,8 @@
                 <requireProperty>
                   <property>javaVersion</property>
                   <message>"javaVersion property must be specified."</message>
-                  <regex>1\.6|6|1\.7|7|1\.8|8|10|11$</regex>
-                  <regexMessage>"javaVersion property can not be empty and must be 1.6, 1.7, 1.8, 10 or 11."</regexMessage>
+                  <regex>11|17|21$</regex>
+                  <regexMessage>"javaVersion property can not be empty and must be 11, 17 or 21."</regexMessage>
                 </requireProperty>
               </rules>
               <ignoreCache>true</ignoreCache>
