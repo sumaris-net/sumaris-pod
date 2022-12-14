@@ -30,6 +30,7 @@ import net.sumaris.rdf.core.model.ModelURIs;
 import net.sumaris.rdf.core.util.RdfFormat;
 import net.sumaris.rdf.server.http.rest.RdfRestPaths;
 import net.sumaris.rdf.server.http.rest.ontology.OntologyRdfRestController;
+import net.sumaris.server.http.filter.CORSFilters;
 import org.apache.jena.ext.com.google.common.collect.Maps;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
@@ -156,12 +157,12 @@ public class RdfWebAutoConfiguration {
                 }
 
                 // Use case > Taxon search
-                {
+                /*{
                     final String TAXON_PATH = "/api/search/taxon";
                     registry.addRedirectViewController(TAXON_PATH + "/", TAXON_PATH);
                     registry.addViewController(TAXON_PATH)
                         .setViewName("forward:/taxon/index.html");
-                }
+                }*/
             }
 
             @Override
@@ -169,21 +170,16 @@ public class RdfWebAutoConfiguration {
                 // Enable Global CORS support for the application
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
                 registry.addMapping(RdfRestPaths.SPARQL_ENDPOINT + "/**")
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                        .allowCredentials(true);
+                    .allowedOriginPatterns("*")
+                    .allowedMethods(CORSFilters.ALLOWED_METHODS)
+                    .allowedHeaders(CORSFilters.ALLOWED_HEADERS)
+                    .allowCredentials(CORSFilters.ALLOWED_CREDENTIALS);
 
                 registry.addMapping(RdfRestPaths.SCHEMA_BASE_PATH + "/**")
                     .allowedOriginPatterns("*")
-                    .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                    .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                    .allowCredentials(true);
-            }
-
-            @Override
-            public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(false);
+                    .allowedMethods(CORSFilters.ALLOWED_METHODS)
+                    .allowedHeaders(CORSFilters.ALLOWED_HEADERS)
+                    .allowCredentials(CORSFilters.ALLOWED_CREDENTIALS);
             }
         };
     }

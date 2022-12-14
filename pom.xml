@@ -75,7 +75,7 @@
   </mailingLists>
 
   <prerequisites>
-    <maven>3.6.3</maven>
+    <maven>3.8.1</maven>
   </prerequisites>
 
   <properties>
@@ -94,11 +94,11 @@
     <pgsql.version>42.2.5</pgsql.version>
 
     <slf4j.version>1.7.32</slf4j.version>
-    <logback.version>1.2.5</logback.version>
+    <logback.version>1.2.9</logback.version>
     <log4j.version>2.15.0</log4j.version>
     <jansi.version>2.3.4</jansi.version>
     <guava.version>30.1.1-jre</guava.version>
-    <xml-apis.version>2.0.2</xml-apis.version>
+    <jaxb.version>2.3.1</jaxb.version><!-- 4.0.1 -->
     <elasticsearch.version>7.10.2</elasticsearch.version>
     <jna.version>5.9.0</jna.version>
     <jackson.version>2.14.1</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
@@ -199,7 +199,8 @@
     <!-- apache maven plugins version -->
     <assemblyPluginVersion>3.3.0</assemblyPluginVersion>
     <compilerPluginVersion>3.8.1</compilerPluginVersion>
-    <jarPluginVersion>3.1.2</jarPluginVersion>
+    <resourcesPluginVersion>3.3.0</resourcesPluginVersion>
+    <jarPluginVersion>3.2.0</jarPluginVersion>
     <sitePluginVersion>3.9.1</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
     <changelogPluginVersion>2.3</changelogPluginVersion>
@@ -720,6 +721,11 @@
         <artifactId>jaxen</artifactId>
         <version>${jaxen.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.glassfish.jaxb</groupId>
+        <artifactId>jaxb-runtime</artifactId>
+        <version>${jaxb.version}</version>
+      </dependency>
 
       <!-- Spring -->
       <dependency>
@@ -1182,9 +1188,10 @@
 
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>${resourcesPluginVersion}</version>
           <configuration>
             <escapeString>\</escapeString>
+            <propertiesEncoding>UTF-8</propertiesEncoding>
           </configuration>
         </plugin>
 
@@ -1212,7 +1219,7 @@
 
         <plugin>
           <artifactId>maven-war-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.3.1</version>
         </plugin>
 
         <plugin>

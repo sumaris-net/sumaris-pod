@@ -46,9 +46,8 @@ import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -67,7 +66,7 @@ public class UserEventGraphQLService {
 
     private final UserEventService userEventService;
 
-    private final EntityEventService entityEventService;
+    private final EntityWatchService entityEventService;
 
     private final AuthService authService;
 

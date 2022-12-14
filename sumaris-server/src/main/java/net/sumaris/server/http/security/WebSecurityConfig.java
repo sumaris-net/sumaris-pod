@@ -22,6 +22,7 @@
 
 package net.sumaris.server.http.security;
 
+import lombok.RequiredArgsConstructor;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,6 +61,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 @Order(1)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -70,8 +72,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private static final RequestMatcher PUBLIC_URLS = new OrRequestMatcher(
         new AntPathRequestMatcher("/"),
         new AntPathRequestMatcher("/api/**"),
-        new AntPathRequestMatcher("/core/**"),
-        new AntPathRequestMatcher("/graphiql/**"),
+        new AntPathRequestMatcher("/api/node/health"),
         new AntPathRequestMatcher("/graphql/websocket/**"),
         new AntPathRequestMatcher("/vendor/**"),
         new AntPathRequestMatcher("/error"),
@@ -80,18 +81,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private static final RequestMatcher PROTECTED_URLS = new NegatedRequestMatcher(PUBLIC_URLS);
 
     private final ApplicationContext applicationContext;
-    private final ConfigurationService configurationService;
     private final SumarisServerConfiguration configuration;
 
-
-    public WebSecurityConfig(ApplicationContext applicationContext,
-                             ConfigurationService configurationService,
-                             SumarisServerConfiguration configuration) {
-        super();
-        this.applicationContext = applicationContext;
-        this.configurationService = configurationService;
-        this.configuration = configuration;
-    }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) {

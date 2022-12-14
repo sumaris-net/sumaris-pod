@@ -24,38 +24,28 @@ package net.sumaris.server.service.technical;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.dao.technical.cache.CacheManager;
+import net.sumaris.core.event.entity.*;
+import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.jms.JmsEntityEventConsumer;
 import net.sumaris.core.model.Entities;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
-import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.jms.JmsEntityEvents;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.event.entity.IEntityEvent;
-import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.server.dao.technical.EntityDao;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.Nullable;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.jms.Message;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -66,13 +56,8 @@ import java.util.function.Function;
 
 @Service("entityEventService")
 @Slf4j
-public class EntityEventServiceImpl implements EntityEventService {
+public class EntityWatchServiceImpl implements EntityWatchService {
 
-    interface Listener {
-        void onUpdate(EntityUpdateEvent event);
-        default void onInsert(EntityInsertEvent event) {}
-        default void onDelete(EntityDeleteEvent event) {}
-    }
 
     @Value("${sumaris.entity.watch.minIntervalInSeconds:10}")
     private int minIntervalInSeconds;
@@ -86,15 +71,18 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     private final CacheManager cacheManager;
 
+    private final JmsEntityEventConsumer jmsEntityEventConsumer;
+
     private final AtomicLong timerObserverCount = new AtomicLong(0);
-    private final Map<String, List<Listener>> listenersById = Maps.newConcurrentMap();
 
-
-    public EntityEventServiceImpl(Optional<TaskExecutor> taskExecutor, EntityDao entityDao, ConversionService conversionService, CacheManager cacheManager) {
+    public EntityWatchServiceImpl(Optional<TaskExecutor> taskExecutor,
+                                  EntityDao entityDao, ConversionService conversionService, CacheManager cacheManager,
+                                  JmsEntityEventConsumer jmsEntityEventConsumer) {
         this.taskExecutor = taskExecutor;
         this.entityDao = entityDao;
         this.conversionService = conversionService;
         this.cacheManager = cacheManager;
+        this.jmsEntityEventConsumer = jmsEntityEventConsumer;
     }
 
     @Override
@@ -334,10 +322,8 @@ public class EntityEventServiceImpl implements EntityEventService {
     public <ID extends Serializable, T extends IEntity<ID>> Observable<IEntityEvent> watchEntityEvents(
         @NonNull Class<T> entityClass
     ) {
-        final String listenerId = computeListenerId(entityClass);
-
         return Observable.create(emitter -> {
-            Listener listener = new Listener() {
+            EntityEventService.Disposable disposable = jmsEntityEventConsumer.registerListener(new EntityEventService.Listener() {
                 @Override
                 public void onUpdate(EntityUpdateEvent event) {
                     emitter.onNext(event);
@@ -352,9 +338,8 @@ public class EntityEventServiceImpl implements EntityEventService {
                 public void onDelete(EntityDeleteEvent event) {
                     emitter.onNext(event);
                 }
-            };
-            registerListener(listenerId, listener);
-            emitter.setCancellable(() -> unregisterListener(listenerId, listener));
+            }, entityClass);
+            emitter.setCancellable(disposable::dispose);
         });
     }
 
@@ -398,38 +383,7 @@ public class EntityEventServiceImpl implements EntityEventService {
         );
     }
 
-    /* -- Listeners management -- */
-
-    @JmsListener(destination = JmsEntityEvents.DESTINATION,
-        selector = "operation = 'update'",
-        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    protected void onEntityUpdateEvent(IValueObject data, Message message) {
-        EntityUpdateEvent event = JmsEntityEvents.parse(EntityUpdateEvent.class, message, data);
-        // Get listener for this event
-        List<Listener> listeners = getListenersByEvent(event);
-
-        // Emit event
-        if (CollectionUtils.isNotEmpty(listeners)) {
-            log.debug("Receiving update on {}#{} (listener count: {}}", event.getEntityName(), event.getId(), listeners.size());
-            listeners.forEach(c -> c.onUpdate(event));
-        }
-    }
-
-    @JmsListener(destination = JmsEntityEvents.DESTINATION,
-        selector = "operation = 'delete'",
-        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    protected void onEntityDeleteEvent(IValueObject data, Message message) {
-        EntityDeleteEvent event = JmsEntityEvents.parse(EntityDeleteEvent.class, message, data);
-        // Get listener for this event
-        List<Listener> listeners = getListenersByEvent(event);
-        if (CollectionUtils.isNotEmpty(listeners)) {
-            log.debug("Receiving delete {}#{} (listener count: {}}", event.getEntityName(), event.getId(), listeners.size());
-            listeners.forEach(c -> c.onDelete(event));
-        }
-    }
-
     /* -- protected functions -- */
-
 
     protected <ID extends Serializable,
         D extends Date,
@@ -457,10 +411,8 @@ public class EntityEventServiceImpl implements EntityEventService {
                                            ID id,
                                            Callable<Optional<V>> loader) {
 
-        final String listenerId = computeListenerId(entityClass, id);
-
         return Observable.create(emitter -> {
-            Listener listener = new Listener() {
+            EntityEventService.Disposable disposable = jmsEntityEventConsumer.registerListener(new EntityEventService.Listener() {
                 @Override
                 public void onUpdate(EntityUpdateEvent event) {
                     Object data = event.getData();
@@ -486,9 +438,8 @@ public class EntityEventServiceImpl implements EntityEventService {
                     log.debug("Closing observable on {}#{}", event.getEntityName(), event.getId());
                     emitter.onComplete();
                 }
-            };
-            registerListener(listenerId, listener);
-            emitter.setCancellable(() -> unregisterListener(listenerId, listener));
+            }, entityClass, id);
+            emitter.setCancellable(disposable::dispose);
         });
     }
 
@@ -547,49 +498,6 @@ public class EntityEventServiceImpl implements EntityEventService {
 
     protected String computeListenerId(@NonNull String entityName, Serializable id) {
         return id == null ? entityName : entityName + "#" + id;
-    }
-
-    protected <V extends IUpdateDateEntity<?, ?>> void registerListener(String key, Listener listener) {
-        synchronized (listenersById) {
-            List<Listener> listeners = listenersById.computeIfAbsent(key, k -> Lists.newCopyOnWriteArrayList());
-
-            //log.debug("Listening updates on {} (listener count: {})", key, listeners.size() + 1);
-
-            synchronized (listeners) {
-                listeners.add(listener);
-            }
-        }
-    }
-
-    protected void unregisterListener(String key, Listener listener) {
-        synchronized (this.listenersById) {
-            List<Listener> listeners = this.listenersById.get(key);
-            if (listeners == null) return;
-
-            //log.debug("Stop listening updates on {} (listener count: {})", key, listeners.size() - 1);
-
-            synchronized (listeners) {
-                listeners.remove(listener);
-            }
-        }
-    }
-
-    protected List<Listener> getListenersByEvent(@NonNull IEntityEvent event) {
-        // Get listeners on this entity
-        String entityListenerId = computeListenerId(event.getEntityName(), event.getId());
-        List<Listener> listeners = listenersById.get(entityListenerId);
-
-        // Add listeners on all entities
-        String entitiesListenerId = computeListenerId(event.getEntityName());
-        if (listenersById.containsKey(entitiesListenerId)) {
-            if (listeners == null) {
-                listeners = listenersById.get(entitiesListenerId);
-            }
-            else {
-                listeners.addAll(listenersById.get(entitiesListenerId));
-            }
-        }
-        return listeners;
     }
 
     @Transactional(readOnly = true)

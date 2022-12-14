@@ -188,7 +188,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                     cancelPingTask();
                     break;
                 case GqlTypes.GQL_CONNECTION_PONG:
-                    log.debug(I18n.t("sumaris.server.info.subscription.received", type));
                     break;
                 case GqlTypes.GQL_CONNECTION_TERMINATE:
                     session.close();
@@ -379,11 +378,16 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     }
 
     protected void onNext(WebSocketSession session,  String id, ExecutionResult result, String type) {
-        sendResponse(session, ImmutableMap.of(
+
+        Object response = ImmutableMap.of(
             "id", id,
             "type", type,
-            "payload", GraphQLHelper.processExecutionResult(result))
+            "payload", GraphQLHelper.processExecutionResult(result)
         );
+
+        sendResponse(session, response);
+
+        if (debug) log.debug(I18n.t("sumaris.server.subscription.sentRequest", response));
     }
 
     protected void onError(WebSocketSession session, String id, Throwable throwable) {
@@ -446,6 +450,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             } catch (IllegalStateException | IOException e) {
                 errorHandler.accept(e);
             }
+
         }
     }
 

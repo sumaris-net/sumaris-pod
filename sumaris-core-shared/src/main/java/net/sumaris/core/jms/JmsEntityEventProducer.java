@@ -73,11 +73,13 @@ public class JmsEntityEventProducer {
         }
 
         // Start log
-        log.info("Starting JMS entity events producer... {destinationPattern: '({})<EntityName>'}", Arrays.stream(IEntityEvent.EntityEventOperation.values())
-            .map(Enum::name)
-            .map(String::toLowerCase)
-            .collect(Collectors.joining("|"))
-        );
+        log.info("Starting JMS entity events producer... {destination: '{}', operation: '({})'}",
+            JmsEntityEvents.DESTINATION,
+            Arrays.stream(IEntityEvent.EntityEventOperation.values())
+                .map(Enum::name)
+                .map(String::toLowerCase)
+                .collect(Collectors.joining("|"))
+            );
     }
 
     @Async

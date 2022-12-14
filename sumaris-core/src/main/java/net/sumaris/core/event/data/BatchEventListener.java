@@ -24,12 +24,13 @@ package net.sumaris.core.event.data;
 
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.jms.JmsConfiguration;
-import net.sumaris.core.jms.JmsEntityEvents;
+import net.sumaris.core.event.entity.EntityEventService;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.vo.data.batch.BatchVO;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -39,23 +40,30 @@ import javax.annotation.Resource;
     name = "sumaris.persistence.denormalizedBatch.enabled",
     havingValue = "true"
 )
+@ConditionalOnBean({EntityEventService.class})
 @Slf4j
 public class BatchEventListener {
 
     @Resource
     private DenormalizedBatchService denormalizedBatchService;
 
-    public BatchEventListener() {
+    public BatchEventListener(EntityEventService entityEventService) {
         log.info("Listening Batch save event, to execute denormalization on each changes");
-    }
 
-    @JmsListener(selector = "entityName = 'Batch' AND operation = 'update'",
-        destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    public void onUpdateBatch(BatchVO batch) {
+        entityEventService.registerListener(new EntityEventService.Listener() {
+            @Override
+            public void onUpdate(EntityUpdateEvent event) {
+                Object data = event.getData();
+                if (data instanceof BatchVO) {
+                    onUpdateBatch((BatchVO) data);
+                }
+            }
+        }, Batch.class);
+    }
+    protected void onUpdateBatch(BatchVO batch) {
 
         BatchVO catchBatch = batch != null && batch.getParent() == null && batch.getParentId() == null ? batch : null;
         if (catchBatch == null) return; // Skip if not a catch batch
-
 
         if (catchBatch.getOperationId() != null) {
             denormalizedBatchService.denormalizeAndSaveByOperationId(catchBatch.getOperationId(), null);

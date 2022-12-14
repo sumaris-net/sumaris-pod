@@ -25,10 +25,13 @@ package net.sumaris.server.http.security;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.jms.JmsConfiguration;
-import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.jms.JmsEntityEvents;
+import net.sumaris.core.event.entity.AbstractEntityEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityEventService;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -37,16 +40,15 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.Attributes2GrantedAuthoritiesMapper;
@@ -72,14 +74,13 @@ public class AuthServiceImpl implements AuthService {
     private final ValidationExpiredCacheMap<AuthUserDetails> checkedUsernames;
     private final boolean debug;
 
-    @Autowired
-    private ServerCryptoService cryptoService;
+    private final ServerCryptoService cryptoService;
 
-    @Autowired
-    private AccountService accountService;
+    private final AccountService accountService;
 
-    @Autowired
-    private PersonRepository personRepository;
+
+    private final PersonService personService;
+
 
     private Attributes2GrantedAuthoritiesMapper authoritiesMapper;
 
@@ -87,7 +88,15 @@ public class AuthServiceImpl implements AuthService {
     private boolean enableAuthBasic;
 
     @Autowired
-    public AuthServiceImpl(Environment environment, SumarisServerConfiguration config) {
+    public AuthServiceImpl(Environment environment,
+                           ServerCryptoService cryptoService,
+                           AccountService accountService,
+                           PersonService personService,
+                           EntityEventService entityEventService,
+                           SumarisServerConfiguration config) {
+        this.cryptoService = cryptoService;
+        this.accountService = accountService;
+        this.personService = personService;
 
         int challengeLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_CHALLENGE_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_CHALLENGE_LIFE_TIME.getDefaultValue()));
         this.challenges = new ValidationExpiredCache(challengeLifeTimeInSeconds);
@@ -102,12 +111,24 @@ public class AuthServiceImpl implements AuthService {
         this.enableAuthBasic = config.enableAuthBasic();
 
         this.debug = log.isDebugEnabled();
+
+        entityEventService.registerListener(new EntityEventService.Listener() {
+            @Override
+            public void onUpdate(EntityUpdateEvent event) {
+                onPersonChangeEvent(event);
+            }
+
+            @Override
+            public void onDelete(EntityDeleteEvent event) {
+                onPersonChangeEvent(event);
+            }
+        }, Person.class);
     }
 
     @Override
-    @JmsListener(destination = JmsEntityEvents.DESTINATION,
-        selector = "entityName = 'Person' AND (operation = 'update' OR operation = 'delete')",
-        containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    // FIXME: JmsListener not working well, because only on listener is allowed to catch an event !
+    //@JmsListener(destination = JmsEntityEvents.DESTINATION,
+    //    selector = "entityName = 'Person' AND (operation = 'update' OR operation = 'delete')")
     public void cleanCacheForUser(@NonNull PersonVO person) {
 
         // Clean cached tokens (because user can be disabled)
@@ -180,7 +201,7 @@ public class AuthServiceImpl implements AuthService {
         if (checkedUsernames.contains(username)) return checkedUsernames.get(username);
 
         // Check user exists
-        PersonVO user = personRepository.findByUsername(username)
+        PersonVO user = personService.findByUsername(username)
             .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + username));
 
         // Check account is enable (or temporary)
@@ -206,7 +227,7 @@ public class AuthServiceImpl implements AuthService {
                     pubkey.substring(0, 8));
 
                 user.setPubkey(pubkey);
-                user = personRepository.save(user);
+                user = personService.save(user);
             }
 
             authToken.pubkey(pubkey);
@@ -221,6 +242,20 @@ public class AuthServiceImpl implements AuthService {
         return userDetails;
     }
 
+    /* -- internal methods -- */
+    private void onPersonChangeEvent(AbstractEntityEvent event) {
+        Object data = event.getData();
+        PersonVO person;
+        if (data instanceof PersonVO) {
+            person = (PersonVO)data;
+        }
+        else {
+            Integer id = (Integer) event.getId();
+            person = personService.getById(id);
+        }
+        cleanCacheForUser(person);
+    }
+
     private PersonVO validateToken(AuthTokenVO authData) throws AuthenticationException {
         String pubkey = authData != null ? authData.getPubkey() : null;
 
@@ -230,7 +265,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Check user exists
-        PersonVO user = personRepository.findByPubkey(pubkey)
+        PersonVO user = personService.findByPubkey(pubkey)
             .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + pubkey));
 
         // Check account is enable (or temporary)
@@ -282,7 +317,7 @@ public class AuthServiceImpl implements AuthService {
             Optional<PersonVO> result = principal
                 .map(AuthUserDetails::getPubkey)
                 .filter(Objects::nonNull)
-                .flatMap(personRepository::findByPubkey);
+                .flatMap(personService::findByPubkey);
             if (result.isPresent()) return result;
         }
 
@@ -290,7 +325,7 @@ public class AuthServiceImpl implements AuthService {
         if (enableAuthBasic) {
             Optional<PersonVO> result = principal.map(AuthUserDetails::getUsername)
                 .filter(Objects::nonNull)
-                .flatMap(personRepository::findByUsername);
+                .flatMap(personService::findByUsername);
             if (result.isPresent()) return result;
         }
 

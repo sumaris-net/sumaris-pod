@@ -440,24 +440,17 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         String.class,
         false),
 
-    ACTIVEMQ_BROKER_USERNAME(
-        "spring.activemq.broker-username",
-        n("sumaris.config.option.spring.activemq.broker-username.description"),
+    ACTIVEMQ_USERNAME(
+        "spring.activemq.username",
+        n("sumaris.config.option.spring.activemq.username.description"),
         "",
         String.class),
 
-    ACTIVEMQ_BROKER_PASSWORD(
-        "spring.activemq.broker-password",
-        n("sumaris.config.option.spring.activemq.broker-username.description"),
+    ACTIVEMQ_PASSWORD(
+        "spring.activemq.password",
+        n("sumaris.config.option.spring.activemq.password.description"),
         "",
         String.class),
-
-    ACTIVEMQ_PREFETCH_LIMIT(
-        "spring.activemq.prefetch.limit",
-        n("sumaris.config.option.spring.activemq.prefetch.limit.description"),
-        "1000",
-        Integer.class,
-        false),
 
     /* -- Functional features options-- */
 

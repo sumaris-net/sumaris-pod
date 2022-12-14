@@ -24,26 +24,23 @@ package net.sumaris.core.jms;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.util.StringUtils;
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.ActiveMQPrefetchPolicy;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQConnectionFactoryCustomizer;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
-import org.springframework.jms.connection.CachingConnectionFactory;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
 import javax.jms.ConnectionFactory;
 
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @Slf4j
 @EnableJms
 @ConditionalOnProperty(name = "spring.jms.enabled", havingValue = "true")
@@ -51,30 +48,30 @@ public class JmsConfiguration {
 
     public static final String CONTAINER_FACTORY = "jmsListenerContainerFactory";
 
-    public static final String CONCURRENCY = "1-10";
-
-    public static final long RECEIVE_TIMEOUT_MS = 10000L; // 10 s
-
     @Bean
-    public JmsTemplate jmsTemplate(CachingConnectionFactory cachingConnectionFactory,
-                                   MessageConverter messageConverter) {
-        JmsTemplate jmsTemplate = new JmsTemplate(cachingConnectionFactory);
-        jmsTemplate.setMessageConverter(messageConverter);
-        return jmsTemplate;
+    public ActiveMQConnectionFactoryCustomizer activeMQConnectionFactoryCustomizer() {
+        return (factory) -> {
+            String url = factory.getBrokerURL();
+            String userName = factory.getUserName();
+            if (StringUtils.isNotBlank(userName)) {
+                log.info("Connecting to ActiveMQ broker... {url: '{}', userName: '{}', password: '******'}", url, userName);
+            }
+            else {
+                log.info("Connecting to ActiveMQ broker... {url: '{}'}", url);
+            }
+        };
     }
 
-    @Bean
-    public JmsListenerContainerFactory<?> jmsListenerContainerFactory(
-        CachingConnectionFactory cachingConnectionFactory,
-        MessageConverter messageConverter,
-        TaskExecutor taskExecutor
+    @Bean(CONTAINER_FACTORY)
+    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(
+            DefaultJmsListenerContainerFactoryConfigurer configurer,
+            ConnectionFactory connectionFactory,
+            MessageConverter messageConverter
         ) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(cachingConnectionFactory);
+        configurer.configure(factory, connectionFactory);
+        factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
-        factory.setTaskExecutor(taskExecutor);
-        //factory.setConcurrency(CONCURRENCY);
-        //factory.setReceiveTimeout(RECEIVE_TIMEOUT_MS);
         factory.setErrorHandler(t -> log.error("An error has occurred in the JMS transaction: " + t.getMessage(), t));
         return factory;
     }
@@ -90,57 +87,4 @@ public class JmsConfiguration {
         return converter;
     }
 
-    @Bean
-    public CachingConnectionFactory cachingConnectionFactory(ConnectionFactory connectionFactory) {
-        CachingConnectionFactory factory = new CachingConnectionFactory(connectionFactory);
-        factory.setSessionCacheSize(10);
-        return factory;
-    }
-
-    @Bean
-    public ConnectionFactory connectionFactory(SumarisConfiguration config) {
-        String url = config.getActiveMQBrokerURL();
-        int prefetchLimit = config.getActiveMQPrefetchLimit();
-
-        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(url);
-
-        // Configure prefetch policy
-        if (prefetchLimit > 0) {
-            ActiveMQPrefetchPolicy prefetchPolicy = new ActiveMQPrefetchPolicy();
-            prefetchPolicy.setQueuePrefetch(prefetchLimit);
-            prefetchPolicy.setMaximumPendingMessageLimit(prefetchLimit); // TODO check this value
-            connectionFactory.setPrefetchPolicy(prefetchPolicy);
-        }
-
-        // Configure username/password
-        String userName = config.getActiveMQBrokerUserName();
-        String password = config.getActiveMQBrokerPassword();
-        if (StringUtils.isNotBlank(userName)) {
-            log.info(String.format("Connecting to ActiveMQ broker... {url: '%s', userName: '%s', password: '******'}...", url, userName));
-            connectionFactory.setUserName(userName);
-            connectionFactory.setPassword(password);
-        }
-        else {
-            log.info(String.format("Connecting to ActiveMQ broker... {url: '%s'}...", url));
-        }
-
-        connectionFactory.setTrustAllPackages(true);
-
-        return connectionFactory;
-    }
-
-    /*@Bean
-    public BrokerService brokerService(SumarisConfiguration config) throws Exception {
-        String url = config.getActiveMQBrokerURL();
-        log.info(String.format("Starting ActiveMQ broker... {url: '%s'}...", url));
-
-        String brokerName = URI.create(url).getHost();
-        BrokerService brokerService = new BrokerService();
-        brokerService.addConnector(url);
-        brokerService.setBrokerName(brokerName);
-        brokerService.addConnector("tcp://localhost:61616");
-        brokerService.setPersistent(true);
-        brokerService.start();
-        return brokerService;
-    }*/
 }

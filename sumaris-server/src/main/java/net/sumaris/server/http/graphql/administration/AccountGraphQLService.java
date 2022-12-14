@@ -42,7 +42,7 @@ import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.administration.UserSettingsService;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.security.access.AccessDeniedException;
@@ -69,7 +69,7 @@ public class AccountGraphQLService {
     private UserSettingsService userSettingsService;
 
     @Resource
-    private EntityEventService entityEventService;
+    private EntityWatchService entityEventService;
 
     @Resource
     private ImageService imageService;

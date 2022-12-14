@@ -23,7 +23,6 @@
 package net.sumaris.core.jms;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
@@ -36,7 +35,6 @@ import javax.annotation.Nullable;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import java.io.Serializable;
-import java.util.Map;
 
 @Slf4j
 public abstract class JmsEntityEvents {
@@ -46,8 +44,6 @@ public abstract class JmsEntityEvents {
     protected JmsEntityEvents() {
         // Helper class
     }
-
-
 
     public static <ID extends Serializable, V extends Serializable> IEntityEvent<ID, V> parse(final Message message) {
         return parse(message, null);
@@ -134,9 +130,8 @@ public abstract class JmsEntityEvents {
                 default:
                     throw new IllegalArgumentException("Invalid message - unknown operation: " + operation);
             }
-        }catch (InstantiationException | IllegalAccessException | IllegalArgumentException e) {
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException e) {
             throw new SumarisTechnicalException(e);
-
         }
     }
 

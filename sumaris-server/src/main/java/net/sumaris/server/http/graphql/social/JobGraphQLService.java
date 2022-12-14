@@ -27,7 +27,6 @@ import io.leangen.graphql.annotations.GraphQLNonNull;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.GraphQLSubscription;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
-import io.reactivex.rxjava3.core.Observable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
@@ -43,7 +42,7 @@ import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.security.ISecurityContext;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
@@ -63,7 +62,7 @@ public class JobGraphQLService {
     private final JobService jobService;
     private final JobExecutionService jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
-    private final EntityEventService entityEventService;
+    private final EntityWatchService entityEventService;
 
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
     public List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter) {

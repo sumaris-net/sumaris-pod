@@ -44,9 +44,8 @@ import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +66,7 @@ public class ReferentialGraphQLService {
 
     private final MetierRepository metierRepository;
 
-    private final EntityEventService entityEventService;
+    private final EntityWatchService entityEventService;
 
     private final DataAccessControlService dataAccessControlService;
 

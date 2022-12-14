@@ -66,7 +66,7 @@ import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
@@ -113,7 +113,7 @@ public class ProgramGraphQLService {
     private AuthService authService;
 
     @Autowired
-    private EntityEventService entityEventService;
+    private EntityWatchService entityEventService;
 
     @Autowired
     private DataAccessControlService dataAccessControlService;

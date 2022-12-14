@@ -118,7 +118,7 @@ public class WebvowlRdfRestController implements RdfRestPaths {
 
 
         RdfFormat targetFormat = RdfFormat.fromUserString(format).orElse(RdfFormat.VOWL);
-        log.info("Converting model {{}} to {}...", iri, targetFormat.toJenaFormat());
+        log.info("Converting model {{}} to {}...", iris, targetFormat.toJenaFormat());
         webvowlSessions.computeIfPresent(sessionId, (key, value) -> String.format("* Converting model into %s...", targetFormat.toJenaFormat()));
 
         try {
