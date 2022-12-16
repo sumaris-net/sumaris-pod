@@ -41,6 +41,9 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.ObservedLocation;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
@@ -249,8 +252,12 @@ public class TrashServiceImpl implements TrashService, EntityEventService.Listen
     /* -- protected methods -- */
 
     protected void start() {
+        this.entityEventSubscription = entityEventService.registerListener(this,
+            Trip.class,
+            Operation.class,
+            ObservedLocation.class,
+            Landing.class);
         log.info("Started trash service at {}", this.trashDirectory.getAbsolutePath());
-        this.entityEventSubscription = entityEventService.registerListener(this, Trip.class);
     }
 
     protected void stop() {
