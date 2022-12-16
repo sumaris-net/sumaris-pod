@@ -62,7 +62,6 @@ public class EntityWatchServiceImpl implements EntityWatchService {
     @Value("${sumaris.entity.watch.minIntervalInSeconds:10}")
     private int minIntervalInSeconds;
 
-
     protected final Optional<TaskExecutor> taskExecutor;
 
     private final EntityDao entityDao;
