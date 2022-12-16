@@ -87,7 +87,6 @@ public class AuthServiceImpl implements AuthService {
     private boolean enableAuthToken;
     private boolean enableAuthBasic;
 
-    @Autowired
     public AuthServiceImpl(Environment environment,
                            ServerCryptoService cryptoService,
                            AccountService accountService,

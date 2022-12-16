@@ -184,7 +184,7 @@ public abstract class Owl2Bean {
                         .listProperties().toList().size());
 
         try {
-            Object obj = clazz.newInstance();
+            Object obj = clazz.getConstructor().newInstance();
 
             ontResource
                     .asIndividual()

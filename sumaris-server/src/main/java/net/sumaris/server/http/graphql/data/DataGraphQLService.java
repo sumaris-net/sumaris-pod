@@ -44,6 +44,7 @@ import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -117,7 +118,7 @@ public class DataGraphQLService {
 
     private final ImageService imageService;
 
-    private final EntityWatchService entityEventService;
+    private final EntityWatchService entityWatchService;
 
 
     private final ProductService productService;
@@ -333,7 +334,7 @@ public class DataGraphQLService {
 
         Set<String> fields = GraphQLUtils.fields(env);
 
-        return entityEventService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
+        return entityWatchService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
                 .toFlowable(BackpressureStrategy.LATEST)
                 .map(t -> fillTripFields(t, fields));
     }
@@ -580,7 +581,7 @@ public class DataGraphQLService {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         Set<String> fields = GraphQLUtils.fields(env);
-        return entityEventService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
+        return entityWatchService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
                 .toFlowable(BackpressureStrategy.LATEST)
                 .map(ol -> fillObservedLocationFields(ol, fields));
     }
@@ -773,7 +774,7 @@ public class DataGraphQLService {
     ) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-        return entityEventService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
+        return entityWatchService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
                 .toFlowable(BackpressureStrategy.LATEST);
     }
 
@@ -1062,7 +1063,7 @@ public class DataGraphQLService {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         Set<String> fields = GraphQLUtils.fields(env);
-        return entityEventService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
+        return entityWatchService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
                 .toFlowable(BackpressureStrategy.LATEST)
                 .map(l -> fillLandingFields(l, fields));
     }
@@ -1614,8 +1615,8 @@ public class DataGraphQLService {
      */
     protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
         try {
-            filter = filter != null ? filter : filterClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            filter = filter != null ? filter : Beans.newInstance(filterClass);
+        } catch (Exception e) {
             log.error("Cannot create filter instance: {}", e.getMessage(), e);
         }
 

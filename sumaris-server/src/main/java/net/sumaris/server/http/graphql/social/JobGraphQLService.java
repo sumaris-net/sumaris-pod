@@ -62,7 +62,7 @@ public class JobGraphQLService {
     private final JobService jobService;
     private final JobExecutionService jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
-    private final EntityWatchService entityEventService;
+    private final EntityWatchService entityWatchService;
 
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
     public List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter) {
@@ -92,7 +92,7 @@ public class JobGraphQLService {
         log.info("Checking jobs for issuer {} by every {} sec", filter.getIssuer(), interval);
 
         JobFilterVO finalFilter = filter;
-        return entityEventService.watchEntities(ProcessingHistory.class,
+        return entityWatchService.watchEntities(ProcessingHistory.class,
                 Observables.distinctUntilChanged(() -> {
                     log.debug("Checking jobs for {} ...", finalFilter.getIssuer());
                     // find next 10 events

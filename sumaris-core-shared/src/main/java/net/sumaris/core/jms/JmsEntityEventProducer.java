@@ -29,6 +29,7 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.jms.core.JmsTemplate;
@@ -53,12 +54,15 @@ public class JmsEntityEventProducer {
 
     // WARN: @ConditionOnBean over this class is not working well, that why we use required=false
     private final JmsTemplate jmsTemplate;
+    private final Optional<JmsEntityEventConsumer> jmsEntityEventConsumer;
 
     @Value("${spring.jms.enabled:false}")
     private boolean jmsEnabled;
 
-    public JmsEntityEventProducer(Optional<JmsTemplate> jmsTemplate) {
+    public JmsEntityEventProducer(Optional<JmsTemplate> jmsTemplate,
+                                  @Qualifier("entityEventService") Optional<JmsEntityEventConsumer> jmsEntityEventConsumer) {
         this.jmsTemplate = jmsTemplate.orElse(null);
+        this.jmsEntityEventConsumer = jmsEntityEventConsumer;
     }
 
     @PostConstruct
@@ -73,13 +77,18 @@ public class JmsEntityEventProducer {
         }
 
         // Start log
-        log.info("Starting JMS entity events producer... {destination: '{}', operation: '({})'}",
-            JmsEntityEvents.DESTINATION,
-            Arrays.stream(IEntityEvent.EntityEventOperation.values())
-                .map(Enum::name)
-                .map(String::toLowerCase)
-                .collect(Collectors.joining("|"))
+        if (jmsEnabled) {
+            log.info("Starting entity events producer... {destination: '{}', operation: '({})'}",
+                JmsEntityEvents.DESTINATION,
+                Arrays.stream(IEntityEvent.EntityEventOperation.values())
+                    .map(Enum::name)
+                    .map(String::toLowerCase)
+                    .collect(Collectors.joining("|"))
             );
+        }
+        else {
+            log.info("Starting entity events producer... {fallback: true}");
+        }
     }
 
     @Async
@@ -87,15 +96,18 @@ public class JmsEntityEventProducer {
             value = {EntityInsertEvent.class, EntityUpdateEvent.class, EntityDeleteEvent.class},
             phase = TransactionPhase.AFTER_COMMIT)
     public void onEntityEvent(IEntityEvent event) {
-        log.trace("Receiving event {}", event.getClass().getSimpleName());
-
-        if (!jmsEnabled) return; // Skip
-
         Preconditions.checkNotNull(event);
         Preconditions.checkNotNull(event.getOperation());
         Preconditions.checkNotNull(event.getEntityName());
         Preconditions.checkNotNull(event.getId());
 
+        log.trace("Receiving event {}", event.getClass().getSimpleName());
+
+        if (!jmsEnabled) {
+            // Redirect to consumer, as a fallback when JMS is not enabled
+            jmsEntityEventConsumer.ifPresent(consumer -> consumer.dispatchEvent(event));
+            return; // Stop here
+        }
 
         // Send data, or ID
         if (event.getData() != null) {

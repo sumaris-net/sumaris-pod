@@ -66,7 +66,7 @@ public class ReferentialGraphQLService {
 
     private final MetierRepository metierRepository;
 
-    private final EntityWatchService entityEventService;
+    private final EntityWatchService entityWatchService;
 
     private final DataAccessControlService dataAccessControlService;
 
@@ -178,7 +178,7 @@ public class ReferentialGraphQLService {
         Preconditions.checkNotNull(entityName, "Missing 'entityName'");
         Preconditions.checkArgument(id >= 0, "Invalid 'id'");
 
-        return entityEventService.watchEntity(
+        return entityWatchService.watchEntity(
                 ReferentialEntities.getEntityClass(entityName),
                 ReferentialVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);

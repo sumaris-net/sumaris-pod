@@ -27,30 +27,43 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.event.entity.IEntityEvent;
+import net.sumaris.core.event.entity.*;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.event.entity.EntityEventService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.jms.Message;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-@Component("jmsEntityEventService")
-@ConditionalOnProperty(value = "spring.jms.enabled", havingValue = "true")
+@Component("entityEventService")
 @Slf4j
 public class JmsEntityEventConsumer implements EntityEventService {
 
     private final Map<String, List<Listener>> listenersById = Maps.newConcurrentMap();
+    @Value("${spring.jms.enabled:false}")
+    private boolean jmsEnabled;
+
+    @PostConstruct
+    protected void init() {
+        if (this.jmsEnabled) {
+            log.info("Starting entity events consumer... {destination: '{}'}", JmsEntityEvents.DESTINATION);
+        }
+        else {
+            log.info("Starting entity events consumer... {fallback: true}");
+        }
+    }
 
     @Override
     public Disposable registerListener(Listener listener, Class<? extends IEntity<?>>... entityClasses) {
@@ -72,11 +85,52 @@ public class JmsEntityEventConsumer implements EntityEventService {
         keys.forEach(classKey -> unregisterListener(listener, classKey));
     }
 
+    /**
+     * This function can be used when jms is not enabled, as fallback bridge between Spring event and registred listeners
+     * @param event
+     */
+    public void dispatchEvent(@NonNull IEntityEvent event) {
+        if (jmsEnabled) return; // Skip if JMS enabled
+
+        switch (event.getOperation()) {
+            case INSERT -> dispatchInsertEvent((EntityInsertEvent) event);
+            case UPDATE -> dispatchUpdateEvent((EntityUpdateEvent) event);
+            case DELETE -> dispatchDeleteEvent((EntityDeleteEvent) event);
+        }
+    }
+
     /* -- protected functions -- */
+
+    @JmsListener(destination = JmsEntityEvents.DESTINATION, selector = "operation = 'insert'")
+    protected void onEntityInsertEvent(IValueObject data, Message message) {
+        EntityInsertEvent event = JmsEntityEvents.parse(EntityInsertEvent.class, message, data);
+        dispatchInsertEvent(event);
+    }
 
     @JmsListener(destination = JmsEntityEvents.DESTINATION, selector = "operation = 'update'")
     protected void onEntityUpdateEvent(IValueObject data, Message message) {
         EntityUpdateEvent event = JmsEntityEvents.parse(EntityUpdateEvent.class, message, data);
+        dispatchUpdateEvent(event);
+    }
+
+    @JmsListener(destination = JmsEntityEvents.DESTINATION, selector = "operation = 'delete'")
+    protected void onEntityDeleteEvent(IValueObject data, Message message) {
+        EntityDeleteEvent event = JmsEntityEvents.parse(EntityDeleteEvent.class, message, data);
+        dispatchDeleteEvent(event);
+    }
+
+    protected void dispatchInsertEvent(EntityInsertEvent event) {
+        // Get listener for this event
+        List<Listener> listeners = getListenersByEvent(event);
+
+        // Emit event
+        if (CollectionUtils.isNotEmpty(listeners)) {
+            log.debug("Receiving insert on {}#{} (listener count: {}}", event.getEntityName(), event.getId(), listeners.size());
+            listeners.forEach(c -> c.onInsert(event));
+        }
+    }
+
+    protected void dispatchUpdateEvent(EntityUpdateEvent event) {
         // Get listener for this event
         List<Listener> listeners = getListenersByEvent(event);
 
@@ -87,13 +141,13 @@ public class JmsEntityEventConsumer implements EntityEventService {
         }
     }
 
-    @JmsListener(destination = JmsEntityEvents.DESTINATION, selector = "operation = 'delete'")
-    protected void onEntityDeleteEvent(IValueObject data, Message message) {
-        EntityDeleteEvent event = JmsEntityEvents.parse(EntityDeleteEvent.class, message, data);
+    protected void dispatchDeleteEvent(EntityDeleteEvent event) {
         // Get listener for this event
         List<Listener> listeners = getListenersByEvent(event);
+
+        // Emit event
         if (CollectionUtils.isNotEmpty(listeners)) {
-            log.debug("Receiving delete {}#{} (listener count: {}}", event.getEntityName(), event.getId(), listeners.size());
+            log.debug("Receiving update on {}#{} (listener count: {}}", event.getEntityName(), event.getId(), listeners.size());
             listeners.forEach(c -> c.onDelete(event));
         }
     }

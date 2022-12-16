@@ -66,7 +66,7 @@ public class UserEventGraphQLService {
 
     private final UserEventService userEventService;
 
-    private final EntityWatchService entityEventService;
+    private final EntityWatchService entityWatchService;
 
     private final AuthService authService;
 
@@ -121,7 +121,7 @@ public class UserEventGraphQLService {
             .sortDirection(SortDirection.DESC)
             .build();
 
-        return entityEventService.watchEntities(
+        return entityWatchService.watchEntities(
                 UserEvent.class,
                 Observables.distinctUntilChanged(() -> {
                     log.debug("Checking events for User#{} from {}", finalFilter.getRecipients(), finalFilter.getStartDate());
@@ -169,7 +169,7 @@ public class UserEventGraphQLService {
         log.info("Checking events count for User#{} by events and every {} sec", filter.getRecipients(), intervalInSeconds);
 
         UserEventFilterVO finalFilter = filter;
-        return entityEventService.watchEntitiesCount(
+        return entityWatchService.watchEntitiesCount(
                 UserEvent.class,
                 Observables.distinctUntilChanged(() -> {
                     log.debug("Checking events count for User#{} from {}", finalFilter.getRecipients(), finalFilter.getStartDate());

@@ -69,6 +69,7 @@ import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -174,7 +175,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     @Override
     public E createEntity() {
         try {
-            return getDomainClass().newInstance();
+            return getDomainClass().getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -285,7 +286,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     public V createVO() {
         try {
-            return getVOClass().newInstance();
+            return getVOClass().getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -659,8 +660,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
                 if (isNew) {
                     source.setId(null); // Reset id, because not found (to avoid copy into target)
                     try {
-                        target = targetClass.newInstance();
-                    } catch (IllegalAccessException | InstantiationException e) {
+                        target = targetClass.getConstructor().newInstance();
+                    } catch (Exception e) {
                         throw new SumarisTechnicalException(e);
                     }
                 }

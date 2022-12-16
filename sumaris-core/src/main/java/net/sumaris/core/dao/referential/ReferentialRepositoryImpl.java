@@ -261,7 +261,7 @@ public abstract class ReferentialRepositoryImpl<
     @Override
     public V createVO() {
         try {
-            return getVOClass().newInstance();
+            return getVOClass().getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

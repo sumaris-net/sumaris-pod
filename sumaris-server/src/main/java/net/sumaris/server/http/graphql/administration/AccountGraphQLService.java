@@ -69,7 +69,7 @@ public class AccountGraphQLService {
     private UserSettingsService userSettingsService;
 
     @Resource
-    private EntityWatchService entityEventService;
+    private EntityWatchService entityWatchService;
 
     @Resource
     private ImageService imageService;
@@ -152,7 +152,7 @@ public class AccountGraphQLService {
     ) {
 
         Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
-        return entityEventService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
+        return entityWatchService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 

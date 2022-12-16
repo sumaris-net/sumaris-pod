@@ -30,6 +30,7 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.entity.IEntityEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Beans;
 
 import javax.annotation.Nullable;
 import javax.jms.JMSException;
@@ -115,7 +116,7 @@ public abstract class JmsEntityEvents {
 
             // Use given class, if exists
             if (eventClass != null) {
-                E event = eventClass.newInstance();
+                E event = Beans.newInstance(eventClass);
                 Preconditions.checkArgument(event.getOperation() == operationEnum);
                 return event;
             }
@@ -130,7 +131,7 @@ public abstract class JmsEntityEvents {
                 default:
                     throw new IllegalArgumentException("Invalid message - unknown operation: " + operation);
             }
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException e) {
+        } catch (Exception e) {
             throw new SumarisTechnicalException(e);
         }
     }

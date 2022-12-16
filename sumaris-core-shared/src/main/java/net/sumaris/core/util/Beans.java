@@ -64,8 +64,8 @@ public class Beans {
     public static <C> C newInstance(Class<C> objectClass) {
         Preconditions.checkNotNull(objectClass, "Cant create an instance of 'null'");
         try {
-            return objectClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return objectClass.getConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new SumarisTechnicalException(e);
         }
     }

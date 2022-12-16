@@ -204,7 +204,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         Preconditions.checkNotNull(contextClass);
 
         try {
-            return (R) contextClass.newInstance();
+            return (R) contextClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw new SumarisTechnicalException("Could not create an instance of context class " + contextClass.getName());
         }

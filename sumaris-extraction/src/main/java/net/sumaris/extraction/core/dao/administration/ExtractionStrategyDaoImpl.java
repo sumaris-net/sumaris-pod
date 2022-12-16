@@ -166,7 +166,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         Preconditions.checkNotNull(contextClass);
 
         try {
-            return (R) contextClass.newInstance();
+            return (R) contextClass.getConstructor().newInstance();
         } catch (Exception e) {
             throw new SumarisTechnicalException("Could not create an instance of context class " + contextClass.getName());
         }

@@ -32,7 +32,6 @@ import net.sumaris.core.dao.technical.cache.CacheManager;
 import net.sumaris.core.event.entity.*;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.jms.JmsEntityEventConsumer;
 import net.sumaris.core.model.Entities;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
@@ -47,17 +46,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-@Service("entityEventService")
+@Service
 @Slf4j
 public class EntityWatchServiceImpl implements EntityWatchService {
-
 
     @Value("${sumaris.entity.watch.minIntervalInSeconds:10}")
     private int minIntervalInSeconds;
@@ -71,18 +71,20 @@ public class EntityWatchServiceImpl implements EntityWatchService {
 
     private final CacheManager cacheManager;
 
-    private final JmsEntityEventConsumer jmsEntityEventConsumer;
+    private final EntityEventService entityEventService;
 
     private final AtomicLong timerObserverCount = new AtomicLong(0);
 
     public EntityWatchServiceImpl(Optional<TaskExecutor> taskExecutor,
-                                  EntityDao entityDao, ConversionService conversionService, CacheManager cacheManager,
-                                  JmsEntityEventConsumer jmsEntityEventConsumer) {
+                                  EntityDao entityDao,
+                                  ConversionService conversionService,
+                                  CacheManager cacheManager,
+                                  EntityEventService userEventService) {
         this.taskExecutor = taskExecutor;
         this.entityDao = entityDao;
         this.conversionService = conversionService;
         this.cacheManager = cacheManager;
-        this.jmsEntityEventConsumer = jmsEntityEventConsumer;
+        this.entityEventService = userEventService;
     }
 
     @Override
@@ -323,7 +325,7 @@ public class EntityWatchServiceImpl implements EntityWatchService {
         @NonNull Class<T> entityClass
     ) {
         return Observable.create(emitter -> {
-            EntityEventService.Disposable disposable = jmsEntityEventConsumer.registerListener(new EntityEventService.Listener() {
+            EntityEventService.Disposable disposable = entityEventService.registerListener(new EntityEventService.Listener() {
                 @Override
                 public void onUpdate(EntityUpdateEvent event) {
                     emitter.onNext(event);
@@ -412,7 +414,7 @@ public class EntityWatchServiceImpl implements EntityWatchService {
                                            Callable<Optional<V>> loader) {
 
         return Observable.create(emitter -> {
-            EntityEventService.Disposable disposable = jmsEntityEventConsumer.registerListener(new EntityEventService.Listener() {
+            EntityEventService.Disposable disposable = entityEventService.registerListener(new EntityEventService.Listener() {
                 @Override
                 public void onUpdate(EntityUpdateEvent event) {
                     Object data = event.getData();

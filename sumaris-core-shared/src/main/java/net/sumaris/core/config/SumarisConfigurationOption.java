@@ -441,8 +441,8 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         false),
 
     ACTIVEMQ_USERNAME(
-        "spring.activemq.username",
-        n("sumaris.config.option.spring.activemq.username.description"),
+        "spring.activemq.user",
+        n("sumaris.config.option.spring.activemq.user.description"),
         "",
         String.class),
 
