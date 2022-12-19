@@ -169,7 +169,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             value = {EntityInsertEvent.class, EntityUpdateEvent.class},
             phase = TransactionPhase.AFTER_COMMIT,
             condition = "#event.entityName=='Software'")
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void onSoftwareChanged(AbstractEntityEvent event) {
 
         if (!configuration.enableConfigurationDbPersistence()) return; // Skip

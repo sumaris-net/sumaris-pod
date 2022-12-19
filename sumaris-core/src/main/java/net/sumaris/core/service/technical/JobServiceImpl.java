@@ -35,15 +35,13 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
-import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import org.nuiton.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -53,14 +51,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service("jobService")
 @RequiredArgsConstructor
+@Service("jobService")
+@ConditionalOnProperty(name = "sumaris.job.service.enabled", havingValue = "true")
 @Slf4j
 public class JobServiceImpl implements JobService {
 
@@ -72,8 +70,6 @@ public class JobServiceImpl implements JobService {
     private final SumarisConfiguration configuration;
 
     private boolean enableTechnicalTablesUpdate = false;
-
-    private final ApplicationContext applicationContext;
 
 
     @Async

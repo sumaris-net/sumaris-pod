@@ -44,6 +44,7 @@ import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.security.ISecurityContext;
 import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,7 @@ import java.util.Optional;
 @Service
 @GraphQLApi
 @IsUser
+@ConditionalOnBean({JobExecutionService.class, JobService.class})
 @RequiredArgsConstructor
 @Slf4j
 public class JobGraphQLService {

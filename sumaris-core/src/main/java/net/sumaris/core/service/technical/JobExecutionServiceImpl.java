@@ -66,8 +66,8 @@ import java.util.stream.Collectors;
 
 import static org.nuiton.i18n.I18n.t;
 
-@ConditionalOnProperty(name = "sumaris.job.service.enabled", havingValue = "true", matchIfMissing = true)
 @Component
+@ConditionalOnProperty(name = "sumaris.job.service.enabled", havingValue = "true")
 @Slf4j
 public class JobExecutionServiceImpl implements JobExecutionService {
 
