@@ -27,6 +27,7 @@ import net.sumaris.core.event.entity.EntityEventService;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.TripVO;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
@@ -63,7 +64,9 @@ public class TripEventListener {
     }
 
     public void onUpdateTrip(TripVO entity) {
-        log.info("Updated trip {id: {}, recorderPerson: {id: {}}}",  entity.getId(), entity.getRecorderPerson().getId());
+        log.info("Updated trip {id: {}, updateDate: '{}', recorderPerson: {id: {}}}",  entity.getId(),
+            Dates.toISODateTimeString(entity.getUpdateDate()),
+            entity.getRecorderPerson().getId());
         // TODO send event for supervisor
     }
 }
