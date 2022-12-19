@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.RequiredArgsConstructor;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
@@ -44,8 +45,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -58,27 +63,24 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Repository("referentialExternalDao")
+@RequiredArgsConstructor
 public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
     private static final Logger log = LoggerFactory.getLogger(ReferentialExternalDaoImpl.class);
 
-    @Autowired
-    private SumarisConfiguration config;
+    private final SumarisConfiguration configuration;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     private boolean enableAnalyticReferences = false;
     private List<ReferentialVO> analyticReferences;
     private Date analyticReferencesUpdateDate = new Date(0L);
 
-
-    @Autowired
-    public ReferentialExternalDaoImpl(SumarisConfiguration config) {
-        this.config = config;
-    }
-
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    @Async
+    @TransactionalEventListener(
+            value = {ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class},
+            phase = TransactionPhase.AFTER_COMPLETION)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onConfigurationReady(ConfigurationEvent event) {
 
         boolean enableAnalyticReferences = event.getConfiguration().enableAnalyticReferencesService();
@@ -102,7 +104,7 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
                                             SortDirection sortDirection) {
 
         if (!enableAnalyticReferences) {
-            if (config.isProduction()) throw new UnsupportedOperationException("Analytic references not supported");
+            if (configuration.isProduction()) throw new UnsupportedOperationException("Analytic references not supported");
             // In DEV mode: return a fake UNK value
             return ImmutableList.of(ReferentialVO.builder()
                 .id(-1)
@@ -132,10 +134,10 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
         Date updateDate = new Date();
         int delta = DateUtil.getDifferenceInDays(analyticReferencesUpdateDate, updateDate);
-        int delay = config.getAnalyticReferencesServiceDelay();
-        String urlStr = config.getAnalyticReferencesServiceUrl();
-        String authStr = config.getAnalyticReferencesServiceAuth();
-        String filter = config.getAnalyticReferencesServiceFilter();
+        int delay = configuration.getAnalyticReferencesServiceDelay();
+        String urlStr = configuration.getAnalyticReferencesServiceUrl();
+        String authStr = configuration.getAnalyticReferencesServiceAuth();
+        String filter = configuration.getAnalyticReferencesServiceFilter();
 
         // load analyticReferences if not loaded or too old
         if (StringUtils.isNotBlank(urlStr) && (delta > delay || analyticReferences == null)) {

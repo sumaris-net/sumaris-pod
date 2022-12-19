@@ -27,10 +27,10 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = OrderType.class)
+//@EntityEnum(entity = OrderType.class)
 public enum OrderTypeEnum implements Serializable {
 
-    NORTH_TO_SOUTH_LOCATION_RANK(1, "NORTH_TO_SOUTH_LOCATION");
+    NORTH_TO_SOUTH_LOCATION(1, "NORTH_TO_SOUTH_LOCATION");
 
     public static OrderTypeEnum valueOf(final int id) {
         return Arrays.stream(values())

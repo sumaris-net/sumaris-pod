@@ -64,6 +64,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -126,7 +127,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Async
     @EventListener({SchemaUpdatedEvent.class, SchemaReadyEvent.class})
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW,
+            noRollbackFor = {PersistenceException.class})
     public void onSchemaUpdatedOrReady(SchemaEvent event) {
         if (this.dbVersion == null || !this.dbVersion.equals(event.getSchemaVersion())) {
             this.dbVersion = event.getSchemaVersion();

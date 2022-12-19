@@ -33,7 +33,6 @@ import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
@@ -43,9 +42,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component("entityEventService")
 @Slf4j
