@@ -351,9 +351,9 @@ public class VesselGraphQLService {
      */
     protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
         try {
-            filter = filter != null ? filter : filterClass.newInstance();
+            filter = filter != null ? filter : filterClass.getConstructor().newInstance();
         }
-        catch (InstantiationException | IllegalAccessException e) {
+        catch (Exception e) {
             log.error("Cannot create filter instance: {}", e.getMessage(), e);
         }
 

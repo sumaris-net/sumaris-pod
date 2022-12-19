@@ -37,8 +37,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.FishingAreaVO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
@@ -57,21 +56,20 @@ public class FishingAreaRepositoryImpl
 
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
-    private final SumarisConfiguration config;
+    private final SumarisConfiguration configuration;
 
-    @Autowired
-    @Lazy
-    private FishingAreaRepository self;
+    private final ApplicationContext applicationContext;
 
-    @Autowired
     public FishingAreaRepositoryImpl(EntityManager entityManager,
-                                     SumarisConfiguration config,
+                                     SumarisConfiguration configuration,
                                      LocationRepository locationRepository,
-                                     ReferentialDao referentialDao) {
+                                     ReferentialDao referentialDao,
+                                     ApplicationContext applicationContext) {
         super(FishingArea.class, FishingAreaVO.class, entityManager);
-        this.config = config;
+        this.configuration = configuration;
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
+        this.applicationContext = applicationContext;
         setCheckUpdateDate(false);
         setLockForUpdate(false);
     }
@@ -136,7 +134,7 @@ public class FishingAreaRepositoryImpl
 
         if (copyIfNull || source.getQualityFlagId() != null) {
             if (source.getQualityFlagId() == null) {
-                target.setQualityFlag(getReference(QualityFlag.class, config.getDefaultQualityFlagId()));
+                target.setQualityFlag(getReference(QualityFlag.class, configuration.getDefaultQualityFlagId()));
             } else {
                 target.setQualityFlag(getReference(QualityFlag.class, source.getQualityFlagId()));
             }
@@ -157,8 +155,10 @@ public class FishingAreaRepositoryImpl
 
     @Override
     public List<FishingAreaVO> getAllByOperationId(int operationId) {
-        return self.getFishingAreaByOperationId(operationId).stream()
-            .map(this::toVO).collect(Collectors.toList());
+        return getRepository().getFishingAreaByOperationId(operationId)
+                .stream()
+                .map(this::toVO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -188,5 +188,14 @@ public class FishingAreaRepositoryImpl
         sources.forEach(this::save);
 
         return sources;
+    }
+
+    private FishingAreaRepository repository;
+
+    protected FishingAreaRepository getRepository() {
+        if (repository == null) {
+            repository = this.applicationContext.getBean(FishingAreaRepository.class);
+        }
+        return repository;
     }
 }

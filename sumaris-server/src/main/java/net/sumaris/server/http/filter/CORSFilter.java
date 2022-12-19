@@ -36,30 +36,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Order(0)
-public class CORSFilter implements Filter {
-
-
-    public static final String[] ALLOWED_METHODS = new String[]{
-        HttpMethod.GET.name(),
-        HttpMethod.POST.name(),
-        HttpMethod.PUT.name(),
-        HttpMethod.DELETE.name(),
-        HttpMethod.HEAD.name(),
-        HttpMethod.OPTIONS.name()
-    };
-
-    public static final String[] ALLOWED_HEADERS = new String[]{
-        HttpHeaders.ACCEPT,
-        HttpHeaders.ACCEPT_LANGUAGE,
-        HttpHeaders.CONTENT_LANGUAGE,
-        HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-        HttpHeaders.CONTENT_TYPE,
-        HttpHeaders.AUTHORIZATION
-    };
-
-    public static final boolean ALLOWED_CREDENTIALS = true;
-
-    public static final int MAX_AGE = 3600;
+public class CORSFilter implements Filter, CORSFilters {
 
     protected static final String ALLOWED_METHODS_STR = Arrays.stream(ALLOWED_METHODS).collect(Collectors.joining(", "));
     protected static final String ALLOWED_HEADERS_STR = Arrays.stream(ALLOWED_HEADERS).collect(Collectors.joining(", "));

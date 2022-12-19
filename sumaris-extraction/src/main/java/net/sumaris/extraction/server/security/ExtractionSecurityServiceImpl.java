@@ -87,7 +87,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         this.accessNotSelfExtractionMinRole = configuration.getApplicationConfig().getOption(ExtractionWebConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE.getKey());
     }
 

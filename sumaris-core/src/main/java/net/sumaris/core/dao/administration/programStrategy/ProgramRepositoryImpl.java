@@ -68,6 +68,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -84,42 +85,53 @@ public class ProgramRepositoryImpl
     extends ReferentialRepositoryImpl<Integer, Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>
     implements ProgramSpecifications {
 
-    @Autowired
-    private ReferentialDao referentialDao;
+    private final ReferentialDao referentialDao;
 
-    @Autowired
-    private TaxonGroupRepository taxonGroupRepository;
+    private final TaxonGroupRepository taxonGroupRepository;
 
-    @Autowired
-    private StrategyRepository strategyRepository;
+    private final StrategyRepository strategyRepository;
 
-    @Autowired
-    private LocationRepository locationRepository;
+    private final LocationRepository locationRepository;
 
-    @Autowired
-    protected DepartmentRepository departmentRepository;
+    protected final DepartmentRepository departmentRepository;
 
-    @Autowired
-    protected PersonRepository personRepository;
+    protected final PersonRepository personRepository;
 
-    @Autowired
-    protected ProgramPrivilegeRepository programPrivilegeRepository;
+    protected final ProgramPrivilegeRepository programPrivilegeRepository;
 
-    @Autowired
-    protected AcquisitionLevelRepository acquisitionLevelRepository;
+    protected final AcquisitionLevelRepository acquisitionLevelRepository;
 
     public Logger getLogger() {
         return log;
     }
 
-    public ProgramRepositoryImpl(EntityManager entityManager) {
+    @Autowired
+    public ProgramRepositoryImpl(EntityManager entityManager,
+                                 GenericConversionService conversionService,
+                                 ReferentialDao referentialDao,
+                                 TaxonGroupRepository taxonGroupRepository,
+                                 StrategyRepository strategyRepository,
+                                 LocationRepository locationRepository,
+                                 DepartmentRepository departmentRepository,
+                                 PersonRepository personRepository,
+                                 ProgramPrivilegeRepository programPrivilegeRepository,
+                                 AcquisitionLevelRepository acquisitionLevelRepository) {
         super(Program.class, ProgramVO.class, entityManager);
+        this.referentialDao = referentialDao;
+        this.taxonGroupRepository = taxonGroupRepository;
+        this.strategyRepository = strategyRepository;
+        this.locationRepository = locationRepository;
+        this.departmentRepository = departmentRepository;
+        this.personRepository = personRepository;
+        this.programPrivilegeRepository = programPrivilegeRepository;
+        this.acquisitionLevelRepository = acquisitionLevelRepository;
         setLockForUpdate(true);
         setPublishEvent(true);
+        conversionService.addConverter(Program.class, ProgramVO.class, this::toVO);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Force clear cache, because authorized programs can depends on the configuration
         clearCache();
     }
@@ -127,9 +139,9 @@ public class ProgramRepositoryImpl
     @Override
     public Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
         return getQuery(
-                BindableSpecification.where(hasId(id)).and(newerThan(updateDate)),
-                Program.class, Sort.by(Program.Fields.ID)
-            )
+            BindableSpecification.where(hasId(id)).and(newerThan(updateDate)),
+            Program.class, Sort.by(Program.Fields.ID)
+        )
             .getResultStream()
             .findFirst()
             .map(source -> toVO(source, fetchOptions));
@@ -245,8 +257,7 @@ public class ProgramRepositoryImpl
         if (fetchOptions != null && fetchOptions.isWithAcquisitionLevels()) {
             if (target.getId() != null) {
                 target.setAcquisitionLevels(getAcquisitionLevelsByProgramId(target.getId()));
-            }
-            else {
+            } else {
                 target.setAcquisitionLevels(null);
             }
         }
@@ -466,11 +477,11 @@ public class ProgramRepositoryImpl
         final Program parent = getById(Program.class, programId);
 
         return saveChildren(
-                sources,
-                parent.getDepartments(),
-                ProgramDepartment.class,
-                (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, parent, copyIfNull),
-                parent);
+            sources,
+            parent.getDepartments(),
+            ProgramDepartment.class,
+            (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, parent, copyIfNull),
+            parent);
     }
 
     @Override
@@ -480,11 +491,11 @@ public class ProgramRepositoryImpl
         final Program parent = getById(Program.class, programId);
 
         return saveChildren(
-                sources,
-                parent.getPersons(),
-                ProgramPerson.class,
-                (source, target, copyIfNull) -> this.toPersonEntity(source, target, parent, copyIfNull),
-                parent);
+            sources,
+            parent.getPersons(),
+            ProgramPerson.class,
+            (source, target, copyIfNull) -> this.toPersonEntity(source, target, parent, copyIfNull),
+            parent);
     }
 
     protected void saveProperties(Map<String, String> source, Program parent, Date updateDate) {
@@ -669,8 +680,8 @@ public class ProgramRepositoryImpl
     @Override
     public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
         String value = findVOById(id)
-                .map(program -> program.getProperties().get(property.getLabel()))
-                .orElse(property.getDefaultValue());
+            .map(program -> program.getProperties().get(property.getLabel()))
+            .orElse(property.getDefaultValue());
 
         // If boolean: true = TRUE
         if (property.getType() == Boolean.class) {
@@ -683,8 +694,8 @@ public class ProgramRepositoryImpl
     @Override
     public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
         String value = findByLabel(label)
-                .map(program -> program.getProperties().get(property.getLabel()))
-                .orElse(property.getDefaultValue());
+            .map(program -> program.getProperties().get(property.getLabel()))
+            .orElse(property.getDefaultValue());
 
         return expectedValue.equals(value);
     }

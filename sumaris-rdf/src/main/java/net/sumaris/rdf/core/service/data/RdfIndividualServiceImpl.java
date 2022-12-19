@@ -87,7 +87,7 @@ public class RdfIndividualServiceImpl implements RdfIndividualService {
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         defaultPageSize = configuration.getDefaultPageSize();
         maxPageSize = configuration.getMaxPageSize();
     }

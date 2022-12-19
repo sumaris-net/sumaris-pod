@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
-import io.reactivex.BackpressureStrategy;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
@@ -66,7 +66,7 @@ import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
@@ -113,7 +113,7 @@ public class ProgramGraphQLService {
     private AuthService authService;
 
     @Autowired
-    private EntityEventService entityEventService;
+    private EntityWatchService entityWatchService;
 
     @Autowired
     private DataAccessControlService dataAccessControlService;
@@ -417,7 +417,7 @@ public class ProgramGraphQLService {
 
         log.info("Checking changes Program#{}, every {}s", id, intervalInSeconds);
 
-        return entityEventService.watchEntity(updateDate -> {
+        return entityWatchService.watchEntity(updateDate -> {
                 // Get actual program
                 if (updateDate == null) {
                     return Optional.of(programService.get(id, fetchOptions));
@@ -444,7 +444,7 @@ public class ProgramGraphQLService {
 
         AtomicReference<Date> lastUpdateDate = new AtomicReference<>(null);
 
-        return entityEventService.watchByLoader(() -> {
+        return entityWatchService.watchByLoader(() -> {
                 Date current = strategyService.maxUpdateDateByFilter(filter);
                 Date previous = lastUpdateDate.get();
                 if (previous == null || (current != null && current.after(previous))) {
@@ -473,7 +473,7 @@ public class ProgramGraphQLService {
 
         log.info("Checking strategies changes on Program#{}, every {}s", programId, intervalInSeconds);
 
-        return entityEventService.watchEntities((lastUpdateDate) -> {
+        return entityWatchService.watchEntities((lastUpdateDate) -> {
                 // Get actual values
                 if (lastUpdateDate == null) {
                     return Optional.of(strategyService.findByProgram(programId, fetchOptions));
@@ -508,7 +508,7 @@ public class ProgramGraphQLService {
             return Optional.of(programIds);
         });
 
-        return entityEventService.watchEntities(Program.class,
+        return entityWatchService.watchEntities(Program.class,
             // Call program ids loader
             () -> programIdsLoader.call()
                 // Then convert to VO

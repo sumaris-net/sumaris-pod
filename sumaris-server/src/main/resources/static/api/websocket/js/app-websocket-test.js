@@ -19,7 +19,7 @@
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
-function AppWebsocket() {
+function AppWebsocketTest() {
     const restBasePath = '/graphql/websocket';
     let websocket;
     let wsUri;

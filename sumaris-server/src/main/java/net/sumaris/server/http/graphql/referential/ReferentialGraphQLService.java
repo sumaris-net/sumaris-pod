@@ -24,8 +24,9 @@ package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
-import io.reactivex.BackpressureStrategy;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
@@ -43,9 +44,8 @@ import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,26 +56,21 @@ import java.util.List;
 @Service
 @GraphQLApi
 @Transactional
+@RequiredArgsConstructor
 @Slf4j
 public class ReferentialGraphQLService {
 
-    @Autowired
-    private ReferentialService referentialService;
+    private final ReferentialService referentialService;
 
-    @Autowired
-    private TaxonGroupService taxonGroupService;
+    private final TaxonGroupService taxonGroupService;
 
-    @Autowired
-    private MetierRepository metierRepository;
+    private final MetierRepository metierRepository;
 
-    @Autowired
-    private EntityEventService entityEventService;
+    private final EntityWatchService entityWatchService;
 
-    @Autowired
-    private DataAccessControlService dataAccessControlService;
+    private final DataAccessControlService dataAccessControlService;
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
     /* -- Referential queries -- */
 
@@ -183,7 +178,7 @@ public class ReferentialGraphQLService {
         Preconditions.checkNotNull(entityName, "Missing 'entityName'");
         Preconditions.checkArgument(id >= 0, "Invalid 'id'");
 
-        return entityEventService.watchEntity(
+        return entityWatchService.watchEntity(
                 ReferentialEntities.getEntityClass(entityName),
                 ReferentialVO.class, id, minIntervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);

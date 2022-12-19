@@ -22,6 +22,7 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -70,7 +71,7 @@ public class Pageables  {
             return Pageable.unpaged();
         }
         int page = (int)((offset - offset % size) / size);
-        if (sortDirection != null && sortAttributes != null) {
+        if (sortDirection != null && ArrayUtils.isNotEmpty(sortAttributes) && sortAttributes[0] != null) {
             return PageRequest.of(page, size, sortDirection, sortAttributes);
         }
         return PageRequest.of(page, size);

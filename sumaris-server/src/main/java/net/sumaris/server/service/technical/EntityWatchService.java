@@ -22,7 +22,7 @@ package net.sumaris.server.service.technical;
  * #L%
  */
 
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.event.entity.IEntityEvent;
@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 
-public interface EntityEventService {
+public interface EntityWatchService {
 
     <ID extends Serializable, D extends Date, T extends IUpdateDateEntity<ID, D>, V extends IUpdateDateEntity<ID, D>> Observable<V>
     watchEntity(Class<T> entityClass,
@@ -84,4 +84,5 @@ public interface EntityEventService {
     <O> Observable<O>  watchByLoader(Callable<Optional<O>> loader,
                                      int intervalInSeconds,
                                      boolean startWithActualValue);
+
 }

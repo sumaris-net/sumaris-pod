@@ -32,8 +32,7 @@ import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.ExpectedSaleVO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.ApplicationContext;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -47,15 +46,16 @@ public class ExpectedSaleRepositoryImpl
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
 
-    @Autowired
-    @Lazy
-    private ExpectedSaleRepository self;
+    private final ApplicationContext applicationContext;
 
-    @Autowired
-    protected ExpectedSaleRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, ReferentialDao referentialDao) {
+    protected ExpectedSaleRepositoryImpl(EntityManager entityManager,
+                                         LocationRepository locationRepository,
+                                         ReferentialDao referentialDao,
+                                         ApplicationContext applicationContext) {
         super(ExpectedSale.class, ExpectedSaleVO.class, entityManager);
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -122,7 +122,7 @@ public class ExpectedSaleRepositoryImpl
 
     @Override
     public List<ExpectedSaleVO> getAllByTripId(int tripId) {
-        return self.getExpectedSaleByTripId(tripId).stream().map(this::toVO).collect(Collectors.toList());
+        return getRepository().getExpectedSaleByTripId(tripId).stream().map(this::toVO).collect(Collectors.toList());
     }
 
     @Override
@@ -150,4 +150,11 @@ public class ExpectedSaleRepositoryImpl
 
     }
 
+    protected ExpectedSaleRepository repository;
+    protected ExpectedSaleRepository getRepository() {
+        if (repository == null) {
+            repository = applicationContext.getBean(ExpectedSaleRepository.class);
+        }
+        return repository;
+    }
 }

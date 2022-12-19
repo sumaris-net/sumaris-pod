@@ -23,6 +23,7 @@
 package net.sumaris.server.http.graphql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import graphql.ExecutionInput;
@@ -68,7 +69,10 @@ import java.util.function.Consumer;
 @Slf4j
 public class SubscriptionWebSocketHandler extends TextWebSocketHandler implements SubProtocolCapable {
 
-    private static final List<String> GRAPHQL_WS_PROTOCOLS = Collections.singletonList("graphql-transport-ws");
+    private static final List<String> GRAPHQL_WS_PROTOCOLS = ImmutableList.of(
+        "graphql-transport-ws", // The new protocols
+        "graphql-ws" // The deprecated protocol
+    );
 
     public interface GqlTypes {
         String GQL_CONNECTION_INIT = "connection_init";
@@ -184,7 +188,6 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
                     cancelPingTask();
                     break;
                 case GqlTypes.GQL_CONNECTION_PONG:
-                    log.debug(I18n.t("sumaris.server.info.subscription.received", type));
                     break;
                 case GqlTypes.GQL_CONNECTION_TERMINATE:
                     session.close();
@@ -375,11 +378,16 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
     }
 
     protected void onNext(WebSocketSession session,  String id, ExecutionResult result, String type) {
-        sendResponse(session, ImmutableMap.of(
+
+        Object response = ImmutableMap.of(
             "id", id,
             "type", type,
-            "payload", GraphQLHelper.processExecutionResult(result))
+            "payload", GraphQLHelper.processExecutionResult(result)
         );
+
+        sendResponse(session, response);
+
+        if (debug) log.debug(I18n.t("sumaris.server.subscription.sentRequest", response));
     }
 
     protected void onError(WebSocketSession session, String id, Throwable throwable) {
@@ -442,6 +450,7 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
             } catch (IllegalStateException | IOException e) {
                 errorHandler.accept(e);
             }
+
         }
     }
 

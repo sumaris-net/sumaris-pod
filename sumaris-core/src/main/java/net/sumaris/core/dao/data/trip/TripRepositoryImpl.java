@@ -35,6 +35,9 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
@@ -52,10 +55,14 @@ public class TripRepositoryImpl
     private final LandingRepository landingRepository;
 
     @Autowired
-    public TripRepositoryImpl(EntityManager entityManager, LocationRepository locationRepository, LandingRepository landingRepository) {
+    public TripRepositoryImpl(EntityManager entityManager,
+                              LocationRepository locationRepository,
+                              LandingRepository landingRepository,
+                              GenericConversionService conversionService) {
         super(Trip.class, TripVO.class, entityManager);
         this.locationRepository = locationRepository;
         this.landingRepository = landingRepository;
+        conversionService.addConverter(Trip.class, TripVO.class, this::toVO);
     }
 
     @Override
@@ -65,6 +72,7 @@ public class TripRepositoryImpl
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasLocationIds(filter.getLocationIds()))
+            .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasVesselId(filter.getVesselId()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
@@ -155,15 +163,19 @@ public class TripRepositoryImpl
     protected void configureQuery(TypedQuery<Trip> query, @Nullable TripFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
-        // Prepare load graph
-        EntityManager em = getEntityManager();
-        EntityGraph<?> entityGraph = em.getEntityGraph(Trip.GRAPH_LOCATIONS_AND_PROGRAM);
-        if (fetchOptions == null || fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(Trip.Fields.RECORDER_PERSON);
-        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(Trip.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions == null || fetchOptions.isWithLocations() || fetchOptions.isWithProgram()) {
+            // Prepare load graph
+            EntityManager em = getEntityManager();
+            EntityGraph<?> entityGraph = em.getEntityGraph(Trip.GRAPH_LOCATIONS_AND_PROGRAM);
+            if (fetchOptions == null || fetchOptions.isWithRecorderPerson())
+                entityGraph.addSubgraph(Trip.Fields.RECORDER_PERSON);
+            if (fetchOptions == null || fetchOptions.isWithRecorderDepartment())
+                entityGraph.addSubgraph(Trip.Fields.RECORDER_DEPARTMENT);
 
-        // WARNING: should not enable this fetch, because page cannot be applied
-        //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
+            // WARNING: should not enable this fetch, because page cannot be applied
+            //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
 
-        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+            query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+        }
     }
 }

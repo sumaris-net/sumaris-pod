@@ -87,7 +87,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         boolean enableProduct = configuration.enableExtractionProduct();
         if (enableProduct != this.enableProduct) {
             this.enableProduct = enableProduct;

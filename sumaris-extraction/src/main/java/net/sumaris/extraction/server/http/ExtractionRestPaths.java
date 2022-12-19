@@ -36,7 +36,7 @@ public interface ExtractionRestPaths {
     // Download file paths
     String DOWNLOAD_BASE_PATH = BASE_PATH + "/download";
     String DOWNLOAD_PATH = DOWNLOAD_BASE_PATH + "/{label:[a-zA-Z0-9-_]+}";
-    String DOWNLOAD_WITH_VERSION_PATH = DOWNLOAD_PATH + "/{label:[a-zA-Z0-9-_]+}/{version}";
+    String DOWNLOAD_WITH_VERSION_PATH = DOWNLOAD_PATH + "/{version}";
 
     // Get documentation paths
     String DOC_BASE_PATH = BASE_PATH + "/doc";

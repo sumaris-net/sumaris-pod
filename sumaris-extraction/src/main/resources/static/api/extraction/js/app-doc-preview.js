@@ -109,13 +109,8 @@ function AppDocPreview() {
             console.info("Loaded types: ", types);
 
             inputExtractionType.innerHTML = types.reduce((res, type) => {
-                const category = type.category.toLowerCase();
-
-                // Filter on same category
-                if (filterCategory && category !== filterCategory) return res; // Skip
-
-                const value = category + '/' + type.label;
-                const name = category + ' > ' + (type.name || type.label);
+                const value = type.label;
+                const name = (type.name || type.label);
                 return res + '<option value=' + value + '>' + name + '</option>\n';
             }, "\n");
         }

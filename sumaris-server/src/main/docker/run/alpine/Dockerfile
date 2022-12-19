@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM eclipse-temurin:17-jdk-alpine
 ARG WAR_FILE=app.war
 ARG CONFIG_FILES=config/*.properties
 RUN apk update && apk install libsodium-dev

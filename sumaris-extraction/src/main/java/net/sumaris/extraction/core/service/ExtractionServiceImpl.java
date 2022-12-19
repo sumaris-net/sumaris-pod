@@ -178,7 +178,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
 
         boolean enableCache = configuration.enableCache() && this.cacheManager != null;
         CacheTTL cacheDefaultTtl = configuration.getExtractionCacheDefaultTtl();

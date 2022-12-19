@@ -126,8 +126,6 @@ public class ExtractionProductRepositoryImpl
 
     @Override
     protected void toVO(ExtractionProduct source, ExtractionProductVO target, ExtractionProductFetchOptions fetchOptions, boolean copyIfNull) {
-        // Status
-        target.setStatusId(source.getStatus().getId());
 
 
         // Copy without/with documentation (can be very long)
@@ -144,6 +142,9 @@ public class ExtractionProductRepositoryImpl
         else {
             Beans.copyProperties(source, target);
         }
+
+        // Status
+        target.setStatusId(source.getStatus().getId());
 
         // Parent
         target.setParentId(source.getParent() != null ? source.getParent().getId() : null);

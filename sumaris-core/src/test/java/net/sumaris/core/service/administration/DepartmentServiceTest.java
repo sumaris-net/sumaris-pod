@@ -60,12 +60,6 @@ public class DepartmentServiceTest extends AbstractServiceTest {
 
     }
 
-    private void assertFindResult(DepartmentFilterVO filter, int expectedSize) {
-        List<DepartmentVO> results = service.findByFilter(filter, 0, 100, null, null);
-        Assert.assertNotNull(results);
-        Assert.assertEquals(expectedSize, results.size());
-    }
-
     @Test
     public void b_save() {
         DepartmentVO vo = new DepartmentVO();
@@ -100,5 +94,13 @@ public class DepartmentServiceTest extends AbstractServiceTest {
         } catch (Exception e) {
             Assert.assertNotNull(e);
         }
+    }
+
+    /* -- internal functions -- */
+
+    private void assertFindResult(DepartmentFilterVO filter, int expectedSize) {
+        List<DepartmentVO> results = service.findByFilter(filter, 0, 100, null, null);
+        Assert.assertNotNull(results);
+        Assert.assertEquals(expectedSize, results.size());
     }
 }

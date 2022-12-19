@@ -30,8 +30,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.reactivex.Observable;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -392,7 +392,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 		// Create progression model and listener to throttle events
 		ProgressionModel progressionModel = new ProgressionModel();
-		io.reactivex.Observable<JobProgressionVO> progressionObservable = Observable.create(emitter -> {
+		io.reactivex.rxjava3.core.Observable<JobProgressionVO> progressionObservable = Observable.create(emitter -> {
 
 			// Create listener on bean property and emit the value
 			PropertyChangeListener listener = evt -> {

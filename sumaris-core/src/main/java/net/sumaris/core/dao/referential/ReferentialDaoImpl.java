@@ -208,10 +208,13 @@ public class ReferentialDaoImpl
             return Optional.empty();
 
         try {
-            T target = targetClazz.newInstance();
+            T target = Beans.newInstance(targetClazz);
             Beans.copyProperties(source, target);
             return Optional.of(target);
-        } catch (IllegalAccessException | InstantiationException e) {
+        } catch (SumarisTechnicalException e) {
+            throw e;
+        }
+        catch (Exception e) {
             throw new SumarisTechnicalException(e.getMessage(), e);
         }
     }
@@ -391,8 +394,8 @@ public class ReferentialDaoImpl
         boolean isNew = (entity == null);
         if (isNew) {
             try {
-                entity = entityClass.newInstance();
-            } catch (IllegalAccessException | InstantiationException e) {
+                entity = Beans.newInstance(entityClass);
+            } catch (Exception e) {
                 throw new IllegalArgumentException(String.format("Entity with name [%s] has no empty constructor", source.getEntityName()));
             }
         }

@@ -59,7 +59,7 @@ public class ExtractionJob {
     /* -- protected functions -- */
 
     @EventListener({ConfigurationReadyEvent.class})
-    protected void onConfigurationReady(ConfigurationReadyEvent event) {
+    public void onConfigurationReady(ConfigurationReadyEvent event) {
         boolean enable = configuration.enableExtractionProduct() && configuration.enableExtractionScheduling();
         if (this.enable != enable) {
             this.enable = enable;

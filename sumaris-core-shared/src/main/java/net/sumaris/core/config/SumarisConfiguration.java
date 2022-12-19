@@ -1021,8 +1021,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      *
      * @return a {@link String}
      */
-    public String getActiveMQBrokerUserName() {
-        return applicationConfig.getOption(SumarisConfigurationOption.ACTIVEMQ_BROKER_USERNAME.getKey());
+    public String getActiveMQUserName() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ACTIVEMQ_USERNAME.getKey());
     }
 
     /**
@@ -1030,27 +1030,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      *
      * @return a {@link Integer}
      */
-    public String getActiveMQBrokerPassword() {
-        return applicationConfig.getOption(SumarisConfigurationOption.ACTIVEMQ_BROKER_PASSWORD.getKey());
-    }
-
-    /**
-     * <p>find the ActiveMQ broker username (or null if no auth).</p>
-     *
-     * @return a {@link Integer}
-     */
-    public int getActiveMQPrefetchLimit() {
-        return applicationConfig.getOptionAsInt(SumarisConfigurationOption.ACTIVEMQ_PREFETCH_LIMIT.getKey());
-    }
-
-
-    /**
-     * <p>Is ActiveMQ enabled ?</p>
-     *
-     * @return a {@link Boolean}
-     */
-    public boolean enableActiveMQPool() {
-        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ACTIVEMQ_POOL_ENABLED.getKey());
+    public String getActiveMQPassword() {
+        return applicationConfig.getOption(SumarisConfigurationOption.ACTIVEMQ_PASSWORD.getKey());
     }
 
     public boolean enableDataImages() {

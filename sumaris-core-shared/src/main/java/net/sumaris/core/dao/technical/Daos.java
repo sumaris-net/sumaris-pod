@@ -552,7 +552,7 @@ public class Daos {
             String password) {
         try {
             Class<?> driverClass = Class.forName(jdbcDriver);
-            DriverManager.registerDriver((Driver) driverClass.newInstance());
+            DriverManager.registerDriver((Driver) driverClass.getConstructor().newInstance());
         } catch (Exception e) {
             log.error("Could not load JDBC Driver: " + e.getMessage(), e);
             return false;

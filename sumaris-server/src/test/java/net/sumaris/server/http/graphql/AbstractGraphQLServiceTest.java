@@ -82,7 +82,8 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected <R, T> R getResponse(String resourceName, String queryName, Class<R> responseClass, Class<T> responseCollectionType, ObjectNode variables, String... fragmentNames) throws SumarisTechnicalException {
+    protected <R, T> R getResponse(String resourceName, String queryName, Class<R> responseClass, Class<T> responseCollectionType, ObjectNode variables, String... fragmentNames)
+        throws SumarisTechnicalException {
         assertTrue(StringUtils.isNotEmpty(resourceName));
         assertTrue(StringUtils.isNotEmpty(queryName));
         assertNotNull(responseClass);

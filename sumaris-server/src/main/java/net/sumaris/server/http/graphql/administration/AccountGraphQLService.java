@@ -27,7 +27,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.GraphQLSubscription;
-import io.reactivex.BackpressureStrategy;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
@@ -41,7 +41,8 @@ import net.sumaris.server.http.security.IsGuest;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.administration.UserSettingsService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.security.access.AccessDeniedException;
@@ -65,7 +66,10 @@ public class AccountGraphQLService {
     private AccountService accountService;
 
     @Resource
-    private EntityEventService entityEventService;
+    private UserSettingsService userSettingsService;
+
+    @Resource
+    private EntityWatchService entityWatchService;
 
     @Resource
     private ImageService imageService;
@@ -135,7 +139,7 @@ public class AccountGraphQLService {
         PersonVO user = authService.getAuthenticatedUser().orElseThrow(() -> new AccessDeniedException("Forbidden"));
         settings.setIssuer(user.getPubkey());
 
-        return accountService.saveSettings(settings);
+        return userSettingsService.save(settings);
     }
 
     /* -- Subscriptions -- */
@@ -148,7 +152,7 @@ public class AccountGraphQLService {
     ) {
 
         Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
-        return entityEventService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
+        return entityWatchService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
     }
 

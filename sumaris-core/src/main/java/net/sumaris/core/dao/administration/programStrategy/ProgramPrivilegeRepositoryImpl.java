@@ -57,7 +57,7 @@ public class ProgramPrivilegeRepositoryImpl
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         // Force clear cache, because Program Privilege enum may have changed
         clearCache();
     }

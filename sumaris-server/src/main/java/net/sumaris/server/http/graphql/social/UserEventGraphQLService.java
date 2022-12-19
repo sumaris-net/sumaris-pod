@@ -27,7 +27,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.GraphQLSubscription;
-import io.reactivex.BackpressureStrategy;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
@@ -46,9 +46,8 @@ import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -67,7 +66,7 @@ public class UserEventGraphQLService {
 
     private final UserEventService userEventService;
 
-    private final EntityEventService entityEventService;
+    private final EntityWatchService entityWatchService;
 
     private final AuthService authService;
 
@@ -122,7 +121,7 @@ public class UserEventGraphQLService {
             .sortDirection(SortDirection.DESC)
             .build();
 
-        return entityEventService.watchEntities(
+        return entityWatchService.watchEntities(
                 UserEvent.class,
                 Observables.distinctUntilChanged(() -> {
                     log.debug("Checking events for User#{} from {}", finalFilter.getRecipients(), finalFilter.getStartDate());
@@ -170,7 +169,7 @@ public class UserEventGraphQLService {
         log.info("Checking events count for User#{} by events and every {} sec", filter.getRecipients(), intervalInSeconds);
 
         UserEventFilterVO finalFilter = filter;
-        return entityEventService.watchEntitiesCount(
+        return entityWatchService.watchEntitiesCount(
                 UserEvent.class,
                 Observables.distinctUntilChanged(() -> {
                     log.debug("Checking events count for User#{} from {}", finalFilter.getRecipients(), finalFilter.getStartDate());

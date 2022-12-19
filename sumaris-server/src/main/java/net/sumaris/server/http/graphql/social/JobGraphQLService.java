@@ -26,8 +26,7 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLNonNull;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import io.leangen.graphql.annotations.GraphQLSubscription;
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
@@ -43,8 +42,9 @@ import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.security.ISecurityContext;
-import net.sumaris.server.service.technical.EntityEventService;
+import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -56,6 +56,7 @@ import java.util.Optional;
 @Service
 @GraphQLApi
 @IsUser
+@ConditionalOnBean({JobExecutionService.class, JobService.class})
 @RequiredArgsConstructor
 @Slf4j
 public class JobGraphQLService {
@@ -63,7 +64,7 @@ public class JobGraphQLService {
     private final JobService jobService;
     private final JobExecutionService jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
-    private final EntityEventService entityEventService;
+    private final EntityWatchService entityWatchService;
 
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
     public List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter) {
@@ -93,7 +94,7 @@ public class JobGraphQLService {
         log.info("Checking jobs for issuer {} by every {} sec", filter.getIssuer(), interval);
 
         JobFilterVO finalFilter = filter;
-        return entityEventService.watchEntities(ProcessingHistory.class,
+        return entityWatchService.watchEntities(ProcessingHistory.class,
                 Observables.distinctUntilChanged(() -> {
                     log.debug("Checking jobs for {} ...", finalFilter.getIssuer());
                     // find next 10 events

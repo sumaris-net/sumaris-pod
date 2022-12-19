@@ -85,7 +85,7 @@ import java.util.Objects;
 @ConditionalOnWebApplication
 public class ExtractionRestController implements ExtractionRestPaths {
 
-    protected static final String HTML_PREVIEW_PATH = "classpath:static/doc/preview.html";
+    protected static final String HTML_PREVIEW_PATH = "classpath:static/api/extraction/preview.html";
 
     protected static final Collection<MediaType> HTML_MEDIA_TYPES = ImmutableList.of(
             MediaType.TEXT_HTML,
@@ -132,7 +132,9 @@ public class ExtractionRestController implements ExtractionRestPaths {
         ExtractionTypeFilterVO filter = new ExtractionTypeFilterVO();
         filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});
 
-        return extractionTypeService.findAllByFilter(filter, null);
+        List<ExtractionTypeVO> result = extractionTypeService.findAllByFilter(filter, null);
+
+        return result;
     }
 
     @GetMapping(

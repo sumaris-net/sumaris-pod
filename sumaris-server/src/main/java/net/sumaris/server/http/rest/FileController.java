@@ -43,10 +43,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletContext;
@@ -94,7 +91,7 @@ public class FileController implements IFileController {
         }
     }
 
-    @RequestMapping({
+    @GetMapping({
             RestPaths.DOWNLOAD_PATH + "/{username}/{filename:[a-zA-Z0-9-_$.]+}",
             RestPaths.DOWNLOAD_PATH + "/{filename:[a-zA-Z0-9-_$.]+}"
     })
@@ -110,7 +107,7 @@ public class FileController implements IFileController {
         }
     }
 
-    @RequestMapping(RestPaths.DOWNLOAD_PATH)
+    @GetMapping(RestPaths.DOWNLOAD_PATH)
     public ResponseEntity<InputStreamResource> downloadFileAsQuery(
             @RequestParam(name = "username", required = false) String username,
             @RequestParam(name = "filename") String filename

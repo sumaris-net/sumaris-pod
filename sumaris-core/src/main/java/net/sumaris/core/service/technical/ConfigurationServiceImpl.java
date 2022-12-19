@@ -53,7 +53,6 @@ import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -65,6 +64,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -80,25 +80,28 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private final String currentSoftwareLabel;
     private boolean ready;
 
-    @Autowired
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
-    @Autowired
-    private SoftwareService softwareService;
+    private final SoftwareService softwareService;
 
-    @Autowired
-    private DatabaseSchemaService databaseSchemaService;
+    private final DatabaseSchemaService databaseSchemaService;
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
 
     private Version dbVersion;
 
     private final List<ConfigurationEventListener> listeners = new CopyOnWriteArrayList<>();
 
-    @Autowired
-    public ConfigurationServiceImpl(SumarisConfiguration configuration) {
+    public ConfigurationServiceImpl(SumarisConfiguration configuration,
+                                    EntityManager entityManager,
+                                    SoftwareService softwareService,
+                                    DatabaseSchemaService databaseSchemaService,
+                                    ApplicationEventPublisher publisher) {
         this.configuration = configuration;
+        this.entityManager = entityManager;
+        this.softwareService = softwareService;
+        this.databaseSchemaService = databaseSchemaService;
+        this.publisher = publisher;
         this.currentSoftwareLabel = configuration.getAppName();
         Preconditions.checkNotNull(currentSoftwareLabel);
         this.ready = !configuration.enableConfigurationDbPersistence(); // Mark as ready, if configuration not loaded from DB
@@ -124,8 +127,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Async
     @EventListener({SchemaUpdatedEvent.class, SchemaReadyEvent.class})
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    protected void onSchemaUpdatedOrReady(SchemaEvent event) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW,
+            noRollbackFor = {PersistenceException.class})
+    public void onSchemaUpdatedOrReady(SchemaEvent event) {
         if (this.dbVersion == null || !this.dbVersion.equals(event.getSchemaVersion())) {
             this.dbVersion = event.getSchemaVersion();
 
@@ -165,7 +169,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             value = {EntityInsertEvent.class, EntityUpdateEvent.class},
             phase = TransactionPhase.AFTER_COMMIT,
             condition = "#event.entityName=='Software'")
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void onSoftwareChanged(AbstractEntityEvent event) {
 
         if (!configuration.enableConfigurationDbPersistence()) return; // Skip

@@ -25,6 +25,7 @@ package net.sumaris.core.service.schema;
  */
 
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
@@ -36,7 +37,6 @@ import net.sumaris.core.exception.DatabaseSchemaUpdateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.VersionNotFoundException;
 import org.nuiton.version.Version;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -54,22 +54,19 @@ import java.util.Optional;
  * @author Lionel Touseau <lionel.touseau@e-is.pro>
  */
 @Service("databaseSchemaService")
+@RequiredArgsConstructor
 @Slf4j
 public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
 
     private boolean isApplicationReady;
 
-    @Autowired
-	protected SumarisConfiguration config;
+	protected final SumarisConfiguration config;
 
-    @Autowired
-    protected DatabaseSchemaDao databaseSchemaDao;
+    protected final DatabaseSchemaDao databaseSchemaDao;
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
 
-    @Autowired(required = false)
-    protected TaskExecutor taskExecutor;
+    protected final Optional<TaskExecutor> taskExecutor;
 
     @PostConstruct
     protected void init() {
@@ -225,10 +222,10 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
      * @param event
      */
     protected void publishEventAfterApplicationReady(SchemaEvent event) {
-        if (!isApplicationReady && taskExecutor != null) {
-            taskExecutor.execute(() -> {
+        if (!isApplicationReady && taskExecutor.isPresent()) {
+            taskExecutor.get().execute(() -> {
                 try {
-                    while(!isApplicationReady) {
+                    while (!isApplicationReady) {
                         Thread.sleep(200); // Wait ready
                     }
 

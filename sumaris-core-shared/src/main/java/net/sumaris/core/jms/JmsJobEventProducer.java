@@ -25,9 +25,6 @@ package net.sumaris.core.jms;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.event.job.IJobEvent;
 import net.sumaris.core.event.job.JobEndEvent;
 import net.sumaris.core.event.job.JobProgressionEvent;
@@ -38,8 +35,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.jms.JMSContext;

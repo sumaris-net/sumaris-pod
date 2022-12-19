@@ -27,6 +27,7 @@ import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.server.http.ExtractionRestController;
 import net.sumaris.extraction.server.http.ExtractionRestPaths;
+import net.sumaris.server.http.filter.CORSFilters;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -65,25 +66,10 @@ public class ExtractionWebAutoConfiguration {
                 {
                     final String DOC_BASE_PATH = ExtractionRestController.DOC_BASE_PATH;
                     registry.addRedirectViewController(DOC_BASE_PATH + "/", DOC_BASE_PATH);
-                    registry.addViewController(DOC_BASE_PATH).setViewName("forward:/doc/index.html");
+                    registry.addRedirectViewController(ExtractionRestController.BASE_PATH, DOC_BASE_PATH);
+                    registry.addRedirectViewController(ExtractionRestController.BASE_PATH + "/", DOC_BASE_PATH);
+                    registry.addViewController(DOC_BASE_PATH).setViewName("forward:/api/extraction/index.html");
                 }
-
-            }
-
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                // Enable Global CORS support for the application
-                //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
-                registry.addMapping(ExtractionRestPaths.BASE_PATH + "/**")
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
-                        .allowedHeaders("accept", "access-control-allow-origin", "authorization", "content-type")
-                        .allowCredentials(true);
-            }
-
-            @Override
-            public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(false);
             }
         };
     }

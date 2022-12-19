@@ -64,7 +64,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     protected AuthService authService;
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    protected void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady(ConfigurationEvent event) {
         authorizedProgramIds = toListOrNull(configuration.getAuthorizedProgramIds());
         accessNotSelfDataDepartmentIds = toListOrNull(configuration.getAccessNotSelfDataDepartmentIds());
         accessNotSelfDataMinRole = StringUtils.trimToNull(configuration.getAccessNotSelfDataMinRole());

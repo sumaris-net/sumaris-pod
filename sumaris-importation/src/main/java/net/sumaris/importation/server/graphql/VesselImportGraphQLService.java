@@ -39,11 +39,11 @@ import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
+import java.util.Optional;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -55,10 +55,17 @@ import static org.nuiton.i18n.I18n.t;
 public class VesselImportGraphQLService {
 
     private final SiopVesselImportService siopVesselImportService;
-    private final JobExecutionService jobExecutionService;
+    private final Optional<JobExecutionService> jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
     private final IFileController fileController;
 
+
+    @PostConstruct
+    protected void init() {
+        if (jobExecutionService.isEmpty()) {
+            log.warn("Cannot starts vessel import service, because job service has been disabled");
+        }
+    }
 
     @GraphQLQuery(name = "importSiopVessels", description = "Import vessels from a SIOP file")
     public JobVO importSiopVessels(@GraphQLArgument(name = "fileName") String fileName) {
@@ -83,7 +90,9 @@ public class VesselImportGraphQLService {
             .build();
 
         // Execute importJob by JobService (async)
-        return jobExecutionService.run(importJob, (job) -> siopVesselImportService.asyncImportFromFile(context, job));
+        return jobExecutionService
+                .map(service -> service.run(importJob, (job) -> siopVesselImportService.asyncImportFromFile(context, job)))
+                .orElseThrow(() -> new SumarisTechnicalException("Canot import vessel: job service has been disabled"));
     }
 
 }

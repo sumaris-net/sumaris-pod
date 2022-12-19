@@ -114,13 +114,13 @@ public abstract class ReferentialRepositoryImpl<
 
     @Override
     public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(Pageables.create(offset, size, sortAttribute, sortDirection))
+        return findAll(Pageables.create((long)offset, size, sortDirection, sortAttribute))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
     public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
+        return findAll(toSpecification(filter), Pageables.create((long)offset, size, sortDirection, sortAttribute))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
@@ -261,7 +261,7 @@ public abstract class ReferentialRepositoryImpl<
     @Override
     public V createVO() {
         try {
-            return getVOClass().newInstance();
+            return getVOClass().getConstructor().newInstance();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

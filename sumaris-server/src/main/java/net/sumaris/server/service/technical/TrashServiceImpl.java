@@ -27,31 +27,36 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.NonNull;
-import net.sumaris.core.jms.JmsConfiguration;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.entity.EntityEventService;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.jms.JmsEntityEvents;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.ObservedLocation;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -63,8 +68,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service("trashService")
+@RequiredArgsConstructor
+@ConditionalOnBean({EntityEventService.class})
 @Slf4j
-public class TrashServiceImpl implements TrashService {
+public class TrashServiceImpl implements TrashService, EntityEventService.Listener {
 
     private static final String CLASS_FILE_NAME = "class.info";
     private static final String FILE_PREFIX_PARENT = "%s#%s_";
@@ -73,8 +80,13 @@ public class TrashServiceImpl implements TrashService {
     private boolean enable;
     private File trashDirectory;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    private final SumarisConfiguration configuration;
+
+    private final EntityEventService entityEventService;
+
+    private EntityEventService.Disposable entityEventSubscription = null;
+
 
     @Override
     public <V> Page<V> findAll(@NonNull String entityName, @NonNull Pageable pageable, Class<? extends V> clazz) {
@@ -101,7 +113,7 @@ public class TrashServiceImpl implements TrashService {
         // Get all files in trash
         List<File> files = FileUtils.listFiles(directory, new String[]{JSON_FILE_EXTENSION}, false).stream()
             // Sort by date
-            .sorted((f1, f2) -> Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()) * (isDescending ? 1 : -1))
+            .sorted((f1, f2) -> Long.compare(f1.lastModified(), f2.lastModified()) * (isDescending ? 1 : -1))
             .collect(Collectors.toList());
 
         // Slice result
@@ -202,33 +214,62 @@ public class TrashServiceImpl implements TrashService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        this.trashDirectory = event.getConfiguration().getTrashDirectory();
-        boolean enable = event.getConfiguration().enableEntityTrash() && this.trashDirectory != null;
+        this.trashDirectory = configuration.getTrashDirectory();
+        boolean enable = configuration.enableEntityTrash() && this.trashDirectory != null;
         boolean changed = enable != this.enable;
-        this.enable = enable;
 
         if (enable) {
             try {
                 FileUtils.forceMkdir(this.trashDirectory);
                 checkTrashDirectory();
-                if (changed) log.info("Started trash service at {}", this.trashDirectory.getAbsolutePath());
+                if (changed) {
+                    this.enable = true;
+                    this.start();
+                }
             } catch (Exception e) {
                 log.error("Cannot enable trash service: " + e.getMessage());
                 this.enable = false;
-                event.getConfiguration().setEnableTrash(false);
+                configuration.setEnableTrash(false);
+                this.stop();
             }
         }
+        // Disable
         else if (changed) {
+            this.enable = false;
+            this.stop();
+        }
+    }
+
+    @Override
+    public void onDelete(EntityDeleteEvent event) {
+        if (!this.enable) return;
+        Object data = event.getData();
+        if (data instanceof IValueObject<?>) {
+            this.onEntityDeleted((IValueObject<?>)data);
+        }
+    }
+
+    /* -- protected methods -- */
+
+    protected void start() {
+        this.entityEventSubscription = entityEventService.registerListener(this,
+            Trip.class,
+            Operation.class,
+            ObservedLocation.class,
+            Landing.class);
+        log.info("Started trash service at {}", this.trashDirectory.getAbsolutePath());
+    }
+
+    protected void stop() {
+        if (this.entityEventSubscription != null) {
+            this.entityEventSubscription.dispose();
+            this.entityEventSubscription = null;
             log.info("Stopped trash service");
         }
     }
 
-    @JmsListener(selector = "entityName = 'Trip' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    @JmsListener(selector = "entityName = 'Operation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    @JmsListener(selector = "entityName = 'ObservedLocation' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    @JmsListener(selector = "entityName = 'Landing' AND operation = 'delete'", destination = JmsEntityEvents.DESTINATION, containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    protected void onEntityDeleted(IValueObject data) throws IOException {
-        if (!this.enable) return; // Skip
+    protected void onEntityDeleted(IValueObject<?> data) {
+         // Skip
 
         Preconditions.checkNotNull(data);
 
@@ -237,37 +278,42 @@ public class TrashServiceImpl implements TrashService {
             entityName = entityName.substring(0, entityName.length() - 2);
         }
 
-        File directory = new File(trashDirectory, entityName);
-        FileUtils.forceMkdir(directory);
+        try {
+            File directory = new File(trashDirectory, entityName);
+            FileUtils.forceMkdir(directory);
 
-        // Read classes from class.info file
-        File classFile = new File(directory, CLASS_FILE_NAME);
-        String dataClassName = data.getClass().getCanonicalName();
-        List<String> classNames = classFile.exists()
-                ? FileUtils.readLines(classFile, Files.CHARSET_UTF8)
-                : ImmutableList.of();
-        // Append the current class (if need)
-        if (!classNames.contains(dataClassName)) {
-            try (FileWriter writer = new FileWriter(classFile, classFile.exists())) {
-                writer.write(dataClassName + "\n");
-                writer.flush();
+            // Read classes from class.info file
+            File classFile = new File(directory, CLASS_FILE_NAME);
+            String dataClassName = data.getClass().getCanonicalName();
+            List<String> classNames = classFile.exists()
+                    ? FileUtils.readLines(classFile, Files.CHARSET_UTF8)
+                    : ImmutableList.of();
+            // Append the current class (if need)
+            if (!classNames.contains(dataClassName)) {
+                try (FileWriter writer = new FileWriter(classFile, classFile.exists())) {
+                    writer.write(dataClassName + "\n");
+                    writer.flush();
+                }
+            }
+
+            String filename = StringUtils.trimToEmpty(getFilePrefix(data))
+                    + getFileBasename(entityName, data.getId());
+            File file = new File(directory, filename);
+
+            if (log.isInfoEnabled()) {
+                log.info("Add {}#{} to trash {path: '{}/{}'}", entityName, data.getId(), entityName, filename);
+            }
+
+            try (FileWriter writer = new FileWriter(file)) {
+                objectMapper.writeValue(writer, data);
+            }
+            catch(IOException e) {
+                log.error("Cannot serialize entity to trash file: " + e.getMessage(), e);
+                throw new SumarisTechnicalException("Cannot serialize entity to trash file: " + e.getMessage(), e);
             }
         }
-
-        String filename = StringUtils.trimToEmpty(getFilePrefix(data))
-                + getFileBasename(entityName, data.getId());
-        File file = new File(directory, filename);
-
-        if (log.isInfoEnabled()) {
-            log.info("Add {}#{} to trash {path: '{}/{}'}", entityName, data.getId(), entityName, filename);
-        }
-
-        try (FileWriter writer = new FileWriter(file)) {
-            objectMapper.writeValue(writer, data);
-        }
         catch(IOException e) {
-            log.error("Cannot serialize entity to trash file: " + e.getMessage(), e);
-            throw new SumarisTechnicalException("Cannot serialize entity to trash file: " + e.getMessage(), e);
+            throw new SumarisTechnicalException("Error while processing deleted entity: " + e.getMessage(), e);
         }
     }
 

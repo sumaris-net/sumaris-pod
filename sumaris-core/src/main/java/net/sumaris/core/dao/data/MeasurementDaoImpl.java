@@ -62,6 +62,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -398,8 +399,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         if (source == null) return null;
 
         try {
-            V target = voClass.newInstance();
-
+            V target = Beans.newInstance(voClass);
             Beans.copyProperties(source, target);
 
             // Pmfm Id
@@ -424,7 +424,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             target.setEntityName(getEntityName(source));
 
             return target;
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (SumarisTechnicalException e) {
+            throw e;
+        } catch (Exception e) {
             throw new SumarisTechnicalException(e);
         }
     }
@@ -706,12 +708,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 }
                 boolean isNew = (entity == null);
                 if (isNew) {
-                    try {
-                        entity = entityClass.newInstance();
-                    }
-                    catch(IllegalAccessException | InstantiationException e) {
-                        throw new SumarisTechnicalException(e);
-                    }
+                    entity = Beans.newInstance(entityClass);
                 }
 
                 // Fill default properties
@@ -926,11 +923,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // Exists ?
         boolean isNew = (entity == null);
         if (isNew) {
-            try {
-                entity = entityClass.newInstance();
-            } catch (IllegalAccessException | InstantiationException e) {
-                throw new SumarisTechnicalException(e);
-            }
+            entity = Beans.newInstance(entityClass);
         }
 
         // Make sure to set pmfm

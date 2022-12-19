@@ -23,17 +23,18 @@
 package net.sumaris.server.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.server.http.filter.CORSFilter;
+import net.sumaris.server.http.filter.CORSFilters;
 import net.sumaris.server.http.graphql.GraphQLPaths;
 import net.sumaris.server.http.rest.RestPaths;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -41,6 +42,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableAsync
 @Slf4j
 public class WebMvcConfiguration extends SpringBootServletInitializer {
+
+    @Value("${spring.graphql.graphiql.enabled:false}")
+    private boolean enableGraphiQL;
 
     @Bean
     public WebMvcConfigurer configureStaticPages() {
@@ -63,7 +67,7 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
 
                 // API path
                 {
-                    final String API_PATH = "/api";
+                    final String API_PATH = RestPaths.BASE_API_PATH;
                     registry.addRedirectViewController("/", API_PATH);
                     registry.addRedirectViewController(API_PATH + "/", API_PATH);
                     registry.addViewController(API_PATH)
@@ -71,44 +75,64 @@ public class WebMvcConfiguration extends SpringBootServletInitializer {
                 }
 
                 // GraphiQL path
-                {
+                if (enableGraphiQL) {
                     final String GRAPHIQL_PATH = "/api/graphiql";
                     registry.addRedirectViewController(GRAPHIQL_PATH + "/", GRAPHIQL_PATH);
                     registry.addRedirectViewController("/graphiql", GRAPHIQL_PATH);
                     registry.addRedirectViewController("/graphiql/", GRAPHIQL_PATH);
                 }
 
-                // WebSocket test path
+                // GraphQL WebSocket test path
                 {
-                    final String WS_TEST_PATH = "/graphql/websocket/test";
+                    final String WS_TEST_PATH = GraphQLPaths.SUBSCRIPTION_PATH + "/test";
                     registry.addRedirectViewController(WS_TEST_PATH + "/", WS_TEST_PATH);
-                    registry.addRedirectViewController("/api/graphql/websocket/test", WS_TEST_PATH);
-                    registry.addRedirectViewController("/api/graphql/websocket/test/", WS_TEST_PATH);
+                    registry.addRedirectViewController(RestPaths.BASE_API_PATH + WS_TEST_PATH, WS_TEST_PATH);
+                    registry.addRedirectViewController(RestPaths.BASE_API_PATH + WS_TEST_PATH + "/", WS_TEST_PATH);
                     registry.addViewController(WS_TEST_PATH)
-                            .setViewName("forward:/websocket/index.html");
+                        .setViewName("forward:/api/websocket/index.html");
                 }
-            }
-
-            @Override
-            public void configurePathMatch(PathMatchConfigurer configurer) {
-                configurer.setUseSuffixPatternMatch(true);
             }
         };
     }
 
 
     @Bean
-    public WebMvcConfigurer configureCORS() {
+    public WebMvcConfigurer configureBaseCORS() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Enable Global CORS support for the application
+                // Enable CORS support for /api
                 //See https://stackoverflow.com/questions/35315090/spring-boot-enable-global-cors-support-issue-only-get-is-working-post-put-and
-                registry.addMapping("/**")
+                registry.addMapping(RestPaths.BASE_API_PATH + "/**")
                     .allowedOriginPatterns("*")
-                    .allowedMethods(CORSFilter.ALLOWED_METHODS)
-                    .allowedHeaders(CORSFilter.ALLOWED_HEADERS)
-                    .allowCredentials(CORSFilter.ALLOWED_CREDENTIALS);
+                    .allowedMethods(CORSFilters.ALLOWED_METHODS)
+                    .allowedHeaders(CORSFilters.ALLOWED_HEADERS)
+                    .allowCredentials(CORSFilters.ALLOWED_CREDENTIALS);
+
+                // Enable CORS support for /graphql
+                registry.addMapping(GraphQLPaths.BASE_PATH)
+                    .allowedOriginPatterns("*")
+                    .allowedMethods(CORSFilters.ALLOWED_METHODS)
+                    .allowedHeaders(CORSFilters.ALLOWED_HEADERS)
+                    .allowCredentials(CORSFilters.ALLOWED_CREDENTIALS);
+
+                // Enable CORS support for /download
+                registry.addMapping(RestPaths.DOWNLOAD_PATH + "/**")
+                    .allowedOriginPatterns("*")
+                    .allowedMethods(HttpMethod.GET.name(),
+                        HttpMethod.HEAD.name(),
+                        HttpMethod.OPTIONS.name())
+                    .allowedHeaders(CORSFilters.ALLOWED_HEADERS)
+                    .allowCredentials(CORSFilters.ALLOWED_CREDENTIALS);
+
+                // Enable CORS support for /upload
+                registry.addMapping(RestPaths.UPLOAD_PATH + "/**")
+                    .allowedOriginPatterns("*")
+                    .allowedMethods(HttpMethod.POST.name(),
+                        HttpMethod.HEAD.name(),
+                        HttpMethod.OPTIONS.name())
+                    .allowedHeaders(CORSFilters.ALLOWED_HEADERS)
+                    .allowCredentials(CORSFilters.ALLOWED_CREDENTIALS);
             }
         };
     }

@@ -143,7 +143,8 @@ public class RdfModelServiceImpl implements RdfModelService {
     public byte[] convert(Model model, @Nullable RdfFormat targetFormat) {
         Preconditions.checkNotNull(model);
 
-        log.info("Converting model into {}...", targetFormat.toJenaFormat());
+        log.trace("Converting input model into {}...", targetFormat.toJenaFormat());
+
         return ModelUtils.toBytes(model, targetFormat);
     }
 
