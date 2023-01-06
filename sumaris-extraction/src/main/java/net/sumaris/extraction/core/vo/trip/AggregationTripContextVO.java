@@ -31,6 +31,7 @@ import net.sumaris.extraction.core.vo.AggregationContextVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
@@ -69,7 +70,10 @@ public abstract class AggregationTripContextVO extends AggregationContextVO {
     }
 
     public List<Integer> getTripCodes() {
-        return tripFilter != null && tripFilter.getTripId() != null ? ImmutableList.of(tripFilter.getTripId()) : null;
+        if (tripFilter == null) return null;
+        if (tripFilter.getTripId() != null) return ImmutableList.of(tripFilter.getTripId());
+        if (ArrayUtils.isNotEmpty(tripFilter.getIncludedIds())) return ImmutableList.copyOf(tripFilter.getIncludedIds());
+        return null;
     }
 
     public List<Integer> getLocationIds() {
