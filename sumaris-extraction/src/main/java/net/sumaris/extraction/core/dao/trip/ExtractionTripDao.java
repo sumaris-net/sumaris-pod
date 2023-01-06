@@ -38,6 +38,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -58,6 +59,7 @@ public interface ExtractionTripDao<
 
         if (CollectionUtils.isNotEmpty(source.getCriteria())) {
 
+            // Parse EQUALS
             source.getCriteria().stream()
                     .filter(criterion ->
                             org.apache.commons.lang3.StringUtils.isNotBlank(criterion.getValue())
@@ -91,6 +93,27 @@ public interface ExtractionTripDao<
                                 break;
                         }
                     });
+
+            // Parse IN
+            source.getCriteria().stream()
+                .filter(criterion ->
+                    ArrayUtils.isNotEmpty(criterion.getValues())
+                        && ExtractionFilterOperatorEnum.IN.getSymbol().equals(criterion.getOperator()))
+                .forEach(criterion -> {
+                    switch (criterion.getName().toLowerCase()) {
+
+                        case RdbSpecification.COLUMN_TRIP_CODE:
+                            try {
+                                Integer[] tripIds = Arrays.stream(criterion.getValues())
+                                    .map(Integer::valueOf)
+                                    .toArray(Integer[]::new);
+                                target.setIncludedIds(tripIds);
+                            } catch(NumberFormatException e) {
+                                // Skip
+                            }
+                            break;
+                    }
+                });
         }
         return target;
     }

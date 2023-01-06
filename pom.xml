@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.33.0</version>
+  <version>1.33.1</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -127,8 +127,8 @@
     <spring-web.version>5.3.24</spring-web.version>
     <spring-data.version>2.7.6</spring-data.version>
     <spring-security.version>5.7.5</spring-security.version>
-    <spring-boot.version>2.7.6</spring-boot.version>
-    <spring-boot-plugin.version>2.7.6</spring-boot-plugin.version>
+    <spring-boot.version>2.7.7</spring-boot.version>
+    <spring-boot-plugin.version>2.7.7</spring-boot-plugin.version>
     <micrometer.version>1.10.2</micrometer.version>
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.12</reflections.version>
@@ -383,6 +383,11 @@
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-cache</artifactId>
+        <version>${spring-boot.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-mail</artifactId>
         <version>${spring-boot.version}</version>
       </dependency>
       <dependency>

@@ -354,7 +354,7 @@ public class AggregationRdbTripDaoImpl<
         // Trip
         boolean hasTripFilter = CollectionUtils.isNotEmpty(context.getTripCodes());
         xmlQuery.setGroup("tripFilter", hasTripFilter);
-        xmlQuery.bind("tripCodes", Daos.getSqlInEscapedStrings(context.getTripCodes()));
+        xmlQuery.bind("tripCodes", Daos.getSqlInNumbers(context.getTripCodes()));
 
         xmlQuery.setGroup("excludeInvalidStation", true);
 
@@ -615,7 +615,7 @@ public class AggregationRdbTripDaoImpl<
 
         // Trip
         xmlQuery.setGroup("tripFilter", CollectionUtils.isNotEmpty(context.getTripCodes()));
-        xmlQuery.bind("tripCodes", Daos.getSqlInEscapedStrings(context.getTripCodes()));
+        xmlQuery.bind("tripCodes", Daos.getSqlInNumbers(context.getTripCodes()));
 
         return xmlQuery;
     }
