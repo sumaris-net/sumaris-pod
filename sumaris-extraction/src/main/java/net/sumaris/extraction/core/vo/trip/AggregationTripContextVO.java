@@ -68,10 +68,9 @@ public abstract class AggregationTripContextVO extends AggregationContextVO {
         return tripFilter != null && tripFilter.getVesselId() != null ? ImmutableList.of(tripFilter.getVesselId()) : null;
     }
 
-    public List<String> getTripCodes() {
-        return tripFilter != null && tripFilter.getTripId() != null ? ImmutableList.of(tripFilter.getTripId().toString()) : null;
+    public List<Integer> getTripCodes() {
+        return tripFilter != null && tripFilter.getTripId() != null ? ImmutableList.of(tripFilter.getTripId()) : null;
     }
-
 
     public List<Integer> getLocationIds() {
         return tripFilter != null && tripFilter.getLocationId() != null ? ImmutableList.of(tripFilter.getLocationId()) : null;
