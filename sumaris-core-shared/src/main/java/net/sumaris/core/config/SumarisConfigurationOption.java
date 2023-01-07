@@ -493,7 +493,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     JOB_ENABLED(
         "sumaris.job.service.enabled",
         n("sumaris.config.option.job.service.enabled.description"),
-        Boolean.FALSE.toString(),
+        Boolean.TRUE.toString(),
         Boolean.class,
         false),
 

@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service("jobService")
-@ConditionalOnProperty(name = "sumaris.job.service.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "sumaris.job.service.enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class JobServiceImpl implements JobService {
 
