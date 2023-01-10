@@ -60,11 +60,11 @@ public class JmsJobEventProducer {
     @PostConstruct
     protected void init() {
         if (jmsTemplate == null) {
-            log.warn("Cannot start JMS job events producer: missing a bean of class {}", JmsTemplate.class.getName());
+            log.warn("Cannot start job events producer: missing a bean of class {}", JmsTemplate.class.getName());
             return;
         }
 
-        log.info("Starting JMS job events producer... {destination: '{}', operation: '({})'}",
+        log.info("Starting job events producer... {destination: '{}', operation: '({})'}",
             DESTINATION,
             Arrays.stream(IJobEvent.JobEventOperation.values())
                 .map(Enum::name)
@@ -74,7 +74,6 @@ public class JmsJobEventProducer {
 
     }
 
-    @Async
     @EventListener(value = {JobStartEvent.class, JobEndEvent.class, JobProgressionEvent.class})
     public void onJobEvent(IJobEvent<?> event) {
         if (jmsTemplate == null) return; // Skip

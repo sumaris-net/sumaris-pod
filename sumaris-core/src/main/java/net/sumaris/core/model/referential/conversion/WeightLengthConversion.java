@@ -109,7 +109,6 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sex_qualitative_value_fk")
-    
     private QualitativeValue sex;
 
     @ManyToOne(fetch = FetchType.LAZY)
