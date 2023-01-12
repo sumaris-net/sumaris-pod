@@ -43,7 +43,7 @@ public enum ProcessingTypeEnum implements Serializable {
         return Arrays.stream(values())
             .filter(enumValue -> enumValue.id == id)
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown ProcessingTypeEnum: " + id));
+            .orElse(null);
     }
 
     public static ProcessingTypeEnum byLabel(@NonNull final String label) {
