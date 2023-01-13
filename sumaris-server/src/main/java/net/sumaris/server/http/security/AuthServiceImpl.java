@@ -40,11 +40,9 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
-import net.sumaris.server.service.technical.EntityWatchService;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -122,6 +120,9 @@ public class AuthServiceImpl implements AuthService {
                 onPersonChangeEvent(event);
             }
         }, Person.class);
+
+        // Change security context holder strategy to inheritable thread local
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
     }
 
     @Override

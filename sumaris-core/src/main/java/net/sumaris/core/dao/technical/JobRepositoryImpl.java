@@ -47,6 +47,7 @@ import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -103,7 +104,7 @@ public class JobRepositoryImpl
 
         // Type
         ProcessingTypeEnum sourceType = ProcessingTypeEnum.valueOf(source.getProcessingType().getId());
-        target.setType(sourceType.getLabel());
+        target.setType(Optional.ofNullable(sourceType).map(ProcessingTypeEnum::getLabel).orElse("UNKNOWN"));
 
         // Start date
         target.setStartDate(Dates.min(source.getUpdateDate(), source.getProcessingDate()));
