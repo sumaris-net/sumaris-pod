@@ -55,6 +55,7 @@
     <SOFTWARE_PROPERTY ID="50" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="51" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.import.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="52" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2022-11-11" LABEL="sumaris.data.images.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="53" STATUS_FK="1" SOFTWARE_FK="2" CREATION_DATE="2023-01-16" LABEL="sumaris.persistence.vessel.registrationCode.searchAsPrefix" NAME="false"/>
 
     <!-- ****** OBSDEB properties ****** -->
     <SOFTWARE_PROPERTY ID="70" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:22"/>
