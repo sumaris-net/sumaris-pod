@@ -37,6 +37,8 @@ public enum AcquisitionLevelEnum {
     PHYSICAL_GEAR(2, "PHYSICAL_GEAR"),
     CATCH_BATCH(4, "CATCH_BATCH"),
     SORTING_BATCH(5, "SORTING_BATCH"),
+    SORTING_BATCH_INDIVIDUAL(6, "SORTING_BATCH_INDIVIDUAL"),
+
     /**
      * @deprecated use SAMPLE instead
      */
