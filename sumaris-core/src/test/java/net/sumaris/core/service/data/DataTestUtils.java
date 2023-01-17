@@ -151,12 +151,11 @@ public class DataTestUtils {
     }
 
     public static BatchVO createBatchTree(DatabaseFixtures fixtures, int index) {
-        switch (index) {
-            case 0: return createSumarisBatchTree(fixtures);
-            case 1: return createAdapBatchTree(fixtures);
-            default:
-                throw new IllegalArgumentException("Invalid index: " + index);
-        }
+        return switch (index) {
+            case 0 -> createSumarisBatchTree(fixtures);
+            case 1 -> createAdapBatchTree(fixtures);
+            default -> throw new IllegalArgumentException("Invalid index: " + index);
+        };
     }
 
     public static BatchVO createSumarisBatchTree(DatabaseFixtures fixtures) {

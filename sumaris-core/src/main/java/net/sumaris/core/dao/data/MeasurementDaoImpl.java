@@ -197,6 +197,17 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId, List<Integer> pmfmIds) {
+        return getMeasurementsByParentId(VesselUseMeasurement.class,
+            MeasurementVO.class,
+            VesselUseMeasurement.Fields.OPERATION,
+            operationId,
+            VesselUseMeasurement.Fields.RANK_ORDER,
+            pmfmIds
+        );
+    }
+
+    @Override
     public Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId) {
         return getMeasurementsMapByParentId(VesselUseMeasurement.class,
                 VesselUseMeasurement.Fields.OPERATION,
@@ -969,11 +980,20 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> getMeasurementsByParentId(Class<T> entityClass,
-                                                                                        Class<? extends V> voClass,
-                                                                                        String parentPropertyName,
-                                                                                        int parentId,
-                                                                                        String sortByPropertyName) {
-        TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName);
+                                                                                                        Class<? extends V> voClass,
+                                                                                                        String parentPropertyName,
+                                                                                                        int parentId,
+                                                                                                        String sortByPropertyName) {
+        return getMeasurementsByParentId(entityClass, voClass, parentPropertyName, parentId, sortByPropertyName, null);
+    }
+
+    protected <T extends IMeasurementEntity, V extends MeasurementVO> List<V> getMeasurementsByParentId(Class<T> entityClass,
+                                                                                                        Class<? extends V> voClass,
+                                                                                                        String parentPropertyName,
+                                                                                                        int parentId,
+                                                                                                        String sortByPropertyName,
+                                                                                                        @Nullable List<Integer> pmfmIds) {
+        TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName, pmfmIds);
         return toMeasurementVOs(query.getResultList(), voClass);
     }
 
@@ -990,23 +1010,48 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                                                                                           String parentPropertyName,
                                                                                           int parentId,
                                                                                           @Nullable String sortByPropertyName) {
+        return getMeasurementsByParentIdQuery(entityClass, parentPropertyName, parentId, sortByPropertyName, null);
+    }
+
+    protected <T extends IMeasurementEntity> TypedQuery<T> getMeasurementsByParentIdQuery(Class<T> entityClass,
+                                                                                          String parentPropertyName,
+                                                                                          int parentId,
+                                                                                          @Nullable String sortByPropertyName,
+                                                                                          @Nullable List<Integer> pmfmIds) {
         EntityManager em = getEntityManager();
-        CriteriaBuilder builder = em.getCriteriaBuilder();
-        CriteriaQuery<T> query = builder.createQuery(entityClass);
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<T> query = cb.createQuery(entityClass);
         Root<T> root = query.from(entityClass);
 
-        ParameterExpression<Integer> idParam = builder.parameter(Integer.class);
+        // Filter on parent's id
+        ParameterExpression<Integer> idParam = cb.parameter(Integer.class);
+        Predicate whereClause = cb.equal(root.get(parentPropertyName).get(IEntity.Fields.ID), idParam);
+
+        // Filter on pmfm ids
+        ParameterExpression<Collection> pmfmIdsParam = null;
+        if (CollectionUtils.isNotEmpty(pmfmIds)) {
+            pmfmIdsParam = cb.parameter(Collection.class);
+            whereClause = cb.and(
+                whereClause,
+                cb.in(root.get(IMeasurementEntity.Fields.PMFM).get(Pmfm.Fields.ID))
+                    .value(pmfmIdsParam)
+            );
+        }
 
         query.select(root)
-                .where(builder.equal(root.get(parentPropertyName).get(IEntity.Fields.ID), idParam));
+            .where(whereClause);
 
         // Order by
         if (sortByPropertyName != null) {
-            query.orderBy(builder.asc(root.get(sortByPropertyName)));
+            query.orderBy(cb.asc(root.get(sortByPropertyName)));
         }
 
-        return em.createQuery(query)
-                .setParameter(idParam, parentId);
+        TypedQuery<T> typedQuery = em.createQuery(query)
+            .setParameter(idParam, parentId);
+
+        if (pmfmIdsParam != null) typedQuery.setParameter(pmfmIdsParam, pmfmIds);
+
+        return typedQuery;
     }
 
     protected <T extends IMeasurementEntity> TypedQuery<T> getMeasurementsByParentIdsQuery(Class<T> entityClass,
@@ -1089,32 +1134,22 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
 
         switch (type) {
-            case BOOLEAN:
-                target.setNumericalValue(Boolean.parseBoolean(value) || "1".equals(value) ? 1d : 0d);
-                break;
-            case QUALITATIVE_VALUE:
+            case BOOLEAN -> target.setNumericalValue(Boolean.parseBoolean(value) || "1".equals(value) ? 1d : 0d);
+            case QUALITATIVE_VALUE -> {
                 // If find a object structure (e.g. ReferentialVO), try to find the id
                 try {
                     target.setQualitativeValue(getReference(QualitativeValue.class, Integer.parseInt(value)));
-                }
-                catch(NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     throw new SumarisTechnicalException(String.format("Invalid value for pmfm with id=%s. Expected an integer (to link with a QualitativeValue.id), but got: '%s'. Please fix value, or change the Pmfm type to alphanumerical",
                         pmfm.getId(), value));
                 }
-                break;
-            case STRING:
-                target.setAlphanumericalValue(value);
-                break;
-            case DATE:
-                target.setAlphanumericalValue(Dates.checkISODateTimeString(value));
-                break;
-            case INTEGER:
-            case DOUBLE:
-                target.setNumericalValue(Double.parseDouble(value));
-                break;
-            default:
+            }
+            case STRING -> target.setAlphanumericalValue(value);
+            case DATE -> target.setAlphanumericalValue(Dates.checkISODateTimeString(value));
+            case INTEGER, DOUBLE -> target.setNumericalValue(Double.parseDouble(value));
+            default ->
                 // Unknown type
-                throw new SumarisTechnicalException( String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
+                throw new SumarisTechnicalException(String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
         }
     }
 
@@ -1182,23 +1217,19 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         PmfmVO pmfm = getPmfm(source.getPmfm().getId());
         PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
 
-        switch (type) {
-            case BOOLEAN:
-                return (source.getNumericalValue() != null) ? (source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE) : null;
-            case QUALITATIVE_VALUE:
+        return switch (type) {
+            case BOOLEAN ->
+                (source.getNumericalValue() != null) ? (source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE) : null;
+            case QUALITATIVE_VALUE ->
                 // If find a object structure (e.g. ReferentialVO), try to find the id
-                return ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
-            case STRING:
-            case DATE:
-                return source.getAlphanumericalValue();
-            case INTEGER:
-                return (source.getNumericalValue() != null) ? source.getNumericalValue().intValue() : null;
-            case DOUBLE:
-                return source.getNumericalValue();
-            default:
+                ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
+            case STRING, DATE -> source.getAlphanumericalValue();
+            case INTEGER -> (source.getNumericalValue() != null) ? source.getNumericalValue().intValue() : null;
+            case DOUBLE -> source.getNumericalValue();
+            default ->
                 // Unknown type
-                throw new SumarisTechnicalException( String.format("Unable to read measurement's value for the type {%s}. Measurement id=%s", type.name().toLowerCase(), source.getId()));
-        }
+                throw new SumarisTechnicalException(String.format("Unable to read measurement's value for the type {%s}. Measurement id=%s", type.name().toLowerCase(), source.getId()));
+        };
     }
 
     protected void fillDefaultProperties(IEntity<?> parent, IMeasurementEntity target) {

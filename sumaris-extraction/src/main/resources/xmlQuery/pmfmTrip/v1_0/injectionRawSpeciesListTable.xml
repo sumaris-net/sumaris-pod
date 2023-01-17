@@ -22,8 +22,11 @@
 
 <query type="select">
 
+  <select alias="REFERENCE_TAXON_ID" type="hidden" group="taxon">SPECIE_B.REFERENCE_TAXON_FK</select>
+
   <from join="true">LEFT OUTER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = SORTING_B.ID</from>
   <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = SM.QUALITATIVE_VALUE_FK</from>
 
+  <groupby group="taxon">REFERENCE_TAXON_ID</groupby>
   <groupby>&amp;groupByColumns</groupby>
 </query>

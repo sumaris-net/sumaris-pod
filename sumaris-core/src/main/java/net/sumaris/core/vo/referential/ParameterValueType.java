@@ -59,19 +59,13 @@ public enum ParameterValueType {
     }
 
     public static ParameterValueType fromString(String name) {
-        switch (name.toUpperCase()) {
-            case "BOOLEAN":
-                return ParameterValueType.BOOLEAN;
-            case "QUALITATIVE_VALUE":
-                return ParameterValueType.QUALITATIVE_VALUE;
-            case "STRING":
-                return ParameterValueType.STRING;
-            case "DATE":
-                return ParameterValueType.DATE;
-            case "DOUBLE":
-                return ParameterValueType.DOUBLE;
-            default:
-                return null;
-        }
+        return switch (name.toUpperCase()) {
+            case "BOOLEAN" -> ParameterValueType.BOOLEAN;
+            case "QUALITATIVE_VALUE" -> ParameterValueType.QUALITATIVE_VALUE;
+            case "STRING" -> ParameterValueType.STRING;
+            case "DATE" -> ParameterValueType.DATE;
+            case "DOUBLE" -> ParameterValueType.DOUBLE;
+            default -> null;
+        };
     }
 }

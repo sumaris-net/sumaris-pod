@@ -23,6 +23,7 @@ package net.sumaris.extraction.core.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
@@ -474,8 +475,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Bind some ids
         xmlQuery.bind("sexPmfmId", String.valueOf(PmfmEnum.SEX.getId()));
-        xmlQuery.bind("lengthTotalCmPmfmId", String.valueOf(PmfmEnum.LENGTH_TOTAL_CM.getId()));
-        xmlQuery.bind("lengthCarapaceCmPmfmId", String.valueOf(PmfmEnum.LENGTH_CARAPACE_CM.getId()));
+        xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
         xmlQuery.bind("centimeterUnitId", String.valueOf(UnitEnum.CM.getId()));
         xmlQuery.bind("millimeterUnitId", String.valueOf(UnitEnum.MM.getId()));
 
@@ -483,12 +483,25 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("lengthClass", true);
         xmlQuery.setGroup("numberAtLength", true);
 
+        // Taxon disabled by default (RDB format has only one HL.SPECIES column)
+        // Butt group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
+        xmlQuery.setGroup("taxon", false);
+
         return xmlQuery;
     }
 
     protected long createLandingTable(C context) {
         // TODO create the landing query and table
         return 0;
+    }
+
+    protected List<Integer> getSpeciesLengthPmfmIds() {
+        return ImmutableList.of(
+            PmfmEnum.LENGTH_TOTAL_CM.getId(),
+            PmfmEnum.LENGTH_CARAPACE_CM.getId(),
+            PmfmEnum.LENGTH_CARAPACE_MM.getId(),
+            PmfmEnum.SEGMENT_LENGTH_MM.getId()
+        );
     }
 
     /**
@@ -552,10 +565,18 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected List<String> getTripProgramLabels(C context) {
 
+        List<String> result = context.getTripProgramLabels();
+        if (result != null) return result; // Already computed
+
         XMLQuery xmlQuery = createXMLQuery(context, "distinctTripProgram");
         xmlQuery.bind("tableName", context.getTripTableName());
 
-        return query(xmlQuery.getSQLQueryAsString(), String.class);
+        result = query(xmlQuery.getSQLQueryAsString(), String.class);
+
+        // Store in context, to avoid another query execution
+        context.setTripProgramLabels(result);
+
+        return result;
     }
 
     private List<ExtractionPmfmColumnVO> toPmfmColumnVO(List<DenormalizedPmfmStrategyVO> pmfmStrategies) {

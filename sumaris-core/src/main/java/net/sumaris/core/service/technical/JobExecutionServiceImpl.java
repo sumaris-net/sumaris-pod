@@ -282,21 +282,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         // Save and Notify user
         jobService.save(target);
 
-        EventLevelEnum eventLevel;
-        switch (job.getStatus()) {
-
-            case ERROR:
-            case FATAL:
-                eventLevel = EventLevelEnum.ERROR;
-                break;
-            case WARNING:
-            case CANCELLED:
-                eventLevel = EventLevelEnum.WARNING;
-                break;
-            default:
-                eventLevel = EventLevelEnum.INFO;
-                break;
-        }
+        EventLevelEnum eventLevel = switch (job.getStatus()) {
+            case ERROR, FATAL -> EventLevelEnum.ERROR;
+            case WARNING, CANCELLED -> EventLevelEnum.WARNING;
+            default -> EventLevelEnum.INFO;
+        };
 
         sendUserEvent(eventLevel, target);
 

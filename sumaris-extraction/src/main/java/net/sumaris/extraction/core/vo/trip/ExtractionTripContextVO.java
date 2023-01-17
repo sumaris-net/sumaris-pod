@@ -77,4 +77,5 @@ public class ExtractionTripContextVO extends AggregationContextVO {
         return tripFilter != null ? tripFilter.getTripId() : null;
     }
 
+
 }

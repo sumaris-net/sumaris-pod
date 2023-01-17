@@ -10,11 +10,20 @@
         <subselect alias="ID_VRAC" type="number">SL.ID_VRAC</subselect>
         <subselect alias="ID_CAPTURE" type="number">SL.SAMPLE_ID</subselect>
 
-        <!-- TODO gérer les noms vernaculaires dans TRANSCRIBING (pour utiliser NAME plutot que COMMENTS)
-             ET afficher les nom vernaculaires dans les UI (nécessaire pour ADAP)  -->
-        <subselect alias="ESPECE" type="text">TN.COMMENTS</subselect>
+        <!-- TODO
+          - utiliser NAME plutot que COMMENTS
+          - gérer les noms vernaculaires dans TRANSCRIBING
+          - ET afficher les nom vernaculaires dans les UI (nécessaire pour ADAP) -->
+        <subselect alias="ESPECE" type="text">COALESCE(TN.COMMENTS, TN.NAME)</subselect>
         <subselect alias="ESPECE_COM" type="text">TG.NAME</subselect>
-        <subselect alias="PRESENTATION" type="text">CASE SL.CATCH_CATEGORY WHEN UPPER('LAN') THEN CONCAT(UPPER('GUT - E'),'viscéré') ELSE null END</subselect>
+        <subselect alias="PRESENTATION" type="text">
+            CASE
+              WHEN SL.PRESENTATION IS NOT NULL THEN SL.PRESENTATION
+              WHEN SL.CATCH_CATEGORY = 'LAN' THEN 'GUT - Eviscéré'
+              WHEN SL.CATCH_CATEGORY = 'DIS' THEN 'WHL - Entier'
+            ELSE null
+            END
+        </subselect>
         <subselect alias="TAUX_ECH" type="number">
           CASE
           WHEN SL.SAMPLING_RATIO is not null THEN ROUND(SL.SAMPLING_RATIO, 7)
@@ -24,6 +33,12 @@
         </subselect>
         <subselect alias="POIDS_REF" type="number">SL.SUBSAMPLE_WEIGHT</subselect>
         <subselect alias="METHODE_POIDS_REF" type="text">METHOD.NAME</subselect>
+        <subselect alias="WEIGHT_RTP" type="number">COALESCE(
+          SL.WEIGHT_RTP,
+          (SELECT ROUND(SUM(QM.NUMERICAL_VALUE), 6) FROM BATCH B_LENGTH inner join QUANTIFICATION_MEASUREMENT_B QM on QM.BATCH_FK = B_LENGTH.ID where B_LENGTH.PARENT_BATCH_FK=SL.SAMPLE_ID and QM.PMFM_FK=&amp;weightRtpPmfmId)
+          )
+        </subselect>
+
         <subselect alias="NOMBRE" type="number">SAMPLE_BATCH.INDIVIDUAL_COUNT</subselect>
 
         <from alias="SL">&amp;rawSpeciesListTableName</from>
@@ -52,7 +67,7 @@
     <select alias="POIDS_REF" type="number">T.POIDS_REF</select>
     <select alias="METHODE_POIDS_REF" type="text">T.METHODE_POIDS_REF</select>
 
-    <select alias="WEIGHT_RTP" type="number">null</select><!-- TODO manage RTP -->
+    <select alias="WEIGHT_RTP" type="number">T.WEIGHT_RTP</select>
     <select alias="NOMBRE" type="number">T.NOMBRE</select>
     <select alias="PRODUCT_DESTINATION" type="text">null</select>
 

@@ -23,6 +23,7 @@ package net.sumaris.extraction.core.dao.trip.pmfm;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
@@ -77,18 +78,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     public <R extends C> R execute(F filter) {
         R context = super.execute(filter);
 
+        boolean enableSamples = this.isSamplesEnabled(context);
 
-        List<String> programLabels = getTripProgramLabels(context);
-
-        // Check if samples have been enabled:
-        // - by program properties
-        // - or by pmfm strategies
-        boolean hasSamples = programLabels.stream()
-            .anyMatch(label ->
-                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_OPERATION_ENABLE_SAMPLE, Boolean.TRUE.toString()))
-            || programLabels.stream().anyMatch(label -> this.programService.hasAcquisitionLevelByLabel(label, AcquisitionLevelEnum.SAMPLE));
-
-        if (hasSamples) {
+        if (enableSamples) {
             context.setSampleTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
             context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 
@@ -116,6 +108,45 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     }
 
     /* -- protected methods -- */
+
+    protected boolean isSamplesEnabled(C context) {
+        List<String> programLabels = getTripProgramLabels(context);
+
+        // Check if samples have been enabled:
+        // - by program properties
+        // - or by pmfm strategies
+        return programLabels.stream()
+            .anyMatch(label ->
+                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_OPERATION_ENABLE_SAMPLE, Boolean.TRUE.toString()))
+            || programLabels.stream().anyMatch(label -> this.programService.hasAcquisitionLevelByLabel(label, AcquisitionLevelEnum.SAMPLE));
+    }
+
+    protected boolean enableParentOperation(C context) {
+        List<String> programLabels = getTripProgramLabels(context);
+        return programLabels.stream()
+            .anyMatch(label -> this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_OPERATION_ALLOW_PARENT, Boolean.TRUE.toString()));
+    }
+
+    protected boolean enableSpeciesListTaxon(C context) {
+        List<String> programLabels = getTripProgramLabels(context);
+
+        return programLabels.stream()
+            .anyMatch(label ->
+                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE, Boolean.TRUE.toString()));
+    }
+
+    protected boolean enableSpeciesLengthTaxon(C context) {
+        List<String> programLabels = getTripProgramLabels(context);
+
+        // Check if samples have been enabled:
+        // - by program properties
+        // - or by pmfm strategies
+        return programLabels.stream()
+            .anyMatch(label ->
+                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString()));
+    }
+
+
     @Override
     protected Class<? extends ExtractionRdbTripContextVO> getContextClass() {
         return ExtractionPmfmTripContextVO.class;
@@ -128,7 +159,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
 
         // Get columns, BEFORE to add pmfms columns
-        String groupbyColumns = String.join(",", xmlQuery.getAllColumnNames());
+        String groupByColumns = String.join(",", xmlQuery.getAllColumnNames());
 
         // Add PMFM from program, if on program has been set
         String programLabel = context.getTripFilter().getProgramLabel();
@@ -141,7 +172,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 );
         }
 
-        xmlQuery.bind("groupByColumns", groupbyColumns);
+        xmlQuery.bind("groupByColumns", groupByColumns);
 
         return xmlQuery;
     }
@@ -168,7 +199,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         // Inject physical gear pmfms
         injectPmfmColumns(context, xmlQuery,
-            getTripProgramLabels(context),
+            programLabels,
             AcquisitionLevelEnum.PHYSICAL_GEAR,
             // Excluded Pmfms (already exists as RDB format columns)
             PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
@@ -178,9 +209,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // Compute list of pmfms, depending of acquisition levels used
         List<ExtractionPmfmColumnVO> pmfmColumns;
         URL injectionQuery;
-        boolean hasProgramAllowParent = programLabels.stream()
-            .anyMatch(label -> this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_OPERATION_ALLOW_PARENT, Boolean.TRUE.toString()));
-        if (!hasProgramAllowParent) {
+        boolean enableParentOperation = enableParentOperation(context);
+        if (!enableParentOperation) {
             pmfmColumns = loadPmfmColumns(context, programLabels, AcquisitionLevelEnum.OPERATION);
             injectionQuery = getInjectionQueryByAcquisitionLevel(context, AcquisitionLevelEnum.OPERATION);
         }
@@ -199,7 +229,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             PmfmEnum.TRIP_PROGRESS.getId()
         );
 
-         xmlQuery.setGroup("allowParent", hasProgramAllowParent);
+         xmlQuery.setGroup("allowParent", enableParentOperation);
 
         return xmlQuery;
     }
@@ -221,13 +251,18 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         );
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
+
+        xmlQuery.setGroup("taxon", this.enableSpeciesListTaxon(context));
+
         return xmlQuery;
     }
 
     protected XMLQuery createSpeciesListQuery(C context) {
         XMLQuery xmlQuery = super.createSpeciesListQuery(context);
 
-        String groupByColumns = injectPmfmColumns(context, xmlQuery,
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"), "afterSpeciesInjection");
+
+        String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
                 AcquisitionLevelEnum.SORTING_BATCH,
                 "injectionSpeciesListPmfm",
@@ -237,10 +272,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
                 PmfmEnum.DISCARD_OR_LANDING.getId());
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"));
 
-        xmlQuery.bind("groupByColumns", groupByColumns);
-        xmlQuery.setGroup("addGroupBy", StringUtils.isNotBlank(groupByColumns));
+        // Add group by pmfms
+        xmlQuery.setGroup("addGroupBy", StringUtils.isNotBlank(pmfmsColumns));
+        xmlQuery.bind("groupByColumns", pmfmsColumns);
+
+        // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
+        boolean enableTaxonColumns = this.enableSpeciesListTaxon(context);
+        xmlQuery.setGroup("taxon", enableTaxonColumns);
 
         return xmlQuery;
     }
@@ -249,14 +288,37 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     protected XMLQuery createSpeciesLengthQuery(C context) {
         XMLQuery xmlQuery = super.createSpeciesLengthQuery(context);
 
-        // Special case for COST format:
-
         // - Hide sex columns, then replace by a new columns
         xmlQuery.setGroup("sex", false);
         xmlQuery.setGroup("lengthClass", false);
         xmlQuery.setGroup("numberAtLength", false);
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"));
+        // Add pmfm columns
+        String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
+            getTripProgramLabels(context),
+            AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL,
+            "injectionSpeciesLengthPmfm",
+            "afterSexInjection",
+            // Excluded some pmfms (already extracted in the RDB format)
+            ImmutableList.builder()
+                .add(PmfmEnum.DISCARD_OR_LANDING.getId(),
+                    PmfmEnum.SEX.getId())
+                .addAll(getSpeciesLengthPmfmIds()).build().toArray(Integer[]::new)
+        );
+        boolean hasPmfmsColumnsInjected = StringUtils.isNotBlank(pmfmsColumns);
+
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"), "afterSexInjection");
+
+        // Enable group, need by pmfms columns (if any)
+        xmlQuery.setGroup("pmfms", hasPmfmsColumnsInjected);
+
+        // Enable taxon columns, if enable by program property (inherited from SL or directly from HL)
+        boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
+        if (enableTaxonColumns) {
+            xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTaxon"), "afterSpeciesInjection");
+        }
+        xmlQuery.setGroup("taxon", enableTaxonColumns);
+
         return xmlQuery;
     }
 
@@ -352,7 +414,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionStationTable":
             case "injectionRawSpeciesListTable":
             case "injectionSpeciesListTable":
+            case "injectionSpeciesLengthPmfm":
             case "injectionSpeciesLengthTable":
+            case "injectionSpeciesLengthTaxon":
             case "createReleaseTable":
             case "createSampleTable":
                 return getQueryFullName(PmfmTripSpecification.FORMAT, PmfmTripSpecification.VERSION_1_0, queryName);

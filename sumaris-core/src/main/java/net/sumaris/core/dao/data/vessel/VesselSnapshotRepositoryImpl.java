@@ -227,13 +227,11 @@ public class VesselSnapshotRepositoryImpl
     }
 
     protected String toEntityPropertyName(@NonNull String voPropertyName) {
-        String fixedPropertyName = voPropertyName;
-        switch (voPropertyName) {
-            case VesselRegistrationPeriod.Fields.REGISTRATION_CODE:
-            case VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE:
-                fixedPropertyName = StringUtils.doting(VRP_PATH, voPropertyName);
-                break;
-        }
+        String fixedPropertyName = switch (voPropertyName) {
+            case VesselRegistrationPeriod.Fields.REGISTRATION_CODE, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE ->
+                StringUtils.doting(VRP_PATH, voPropertyName);
+            default -> voPropertyName;
+        };
         if (!voPropertyName.equals(fixedPropertyName)) {
             log.debug("Map property 'VesselSnapshotVO.{}' -> 'VesselFeatures.{}'", voPropertyName, fixedPropertyName);
             return fixedPropertyName;

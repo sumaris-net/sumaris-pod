@@ -55,6 +55,9 @@ public interface MeasurementService {
     List<MeasurementVO> getOperationVesselUseMeasurements(int operationId);
 
     @Transactional(readOnly = true)
+    List<MeasurementVO> getOperationVesselUseMeasurements(int operationId, List<Integer> pmfmIds);
+
+    @Transactional(readOnly = true)
     List<MeasurementVO> getOperationGearUseMeasurements(int operationId);
 
     @Transactional(readOnly = true)

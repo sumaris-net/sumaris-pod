@@ -29,5 +29,8 @@
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
   <select alias="NUMBER_AT_LENGTH" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
 
-  <groupby>B.SEX, LENGTH_CLASS</groupby>
+  <from join="true" group="pmfms">INNER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = B.ID</from>
+  <from join="true" group="pmfms">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID = SM.QUALITATIVE_VALUE_FK</from>
+
+  <groupby>B.SEX, B.LENGTH_CLASS</groupby>
 </query>

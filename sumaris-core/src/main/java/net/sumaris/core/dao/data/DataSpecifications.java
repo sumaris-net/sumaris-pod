@@ -93,16 +93,12 @@ public interface DataSpecifications<ID extends Serializable,
 
     default Specification<E> withDataQualityStatus(DataQualityStatusEnum status) {
         if (status != null) {
-            switch (status) {
-                case MODIFIED:
-                    return isNotControlled();
-                case CONTROLLED:
-                    return isControlled();
-                case VALIDATED:
-                    return isValidated();
-                case QUALIFIED:
-                    return isQualified();
-            }
+            return switch (status) {
+                case MODIFIED -> isNotControlled();
+                case CONTROLLED -> isControlled();
+                case VALIDATED -> isValidated();
+                case QUALIFIED -> isQualified();
+            };
         }
         return null;
     }

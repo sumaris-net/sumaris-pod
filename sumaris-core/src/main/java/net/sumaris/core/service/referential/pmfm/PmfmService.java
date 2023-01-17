@@ -62,6 +62,9 @@ public interface PmfmService {
     boolean isWeightPmfm(int pmfmId);
 
     @Transactional(readOnly = true)
+    boolean isBatchWeightPmfm(int pmfmId);
+
+    @Transactional(readOnly = true)
     boolean isSortingPmfm(int pmfmId);
 
     @Transactional(readOnly = true)
