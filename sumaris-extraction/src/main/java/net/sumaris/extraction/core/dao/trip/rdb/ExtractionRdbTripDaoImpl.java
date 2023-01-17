@@ -393,6 +393,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
 
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
+
         return xmlQuery;
     }
 
@@ -433,6 +436,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
+
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
         xmlQuery.setGroup("injectionPoint", false);
 
