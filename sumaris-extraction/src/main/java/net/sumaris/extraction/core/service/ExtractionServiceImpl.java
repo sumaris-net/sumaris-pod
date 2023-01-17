@@ -348,7 +348,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         // Dump table to CSV files
         log.debug(String.format("Extraction #%s > Creating CSV files...", context.getId()));
 
-        String dateStr = Dates.formatDate(new Date(context.getId()), "yyyy-MM-dd-HHmm");
+        Date date = context.getUpdateDate() != null ? context.getUpdateDate() : new Date();
+        String dateStr = Dates.formatDate(date, "yyyy-MM-dd-HHmm");
         String basename = context.getFormat() + "-" + dateStr;
 
         final ExtractionFilterVO tableFilter = ExtractionFilterVO.nullToEmpty(filter);
