@@ -96,7 +96,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Species Raw table
-        rowCount = createRawSpeciesListTable(context, true /*exclude invalid station*/);
+        rowCount = createRawSpeciesListTable(context, true /*always exclude invalid station*/);
         if (rowCount == 0) return context;
 
         // Strategy table
@@ -196,7 +196,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.bind("stationTableName", context.getStationTableName());
 
         // Bind some PMFM ids
-        xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
+        xmlQuery.bind("tripProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
         xmlQuery.bind("seaStatePmfmId", String.valueOf(PmfmEnum.SEA_STATE.getId()));
         xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
         xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));

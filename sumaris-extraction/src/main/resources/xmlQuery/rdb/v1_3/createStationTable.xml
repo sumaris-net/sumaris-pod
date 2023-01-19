@@ -36,7 +36,7 @@
 
     <!-- other fields -->
     <select alias="FISHING_VALIDITY" type="text" group="agg">
-      MAX(CASE VUM.PMFM_FK WHEN &amp;normalProgressPmfmId THEN
+      MAX(CASE VUM.PMFM_FK WHEN &amp;tripProgressPmfmId THEN
         CASE VUM.NUMERICAL_VALUE
           WHEN 1 THEN UPPER('V')
           WHEN 0 THEN UPPER('I')

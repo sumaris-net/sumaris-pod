@@ -20,7 +20,7 @@
     <select alias="DATE" type="hidden">COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)</select>
 
     <!-- other fields -->
-    <select alias="DEROULEMENT_OP" type="text"><![CDATA[(SELECT CASE VUM.NUMERICAL_VALUE WHEN 1 THEN 'Normal' WHEN 0 THEN 'Anormal' ELSE null END FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&normalProgressPmfmId)]]></select>
+    <select alias="DEROULEMENT_OP" type="text"><![CDATA[(SELECT CASE VUM.NUMERICAL_VALUE WHEN 1 THEN 'Normal' WHEN 0 THEN 'Anormal' ELSE null END FROM VESSEL_USE_MEASUREMENT VUM WHERE VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&tripProgressPmfmId)]]></select>
 
     <select alias="ETAT_MER" type="text"><![CDATA[
     (SELECT QV.LABEL || ' - ' || (CASE QV.LABEL
