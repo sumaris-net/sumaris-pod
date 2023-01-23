@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleAdagioRepository;
@@ -65,8 +64,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class SampleServiceImpl implements SampleService {
-
-	private final SumarisConfiguration configuration;
 
 	protected final SampleRepository sampleRepository;
 

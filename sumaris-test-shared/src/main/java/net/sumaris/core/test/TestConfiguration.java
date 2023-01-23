@@ -63,8 +63,8 @@ public abstract class TestConfiguration {
             config = createConfiguration(getConfigFileName(), getConfigArgs());
         }
 
-        // Init i18n
-        I18nUtil.init(config, getI18nBundleName());
+        // Init directories, i18n, etc.
+        init(config);
 
         return config;
     }
@@ -98,6 +98,11 @@ public abstract class TestConfiguration {
         return dataSource;
     }
 
+    protected void init(SumarisConfiguration config) {
+
+        // Init i18n
+        I18nUtil.init(config, getI18nBundleName());
+    }
     protected abstract String getConfigFileName();
     protected abstract String getI18nBundleName();
 

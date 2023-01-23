@@ -57,7 +57,7 @@ import java.util.Properties;
 @SpringBootTest(classes = {ServiceTestConfiguration.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
-public class AbstractServiceTest {
+public abstract class AbstractServiceTest {
 
 	@Autowired
 	protected SumarisConfiguration config;

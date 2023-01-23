@@ -25,16 +25,23 @@ package net.sumaris.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphql.spring.boot.test.GraphQLTestTemplate;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.test.TestConfiguration;
+import net.sumaris.core.util.I18nUtil;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import java.io.File;
 
 @SpringBootApplication(
     exclude = {
@@ -42,14 +49,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         FreeMarkerAutoConfiguration.class
     },
     scanBasePackages = {
+            "net.sumaris.core.config",
             "net.sumaris.core.dao",
+            "net.sumaris.core.jms",
             "net.sumaris.core.service",
             "net.sumaris.extraction.core",
             "net.sumaris.server"
     }
 )
 @EnableTransactionManagement
-public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfiguration {
+public class ServiceTestConfiguration extends TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-server";
     public static final String DATASOURCE_PLATFORM = "hsqldb";
@@ -63,7 +72,9 @@ public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfigur
     }
 
     @Bean
+    @Primary
     public SumarisConfiguration configuration() {
+        // If exists, use existing config (from DatabaseResource)
         SumarisConfiguration config = super.configuration();
 
         // Encapsulate existing config into SumarisServerConfiguration class
@@ -72,7 +83,20 @@ public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfigur
             SumarisConfiguration.setInstance(config);
         }
 
+
         return config;
+    }
+
+    @Override
+    protected void init(SumarisConfiguration config) {
+        super.init(config);
+
+        // Init EHCache directory (see 'ehcache.xml' file)
+        System.setProperty(SumarisConfigurationOption.CACHE_DIRECTORY.getKey(), config.getCacheDirectory().getPath() + File.separator);
+
+        // Init active MQ data directory
+        System.setProperty("org.apache.activemq.default.directory.prefix", config.getDataDirectory().getPath() + File.separator);
+
     }
 
     @Override

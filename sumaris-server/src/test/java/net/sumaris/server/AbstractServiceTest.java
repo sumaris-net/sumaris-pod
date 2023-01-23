@@ -22,17 +22,22 @@
 
 package net.sumaris.server;
 
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.util.crypto.KeyPair;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.http.security.AuthenticationFilter;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import net.sumaris.server.util.security.AuthTokenVO;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.concurrent.Callable;
@@ -44,6 +49,7 @@ import static org.junit.Assert.fail;
 @SpringBootTest(classes = {ServiceTestConfiguration.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:sumaris-server-test.properties")
 @Ignore
+@Slf4j
 public abstract class AbstractServiceTest {
 
     @Autowired
@@ -51,6 +57,20 @@ public abstract class AbstractServiceTest {
 
     @Autowired
     private ServerCryptoService cryptoService;
+
+    @Autowired
+    private AuthenticationFilter authenticationFilter;
+
+    @Before
+    public void setUp() throws Exception {
+        // Wait configuration service (e.g. enumeration override)
+        long counter = 0;
+        while (!authenticationFilter.isReady()) {
+            if (counter % 3 == 0) log.debug("Waiting authentication filter to be ready...");
+            Thread.sleep(1000);
+            counter++;
+        }
+    }
 
     /* -- Internal method -- */
 

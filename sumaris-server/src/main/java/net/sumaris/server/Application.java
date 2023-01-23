@@ -44,6 +44,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
@@ -67,8 +68,8 @@ import java.io.IOException;
 )
 @EnableEmailTools
 @EnableWebSocket
-@EnableCaching
 @Slf4j
+@Profile("!test")
 public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
@@ -82,6 +83,7 @@ public class Application extends SpringBootServletInitializer {
 
     @Bean
     @Primary
+    @Profile("!test")
     public static SumarisServerConfiguration configuration(ConfigurableEnvironment env) {
         SumarisServerConfiguration.initDefault(env);
         SumarisServerConfiguration config = SumarisServerConfiguration.getInstance();
@@ -100,8 +102,6 @@ public class Application extends SpringBootServletInitializer {
 
         return config;
     }
-
-
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {

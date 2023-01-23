@@ -94,7 +94,7 @@ public class TaxonNameServiceWriteTest extends AbstractServiceTest {
     public void saveNewWithoutReferenceTaxon() {
         TaxonNameVO taxonName = new TaxonNameVO();
         taxonName.setLabel("TEST 2");
-        taxonName.setName("Test sans ref taxon existante");
+        taxonName.setName("Test sans ref taxon existant");
         taxonName.setStatusId(StatusEnum.TEMPORARY.getId());
         taxonName.setParentId(1042);
         taxonName.setTaxonomicLevelId(28);

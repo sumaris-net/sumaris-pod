@@ -54,6 +54,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -431,7 +432,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
 		if (batch.getSamplingRatio() != null) {
 			samplingRatio = batch.getSamplingRatio();
-			elevateFactor = new BigDecimal(1).divide(new BigDecimal(samplingRatio));
+			elevateFactor = new BigDecimal(1).divide(new BigDecimal(samplingRatio), RoundingMode.HALF_UP);
 
 			// Try to use the sampling ratio text (more accuracy)
 			if (StringUtils.isNotBlank(batch.getSamplingRatioText()) && batch.getSamplingRatioText().contains("/")) {
@@ -440,7 +441,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 					double d0 = Double.parseDouble(parts[0]);
 					double d1 = Double.parseDouble(parts[1]);
 					samplingRatio = d0 / d1;
-					elevateFactor = new BigDecimal(d1).divide(new BigDecimal(d0));
+					elevateFactor = new BigDecimal(d1).divide(new BigDecimal(d0), RoundingMode.HALF_UP);
 				} catch (Exception e) {
 					log.warn("Cannot parse samplingRatioText on batch {id: {}}, label: '{}', saplingRatioText: '{}'} : {}",
 						batch.getId(),
@@ -452,14 +453,14 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 		}
 		else if (parentExhaustiveInventory && parent.getWeight() != null && batch.getWeight() != null) {
 			samplingRatio = batch.getWeight() / parent.getWeight();
-			elevateFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(batch.getWeight()));
+			elevateFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(batch.getWeight()), RoundingMode.HALF_UP);
 		}
 
 		else if (parentExhaustiveInventory && parent.getWeight() != null && batch.hasChildren()) {
 			samplingWeight = computeSumChildrenWeight(batch);
 			if (samplingWeight != null) {
 				samplingRatio = samplingWeight / parent.getWeight();
-				elevateFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(samplingWeight));
+				elevateFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(samplingWeight), RoundingMode.HALF_UP);
 			}
 		}
 

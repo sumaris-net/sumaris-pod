@@ -491,6 +491,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Butt group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
         xmlQuery.setGroup("taxon", false);
 
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
+
         return xmlQuery;
     }
 

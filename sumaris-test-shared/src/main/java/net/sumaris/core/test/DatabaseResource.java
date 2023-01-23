@@ -120,10 +120,10 @@ public abstract class DatabaseResource implements TestRule {
      */
     protected abstract String getConfigFilesPrefix();
 
-    protected abstract String getModuleDirectory();
+    protected abstract String getDbModuleDirectory();
 
     protected String getHsqldbSrcDatabaseDirectory() {
-        return String.format(HSQLDB_SRC_DATABASE_DIRECTORY_PATTERN, getModuleDirectory());
+        return String.format(HSQLDB_SRC_DATABASE_DIRECTORY_PATTERN, getDbModuleDirectory());
     }
 
     protected String getHsqldbSrcCreateScript() {

@@ -133,9 +133,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if (this.dbVersion == null || !this.dbVersion.equals(event.getSchemaVersion())) {
             this.dbVersion = event.getSchemaVersion();
 
+            // Configuration override disabled (.e.g UNit test)
             if (!configuration.enableConfigurationDbPersistence()) {
-                if (event instanceof SchemaReadyEvent && configuration.isProduction()) {
-                    publishEvent(new ConfigurationReadyEvent(configuration));
+                // Publish ready event
+                if (event instanceof SchemaReadyEvent) {
+                    publishReadyEvent();
                 }
             }
 
@@ -151,17 +153,25 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
                 // Publish ready event
                 if (event instanceof SchemaReadyEvent) {
-                    publishEvent(new ConfigurationReadyEvent(configuration));
+                    publishReadyEvent();
                 }
                 // Publish update event
                 else {
-                    publishEvent(new ConfigurationUpdatedEvent(configuration));
+                    publishUpdateEvent();
                 }
             }
 
             // Mark as ready
             ready = true;
         }
+    }
+
+    protected void publishReadyEvent() {
+        publishEvent(new ConfigurationReadyEvent(configuration));
+    }
+
+    protected void publishUpdateEvent() {
+        publishEvent(new ConfigurationUpdatedEvent(configuration));
     }
 
     @Async

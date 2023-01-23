@@ -141,8 +141,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         final AuthenticationFilter filter = new AuthenticationFilter(PROTECTED_URLS, configuration);
         filter.setAuthenticationManager(authenticationManager());
         filter.setAuthenticationSuccessHandler(successHandler());
-        filter.setEnableAuthBasic(configuration.enableAuthBasic());
-        filter.setEnableAuthToken(configuration.enableAuthToken());
         return filter;
     }
 

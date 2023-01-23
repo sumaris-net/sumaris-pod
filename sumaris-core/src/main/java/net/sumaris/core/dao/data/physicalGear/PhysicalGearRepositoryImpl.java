@@ -233,9 +233,9 @@ public class PhysicalGearRepositoryImpl
         ProgramVO parentProgram = new ProgramVO();
         parentProgram.setId(parent.getProgram().getId());
 
-        sources.forEach(sample -> {
-            sample.setTripId(tripId);
-            sample.setProgram(parentProgram);
+        sources.forEach(source -> {
+            source.setTripId(tripId);
+            source.setProgram(parentProgram);
         });
 
 
