@@ -64,8 +64,6 @@ public interface WeightLengthConversionSpecifications
     default Specification<WeightLengthConversion> hasRectangleLabels(String... rectangleLabels) {
         if (ArrayUtils.isEmpty(rectangleLabels)) return null;
 
-        if (ArrayUtils.isNotEmpty(rectangleLabels)) return null;
-
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> labelsParam = cb.parameter(Collection.class, RECTANGLE_LABELS_PARAMETER);
             ParameterExpression<Collection> levelIdsParam = cb.parameter(Collection.class, RECTANGLE_LEVEL_IDS_PARAMETER);

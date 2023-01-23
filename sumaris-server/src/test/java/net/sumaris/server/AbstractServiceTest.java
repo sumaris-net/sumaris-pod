@@ -46,7 +46,6 @@ import static org.junit.Assert.fail;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {TestConfiguration.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:sumaris-server-test.properties")
-@Ignore
 @Slf4j
 public abstract class AbstractServiceTest {
 

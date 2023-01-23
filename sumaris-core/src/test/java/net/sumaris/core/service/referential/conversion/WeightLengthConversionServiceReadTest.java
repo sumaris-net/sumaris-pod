@@ -151,7 +151,8 @@ public class WeightLengthConversionServiceReadTest extends AbstractServiceTest {
 		}
 
 		if (fetchOptions.isWithRectangleLabels()) {
-			Assert.assertNotNull(source.getRectangleLabels());
+			Assert.assertNotNull(String.format("WeightLengthConversion (id=%s) have no rectangle", source.getId()),
+				source.getRectangleLabels());
 
 			// Make no sens to have no rectangle
 			long rectangleCount = source.getRectangleLabels().length;
