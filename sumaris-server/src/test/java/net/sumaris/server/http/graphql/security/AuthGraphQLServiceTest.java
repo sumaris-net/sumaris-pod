@@ -33,6 +33,9 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import static org.junit.Assert.*;
 @Slf4j
 public class AuthGraphQLServiceTest extends AbstractGraphQLServiceTest {

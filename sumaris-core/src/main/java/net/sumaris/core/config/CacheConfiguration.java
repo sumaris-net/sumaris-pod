@@ -57,7 +57,6 @@ import java.util.Date;
     havingValue = "true",
     matchIfMissing = true
 )
-@EnableCaching
 @Slf4j
 public class CacheConfiguration extends CachingConfigurerSupport {
 

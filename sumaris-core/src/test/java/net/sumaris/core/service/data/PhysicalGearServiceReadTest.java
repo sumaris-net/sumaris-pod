@@ -82,7 +82,7 @@ public class PhysicalGearServiceReadTest extends AbstractServiceTest{
             .startDate(Dates.parseDate("2018-02-28", "yyyy-MM-dd"))
             .excludeChildGear(true)
             .build(),
-            3);
+            4);
 
         assertFindAll(PhysicalGearFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-03", "yyyy-MM-dd"))
@@ -142,7 +142,7 @@ public class PhysicalGearServiceReadTest extends AbstractServiceTest{
         assertFindAll(PhysicalGearFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
                 .build(),
-            8);
+            9);
     }
 
     private void assertFindAll(PhysicalGearFilterVO filter, int expectedSize) {

@@ -55,12 +55,12 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 
 	@Override
 	public String getDatasourcePlatform() {
-		return ServiceTestConfiguration.DATASOURCE_PLATFORM;
+		return TestConfiguration.DATASOURCE_PLATFORM;
 	}
 
 	@Override
 	protected String getConfigFilesPrefix() {
-		return ServiceTestConfiguration.CONFIG_FILE_PREFIX;
+		return TestConfiguration.CONFIG_FILE_PREFIX;
 	}
 
 	@Override

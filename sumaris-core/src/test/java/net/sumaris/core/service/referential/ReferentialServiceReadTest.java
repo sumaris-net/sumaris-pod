@@ -184,7 +184,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         // count by filter
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelId(1).build());
         Assert.assertNotNull(count);
-        Assert.assertEquals(52, count.longValue());
+        Assert.assertEquals(56, count.longValue());
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelIds(new Integer[]{1,2}).build());
         Assert.assertNotNull(count);
         Assert.assertEquals(19, count.longValue());

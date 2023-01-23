@@ -55,7 +55,7 @@ import java.util.Properties;
 //@TestPropertySource(locations="classpath:sumaris-core-test.properties")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Slf4j
-public class AbstractDaoTest extends net.sumaris.core.test.AbstractDaoTest {
+public abstract class AbstractDaoTest extends net.sumaris.core.test.AbstractDaoTest {
 
 	@Autowired
 	protected SumarisConfiguration config;

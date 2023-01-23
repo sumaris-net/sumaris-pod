@@ -68,6 +68,7 @@ import java.io.IOException;
 )
 @EnableEmailTools
 @EnableWebSocket
+@EnableCaching
 @Slf4j
 @Profile("!test")
 public class Application extends SpringBootServletInitializer {
@@ -88,6 +89,19 @@ public class Application extends SpringBootServletInitializer {
         SumarisServerConfiguration.initDefault(env);
         SumarisServerConfiguration config = SumarisServerConfiguration.getInstance();
 
+        // Init
+        init(config);
+
+        return config;
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
+    }
+
+    public static void init(SumarisServerConfiguration config) {
+
         // Init I18n
         I18nUtil.init(config, getI18nBundleName());
 
@@ -100,12 +114,6 @@ public class Application extends SpringBootServletInitializer {
         // Init cache
         initCache(config);
 
-        return config;
-    }
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(Application.class);
     }
 
     /* -- Internal method -- */

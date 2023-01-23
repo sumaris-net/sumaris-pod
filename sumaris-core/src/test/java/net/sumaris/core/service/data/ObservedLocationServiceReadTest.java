@@ -78,7 +78,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
                 .build();
         List<ObservedLocationVO> vos = service.findAll(filter, 0, 100);
         Assert.assertNotNull(vos);
-        Assert.assertEquals(4, vos.size());
+        Assert.assertEquals(5, vos.size());
         vos.stream()
                 .map(ObservedLocationVO::getRecorderPerson)
                 .map(PersonVO::getId)
@@ -91,7 +91,7 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
         assertFindAll(ObservedLocationFilterVO.builder()
             .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
             .build(),
-            3);
+            4);
 
         assertFindAll(ObservedLocationFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
