@@ -32,6 +32,7 @@
     <SOFTWARE_PROPERTY ID="22" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.batch.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="23" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.physicalGear.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.sample.hashOptimization" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-01-16" LABEL="sumaris.persistence.vessel.registrationCode.searchAsPrefix" NAME="false"/>
 
 
     <!-- ****** ADAP properties ****** -->
