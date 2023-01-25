@@ -165,7 +165,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS, initialDelay = 1)
-    @Transactional
     public void cleanJobs() {
         // Get pending or running jobs started 24 hours ago
         Timestamp startedBefore = new Timestamp(Dates.addDays(new Date(), -1).getTime());
