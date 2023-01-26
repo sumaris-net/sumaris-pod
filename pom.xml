@@ -198,7 +198,7 @@
 
     <!-- apache maven plugins version -->
     <assemblyPluginVersion>3.3.0</assemblyPluginVersion>
-    <compilerPluginVersion>3.8.1</compilerPluginVersion>
+    <compilerPluginVersion>3.10.1</compilerPluginVersion>
     <resourcesPluginVersion>3.3.0</resourcesPluginVersion>
     <jarPluginVersion>3.2.0</jarPluginVersion>
     <sitePluginVersion>3.9.1</sitePluginVersion>
@@ -1176,11 +1176,11 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${compilerPluginVersion}</version>
           <configuration>
-            <source>${javaVersion}</source>
-            <target>${javaVersion}</target>
             <optimize>true</optimize>
+            <release>${javaVersion}</release>
             <debug>true</debug>
             <encoding>${project.build.sourceEncoding}</encoding>
+            <compilerArgs>--enable-preview</compilerArgs>
             <annotationProcessorPaths>
               <path>
                 <groupId>org.projectlombok</groupId>
