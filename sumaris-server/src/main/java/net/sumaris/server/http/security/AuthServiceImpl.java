@@ -126,9 +126,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    // FIXME: JmsListener not working well, because only on listener is allowed to catch an event !
-    //@JmsListener(destination = JmsEntityEvents.DESTINATION,
-    //    selector = "entityName = 'Person' AND (operation = 'update' OR operation = 'delete')")
     public void cleanCacheForUser(@NonNull PersonVO person) {
 
         // Clean cached tokens (because user can be disabled)
@@ -371,7 +368,9 @@ public class AuthServiceImpl implements AuthService {
     protected String getMainAuthority(Collection<? extends GrantedAuthority> authorities) {
         if (CollectionUtils.isEmpty(authorities)) return PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size() - 1); // Last role
         return PRIORITIZED_AUTHORITIES.stream()
-            .map(role -> Beans.getList(authorities).stream().map(GrantedAuthority::getAuthority).filter(authority -> role.equals(authority)).findFirst().orElse(null))
+            .map(role -> Beans.getList(authorities).stream().map(GrantedAuthority::getAuthority)
+                .filter(role::equals)
+                .findFirst().orElse(null))
             .filter(Objects::nonNull)
             .findFirst()
             .orElse(PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size() - 1)); // Last role

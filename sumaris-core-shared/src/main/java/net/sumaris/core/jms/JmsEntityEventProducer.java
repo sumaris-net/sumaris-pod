@@ -25,10 +25,7 @@ package net.sumaris.core.jms;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.event.entity.IEntityEvent;
+import net.sumaris.core.event.entity.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -54,15 +51,15 @@ public class JmsEntityEventProducer {
 
     // WARN: @ConditionOnBean over this class is not working well, that why we use required=false
     private final JmsTemplate jmsTemplate;
-    private final Optional<JmsEntityEventConsumer> jmsEntityEventConsumer;
+    private final Optional<EntityEventService> entityEventService;
 
     @Value("${spring.jms.enabled:false}")
     private boolean jmsEnabled;
 
     public JmsEntityEventProducer(Optional<JmsTemplate> jmsTemplate,
-                                  @Qualifier("entityEventService") Optional<JmsEntityEventConsumer> jmsEntityEventConsumer) {
+                                  @Qualifier("entityEventService") Optional<EntityEventService> entityEventService) {
         this.jmsTemplate = jmsTemplate.orElse(null);
-        this.jmsEntityEventConsumer = jmsEntityEventConsumer;
+        this.entityEventService = entityEventService;
     }
 
     @PostConstruct
@@ -105,7 +102,7 @@ public class JmsEntityEventProducer {
 
         if (!jmsEnabled) {
             // Redirect to consumer, as a fallback when JMS is not enabled
-            jmsEntityEventConsumer.ifPresent(consumer -> consumer.dispatchEvent(event));
+            entityEventService.ifPresent(consumer -> consumer.dispatchEvent(event));
             return; // Stop here
         }
 
