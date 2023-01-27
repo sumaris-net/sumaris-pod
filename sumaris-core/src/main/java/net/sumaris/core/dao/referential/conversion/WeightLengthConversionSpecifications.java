@@ -26,7 +26,6 @@ import net.sumaris.core.dao.referential.IEntityWithStatusSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
