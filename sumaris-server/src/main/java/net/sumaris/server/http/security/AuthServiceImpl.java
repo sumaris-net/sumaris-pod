@@ -40,11 +40,9 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.crypto.ServerCryptoService;
-import net.sumaris.server.service.technical.EntityWatchService;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -122,12 +120,12 @@ public class AuthServiceImpl implements AuthService {
                 onPersonChangeEvent(event);
             }
         }, Person.class);
+
+        // Change security context holder strategy to inheritable thread local
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
     }
 
     @Override
-    // FIXME: JmsListener not working well, because only on listener is allowed to catch an event !
-    //@JmsListener(destination = JmsEntityEvents.DESTINATION,
-    //    selector = "entityName = 'Person' AND (operation = 'update' OR operation = 'delete')")
     public void cleanCacheForUser(@NonNull PersonVO person) {
 
         // Clean cached tokens (because user can be disabled)
@@ -370,7 +368,9 @@ public class AuthServiceImpl implements AuthService {
     protected String getMainAuthority(Collection<? extends GrantedAuthority> authorities) {
         if (CollectionUtils.isEmpty(authorities)) return PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size() - 1); // Last role
         return PRIORITIZED_AUTHORITIES.stream()
-            .map(role -> Beans.getList(authorities).stream().map(GrantedAuthority::getAuthority).filter(authority -> role.equals(authority)).findFirst().orElse(null))
+            .map(role -> Beans.getList(authorities).stream().map(GrantedAuthority::getAuthority)
+                .filter(role::equals)
+                .findFirst().orElse(null))
             .filter(Objects::nonNull)
             .findFirst()
             .orElse(PRIORITIZED_AUTHORITIES.get(PRIORITIZED_AUTHORITIES.size() - 1)); // Last role

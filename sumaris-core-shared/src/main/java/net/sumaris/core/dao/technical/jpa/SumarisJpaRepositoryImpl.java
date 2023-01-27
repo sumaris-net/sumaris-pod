@@ -411,7 +411,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      */
     @SuppressWarnings("unchecked")
     protected <C> C find(Class<C> clazz, Serializable id) {
-        return this.entityManager.find(clazz, id, LockModeType.OPTIMISTIC);
+        return this.entityManager.find(clazz, id, null, null);
     }
 
     /**

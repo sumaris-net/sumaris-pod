@@ -125,7 +125,6 @@ public class WeightLengthConversion implements IReferentialWithStatusEntity<Inte
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_fk", nullable = false)
-    
     private Location location;
 
 }

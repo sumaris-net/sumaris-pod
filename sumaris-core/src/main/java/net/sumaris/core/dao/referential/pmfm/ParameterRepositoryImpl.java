@@ -68,37 +68,36 @@ public class ParameterRepositoryImpl
                 .orElse(ParameterValueType.DOUBLE);
 
             switch (type) {
-                case STRING:
+                case STRING -> {
                     target.setIsAlphanumeric(true);
                     target.setIsBoolean(false);
                     target.setIsDate(false);
                     target.setIsQualitative(false);
-                    break;
-                case BOOLEAN:
+                }
+                case BOOLEAN -> {
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(true);
                     target.setIsDate(false);
                     target.setIsQualitative(false);
-                    break;
-                case DATE:
+                }
+                case DATE -> {
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(false);
                     target.setIsDate(true);
                     target.setIsQualitative(false);
-                    break;
-                case QUALITATIVE_VALUE:
+                }
+                case QUALITATIVE_VALUE -> {
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(false);
                     target.setIsDate(false);
                     target.setIsQualitative(true);
-                    break;
-                case DOUBLE:
-                default:
+                }
+                case DOUBLE, default -> {
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(false);
                     target.setIsDate(false);
                     target.setIsQualitative(false);
-                    break;
+                }
             }
         }
 

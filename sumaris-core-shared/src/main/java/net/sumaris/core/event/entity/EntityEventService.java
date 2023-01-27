@@ -23,6 +23,7 @@
 package net.sumaris.core.event.entity;
 
 import net.sumaris.core.model.IEntity;
+import org.springframework.lang.NonNull;
 
 import java.io.Serializable;
 
@@ -45,4 +46,5 @@ public interface EntityEventService {
 
     void unregisterListener(Listener listener, Class<? extends IEntity<?>>... entityClasses);
 
+    void dispatchEvent(@NonNull IEntityEvent event);
 }

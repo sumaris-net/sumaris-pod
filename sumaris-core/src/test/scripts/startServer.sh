@@ -8,8 +8,10 @@ export DB_NAME="sumaris"
 export TEST_DB="../../../target/db"
 export DB_PORT=9001
 export DB_DIRECTORY="../../../target/db-server"
-#export JAVA_OPTS="-server -Xmx2g -Duser.timezone=UTC"
-export JAVA_OPTS="-server -Xms512m -Xmx512m -Duser.timezone=UTC"
+export DB_TIMEZONE=UTC
+#export DB_TIMEZONE=Europe/Paris
+#export JAVA_OPTS="-server -Xmx2g -Duser.timezone=${DB_TIMEZONE}"
+export JAVA_OPTS="-server -Xms512m -Xmx512m -Duser.timezone=${DB_TIMEZONE}"
 
 ARG=$1
 

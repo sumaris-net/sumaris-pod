@@ -26,12 +26,22 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.server.DatabaseResource;
 import net.sumaris.server.http.graphql.AbstractGraphQLServiceTest;
 import net.sumaris.server.util.security.AuthTokenVO;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.springframework.http.HttpHeaders;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import static org.junit.Assert.*;
 @Slf4j
 public class AuthGraphQLServiceTest extends AbstractGraphQLServiceTest {
+
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     /**
      * Get authentication challenge from server.
@@ -39,6 +49,7 @@ public class AuthGraphQLServiceTest extends AbstractGraphQLServiceTest {
      */
     @Test
     public void authChallenge() {
+
         AuthTokenVO auth = getResponse("authChallenge", AuthTokenVO.class);
         assertNotNull(auth);
         assertEquals("G2CBgZBPLe6FSFUgpx2Jf1Aqsgta6iib3vmDRA1yLiqU", auth.getPubkey());
@@ -47,40 +58,30 @@ public class AuthGraphQLServiceTest extends AbstractGraphQLServiceTest {
     }
 
     @Test
-    public void authenticate() {
-
+    public void authenticateValidUser() {
         // Authenticate with good credential
-        assertTrue(doAuthenticate("admin@sumaris.net", "admin"));
-        assertTrue(doAuthenticate("demo@sumaris.net", "demo"));
-//        assertTrue(doAuthenticate("a1ed59", "q22006")); // = admq2 but extranet login
+        assertTrue(authenticate("admin@sumaris.net", "admin"));
+        assertTrue(authenticate("demo@sumaris.net", "demo"));
+    }
 
+    @Test
+    public void authenticateBadCredentials() {
         // Authenticate with empty or bad credential
-        assertThrows(SumarisTechnicalException.class, () -> doAuthenticate("admin@sumaris.net", "bad"));
-        assertThrows(SumarisTechnicalException.class, () -> doAuthenticate("demo@sumaris.net", "null"));
+        assertFalse(authenticate("admin@sumaris.net", "bad"));
+        assertFalse(authenticate("demo@sumaris.net", "null"));
 
+    }
+
+    @Test
+    public void authenticateUnknownUser() {
         // Authenticate with unknown user
-        assertThrows(SumarisTechnicalException.class, () -> doAuthenticate("unknown", "unknown"));
+        assertFalse(authenticate("unknown", "unknown"));
+    }
 
+    @Test
+    public void authenticateDisabledUser() {
         // Authenticate with disabled user
-        assertThrows(SumarisTechnicalException.class, () -> doAuthenticate("disable@sumaris.net", "demo"));
-
+        assertFalse(authenticate("disable@sumaris.net", "demo"));
     }
 
-    protected boolean doAuthenticate(String login, String password) throws SumarisTechnicalException {
-
-        // Ask for challenge from server
-        AuthTokenVO serverAuthData = getResponse("authChallenge", AuthTokenVO.class);
-        assertNotNull(serverAuthData);
-        assertNotNull(serverAuthData.getChallenge());
-        assertNotNull(serverAuthData.getSignature());
-        assertNotNull(serverAuthData.getPubkey());
-
-        // Build user AuthData
-        String token = createToken(serverAuthData.getChallenge(), login, password);
-
-        ObjectNode variables = objectMapper.createObjectNode();
-        variables.put("token", token);
-
-        return getResponse("authenticate", Boolean.class, variables);
-    }
 }

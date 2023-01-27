@@ -157,7 +157,7 @@ public class BatchServiceImpl implements BatchService {
 					Map<Integer, String> sortingMeasurements = Maps.newLinkedHashMap();
 
 					batch.getMeasurementValues().forEach((pmfmId, value) -> {
-						if (pmfmService.isWeightPmfm(pmfmId)) {
+						if (pmfmService.isBatchWeightPmfm(pmfmId)) {
 							quantificationMeasurements.putIfAbsent(pmfmId, value);
 						}
 						else {

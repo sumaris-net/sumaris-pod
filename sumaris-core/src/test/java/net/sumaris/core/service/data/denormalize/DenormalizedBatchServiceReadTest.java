@@ -24,12 +24,14 @@ package net.sumaris.core.service.data.denormalize;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.TreeNodeEntities;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.DataTestUtils;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatches;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -48,7 +50,7 @@ public class DenormalizedBatchServiceReadTest extends AbstractServiceTest{
     private DenormalizedBatchService service;
 
     @Test
-    public void denormalize() {
+    public void denormalize_ADAP() {
 
         BatchVO catchBatch = DataTestUtils.createAdapBatchTree(fixtures);
         Assume.assumeNotNull(catchBatch);
@@ -72,11 +74,31 @@ public class DenormalizedBatchServiceReadTest extends AbstractServiceTest{
             counter.increment();
         });
         // Check species batches
-        result.stream().filter(b -> b.getTaxonGroup() != null)
+        result.stream()
+            .filter(b -> b.getTaxonGroup() != null)
             .forEach(speciesBatch -> {
-                Assert.assertNotNull("Species batch must have indirect weight", speciesBatch.getIndirectWeight());
-                Assert.assertNotNull("Species batch must have indirect individual count", speciesBatch.getIndirectIndividualCount());
+                // Check has weight
+                assertHasWeight(speciesBatch, "Species batch");
+                // Check individual count
+                assertHasIndividualCount(speciesBatch, "Species batch");
             });
     }
-    /* -- -- */
+
+    /* -- protected functions -- */
+
+    protected void assertHasWeight(DenormalizedBatchVO batch, String batchType) {
+        Assert.assertNotNull(String.format("'%s' must have elevate weight (%s)", batch.getLabel(), batchType),batch.getElevateWeight());
+        Assert.assertTrue(String.format("'%s' must have weight or indirect weight (%s)", batch.getLabel(), batchType),
+            batch.getIndirectWeight() != null || batch.getWeight() != null);
+    }
+
+    protected void assertHasIndividualCount(DenormalizedBatchVO batch, String batchType) {
+        // If has individual measure sub-batches, should have an indirect individual count
+        boolean hasIndividualMeasure = TreeNodeEntities.treeAsList(batch).stream()
+            .anyMatch(child -> child.getLabel().startsWith(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel()));
+        if (hasIndividualMeasure) {
+            Assert.assertNotNull(String.format("'%s' must have indirect individual count (%s)", batch.getLabel(), batchType),
+                batch.getIndirectIndividualCount());
+        }
+    }
 }

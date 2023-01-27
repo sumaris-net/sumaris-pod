@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.vo.data.MeasurementVO;
@@ -30,6 +31,7 @@ import net.sumaris.core.vo.data.QuantificationMeasurementVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +65,11 @@ public class MeasurementServiceImpl implements MeasurementService {
 	@Override
 	public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId) {
 		return measurementDao.getOperationVesselUseMeasurements(operationId);
+	}
+
+	@Override
+	public List<MeasurementVO> getOperationVesselUseMeasurements(int operationId, @Nullable List<Integer> pmfmIds) {
+		return measurementDao.getOperationVesselUseMeasurements(operationId, pmfmIds);
 	}
 
 	@Override

@@ -26,6 +26,7 @@ package net.sumaris.core.service.administration;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
@@ -57,17 +58,18 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("personService")
+@RequiredArgsConstructor
 @Slf4j
 public class PersonServiceImpl implements PersonService {
 
-	@Autowired
-	protected PersonRepository personRepository;
 
-	@Autowired
-	protected DepartmentRepository departmentRepository;
+	protected final PersonRepository personRepository;
 
-	@Autowired
-	private ImageAttachmentService imageAttachmentService;
+	protected final DepartmentRepository departmentRepository;
+
+	private final ImageAttachmentService imageAttachmentService;
+
+
 
 	@Override
 	public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {

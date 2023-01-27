@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.security;
 
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.util.StringUtils;
@@ -39,13 +40,12 @@ import java.text.ParseException;
 
 @Service
 @GraphQLApi
+@RequiredArgsConstructor
 @Slf4j
 public class AuthGraphQLService {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
-    /* -- Authentication -- */
 
     @GraphQLQuery(name = "authenticate", description = "Authenticate using a token")
     public boolean authenticate(@GraphQLArgument(name = "token") String token) {

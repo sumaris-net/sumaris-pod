@@ -151,12 +151,11 @@ public class DataTestUtils {
     }
 
     public static BatchVO createBatchTree(DatabaseFixtures fixtures, int index) {
-        switch (index) {
-            case 0: return createSumarisBatchTree(fixtures);
-            case 1: return createAdapBatchTree(fixtures);
-            default:
-                throw new IllegalArgumentException("Invalid index: " + index);
-        }
+        return switch (index) {
+            case 0 -> createSumarisBatchTree(fixtures);
+            case 1 -> createAdapBatchTree(fixtures);
+            default -> throw new IllegalArgumentException("Invalid index: " + index);
+        };
     }
 
     public static BatchVO createSumarisBatchTree(DatabaseFixtures fixtures) {
@@ -198,7 +197,7 @@ public class DataTestUtils {
     public static BatchVO createAdapBatchTree(DatabaseFixtures fixtures) {
         // Batch / catch
         BatchVO catchBatch = new BatchVO();
-        catchBatch.setLabel("CATCH_BATCH");
+        catchBatch.setLabel(AcquisitionLevelEnum.CATCH_BATCH.getLabel());
         catchBatch.setRankOrder(1);
         catchBatch.setComments("Catch batch on OPE #1");
         catchBatch.setExhaustiveInventory(Boolean.FALSE);
@@ -207,7 +206,7 @@ public class DataTestUtils {
         {
             BatchVO speciesBatch = new BatchVO();
             catchBatch.addChildren(speciesBatch);
-            speciesBatch.setLabel("SORTING_BATCH#1");
+            speciesBatch.setLabel(AcquisitionLevelEnum.SORTING_BATCH.getLabel() + "#1");
             speciesBatch.setRankOrder(1);
             speciesBatch.setTaxonGroup(createReferentialVO(1131, "NEP"));
             speciesBatch.setChildren(Lists.newArrayList());
@@ -241,7 +240,7 @@ public class DataTestUtils {
                     {
                         BatchVO lengthBatch = new BatchVO();
                         samplingBatch.addChildren(lengthBatch);
-                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#1");
+                        lengthBatch.setLabel(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel() + "#1");
                         lengthBatch.setRankOrder(1);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(
@@ -254,7 +253,7 @@ public class DataTestUtils {
                     {
                         BatchVO lengthBatch = new BatchVO();
                         samplingBatch.addChildren(lengthBatch);
-                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#2");
+                        lengthBatch.setLabel(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel() + "#2");
                         lengthBatch.setRankOrder(2);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(
@@ -292,7 +291,7 @@ public class DataTestUtils {
                     {
                         BatchVO lengthBatch = new BatchVO();
                         samplingBatch.addChildren(lengthBatch);
-                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#3");
+                        lengthBatch.setLabel(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel() + "#3");
                         lengthBatch.setRankOrder(1);
                         lengthBatch.setIndividualCount(2);
                         lengthBatch.setMeasurementValues(
@@ -350,7 +349,7 @@ public class DataTestUtils {
         {
             BatchVO speciesBatch = new BatchVO();
             catchBatch.addChildren(speciesBatch);
-            speciesBatch.setLabel("SORTING_BATCH#3");
+            speciesBatch.setLabel(AcquisitionLevelEnum.SORTING_BATCH.getLabel() + "#3");
             speciesBatch.setRankOrder(3);
             speciesBatch.setTaxonGroup(createReferentialVO(1132, "MNZ"));
             speciesBatch.setExhaustiveInventory(Boolean.TRUE);
@@ -382,7 +381,7 @@ public class DataTestUtils {
                     {
                         BatchVO lengthBatch = new BatchVO();
                         samplingBatch.addChildren(lengthBatch);
-                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#4");
+                        lengthBatch.setLabel(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel() + "#4");
                         lengthBatch.setRankOrder(1);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(
@@ -395,7 +394,7 @@ public class DataTestUtils {
                     {
                         BatchVO lengthBatch = new BatchVO();
                         samplingBatch.addChildren(lengthBatch);
-                        lengthBatch.setLabel("SORTING_BATCH_INDIVIDUAL#5");
+                        lengthBatch.setLabel(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel() + "#5");
                         lengthBatch.setRankOrder(2);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(

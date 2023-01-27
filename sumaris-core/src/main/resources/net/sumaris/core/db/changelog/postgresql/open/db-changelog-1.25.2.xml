@@ -29,14 +29,29 @@
 
 	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
 	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+	<property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+	<property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'PIFIL'"/>
+	<property name="sqlCheck.open.expectedResult" value="1"/>
+
+	<preConditions onFail="WARN" onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
+		<or>
+			<!-- Test if database is empty -->
+			<sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+			<!-- OR if expected production database -->
+			<sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+		</or>
+	</preConditions>
 
 	<!-- PIFIL : Remove PMFM_STRATEGY2_GEAR on TRIP_PROGRESS (should to be applied on all gears) -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-300">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-300" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
-			<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
 					inner join PMFM_STRATEGY PS on PS.ID=PS2G.PMFM_STRATEGY_FK and PS.STRATEGY_FK=3
 					inner join PMFM on PMFM.ID=PS.PMFM_FK and PMFM.LABEL='TRIP_PROGRESS'</sqlCheck>
-			</not>
+				</not>
+			</and>
 		</preConditions>
 		<sql endDelimiter=";">
 			delete from PMFM_STRATEGY2GEAR where PMFM_STRATEGY_FK in (
@@ -51,12 +66,15 @@
 	</changeSet>
 
 	<!-- PIFIL : Remove PMFM_STRATEGY2_GEAR on IS_ACOUSTIC_DEVICE (should to be applied on all gears) -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-301">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077100-301" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
-			<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
-				inner join PMFM_STRATEGY PS on PS.ID=PS2G.PMFM_STRATEGY_FK and PS.STRATEGY_FK=3
-				inner join PMFM on PMFM.ID=PS.PMFM_FK and PMFM.LABEL='IS_ACOUSTIC_DEVICE'</sqlCheck>
-			</not>
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">select count(*) from PMFM_STRATEGY2GEAR PS2G
+					inner join PMFM_STRATEGY PS on PS.ID=PS2G.PMFM_STRATEGY_FK and PS.STRATEGY_FK=3
+					inner join PMFM on PMFM.ID=PS.PMFM_FK and PMFM.LABEL='IS_ACOUSTIC_DEVICE'</sqlCheck>
+				</not>
+			</and>
 		</preConditions>
 		<sql endDelimiter=";">
 			delete from PMFM_STRATEGY2GEAR where PMFM_STRATEGY_FK in (

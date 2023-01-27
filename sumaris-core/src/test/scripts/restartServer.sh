@@ -11,9 +11,13 @@ fi;
 
 # ------------------------------------
 # Init variables
+# ------------------------------------
+
 LOG_PREFIX="--------------"
+export DB_TIMEZONE=UTC
+#export DB_TIMEZONE=Europe/Paris
 #MVN_ARGS="-DskipTests --quiet --offline"
-MVN_ARGS="-DskipTests --quiet"
+MVN_ARGS="-DskipTests -Duser.timezone=${DB_TIMEZONE} --quiet"
 PROJECT_ROOT=$(cd ${PROJECT_DIR}/.. && pwd)
 
 # ------------------------------------

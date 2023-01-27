@@ -23,6 +23,8 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.physicalGear.PhysicalGearRepository;
@@ -43,14 +45,13 @@ import java.util.List;
 import java.util.Objects;
 
 @Service("physicalGearService")
+@RequiredArgsConstructor
 @Slf4j
 public class PhysicalGearServiceImpl implements PhysicalGearService {
 
-	@Autowired
-	protected PhysicalGearRepository physicalGearRepository;
+	protected final PhysicalGearRepository physicalGearRepository;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+	protected final MeasurementDao measurementDao;
 
 	@Override
 	public List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options) {
@@ -99,6 +100,13 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 	@Override
 	public PhysicalGearVO get(int physicalGearId, DataFetchOptions o) {
 		return physicalGearRepository.get(physicalGearId, o);
+	}
+
+	@Override
+	public List<PhysicalGearVO> treeToList(PhysicalGearVO source) {
+		List<PhysicalGearVO> result = Lists.newArrayList();
+		treeToList(source, result);
+		return result;
 	}
 
 	@Override

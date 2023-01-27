@@ -130,7 +130,7 @@ public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
         // Prepare the read filter
         ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
             .sheetName(finalSheetName)
-            .criteria(filter.getCriteria().stream()
+            .criteria(Beans.getStream(filter.getCriteria())
                 .filter(criteria -> finalSheetName.equals(criteria.getSheetName()))
                 .collect(Collectors.toList()))
             .build();

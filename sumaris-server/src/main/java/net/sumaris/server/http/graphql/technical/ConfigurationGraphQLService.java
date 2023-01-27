@@ -166,12 +166,20 @@ public class ConfigurationGraphQLService {
             SumarisServerConfigurationOption.AUTH_TOKEN_TYPE.getKey(),
             configuration.getAuthTokenType().getLabel());
 
-        // Add DB timezone (e.g. used by aggregated landings)
-        String dbTimeZone = configuration.getApplicationConfig().getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
-        if (StringUtils.isNotBlank(dbTimeZone)) {
-            result.getProperties().put(
-                SumarisConfigurationOption.DB_TIMEZONE.getKey(),
-                dbTimeZone);
+        // Publish some option, need by App
+        {
+            // Add DB timezone (e.g. used by SFA instance)
+            String dbTimeZone = configuration.getApplicationConfig().getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
+            if (StringUtils.isNotBlank(dbTimeZone)) {
+                result.getProperties().put(
+                    SumarisConfigurationOption.DB_TIMEZONE.getKey(),
+                    dbTimeZone);
+            }
+
+            // Trash enable ?
+            result.getProperties().computeIfAbsent(
+                SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey(),
+                (key) -> Boolean.toString(configuration.enableEntityTrash()));
         }
 
         return result;

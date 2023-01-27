@@ -91,7 +91,7 @@ public class ReferentialServiceWriteTest extends AbstractServiceTest{
     @Test
     public void z_delete() {
         // this taxon name is not used, so it can be deleted
-        service.delete(TaxonName.class.getSimpleName(), 1180);
+        service.delete(TaxonName.class.getSimpleName(), 1082); // PIL
 
         try {
             service.delete(TaxonGroup.class.getSimpleName(), 1003);

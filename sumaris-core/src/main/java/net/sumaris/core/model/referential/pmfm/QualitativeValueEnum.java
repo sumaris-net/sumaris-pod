@@ -30,8 +30,9 @@ import java.util.Arrays;
 @EntityEnum(entity = QualitativeValue.class)
 public enum QualitativeValueEnum implements Serializable {
 
-    SORTING_BULK(390, "VRAC"),
-    SORTING_NON_BULK(391, "H-VRAC"),
+    SORTING_BULK(390, "VRAC"), // Adagio => 311
+    SORTING_NON_BULK(391, "H-VRAC"), // Adagio => 310
+    SORTING_UNSORTED(392, "NONE"), // Adagio => 2146
     DRESSING_WHOLE(381, "WHL"),
     PRESERVATION_FRESH(332, "FRE"),
     SIZE_CATEGORY_NONE(435, "UNS"),

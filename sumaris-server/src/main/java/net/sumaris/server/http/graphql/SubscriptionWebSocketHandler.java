@@ -59,6 +59,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
@@ -456,8 +457,9 @@ public class SubscriptionWebSocketHandler extends TextWebSocketHandler implement
 
     protected Map<String, Object> getUnauthorizedErrorWithChallenge() {
         AuthTokenVO challenge = authService.createNewChallenge();
-        return ImmutableMap.of("message", getUnauthorizedErrorString(),
-                               "challenge", challenge);
+        String errorMessage = getUnauthorizedErrorString();
+        return ImmutableMap.of("message", errorMessage,
+            "challenge", challenge);
     }
 
     protected String getUnauthorizedErrorString() {

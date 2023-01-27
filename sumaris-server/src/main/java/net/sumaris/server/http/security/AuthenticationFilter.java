@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
@@ -65,9 +66,13 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     private boolean enableAuthBasic;
     private boolean enableAuthToken;
 
-    protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher, SumarisServerConfiguration configuration) {
+    protected AuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher,
+                                   SumarisServerConfiguration configuration) {
         super(requiresAuthenticationRequestMatcher);
         this.configuration = configuration;
+
+        this.setEnableAuthBasic(configuration.enableAuthBasic());
+        this.setEnableAuthToken(configuration.enableAuthToken());
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -86,6 +91,10 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
         else {
             log.info("Updated authenticated filter, using {authBasic: {}, authToken: {}}...", enableAuthBasic, enableAuthToken);
         }
+    }
+
+    public boolean isReady() {
+        return this.ready.get();
     }
 
     public void setEnableAuthToken(boolean enableAuthToken) {

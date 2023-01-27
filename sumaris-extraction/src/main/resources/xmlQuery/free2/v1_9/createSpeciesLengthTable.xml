@@ -16,10 +16,17 @@
         <subselect alias="PARAMETER_LABEL" type="text">P_LENGTH.LABEL</subselect>
         <subselect alias="PARAMETER_NAME" type="text">P_LENGTH.NAME</subselect>
         <subselect alias="METHOD_NAME" type="text">REGEXP_REPLACE(M_LENGTH.NAME, '(Mesure|Estimation) par ', '$1 au ' || U_LENGTH.LABEL || ' par ')</subselect>
+        <subselect alias="TAUX_ECH" type="number">
+          CASE
+          WHEN B.SAMPLING_RATIO is not null THEN ROUND(B.SAMPLING_RATIO, 7)
+          ELSE null
+          END</subselect>
+        <subselect alias="WEIGHT_RTP" type="number">(SELECT ROUND(QM.NUMERICAL_VALUE, 6) FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK = B.ID and QM.PMFM_FK=&amp;weightRtpPmfmId)</subselect>
+        <subselect alias="REFERENCE_TAXON_ID" type="number" group="taxon">B.REFERENCE_TAXON_FK</subselect>
 
         <from alias="SL">&amp;rawSpeciesListTableName</from>
         <from join="true">INNER JOIN BATCH B ON B.PARENT_BATCH_FK=SL.SAMPLE_ID AND B.LABEL LIKE UPPER('SORTING_BATCH_INDIVIDUAL#%')</from>
-        <from join="true">INNER JOIN SORTING_MEASUREMENT_B SM_LENGTH ON SM_LENGTH.BATCH_FK = B.ID and SM_LENGTH.PMFM_FK in (&amp;lengthTotalCmPmfmId, &amp;lengthCarapaceCmPmfmId)</from>
+        <from join="true">INNER JOIN SORTING_MEASUREMENT_B SM_LENGTH ON SM_LENGTH.BATCH_FK = B.ID and SM_LENGTH.PMFM_FK in (&amp;lengthPmfmIds)</from>
         <from join="true">INNER JOIN PMFM PMFM_LENGTH ON PMFM_LENGTH.ID = SM_LENGTH.PMFM_FK</from>
         <from join="true">INNER JOIN PARAMETER P_LENGTH ON P_LENGTH.ID = PMFM_LENGTH.PARAMETER_FK</from>
         <from join="true">INNER JOIN METHOD M_LENGTH ON M_LENGTH.ID = PMFM_LENGTH.METHOD_FK</from>
@@ -36,8 +43,8 @@
     <select alias="POIDS_REF" type="number">null</select>
     <select alias="METHOD_WEIGHT" type="text">B.METHOD_NAME</select><!-- -->
     <select alias="NOMBRE" type="number">B.INDIVIDUAL_COUNT</select>
-    <select alias="TAUX_ECH" type="number">null</select>
-    <select alias="WEIGHT_RTP" type="number">null</select>
+    <select alias="TAUX_ECH" type="number">B.TAUX_ECH</select>
+    <select alias="WEIGHT_RTP" type="number">B.WEIGHT_RTP</select>
     <select alias="VALEUR_ALPHANUMERIQUE" type="text">null</select>
 
     <!-- other fields -->

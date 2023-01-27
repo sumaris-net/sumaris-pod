@@ -94,7 +94,6 @@ public class Strategy implements IItemReferentialEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_fk", nullable = false)
-    
     private Program program;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)
@@ -123,14 +122,5 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.STRATEGY)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
-
-    public void addPmfm(PmfmStrategy pmfmStrategy, boolean setReverse) {
-        if (pmfmStrategy != null) {
-            getPmfms().add(pmfmStrategy);
-            if (setReverse) {
-                pmfmStrategy.setStrategy(this);
-            }
-        }
-    }
 
 }

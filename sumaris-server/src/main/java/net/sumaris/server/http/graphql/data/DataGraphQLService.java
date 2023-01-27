@@ -1120,10 +1120,11 @@ public class DataGraphQLService {
 
     // Operation
     @GraphQLQuery(name = "measurements", description = "Get operation's measurements")
-    public List<MeasurementVO> getOperationVesselUseMeasurements(@GraphQLContext OperationVO operation) {
+    public List<MeasurementVO> getOperationVesselUseMeasurements(@GraphQLContext OperationVO operation,
+                                                                 @GraphQLArgument(name = "pmfmIds") List<Integer> pmfmIds) {
         if (operation.getMeasurements() != null) return operation.getMeasurements();
         if (operation.getId() == null) return null;
-        return measurementService.getOperationVesselUseMeasurements(operation.getId());
+        return measurementService.getOperationVesselUseMeasurements(operation.getId(), pmfmIds);
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get operation's measurements")

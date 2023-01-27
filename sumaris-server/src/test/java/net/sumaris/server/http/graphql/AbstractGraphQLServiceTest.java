@@ -31,16 +31,23 @@ import com.graphql.spring.boot.test.GraphQLTestTemplate;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.server.AbstractServiceTest;
-import static org.junit.Assert.*;
+import net.sumaris.server.util.security.AuthTokenVO;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Ignore
 public class AbstractGraphQLServiceTest extends AbstractServiceTest {
@@ -67,6 +74,42 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
             variables.put("entityName", entityName);
         variables.set("filter", objectMapper.valueToTree(filter));
         return variables;
+    }
+
+    protected boolean authenticate(String login, String password) throws SumarisTechnicalException {
+
+        // Build header
+        clearGraphQLHeaders();
+
+        // Ask for challenge from server
+        AuthTokenVO serverAuthData = getResponse("authChallenge", AuthTokenVO.class);
+        assertNotNull(serverAuthData);
+        assertNotNull(serverAuthData.getChallenge());
+        assertNotNull(serverAuthData.getSignature());
+        assertNotNull(serverAuthData.getPubkey());
+
+        // Build user AuthData
+        String token = createToken(serverAuthData.getChallenge(), login, password);
+        ObjectNode variables = objectMapper.createObjectNode();
+        variables.put("token", token);
+
+        addGraphQLHeader(HttpHeaders.AUTHORIZATION, "Basic " + CryptoUtils.encodeBase64(String.format("%s:%s", login, password).getBytes(StandardCharsets.UTF_8)));
+
+        boolean auth = getResponse("authenticate", Boolean.class, variables);
+        if (auth) {
+            addGraphQLHeader(HttpHeaders.AUTHORIZATION, "token " + token);
+        } else {
+            clearGraphQLHeaders();
+        }
+        return auth;
+    }
+
+    protected void clearGraphQLHeaders() {
+        graphQLTestTemplate.withClearHeaders();
+    }
+
+    protected void addGraphQLHeader(String name, String value) {
+        graphQLTestTemplate.withAdditionalHeader(name, value);
     }
 
     protected <R> R getResponse(String queryName, Class<R> responseClass) throws SumarisTechnicalException {
@@ -97,8 +140,15 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
             if (!variables.has("size")) variables.put("size", 1000);
         }
 
-        GraphQLResponse response = assertDoesNotThrow(() ->
-            graphQLTestTemplate.perform(queryResource, variables, fragmentResources));
+        GraphQLResponse response = null;
+        try {
+            response = graphQLTestTemplate.perform(queryResource, variables, fragmentResources);
+        } catch (Exception e) {
+            if (e instanceof NullPointerException) {
+                throw new SumarisTechnicalException("Error while performing request"); // this exception can be thrown when response body is empty with status 4xx
+            }
+            Assert.fail("Exception during graphql call: " + e.getMessage());
+        }
         assertNotNull(response);
         assertTrue(response.isOk());
         assertNotNull(response.getRawResponse());

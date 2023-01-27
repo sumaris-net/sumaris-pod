@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>1.34.0</version>
+  <version>1.35.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -119,7 +119,7 @@
     <javassist.version>3.29.2-GA</javassist.version>
     <cglib.version>3.3.0</cglib.version>
     <ehcache.version>3.8.1</ehcache.version>
-    <lombok.version>1.18.22</lombok.version>
+    <lombok.version>1.18.24</lombok.version>
     <xmlquery.version>1.8</xmlquery.version>
     <jdom2.version>2.0.6</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
@@ -142,8 +142,8 @@
     <graphql-java.version>19.3</graphql-java.version>
     <graphql-java-tools.version>13.0.2</graphql-java-tools.version>
     <graphiql-spring-boot.version>11.1.0</graphiql-spring-boot.version>
-    <graphql-java-servlet.version>15.0.0</graphql-java-servlet.version>
-    <graphql-spring-boot.version>15.0.0</graphql-spring-boot.version>
+    <graphql-java-servlet.version>14.0.0</graphql-java-servlet.version>
+    <graphql-spring-boot.version>14.1.0</graphql-spring-boot.version>
     <spqr.version>0.12.0</spqr.version>
     <reactor.version>3.5.0</reactor.version>
     <kotlin.version>1.3.70</kotlin.version>
@@ -198,7 +198,7 @@
 
     <!-- apache maven plugins version -->
     <assemblyPluginVersion>3.3.0</assemblyPluginVersion>
-    <compilerPluginVersion>3.8.1</compilerPluginVersion>
+    <compilerPluginVersion>3.10.1</compilerPluginVersion>
     <resourcesPluginVersion>3.3.0</resourcesPluginVersion>
     <jarPluginVersion>3.2.0</jarPluginVersion>
     <sitePluginVersion>3.9.1</sitePluginVersion>
@@ -1176,11 +1176,13 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${compilerPluginVersion}</version>
           <configuration>
-            <source>${javaVersion}</source>
-            <target>${javaVersion}</target>
             <optimize>true</optimize>
+            <release>${javaVersion}</release>
             <debug>true</debug>
             <encoding>${project.build.sourceEncoding}</encoding>
+            <compilerArgs>
+              <arg>--enable-preview</arg>
+            </compilerArgs>
             <annotationProcessorPaths>
               <path>
                 <groupId>org.projectlombok</groupId>

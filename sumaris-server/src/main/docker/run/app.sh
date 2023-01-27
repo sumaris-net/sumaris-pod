@@ -4,6 +4,7 @@ APP_NAME=sumaris
 BASEDIR=/app
 LOG_DIR=/app/logs
 TNS_ADMIN=/home/tnsnames
+JAVA_OPTS="${JAVA_OPTS} --enable-preview" # Fix Java 17 error
 JAVA_OPTS="${JAVA_OPTS} -D${APP_NAME}.basedir=${BASEDIR}"
 JAVA_OPTS="${JAVA_OPTS} -Dspring.config.location=file:${BASEDIR}/config/"
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.log.file=${LOG_DIR}/${APP_NAME}-pod.log"

@@ -53,33 +53,23 @@ public class DatabaseFixtures {
 
 	public String getPersonEmail(int index) {
 		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return "benoit.lavenier@e-is.pro";
-			case 1:
-				return "obs@sumaris.net";
-			case 2:
-				return "demo@sumaris.net";
-			case 3:
-				return "disable@sumaris.net";
-
-			default:
-				return "no-reply@sumaris.net";
-		}
+		return switch (index) {
+			case 0 -> "benoit.lavenier@e-is.pro";
+			case 1 -> "obs@sumaris.net";
+			case 2 -> "demo@sumaris.net";
+			case 3 -> "disable@sumaris.net";
+			default -> "no-reply@sumaris.net";
+		};
 	}
 
 
 	public Integer getVesselId(int index) {
 		Preconditions.checkArgument(index >= 0);
-		switch (index) {
-			case 0:
-				return 1;
-			case 1:
-				return 2;
-
-			default:
-				return 1;
-		}
+		return switch (index) {
+			case 0 -> 1;
+			case 1 -> 2;
+			default -> 1;
+		};
 	}
 
 	public String getVesselRegistrationCode(int index) {
@@ -260,6 +250,10 @@ public class DatabaseFixtures {
 	public Integer getTaxonGroupFAOId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		return 1001 + index;
+	}
+
+	public Integer getTaxonGroupMNZ() {
+		return 1122;
 	}
 
 	public Integer getTaxonGroupIdWithManyTaxonName() {

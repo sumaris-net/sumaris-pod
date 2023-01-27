@@ -32,6 +32,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.model.referential.pmfm.ParameterGroupEnum;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.referential.ParameterVO;
@@ -109,7 +110,16 @@ public class PmfmServiceImpl implements PmfmService {
 
     @Override
     public boolean isWeightPmfm(int pmfmId) {
-        return pmfmRepository.hasLabelSuffix(pmfmId, "WEIGHT");
+        return pmfmRepository.hasLabelSuffix(pmfmId, "WEIGHT")
+            || pmfmId == PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId()
+            || pmfmId == PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId();
+    }
+
+    @Override
+    public boolean isBatchWeightPmfm(int pmfmId) {
+        return isWeightPmfm(pmfmId)
+            || pmfmId == PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId()
+            || pmfmId == PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId();
     }
 
     @Override

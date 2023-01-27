@@ -38,6 +38,8 @@ public class MD5UtilTest {
         emailMd5 = MD5Util.md5Hex("disable@sumaris.net");
         Assert.assertEquals("cf8bdc002a99cbc2a5f1a891de7194cf", emailMd5);
 
+        emailMd5 = MD5Util.md5Hex("guest@sumaris.net");
+        Assert.assertEquals("251dd0ef9a7744e87ea321a87d52d545", emailMd5);
 
     }
 

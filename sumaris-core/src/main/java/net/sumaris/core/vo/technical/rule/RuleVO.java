@@ -48,7 +48,7 @@ public class RuleVO implements IEntity<Integer>, IReferentialVO<Integer>, ITreeN
     private String label;
 
     @ToString.Include
-    private String name; // the controlled attribut
+    private String name; // the controlled attribute
     private String description;
 
     @EqualsAndHashCode.Exclude

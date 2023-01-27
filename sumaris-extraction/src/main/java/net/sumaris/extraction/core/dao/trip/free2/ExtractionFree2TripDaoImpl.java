@@ -96,7 +96,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         // Species Raw table
-        rowCount = createRawSpeciesListTable(context, true /*exclude invalid station*/);
+        rowCount = createRawSpeciesListTable(context, true /*always exclude invalid station*/);
         if (rowCount == 0) return context;
 
         // Strategy table
@@ -196,7 +196,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.bind("stationTableName", context.getStationTableName());
 
         // Bind some PMFM ids
-        xmlQuery.bind("normalProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
+        xmlQuery.bind("tripProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
         xmlQuery.bind("seaStatePmfmId", String.valueOf(PmfmEnum.SEA_STATE.getId()));
         xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
         xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
@@ -286,6 +286,8 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+        xmlQuery.bind("dressingPmfmId", String.valueOf(PmfmEnum.DRESSING.getId()));
+        xmlQuery.bind("weightSumRtpPmfmId", String.valueOf(PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId()));
 
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
@@ -365,7 +367,11 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
     @Override
     protected XMLQuery createSpeciesListQuery(C context) {
-        return super.createSpeciesListQuery(context);
+        XMLQuery query = super.createSpeciesListQuery(context);
+
+        query.bind("weightRtpPmfmId", String.valueOf(PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId()));
+
+        return query;
     }
 
     protected long createSpeciesLengthTable(C context) {
@@ -374,5 +380,14 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
     protected String getQueryFullName(C context, String queryName) {
         return super.getQueryFullName(Free2Specification.FORMAT, Free2Specification.VERSION_1_9, queryName);
+    }
+
+    @Override
+    protected XMLQuery createSpeciesLengthQuery(C context) {
+        XMLQuery query = super.createSpeciesLengthQuery(context);
+
+        query.bind("weightRtpPmfmId", String.valueOf(PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId()));
+
+        return query;
     }
 }

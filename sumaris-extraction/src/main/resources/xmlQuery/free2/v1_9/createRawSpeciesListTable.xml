@@ -40,6 +40,16 @@
         INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId
     )]]></select>
+    <select alias="PRESENTATION" type="text"><![CDATA[(
+    SELECT
+      CASE
+        WHEN QV.ID is not null THEN QV.LABEL || ' - ' || QV.NAME WHEN &landingQvId THEN UPPER('LAN')
+        ELSE null
+      END
+      FROM SORTING_MEASUREMENT_B SM
+        INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
+      WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&dressingPmfmId
+    )]]></select>
 
     <!-- other fields -->
     <select alias="WEIGHT" type="number">COALESCE(
@@ -59,6 +69,11 @@
     </select>
     <select alias="SAMPLING_RATIO" type="number">SAMPLING_B.SAMPLING_RATIO</select>
 
+    <select alias="WEIGHT_RTP" type="number">COALESCE(
+      (SELECT ROUND(QM.NUMERICAL_VALUE,6) FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SAMPLING_B.ID and QM.PMFM_FK=&amp;weightSumRtpPmfmId),
+      (SELECT ROUND(QM.NUMERICAL_VALUE,6) FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.PMFM_FK=&amp;weightSumRtpPmfmId)
+    )
+    </select>
 
     <!-- need to link other tables -->
     <select alias="TAXON_GROUP_ID" type="hidden">SPECIE_B.TAXON_GROUP_FK</select>

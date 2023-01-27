@@ -116,9 +116,7 @@ public class WeightLengthConversionServiceImpl implements WeightLengthConversion
                     .toArray(String[]::new);
                 
                 // Update vos
-                if (ArrayUtils.isNotEmpty(rectangleLabels)) {
-                    groupByLocationId.get(locationId).forEach(item -> item.setRectangleLabels(rectangleLabels));
-                }
+                groupByLocationId.get(locationId).forEach(item -> item.setRectangleLabels(rectangleLabels));
             });
         }
 

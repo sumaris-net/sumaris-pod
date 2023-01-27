@@ -80,6 +80,9 @@ public interface MeasurementDao {
 
     // Operation
     List<MeasurementVO> getOperationVesselUseMeasurements(int operationId);
+
+    List<MeasurementVO> getOperationVesselUseMeasurements(int operationId, List<Integer> pmfmIds);
+
     List<MeasurementVO> getOperationGearUseMeasurements(int operationId);
     Map<Integer, String> getOperationVesselUseMeasurementsMap(int operationId);
     Map<Integer, String> getOperationGearUseMeasurementsMap(int operationId);

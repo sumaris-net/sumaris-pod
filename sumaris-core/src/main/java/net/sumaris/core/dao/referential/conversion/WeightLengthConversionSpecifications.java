@@ -39,11 +39,10 @@ import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Root;
-import java.util.*;
+import javax.persistence.criteria.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public interface WeightLengthConversionSpecifications
     extends IEntityWithStatusSpecifications<Integer, WeightLengthConversion> {
@@ -63,33 +62,30 @@ public interface WeightLengthConversionSpecifications
 
     default Specification<WeightLengthConversion> hasRectangleLabels(String... rectangleLabels) {
         if (ArrayUtils.isEmpty(rectangleLabels)) return null;
-
-        if (ArrayUtils.isNotEmpty(rectangleLabels)) return null;
+        Integer[] rectangleLocationLevelIds =  LocationLevels.getStatisticalRectangleLevelIds();
+        if (ArrayUtils.isEmpty(rectangleLocationLevelIds)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> labelsParam = cb.parameter(Collection.class, RECTANGLE_LABELS_PARAMETER);
             ParameterExpression<Collection> levelIdsParam = cb.parameter(Collection.class, RECTANGLE_LEVEL_IDS_PARAMETER);
-            Join<WeightLengthConversion, Location> locationJoin = Daos.composeJoin(root, WeightLengthConversion.Fields.LOCATION, JoinType.INNER);
-            Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
-            Root<Location> rectangleLocation =  query.from(Location.class);
 
-            return cb.and(
-                // LH.PARENT_LOCATION_FK = <ROOT>.LOCATION_FK
-                cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), locationJoin),
+            Subquery<LocationHierarchy> subQuery = query.subquery(LocationHierarchy.class);
+            Root<LocationHierarchy> lh = subQuery.from(LocationHierarchy.class);
+            subQuery.select(lh.get(LocationHierarchy.Fields.PARENT_LOCATION));
+            Join<LocationHierarchy, Location> rectLocation = Daos.composeJoin(lh, LocationHierarchy.Fields.CHILD_LOCATION, JoinType.INNER);
 
-                // AND CHILD_LOCATION.LOCATION_LEVEL_FK in -:locationLevelIds)
-                cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), rectangleLocation),
-
-                // Rectangle location levels
-                Daos.composePath(rectangleLocation, StringUtils.doting(Location.Fields.LOCATION_LEVEL, LocationLevel.Fields.ID))
-                    .in(levelIdsParam),
-
-                // AND CHILD_LOCATION.LABEL in (:locationLabels)
-                rectangleLocation.get(Location.Fields.LABEL).in(labelsParam)
+            subQuery.where(
+                cb.and(
+                    cb.equal(Daos.composeJoin(root, WeightLengthConversion.Fields.LOCATION, JoinType.INNER), lh.get(LocationHierarchy.Fields.PARENT_LOCATION)),
+                    Daos.composePath(rectLocation, StringUtils.doting(Location.Fields.LOCATION_LEVEL, LocationLevel.Fields.ID), JoinType.INNER).in(levelIdsParam),
+                    rectLocation.get(Location.Fields.LABEL).in(labelsParam)
+                )
             );
+
+            return cb.exists(subQuery);
         })
         .addBind(RECTANGLE_LABELS_PARAMETER, Arrays.asList(rectangleLabels))
-        .addBind(RECTANGLE_LEVEL_IDS_PARAMETER, Arrays.asList(LocationLevels.getStatisticalRectangleLevelIds()))
+        .addBind(RECTANGLE_LEVEL_IDS_PARAMETER, Arrays.asList(rectangleLocationLevelIds))
         ;
     }
 

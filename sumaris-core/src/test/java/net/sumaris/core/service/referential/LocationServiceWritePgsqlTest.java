@@ -26,6 +26,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import org.junit.ClassRule;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,7 @@ import static org.junit.Assert.assertNotNull;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @ActiveProfiles("pgsql")
 @TestPropertySource(locations = "classpath:application-pgsql.properties")
+@Ignore("Use only Pgsql database")
 public class LocationServiceWritePgsqlTest extends AbstractServiceTest{
 
     @Autowired

@@ -165,7 +165,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS, initialDelay = 1)
-    @Transactional
     public void cleanJobs() {
         // Get pending or running jobs started 24 hours ago
         Timestamp startedBefore = new Timestamp(Dates.addDays(new Date(), -1).getTime());
@@ -282,21 +281,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         // Save and Notify user
         jobService.save(target);
 
-        EventLevelEnum eventLevel;
-        switch (job.getStatus()) {
-
-            case ERROR:
-            case FATAL:
-                eventLevel = EventLevelEnum.ERROR;
-                break;
-            case WARNING:
-            case CANCELLED:
-                eventLevel = EventLevelEnum.WARNING;
-                break;
-            default:
-                eventLevel = EventLevelEnum.INFO;
-                break;
-        }
+        EventLevelEnum eventLevel = switch (job.getStatus()) {
+            case ERROR, FATAL -> EventLevelEnum.ERROR;
+            case WARNING, CANCELLED -> EventLevelEnum.WARNING;
+            default -> EventLevelEnum.INFO;
+        };
 
         sendUserEvent(eventLevel, target);
 

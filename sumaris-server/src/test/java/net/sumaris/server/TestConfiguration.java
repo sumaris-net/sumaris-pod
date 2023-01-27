@@ -25,16 +25,18 @@ package net.sumaris.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphql.spring.boot.test.GraphQLTestTemplate;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import java.io.File;
 
 @SpringBootApplication(
     exclude = {
@@ -42,14 +44,16 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         FreeMarkerAutoConfiguration.class
     },
     scanBasePackages = {
+            "net.sumaris.core.config",
             "net.sumaris.core.dao",
+            "net.sumaris.core.jms",
             "net.sumaris.core.service",
             "net.sumaris.extraction.core",
             "net.sumaris.server"
     }
 )
 @EnableTransactionManagement
-public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfiguration {
+public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
 
     public static final String MODULE_NAME = "sumaris-server";
     public static final String DATASOURCE_PLATFORM = "hsqldb";
@@ -63,6 +67,7 @@ public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfigur
     }
 
     @Bean
+    @Primary
     public SumarisConfiguration configuration() {
         SumarisConfiguration config = super.configuration();
 
@@ -71,6 +76,8 @@ public class ServiceTestConfiguration extends net.sumaris.core.test.TestConfigur
             config = new SumarisServerConfiguration(config.getApplicationConfig());
             SumarisConfiguration.setInstance(config);
         }
+
+        Application.init((SumarisServerConfiguration)config);
 
         return config;
     }

@@ -81,35 +81,18 @@ public class StrategyPredocDaoImpl extends HibernateDaoSupport implements Strate
         Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
 
         // switch entityName
-        List<Integer> entityIds;
-        switch (entityName) {
-            case "Department":
-                entityIds = findStrategiesDepartments(programId);
-                break;
-            case "Location":
-                entityIds = findStrategiesLocations(programId, locationClassification);
-                break;
-            case "TaxonName":
-                entityIds = findStrategiesTaxonNames(programId);
-                break;
-            case "Pmfm":
-                entityIds = findStrategiesPmfms(programId, null, PmfmStrategy.Fields.PMFM);
-                break;
-            case "Parameter":
-                entityIds = findStrategiesPmfms(programId, null, PmfmStrategy.Fields.PARAMETER);
-                break;
-            case "Matrix":
-                entityIds = findStrategiesPmfms(programId, null, PmfmStrategy.Fields.MATRIX);
-                break;
-            case "Fraction":
-                entityIds = findStrategiesPmfms(programId, null, PmfmStrategy.Fields.FRACTION);
-                break;
-            case "Method":
-                entityIds = findStrategiesPmfms(programId, null, PmfmStrategy.Fields.METHOD);
-                break;
-            default:
+        List<Integer> entityIds = switch (entityName) {
+            case "Department" -> findStrategiesDepartments(programId);
+            case "Location" -> findStrategiesLocations(programId, locationClassification);
+            case "TaxonName" -> findStrategiesTaxonNames(programId);
+            case "Pmfm" -> findStrategiesPmfms(programId, null, PmfmStrategy.Fields.PMFM);
+            case "Parameter" -> findStrategiesPmfms(programId, null, PmfmStrategy.Fields.PARAMETER);
+            case "Matrix" -> findStrategiesPmfms(programId, null, PmfmStrategy.Fields.MATRIX);
+            case "Fraction" -> findStrategiesPmfms(programId, null, PmfmStrategy.Fields.FRACTION);
+            case "Method" -> findStrategiesPmfms(programId, null, PmfmStrategy.Fields.METHOD);
+            default ->
                 throw new SumarisTechnicalException(String.format("Unable to find data on entity '%s': not implemented", entityName));
-        }
+        };
 
         return findByIds(entityClass, entityIds, offset, size, sortAttribute, sortDirection);
     }

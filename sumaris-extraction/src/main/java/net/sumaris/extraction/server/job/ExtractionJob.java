@@ -78,28 +78,24 @@ public class ExtractionJob {
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.hourly.cron:0 0 * * * ?}")
-    @Async
     protected void executeHourly(){
         if (!enable) return; // Skip
         extractionService.executeAll(ProcessingFrequencyEnum.HOURLY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.daily.cron:0 0 0 * * ?}")
-    @Async
     protected void executeDaily(){
         if (!enable) return; // Skip
         extractionService.executeAll(ProcessingFrequencyEnum.DAILY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.weekly.cron:0 0 0 2 * MON}")
-    @Async
     protected void executeWeekly(){
         if (!enable) return; // Skip
         extractionService.executeAll(ProcessingFrequencyEnum.WEEKLY);
     }
 
     @Scheduled(cron = "${sumaris.extraction.scheduling.monthly.cron:0 0 0 1 * ?}")
-    @Async
     protected void executeMonthly(){
         if (!enable) return; // Skip
         extractionService.executeAll(ProcessingFrequencyEnum.MONTHLY);

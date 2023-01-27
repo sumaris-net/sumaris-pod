@@ -28,6 +28,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 
+import java.util.List;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */

@@ -30,9 +30,7 @@ import net.sumaris.core.model.referential.location.LocationLevels;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.vo.filter.LocationFilterVO;
-import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
-import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
-import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
+import net.sumaris.core.vo.referential.conversion.*;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -47,7 +45,7 @@ public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 	public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
 	@Autowired
-	private WeightLengthConversionService service;
+	private RoundWeightConversionService service;
 
 	@Autowired
 	private LocationService locationService;
@@ -67,14 +65,13 @@ public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 		long countAll = service.countByFilter(null);
 		Assume.assumeTrue(countAll > 0);
 
-		WeightLengthConversionFetchOptions fetchOptions = WeightLengthConversionFetchOptions.builder()
-			.withRectangleLabels(true)
+		RoundWeightConversionFetchOptions fetchOptions = RoundWeightConversionFetchOptions.builder()
 			.withLocation(true)
 			.build();
 
 		// Filter on status
 		{
-			List<WeightLengthConversionVO> result = service.findByFilter(WeightLengthConversionFilterVO.builder()
+			List<RoundWeightConversionVO> result = service.findByFilter(RoundWeightConversionFilterVO.builder()
 				.statusIds(new Integer[]{StatusEnum.DISABLE.getId()})
 				.build(), null, fetchOptions);
 			Assert.assertNotNull(result);
@@ -85,8 +82,8 @@ public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 
 		// Filter by reference taxon
 		{
-			List<WeightLengthConversionVO> result = service.findByFilter(WeightLengthConversionFilterVO.builder()
-				.referenceTaxonIds(new Integer[]{fixtures.getReferenceTaxonIdCOD()})
+			List<RoundWeightConversionVO> result = service.findByFilter(RoundWeightConversionFilterVO.builder()
+				.taxonGroupIds(new Integer[]{fixtures.getTaxonGroupMNZ()}) // Baudroie
 				.build(), null, fetchOptions);
 			Assert.assertNotNull(result);
 			int count = result.size();
@@ -97,11 +94,11 @@ public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 		}
 	}
 
-	protected void assertAllValid(List<WeightLengthConversionVO> sources, WeightLengthConversionFetchOptions fetchOptions) {
+	protected void assertAllValid(List<RoundWeightConversionVO> sources, RoundWeightConversionFetchOptions fetchOptions) {
 		sources.forEach(s -> this.assertValid(s, fetchOptions));
 	}
 
-	protected void assertValid(WeightLengthConversionVO source, WeightLengthConversionFetchOptions fetchOptions) {
+	protected void assertValid(RoundWeightConversionVO source, RoundWeightConversionFetchOptions fetchOptions) {
 		Assert.assertNotNull(source);
 		Assert.assertNotNull(source.getId());
 		Assert.assertNotNull(source.getLocationId());
@@ -110,20 +107,5 @@ public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 		if (fetchOptions.isWithLocation()) {
 			Assert.assertNotNull(source.getLocation());
 		}
-
-		if (fetchOptions.isWithRectangleLabels()) {
-			Assert.assertNotNull(source.getRectangleLabels());
-
-			// Make no sens to have no rectangle
-			long rectangleCount = source.getRectangleLabels().length;
-			Assert.assertTrue(rectangleCount > 0 || hasNoRectangle(source.getLocationId()));
-		}
-	}
-
-	private boolean hasNoRectangle(int locationId) {
-		return locationService.countByFilter(LocationFilterVO.builder()
-				.ancestorIds(new Integer[]{locationId})
-				.levelIds(LocationLevels.getStatisticalRectangleLevelIds())
-			.build()) == 0L;
 	}
 }

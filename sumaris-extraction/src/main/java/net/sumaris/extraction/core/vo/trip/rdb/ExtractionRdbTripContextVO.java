@@ -28,6 +28,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripContextVO;
 
+import java.util.List;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
@@ -50,4 +52,7 @@ public class ExtractionRdbTripContextVO extends ExtractionTripContextVO {
     String speciesListSheetName; // SL
     String speciesLengthSheetName; // HL
     String sampleSheetName; // CA
+
+    // Cached computed values
+    List<String> tripProgramLabels;
 }

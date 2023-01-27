@@ -84,17 +84,17 @@ public class TripServiceReadTest extends AbstractServiceTest{
         assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-02-28", "yyyy-MM-dd"))
             .build(),
-            5);
+            6);
 
         assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-03", "yyyy-MM-dd"))
             .build(),
-            5);
+            6);
 
         assertFindAll(TripFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
             .build(),
-            4);
+            5);
 
         assertFindAll(TripFilterVO.builder()
             .endDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
@@ -114,7 +114,7 @@ public class TripServiceReadTest extends AbstractServiceTest{
         assertFindAll(TripFilterVO.builder()
             .recorderPersonId(2)
             .build(),
-            4);
+            5);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class TripServiceReadTest extends AbstractServiceTest{
         assertFindAll(TripFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
                 .build(),
-            4);
+            5);
 
         assertFindAll(TripFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})

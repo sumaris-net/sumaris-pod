@@ -24,12 +24,14 @@ package net.sumaris.core.service.data;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -53,15 +55,18 @@ public class PhysicalGearServiceWriteTest extends AbstractServiceTest{
         List<PhysicalGearVO> gears = service.getAllByTripId(tripId, DataFetchOptions.builder()
                 .withChildrenEntities(true)
                 .build());
-        Assume.assumeTrue(gears.size() == 4);
+        Assume.assumeTrue("Invalid DB state. Expected 4 gears, but get " + gears.size(), gears.size() == 4);
         PhysicalGearVO rootGear = TreeNodeEntities.listAsTree(gears, PhysicalGearVO::getParentId, true);
 
         // Add a sub gear
-        PhysicalGearVO newChild = createGear(4, "New sub-gear");
+        PhysicalGearVO newChild = createPhysicalGear(4, "New sub-gear");
         rootGear.getChildren().add(newChild);
 
+        // Transform to list
+        List<PhysicalGearVO> allGears = service.treeToList(rootGear);
+
         // Save
-        service.saveAllByTripId(tripId, ImmutableList.of(rootGear));
+        service.saveAllByTripId(tripId, allGears);
 
         // Reload
         {
@@ -73,12 +78,18 @@ public class PhysicalGearServiceWriteTest extends AbstractServiceTest{
     }
 
 
-    protected PhysicalGearVO createGear(int rankOrder, String label) {
+    protected PhysicalGearVO createPhysicalGear(int rankOrder, String label) {
         PhysicalGearVO target = new PhysicalGearVO();
         target.setRankOrder(rankOrder);
         target.setMeasurementValues(ImmutableMap.of(PmfmEnum.GEAR_LABEL.getId(), label));
+        target.setGear(createGear(0));
 
         return target;
     }
 
+    protected ReferentialVO createGear(int index) {
+        return ReferentialVO.builder()
+            .id(fixtures.getGearId(0))
+            .build();
+    }
 }

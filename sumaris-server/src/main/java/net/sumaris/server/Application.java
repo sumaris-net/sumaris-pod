@@ -44,6 +44,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
@@ -69,6 +70,7 @@ import java.io.IOException;
 @EnableWebSocket
 @EnableCaching
 @Slf4j
+@Profile("!test")
 public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {
@@ -82,9 +84,23 @@ public class Application extends SpringBootServletInitializer {
 
     @Bean
     @Primary
+    @Profile("!test")
     public static SumarisServerConfiguration configuration(ConfigurableEnvironment env) {
         SumarisServerConfiguration.initDefault(env);
         SumarisServerConfiguration config = SumarisServerConfiguration.getInstance();
+
+        // Init
+        init(config);
+
+        return config;
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(Application.class);
+    }
+
+    public static void init(SumarisServerConfiguration config) {
 
         // Init I18n
         I18nUtil.init(config, getI18nBundleName());
@@ -98,14 +114,6 @@ public class Application extends SpringBootServletInitializer {
         // Init cache
         initCache(config);
 
-        return config;
-    }
-
-
-
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(Application.class);
     }
 
     /* -- Internal method -- */
