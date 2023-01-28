@@ -27,9 +27,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
+import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.TripFetchOptions;
+import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -45,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
@@ -53,6 +59,10 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
     protected ExtractionService service;
+
+    @Autowired
+    protected TripService tripService;
+
     @Autowired
     protected ObjectMapper objectMapper;
 
@@ -144,7 +154,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void executePmfm() throws IOException {
+    public void executePmfmSUMARiS() throws IOException {
 
         ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
         filter.setProgramLabel(fixtures.getProgramLabelForPmfmExtraction(0));
@@ -205,6 +215,65 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             assertHasColumn(releaseFile, "latitude");
             assertHasColumn(releaseFile, "longitude");
         }
+    }
+
+    @Test
+    public void executePmfmADAP() throws IOException {
+
+        String programLabel = fixtures.getProgramLabelForPmfmExtraction(1);
+
+        // Validate some trips
+        List<TripVO> trips =
+        tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
+            .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
+        Assume.assumeTrue(trips.size() > 0);
+        trips.forEach(trip -> {
+            if (trip.getControlDate() == null) tripService.control(trip);
+            if (trip.getValidationDate() == null) tripService.validate(trip);
+        });
+
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(programLabel);
+        filter.setExcludeInvalidStation(false);
+
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel());
+
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, PmfmTripSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+        }
+
+        // HL.csv
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+
+            assertHasColumn(speciesLengthFile, "sex");
+        }
+
     }
 
     @Test

@@ -252,7 +252,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
 
-        xmlQuery.setGroup("taxon", this.enableSpeciesListTaxon(context));
+        // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
+        boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
+        xmlQuery.setGroup("taxon", enableTaxonColumns);
 
         return xmlQuery;
     }
@@ -278,8 +280,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.bind("groupByColumns", pmfmsColumns);
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
-        boolean enableTaxonColumns = this.enableSpeciesListTaxon(context);
-        xmlQuery.setGroup("taxon", enableTaxonColumns);
+        xmlQuery.setGroup("taxon", this.enableSpeciesListTaxon(context));
 
         return xmlQuery;
     }
