@@ -27,7 +27,7 @@
     - utiliser NAME plutot que COMMENTS
     - gérer les noms vernaculaires dans TRANSCRIBING
     - ET afficher les nom vernaculaires dans les UI (nécessaire pour ADAP) -->
-  <select alias="TAXON" type="text" group="taxon">COALESCE(TN_INHERITED.COMMENTS, TN.COMMENTS)</select>
+  <select alias="TAXON" type="text" group="taxon">COALESCE(TN_INHERITED.COMMENTS, TN_INHERITED.NAME, TN.COMMENTS, TN.NAME)</select>
 
   <from join="true" group="taxon">LEFT OUTER JOIN TAXON_NAME TN_INHERITED ON TN_INHERITED.REFERENCE_TAXON_FK = SL.REFERENCE_TAXON_ID AND TN_INHERITED.IS_REFERENT=true</from>
   <from join="true" group="taxon">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = B.REFERENCE_TAXON_ID AND TN.IS_REFERENT=true</from>

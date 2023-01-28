@@ -113,6 +113,7 @@ public interface DataSpecifications<ID extends Serializable,
             Arrays.stream(dataQualityStatus)
                 .map(this::withDataQualityStatus)
                 .filter(Objects::nonNull)
+                .map(s -> s.toPredicate(root, query, cb))
                 .toArray(Predicate[]::new)
         );
     }
