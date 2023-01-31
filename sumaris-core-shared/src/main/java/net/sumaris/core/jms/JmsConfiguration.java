@@ -94,6 +94,7 @@ public class JmsConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnMissingBean({ConnectionFactory.class})
+    @ConditionalOnProperty(prefix = "spring.activemq", name = "broker-url")
     public class ActiveMQConfiguration {
 
         private static ConnectionFactory createJmsConnectionFactory(ActiveMQProperties properties,
