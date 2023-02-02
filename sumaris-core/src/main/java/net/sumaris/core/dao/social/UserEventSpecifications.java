@@ -27,6 +27,7 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -116,7 +117,15 @@ public interface UserEventSpecifications {
 
     long count(UserEventFilterVO filter);
 
-    List<UserEventVO> findAllVO(UserEventFilterVO filter, @Nullable net.sumaris.core.dao.technical.Page page);
+    default List<UserEventVO> findAllVO(UserEventFilterVO filter,
+                                        @Nullable net.sumaris.core.dao.technical.Page page) {
+        return findAllVO(filter, page, null);
+    }
+
+    List<UserEventVO> findAllVO(UserEventFilterVO filter,
+                                @Nullable net.sumaris.core.dao.technical.Page page,
+                                @Nullable UserEventFetchOptions fetchOptions);
+
 
     Page<UserEventVO> findAllVO(@Nullable Specification<UserEvent> spec, @Nullable Pageable pageable);
     Page<UserEventVO> findAllVO(@Nullable Specification<UserEvent> spec, net.sumaris.core.dao.technical.Page page);

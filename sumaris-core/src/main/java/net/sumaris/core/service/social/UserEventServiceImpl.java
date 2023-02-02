@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -65,6 +66,11 @@ public class UserEventServiceImpl implements UserEventService {
     @Override
     public List<UserEventVO> findAll(UserEventFilterVO filter, Page page) {
         return userEventRepository.findAllVO(filter, page);
+    }
+
+    @Override
+    public List<UserEventVO> findAll(UserEventFilterVO filter, Page page, UserEventFetchOptions fetchOptions) {
+        return userEventRepository.findAllVO(filter, page, fetchOptions);
     }
 
     @Override

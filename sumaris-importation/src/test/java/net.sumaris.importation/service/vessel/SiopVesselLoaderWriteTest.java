@@ -35,10 +35,7 @@ import net.sumaris.importation.DatabaseResource;
 import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.service.AbstractServiceTest;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -56,34 +53,33 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
     private PersonService personService = null;
 
     @Test
-    public void loadFromFile() {
+    public void assertLoadFromFile() {
         String basePath = "src/test/data/vessel/";
         File file = new File(basePath, "vessels-siop.csv");
-        Assume.assumeTrue(file.exists() && file.isFile());
-        int userId = getAdminUserId();
-
-        // Import vessel file
-        try {
-            SiopVesselImportContextVO context = SiopVesselImportContextVO.builder()
-                .recorderPersonId(userId)
-                .processingFile(file)
-                .build();
-            service.importFromFile(context, null);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            Assert.fail(e.getMessage());
-        }
-        finally {
-            Files.deleteTemporaryFiles(file);
-        }
+        assertLoadFromFile(file);
     }
 
     @Test
+    public void loadFromFileWithBOM() {
+        String basePath = "src/test/data/vessel/";
+        File file = new File(basePath, "vessels-siop-bom.csv");
+
+        assertLoadFromFile(file);
+    }
+
+    @Test
+    @Ignore
     public void loadFromProductionFile() {
         String basePath = System.getProperty("user.home") + "/Documents/adap/data/vessels";
         File file = new File(basePath, "bateaux_09_11_2022.csv");
-        Assume.assumeTrue(file.exists() && file.isFile());
 
+        assertLoadFromFile(file);
+    }
+
+    /* -- internal -- */
+
+    private void assertLoadFromFile(File file) {
+        Assume.assumeTrue("Missing file at " + file.getAbsolutePath(), file.exists() && file.isFile());
         int userId = getAdminUserId();
 
         // Import vessel file
@@ -100,10 +96,7 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
         finally {
             Files.deleteTemporaryFiles(file);
         }
-
     }
-
-    /* -- internal -- */
 
     private int getAdminUserId() {
         return personService.findByFilter(PersonFilterVO.builder()

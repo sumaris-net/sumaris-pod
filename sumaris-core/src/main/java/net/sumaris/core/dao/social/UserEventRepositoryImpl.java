@@ -30,6 +30,7 @@ import net.sumaris.core.model.social.EventLevelEnum;
 import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +74,10 @@ public class UserEventRepositoryImpl
     }
 
     @Override
-    public List<UserEventVO> findAllVO(@NonNull UserEventFilterVO filter, @Nullable net.sumaris.core.dao.technical.Page page) {
+    public List<UserEventVO> findAllVO(@NonNull UserEventFilterVO filter, @Nullable net.sumaris.core.dao.technical.Page page,
+                                       @Nullable UserEventFetchOptions fetchOptions) {
         return super.findAll(toSpecification(filter), page != null ? page.asPageable(): Pageable.unpaged())
-            .map(this::toVO)
+            .map(entity -> this.toVO(entity, fetchOptions))
             .stream().collect(Collectors.toList());
     }
 
@@ -89,13 +91,9 @@ public class UserEventRepositoryImpl
 
     @Override
     public void toVO(UserEvent source, UserEventVO target, boolean copyIfNull) {
-        Beans.copyProperties(source, target, UserEventVO.Fields.CONTENT /*skip content here*/);
-
-        target.setLevel(EventLevelEnum.valueOfOrNull(source.getLevel()));
-        target.setType(EventTypeEnum.valueOfOrNull(source.getType()));
-
-
+        this.toVO(source, target, null, copyIfNull);
     }
+
 
     @Override
     public Timestamp getDatabaseCurrentTimestamp() {
@@ -122,4 +120,22 @@ public class UserEventRepositoryImpl
         }
     }
 
+
+    protected UserEventVO toVO(UserEvent source, UserEventFetchOptions fetchOptions) {
+        UserEventVO target = new UserEventVO();
+        this.toVO(source, target, fetchOptions, true);
+        return target;
+    }
+
+    protected void toVO(UserEvent source, UserEventVO target, UserEventFetchOptions fetchOptions, boolean copyIfNull) {
+        Beans.copyProperties(source, target, UserEventVO.Fields.CONTENT /*skip content here*/);
+
+        target.setLevel(EventLevelEnum.valueOfOrNull(source.getLevel()));
+        target.setType(EventTypeEnum.valueOfOrNull(source.getType()));
+
+        // Content
+        if (fetchOptions != null && fetchOptions.isWithContent()) {
+            target.setContent(source.getContent());
+        }
+    }
 }

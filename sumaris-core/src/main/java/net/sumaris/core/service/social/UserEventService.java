@@ -23,6 +23,7 @@
 package net.sumaris.core.service.social;
 
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,9 @@ public interface UserEventService {
 
     @Transactional(readOnly = true)
     List<UserEventVO> findAll(UserEventFilterVO filter, Page page);
+
+    @Transactional(readOnly = true)
+    List<UserEventVO> findAll(UserEventFilterVO filter, Page page, UserEventFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     Timestamp getLastCreationDate(String ...recipients);

@@ -23,10 +23,8 @@
 package net.sumaris.server.http.graphql.social;
 
 import com.google.common.base.Preconditions;
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLMutation;
-import io.leangen.graphql.annotations.GraphQLQuery;
-import io.leangen.graphql.annotations.GraphQLSubscription;
+import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,9 +38,13 @@ import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
+import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
@@ -75,7 +77,8 @@ public class UserEventGraphQLService {
     @IsUser
     public List<UserEventVO> findUserEvents(
         @GraphQLArgument(name = "filter") UserEventFilterVO filter,
-        @GraphQLArgument(name = "page") Page page){
+        @GraphQLArgument(name = "page") Page page,
+        @GraphQLEnvironment ResolutionEnvironment env){
 
         filter = sanitizeFilter(filter);
 
@@ -94,7 +97,9 @@ public class UserEventGraphQLService {
             page.setSize(MAX_PAGE_SIZE);
         }
 
-        return userEventService.findAll(filter, page);
+        UserEventFetchOptions fetchOptions = getFetchOptions(GraphQLUtils.fields(env));
+
+        return userEventService.findAll(filter, page, fetchOptions);
     }
 
 
@@ -271,5 +276,11 @@ public class UserEventGraphQLService {
             filter.setIssuers(new String[]{filter.getIssuer()});
         }
         return filter;
+    }
+
+    protected UserEventFetchOptions getFetchOptions(Set<String> fields) {
+        return UserEventFetchOptions.builder()
+            .withContent(fields.contains(UserEventVO.Fields.CONTENT))
+            .build();
     }
 }
