@@ -89,7 +89,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-                // Survival test table
+                // Sample table
                 long rowCount = createSampleTable(context);
                 if (rowCount == 0) return context;
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
