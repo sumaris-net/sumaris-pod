@@ -78,33 +78,36 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     public <R extends C> R execute(F filter) {
         R context = super.execute(filter);
 
-        boolean enableSamples = this.isSamplesEnabled(context);
+        try {
+            boolean enableSamples = this.isSamplesEnabled(context);
 
-        if (enableSamples) {
-            context.setSampleTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
-            context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
+            if (enableSamples) {
+                context.setSampleTableName(formatTableName(ST_TABLE_NAME_PATTERN, context.getId()));
+                context.setReleaseTableName(formatTableName(RL_TABLE_NAME_PATTERN, context.getId()));
 
-            // Stop here, if sheet already filled
-            String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
-            try {
-                // Survival test table
+                // Stop here, if sheet already filled
+                String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+                // Sample table
                 long rowCount = createSampleTable(context);
                 if (rowCount == 0) return context;
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
 
                 // Release table
                 createReleaseTable(context);
-            } catch (PersistenceException e) {
-                // If error,clean created tables first, then rethrow the exception
-                clean(context);
-                throw e;
             }
+
+            return context;
         }
-
-        context.setType(LiveExtractionTypeEnum.PMFM_TRIP);
-
-        return context;
+        catch (PersistenceException e) {
+            // If error,clean created tables first, then rethrow the exception
+            clean(context);
+            throw e;
+        }
+        finally {
+            context.setType(LiveExtractionTypeEnum.PMFM_TRIP);
+        }
     }
 
     /* -- protected methods -- */

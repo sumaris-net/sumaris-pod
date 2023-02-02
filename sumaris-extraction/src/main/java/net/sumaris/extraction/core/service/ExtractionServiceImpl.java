@@ -307,6 +307,9 @@ public class ExtractionServiceImpl implements ExtractionService {
         ExtractionContextVO context = execute(type, filter, strata);
         Daos.commitIfHsqldbOrPgsql(dataSource);
 
+        // Make sure context has the valid type (need for file name)
+        context.setType(type);
+
         // Dump to file
         try {
             return dumpTablesToFile(context, filter);

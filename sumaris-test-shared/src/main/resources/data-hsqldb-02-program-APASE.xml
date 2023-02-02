@@ -26,7 +26,7 @@
 <dataset>
 
 
-  <PROGRAM ID="70" LABEL="APASE" NAME="Projet de test de sélectivité sur les chaluts" DESCRIPTION="Web site: https://www.aglia.net" STATUS_FK="1" CREATION_DATE="2022-04-15" UPDATE_DATE="2022-04-15" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
+  <PROGRAM ID="70" LABEL="APASE" NAME="Projet de test de sélectivité sur les chaluts" DESCRIPTION="Web site: https://www.aglia.net" STATUS_FK="1" CREATION_DATE="2022-04-15" UPDATE_DATE="2023-02-01" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
 
   <PROGRAM2PERSON ID="70" PROGRAM_FK="70" PERSON_FK="3" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2022-04-15"/>
   <PROGRAM2PERSON ID="71" PROGRAM_FK="70" PERSON_FK="2" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2022-04-15"/>
@@ -47,7 +47,7 @@
   <PROGRAM_PROPERTY ID="213" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-"/>
   <PROGRAM_PROPERTY ID="214" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.distanceMaxError" NAME="200"/>
   <PROGRAM_PROPERTY ID="215" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.distanceMaxWarning" NAME="150"/>
-  <PROGRAM_PROPERTY ID="216" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.batch.autoFill" NAME="true"/>
+  <PROGRAM_PROPERTY ID="216" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.batch.autoFill" NAME="false"/>
   <PROGRAM_PROPERTY ID="217" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.batch.taxonGroup.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="218" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="219" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.operation.batch.individualCount.enable" NAME="false"/>

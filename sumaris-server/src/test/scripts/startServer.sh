@@ -19,7 +19,8 @@ LOG_DIR="${APP_BASEDIR}/log/sumaris-pod.log"
 DB_URL="jdbc:hsqldb:hsql://localhost/sumaris"
 CONFIG_DIR="${PROJECT_ROOT}/.local/config"
 ARGS=$*
-PROFILE=hsqldb $ARGS
+PROFILE="hsqldb"
+[[ "_${ARGS}" != "_" ]] && PROFILE="${PROFILE},${ARGS}"
 
 echo "Project root: ${PROJECT_ROOT}"
 mkdir -p ${APP_BASEDIR}
@@ -38,6 +39,7 @@ VERSION=`grep -m1 -P "\<version>[0-9A−Z.]+(-\w*)?</version>" pom.xml | grep -o
 WAR_FILE="${PROJECT_DIR}/target/sumaris-server-${VERSION}.war"
 
 JAVA_OPTS=""
+JAVA_OPTS="$JAVA_OPTS --enable-preview"
 JAVA_OPTS="$JAVA_OPTS -Xms512m -Xmx1024m"
 JAVA_OPTS="$JAVA_OPTS -Dspring.main.banner-mode=off"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${APP_BASEDIR}"
@@ -49,7 +51,7 @@ if [[ -d "${CONFIG_DIR}" ]]; then
 fi;
 [[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"
 
-JAVA_CMD="java ${JAVA_OPTS} -jar ${WAR_FILE} ${ARGS}"
+JAVA_CMD="java ${JAVA_OPTS} -jar ${WAR_FILE}"
 
 # ------------------------------------
 echo "${LOG_PREFIX} Running pod from '${WAR_FILE}'... ${LOG_PREFIX}"

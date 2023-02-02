@@ -22,6 +22,7 @@
 
 package net.sumaris.server;
 
+import it.ozimov.springboot.mail.configuration.EmailToolsConfiguration;
 import it.ozimov.springboot.mail.configuration.EnableEmailTools;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -63,10 +64,9 @@ import java.io.IOException;
         LiquibaseAutoConfiguration.class,
         FreeMarkerAutoConfiguration.class,
         JsonbAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class
     }
 )
-@EnableEmailTools
 @EnableWebSocket
 @EnableCaching
 @Slf4j

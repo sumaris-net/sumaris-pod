@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-1.35.2.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- add config option, to enable any search in vessel (and not prefix) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229099996-400" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY
+                    WHERE LABEL='sumaris.trip.operation.batch.taxonGroups.noLanding'
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PROGRAM_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PROGRAM_PROPERTY_SEQ"/>
+            <column name="LABEL">sumaris.trip.operation.batch.taxonGroups.noLanding</column>
+            <column name="NAME">RJB_1,RJB_2</column>
+            <column name="PROGRAM_FK" valueComputed="(SELECT ID FROM PROGRAM WHERE LABEL = 'ADAP-MER')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+        <sql endDelimiter=";"><![CDATA[
+            UPDATE PROGRAM SET update_date=current_timestamp WHERE LABEL = 'ADAP-MER';
+            commit;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>
