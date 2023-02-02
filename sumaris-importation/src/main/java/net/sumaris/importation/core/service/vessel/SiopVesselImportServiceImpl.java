@@ -249,7 +249,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				MutableShort errors = new MutableShort(0);
 				MutableShort warnings = new MutableShort(0);
 				MutableShort rowCounter = new MutableShort(1);
-				List<String> logs = new ArrayList<>();
+				List<String> messages = new ArrayList<>();
 
 				List<VesselVO> vessels = readRows(reader, includedHeaders).stream()
 					.map(this::toVO)
@@ -265,7 +265,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 						if (uniqueKey == null) {
 							warnings.increment();;
 							String message = String.format("Invalid row #%s: no value for the required header '%s'. Skipping", rowCounter, uniqueKeyHeaderName);
-							logs.add(message);
+							messages.add(message);
 							log.warn(message);
 						}
 
@@ -273,7 +273,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 						else if (processedKeys.contains(uniqueKey)) {
 							warnings.increment();
 							String message = String.format("Invalid row #%s: duplicated value '%s=%s' (same value has been already processed). Skipping", rowCounter, uniqueKeyHeaderName, uniqueKey);
-							logs.add(message);
+							messages.add(message);
 							log.warn(message);
 						}
 						else {
@@ -301,15 +301,16 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 							catch (SumarisBusinessException e) {
 								errors.increment();
 								String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
-								logs.add(message);
+								messages.add(message);
 								log.error(message);
 								// Continue
 							}
 							catch (Exception e) {
 								errors.increment();
 								String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
-								logs.add(message);
-								log.error(message);
+								messages.add(message);
+								if (log.isDebugEnabled()) log.error(message, e);
+								else log.error(message);
 								// Continue
 							}
 						}
@@ -323,44 +324,48 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				}
 				progressionModel.setCurrent(vessels.size());
 
-				// Disable not present vessels
-				Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
-					.filter(e -> !processedKeys.contains(e.getKey()))
-					.map(Map.Entry::getValue)
-					.collect(Collectors.toSet());
-				if (CollectionUtils.isNotEmpty(vesselIdsToDisable)) {
+				// Disabled existing but absents vessel
+				// (only if sometimes was processed in the import - skip if not - eg. empty file)
+				if (inserts.intValue() > 0 || updates.intValue() > 0) {
+					// Disable not present vessels
+					Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
+						.filter(e -> !processedKeys.contains(e.getKey()))
+						.map(Map.Entry::getValue)
+						.collect(Collectors.toSet());
+					if (CollectionUtils.isNotEmpty(vesselIdsToDisable)) {
 
-					vesselIdsToDisable.forEach(vesselId -> {
-						try {
-							disable(vesselId, startDate);
-							disables.increment();
-						} catch (Exception e) {
-							if (log.isDebugEnabled()) {
-								log.error("Failed to disable vessel #{}: {}", vesselId, e.getMessage(), e);
+						vesselIdsToDisable.forEach(vesselId -> {
+							try {
+								disable(vesselId, startDate);
+								disables.increment();
+							} catch (Exception e) {
+								errors.increment();
+								String message = String.format("Failed to disable vessel %s: %s", vesselId, e.getMessage());
+								messages.add(message);
+								if (log.isDebugEnabled()) log.error(message, e);
+								else log.error(message);
 							}
-							else {
-								log.error("Failed to disable vessel #{}: {}", vesselId, e.getMessage());
-							}
-						}
-					});
+						});
+					}
 				}
 
 				if (errors.intValue() == 0) {
 					String message = String.format("Successfully import vessels. %s inserts, %s updates, %s disables, %s warnings", inserts, updates, disables, warnings);
-					logs.add(message);
+					messages.add(message);
 					log.info(message);
 				}
 				else {
 					String message = String.format("Successfully import vessels. %s inserts, %s updates, %s disables, %s warnings, %s errors", inserts, updates, disables, warnings, errors);
-					logs.add(message);
+					messages.add(message);
 					log.warn(message);
 				}
 
 				Set<String> temporaryHarbourNames = findAllTemporaryLocationNames(LocationLevelEnum.HARBOUR.getId());
 				if (CollectionUtils.isNotEmpty(temporaryHarbourNames)) {
+					warnings.increment();
 					String message = String.format("Some temporary harbours exists in database. Please check: name(s):\n\t- %s",
 						String.join("\n\t- ", temporaryHarbourNames));
-					logs.add(message);
+					messages.add(message);
 					log.warn(message);
 				}
 
@@ -371,8 +376,8 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				result.setWarnings(warnings.intValue());
 				result.setErrors(errors.intValue());
 
-				if (CollectionUtils.isNotEmpty(logs)) {
-					result.setMessage(String.join("\n", logs));
+				if (CollectionUtils.isNotEmpty(messages)) {
+					result.setMessage(String.join("\n", messages));
 				}
 
 				return result;
