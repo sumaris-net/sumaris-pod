@@ -36,6 +36,8 @@ public class SiopVesselImportResultVO {
     private Integer inserts;
     private Integer updates;
     private Integer disables;
+    private Integer warnings;
+
     private Integer errors;
 
     private String message;

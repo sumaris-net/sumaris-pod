@@ -110,9 +110,9 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 	};
 	protected static final Map<String, String> headerReplacements = ImmutableMap.<String, String>builder()
 		// Siop vessel synonyms (for LPDB)
-		.put("Numéro CFR", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE))
-		.put("Quart. mar.", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION))
-		.put("Immatr.", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.REGISTRATION_CODE))
+		.put("Num.ro CFR", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE))
+		.put("Quart[.] mar.", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION))
+		.put("Immatr[.]", StringUtils.doting(VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriod.Fields.REGISTRATION_CODE))
 		.put("Nom", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME))
 		.put("Jauge", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.GROSS_TONNAGE_GT))
 		.put("Longueur HT", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.LENGTH_OVER_ALL))
@@ -240,7 +240,6 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			// Do load
 			try (CSVFileReader reader = new CSVFileReader(tempFile, true, true, Charsets.UTF_8.name())) {
 
-
 				Map<String, Integer> existingKeys = collectExistingVessels(uniqueKeyPropertyName);
 				Set<String> processedKeys = Sets.newHashSet();
 
@@ -248,7 +247,9 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				MutableShort updates = new MutableShort(0);
 				MutableShort disables = new MutableShort(0);
 				MutableShort errors = new MutableShort(0);
+				MutableShort warnings = new MutableShort(0);
 				MutableShort rowCounter = new MutableShort(1);
+				List<String> logs = new ArrayList<>();
 
 				List<VesselVO> vessels = readRows(reader, includedHeaders).stream()
 					.map(this::toVO)
@@ -258,58 +259,65 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 				for (VesselVO vessel: vessels) {
 
-					// Get the unique key
-					String uniqueKey = Beans.getProperty(vessel, uniqueKeyPropertyName);
-					if (uniqueKey == null) {
-						log.warn("Invalid row #{}: no value for the required header '{}'. Skipping", rowCounter, uniqueKeyHeaderName);
+					try {
+						// Get the unique key
+						String uniqueKey = Beans.getProperty(vessel, uniqueKeyPropertyName);
+						if (uniqueKey == null) {
+							warnings.increment();;
+							String message = String.format("Invalid row #%s: no value for the required header '%s'. Skipping", rowCounter, uniqueKeyHeaderName);
+							logs.add(message);
+							log.warn(message);
+						}
+
+						// Check if not already processed (duplicated key)
+						else if (processedKeys.contains(uniqueKey)) {
+							warnings.increment();
+							String message = String.format("Invalid row #%s: duplicated value '%s=%s' (same value has been already processed). Skipping", rowCounter, uniqueKeyHeaderName, uniqueKey);
+							logs.add(message);
+							log.warn(message);
+						}
+						else {
+							// Fill default properties
+							fillVessel(vessel, recorderPerson);
+
+							try {
+								boolean isNew = !existingKeys.containsKey(uniqueKey);
+
+								if (isNew) {
+									log.debug("Inserting new vessel {} ...", uniqueKey);
+									insert(vessel);
+									inserts.increment();
+
+								} else {
+									log.debug("Updating existing vessel: {}", uniqueKey);
+									Integer vesselId = existingKeys.get(uniqueKey);
+									vessel.setId(vesselId);
+									boolean updated = update(vessel, startDate);
+									if (updated) updates.increment();
+								}
+
+								processedKeys.add(uniqueKey);
+							}
+							catch (SumarisBusinessException e) {
+								errors.increment();
+								String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
+								logs.add(message);
+								log.error(message);
+								// Continue
+							}
+							catch (Exception e) {
+								errors.increment();
+								String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
+								logs.add(message);
+								log.error(message);
+								// Continue
+							}
+						}
 					}
-
-					// Check if not already processed (duplicated key)
-					else if (processedKeys.contains(uniqueKey)) {
-						log.warn("Invalid row #{}: duplicated value '{}={}' (same value has been already processed). Skipping", rowCounter, uniqueKeyHeaderName, uniqueKey);
-					}
-					else {
-						// Fill default properties
-						fillVessel(vessel, recorderPerson);
-
-						try {
-							boolean isNew = !existingKeys.containsKey(uniqueKey);
-
-							if (isNew) {
-								log.debug("Inserting new vessel {} ...", uniqueKey);
-								insert(vessel);
-								inserts.increment();
-
-							} else {
-								log.debug("Updating existing vessel: {}", uniqueKey);
-								Integer vesselId = existingKeys.get(uniqueKey);
-								vessel.setId(vesselId);
-								boolean updated = update(vessel, startDate);
-								if (updated) updates.increment();
-							}
-
-							processedKeys.add(uniqueKey);
-						}
-						catch (SumarisBusinessException e) {
-							errors.increment();
-							log.error("Failed to import vessel #{} at line #{}: {}", uniqueKey, rowCounter, e.getMessage(), e);
-							// Continue
-						}
-						catch (Exception e) {
-							errors.increment();
-							if (log.isDebugEnabled()) {
-								log.error("Failed to import vessel #{} at line #{}: {}", uniqueKey, rowCounter, e.getMessage(), e);
-							}
-							else {
-								log.error("Failed to import vessel #{} at line #{}: {}", uniqueKey, rowCounter, e.getMessage());
-							}
-							// Continue
-						}
-						finally {
-							rowCounter.increment();
-							if (rowCounter.intValue() % 10 == 0) {
-								progressionModel.setCurrent(rowCounter.intValue());
-							}
+					finally {
+						rowCounter.increment();
+						if (rowCounter.intValue() % 10 == 0) {
+							progressionModel.setCurrent(rowCounter.intValue());
 						}
 					}
 				}
@@ -338,24 +346,34 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				}
 
 				if (errors.intValue() == 0) {
-					log.info("Successfully import vessels. {} inserts, {} updates, {} disables", inserts, updates, disables);
+					String message = String.format("Successfully import vessels. %s inserts, %s updates, %s disables, %s warnings", inserts, updates, disables, warnings);
+					logs.add(message);
+					log.info(message);
 				}
 				else {
-					log.warn("Successfully import vessels, with errors. {} inserts, {} updates, {} disables, {} errors",
-						inserts, updates, disables, errors);
+					String message = String.format("Successfully import vessels. %s inserts, %s updates, %s disables, %s warnings, %s errors", inserts, updates, disables, warnings, errors);
+					logs.add(message);
+					log.warn(message);
 				}
 
 				Set<String> temporaryHarbourNames = findAllTemporaryLocationNames(LocationLevelEnum.HARBOUR.getId());
 				if (CollectionUtils.isNotEmpty(temporaryHarbourNames)) {
-					log.warn("Some temporary harbours exists in database. Please check : name(s):\n\t- {}",
+					String message = String.format("Some temporary harbours exists in database. Please check: name(s):\n\t- %s",
 						String.join("\n\t- ", temporaryHarbourNames));
+					logs.add(message);
+					log.warn(message);
 				}
 
 				// Update result
 				result.setInserts(inserts.intValue());
 				result.setUpdates(updates.intValue());
 				result.setDisables(disables.intValue());
+				result.setWarnings(warnings.intValue());
 				result.setErrors(errors.intValue());
+
+				if (CollectionUtils.isNotEmpty(logs)) {
+					result.setMessage(String.join("\n", logs));
+				}
 
 				return result;
 			}
@@ -474,7 +492,8 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			// Replace in headers (exact match
 			Map<String, String> exactHeaderReplacements = Maps.newHashMap();
 			for (String header: headerReplacements.keySet()) {
-				String regexp = "(^|" + separator + ")\"?" + header + "\"?(" + separator + "|$)";
+				// WARN: match start OR \ufeff (BOM UTF-8) character
+				String regexp = "(^\ufeff?|" + separator + ")\"?" + header + "\"?(" + separator + "|$)";
 				String replacement = "$1" + headerReplacements.get(header) + "$2";
 				exactHeaderReplacements.put(regexp, replacement);
 			}
