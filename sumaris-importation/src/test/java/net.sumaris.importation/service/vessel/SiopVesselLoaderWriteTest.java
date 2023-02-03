@@ -53,7 +53,7 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
     private PersonService personService = null;
 
     @Test
-    public void assertLoadFromFile() {
+    public void loadFromFile() {
         String basePath = "src/test/data/vessel/";
         File file = new File(basePath, "vessels-siop.csv");
         assertLoadFromFile(file);
