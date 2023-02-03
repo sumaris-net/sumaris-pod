@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-1.35.4.xml">
+
+    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+    <!-- add parameter group VESSEL -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229099997-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PARAMETER_GROUP WHERE LABEL='VESSEL'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            insert into PARAMETER_GROUP (id, status_fk, creation_date, update_date, label, name) select NEXT VALUE FOR PARAMETER_GROUP_SEQ, STATUS.ID, sysdate, now, 'VESSEL', 'Caractéristiques de navire' from STATUS where ID = 1;
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- add hull material -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229099997-302" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PARAMETER WHERE LABEL='HULL_MATERIAL'</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) FROM PARAMETER_GROUP WHERE LABEL='VESSEL'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PARAMETER">
+            <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_SEQ"/>
+            <column name="LABEL">HULL_MATERIAL</column>
+            <column name="NAME">Matériaux de la coque</column>
+            <column name="IS_QUALITATIVE" valueNumeric="1"/>
+            <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+            <column name="PARAMETER_GROUP_FK" valueComputed="(SELECT PG.ID FROM PARAMETER_GROUP PG where PG.label='VESSEL')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+        </insert>
+        <sql endDelimiter=";"><![CDATA[
+            insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, 'Bois', 'Bois',  P.ID FROM PARAMETER P where label='HULL_MATERIAL' and not exists (select * from QUALITATIVE_VALUE QV where QV.parameter_fk=P.ID and QV.label='Bois');
+            insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, 'Métal', 'Métal',  P.ID FROM PARAMETER P where label='HULL_MATERIAL' and not exists (select * from QUALITATIVE_VALUE QV where QV.parameter_fk=P.ID and QV.label='Métal');
+            insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, 'Fibre de verre/plastique', 'Fibre de verre/plastique',  P.ID FROM PARAMETER P where label='HULL_MATERIAL' and not exists (select * from QUALITATIVE_VALUE QV where QV.parameter_fk=P.ID and QV.label='Fibre de verre/plastique');
+            insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, 'OTH', 'Autres',  P.ID FROM PARAMETER P where label='HULL_MATERIAL' and not exists (select * from QUALITATIVE_VALUE QV where QV.parameter_fk=P.ID and QV.label='OTH');
+            insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, 'UNK', 'Indéterminé',  P.ID FROM PARAMETER P where label='HULL_MATERIAL' and not exists (select * from QUALITATIVE_VALUE QV where QV.parameter_fk=P.ID and QV.label='UNK');
+            insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, 'Polyester', 'Polyester',  P.ID FROM PARAMETER P where label='HULL_MATERIAL' and not exists (select * from QUALITATIVE_VALUE QV where QV.parameter_fk=P.ID and QV.label='Polyester');
+            insert into QUALITATIVE_VALUE (id, status_fk, creation_date, update_date, label, name, parameter_fk) select NEXT VALUE FOR QUALITATIVE_VALUE_SEQ, 1, sysdate, now, 'Aluminium', 'Aluminium',  P.ID FROM PARAMETER P where label='HULL_MATERIAL' and not exists (select * from QUALITATIVE_VALUE QV where QV.parameter_fk=P.ID and QV.label='Aluminium');
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- add PMFM hull material -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229099997-303" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM WHERE LABEL='HULL_MATERIAL'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM">
+            <column name="ID" valueComputed="NEXT VALUE FOR PMFM_SEQ"/>
+            <column name="PARAMETER_FK" valueComputed="(SELECT P.ID FROM PARAMETER P where label='HULL_MATERIAL')"/>
+            <column name="LABEL">HULL_MATERIAL</column>
+            <column name="MATRIX_FK" valueNumeric="5"/>
+            <column name="UNIT_FK" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp" />
+        </insert>
+    </changeSet>
+</databaseChangeLog>

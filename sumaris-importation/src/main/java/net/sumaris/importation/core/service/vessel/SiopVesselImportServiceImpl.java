@@ -52,6 +52,8 @@ import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.model.referential.pmfm.ParameterEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.data.vessel.VesselService;
@@ -69,6 +71,7 @@ import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
@@ -125,6 +128,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		.put("Date Départ", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.END_DATE))
 		.put("Indicatif radio", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.IRCS))
 		.put("Année mise en service", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.CONSTRUCTION_YEAR))
+		.put("Matériau coque", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.HULL_MATERIAL))
 		.put("Comment. 1", StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.COMMENTS))
 
 		.build();
@@ -142,6 +146,10 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		.put("Quiberon", "FRQUI - Quiberon (Port-Maria)")
 		.put("Plougasnou", "FRPLO - Plougasnou (Le Diben-Primel)")
 		.put("Roscoff", "FRGMX - Roscoff")
+		.put("DINGLE", "GBDIN - Dingle")
+		.put("DINGLE", "GBDIN - Dingle")
+		.put("Larmor-Baden", "FRLB3 - Larmor-Baden")
+		.put("Séné", "FRM56 - Séné")
 
 		// CRIEE -> Harbour
 		.put("CRIEE CONCARNEAU", "FRCOC - Concarneau")
@@ -174,6 +182,26 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				location.setName(parts[1]);
 				location.setLevelId(LocationLevelEnum.HARBOUR.getId());
 				return location;
+			})
+		);
+
+	protected static final Map<String, ReferentialVO> hullMaterialReplacements = ImmutableMap.<String, String>builder()
+		.put("Bois", "Bois - Bois")
+		.put("Métal", "Métal - Métal")
+		.put("Plastique", "Fibre de verre/plastique - Fibre de verre/plastique")
+		.put("Autres", "OTH - Autres")
+		.build()
+		.entrySet()
+		.stream()
+		.collect(Collectors.toMap(
+			Map.Entry::getKey,
+			entry -> {
+				String[] parts = entry.getValue().split(LABEL_NAME_SEPARATOR_REGEXP);
+				ReferentialVO ref = new ReferentialVO();
+				ref.setLabel(parts[0]);
+				ref.setName(parts[1]);
+				ref.setLevelId(ParameterEnum.HULL_MATERIAL.getId());
+				return ref;
 			})
 		);
 	protected Map<Integer, LocationVO> locationByFilterCache = Maps.newConcurrentMap();
@@ -319,6 +347,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 						rowCounter.increment();
 						if (rowCounter.intValue() % 10 == 0) {
 							progressionModel.setCurrent(rowCounter.intValue());
+							progressionModel.setMessage(t("sumaris.import.job.vessel.progress", rowCounter.intValue(), vessels.size()));
 						}
 					}
 				}
@@ -327,6 +356,8 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				// Disabled existing but absents vessel
 				// (only if sometimes was processed in the import - skip if not - eg. empty file)
 				if (inserts.intValue() > 0 || updates.intValue() > 0) {
+					progressionModel.setMessage(t("sumaris.import.job.vessel.disabling"));
+
 					// Disable not present vessels
 					Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
 						.filter(e -> !processedKeys.contains(e.getKey()))
@@ -349,8 +380,18 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 					}
 				}
 
+				Set<String> temporaryHarbourNames = findAllTemporaryLocationNames(LocationLevelEnum.HARBOUR.getId());
+				if (CollectionUtils.isNotEmpty(temporaryHarbourNames)) {
+					warnings.increment();
+					String message = String.format("Some temporary harbours exists in database. Please check: name(s):\n\t- %s",
+						String.join("\n\t- ", temporaryHarbourNames));
+					messages.add(message);
+					log.warn(message);
+				}
+
+				// Final message
 				if (errors.intValue() == 0) {
-					String message = String.format("Successfully import vessels. %s inserts, %s updates, %s disables, %s warnings", inserts, updates, disables, warnings);
+					String message = String.format("Successfully import vessels, with errors. %s inserts, %s updates, %s disables, %s warnings", inserts, updates, disables, warnings);
 					messages.add(message);
 					log.info(message);
 				}
@@ -360,14 +401,6 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 					log.warn(message);
 				}
 
-				Set<String> temporaryHarbourNames = findAllTemporaryLocationNames(LocationLevelEnum.HARBOUR.getId());
-				if (CollectionUtils.isNotEmpty(temporaryHarbourNames)) {
-					warnings.increment();
-					String message = String.format("Some temporary harbours exists in database. Please check: name(s):\n\t- %s",
-						String.join("\n\t- ", temporaryHarbourNames));
-					messages.add(message);
-					log.warn(message);
-				}
 
 				// Update result
 				result.setInserts(inserts.intValue());
@@ -662,6 +695,9 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		VesselVO vessel = vesselService.get(vesselId);
 		Preconditions.checkNotNull(vessel);
 
+		// Set status to disable
+		vessel.setStatusId(StatusEnum.DISABLE.getId());
+
 		// Close previous data periods
 		Date previousEndDate = Dates.addSeconds(startDate, -1);
 		if (vessel.getVesselFeatures() != null) {
@@ -713,7 +749,26 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 				Integer intValue = Integer.parseInt(value);
 				Beans.setProperty(target, propertyName, intValue);
 				break;
-
+			case "vesselFeatures.hullMaterial":
+				if (hullMaterialReplacements.containsKey(value)) {
+					ReferentialVO hullMaterial = hullMaterialReplacements.get(value);
+					Beans.setProperty(target, propertyName, hullMaterial);
+				}
+				else {
+					String[] parts = value.split(LABEL_NAME_SEPARATOR_REGEXP);
+					Object existingObject = Beans.getProperty(target, propertyName);
+					ReferentialVO hullMaterial = existingObject != null ? (ReferentialVO) existingObject : new ReferentialVO();
+					if (parts.length == 1) {
+						hullMaterial.setName(parts[0]);
+					} else if (parts.length == 2) {
+						hullMaterial.setLabel(parts[0]);
+						hullMaterial.setName(parts[1]);
+					} else {
+						throw new SumarisTechnicalException(String.format("Unknown format for a hull material: '%s'", value));
+					}
+					Beans.setProperty(target, propertyName, hullMaterial);
+				}
+				break;
 			case "vesselFeatures.basePortLocation":
 			case "vesselRegistrationPeriod.registrationLocation":
 				if (harbourReplacements.containsKey(value)) {
@@ -823,6 +878,11 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			// Fill recorder department
 			if (features.getRecorderPerson() == null) {
 				features.setRecorderPerson(recorderPerson);
+			}
+
+			// Fill hull material
+			if (features.getHullMaterial() != null) {
+				fillHullMaterial(features.getHullMaterial());
 			}
 		}
 
@@ -1026,6 +1086,25 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 	}
 
 
+	protected void fillHullMaterial(ReferentialVO hullMaterial) {
+		if (hullMaterial == null) return;
+
+		Integer parameterId = ParameterEnum.HULL_MATERIAL.getId();
+		if (parameterId == null || parameterId.intValue() < 0) return; // Parameter not exists
+
+		ReferentialFilterVO filter = ReferentialFilterVO.builder()
+			.label(StringUtils.defaultIfBlank(hullMaterial.getLabel(), null))
+			.name(StringUtils.defaultIfBlank(hullMaterial.getName(), null))
+			.levelIds(new Integer[]{parameterId})
+			.build();
+		List<ReferentialVO> matches = referentialService.findByFilter(QualitativeValue.class.getSimpleName(),
+			filter, 0, 2);
+
+		if (matches.size() != 1) return; // No match
+
+		ReferentialVO match = matches.get(0);
+		hullMaterial.setId(match.getId());
+	}
 }
 
 

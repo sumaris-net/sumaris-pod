@@ -31,7 +31,7 @@
     <property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
     <property name="sqlCheck.open.expectedResult" value="1"/>
 
-    <preConditions onFail="WARN" onFailMessage="Database instance is not a OPEN database instance ! Do not include this changelog file in the master file">
+    <preConditions onFail="WARN" onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
         <or>
             <!-- Test if database is empty -->
             <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>

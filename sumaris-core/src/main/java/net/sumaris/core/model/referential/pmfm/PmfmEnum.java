@@ -81,6 +81,8 @@ public enum PmfmEnum implements Serializable {
     DISCARD_REASON(95, "DISCARD_REASON"),
     HAS_INDIVIDUAL_MEASURES(121, "HAS_INDIVIDUAL_MEASURES"),
 
+    HULL_MATERIAL(433, "HULL_MATERIAL"), // Adagio HULL_MATERIAL (id=145)
+
     @Deprecated
     /**
      * @deprecated Use CONTRACT_CODE instead
