@@ -38,11 +38,13 @@ import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
@@ -105,6 +107,14 @@ public class VesselFeaturesRepositoryImpl
 
         target.setQualityFlagId(source.getQualityFlag().getId());
 
+        if (source.getHullMaterial() != null) {
+            ReferentialVO hullMaterial = referentialDao.toVO(source.getHullMaterial());
+            target.setHullMaterial(hullMaterial);
+        }
+        else {
+            target.setHullMaterial(null);
+        }
+
         // Base port location
         LocationVO basePortLocation = locationRepository.toVO(source.getBasePortLocation());
         target.setBasePortLocation(basePortLocation);
@@ -131,6 +141,15 @@ public class VesselFeaturesRepositoryImpl
         }
         if (source.getGrossTonnageGt() != null) {
             target.setGrossTonnageGt((int) (source.getGrossTonnageGt() * 100));
+        }
+
+        // Hull material
+        if (copyIfNull || source.getHullMaterial() != null) {
+            if (source.getHullMaterial() == null || source.getHullMaterial().getId() == null) {
+                target.setHullMaterial(null);
+            } else {
+                target.setHullMaterial(getReference(QualitativeValue.class, source.getHullMaterial().getId()));
+            }
         }
 
         // Base port location

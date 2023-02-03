@@ -42,6 +42,7 @@ import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -487,6 +488,15 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
 
         target.setQualityFlagId(source.getQualityFlag().getId());
 
+        // Hull material
+        if (source.getHullMaterial() != null) {
+            ReferentialVO hullMaterial = referentialDao.toVO(source.getHullMaterial());
+            target.setHullMaterial(hullMaterial);
+        }
+        else {
+            target.setHullMaterial(null);
+        }
+
         // base port location
         LocationVO basePortLocation = locationRepository.toVO(source.getBasePortLocation());
         target.setBasePortLocation(basePortLocation);
@@ -565,6 +575,15 @@ public class VesselDaoImpl extends HibernateDaoSupport implements VesselDao {
         }
         if (source.getGrossTonnageGt() != null) {
             target.setGrossTonnageGt((int) (source.getGrossTonnageGt() * 100));
+        }
+
+        // Hull material
+        if (copyIfNull || source.getHullMaterial() != null) {
+            if (source.getHullMaterial() == null || source.getHullMaterial().getId() == null) {
+                target.setHullMaterial(null);
+            } else {
+                target.setHullMaterial(getReference(QualitativeValue.class, source.getHullMaterial().getId()));
+            }
         }
 
         // Base port location

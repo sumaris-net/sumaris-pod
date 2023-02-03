@@ -38,7 +38,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ApplicationContext;
@@ -65,7 +67,9 @@ import java.util.Arrays;
 	exclude = {
 		LiquibaseAutoConfiguration.class,
 		FreeMarkerAutoConfiguration.class,
-		JndiConnectionFactoryAutoConfiguration.class
+		JndiConnectionFactoryAutoConfiguration.class,
+		JmsAutoConfiguration.class,
+		ActiveMQAutoConfiguration.class
 	},
 	scanBasePackages = {
 		"net.sumaris.core"
