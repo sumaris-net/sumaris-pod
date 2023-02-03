@@ -39,4 +39,19 @@
         </insert>
     </changeSet>
 
+    <!-- ADAP-MER strategy: Set GUT (id=339) instead of WHL (id=331), as default value for DRESSING -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229099997-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) FROM PMFM_STRATEGY WHERE PMFM_FK=151 AND STRATEGY_FK=10 AND DEFAULT_VALUE='331'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update PMFM_STRATEGY set DEFAULT_VALUE='339' where DEFAULT_VALUE='331' and PMFM_FK=151 AND STRATEGY_FK=10;
+            update STRATEGY set UPDATE_DATE = current_timestamp where PROGRAM_FK=10;
+            update PROGRAM set UPDATE_DATE = current_timestamp where ID=10;
+            commit;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

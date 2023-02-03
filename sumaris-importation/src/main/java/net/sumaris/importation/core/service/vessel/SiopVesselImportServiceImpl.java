@@ -147,7 +147,6 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		.put("Plougasnou", "FRPLO - Plougasnou (Le Diben-Primel)")
 		.put("Roscoff", "FRGMX - Roscoff")
 		.put("DINGLE", "GBDIN - Dingle")
-		.put("DINGLE", "GBDIN - Dingle")
 		.put("Larmor-Baden", "FRLB3 - Larmor-Baden")
 		.put("Séné", "FRM56 - Séné")
 
