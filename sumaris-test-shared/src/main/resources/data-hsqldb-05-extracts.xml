@@ -667,13 +667,18 @@
                 ISSUER="SYSTEM"
                 RECIPIENT="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
                 UPDATE_DATE="2022-11-03" CREATION_DATE="2022-11-03"/>
-    <USER_EVENT ID="2" CONTENT="{&quot;id&quot;: 2, &quot;status&quot;: &quot;SUCCESS&quot;, &quot;type&quot;: &quot;SIOP_VESSELS_IMPORTATION&quot;, &quot;name&quot;: &quot;Import des navires&quot;}"
+    <USER_EVENT ID="2" CONTENT="{&quot;id&quot;: 2, &quot;status&quot;: &quot;SUCCESS&quot;, &quot;type&quot;: &quot;SIOP_VESSELS_IMPORTATION&quot;, &quot;name&quot;: &quot;Import des navires SIOP&quot;}"
                 EVENT_TYPE="JOB"
                 EVENT_LEVEL="INFO"
                 SOURCE="job:2"
                 ISSUER="SYSTEM"
                 RECIPIENT="Hg8gVyHTNxidhupuPNePW4CjQKzaZz66Vzowgb553ZdB"
                 CREATION_DATE="2022-11-11 02:00:00.000" UPDATE_DATE="2022-11-11 09:41:00.000"/>
-
+    <USER_EVENT ID="3" CONTENT="{&quot;context&quot;: {&quot;id&quot;: -1, &quot;program&quot;: {&quot;id&quot;: 1, &quot;label&quot;: &quot;SUMARiS&quot;}, &quot;departureDateTime&quot;: &quot;2023-02-03 00:00:00.000&quot;, &quot;__typename&quot;: &quot;TripVO&quot;}}"
+                EVENT_TYPE="DEBUG_DATA"
+                EVENT_LEVEL="DEBUG"
+                ISSUER="5ocqzyDMMWf1V8bsoNhWb1iNwax1e9M7VTUN6navs8of"
+                RECIPIENT="SYSTEM"
+                CREATION_DATE="2022-11-11 02:00:00.000" UPDATE_DATE="2022-11-11 09:41:00.000"/>
 
 </dataset>
