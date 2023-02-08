@@ -22,6 +22,9 @@
 
 <query type="select">
 
+  <select alias="DEPARTURE_DATE_TIME" type="date">TO_CHAR(T.DEPARTURE_DATE_TIME, 'DD-MM-YYYY HH24:MI:SS')</select>
+  <select alias="RETURN_DATE_TIME" type="date">TO_CHAR(T.RETURN_DATE_TIME, 'DD-MM-YYYY HH24:MI:SS')</select>
+
   <select alias="TRIP_COMMENTS" type="text">T.COMMENTS</select>
 
   <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.TRIP_FK = T.ID</from>

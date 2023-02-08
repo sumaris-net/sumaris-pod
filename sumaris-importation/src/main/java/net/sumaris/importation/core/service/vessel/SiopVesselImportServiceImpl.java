@@ -412,6 +412,8 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 					result.setMessage(String.join("\n", messages));
 				}
 
+				progressionModel.setCurrent(progressionModel.getTotal());
+
 				return result;
 			}
 		}
