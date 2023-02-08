@@ -228,6 +228,8 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 	private final ApplicationEventPublisher publisher;
 
+	private boolean running = false;
+
 	@Override
 	public SiopVesselImportResultVO importFromFile(@NonNull SiopVesselImportContextVO context,
 												   IProgressionModel progressionModel) throws IOException {
@@ -236,199 +238,207 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 		SiopVesselImportResultVO result = context.getResult();
 
-		// Init progression model
-		progressionModel = Optional.ofNullable(progressionModel).orElseGet(ProgressionModel::new);
-		progressionModel.setMessage(t("sumaris.import.job.start", context.getProcessingFile().getName()));
+		// Make sure this job run once, to avoid duplication
+		if (running) throw new SumarisTechnicalException("Unable to import vessels: another process is still in progress");
+		running = true;
 
-		PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
-
-		String uniqueKeyPropertyName = StringUtils.doting(
-			VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriodVO.Fields.INT_REGISTRATION_CODE
-		);
-
-		// Make sure to create all locations
-		locationByFilterCache.clear();
-		for (LocationVO location : harbourReplacements.values()) {
-			this.fillOrCreateLocation(location, LocationLevelEnum.HARBOUR.getId());
-		}
-
-		Date startDate = Dates.resetTime(new Date());
-
-		File tempFile = null;
 		try {
-			tempFile = prepareFile(context.getProcessingFile());
+			// Init progression model
+			progressionModel = Optional.ofNullable(progressionModel).orElseGet(ProgressionModel::new);
+			progressionModel.setMessage(t("sumaris.import.job.start", context.getProcessingFile().getName()));
 
-			Set<String> includedHeaders = new HashSet<>(headerReplacements.values());
-			String uniqueKeyHeaderName = headerReplacements.entrySet().stream()
-				.filter(entry -> uniqueKeyPropertyName.equals(entry.getValue()))
-				.map(Map.Entry::getKey)
-				.findFirst().orElseThrow(() -> new IllegalArgumentException("Cannot resolve CSV header corresponding to the model property " + uniqueKeyPropertyName));
+			PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
 
-			// Do load
-			try (CSVFileReader reader = new CSVFileReader(tempFile, true, true, Charsets.UTF_8.name())) {
+			String uniqueKeyPropertyName = StringUtils.doting(
+				VesselVO.Fields.VESSEL_REGISTRATION_PERIOD, VesselRegistrationPeriodVO.Fields.INT_REGISTRATION_CODE
+			);
 
-				Map<String, Integer> existingKeys = collectExistingVessels(uniqueKeyPropertyName);
-				Set<String> processedKeys = Sets.newHashSet();
+			// Make sure to create all locations
+			locationByFilterCache.clear();
+			for (LocationVO location : harbourReplacements.values()) {
+				this.fillOrCreateLocation(location, LocationLevelEnum.HARBOUR.getId());
+			}
 
-				MutableShort inserts = new MutableShort(0);
-				MutableShort updates = new MutableShort(0);
-				MutableShort disables = new MutableShort(0);
-				MutableShort errors = new MutableShort(0);
-				MutableShort warnings = new MutableShort(0);
-				MutableShort rowCounter = new MutableShort(1);
-				List<String> messages = new ArrayList<>();
+			Date startDate = Dates.resetTime(new Date());
 
-				List<VesselVO> vessels = readRows(reader, includedHeaders).stream()
-					.map(this::toVO)
-					.collect(Collectors.toList());
+			File tempFile = null;
+			try {
+				tempFile = prepareFile(context.getProcessingFile());
 
-				progressionModel.setTotal(vessels.size() + 1 /*disable vessels*/);
+				Set<String> includedHeaders = new HashSet<>(headerReplacements.values());
+				String uniqueKeyHeaderName = headerReplacements.entrySet().stream()
+					.filter(entry -> uniqueKeyPropertyName.equals(entry.getValue()))
+					.map(Map.Entry::getKey)
+					.findFirst().orElseThrow(() -> new IllegalArgumentException("Cannot resolve CSV header corresponding to the model property " + uniqueKeyPropertyName));
 
-				for (VesselVO vessel: vessels) {
+				// Do load
+				try (CSVFileReader reader = new CSVFileReader(tempFile, true, true, Charsets.UTF_8.name())) {
 
-					try {
-						// Get the unique key
-						String uniqueKey = Beans.getProperty(vessel, uniqueKeyPropertyName);
-						if (uniqueKey == null) {
-							warnings.increment();;
-							String message = String.format("Invalid row #%s: no value for the required header '%s'. Skipping", rowCounter, uniqueKeyHeaderName);
-							messages.add(message);
-							log.warn(message);
-						}
+					Map<String, Integer> existingKeys = collectExistingVessels(uniqueKeyPropertyName);
+					Set<String> processedKeys = Sets.newHashSet();
 
-						// Check if not already processed (duplicated key)
-						else if (processedKeys.contains(uniqueKey)) {
-							warnings.increment();
-							String message = String.format("Invalid row #%s: duplicated value '%s=%s' (same value has been already processed). Skipping", rowCounter, uniqueKeyHeaderName, uniqueKey);
-							messages.add(message);
-							log.warn(message);
-						}
-						else {
-							// Fill default properties
-							fillVessel(vessel, recorderPerson);
+					MutableShort inserts = new MutableShort(0);
+					MutableShort updates = new MutableShort(0);
+					MutableShort disables = new MutableShort(0);
+					MutableShort errors = new MutableShort(0);
+					MutableShort warnings = new MutableShort(0);
+					MutableShort rowCounter = new MutableShort(1);
+					List<String> messages = new ArrayList<>();
 
-							try {
-								boolean isNew = !existingKeys.containsKey(uniqueKey);
+					List<VesselVO> vessels = readRows(reader, includedHeaders).stream()
+						.map(this::toVO)
+						.collect(Collectors.toList());
 
-								if (isNew) {
-									log.debug("Inserting new vessel {} ...", uniqueKey);
-									insert(vessel);
-									inserts.increment();
+					progressionModel.setTotal(vessels.size() + 1 /*disable vessels*/);
 
-								} else {
-									log.debug("Updating existing vessel: {}", uniqueKey);
-									Integer vesselId = existingKeys.get(uniqueKey);
-									vessel.setId(vesselId);
-									boolean updated = update(vessel, startDate);
-									if (updated) updates.increment();
+					for (VesselVO vessel: vessels) {
+
+						try {
+							// Get the unique key
+							String uniqueKey = Beans.getProperty(vessel, uniqueKeyPropertyName);
+							if (uniqueKey == null) {
+								warnings.increment();;
+								String message = String.format("Invalid row #%s: no value for the required header '%s'. Skipping", rowCounter, uniqueKeyHeaderName);
+								messages.add(message);
+								log.warn(message);
+							}
+
+							// Check if not already processed (duplicated key)
+							else if (processedKeys.contains(uniqueKey)) {
+								warnings.increment();
+								String message = String.format("Invalid row #%s: duplicated value '%s=%s' (same value has been already processed). Skipping", rowCounter, uniqueKeyHeaderName, uniqueKey);
+								messages.add(message);
+								log.warn(message);
+							}
+							else {
+								// Fill default properties
+								fillVessel(vessel, recorderPerson);
+
+								try {
+									boolean isNew = !existingKeys.containsKey(uniqueKey);
+
+									if (isNew) {
+										log.debug("Inserting new vessel {} ...", uniqueKey);
+										insert(vessel);
+										inserts.increment();
+
+									} else {
+										log.debug("Updating existing vessel: {}", uniqueKey);
+										Integer vesselId = existingKeys.get(uniqueKey);
+										vessel.setId(vesselId);
+										boolean updated = update(vessel, startDate);
+										if (updated) updates.increment();
+									}
+
+									processedKeys.add(uniqueKey);
 								}
-
-								processedKeys.add(uniqueKey);
+								catch (SumarisBusinessException e) {
+									errors.increment();
+									String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
+									messages.add(message);
+									log.error(message);
+									// Continue
+								}
+								catch (Exception e) {
+									errors.increment();
+									String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
+									messages.add(message);
+									if (log.isDebugEnabled()) log.error(message, e);
+									else log.error(message);
+									// Continue
+								}
 							}
-							catch (SumarisBusinessException e) {
-								errors.increment();
-								String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
-								messages.add(message);
-								log.error(message);
-								// Continue
-							}
-							catch (Exception e) {
-								errors.increment();
-								String message = String.format("Failed to import vessel %s at line #%s: %s", uniqueKey, rowCounter, e.getMessage());
-								messages.add(message);
-								if (log.isDebugEnabled()) log.error(message, e);
-								else log.error(message);
-								// Continue
+						}
+						finally {
+							rowCounter.increment();
+							if (rowCounter.intValue() % 10 == 0) {
+								progressionModel.setCurrent(rowCounter.intValue());
+								progressionModel.setMessage(t("sumaris.import.job.vessel.progress", rowCounter.intValue(), vessels.size()));
 							}
 						}
 					}
-					finally {
-						rowCounter.increment();
-						if (rowCounter.intValue() % 10 == 0) {
-							progressionModel.setCurrent(rowCounter.intValue());
-							progressionModel.setMessage(t("sumaris.import.job.vessel.progress", rowCounter.intValue(), vessels.size()));
+					progressionModel.setCurrent(vessels.size());
+
+					// Disabled existing but absents vessel
+					// (only if sometimes was processed in the import - skip if not - eg. empty file)
+					if (inserts.intValue() > 0 || updates.intValue() > 0) {
+						progressionModel.setMessage(t("sumaris.import.job.vessel.disabling"));
+
+						// Disable not present vessels
+						Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
+							.filter(e -> !processedKeys.contains(e.getKey()))
+							.map(Map.Entry::getValue)
+							.collect(Collectors.toSet());
+						if (CollectionUtils.isNotEmpty(vesselIdsToDisable)) {
+
+							vesselIdsToDisable.forEach(vesselId -> {
+								try {
+									disable(vesselId, startDate);
+									disables.increment();
+								} catch (Exception e) {
+									errors.increment();
+									String message = String.format("Failed to disable vessel %s: %s", vesselId, e.getMessage());
+									messages.add(message);
+									if (log.isDebugEnabled()) log.error(message, e);
+									else log.error(message);
+								}
+							});
 						}
 					}
-				}
-				progressionModel.setCurrent(vessels.size());
 
-				// Disabled existing but absents vessel
-				// (only if sometimes was processed in the import - skip if not - eg. empty file)
-				if (inserts.intValue() > 0 || updates.intValue() > 0) {
-					progressionModel.setMessage(t("sumaris.import.job.vessel.disabling"));
-
-					// Disable not present vessels
-					Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
-						.filter(e -> !processedKeys.contains(e.getKey()))
-						.map(Map.Entry::getValue)
-						.collect(Collectors.toSet());
-					if (CollectionUtils.isNotEmpty(vesselIdsToDisable)) {
-
-						vesselIdsToDisable.forEach(vesselId -> {
-							try {
-								disable(vesselId, startDate);
-								disables.increment();
-							} catch (Exception e) {
-								errors.increment();
-								String message = String.format("Failed to disable vessel %s: %s", vesselId, e.getMessage());
-								messages.add(message);
-								if (log.isDebugEnabled()) log.error(message, e);
-								else log.error(message);
-							}
-						});
+					Set<String> temporaryHarbourNames = findAllTemporaryLocationNames(LocationLevelEnum.HARBOUR.getId());
+					if (CollectionUtils.isNotEmpty(temporaryHarbourNames)) {
+						warnings.increment();
+						String message = String.format("Some temporary harbours exists in database. Please check: name(s):\n\t- %s",
+							String.join("\n\t- ", temporaryHarbourNames));
+						messages.add(message);
+						log.warn(message);
 					}
+
+					// Final message
+					if (errors.intValue() == 0) {
+						String message = String.format("Successfully import vessels, with errors. %s inserts, %s updates, %s disables, %s warnings", inserts, updates, disables, warnings);
+						messages.add(message);
+						log.info(message);
+					}
+					else {
+						String message = String.format("Successfully import vessels. %s inserts, %s updates, %s disables, %s warnings, %s errors", inserts, updates, disables, warnings, errors);
+						messages.add(message);
+						log.warn(message);
+					}
+
+
+					// Update result
+					result.setInserts(inserts.intValue());
+					result.setUpdates(updates.intValue());
+					result.setDisables(disables.intValue());
+					result.setWarnings(warnings.intValue());
+					result.setErrors(errors.intValue());
+
+					if (CollectionUtils.isNotEmpty(messages)) {
+						result.setMessage(String.join("\n", messages));
+					}
+
+					progressionModel.setCurrent(progressionModel.getTotal());
+
+					return result;
 				}
+			}
+			catch(Exception e) {
+				log.error(e.getMessage(), e);
+				throw e;
+			}
+			finally {
+				Files.deleteQuietly(tempFile);
+				Files.deleteTemporaryFiles(context.getProcessingFile());
 
-				Set<String> temporaryHarbourNames = findAllTemporaryLocationNames(LocationLevelEnum.HARBOUR.getId());
-				if (CollectionUtils.isNotEmpty(temporaryHarbourNames)) {
-					warnings.increment();
-					String message = String.format("Some temporary harbours exists in database. Please check: name(s):\n\t- %s",
-						String.join("\n\t- ", temporaryHarbourNames));
-					messages.add(message);
-					log.warn(message);
-				}
-
-				// Final message
-				if (errors.intValue() == 0) {
-					String message = String.format("Successfully import vessels, with errors. %s inserts, %s updates, %s disables, %s warnings", inserts, updates, disables, warnings);
-					messages.add(message);
-					log.info(message);
-				}
-				else {
-					String message = String.format("Successfully import vessels. %s inserts, %s updates, %s disables, %s warnings, %s errors", inserts, updates, disables, warnings, errors);
-					messages.add(message);
-					log.warn(message);
-				}
-
-
-				// Update result
-				result.setInserts(inserts.intValue());
-				result.setUpdates(updates.intValue());
-				result.setDisables(disables.intValue());
-				result.setWarnings(warnings.intValue());
-				result.setErrors(errors.intValue());
-
-				if (CollectionUtils.isNotEmpty(messages)) {
-					result.setMessage(String.join("\n", messages));
-				}
-
+				locationByFilterCache.clear();
 				progressionModel.setCurrent(progressionModel.getTotal());
-
-				return result;
 			}
 		}
-		catch(Exception e) {
-			log.error(e.getMessage(), e);
-			throw e;
-		}
 		finally {
-			Files.deleteQuietly(tempFile);
-			Files.deleteTemporaryFiles(context.getProcessingFile());
-
-			locationByFilterCache.clear();
-			progressionModel.setCurrent(progressionModel.getTotal());
+			running = false;
 		}
-
 	}
 
 	@Override
@@ -646,13 +656,13 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			changes = changes
 				|| previousVessel.getVesselFeatures() == null
 				|| !equals(previousVessel.getVesselFeatures(), source.getVesselFeatures(), VesselFeaturesVO.Fields.BASE_PORT_LOCATION)
-				|| !previousVessel.getVesselFeatures().getId().equals(source.getVesselFeatures().getBasePortLocation().getId());
+				|| !previousVessel.getVesselFeatures().getBasePortLocation().getId().equals(source.getVesselFeatures().getBasePortLocation().getId());
 		}
 		if (source.getVesselRegistrationPeriod() != null) {
 			changes = changes
 				|| previousVessel.getVesselRegistrationPeriod() == null
 				|| !equals(previousVessel.getVesselRegistrationPeriod(), source.getVesselRegistrationPeriod(), VesselRegistrationPeriodVO.Fields.REGISTRATION_LOCATION)
-				|| !previousVessel.getVesselRegistrationPeriod().getId().equals(source.getVesselRegistrationPeriod().getRegistrationLocation().getId());
+				|| !previousVessel.getVesselRegistrationPeriod().getRegistrationLocation().getId().equals(source.getVesselRegistrationPeriod().getRegistrationLocation().getId());
 		}
 
 		if (!changes) return false; // No changes

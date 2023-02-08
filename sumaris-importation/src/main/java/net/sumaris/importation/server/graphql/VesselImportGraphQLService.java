@@ -71,12 +71,16 @@ public class VesselImportGraphQLService {
     public JobVO importSiopVessels(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
-        if (!securityContext.isAdmin())throw new UnauthorizedException();
-        PersonVO user = securityContext.getAuthenticatedUser().get();
+        if (!securityContext.isAdmin()) throw new UnauthorizedException();
+
+        JobExecutionService jobExecutionService = this.jobExecutionService
+            .orElseThrow(() -> new SumarisTechnicalException("Unable to import vessels: job service has been disabled"));
+
 
         JobVO importJob = new JobVO();
         importJob.setType(JobTypeEnum.SIOP_VESSELS_IMPORTATION.name());
         importJob.setName(t("sumaris.import.vessel.siop.job.name", fileName));
+        PersonVO user = securityContext.getAuthenticatedUser().get();
         importJob.setIssuer(user.getPubkey());
 
         File inputFile = fileController.getUserUploadFile(fileName);
@@ -90,9 +94,7 @@ public class VesselImportGraphQLService {
             .build();
 
         // Execute importJob by JobService (async)
-        return jobExecutionService
-                .map(service -> service.run(importJob, (job) -> siopVesselImportService.asyncImportFromFile(context, job)))
-                .orElseThrow(() -> new SumarisTechnicalException("Canot import vessel: job service has been disabled"));
+        return jobExecutionService.run(importJob, (job) -> siopVesselImportService.asyncImportFromFile(context, job));
     }
 
 }
