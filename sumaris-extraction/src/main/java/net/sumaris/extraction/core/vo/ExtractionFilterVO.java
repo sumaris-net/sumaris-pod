@@ -41,6 +41,11 @@ import java.util.Set;
 @EqualsAndHashCode
 public class ExtractionFilterVO implements Serializable {
 
+    // Known keys of the meta map
+    public interface MetaKeys  {
+        String EXCLUDE_INVALID_DATA = "excludeInvalidData";
+    }
+
     public static ExtractionFilterVO nullToEmpty(ExtractionFilterVO filter) {
         return filter != null ? filter : new ExtractionFilterVO();
     }

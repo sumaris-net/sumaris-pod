@@ -63,9 +63,12 @@ public interface ExtractionTripDao<
 
         // Meta
         if (MapUtils.isNotEmpty(source.getMeta())) {
+            Boolean excludeInvalidData = MapUtils.getBoolean(source.getMeta(), ExtractionFilterVO.MetaKeys.EXCLUDE_INVALID_DATA);
+
             // Exclude invalid station ? (keep default if not set)
-            boolean excludeInvalidStation = MapUtils.getBooleanValue(source.getMeta(), ExtractionTripFilterVO.Fields.EXCLUDE_INVALID_STATION, target.isExcludeInvalidStation());
-            target.setExcludeInvalidStation(excludeInvalidStation);
+            if (excludeInvalidData != null) {
+                target.setExcludeInvalidStation(excludeInvalidData);
+            }
         }
 
         // Criteria
