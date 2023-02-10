@@ -44,7 +44,8 @@ import java.util.Map;
 @EqualsAndHashCode
 public class PhysicalGearVO implements IRootDataVO<Integer>,
     IWithFlagsValueObject<Integer>,
-    ITreeNodeEntity<Integer, PhysicalGearVO> {
+    ITreeNodeEntity<Integer, PhysicalGearVO>,
+    IWithMeasurementValues {
 
     @EqualsAndHashCode.Exclude
     private Integer id;

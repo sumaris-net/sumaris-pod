@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -36,9 +37,14 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class OperationVO implements IDataVO<Integer> {
+public class OperationVO implements IDataVO<Integer>, IWithMeasurementValues {
 
     private Integer id;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Integer rankOrder; // Used by App only (not stored, to retrieve a saved operation)
+
     private Integer rankOrderOnPeriod;
     private Date updateDate;
     private Date controlDate;

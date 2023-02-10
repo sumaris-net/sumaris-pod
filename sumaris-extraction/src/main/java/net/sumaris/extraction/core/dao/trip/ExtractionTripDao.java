@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.dao.trip;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.extraction.core.dao.ExtractionDao;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
@@ -35,6 +36,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nullable;
@@ -55,8 +57,18 @@ public interface ExtractionTripDao<
         if (source == null) return target;
 
         Beans.copyProperties(source, target);
+
+        // Preview
         target.setPreview(source.isPreview());
 
+        // Meta
+        if (MapUtils.isNotEmpty(source.getMeta())) {
+            // Exclude invalid station ? (keep default if not set)
+            boolean excludeInvalidStation = MapUtils.getBooleanValue(source.getMeta(), ExtractionTripFilterVO.Fields.EXCLUDE_INVALID_STATION, target.isExcludeInvalidStation());
+            target.setExcludeInvalidStation(excludeInvalidStation);
+        }
+
+        // Criteria
         if (CollectionUtils.isNotEmpty(source.getCriteria())) {
 
             // Parse EQUALS
