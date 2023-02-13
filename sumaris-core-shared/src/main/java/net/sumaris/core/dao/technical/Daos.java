@@ -1685,6 +1685,13 @@ public class Daos {
             .replaceAll("[*]", "%"); // replace asterisk mark
     }
 
+    public static String getEscapedForLike(String text) {
+        if (text == null) return null;
+        return text
+            .replaceAll("[%]", "\\%") // escape '%' char
+            .replaceAll("[_]", "\\_"); // escape '_' char;
+    }
+
     public static Pattern searchTextIgnoreCasePattern(String searchText, boolean searchAny) {
         if (StringUtils.isBlank(searchText)) return null;
 

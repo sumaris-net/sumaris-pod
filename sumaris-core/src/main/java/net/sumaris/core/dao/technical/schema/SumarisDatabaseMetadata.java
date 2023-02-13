@@ -156,6 +156,62 @@ public class SumarisDatabaseMetadata {
 		return defaultUpdateDateColumnName;
 	}
 
+
+	public SumarisTableMetadata getTable(String name,
+										 String schema,
+										 String catalog) throws HibernateException {
+		QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, name);
+		String cacheKey = getCacheKey(qualifiedTableName);
+		SumarisTableMetadata sumarisTableMetadata = tables.get(cacheKey);
+		if (sumarisTableMetadata == null) {
+			// Create a new connection then retrieve the metadata :
+			Connection conn = null;
+			try {
+				conn = DataSourceUtils.getConnection(dataSource);
+				DatabaseMetaData jdbcMeta = conn.getMetaData();
+				return getTable(qualifiedTableName, jdbcMeta, null);
+			} catch (SQLException e) {
+				throw new RuntimeException(
+					"Could not init database meta on connection " + conn, e);
+			} finally {
+				DataSourceUtils.releaseConnection(conn, dataSource);
+			}
+
+		}
+		return sumarisTableMetadata;
+	}
+
+	public Set<String> findTableNamesByPrefix(String tablePrefix) {
+		return findTableNamesByPrefix(tablePrefix, defaultSchemaName, defaultCatalogName);
+	}
+	public Set<String> findTableNamesByPrefix(String tablePrefix, String schema, String catalog) {
+		// Create a new connection then retrieve the metadata :
+		Connection conn = null;
+		try {
+			conn = DataSourceUtils.getConnection(dataSource);
+			DatabaseMetaData jdbcMeta = conn.getMetaData();
+
+			ResultSet rs = jdbcMeta.getTables(catalog, schema, Daos.getEscapedForLike(tablePrefix) /*escape undescrore*/ + "%", null);
+			Set<String> result = Sets.newHashSet();
+			while (rs.next()) {
+				String tableName = rs.getString("TABLE_NAME");
+				if (tableName.toUpperCase().startsWith(tablePrefix.toUpperCase())) {
+					result.add(rs.getString("TABLE_NAME"));
+				}
+				// JDBC meta return a bad tableName: should never occur !!
+				else {
+					log.warn("Invalid getTables() result: Table name '{}' should not be returned, because its not match the pattern '{}'. Please check like pattern, or Daos.getEscapedForLike() function", tableName, tablePrefix);
+				}
+			}
+			return result;
+		} catch (SQLException e) {
+			throw new RuntimeException(
+				"Could not init database meta on connection " + conn, e);
+		} finally {
+			DataSourceUtils.releaseConnection(conn, dataSource);
+		}
+	}
+
 	/* -- protected methods -- */
 
 	@PostConstruct
@@ -328,29 +384,7 @@ public class SumarisDatabaseMetadata {
 		return getTable(getQualifiedTableName(catalog, schema, name), jdbcMeta, persistentClass);
 	}
 
-	public SumarisTableMetadata getTable(String name,
-										 String schema,
-										 String catalog) throws HibernateException {
-		QualifiedTableName qualifiedTableName = getQualifiedTableName(catalog, schema, name);
-		String cacheKey = getCacheKey(qualifiedTableName);
-		SumarisTableMetadata sumarisTableMetadata = tables.get(cacheKey);
-		if (sumarisTableMetadata == null) {
-			// Create a new connection then retrieve the metadata :
-			Connection conn = null;
-			try {
-				conn = DataSourceUtils.getConnection(dataSource);
-				DatabaseMetaData jdbcMeta = conn.getMetaData();
-				return getTable(qualifiedTableName, jdbcMeta, null);
-			} catch (SQLException e) {
-				throw new RuntimeException(
-						"Could not init database meta on connection " + conn, e);
-			} finally {
-				DataSourceUtils.releaseConnection(conn, dataSource);
-			}
 
-		}
-		return sumarisTableMetadata;
-	}
 
 	private String getCacheKey(QualifiedTableName qualifiedTableName) {
 		return qualifiedTableName.render().toLowerCase();

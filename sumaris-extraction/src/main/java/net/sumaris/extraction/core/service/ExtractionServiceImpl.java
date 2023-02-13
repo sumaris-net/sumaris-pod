@@ -25,18 +25,21 @@ package net.sumaris.extraction.core.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.ExtractionCacheConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
+import net.sumaris.core.dao.technical.extraction.ExtractionTableRepository;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -56,7 +59,9 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.dao.AggregationDao;
 import net.sumaris.extraction.core.dao.AggregationDaoDispatcher;
+import net.sumaris.extraction.core.dao.ExtractionDao;
 import net.sumaris.extraction.core.dao.ExtractionDaoDispatcher;
 import net.sumaris.extraction.core.dao.administration.ExtractionStrategyDao;
 import net.sumaris.extraction.core.dao.technical.Daos;
@@ -101,6 +106,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service("extractionManager")
+@RequiredArgsConstructor
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionServiceImpl implements ExtractionService {
 
@@ -116,6 +122,8 @@ public class ExtractionServiceImpl implements ExtractionService {
     private final LocationService locationService;
     private final ReferentialService referentialService;
 
+    private final ExtractionTableRepository extractionTableRepository;
+
     private final ObjectMapper objectMapper;
     private final Optional<CacheManager> cacheManager;
 
@@ -130,34 +138,6 @@ public class ExtractionServiceImpl implements ExtractionService {
     private boolean enableTechnicalTablesUpdate = false;
     private CacheTTL cacheDefaultTtl;
 
-    public ExtractionServiceImpl(ExtractionConfiguration configuration,
-                                 DataSource dataSource,
-                                 SumarisDatabaseMetadata databaseMetadata,
-                                 ExtractionTripDao extractionRdbTripDao,
-                                 ExtractionStrategyDao extractionStrategyDao,
-                                 ExtractionCsvDao extractionCsvDao,
-                                 ExtractionProductService productService,
-                                 LocationService locationService,
-                                 ReferentialService referentialService,
-                                 ObjectMapper objectMapper,
-                                 Optional<CacheManager> cacheManager,
-                                 ExtractionDaoDispatcher extractionDaoDispatcher,
-                                 AggregationDaoDispatcher aggregationDaoDispatcher, ExtractionTypeService extractionTypeService) {
-        this.configuration = configuration;
-        this.dataSource = dataSource;
-        this.databaseMetadata = databaseMetadata;
-        this.extractionRdbTripDao = extractionRdbTripDao;
-        this.extractionStrategyDao = extractionStrategyDao;
-        this.extractionCsvDao = extractionCsvDao;
-        this.productService = productService;
-        this.locationService = locationService;
-        this.referentialService = referentialService;
-        this.objectMapper = objectMapper;
-        this.cacheManager = cacheManager;
-        this.extractionDaoDispatcher = extractionDaoDispatcher;
-        this.aggregationDaoDispatcher = aggregationDaoDispatcher;
-        this.extractionTypeService = extractionTypeService;
-    }
 
     @PostConstruct
     protected void init() {
@@ -565,6 +545,57 @@ public class ExtractionServiceImpl implements ExtractionService {
                 return node;
             }).toArray(ObjectNode[]::new);
     }
+
+
+    /**
+     * Clean all temporary table (EXT_xxx and AGG_xxx) not used by any product
+     */
+    @Override
+    public int dropTemporaryTables() {
+        int count = 0 ;
+        log.info("Cleaning temporary extraction tables...");
+
+        // Get all products tables
+        Set<String> productTableNames = Beans.getStream(extractionTableRepository.findAllDistinctTableName())
+            .map(String::toUpperCase)
+            .collect(Collectors.toSet());
+
+        // Read all tables (EXT_*)
+        {
+            Set<String> extTableNames = databaseMetadata.findTableNamesByPrefix(ExtractionDao.TABLE_NAME_PREFIX);
+            ExtractionContextVO context = new ExtractionContextVO();
+            context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
+            extTableNames.stream()
+                .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
+                .forEach(context::addRawTableName);
+            count += CollectionUtils.size(context.getRawTableNames());
+            // Apply drop
+            extractionRdbTripDao.clean(context);
+        }
+
+        // Read all tables (AGG_*)
+        {
+            Set<String> aggTableNames = databaseMetadata.findTableNamesByPrefix(AggregationDao.TABLE_NAME_PREFIX);
+            ExtractionContextVO context = new ExtractionContextVO();
+            context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
+            aggTableNames.stream()
+                .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
+                .forEach(context::addRawTableName);
+            count += CollectionUtils.size(context.getRawTableNames());
+            // Apply drop
+            extractionRdbTripDao.clean(context);
+        }
+
+        if (count == 0) {
+            log.info("No temporary extraction tables found");
+        }
+        else {
+            log.info("{} temporary extraction tables dropped", count);
+        }
+
+        return count;
+    }
+
     /* -- protected -- */
 
     protected boolean initRectangleLocations() {

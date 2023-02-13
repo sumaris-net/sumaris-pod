@@ -106,6 +106,9 @@ public interface ExtractionService {
                            @Nullable ExtractionFilterVO filter,
                            @Nullable AggregationStrataVO strata);
 
+    @Transactional
+    int dropTemporaryTables();
+
     ExtractionFilterVO parseFilter(String jsonFilter);
 
     List<Map<String, String>> toListOfMap(ExtractionResultVO source);

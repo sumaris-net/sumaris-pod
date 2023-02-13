@@ -26,9 +26,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -39,10 +41,14 @@ import java.util.Set;
 @EqualsAndHashCode
 public class ExtractionFilterVO implements Serializable {
 
+    // Known keys of the meta map
+    public interface MetaKeys  {
+        String EXCLUDE_INVALID_DATA = "excludeInvalidData";
+    }
+
     public static ExtractionFilterVO nullToEmpty(ExtractionFilterVO filter) {
         return filter != null ? filter : new ExtractionFilterVO();
     }
-
 
     private String operator;
 
@@ -58,6 +64,8 @@ public class ExtractionFilterVO implements Serializable {
     private Set<String> includeColumnNames;
 
     private Set<String> excludeColumnNames;
+
+    private Map<String, Object> meta;
 
     @JsonIgnore
     public boolean isDistinct() {
@@ -75,7 +83,8 @@ public class ExtractionFilterVO implements Serializable {
             && distinct == null
             && CollectionUtils.isEmpty(criteria)
             && CollectionUtils.isEmpty(includeColumnNames)
-            && CollectionUtils.isEmpty(excludeColumnNames);
+            && CollectionUtils.isEmpty(excludeColumnNames)
+            && MapUtils.isEmpty(meta);
     }
 
 }
