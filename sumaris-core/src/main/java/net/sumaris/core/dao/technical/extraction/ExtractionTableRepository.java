@@ -22,22 +22,19 @@ package net.sumaris.core.dao.technical.extraction;
  * #L%
  */
 
-import net.sumaris.core.dao.referential.ReferentialRepository;
-import net.sumaris.core.model.technical.extraction.ExtractionProduct;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
+import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.Set;
 
 /**
  * Give access to extraction products
  */
-public interface ExtractionProductRepository
-    extends ReferentialRepository<Integer, ExtractionProduct, ExtractionProductVO, ExtractionTypeFilterVO, ExtractionProductFetchOptions>, ExtractionProductSpecifications {
+@Repository
+public interface ExtractionTableRepository extends JpaRepository<ExtractionProductTable, Integer>{
 
-    default ExtractionProductVO getByLabel(String label) {
-        return getByLabel(label, null);
-    }
-
+    @Query("select distinct tableName from ExtractionProductTable")
+    Set<String> findAllDistinctTableName();
 }

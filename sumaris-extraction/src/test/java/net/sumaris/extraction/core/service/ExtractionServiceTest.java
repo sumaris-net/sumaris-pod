@@ -697,6 +697,12 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertEquals(savedProduct.getLabel(), updatedProduct.getLabel()); // Same label
     }
 
+    @Test
+    public void dropTemporaryTables() {
+        int count = service.dropTemporaryTables();
+
+        Assert.assertEquals("No temporary extraction tables should be found, in a test DB", 0, count);
+    }
 
     /* -- protected methods -- */
 

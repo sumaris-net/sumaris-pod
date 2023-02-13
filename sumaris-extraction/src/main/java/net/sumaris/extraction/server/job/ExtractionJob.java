@@ -101,5 +101,9 @@ public class ExtractionJob {
         extractionService.executeAll(ProcessingFrequencyEnum.MONTHLY);
     }
 
+    @Scheduled(cron = "${sumaris.extraction.clean.daily.cron:0 0 0 * * ?}")
+    protected void dropTemporaryTables(){
+        extractionService.dropTemporaryTables();
+    }
 
 }
