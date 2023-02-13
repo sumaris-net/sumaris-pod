@@ -191,16 +191,16 @@ public class SumarisDatabaseMetadata {
 			conn = DataSourceUtils.getConnection(dataSource);
 			DatabaseMetaData jdbcMeta = conn.getMetaData();
 
-			ResultSet rs = jdbcMeta.getTables(catalog, schema, tablePrefix + "%", null);
+			ResultSet rs = jdbcMeta.getTables(catalog, schema, Daos.getEscapedForLike(tablePrefix) /*escape undescrore*/ + "%", null);
 			Set<String> result = Sets.newHashSet();
 			while (rs.next()) {
 				String tableName = rs.getString("TABLE_NAME");
 				if (tableName.toUpperCase().startsWith(tablePrefix.toUpperCase())) {
 					result.add(rs.getString("TABLE_NAME"));
 				}
+				// JDBC meta return a bad tableName: should never occur !!
 				else {
-					// JDBC meta return a bad tableName !!
-
+					log.warn("Invalid getTables() result: Table name '{}' should not be returned, because its not match the pattern '{}'. Please check like pattern, or Daos.getEscapedForLike() function", tableName, tablePrefix);
 				}
 			}
 			return result;
