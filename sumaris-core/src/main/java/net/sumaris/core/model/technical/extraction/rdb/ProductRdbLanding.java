@@ -26,6 +26,7 @@ import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -42,6 +43,7 @@ public class ProductRdbLanding implements Serializable, IEntity<Integer> {
     public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_RDB_LANDING;
     public static final String SHEET_NAME = "CL";
 
+    public static final String COLUMN_RECORD_TYPE = ProductRdbTrip.COLUMN_RECORD_TYPE;
     public static final String COLUMN_VESSEL_FLAG_COUNTRY = ProductRdbTrip.COLUMN_VESSEL_FLAG_COUNTRY;
     public static final String COLUMN_LANDING_COUNTRY = ProductRdbTrip.COLUMN_LANDING_COUNTRY;
     public static final String COLUMN_YEAR = ProductRdbTrip.COLUMN_YEAR;
@@ -69,6 +71,10 @@ public class ProductRdbLanding implements Serializable, IEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_rdb_landing_seq")
     @SequenceGenerator(name = "p01_rdb_landing_seq", sequenceName="p01_rdb_landing_seq", allocationSize = 1)
     private Integer id;
+
+    @Column(nullable = false, length = 2, name = COLUMN_RECORD_TYPE)
+    @ColumnDefault(SHEET_NAME)
+    private String recordType;
 
     @Column(nullable = false, length = 3, name = COLUMN_LANDING_COUNTRY)
     private String landingCountry;

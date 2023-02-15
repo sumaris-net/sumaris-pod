@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/sumaris/db-changelog-1.35.4.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.sumaris.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'SUMARiS' AND STATUS_FK=1"/>
+    <property name="sqlCheck.sumaris.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a SUMARiS database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Fill some null columns in EXTRACTION_PRODUCT -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1648229099997-300" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.sumaris.expectedResult}">${sqlCheck.sumaris.sql}</sqlCheck>
+                <not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM EXTRACTION_PRODUCT
+                    WHERE FORMAT IS NULL or VERSION iS NULL</sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update extraction_product set FORMAT='RDB' where FORMAT is null and LABEL like 'RDB%';
+            update extraction_product set VERSION='1.3' where VERSION is null and LABEL like 'RDB%';
+            commit;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

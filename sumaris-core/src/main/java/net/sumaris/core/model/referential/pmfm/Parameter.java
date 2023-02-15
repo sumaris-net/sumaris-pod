@@ -50,7 +50,6 @@ public class Parameter implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PARAMETER_SEQ")
     @SequenceGenerator(name = "PARAMETER_SEQ", sequenceName="PARAMETER_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-
     @EqualsAndHashCode.Include
     private Integer id;
 

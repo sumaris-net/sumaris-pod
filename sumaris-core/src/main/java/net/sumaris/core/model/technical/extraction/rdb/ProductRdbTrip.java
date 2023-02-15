@@ -26,6 +26,7 @@ import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
+import org.hibernate.annotations.ColumnDefault;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -42,6 +43,7 @@ public class ProductRdbTrip implements Serializable, IEntity<Integer> {
     public static final DatabaseTableEnum TABLE = DatabaseTableEnum.P01_RDB_TRIP;
     public static final String SHEET_NAME = "TR";
 
+    public static final String COLUMN_RECORD_TYPE = "record_type";
     public static final String COLUMN_SAMPLING_TYPE = "sampling_type";
     public static final String COLUMN_VESSEL_FLAG_COUNTRY = "vessel_flag_country";
     public static final String COLUMN_LANDING_COUNTRY = "landing_country";
@@ -63,6 +65,10 @@ public class ProductRdbTrip implements Serializable, IEntity<Integer> {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "p01_rdb_trip_seq")
     @SequenceGenerator(name = "p01_rdb_trip_seq", sequenceName="p01_rdb_trip_seq", allocationSize = 1)
     private Integer id;
+
+    @Column(nullable = false, length = 2, name = COLUMN_RECORD_TYPE)
+    @ColumnDefault(SHEET_NAME)
+    private String recordType;
 
     @Column(nullable = false, length = 2, name = COLUMN_SAMPLING_TYPE)
     private String samplingType;
