@@ -439,8 +439,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     protected void publishEvent(ConfigurationReadyEvent event) {
-        // Emit to Spring event bus
-        publisher.publishEvent(event);
+        try {
+            // Emit to Spring event bus
+            publisher.publishEvent(event);
+        } catch (Throwable t) {
+            log.error("Error after publishing configuration ready event: " + t.getMessage(), t);
+        }
 
         // Emit to registered listeners
         for (ConfigurationEventListener listener: listeners) {

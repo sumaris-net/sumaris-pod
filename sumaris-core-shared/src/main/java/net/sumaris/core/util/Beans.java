@@ -438,15 +438,23 @@ public class Beans {
         final Comparator<String> propertyComparator = ComparatorUtils.naturalComparator();
 
         if (SortDirection.ASC.equals(sortDirection)) {
-            return (o1, o2) -> propertyComparator.compare(
-                getProperty(o1, sortAttribute),
-                getProperty(o2, sortAttribute)
-            );
+            return (o1, o2) -> {
+                String p1 = getProperty(o1, sortAttribute);
+                String p2 = getProperty(o2, sortAttribute);
+                if (p1 == null && p2 == null) return 0;
+                else if (p2 == null) return 1;
+                else if (p1 == null) return -1;
+                return propertyComparator.compare(p1, p2);
+            };
         } else {
-            return (o1, o2) -> propertyComparator.compare(
-                getProperty(o2, sortAttribute),
-                getProperty(o1, sortAttribute)
-            );
+            return (o1, o2) -> {
+                String p1 = getProperty(o1, sortAttribute);
+                String p2 = getProperty(o2, sortAttribute);
+                if (p1 == null && p2 == null) return 0;
+                else if (p2 == null) return -1;
+                else if (p1 == null) return 1;
+                return propertyComparator.compare(p2, p1);
+            };
         }
     }
 

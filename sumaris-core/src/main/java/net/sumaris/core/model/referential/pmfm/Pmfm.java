@@ -41,7 +41,6 @@ import java.util.Set;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -174,7 +173,7 @@ public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithSt
 
     public int hashCode() {
         int result;
-        result = getParameter().hashCode();
+        result = getParameter() != null ? getParameter().hashCode() : 0;
         result = 29 * result + getId();
         return result;
     }

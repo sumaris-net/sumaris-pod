@@ -179,12 +179,12 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
             types.addAll(findProductsByFilter(filter));
         }
 
-        sortAttribute = Optional.ofNullable(sortAttribute)
+        final String sortAttributeFinal = Optional.ofNullable(sortAttribute)
                 .orElse(ExtractionTypeVO.Fields.FORMAT);
 
         return types.stream()
             .filter(ExtractionTypeFilterVO.toPredicate(filter))
-            .sorted(Beans.naturalComparator(sortAttribute, sortDirection))
+            .sorted(Beans.naturalComparator(sortAttributeFinal, sortDirection))
             .skip(offset)
             .limit((size < 0) ? types.size() : size)
             .collect(Collectors.toList());
