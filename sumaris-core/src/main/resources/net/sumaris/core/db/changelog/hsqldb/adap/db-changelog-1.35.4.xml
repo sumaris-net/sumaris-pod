@@ -28,7 +28,7 @@
                     AND SOFTWARE_FK = (SELECT ID FROM SOFTWARE WHERE LABEL = 'ADAP')</sqlCheck>
             </and>
         </preConditions>
-        <insert tableName="PROGRAM_PROPERTY">
+        <insert tableName="SOFTWARE_PROPERTY">
             <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
             <column name="LABEL">sumaris.social.notification.icons.enable</column>
             <column name="NAME">true</column>
