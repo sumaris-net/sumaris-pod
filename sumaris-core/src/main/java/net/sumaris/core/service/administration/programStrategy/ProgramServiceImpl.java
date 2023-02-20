@@ -184,6 +184,11 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public String getPropertyValueByProgramLabel(String label, ProgramPropertyEnum property) {
+		return programRepository.getPropertyValueByProgramLabel(label, property);
+	}
+
+	@Override
 	public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
 		return programRepository.hasPropertyValueByProgramId(id, property, expectedValue);
 	}

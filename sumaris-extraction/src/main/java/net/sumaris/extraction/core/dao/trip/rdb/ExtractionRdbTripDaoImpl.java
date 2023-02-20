@@ -28,9 +28,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -237,12 +239,16 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         XMLQuery xmlQuery = createTripQuery(context);
 
-        // aggregate insertion
+        // execute insertion
         execute(context, xmlQuery);
         long count = countFrom(context.getTripTableName());
 
-        // Clean row using generic filter
+
         if (count > 0) {
+            // Update self sampling columns
+            updateTripSamplingMethod(context);
+
+            // Clean row using generic filter
             count -= cleanRow(context.getTripTableName(), context.getFilter(), context.getTripSheetName());
         }
 
@@ -268,6 +274,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmEnum.NB_OPERATION.getId()));
         Integer countryLocationLevelId = LocationLevelEnum.COUNTRY.getLabel() != null ? getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel()) : LocationLevelEnum.COUNTRY.getId();
         xmlQuery.bind("countryLocationLevelId", String.valueOf(countryLocationLevelId));
+        xmlQuery.bind("samplingMethod", ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue());
 
         // Date filters
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
@@ -586,18 +593,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return result;
     }
 
-    private List<ExtractionPmfmColumnVO> toPmfmColumnVO(List<DenormalizedPmfmStrategyVO> pmfmStrategies) {
-
-        Set<String> acquisitionLevels = Beans.collectDistinctProperties(pmfmStrategies, DenormalizedPmfmStrategyVO.Fields.ACQUISITION_LEVEL);
-        // Create prefix map, by acquisition level (used to generate the pmfm alias)
-        Map<String, String> aliasPrefixesByAcquisitionLevel = buildAcquisitionLevelPrefixes(acquisitionLevels);
-
-        return pmfmStrategies.stream().map(source ->
-                toPmfmColumnVO(source, aliasPrefixesByAcquisitionLevel.get(source.getAcquisitionLevel()))
-            )
-            .collect(Collectors.toList());
-    }
-
     private ExtractionPmfmColumnVO toPmfmColumnVO(DenormalizedPmfmStrategyVO source, String aliasPrefix) {
         ExtractionPmfmColumnVO target = new ExtractionPmfmColumnVO();
 
@@ -640,5 +635,34 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         StringBuilder result = new StringBuilder();
         Arrays.stream(string.split(separator)).forEach(part -> result.append(part, 0, 1));
         return result.toString();
+    }
+
+    /**
+     * Read the trip table, and modify 'sampling_method' depending on the program properties found
+     * @param context
+     * @return
+     */
+    protected void updateTripSamplingMethod(C context) {
+        try {
+            List<String> programLabels = getTripProgramLabels(context);
+            String tripTableName = context.getTripTableName();
+            SumarisTableMetadata table = databaseMetadata.getTable(tripTableName);
+            if (table.hasColumn(RdbSpecification.COLUMN_SAMPLING_METHOD)) {
+                programLabels.forEach(programLabel -> {
+                    String samplingMethod = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD);
+                    if (!Objects.equals(samplingMethod, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue())) {
+                        String sql = String.format("UPDATE %s SET %s='%s' WHERE PROJECT='%s'",
+                            tripTableName,
+                            RdbSpecification.COLUMN_SAMPLING_METHOD,
+                            samplingMethod,
+                            programLabel);
+                        execute(context, sql);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.error("Error while updating TR 'sampling_method' column: " + e.getMessage(), e);
+            // Continue
+        }
     }
 }

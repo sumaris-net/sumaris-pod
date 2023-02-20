@@ -96,6 +96,9 @@ public interface ProgramService {
 	boolean hasPropertyValueByProgramLabel(String label, ProgramPropertyEnum property, String expectedValue);
 
 	@Transactional(readOnly = true)
+	String getPropertyValueByProgramLabel(String label, ProgramPropertyEnum property);
+
+	@Transactional(readOnly = true)
 	List<ReferentialVO> getAcquisitionLevelsById(int id);
 
 	@Transactional(readOnly = true)

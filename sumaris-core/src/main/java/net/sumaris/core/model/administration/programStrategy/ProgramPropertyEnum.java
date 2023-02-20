@@ -30,14 +30,14 @@ public enum ProgramPropertyEnum implements Serializable {
     TRIP_OPERATION_ALLOW_PARENT("sumaris.trip.operation.allowParent", Boolean.class, Boolean.FALSE.toString()),
     TRIP_OPERATION_ENABLE_SAMPLE("sumaris.trip.operation.sample.enable", Boolean.class, Boolean.FALSE.toString()),
 
-    TRIP_BATCH_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.taxonName.enable",
-            Boolean.class,
-        Boolean.TRUE.toString()),
+    TRIP_BATCH_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.taxonName.enable", Boolean.class, Boolean.TRUE.toString()),
 
     TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.individual.taxonName.enable",
             Boolean.class, Boolean.TRUE.toString()),
 
-    PROGRAM_STRATEGY_DEPARTMENT_ENABLE("sumaris.program.strategy.department.enable", Boolean.class, Boolean.FALSE.toString())
+    PROGRAM_STRATEGY_DEPARTMENT_ENABLE("sumaris.program.strategy.department.enable", Boolean.class, Boolean.FALSE.toString()),
+
+    TRIP_EXTRACTION_SAMPLING_METHOD("sumaris.trip.extraction.sampling.method", String.class, "Observer")
 
     ;
 
