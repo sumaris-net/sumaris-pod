@@ -647,11 +647,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             List<String> programLabels = getTripProgramLabels(context);
             String tripTableName = context.getTripTableName();
             SumarisTableMetadata table = databaseMetadata.getTable(tripTableName);
-            if (table.hasColumn("sampling_method")) {
+            if (table.hasColumn(RdbSpecification.COLUMN_SAMPLING_METHOD)) {
                 programLabels.forEach(programLabel -> {
                     String samplingMethod = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD);
-                    if (Objects.equals(samplingMethod, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue())) {
-                        String sql = String.format("UPDATE %s SET sampling_method='%s' WHERE PROJECT='%s'", tripTableName, samplingMethod, programLabel);
+                    if (!Objects.equals(samplingMethod, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue())) {
+                        String sql = String.format("UPDATE %s SET %s='%s' WHERE PROJECT='%s'",
+                            tripTableName,
+                            RdbSpecification.COLUMN_SAMPLING_METHOD,
+                            samplingMethod,
+                            programLabel);
                         execute(context, sql);
                     }
                 });

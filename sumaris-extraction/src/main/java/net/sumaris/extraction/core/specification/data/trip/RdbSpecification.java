@@ -45,6 +45,8 @@ public interface RdbSpecification {
     String COLUMN_VESSEL_IDENTIFIER = "vessel_identifier";
     String COLUMN_TRIP_CODE = "trip_code";
 
+    String COLUMN_SAMPLING_METHOD = "sampling_method";
+
     String COLUMN_GEAR_TYPE = "gear_type";
     String COLUMN_MESH_SIZE = "mesh_size";
     String MAIN_FISHING_DEPTH = "main_fishing_depth";
