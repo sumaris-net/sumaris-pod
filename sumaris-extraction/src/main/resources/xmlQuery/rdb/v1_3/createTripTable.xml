@@ -52,7 +52,7 @@
 
     <select alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_FK</select> <!-- TODO à anonymiser (hash ?)-->
     <select alias="SAMPLING_COUNTRY" type="text">COALESCE(DL.LABEL, PL.LABEL)</select>
-    <select alias="SAMPLING_METHOD" type="text">'Observer'</select><!-- TODO: ADAP - find it from a project's PMFM of type "Hidden" ? -->
+    <select alias="SAMPLING_METHOD" type="text">'&amp;samplingMethod'</select>
 
     <from alias="T">TRIP</from>
 

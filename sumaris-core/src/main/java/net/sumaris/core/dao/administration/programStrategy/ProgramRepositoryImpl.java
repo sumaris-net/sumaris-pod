@@ -699,4 +699,12 @@ public class ProgramRepositoryImpl
 
         return expectedValue.equals(value);
     }
+
+
+    @Override
+    public String getPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property) {
+        return findByLabel(label)
+            .map(program -> program.getProperties().get(property.getLabel()))
+            .orElse(property.getDefaultValue());
+    }
 }

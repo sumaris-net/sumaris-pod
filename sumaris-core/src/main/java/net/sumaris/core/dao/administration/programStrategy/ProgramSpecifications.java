@@ -114,4 +114,6 @@ public interface ProgramSpecifications {
 
     boolean hasPropertyValueByProgramId(Integer id, ProgramPropertyEnum property, String expectedValue);
     boolean hasPropertyValueByProgramLabel(String label, ProgramPropertyEnum property, String expectedValue);
+
+    String getPropertyValueByProgramLabel(String label, ProgramPropertyEnum property);
 }

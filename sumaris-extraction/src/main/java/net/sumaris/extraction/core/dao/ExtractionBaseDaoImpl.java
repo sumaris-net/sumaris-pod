@@ -540,6 +540,15 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         return queryUpdate(sql);
     }
 
+    protected int execute(C context, String sql) {
+
+        // Do column names replacement (e.g. see FREE extraction)
+        if (context != null) {
+            sql = Daos.sqlReplaceColumnNames(sql, context.getColumnNamesMapping(), false);
+        }
+
+        return queryUpdate(sql);
+    }
 
     protected String getQueryFullName(@NonNull C context, String queryName) {
         return getQueryFullName(context.getFormat(), context.getVersion(), queryName);
