@@ -48,7 +48,7 @@
   <PROGRAM_PROPERTY ID="23" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.observers.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="24" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.metiers.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="25" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.gear.rankOrder.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="26" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.minDurationInHours" NAME="24"/><!-- 24 hours -->
+  <PROGRAM_PROPERTY ID="26" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.minDurationInHours" NAME="12"/><!-- 24 hours -->
   <PROGRAM_PROPERTY ID="27" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.maxDurationInHours" NAME="400"/>
   <PROGRAM_PROPERTY ID="28" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.autoFill" NAME="true"/>
   <PROGRAM_PROPERTY ID="29" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.taxonGroups.noWeight" NAME="RJB_1,RJB_2"/>
@@ -61,6 +61,8 @@
   <PROGRAM_PROPERTY ID="36" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
   <PROGRAM_PROPERTY ID="37" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="38" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.taxonGroups.noLanding" NAME="RJB_1,RJB_2"/>
+  <PROGRAM_PROPERTY ID="39" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2023-02-24" LABEL="sumaris.trip.extraction.sampling.method" NAME="true"/>
+  <PROGRAM_PROPERTY ID="40" STATUS_FK="1" PROGRAM_FK="10" CREATION_DATE="2023-02-24" LABEL="sumaris.trip.gears.columns.pmfmIds" NAME="4"/>
 
   <PROGRAM_PROPERTY ID="14" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.landing.samples.weightUnit" NAME="g"/>
   <PROGRAM_PROPERTY ID="15" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.i18nSuffix" NAME="AUCTION_CONTROL."/>
@@ -68,6 +70,7 @@
   <PROGRAM_PROPERTY ID="17" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.location.level.ids" NAME="3"/>
   <PROGRAM_PROPERTY ID="18" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2019-02-11" LABEL="sumaris.landing.editor" NAME="control"/>
   <PROGRAM_PROPERTY ID="19" STATUS_FK="1" PROGRAM_FK="11" CREATION_DATE="2020-09-29"  LABEL="sumaris.report.enable" NAME="true"/>
+
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="10" LOCATION_CLASSIFICATION_FK="2"/>
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="11" LOCATION_CLASSIFICATION_FK="1"/>
