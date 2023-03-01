@@ -41,7 +41,6 @@ import org.springframework.lang.Nullable;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -83,7 +82,9 @@ public class UserEventRepositoryImpl
 
     @Override
     public void toEntity(UserEventVO source, UserEvent target, boolean copyIfNull) {
-        super.toEntity(source, target, copyIfNull);
+        Beans.copyProperties(source, target,
+            // Exclude computed field
+            UserEventVO.Fields.HAS_CONTENT);
 
         target.setLevel(source.getLevel().name());
         target.setType(source.getType().name());
@@ -118,8 +119,9 @@ public class UserEventRepositoryImpl
         if (isNew) {
             vo.setCreationDate(savedEntity.getCreationDate());
         }
+        // Update computed property
+        vo.setHasContent(savedEntity.getContent() != null);
     }
-
 
     protected UserEventVO toVO(UserEvent source, UserEventFetchOptions fetchOptions) {
         UserEventVO target = new UserEventVO();
@@ -128,7 +130,9 @@ public class UserEventRepositoryImpl
     }
 
     protected void toVO(UserEvent source, UserEventVO target, UserEventFetchOptions fetchOptions, boolean copyIfNull) {
-        Beans.copyProperties(source, target, UserEventVO.Fields.CONTENT /*skip content here*/);
+        Beans.copyProperties(source, target,
+            // Do not fetch 'content' (should be lazy loaded, only if fetched)
+            UserEventVO.Fields.CONTENT);
 
         target.setLevel(EventLevelEnum.valueOfOrNull(source.getLevel()));
         target.setType(EventTypeEnum.valueOfOrNull(source.getType()));

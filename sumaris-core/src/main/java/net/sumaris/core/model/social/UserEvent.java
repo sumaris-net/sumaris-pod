@@ -31,6 +31,7 @@ import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -79,7 +80,11 @@ public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntit
     @Lob
     @Column(length=20971520)
     @Basic(fetch = FetchType.LAZY)
+    // TODO: find a way to avoid selection of this field
     private String content;
+
+    @Formula("CASE WHEN CONTENT IS NOT NULL THEN 1 ELSE 0 END")
+    private Boolean hasContent;
 
     @Column(name = "hash", length = CRYPTO_HASH_LENGTH)
     private String hash;

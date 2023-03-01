@@ -457,13 +457,13 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
     @Transactional(readOnly = true)
     @IsUser
-    public List<ObservedLocationVO> findObservedLocationsByFilter(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
-                                                                  @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                                  @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                                  @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
-                                                                  @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                                  @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
-                                                                  @GraphQLEnvironment ResolutionEnvironment env
+    public List<ObservedLocationVO> findAllObservedLocations(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
+                                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                             @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
+                                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                             @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
+                                                             @GraphQLEnvironment ResolutionEnvironment env
     ) {
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
@@ -482,8 +482,9 @@ public class DataGraphQLService {
         }
 
         filter = fillRootDataFilter(filter, ObservedLocationFilterVO.class);
-
         Set<String> fields = GraphQLUtils.fields(env);
+
+        long now = TimeLog.getTime();
         final List<ObservedLocationVO> result = observedLocationService.findAll(
                 filter,
                 offset, size, sort,
@@ -492,6 +493,8 @@ public class DataGraphQLService {
 
         // Add additional properties if needed
         fillObservedLocationsFields(result, fields);
+
+        timeLog.log(now, "findAllObservedLocations");
 
         return result;
     }
