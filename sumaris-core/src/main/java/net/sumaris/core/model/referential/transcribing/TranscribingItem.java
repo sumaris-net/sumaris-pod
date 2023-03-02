@@ -46,7 +46,6 @@ public class TranscribingItem implements IItemReferentialEntity<Integer>  {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "TRANSCRIBING_ITEM_SEQ")
     @SequenceGenerator(name = "TRANSCRIBING_ITEM_SEQ", sequenceName="TRANSCRIBING_ITEM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -63,7 +62,6 @@ public class TranscribingItem implements IItemReferentialEntity<Integer>  {
     private Date updateDate;
 
     @Column(name = "object_id")
-    
     private Integer objectId;
 
     @Column(nullable = false, length = LENGTH_LABEL)

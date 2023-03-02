@@ -49,6 +49,8 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.model.referential.transcribing.TranscribingItem;
+import net.sumaris.core.model.referential.transcribing.TranscribingItemType;
+import net.sumaris.core.model.referential.transcribing.TranscribingSystem;
 import net.sumaris.core.model.technical.configuration.Software;
 import net.sumaris.core.model.technical.extraction.ExtractionProduct;
 import net.sumaris.core.model.technical.extraction.ExtractionProductTable;
@@ -94,7 +96,6 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.qualitativeValue");
         I18n.n("sumaris.persistence.table.program");
         I18n.n("sumaris.persistence.table.acquisitionLevel");
-        I18n.n("sumaris.persistence.table.transcribingItem");
         I18n.n("sumaris.persistence.table.groupingClassification");
         I18n.n("sumaris.persistence.table.groupingLevel");
         I18n.n("sumaris.persistence.table.grouping");
@@ -114,6 +115,11 @@ public class ReferentialEntities {
         // Job
         I18n.n("sumaris.persistence.table.processingType");
         I18n.n("sumaris.persistence.table.processingStatus");
+        // Transcribing
+        I18n.n("sumaris.persistence.table.transcribingSystem");
+        I18n.n("sumaris.persistence.table.transcribingItem");
+        I18n.n("sumaris.persistence.table.transcribingItemType");
+
     }
 
     public static final List<Class<? extends IReferentialEntity>> ROOT_CLASSES = ImmutableList.of(
@@ -151,6 +157,8 @@ public class ReferentialEntities {
                 Strategy.class,
                 AcquisitionLevel.class,
                 // Transcribing
+                TranscribingSystem.class,
+                TranscribingItemType.class,
                 TranscribingItem.class,
                 // Grouping
                 GroupingClassification.class,

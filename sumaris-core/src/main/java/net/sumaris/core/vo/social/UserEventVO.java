@@ -52,6 +52,7 @@ public class UserEventVO implements IValueObject<Integer>, IUpdateDateEntity<Int
 
     private String hash;
     private String content;
+    private Boolean hasContent;
     private String signature;
     private Date readDate;
     private String readSignature;

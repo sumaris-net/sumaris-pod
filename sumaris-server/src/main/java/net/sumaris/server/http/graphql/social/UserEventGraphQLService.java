@@ -41,14 +41,13 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.technical.EntityWatchService;
+import org.nuiton.util.TimeLog;
 import org.reactivestreams.Publisher;
 import org.springframework.stereotype.Service;
 
@@ -71,6 +70,8 @@ public class UserEventGraphQLService {
     private final EntityWatchService entityWatchService;
 
     private final AuthService authService;
+
+    private final TimeLog timeLog = new TimeLog(UserEventGraphQLService.class);
 
 
     @GraphQLQuery(name = "userEvents", description = "Search in user events")
@@ -99,7 +100,13 @@ public class UserEventGraphQLService {
 
         UserEventFetchOptions fetchOptions = getFetchOptions(GraphQLUtils.fields(env));
 
-        return userEventService.findAll(filter, page, fetchOptions);
+        long now = TimeLog.getTime();
+
+        final List<UserEventVO> result = userEventService.findAll(filter, page, fetchOptions);
+
+        timeLog.log(now, "findUserEvents");
+
+        return result;
     }
 
 
