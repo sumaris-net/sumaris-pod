@@ -102,7 +102,14 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.extraction.query.timeout.description"),
         String.valueOf(5 * 60 * 1000), // 5min
         Integer.class,
-        false)
+        false),
+
+    EXTRACTION_BATCH_DENORMALISATION_ENABLE(
+            "sumaris.extraction.batch.denormalization.enable",
+            n("sumaris.config.option.extraction.batch.denormalization.enable.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
     ;
 
     /** Configuration key. */

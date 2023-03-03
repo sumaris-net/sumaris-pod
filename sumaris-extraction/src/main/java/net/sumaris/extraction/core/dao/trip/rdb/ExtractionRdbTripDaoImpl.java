@@ -40,11 +40,13 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
@@ -96,6 +98,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     @Autowired
     protected ProgramService programService;
 
+    @Autowired
+    protected ExtractionConfiguration extractionConfiguration;
+
+    @Autowired
+    protected DenormalizedBatchService denormalizedBatchService;
+
     @Override
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
@@ -112,6 +120,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setUpdateDate(new Date());
         context.setType(LiveExtractionTypeEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
+        context.setEnableBatchDenormalization(extractionConfiguration.enableBatchDenormalization());
 
         // Start log
         Long startTime = null;
@@ -149,6 +158,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 if (rowCount != 0) {
                     rowCount = createStationTable(context);
                     if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
+
+                // Denormalize batch
+                if (rowCount != 0 && context.isEnableBatchDenormalization()) {
+                    denormalizeBatches(context);
                 }
 
                 // Species Raw table
@@ -356,6 +370,18 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         return xmlQuery;
+    }
+
+    protected void denormalizeBatches(C context) {
+        String stationsTableName = context.getStationTableName();
+        List<String> programLabels = getTripProgramLabels(context);
+        programLabels.forEach(programLabel -> {
+            DenormalizedBatchOptions options = denormalizedBatchService.createOptionsByProgramLabel(programLabel);
+            String sql = String.format("SELECT distinct %s from %s where %s='%s'",
+                    RdbSpecification.COLUMN_STATION_NUMBER, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
+            query(sql, Integer.class)
+                    .forEach(operationId -> denormalizedBatchService.denormalizeAndSaveByOperationId(operationId, options));
+        });
     }
 
     /**

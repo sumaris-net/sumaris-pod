@@ -1222,7 +1222,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 (source.getNumericalValue() != null) ? (source.getNumericalValue() == 1d ? Boolean.TRUE : Boolean.FALSE) : null;
             case QUALITATIVE_VALUE ->
                 // If find a object structure (e.g. ReferentialVO), try to find the id
-                ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null) ? source.getQualitativeValue().getId() : null);
+                ((source.getQualitativeValue() != null && source.getQualitativeValue().getId() != null)
+                        ? source.getQualitativeValue().getId()
+                        : null);
             case STRING, DATE -> source.getAlphanumericalValue();
             case INTEGER -> (source.getNumericalValue() != null) ? source.getNumericalValue().intValue() : null;
             case DOUBLE -> source.getNumericalValue();
