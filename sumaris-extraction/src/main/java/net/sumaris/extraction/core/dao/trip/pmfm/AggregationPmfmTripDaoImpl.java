@@ -90,13 +90,26 @@ public class AggregationPmfmTripDaoImpl<
         if (sheetName != null && context.hasSheet(sheetName)) return context;
 
         try {
-            // Sample table
-            long rowCount = createSampleTable(source, context);
-            if (rowCount == 0) return context;
-            if (sheetName != null && context.hasSheet(sheetName)) return context;
+            // If only CL expected: skip station/species aggregation
+            if (!CL_SHEET_NAME.equals(sheetName)) {
 
-            // Release table
-            createReleaseTable(source, context);
+                // Restore the previous (HH) row count
+                long rowCount = countFrom(context.getStationTableName());
+
+                // Sample table
+                if (rowCount != 0) {
+                    rowCount = createSampleTable(source, context);
+                    if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
+
+                // Release table (=sub sample)
+                if (rowCount != 0) {
+                    rowCount = createReleaseTable(source, context);
+                    if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
+
+                return context;
+            }
         }
          catch (PersistenceException e) {
             // If error,clean created tables first, then rethrow the exception
