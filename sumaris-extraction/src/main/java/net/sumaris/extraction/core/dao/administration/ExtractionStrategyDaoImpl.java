@@ -35,6 +35,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
@@ -44,6 +45,7 @@ import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyContextVO;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
@@ -61,6 +63,7 @@ import static org.nuiton.i18n.I18n.t;
  */
 @Repository("extractionStrategyDao")
 @Lazy
+@ConditionalOnBean({ExtractionConfiguration.class})
 @Slf4j
 public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F extends ExtractionFilterVO>
         extends ExtractionBaseDaoImpl<C, F>

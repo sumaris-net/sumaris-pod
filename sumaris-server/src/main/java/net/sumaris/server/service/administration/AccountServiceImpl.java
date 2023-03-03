@@ -54,7 +54,6 @@ import net.sumaris.server.service.social.UserMessageService;
 import org.apache.commons.collections.CollectionUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.stereotype.Service;
@@ -73,19 +72,14 @@ public class AccountServiceImpl implements AccountService {
 
     private final SumarisServerConfiguration configuration;
     private final PersonRepository personRepository;
-
     private final UserSettingsService userSettingsService;
-
     private final UserTokenRepository userTokenRepository;
     private final PersonService personService;
     private final UserMessageService userMessageService;
     private final ServerCryptoService serverCryptoService;
 
-    private AccountService self; // loop back to force transactional handling
-
     private String serverUrl;
 
-    @Autowired
     public AccountServiceImpl(SumarisServerConfiguration serverConfiguration,
                               PersonService personService,
                               PersonRepository personRepository,
@@ -96,7 +90,7 @@ public class AccountServiceImpl implements AccountService {
                               UserMessageService userMessageService) {
         this.personService = personService;
         this.personRepository = personRepository;
-        this.userSettingsService =userSettingsService;
+        this.userSettingsService = userSettingsService;
         this.userTokenRepository = userTokenRepository;
         this.configuration = serverConfiguration;
         this.serverCryptoService = serverCryptoService;
