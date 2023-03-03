@@ -92,13 +92,16 @@ public class ExtractionProduct implements IExtractionType<Person, Department>,
     @Column(length = 10)
     private String version;
 
+    // FIXME @Lob is not working under Postgresql, because it try to fetch an long (the object id?)
+    //@Lob
+    @Column(length=20971520)
     @Basic(fetch = FetchType.LAZY)
-    @Lob
     private String documentation;
 
+    // FIXME @Lob is not working under Postgresql, because it try to fetch an long (the object id?)
+    //@Lob
+    @Column(name = "filter", length=20971520)
     @Basic(fetch = FetchType.LAZY)
-    @Lob
-    @Column(name = "filter")
     private String filterContent;
 
     @Column(name = "is_spatial", nullable = false)
