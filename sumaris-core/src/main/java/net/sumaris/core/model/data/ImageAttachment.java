@@ -63,6 +63,7 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @Column(length=20971520)
     @Lob
     @Basic(fetch = FetchType.LAZY)
+    // TODO: find a way to avoid selection of this field
     private String content;
 
     @Column()
