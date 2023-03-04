@@ -252,6 +252,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.addAlias("--output", "--option", SumarisConfigurationOption.CLI_OUTPUT_FILE.getKey());
         applicationConfig.addAlias("-f", "--option", SumarisConfigurationOption.CLI_FORCE_OUTPUT.getKey(), "true");
         applicationConfig.addAlias("--year", "--option", SumarisConfigurationOption.CLI_FILTER_YEAR.getKey());
+        applicationConfig.addAlias("--trip", "--option", SumarisConfigurationOption.CLI_FILTER_TRIP_ID.getKey());
+        applicationConfig.addAlias("--program", "--option", SumarisConfigurationOption.CLI_FILTER_PROGRAM_LABEL.getKey());
 
     }
 
@@ -910,6 +912,12 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         int tripId = applicationConfig.getOptionAsInt(SumarisConfigurationOption.CLI_FILTER_TRIP_ID.getKey());
         return tripId == -1 ? null : tripId;
     }
+
+    public String getCliFilterProgramLabel() {
+        String programLabel = applicationConfig.getOption(SumarisConfigurationOption.CLI_FILTER_PROGRAM_LABEL.getKey());
+        return StringUtils.isBlank(programLabel) ? null : programLabel;
+    }
+
 
     /**
      * <p>getLaunchMode.</p>

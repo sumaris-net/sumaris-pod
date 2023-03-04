@@ -30,9 +30,12 @@ import net.sumaris.core.vo.referential.IReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -55,11 +58,13 @@ public class DenormalizedBatches {
 
     public static boolean isSamplingBatch(DenormalizedBatchVO b) {
         return b.getSamplingRatio() != null ||
-            (b.getParent() != null && CollectionUtils.size(b.getParent().getChildren()) == 1
-                && (
-                    (b.getParent().getWeight() != null && b.getWeight() != null)
-                    || !hasOwnedSortingValue(b)
-                )
+            (
+                // Should have a parent, and parent should have only one child
+                b.getParent() != null && CollectionUtils.size(b.getParent().getChildren()) == 1
+                // Self or parent should have a weight
+                && (b.getParent().getWeight() != null && b.getWeight() != null)
+                // Should not have sorting values, nor taxon or reference taxon
+                && !hasOwnedSortingValue(b) && b.getTaxonGroup() == null && b.getTaxonName() == null
             );
     }
 
@@ -83,7 +88,6 @@ public class DenormalizedBatches {
                 + (b.getRankOrder() != null ? b.getRankOrder().doubleValue() : 1d) * Math.pow(10, -1 * (b.getTreeLevel() - 1 ) * 3);
     }
 
-
     public static String dumpAsString(List<? extends DenormalizedBatchVO> sources,
                                       boolean withHierarchicalLabel,
                                       boolean useUnicode) {
@@ -95,6 +99,7 @@ public class DenormalizedBatches {
                 .map(source -> {
                     String treeIndent = useUnicode ? replaceTreeUnicode(source.getTreeIndent()) : source.getTreeIndent();
                     String hierarchicalLabel = withHierarchicalLabel ? generateHierarchicalLabel(source) : null;
+                    String elevateFactor = getElevateFactor(source).toString();
                     boolean hasSpecies = source.getTaxonGroup() != null || source.getTaxonName() != null;
                     return joiner.join(
                             treeIndent,
@@ -126,13 +131,15 @@ public class DenormalizedBatches {
                         ((source.getIndirectWeight() != null && !Objects.equals(source.getIndirectWeight(), source.getWeight()))
                                 ? String.format("(%s %s kg)", useUnicode ? UnicodeChars.ARROW_DOWN : "~", source.getIndirectWeight()) : null),
 
-
                         // Individual count
                         (source.getIndividualCount() != null ? String.format("[%s indiv]", source.getIndividualCount()) : null),
 
                         // Indirect individual count
                         ((source.getIndirectIndividualCount() != null && !Objects.equals(source.getIndirectIndividualCount(), source.getIndividualCount()))
                                 ? String.format("(%s %s indiv)", useUnicode ? UnicodeChars.ARROW_DOWN : "~", source.getIndirectIndividualCount()) : null),
+
+                        // Elevate factor
+                        (!"1".equals(elevateFactor) ? String.format("x%s", elevateFactor) : null),
 
                         "=>",
 
@@ -150,6 +157,12 @@ public class DenormalizedBatches {
 
     /* -- internal functions -- */
 
+    protected static BigDecimal getElevateFactor(DenormalizedBatchVO source) {
+        if (source instanceof TempDenormalizedBatchVO) {
+            return ((TempDenormalizedBatchVO)source).getElevateFactor();
+        }
+        return new BigDecimal(1);
+    }
     protected static String replaceTreeUnicode(String treeIndent) {
         return treeIndent.replace("|-", "\u02EB")
                 .replace("|_", "\u02EA")

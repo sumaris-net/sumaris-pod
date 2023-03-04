@@ -114,6 +114,11 @@ public class DenormalizedBatchRepositoryImpl
         if (copyIfNull || saleId != null) {
             target.setSaleId(saleId);
         }
+
+        Integer parentId = source.getParent() != null ? source.getParent().getId() : null;
+        if (copyIfNull || parentId != null) {
+            target.setParentId(parentId);
+        }
     }
 
     @Override
@@ -204,6 +209,18 @@ public class DenormalizedBatchRepositoryImpl
                 } else {
                     Integer referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(inheritedTaxonNameId);
                     target.setInheritedReferenceTaxon(getReference(ReferenceTaxon.class, referenceTaxonId));
+                }
+            }
+        }
+
+        // Parent name
+        {
+            Integer parentBatchId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
+            if (copyIfNull || parentBatchId != null) {
+                if (parentBatchId == null) {
+                    target.setParent(null);
+                } else {
+                    target.setParent(getReference(DenormalizedBatch.class, parentBatchId));
                 }
             }
         }

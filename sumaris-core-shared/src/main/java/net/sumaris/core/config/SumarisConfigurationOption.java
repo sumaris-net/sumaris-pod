@@ -534,7 +534,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "-1",
         Integer.class,
         false),
-
+    CLI_FILTER_PROGRAM_LABEL(
+        "sumaris.cli.filter.programLabel",
+        n("sumaris.config.option.cli.filter.programLabel.description"),
+        "",
+        String.class,
+        false),
     CSV_SEPARATOR(
         "sumaris.csv.separator",
         n("sumaris.config.option.csv.separator.description"),

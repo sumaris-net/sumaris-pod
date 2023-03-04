@@ -33,7 +33,9 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
 
+    private BigDecimal indirectIndividualCountDecimal;
     private BigDecimal elevateFactor;
+    private BigDecimal samplingFactor;
 
     //private Double contextWeight;
     //private Double sumChildContextWeight;

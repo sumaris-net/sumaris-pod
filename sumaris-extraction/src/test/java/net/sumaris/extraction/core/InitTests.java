@@ -40,7 +40,7 @@ public class InitTests extends net.sumaris.core.test.InitTests {
         try {
 
             // Force replacement
-            initTests.setReplaceDbIfExists(true);
+            //initTests.setReplaceDbIfExists(true);
 
             initTests.before();
         } catch (Throwable ex) {
