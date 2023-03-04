@@ -1,6 +1,8 @@
-# APASE exchange format
+# Spéficiation du format d'extraction APASE
 
-Req. stand for required. In the Req. column the “M” stands for mandatory and “O” stands for optional.
+APASE extraction format is based on the [ICES RDB data exchange format](https://www.ices.dk/data/Documents/RDB/RDB%20Exchange%20Format.pdf).
+EU/ICES have defined common format and processing tools, for fisheries statistics (.e.G R scripts - see COST project).
+
 
 ## Trip (TR)
 
@@ -8,8 +10,8 @@ A commercial fishing trip that has been sampled on board or a sample from a fish
 
 | Field name                    | Type    | Req.    | Basic checks  | Comments                                                                                                                                                                  |
 |-------------------------------|---------|---------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Record type *                 | String  | M     	 |               | Fixed value TR.                                                                                                                                                           |
-| Sampling type * 	             | String  | M     	 | Code list     | “S” = sea sampling, “M” = market sampling of known fishing trips, “D” = market sampling of mixed trips, “V” = vendor.                                                     |
+| Record type *                 | String  | M     	 |               | Fixed value ”TR”.                                                                                                                                                         |
+| Sampling type * 	             | String  | M     	 | Code list     | “S” = sea sampling                                                                                                                                                        |
 | Landing country *             | String  | M     	 | Code list     | ISO 3166 – 1 alpha-3 codes: the country where the vessel is landing and selling the catch.                                                                                |
 | Vessel flag country *         | String  | M       | Code list     | ISO 3166 – 1 alpha-3 codes: the flag country of the vessel. This can be different from the landing country (see description of Landing country).                          |
 | Year *                        | Integer | M       | 1 900 − 3 000 |                                                                                                                                                                           | 
@@ -26,7 +28,7 @@ A commercial fishing trip that has been sampled on board or a sample from a fish
 | Sampling country              | String  | M       | Code list     | ISO 3166 – 1 alpha-3 codes. The country that did the sampling.                                                                                                            |
 | Sampling method               | String  | M       | Code list     | “Observer” or “SelfSampling”.                                                                                                                                             |
 
-> `*` = key field
+Custom columns, only for APASE:
 
 | Field name          | Type    | Req. | Basic checks | Comments                         |
 |---------------------|---------|------|--------------|----------------------------------|
@@ -35,13 +37,17 @@ A commercial fishing trip that has been sampled on board or a sample from a fish
 | Trip comments       | String  | O    |              | Comments                         |
 
 
+> Req. stand for required. In the Req. column the “M” stands for mandatory and “O” stands for optional.
+>
+> `*` = key field
+
 ## Fishing Gear (FG)
 
 Fishing gear, used on trips
 
 | Field name                          | Type    | Req.    | Basic checks  | Comments                                                                                                                                         |
 |-------------------------------------|---------|---------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| Record type *                       | String  | M     	 |               | Fixed value TR.                                                                                                                                  |
+| Record type *                       | String  | M     	 |               | Fixed value ”FG                                                                                                                                  |
 | Sampling type * 	                   | String  | M     	 | Code list     | “S” = sea sampling, “M” = market sampling of known fishing trips, “D” = market sampling of mixed trips, “V” = vendor.                            |
 | Landing country *                   | String  | M     	 | Code list     | ISO 3166 – 1 alpha-3 codes: the country where the vessel is landing and selling the catch.                                                       |
 | Vessel flag country *               | String  | M       | Code list     | ISO 3166 – 1 alpha-3 codes: the flag country of the vessel. This can be different from the landing country (see description of Landing country). |
@@ -64,8 +70,8 @@ Detailed information about a fishing operation, e.g a haul (for OTB gear) or a s
 
 | Field name                               | Type    | Req. | Basic checks                 | Comments                                                                                                              	                                                                                                     |
 |------------------------------------------|---------|------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Record type *   	                        | String  | M    |                              | Fixed value HH.                                                                                                       	                                                                                                     |
-| Sampling type * 	                        | String  | M    | Code list                    | “S” = sea sampling, “M” = market sampling of known fishing trips, “D” = market sampling of mixed trips, “V” = vendor. 	                                                                                                     |
+| Record type *   	                        | String  | M    |                              | Fixed value ”HH”.                                                                                                        	                                                                                                  |
+| Sampling type * 	                        | String  | M    | Code list                    | “S” = sea sampling  	                                                                                                                                                                                                       |
 | Landing country *                        | String  | M    | Code list                    | ISO 3166 – 1 alpha-3 codes: the country where the vessel is landing and selling the catch.                                                                                                                                  |
 | Vessel flag country *                    | String  | M    | Code list                    | ISO 3166 – 1 alpha-3 codes: the flag country of the vessel. This can be different from the landing country (see description of Landing country).                                                                            |
 | Year *                                   | Integer | M    | 1 900 − 3 000                |                                                                                                                                                                                                                             | 
@@ -92,6 +98,7 @@ Detailed information about a fishing operation, e.g a haul (for OTB gear) or a s
 | Fishing activity category European lvl 5 | String  | O    | Code list                    |                                                                                                                                                                                                                             |
 | Fishing activity category European lvl 6 | String  | O    | Code list                    |                                                                                                                                                                                                                             |
 
+Custom columns, only for APASE:
 
 | Field name        | Type    | Req. | Basic checks | Comments         |
 |-------------------|---------|------|--------------|------------------|
@@ -105,8 +112,8 @@ The sorting strata defined by species, catch category, etc.
 
 | Field name                       | Type    | Req. | Basic checks      | Comments                                                                                                              	                                                                                                                                                    |
 |----------------------------------|---------|------|-------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Record type                      | String  | M    |                   | Fixed value SL.                                                                                                       	                                                                                                                                                    |
-| Sampling type                    | String  | M    | Code list         | “S” = sea sampling, “M” = market sampling of known fishing trips, “D” = market sampling of mixed trips, “V” = vendor. 	                                                                                                                                                    |
+| Record type                      | String  | M    |                   | Fixed value ”SL”.                                                                                                        	                                                                                                                                                 |
+| Sampling type                    | String  | M    | Code list         | “S” = sea sampling  	                                                                                                                                                                                                                                                      |
 | Landing country                  | String  | M    | Code list         | ISO 3166 – 1 alpha-3 codes: the country where the vessel is landing and selling the catch.                                                                                                                                                                                 |
 | Vessel flag country              | String  | M    | Code list         | ISO 3166 – 1 alpha-3 codes: the flag country of the vessel. This can be different from the landing country (see description of Landing country).                                                                                                                           |
 | Year                             | Integer | M    | 1 900 − 3 000     |                                                                                                                                                                                                                                                                            | 
@@ -124,6 +131,7 @@ The sorting strata defined by species, catch category, etc.
 | Subsample weight                 | Integer | O    | 1 − 9 999 999 999 | Whole weight in grammes. Decimals not allowed. For sea sampling: the live weight of the subsample of the corresponding stratum. For market sampling: the sample weight is the whole weight of the fish measured (e.g. the summed weight of the fish in one or more boxes). |
 | Length code                      |         |      |                   | Class: 1 mm = “mm”, 0.5 cm = “scm”; 1 cm = “cm”; 2.5 cm = “25 mm”, 5 cm = “5 cm”.                                                                                                                                                                                          |
 
+Custom columns, only for APASE:
 
 | Field name        | Type    | Req. | Basic checks | Comments                                                |
 |-------------------|---------|------|--------------|---------------------------------------------------------|
@@ -138,8 +146,8 @@ One record represents one length class.
 
 | Field name                       | Type    | Req. | Basic checks  | Comments                                                                                                              	                                                                                          |
 |----------------------------------|---------|------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Record type                      | String  | M    |               | Fixed value SL.                                                                                                       	                                                                                          |
-| Sampling type                    | String  | M    | Code list     | “S” = sea sampling, “M” = market sampling of known fishing trips, “D” = market sampling of mixed trips, “V” = vendor. 	                                                                                          |
+| Record type                      | String  | M    |               | Fixed value ”SL”.                                                                                                        	                                                                                       |
+| Sampling type                    | String  | M    | Code list     | “S” = sea sampling                                                                                                                                                                                               |
 | Landing country                  | String  | M    | Code list     | ISO 3166 – 1 alpha-3 codes: the country where the vessel is landing and selling the catch.                                                                                                                       |
 | Vessel flag country              | String  | M    | Code list     | ISO 3166 – 1 alpha-3 codes: the flag country of the vessel. This can be different from the landing country (see description of Landing country).                                                                 |
 | Year                             | Integer | M    | 1 900 − 3 000 |                                                                                                                                                                                                                  | 
@@ -157,6 +165,7 @@ One record represents one length class.
 | Length class *                   | Integer | M    | 1−3 999       | In mm. Identifier: lower bound of size class, e.g. 650 for 65 – 66 cm.                                                                                                                                           |
 | Number at length *               | Integer | M    | 1−999         | (not raised to whole catch) Length classes with zero should be excluded from the record.                                                                                                                         |
 
+Custom columns, only for APASE:
 
 | Field name    	       | Type   | Req. | Basic checks | Comments                                                                                                              	 |
 |-----------------------|--------|------|--------------|-------------------------------------------------------------------------------------------------------------------------|
