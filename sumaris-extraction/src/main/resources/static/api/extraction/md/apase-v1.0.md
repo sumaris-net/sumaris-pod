@@ -23,7 +23,7 @@ A commercial fishing trip that has been sampled on board or a sample from a fish
 | Number of sets/hauls on trip  | Integer | O       | 1-300         | Total number of hauls/sets taken during the trip. Both the stations where biological measures were taken and the stations that were not worked up should be counted here. |
 | Days at sea                   | Integer | O       | 1-60          | In days.                                                                                                                                                                  |
 | Vessel identifier (encrypted) | Integer | O       | 1 − 999 999   | Encrypted vessel identifier. Id encrypted so that no-one can map the Id to the real vessel.                                                                               |
-| Sampling country              | String  | M       | Code list     | SO 3166 – 1 alpha-3 codes. The country that did the sampling.                                                                                                             |
+| Sampling country              | String  | M       | Code list     | ISO 3166 – 1 alpha-3 codes. The country that did the sampling.                                                                                                            |
 | Sampling method               | String  | M       | Code list     | “Observer” or “SelfSampling”.                                                                                                                                             |
 
 > `*` = key field
