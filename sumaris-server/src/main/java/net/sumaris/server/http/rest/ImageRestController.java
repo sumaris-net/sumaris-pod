@@ -85,11 +85,12 @@ public class ImageRestController implements ResourceLoaderAware {
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) throws IOException {
-        ImageAttachmentVO image  = personService.getAvatarByPubkey(pubkey, ImageAttachmentFetchOptions.WITH_CONTENT);
-        if (image == null) {
+        try {
+            ImageAttachmentVO image = personService.getAvatarByPubkey(pubkey, ImageAttachmentFetchOptions.WITH_CONTENT);
+            return getImageResponse(image);
+        } catch(Exception e) {
             return ResponseEntity.notFound().build();
         }
-        return getImageResponse(image);
 
     }
 
@@ -97,16 +98,27 @@ public class ImageRestController implements ResourceLoaderAware {
     @RequestMapping(value = RestPaths.DEPARTMENT_LOGO_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getDepartmentLogo(@PathVariable(name="label") String label) throws IOException {
-        ImageAttachmentVO image = departmentService.getLogoByLabel(label);
-        return getImageResponse(image);
+        try {
+            ImageAttachmentVO image = departmentService.getLogoByLabel(label);
+            return getImageResponse(image);
+        } catch (Exception e) {
+            log.error("Cannot load logo of department '{}': {}", label, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @ResponseBody
     @RequestMapping(value = RestPaths.IMAGE_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getImage(@NonNull @PathVariable(name="id") Integer id) throws IOException {
-        ImageAttachmentVO image = imageService.find(id, ImageAttachmentFetchOptions.WITH_CONTENT);
-        return getImageResponse(image);
+        try {
+            ImageAttachmentVO image = imageService.find(id, ImageAttachmentFetchOptions.WITH_CONTENT);
+            return getImageResponse(image);
+        }
+        catch (Exception e) {
+            log.error("Error while fetching image #{}: {}", id, e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @ResponseBody

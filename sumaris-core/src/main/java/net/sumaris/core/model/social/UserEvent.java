@@ -77,10 +77,11 @@ public class UserEvent implements ISignedEntity<Integer, Date>, IUpdateDateEntit
     @Comment("Le niveau de l'évènement (INFO, ERROR, etc.)")
     private String level;
 
-    @Lob
+    // FIXME @Lob is not working under Postgresql, because it try to fetch an long (the object id?)
+    // TODO: find a way to avoid selection of this field
+    //@Lob
     @Column(length=20971520)
     @Basic(fetch = FetchType.LAZY)
-    // TODO: find a way to avoid selection of this field
     private String content;
 
     @Formula("CASE WHEN CONTENT IS NOT NULL THEN 1 ELSE 0 END")

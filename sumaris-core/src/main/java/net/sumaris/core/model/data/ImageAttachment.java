@@ -60,8 +60,10 @@ public class ImageAttachment implements IDataEntity<Integer>,
     @Column(name = "content_type", nullable = false, length = 100)
     private String contentType;
 
+
+    // FIXME @Lob is not working under Postgresql, because it try to fetch an long (the object id?)
+    //@Lob
     @Column(length=20971520)
-    @Lob
     @Basic(fetch = FetchType.LAZY)
     private String content;
 

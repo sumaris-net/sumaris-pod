@@ -35,7 +35,7 @@
             <column name="NAME">false</column>
             <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'SUMARiS')"/>
             <column name="STATUS_FK" valueNumeric="1"/>
-            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
         </insert>
     </changeSet>
