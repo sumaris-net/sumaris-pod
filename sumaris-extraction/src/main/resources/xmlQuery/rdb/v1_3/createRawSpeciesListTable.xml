@@ -44,8 +44,8 @@
     )]]></select>
     <select alias="LANDING_CATEGORY" type="text">null</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select>
-    <select alias="SUBSAMPLING_CATEGORY" type="text">null</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select> <!-- TODO: SIZE_UNLI_CAT -->
+    <select alias="SUBSAMPLING_CATEGORY" type="text">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
     <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
 
     <!-- other fields -->
