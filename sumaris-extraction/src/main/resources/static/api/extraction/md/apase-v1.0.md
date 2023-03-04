@@ -45,24 +45,41 @@ Custom columns, only for APASE:
 
 Fishing gear, used on trips
 
-| Field name                          | Type    | Req.    | Basic checks  | Comments                                                                                                                                         |
-|-------------------------------------|---------|---------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| Record type *                       | String  | M     	 |               | Fixed value ”FG                                                                                                                                  |
-| Sampling type * 	                   | String  | M     	 | Code list     | “S” = sea sampling, “M” = market sampling of known fishing trips, “D” = market sampling of mixed trips, “V” = vendor.                            |
-| Landing country *                   | String  | M     	 | Code list     | ISO 3166 – 1 alpha-3 codes: the country where the vessel is landing and selling the catch.                                                       |
-| Vessel flag country *               | String  | M       | Code list     | ISO 3166 – 1 alpha-3 codes: the flag country of the vessel. This can be different from the landing country (see description of Landing country). |
-| Year *                              | Integer | M       | 1 900 − 3 000 |                                                                                                                                                  | 
-| Project *                           | String  | M       | Code list     | National project name. Code list is editable.                                                                                                    |
-| Trip code *                         | String  | M       | String 50     | National coding system.                                                                                                                          |
-| Gear identifier *                   | Integer | M       | 1 − 999 999   | Gear identifier. Unique for the trip.                                                                                                            |
-| Gear type *                         | String  | M       | Code list     | “OTB”  or “OTT”                                                                                                                                  |
-| Sub gear identifier                 | Integer | O       | 1 - 99        | Sub gear identifier. Unique for the trip.                                                                                                        |
-| Mesh size                           | Integer | O       | 1−999         |                                                                                                                                                  |
-| Selection device                    | Integer | O       |               |                                                                                                                                                  |
-| Mesh size in selection device       | Integer | O       |               |                                                                                                                                                  |
-| (...)                               |         |         |               |                                                                                                                                                  |
+| Field name                    | Type    | Req.    | Basic checks  | Comments                                                                                                                                         |
+|-------------------------------|---------|---------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| Record type *                 | String  | M     	 |               | Fixed value ”FG                                                                                                                                  |
+| Sampling type * 	             | String  | M     	 | Code list     | “S” = sea sampling, “M” = market sampling of known fishing trips, “D” = market sampling of mixed trips, “V” = vendor.                            |
+| Landing country *             | String  | M     	 | Code list     | ISO 3166 – 1 alpha-3 codes: the country where the vessel is landing and selling the catch.                                                       |
+| Vessel flag country *         | String  | M       | Code list     | ISO 3166 – 1 alpha-3 codes: the flag country of the vessel. This can be different from the landing country (see description of Landing country). |
+| Year *                        | Integer | M       | 1 900 − 3 000 |                                                                                                                                                  | 
+| Project *                     | String  | M       | Code list     | National project name. Code list is editable.                                                                                                    |
+| Trip code *                   | String  | M       | String 50     | National coding system.                                                                                                                          |
+| Gear identifier *             | Integer | M       | 1 − 999 999   | Gear identifier. Unique for the trip.                                                                                                            |
+| Gear type *                   | String  | M       | Code list     | “OTB”  or “OTT”                                                                                                                                  |
+| Sub gear identifier           | Integer | O       | 1 - 99        | Sub gear identifier. Unique for the trip.                                                                                                        |
+| Gear label                    | String  | M       |               | Free text. Not unique                                                                                                                            |
+| Buoy weight kg                | Integer |         |               |                                                                                                                                                  |
+| Door type                     | String  |         |               |                                                                                                                                                  |
+| Entremise length              | Double  |         |               |                                                                                                                                                  |
+| Groundrope type               | String  |         |               |                                                                                                                                                  |
+| Headline cumulative length    | Double  |         |               |                                                                                                                                                  |
+| Mesh gauge ass mm             | Integer |         |               |                                                                                                                                                  |
+| Mesh gauge back mm            | Integer |         |               |                                                                                                                                                  |
+| Mesh gauge belly mm           | Integer |         |               |                                                                                                                                                  |
+| Mesh gauge ext mm             | Integer |         |               |                                                                                                                                                  |
+| Mesh gauge gor mm             | Integer |         |               |                                                                                                                                                  |
+| Mesh gauge lower wing mm      | Integer |         |               |                                                                                                                                                  |
+| Mesh gauge upper wing mm      | Integer |         |               |                                                                                                                                                  |
+| Nb buoy                       | double  |         |               |                                                                                                                                                  |
+| Rig type                      | String  |         |               |                                                                                                                                                  |
+| Select device apase           | String  |         |               |                                                                                                                                                  |
+| Stone grid                    | String  |         |               |                                                                                                                                                  |
+| Sweep length                  | double  |         |               |                                                                                                                                                  |
+| Tickler chain                 | String  |         |               |                                                                                                                                                  |
+| Vertical opening estimated    | double  |         |               |                                                                                                                                                  |
+| Vertical opening instrument   | double  |         |               |                                                                                                                                                  |
 
->  TODO: add all gear's feature
+>  TODO: Fill all columns
 
 ## Fishing station (HH)
 
@@ -100,10 +117,21 @@ Detailed information about a fishing operation, e.g a haul (for OTB gear) or a s
 
 Custom columns, only for APASE:
 
-| Field name        | Type    | Req. | Basic checks | Comments         |
-|-------------------|---------|------|--------------|------------------|
-| Station comments  | String  | O    |              | Comments         |
-| Gear identifier * | Integer | M    |              | Gear identifier. |
+| Field name              | Type    | Req. | Basic checks | Comments                                                          |
+|-------------------------|---------|------|--------------|-------------------------------------------------------------------|
+| Station comments        | String  | O    |              | Comments                                                          |
+| Gear identifier *       | Integer | M    |              | Gear identifier.                                                  |
+| Tag operation           | String  | O    |              | Free tag, used to associate stations. Only on ”OTB” gear type     |
+| Sorting end date time   | String  | O    |              | “YYYY-MM-DD HH:MM:SS” (ISO 8601)                                  |
+| Sorting start date time | String  | O    |              | “YYYY-MM-DD HH:MM:SS” (ISO 8601)                                  |
+| Diurnal operation       | String  | O    | Y or N       |                                                                   |
+| Gear speed              | Double  | O    |              | Gear speed, in nautical miles                                     |
+| Gear depth              | Double  | O    |              | Gear depth, in meters                                             |
+| Sea state               | String  | O    | Code list    | From ”0” = calm, to ”9”  = phenomenal                             |
+| Wind force beaufort     | String  | O    | 0 - 12       | Beaufort scale                                                    |
+| Wind cardinal direction | String  | O    | Code list    | E, N, NE, NO, I, S, SE, SO                                        |
+| Rectilinear operation   | String  | O    | Y or N       |                                                                   |
+| Seabed features         | String  | O    | Code list    |                                                                   |
 
 
 ## Species list (SL)
@@ -133,10 +161,11 @@ The sorting strata defined by species, catch category, etc.
 
 Custom columns, only for APASE:
 
-| Field name        | Type    | Req. | Basic checks | Comments                                                |
-|-------------------|---------|------|--------------|---------------------------------------------------------|
-| Sub gear position | String  | O    | Code list    | “B” = Bâbord, “T” = Tribord. Mandatory for “OTT“ gears. |
-| Sub gear number   | Integer | O    | 1 - 99       | Mandatory for “OTT“ gears.                              |
+| Field name        | Type    | Req. | Basic checks | Comments                                                                       |
+|-------------------|---------|------|--------------|--------------------------------------------------------------------------------|
+| Sub gear position | String  | O    | Code list    | “B” = Bâbord, “T” = Tribord. Mandatory for “OTT“ gears. Empty for “OTB“ gears. |
+| Sub gear number   | Integer | O    | 1 - 99       | Mandatory for “OTT“ gears. Empty for “OTB“ gears.                              |
+| Catch weight *    | Integer | M    |              | The total catch weight for “OTB“ gears, or sub catch weight for “OTT“.         |
 
 ## Haul length (HL)
 
