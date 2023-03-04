@@ -37,7 +37,6 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -73,13 +72,25 @@ public interface DataSpecifications<ID extends Serializable,
      */
     default Specification<E> isControlled() {
         return (root, query, cb) ->
-            cb.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE));
+            cb.and(
+                // Control date not null
+                cb.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE)),
+                // Not validated
+                cb.isNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE))
+            );
     }
 
     default Specification<E> isValidated() {
         return (root, query, cb) ->
-            // Validation date not null
-            cb.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE));
+            cb.and(
+                // Validation date not null
+                cb.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE)),
+                // Not qualified
+                cb.or(
+                    cb.isNull(root.get(IWithDataQualityEntity.Fields.QUALIFICATION_DATE)),
+                    cb.equal(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+                )
+            );
     }
 
     default Specification<E> isQualified() {
