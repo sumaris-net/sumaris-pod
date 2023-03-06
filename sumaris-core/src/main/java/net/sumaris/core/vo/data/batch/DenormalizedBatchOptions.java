@@ -52,7 +52,7 @@ public class DenormalizedBatchOptions {
             .enableTaxonName(source.enableTaxonName)
             .taxonGroupIdsNoWeight(source.taxonGroupIdsNoWeight)
             .roundWeightCountryLocationId(source.roundWeightCountryLocationId)
-            .fishingAreaLocationId(source.fishingAreaLocationId);
+            .statisticalRectangleId(source.statisticalRectangleId);
     }
 
     @Builder.Default
@@ -65,7 +65,7 @@ public class DenormalizedBatchOptions {
 
     private Integer roundWeightCountryLocationId; // Country location, used to find a round weight conversion
 
-    private Integer fishingAreaLocationId; // Fishing area used to find a weight length conversion
+    private Integer statisticalRectangleId; // Fishing area used to find a weight length conversion
 
     private Date dateTime;
 

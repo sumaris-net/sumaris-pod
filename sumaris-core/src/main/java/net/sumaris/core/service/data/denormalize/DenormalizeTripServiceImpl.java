@@ -45,6 +45,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 @Service("denormalizeTripService")
@@ -148,7 +149,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
         // Load denormalized options
         int programId = tripService.getProgramIdById(tripId);
-        DenormalizedBatchOptions baseOptions = denormalizedBatchService.createOptionsByProgramId(programId);
+        DenormalizedBatchOptions programOptions = denormalizedBatchService.createOptionsByProgramId(programId);
 
         boolean hasMoreData;
         int offset = 0;
@@ -174,27 +175,8 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
             operations.forEach(operation -> {
                 try {
-                    // Get the fishing area: first, search from last position
-                    Integer fishingAreaLocationId = Beans.getStream(operation.getPositions())
-                        .filter(Positions::isNotNullAndValid)
-                        .sorted(Collections.reverseOrder(Comparator.comparing(VesselPositionVO::getDateTime, Date::compareTo)))
-                        .findFirst()
-                        .flatMap(position -> locationService.getStatisticalRectangleIdByLatLong(position.getLatitude(), position.getLongitude()))
-                        // Or try from fishing areas
-                        .or(() -> Beans.getStream(operation.getFishingAreas())
-                                .filter(fa -> fa.getLocation() != null)
-                                .findFirst()
-                                .map(FishingAreaVO::getLocation)
-                                .map(LocationVO::getId)
-                        ).orElse(null);
-
-                    // Get operation last end date (will be used for conversion)
-                    Date dateTime = operation.getEndDateTime() != null ? operation.getEndDateTime() : operation.getFishingEndDateTime();
-
-                    DenormalizedBatchOptions options = DenormalizedBatchOptions.toBuilder(baseOptions)
-                        .fishingAreaLocationId(fishingAreaLocationId)
-                        .dateTime(dateTime)
-                        .build();
+                    // Prepare options (add fishing area, date, etc.)
+                    DenormalizedBatchOptions options = createOptionsByOperation(operation, programOptions);
 
                     List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
                     batchesCount.add(CollectionUtils.size(batches));
@@ -223,5 +205,44 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             .invalidBatchCount(errorCount.intValue())
             .executionTime(System.currentTimeMillis() - startTime)
             .build();
+    }
+
+    public DenormalizedBatchOptions createOptionsByOperation(@NonNull OperationVO operation, @Nullable DenormalizedBatchOptions optionsForPrograms) {
+
+        if (optionsForPrograms == null) {
+            int programId = operationService.getProgramIdById(operation.getId());
+            optionsForPrograms = denormalizedBatchService.createOptionsByProgramId(programId);
+        }
+
+        Optional<Integer> statisticalRectangleId = getStatisticalRectangleId(operation);
+        if (statisticalRectangleId.isEmpty()) {
+            log.warn("Cannot found the statistical rectangle for Operation #{}, neither in positions nor in fishing areas", operation.getId());
+        }
+
+        return DenormalizedBatchOptions.toBuilder(optionsForPrograms)
+            .statisticalRectangleId(statisticalRectangleId.orElse(null))
+            .dateTime(getLastEndDate(operation))
+            .build();
+    }
+
+    public Optional<Integer> getStatisticalRectangleId(@NonNull OperationVO operation) {
+        // Get the fishing area: first, search from last position
+        return Beans.getStream(operation.getPositions())
+            .filter(Positions::isNotNullAndValid)
+            .sorted(Collections.reverseOrder(Comparator.comparing(VesselPositionVO::getDateTime, Date::compareTo)))
+            .findFirst()
+            .flatMap(position -> locationService.getStatisticalRectangleIdByLatLong(position.getLatitude(), position.getLongitude()))
+            // Or try from fishing areas
+            .or(() -> Beans.getStream(operation.getFishingAreas())
+                .filter(fa -> fa.getLocation() != null)
+                .findFirst()
+                .map(FishingAreaVO::getLocation)
+                .map(LocationVO::getId)
+            );
+    }
+
+    public Date getLastEndDate(@NonNull OperationVO operation) {
+        // Get operation last end date (will be used for conversion)
+        return operation.getEndDateTime() != null ? operation.getEndDateTime() : operation.getFishingEndDateTime();
     }
 }
