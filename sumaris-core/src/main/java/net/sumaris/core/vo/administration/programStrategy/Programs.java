@@ -23,8 +23,8 @@
 package net.sumaris.core.vo.administration.programStrategy;
 
 import lombok.NonNull;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import org.apache.commons.collections4.MapUtils;
-import org.nuiton.config.ConfigOptionDef;
 
 /**
  * Helper class for program
@@ -35,11 +35,15 @@ public class Programs {
         // Helper class
     }
 
-    public static boolean getPropertyAsBoolean(@NonNull ProgramVO source, ConfigOptionDef option) {
-        return MapUtils.getBooleanValue(source.getProperties(), option.getKey(), Boolean.getBoolean(option.getDefaultValue()));
+    public static boolean getPropertyAsBoolean(@NonNull ProgramVO source, ProgramPropertyEnum property) {
+        return MapUtils.getBooleanValue(source.getProperties(), property.getKey(), Boolean.getBoolean(property.getDefaultValue()));
     }
 
-    public static String getProperty(@NonNull ProgramVO source, ConfigOptionDef option) {
-        return MapUtils.getString(source.getProperties(), option.getKey(), option.getDefaultValue());
+    public static String getProperty(@NonNull ProgramVO source, ProgramPropertyEnum property) {
+        return MapUtils.getString(source.getProperties(), property.getKey(), property.getDefaultValue());
+    }
+
+    public static Integer getPropertyAsInteger(@NonNull ProgramVO source, ProgramPropertyEnum property) {
+        return MapUtils.getInteger(source.getProperties(), property.getKey(), property.getDefaultValue() != null ? Integer.parseInt(property.getDefaultValue()) : null);
     }
 }

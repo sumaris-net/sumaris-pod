@@ -25,6 +25,7 @@ package net.sumaris.core.model.data;
 import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.data.IPosition;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 
@@ -37,7 +38,7 @@ import java.util.Date;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity(name = "vessel_position")
-public class VesselPosition implements IDataEntity<Integer> {
+public class VesselPosition implements IDataEntity<Integer>, IPosition {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_POSITION_SEQ")

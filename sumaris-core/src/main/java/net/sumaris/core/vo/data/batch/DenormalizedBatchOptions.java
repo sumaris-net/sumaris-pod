@@ -24,9 +24,9 @@ package net.sumaris.core.vo.data.batch;
 
 import lombok.Builder;
 import lombok.Data;
-import net.sumaris.core.vo.data.IDataFetchOptions;
 
 import javax.annotation.Nullable;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -39,6 +39,22 @@ public class DenormalizedBatchOptions {
         return options != null ? options : DEFAULT;
     }
 
+    /**
+     * Allow to create a new builder, from existing source options. Allow to construct new options,
+     * without changing the original source
+     * @param source
+     * @return a new builder
+     */
+    public static DenormalizedBatchOptions.DenormalizedBatchOptionsBuilder toBuilder(@Nullable DenormalizedBatchOptions source) {
+        source = nullToDefault(source);
+        return DenormalizedBatchOptions.builder()
+            .enableTaxonGroup(source.enableTaxonGroup)
+            .enableTaxonName(source.enableTaxonName)
+            .taxonGroupIdsNoWeight(source.taxonGroupIdsNoWeight)
+            .roundWeightCountryLocationId(source.roundWeightCountryLocationId)
+            .fishingAreaLocationId(source.fishingAreaLocationId);
+    }
+
     @Builder.Default
     private boolean enableTaxonGroup = true;
 
@@ -46,5 +62,11 @@ public class DenormalizedBatchOptions {
     private boolean enableTaxonName = true;
 
     private List<Integer> taxonGroupIdsNoWeight;
+
+    private Integer roundWeightCountryLocationId; // Country location, used to find a round weight conversion
+
+    private Integer fishingAreaLocationId; // Fishing area used to find a weight length conversion
+
+    private Date dateTime;
 
 }

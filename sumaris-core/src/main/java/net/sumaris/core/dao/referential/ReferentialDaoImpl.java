@@ -777,12 +777,12 @@ public class ReferentialDaoImpl
     private <T> TypedQuery<T> createFindByUniqueLabelQuery(Class<T> entityClass, String label) {
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
-        Root<T> tripRoot = query.from(entityClass);
-        query.select(tripRoot).distinct(true);
+        Root<T> root = query.from(entityClass);
+        query.select(root).distinct(true);
 
         // Filter on text
         ParameterExpression<String> labelParam = builder.parameter(String.class);
-        query.where(builder.equal(tripRoot.get(IItemReferentialEntity.Fields.LABEL), labelParam));
+        query.where(builder.equal(root.get(IItemReferentialEntity.Fields.LABEL), labelParam));
 
         return getEntityManager().createQuery(query)
             .setParameter(labelParam, label);

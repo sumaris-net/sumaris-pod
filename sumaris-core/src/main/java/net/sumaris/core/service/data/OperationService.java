@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationVO;
@@ -46,6 +47,9 @@ public interface OperationService {
 
 	@Transactional(readOnly = true)
 	List<OperationVO> findAllByTripId(int tripId, int offset, int size, String sortAttribute, SortDirection sortDirection, OperationFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<OperationVO> findAllByFilter(@NonNull OperationFilterVO filter, @NonNull OperationFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<OperationVO> findAllByFilter(OperationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, OperationFetchOptions fetchOptions);

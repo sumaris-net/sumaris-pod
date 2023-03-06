@@ -680,7 +680,7 @@ public class ProgramRepositoryImpl
     @Override
     public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
         String value = findVOById(id)
-            .map(program -> program.getProperties().get(property.getLabel()))
+            .map(program -> program.getProperties().get(property.getKey()))
             .orElse(property.getDefaultValue());
 
         // If boolean: true = TRUE
@@ -694,7 +694,7 @@ public class ProgramRepositoryImpl
     @Override
     public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
         String value = findByLabel(label)
-            .map(program -> program.getProperties().get(property.getLabel()))
+            .map(program -> program.getProperties().get(property.getKey()))
             .orElse(property.getDefaultValue());
 
         return expectedValue.equals(value);
@@ -704,7 +704,7 @@ public class ProgramRepositoryImpl
     @Override
     public String getPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property) {
         return findByLabel(label)
-            .map(program -> program.getProperties().get(property.getLabel()))
+            .map(program -> program.getProperties().get(property.getKey()))
             .orElse(property.getDefaultValue());
     }
 }

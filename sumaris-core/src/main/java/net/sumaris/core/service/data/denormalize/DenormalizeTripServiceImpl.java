@@ -23,8 +23,9 @@ package net.sumaris.core.service.data.denormalize;
  */
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.data.Positions;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.model.IProgressionModel;
@@ -32,36 +33,33 @@ import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
+import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
+import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 
 @Service("denormalizeTripService")
+@RequiredArgsConstructor
 @Slf4j
 public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
-    @Autowired
-    private SumarisConfiguration configuration;
+    private final TripService tripService;
 
-    @Autowired
-    private TripService tripService;
+    private final DenormalizedBatchService denormalizedBatchService;
 
-    @Autowired
-    private DenormalizedBatchService denormalizedBatchService;
+    private final OperationService operationService;
 
-    @Autowired
-    private OperationService operationService;
+    private final LocationService locationService;
 
-    @Autowired(required = false)
-    private TaskExecutor taskExecutor;
 
     @Override
     public DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter) {
@@ -150,7 +148,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
         // Load denormalized options
         int programId = tripService.getProgramIdById(tripId);
-        DenormalizedBatchOptions options = denormalizedBatchService.createOptionsByProgramId(programId);
+        DenormalizedBatchOptions baseOptions = denormalizedBatchService.createOptionsByProgramId(programId);
 
         boolean hasMoreData;
         int offset = 0;
@@ -160,16 +158,44 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         MutableInt errorCount = new MutableInt(0);
         do {
             // Fetch some operations
-            List<OperationVO> operations = operationService.findAllByTripId(tripId,
+            List<OperationVO> operations = operationService.findAllByFilter(OperationFilterVO.builder()
+                    .tripId(tripId)
+                    .hasNoChildOperation(true) // Exclude parent operation (e.g. filage), because should not have batches
+                    .build(),
                 offset, pageSize, // Page
                 OperationVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
                 OperationFetchOptions.builder()
                     .withChildrenEntities(false)
                     .withMeasurementValues(false)
+                    // Fetch position and fishing area, to be able to compute fishing area id, need by conversion
+                    .withPositions(true)
+                    .withFishingAreas(true)
                     .build());
 
             operations.forEach(operation -> {
                 try {
+                    // Get the fishing area: first, search from last position
+                    Integer fishingAreaLocationId = Beans.getStream(operation.getPositions())
+                        .filter(Positions::isNotNullAndValid)
+                        .sorted(Collections.reverseOrder(Comparator.comparing(VesselPositionVO::getDateTime, Date::compareTo)))
+                        .findFirst()
+                        .flatMap(position -> locationService.getStatisticalRectangleIdByLatLong(position.getLatitude(), position.getLongitude()))
+                        // Or try from fishing areas
+                        .or(() -> Beans.getStream(operation.getFishingAreas())
+                                .filter(fa -> fa.getLocation() != null)
+                                .findFirst()
+                                .map(FishingAreaVO::getLocation)
+                                .map(LocationVO::getId)
+                        ).orElse(null);
+
+                    // Get operation last end date (will be used for conversion)
+                    Date dateTime = operation.getEndDateTime() != null ? operation.getEndDateTime() : operation.getFishingEndDateTime();
+
+                    DenormalizedBatchOptions options = DenormalizedBatchOptions.toBuilder(baseOptions)
+                        .fishingAreaLocationId(fishingAreaLocationId)
+                        .dateTime(dateTime)
+                        .build();
+
                     List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
                     batchesCount.add(CollectionUtils.size(batches));
                 } catch (SumarisBusinessException be) {

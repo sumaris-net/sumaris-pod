@@ -35,12 +35,13 @@ import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.referential.ValidityStatusRepository;
 import net.sumaris.core.dao.referential.location.*;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.event.entity.EntityInsertEvent;
-import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.Status;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.ValidityStatus;
 import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.*;
@@ -51,11 +52,10 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Geometry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Async;
@@ -450,27 +450,35 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public String getLocationLabelByLatLong(Number latitude, Number longitude) {
+    public Optional<String> getStatisticalRectangleLabelByLatLong(Number latitude, Number longitude) {
         if (longitude == null || latitude == null) {
             throw new IllegalArgumentException("Arguments 'latitude' and 'longitude' should not be null.");
         }
 
         // Try to find a statistical rectangle
         String rectangleLabel = Locations.getRectangleLabelByLatLong(latitude, longitude);
-        if (StringUtils.isNotBlank(rectangleLabel)) return rectangleLabel;
+        if (StringUtils.isNotBlank(rectangleLabel)) {
+            return Optional.of(rectangleLabel);
+        }
 
-        // TODO: find it from spatial query ?
 
-        // Otherwise, return null
-        return null;
+        // Otherwise, return empty
+        return Optional.empty();
     }
 
     @Override
-    public Integer getLocationIdByLatLong(Number latitude, Number longitude) {
-        String locationLabel = getLocationLabelByLatLong(latitude, longitude);
-        if (locationLabel == null) return null;
-        Optional<ReferentialVO> location = referentialDao.findByUniqueLabel(Location.class.getSimpleName(), locationLabel);
-        return location.map(ReferentialVO::getId).orElse(null);
+    public Optional<Integer> getStatisticalRectangleIdByLatLong(Number latitude, Number longitude) {
+        return getStatisticalRectangleLabelByLatLong(latitude, longitude)
+            // Resolve the location, by its label (should be unique, for statistical rectangle - if not dao will return error)
+            .map(rectangleLabel -> referentialDao.findByFilter(Location.class.getSimpleName(),
+                ReferentialFilterVO.builder()
+                .label(rectangleLabel)
+                .levelIds(LocationLevels.getStatisticalRectangleLevelIds())
+                .build(), 0, 2, null, null))
+            // Extract singleton (= unique check, because of size=2)
+            .map(CollectionUtils::extractSingleton)
+            // Extract the id
+            .map(ReferentialVO::getId);
     }
 
     @Override

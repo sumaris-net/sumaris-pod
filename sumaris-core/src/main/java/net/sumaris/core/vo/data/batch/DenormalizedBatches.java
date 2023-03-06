@@ -166,8 +166,8 @@ public class DenormalizedBatches {
     protected static String replaceTreeUnicode(String treeIndent) {
         return treeIndent.replace("|-", "\u02EB")
                 .replace("|_", "\u02EA")
-                .replace(" ", "\t");
-                //.replace("\t\t", "\t");
+                .replace(" ", "\t")
+                .replace("\t\t", "\t");
     }
 
     protected static String getExhaustiveInventoryAsString(DenormalizedBatchVO source, boolean useUnicode) {

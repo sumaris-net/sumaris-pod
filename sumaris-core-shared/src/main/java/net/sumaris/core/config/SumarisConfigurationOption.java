@@ -668,26 +668,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.class,
         false),
 
-    ENABLE_BATCH_TAXON_NAME(
-        "sumaris.trip.operation.batch.taxonName.enable",
-        n("sumaris.config.option.trip.operation.batch.taxonName.enable.description"),
-        Boolean.TRUE.toString(),
-        Boolean.class,
-        false),
-
-    ENABLE_BATCH_TAXON_GROUP(
-        "sumaris.trip.operation.batch.taxonGroup.enable",
-        n("sumaris.config.option.trip.operation.batch.taxonGroup.enable.description"),
-        Boolean.TRUE.toString(),
-        Boolean.class,
-        false),
-
-    BATCH_TAXON_GROUP_LABELS_NO_WEIGHT(
-        "sumaris.trip.operation.batch.taxonGroups.noWeight",
-        n("sumaris.config.option.trip.operation.batch.taxonGroups.noWeight.description"),
-        "",
-        String.class,
-        false),
 
     DB_ADAGIO_SCHEMA(
             "sumaris.persistence.adagio.schema",

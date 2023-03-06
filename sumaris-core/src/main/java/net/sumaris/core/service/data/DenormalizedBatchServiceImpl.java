@@ -25,17 +25,20 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.batch.DenormalizedBatchRepository;
 import net.sumaris.core.dao.data.batch.InvalidSamplingBatchException;
 import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
+import net.sumaris.core.service.referential.conversion.RoundWeightConversionService;
+import net.sumaris.core.service.referential.conversion.WeightLengthConversionService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -49,7 +52,6 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableShort;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -58,26 +60,25 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("denormalizedBatchService")
+@RequiredArgsConstructor
 @Slf4j
 public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
-	@Autowired
-	protected DenormalizedBatchRepository denormalizedBatchRepository;
+	protected final DenormalizedBatchRepository denormalizedBatchRepository;
 
-	@Autowired
-	protected BatchRepository batchRepository;
+	protected final BatchRepository batchRepository;
 
-	@Autowired
-	protected ProgramService programService;
+	protected final ProgramService programService;
 
-	@Autowired
-	protected OperationService operationService;
+	protected final OperationService operationService;
 
-	@Autowired
-	protected SaleService saleService;
+	protected final SaleService saleService;
 
-	@Autowired
-	protected TaxonGroupService taxonGroupService;
+	protected final TaxonGroupService taxonGroupService;
+
+	protected final WeightLengthConversionService weightLengthConversionService;
+
+	protected final RoundWeightConversionService roundWeightConversionService;
 
 	@Override
 	public List<DenormalizedBatchVO> denormalize(@NonNull BatchVO catchBatch, @NonNull final DenormalizedBatchOptions options) {
@@ -287,23 +288,27 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 	protected DenormalizedBatchOptions createOptionsByProgram(@NonNull ProgramVO program) {
 		Preconditions.checkNotNull(program.getProperties());
 
-		String taxonGroupsNoWeight = Programs.getProperty(program, SumarisConfigurationOption.BATCH_TAXON_GROUP_LABELS_NO_WEIGHT);
+		// Get ids of taxon group without weight
+		String taxonGroupsNoWeight = Optional.ofNullable(Programs.getProperty(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT)).orElse("");
 		List<Integer> taxonGroupIdsNoWeight = Arrays.stream(taxonGroupsNoWeight.split(","))
 				.map(String::trim)
 				.map(label -> taxonGroupService.findAllByFilter(ReferentialFilterVO.builder()
 						.label(label)
 						.levelIds(new Integer[]{TaxonGroupTypeEnum.FAO.getId()})
 						.statusIds(new Integer[]{ StatusEnum.ENABLE.getId() })
-						.build()).stream().findFirst().orElse(null))
-				.filter(Objects::nonNull)
+						.build()).stream().findFirst())
+				.filter(Optional::isPresent)
+				.map(Optional::get)
 				.map(TaxonGroupVO::getId)
-				.collect(Collectors.toList());
+				.toList();
+
 
 		return DenormalizedBatchOptions.builder()
-				.enableTaxonName(Programs.getPropertyAsBoolean(program, SumarisConfigurationOption.ENABLE_BATCH_TAXON_NAME))
-				.enableTaxonGroup(Programs.getPropertyAsBoolean(program, SumarisConfigurationOption.ENABLE_BATCH_TAXON_GROUP))
-				.taxonGroupIdsNoWeight(taxonGroupIdsNoWeight)
-				.build();
+			.taxonGroupIdsNoWeight(taxonGroupIdsNoWeight)
+			.enableTaxonName(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE))
+			.enableTaxonGroup(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUP_ENABLE))
+			.roundWeightCountryLocationId(Programs.getPropertyAsInteger(program, ProgramPropertyEnum.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID))
+			.build();
 	}
 
 	protected void computeIndirectValues(List<DenormalizedBatchVO> batches, DenormalizedBatchOptions options) {
@@ -311,7 +316,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 		List<TempDenormalizedBatchVO> revertBatches = batches.stream()
 			.map(target -> (TempDenormalizedBatchVO)target)
 			// Reverse order (start from leaf)
-			.sorted(Collections.reverseOrder(Comparator.comparing(DenormalizedBatchVO::getFlatRankOrder)))
+			.sorted(Collections.reverseOrder(Comparator.comparing(DenormalizedBatchVO::getFlatRankOrder, Short::compareTo)))
 			.toList();
 
 		MutableInt changesCount = new MutableInt(0);
@@ -324,6 +329,8 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 			// For each (leaf -> root)
 			revertBatches.forEach(batch -> {
 				boolean changed = false;
+
+				log.trace("- {}", batch.getLabel());
 
 				// Indirect weight
 				Double indirectWeight = computeIndirectWeight(batch, options);

@@ -51,11 +51,11 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 	@Test
 	public void getLocationLabelByLatLong() {
 		// Check label with a position inside the Atlantic sea
-		String label = service.getLocationLabelByLatLong(47.6f, -5.05f);
+		String label = service.getStatisticalRectangleLabelByLatLong(47.6f, -5.05f).orElse(null);
 		assertEquals("24E4", label);
 
 		// Check label with a position inside the Mediterranean sea
-		label = service.getLocationLabelByLatLong(42.27f, 5.4f);
+		label = service.getStatisticalRectangleLabelByLatLong(42.27f, 5.4f).orElse(null);
 		assertEquals("M24C2", label);
 	}
 
