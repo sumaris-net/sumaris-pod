@@ -213,6 +213,18 @@ public class DenormalizedBatchRepositoryImpl
             }
         }
 
+        // Calculated taxon group
+        {
+            Integer calculatedTaxonGroupId = source.getCalculatedTaxonGroup() != null ? source.getCalculatedTaxonGroup().getId() : null;
+            if (copyIfNull || calculatedTaxonGroupId != null) {
+                if (calculatedTaxonGroupId == null) {
+                    target.setCalculatedTaxonGroup(null);
+                } else {
+                    target.setCalculatedTaxonGroup(getReference(TaxonGroup.class, calculatedTaxonGroupId));
+                }
+            }
+        }
+
         // Parent name
         {
             Integer parentBatchId = source.getParent() != null ? source.getParent().getId() : source.getParentId();

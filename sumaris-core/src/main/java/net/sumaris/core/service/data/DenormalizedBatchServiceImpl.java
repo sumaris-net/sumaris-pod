@@ -183,6 +183,9 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 			target.setElevateWeight(target.getWeight());
 		}
 		else {
+			// Compute RTP weight from length
+			// TODO
+
 			// Compute indirect values
 			computeIndirectValues(result, options);
 
