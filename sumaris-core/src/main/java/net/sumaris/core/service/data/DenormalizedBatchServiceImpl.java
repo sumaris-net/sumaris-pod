@@ -36,7 +36,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
-import net.sumaris.core.model.referential.QualityFlagEnum;
+import net.sumaris.core.model.referential.QualityFlags;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.LocationLevels;
 import net.sumaris.core.model.referential.pmfm.MethodEnum;
@@ -49,7 +49,7 @@ import net.sumaris.core.service.referential.conversion.RoundWeightConversionServ
 import net.sumaris.core.service.referential.conversion.WeightLengthConversionService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.Numbers;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
@@ -62,6 +62,7 @@ import net.sumaris.core.vo.referential.conversion.RoundWeightConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.RoundWeightConversionVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.mutable.MutableDouble;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableShort;
 import org.springframework.context.event.EventListener;
@@ -72,7 +73,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service("denormalizedBatchService")
 @RequiredArgsConstructor
@@ -174,14 +174,32 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         target.setIsDiscard(parent.getIsDiscard());
                     }
 
-                    // Inherit quality flag (keep the worst value)
-                    if (parent.getQualityFlagId() > target.getQualityFlagId()) {
-                        target.setQualityFlagId(parent.getQualityFlagId());
+                    // Inherit quality flag
+                    if (parent.getQualityFlagId() != null) {
+                        if (target.getQualityFlagId() == null) {
+                            target.setQualityFlagId(parent.getQualityFlagId());
+                        }
+                        // Keep the worst value, if current has a value
+                        else {
+                            target.setQualityFlagId(QualityFlags.worst(parent.getQualityFlagId(), target.getQualityFlagId()));
+                        }
                     }
 
-                    // If current quality is out of stats
-                    if (target.getQualityFlagId() >= QualityFlagEnum.OUT_STATS.getId()) {
+                    Double parentAliveWeight = ((TempDenormalizedBatchVO)parent).getAliveWeightFactor();
+                    if (parentAliveWeight != null) {
+                        target.setAliveWeightFactor(parentAliveWeight);
+                    }
+
+                    // If current quality is invalid
+                    if (QualityFlags.isInvalid(target.getQualityFlagId())) {
                         // Force both parent and current parent exhaustive inventory to FALSE
+                        // NOTE Allegro:
+                        //   mantis Allegro #12951 - remontée des poids selon le niveau de qualité
+                        //   Si un des lots fils (direct ou indirect) est invalide
+                        //   (c'est à dire si le code du niveau de qualité appartient à la liste des niveaux invalides)
+                        //   alors il faut considérer que l'inventaire exhaustif est non.
+                        //   Le but est de stopper la remontée des poids calculés
+                        //   s'il y a au moins un lot invalide parmi les fils, isExhaustive = false
                         parent.setExhaustiveInventory(Boolean.FALSE);
                         target.setExhaustiveInventory(Boolean.FALSE);
                     }
@@ -195,6 +213,11 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         target.addSortingValue(svTarget);
                     });
 
+                    // Compute alive weight factor
+                    if (target.getAliveWeightFactor() == null && target.hasTaxonGroup()) {
+                        computeAliveWeightFactor(target, options, false)
+                            .ifPresent(target::setAliveWeightFactor);
+                    }
                 }
 
                 return target;
@@ -213,13 +236,14 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
                 return target;
             })
-            .collect(Collectors.toList());
+            .toList();
 
         // If only the catch batch
         if (CollectionUtils.size(result) == 1) {
             DenormalizedBatchVO target = result.get(0);
             target.setElevateWeight(target.getWeight());
         } else {
+
             // Compute RTP weight from length (if enabled)
             if (options.isEnableRtpWeight()) {
                 computeRtpWeights(result, options);
@@ -228,8 +252,15 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             // Compute indirect values
             computeIndirectValues(result, options);
 
+            // compute elevate factors
+            computeElevateFactor(result, options);
+
             // Elevate weight
             computeElevatedValues(result, options);
+
+            // Indirect elevated values
+            computeIndirectElevatedValues(result, options);
+
         }
 
         // Log
@@ -366,7 +397,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         leafBatches.forEach(batch -> computeRtpWeight(batch, options)
             .ifPresent(rtpWeight -> {
                 // Apply to the batch
-                batch.setRtpWeight(rtpWeight);
+                batch.setRtpContextWeight(rtpWeight);
 
                 // Check diff with existing weight
                 if (batch.getWeight() != null && maxRtpWeightDiffPct > 0) {
@@ -381,7 +412,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         if (Objects.equals(batch.getWeightMethodId(), MethodEnum.CALCULATED_WEIGHT_LENGTH.getId())) {
                             log.warn("Batch {} has a invalid RTP weight (computed: {}, actual: {}, delta: {}%). Fixing the RTP weight using the computed value.",
                                 batch.getLabel(),
-                                batch.getRtpWeight(),
+                                batch.getRtpContextWeight(),
                                 batch.getWeight(),
                                 errorPct
                             );
@@ -390,7 +421,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         else {
                             log.warn("Batch {} has a invalid weight (RTP: {}, actual: {} => delta: {}%)",
                                 batch.getLabel(),
-                                batch.getRtpWeight(),
+                                batch.getRtpContextWeight(),
                                 batch.getWeight(),
                                 errorPct
                             );
@@ -421,16 +452,16 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
                 log.trace("- {}", batch.getLabel());
 
-                // Indirect weight
-                Double indirectWeight = computeIndirectWeight(batch, options);
-                changed = changed || !Objects.equals(indirectWeight, batch.getIndirectWeight());
-                batch.setIndirectWeight(indirectWeight);
+                // Indirect context weight
+                Double indirectContextWeight = computeIndirectContextWeight(batch, options);
+                changed = changed || !Objects.equals(indirectContextWeight, batch.getIndirectContextWeight());
+                batch.setIndirectContextWeight(indirectContextWeight);
 
                 // Indirect RTP weight from length (if enabled)
                 if (options.isEnableRtpWeight()) {
-                    Double indirectRtpWeight = computeIndirectRtpWeight(batch, options);
-                    changed = changed || !Objects.equals(indirectRtpWeight, batch.getIndirectRtpWeight());
-                    batch.setIndirectRtpWeight(indirectRtpWeight);
+                    Double indirectRtpContextWeight = computeIndirectRtpContextWeight(batch, options);
+                    changed = changed || !Objects.equals(indirectRtpContextWeight, batch.getIndirectRtpContextWeight());
+                    batch.setIndirectRtpContextWeight(indirectRtpContextWeight);
                 }
 
                 // Indirect individual count
@@ -454,6 +485,50 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
     }
 
     /**
+     * Compute elevation factors
+     */
+    protected void computeElevateFactor(List<DenormalizedBatchVO> batches, DenormalizedBatchOptions options) {
+        log.debug("Computing elevation factors...");
+
+        // For each (root -> leaf)
+        batches.stream()
+            .map(target -> (TempDenormalizedBatchVO) target)
+            .forEach(target -> {
+                TempDenormalizedBatchVO parent = (TempDenormalizedBatchVO) target.getParent();
+
+                log.trace("{} {}", target.getTreeIndent(), target.getLabel());
+
+                BigDecimal samplingFactor = target.getSamplingFactor() != null ? target.getSamplingFactor() : new BigDecimal(1);
+
+                // Elevate context factor (=samplingFactor x parent value)
+                BigDecimal elevateContextFactor = samplingFactor;
+                if (parent != null) {
+                    elevateContextFactor = elevateContextFactor.multiply(parent.getElevateContextFactor());
+                }
+                target.setElevateContextFactor(elevateContextFactor);
+
+                // Taxon elevation factor (=samplingFactor x parent value - BUT not if parent has no taxonGroup/taxonName)
+                if (target.hasTaxonGroup() || target.hasTaxonName()) {
+                    BigDecimal taxonElevateFactor = samplingFactor;
+                    // Apply parent factor (only if has taxonGroup)
+                    if (parent != null && (parent.hasTaxonName() || parent.hasTaxonName())) {
+                        taxonElevateFactor = taxonElevateFactor.multiply(parent.getTaxonElevateFactor());
+                    }
+                    target.setTaxonElevateFactor(taxonElevateFactor);
+                }
+
+                // Elevation factor (alive weight) = elevateContextFactor x aliveWeightFactor
+                if (target.getAliveWeightFactor() != null) {
+                    BigDecimal elevateFactor = elevateContextFactor.multiply(new BigDecimal(target.getAliveWeightFactor()));
+                    target.setElevateFactor(elevateFactor);
+                }
+                else {
+                    target.setElevateFactor(elevateContextFactor);
+                }
+            });
+    }
+
+    /**
      * Compute elevated values
      */
     protected void computeElevatedValues(List<DenormalizedBatchVO> batches, DenormalizedBatchOptions options) {
@@ -470,42 +545,91 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 .map(target -> (TempDenormalizedBatchVO) target)
                 .forEach(target -> {
                     boolean changed = false;
-
                     log.trace("{} {}", target.getTreeIndent(), target.getLabel());
-                    BigDecimal elevateFactor = target.getSamplingFactor();
-                    if (elevateFactor == null) {
-                        elevateFactor = new BigDecimal(1);
-                    }
-                    if (target.getParent() != null) {
-                        elevateFactor = elevateFactor.multiply(((TempDenormalizedBatchVO) target.getParent()).getElevateFactor());
-                    }
-                    target.setElevateFactor(elevateFactor); // Remember for children
 
-                    Double weight = target.getWeight() != null ? target.getWeight() : target.getIndirectWeight();
-                    if (weight != null) {
-                        Double elevateWeight = elevateFactor.multiply(new BigDecimal(weight)).doubleValue();
-                        changed = changed || !Objects.equals(elevateWeight, target.getElevateWeight());
-                        target.setElevateWeight(elevateWeight);
+                    // Base weight
+                    BigDecimal contextWeight = Numbers.firstNotNullAsBigDecimal(target.getWeight(), target.getIndirectContextWeight());
+
+                    if (contextWeight != null) {
+                        // Elevate contextual weight
+                        {
+                            Double elevateContextWeight = contextWeight.multiply(target.getElevateContextFactor())
+                                .divide(new BigDecimal(1), contextWeight.scale(), RoundingMode.HALF_UP)
+                                .doubleValue();
+                            changed = changed || !Objects.equals(elevateContextWeight, target.getElevateContextWeight());
+                            target.setElevateContextWeight(elevateContextWeight);
+                        }
+
+                        // Taxon elevate context weight
+                        if (target.getTaxonElevateFactor() != null) {
+                            Double taxonElevateContextWeight = contextWeight.multiply(target.getTaxonElevateFactor()).doubleValue();
+                            changed = changed || !Objects.equals(taxonElevateContextWeight, target.getTaxonElevateContextWeight());
+                            target.setTaxonElevateContextWeight(taxonElevateContextWeight);
+                        }
+
+                        // Elevate weight (alive weight)
+                        {
+                            Double elevateWeight = contextWeight.multiply(target.getElevateFactor())
+                                .divide(new BigDecimal(1), contextWeight.scale(), RoundingMode.HALF_UP)
+                                .doubleValue();
+                            changed = changed || !Objects.equals(elevateWeight, target.getElevateWeight());
+                            target.setElevateWeight(elevateWeight);
+                        }
                     }
 
                     if (options.isEnableRtpWeight()) {
-                        Double rtpWeight = target.getRtpWeight() != null ? target.getRtpWeight() : target.getIndirectRtpWeight();
-                        if (rtpWeight != null) {
-                            Double elevateRtpWeight = elevateFactor.multiply(new BigDecimal(rtpWeight)).doubleValue();
-                            changed = changed || !Objects.equals(elevateRtpWeight, target.getElevateRtpWeight());
-                            target.setElevateRtpWeight(elevateRtpWeight);
+
+                        BigDecimal rtpContextWeight = Numbers.firstNotNullAsBigDecimal(target.getRtpContextWeight(), target.getIndirectRtpContextWeight());
+                        if (rtpContextWeight != null) {
+                            // Elevate RTP context weight
+                            {
+                                Double elevateRtpContextWeight = rtpContextWeight.multiply(target.getElevateContextFactor())
+                                    .divide(new BigDecimal(1), 6, RoundingMode.HALF_UP)
+                                    .doubleValue();
+                                changed = changed || !Objects.equals(elevateRtpContextWeight, target.getElevateRtpContextWeight());
+                                target.setElevateRtpContextWeight(elevateRtpContextWeight);
+                            }
+
+                            // Indirect RTP weight (from indirect RTP context weight, converted to alive)
+                            {
+                                BigDecimal aliveWeightFactor = Numbers.firstNotNullAsBigDecimal(target.getAliveWeightFactor(), new BigDecimal(1));
+                                Double indirectRtpWeight = rtpContextWeight.multiply(aliveWeightFactor)
+                                    .divide(new BigDecimal(1), 6, RoundingMode.HALF_UP)
+                                    .doubleValue();
+                                changed = changed || !Objects.equals(indirectRtpWeight, target.getIndirectRtpWeight());
+                                target.setIndirectRtpWeight(indirectRtpWeight);
+                            }
+
+                            // Elevate RTP weight
+                            {
+                                Double elevateRtpWeight = rtpContextWeight.multiply(target.getElevateFactor())
+                                    .divide(new BigDecimal(1), 6, RoundingMode.HALF_UP)
+                                    .doubleValue();
+                                changed = changed || !Objects.equals(elevateRtpWeight, target.getElevateRtpWeight());
+                                target.setElevateRtpWeight(elevateRtpWeight);
+                            }
                         }
                     }
 
                     BigDecimal individualCount = target.getIndividualCount() != null ? new BigDecimal(target.getIndividualCount()) : target.getIndirectIndividualCountDecimal();
                     if (individualCount != null) {
-                        Integer elevateIndividualCount = individualCount.multiply(elevateFactor)
+                        // Taxon elevate individual count
+                        if (target.getTaxonElevateContextWeight() != null && target.getTaxonElevateFactor() != null) {
+                            Integer taxonElevateIndividualCount = individualCount.multiply(target.getTaxonElevateFactor())
+                                .divide(new BigDecimal(1), 0, RoundingMode.HALF_UP) // Round to half up
+                                .intValue();
+                            changed = changed || !Objects.equals(taxonElevateIndividualCount, target.getTaxonElevateIndividualCount());
+                            target.setTaxonElevateIndividualCount(taxonElevateIndividualCount);
+                        }
+
+                        // Elevate individual count
+                        Integer elevateIndividualCount = individualCount.multiply(target.getElevateFactor())
                             .divide(new BigDecimal(1), 0, RoundingMode.HALF_UP) // Round to half up
                             .intValue();
                         changed = changed || !Objects.equals(elevateIndividualCount, target.getElevateIndividualCount());
                         target.setElevateIndividualCount(elevateIndividualCount);
 
-                        // Set final indirect individualCount (rounded to int, from decimal value)
+                        // Set indirect individualCount
                         if (target.getIndirectIndividualCountDecimal() != null) {
                             target.setIndirectIndividualCount(target.getIndirectIndividualCountDecimal()
                                 .divide(new BigDecimal(1), 0, RoundingMode.HALF_UP) // Round to half up
@@ -513,16 +637,68 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         }
                     }
 
-                    if (changed) changesCount.increment();
+                    if (changed) {
+                        log.trace("{} {} - changes!", target.getTreeIndent(), target.getLabel());
+                        changesCount.increment();
+                    }
                 });
 
             log.trace("Computing elevated values (pass #{}) [OK] - {} changes", loopCounter, changesCount);
         } while (changesCount.intValue() > 0);
     }
 
+    protected void computeIndirectElevatedValues(List<DenormalizedBatchVO> batches, DenormalizedBatchOptions options) {
+
+        List<TempDenormalizedBatchVO> revertBatches = batches.stream()
+            .map(target -> (TempDenormalizedBatchVO) target)
+            // Reverse order (start from leaf)
+            .sorted(Collections.reverseOrder(Comparator.comparing(DenormalizedBatchVO::getFlatRankOrder, Short::compareTo)))
+            .toList();
+
+        MutableInt changesCount = new MutableInt(0);
+        MutableInt loopCounter = new MutableInt(0);
+        do {
+            changesCount.setValue(0);
+            loopCounter.increment();
+            log.debug("Computing indirect elevated values (pass #{}) ...", loopCounter);
+
+            // For each (leaf -> root)
+            revertBatches
+                .forEach(target -> {
+                boolean changed = false;
+
+                log.trace("- {}", target.getLabel());
+
+                if (target.getElevateWeight() == null) {
+                    // No context weight to elevate: so use children elevate weight
+                    Double indirectElevateWeight = computeIndirectElevateWeight(target, options);
+                    changed = changed || !Objects.equals(indirectElevateWeight, target.getIndirectElevateWeight())
+                        || !Objects.equals(indirectElevateWeight, target.getElevateWeight());
+                    target.setIndirectElevateWeight(indirectElevateWeight);
+                    target.setElevateWeight(indirectElevateWeight);
+                }
+
+                if (options.isEnableRtpWeight() && target.getElevateRtpWeight() == null) {
+                    Double indirectElevateRtpWeight = computeIndirectElevateRtpWeight(target, options);
+                    changed = changed || !Objects.equals(indirectElevateRtpWeight, target.getIndirectRtpElevateWeight())
+                        || !Objects.equals(indirectElevateRtpWeight, target.getElevateRtpWeight());
+                    target.setIndirectRtpElevateWeight(indirectElevateRtpWeight);
+                    target.setElevateRtpWeight(indirectElevateRtpWeight);
+                }
+
+                if (changed) {
+                    log.trace("{} {} - changes!", target.getTreeIndent(), target.getLabel());
+                    changesCount.increment();
+                }
+            });
+
+            log.trace("Computing indirect elevated values (pass #{}) [OK] - {} changes", loopCounter, changesCount);
+        } while (changesCount.intValue() > 0);
+    }
+
     protected Optional<Double> computeRtpWeight(TempDenormalizedBatchVO batch, DenormalizedBatchOptions options) {
         // Already computed: skip
-        if (batch.getRtpWeight() != null) return Optional.of(batch.getRtpWeight());
+        if (batch.getRtpContextWeight() != null) return Optional.of(batch.getRtpContextWeight());
 
         // No individual count: skip
         // TODO: should we use '1' as default individual count ?
@@ -568,53 +744,81 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             .map(Optional::get)
             .findFirst()
             // Convert alive RTP weight into dressing/preservation weight
-            .flatMap(rtpAliveWeight -> convertAliveWeight(batch, options, rtpAliveWeight))
+            .flatMap(rtpAliveWeight -> convertAliveWeightToContext(batch, options, rtpAliveWeight))
             .map(BigDecimal::doubleValue);
     }
 
-    protected Double computeIndirectWeight(TempDenormalizedBatchVO batch,
-                                           DenormalizedBatchOptions options) {
+    protected Double computeIndirectContextWeight(TempDenormalizedBatchVO batch,
+                                                  DenormalizedBatchOptions options) {
         return computeIndirectWeight(batch, options,
             DenormalizedBatchVO::getWeight,
-            DenormalizedBatchVO::getIndirectWeight
+            DenormalizedBatchVO::getIndirectContextWeight,
+            true,
+            TempDenormalizedBatchVO::getAliveWeightFactor
         );
     }
 
-    protected Double computeIndirectRtpWeight(TempDenormalizedBatchVO batch,
-                                              DenormalizedBatchOptions options) {
+    protected Double computeIndirectRtpContextWeight(TempDenormalizedBatchVO batch,
+                                                     DenormalizedBatchOptions options) {
         return computeIndirectWeight(batch, options,
-            TempDenormalizedBatchVO::getRtpWeight,
-            TempDenormalizedBatchVO::getIndirectRtpWeight
+            TempDenormalizedBatchVO::getRtpContextWeight,
+            TempDenormalizedBatchVO::getIndirectRtpContextWeight,
+            true,
+            TempDenormalizedBatchVO::getAliveWeightFactor
+        );
+    }
+
+    protected Double computeIndirectElevateWeight(TempDenormalizedBatchVO batch,
+                                                  DenormalizedBatchOptions options) {
+        return computeIndirectWeight(batch, options,
+            TempDenormalizedBatchVO::getElevateWeight,
+            TempDenormalizedBatchVO::getIndirectElevateWeight,
+            false,
+            null // Skip control on same dressing/preservation
+        );
+    }
+
+    protected Double computeIndirectElevateRtpWeight(TempDenormalizedBatchVO batch,
+                                                     DenormalizedBatchOptions options) {
+        return computeIndirectWeight(batch, options,
+            TempDenormalizedBatchVO::getElevateRtpWeight,
+            TempDenormalizedBatchVO::getIndirectRtpElevateWeight,
+            false,
+            null // Skip control on same dressing/preservation
         );
     }
 
     protected Double computeIndirectWeight(TempDenormalizedBatchVO batch,
                                            DenormalizedBatchOptions options,
                                            Function<TempDenormalizedBatchVO, Double> weightGetter,
-                                           Function<TempDenormalizedBatchVO, Double> indirectWeightGetter) {
+                                           Function<TempDenormalizedBatchVO, Double> indirectWeightGetter,
+                                           boolean applySamplingRatio,
+                                           @Nullable Function<TempDenormalizedBatchVO, Double> aliveWeightFactorGetter) {
         // Already computed: skip
         Double indirectWeight = indirectWeightGetter.apply(batch);
         if (indirectWeight != null) return indirectWeight;
 
-        // Sampling batch
-        if (DenormalizedBatches.isSamplingBatch(batch)) {
-            try {
-                Double samplingWeight = computeSamplingWeightAndRatio(batch, false,
-                    options, weightGetter, indirectWeightGetter);
-                if (samplingWeight != null) return samplingWeight;
-            } catch (InvalidSamplingBatchException e) {
-                // May be not a sampling batch ? (e.g. a species batch)
-                indirectWeight = computeSumChildrenWeight(batch, options,
-                    weightGetter, indirectWeightGetter);
-                if (indirectWeight != null) return indirectWeight;
-                throw e;
+        if (applySamplingRatio) {
+            // Sampling batch
+            if (DenormalizedBatches.isSamplingBatch(batch) && applySamplingRatio) {
+                try {
+                    Double samplingWeight = computeSamplingWeightAndRatio(batch, false,
+                        options, weightGetter, indirectWeightGetter, aliveWeightFactorGetter);
+                    if (samplingWeight != null) return samplingWeight;
+                } catch (InvalidSamplingBatchException e) {
+                    // May be not a sampling batch ? (e.g. a species batch)
+                    indirectWeight = computeSumChildrenWeight(batch, options,
+                        weightGetter, indirectWeightGetter, true, aliveWeightFactorGetter);
+                    if (indirectWeight != null) return indirectWeight;
+                    throw e;
+                }
+                // Invalid sampling batch: Continue if not set
             }
-            // Invalid sampling batch: Continue if not set
-        }
 
-        // Child batch is a sampling batch
-        if (DenormalizedBatches.isParentOfSamplingBatch(batch)) {
-            return computeParentSamplingWeight(batch, false, weightGetter, indirectWeightGetter);
+            // Child batch is a sampling batch
+            if (DenormalizedBatches.isParentOfSamplingBatch(batch) && applySamplingRatio) {
+                return computeParentSamplingWeight(batch, false, weightGetter, indirectWeightGetter);
+            }
         }
 
         // Leaf batch: use the current weight, if any
@@ -622,7 +826,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             return weightGetter.apply(batch);
         }
 
-        indirectWeight = computeSumChildrenWeight(batch, options, weightGetter, indirectWeightGetter);
+        indirectWeight = computeSumChildrenWeight(batch, options, weightGetter, indirectWeightGetter, applySamplingRatio, aliveWeightFactorGetter);
         return indirectWeight;
     }
 
@@ -630,9 +834,9 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                                                    boolean checkArgument,
                                                    DenormalizedBatchOptions options,
                                                    Function<TempDenormalizedBatchVO, Double> weightGetter,
-                                                   Function<TempDenormalizedBatchVO, Double> indirectWeightGetter) {
-        if (checkArgument)
-            Preconditions.checkArgument(DenormalizedBatches.isSamplingBatch(batch));
+                                                   Function<TempDenormalizedBatchVO, Double> indirectWeightGetter,
+                                                   Function<TempDenormalizedBatchVO, Double> aliveWeightFactorGetter) {
+        if (checkArgument) Preconditions.checkArgument(DenormalizedBatches.isSamplingBatch(batch));
 
         TempDenormalizedBatchVO parent = (TempDenormalizedBatchVO) batch.getParent();
         boolean parentExhaustiveInventory = DenormalizedBatches.isExhaustiveInventory(parent);
@@ -665,13 +869,13 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             samplingRatio = batch.getWeight() / parent.getWeight();
             samplingFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(batch.getWeight()), scale, RoundingMode.HALF_UP);
         } else if (parentExhaustiveInventory && parent.getWeight() != null && batch.hasChildren()) {
-            samplingWeight = computeSumChildrenWeight(batch, options, weightGetter, indirectWeightGetter);
+            samplingWeight = computeSumChildrenWeight(batch, options, weightGetter, indirectWeightGetter, true, aliveWeightFactorGetter);
             if (samplingWeight != null) {
                 samplingRatio = samplingWeight / parent.getWeight();
                 samplingFactor = new BigDecimal(parent.getWeight()).divide(new BigDecimal(samplingWeight), scale, RoundingMode.HALF_UP);
             }
         } else if ((!parentExhaustiveInventory || parent.getWeight() == null) && batch.hasChildren()) {
-            samplingWeight = computeSumChildrenWeight(batch, options, weightGetter, indirectWeightGetter);
+            samplingWeight = computeSumChildrenWeight(batch, options, weightGetter, indirectWeightGetter, true, aliveWeightFactorGetter);
             if (samplingWeight != null) {
                 samplingRatio = 1d;
                 samplingFactor = new BigDecimal(1);
@@ -735,10 +939,10 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         Double samplingIndirectWeight = indirectWeightGetter.apply(samplingBatch);
 
         Double samplingRatio = null;
-        Double elevateFactor = null;
+        Double samplingFactor = null;
         if (samplingBatch.getSamplingRatio() != null) {
             samplingRatio = samplingBatch.getSamplingRatio();
-            elevateFactor = 1 / samplingRatio;
+            samplingFactor = 1 / samplingRatio;
 
 
             // Try to use the sampling ratio text (more accuracy)
@@ -753,7 +957,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         parentWeight = shouldBeParentWeight;
                     }
                     samplingRatio = shouldBeSamplingWeight / shouldBeParentWeight;
-                    elevateFactor = shouldBeParentWeight / shouldBeSamplingWeight;
+                    samplingFactor = shouldBeParentWeight / shouldBeSamplingWeight;
                 } catch (Exception e) {
                     log.warn(String.format("Cannot parse samplingRatioText on batch {id: %s, label: '%s', saplingRatioText: '%s'} : %s",
                         samplingBatch.getId(),
@@ -770,19 +974,21 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
         if (parentWeight == null) {
             if (samplingWeight != null) {
-                parentWeight = samplingWeight * elevateFactor;
+                parentWeight = samplingWeight * samplingFactor;
             } else if (samplingIndirectWeight != null) {
-                parentWeight = samplingIndirectWeight * elevateFactor;
+                parentWeight = samplingIndirectWeight * samplingFactor;
             }
         }
 
         return parentWeight;
     }
 
-    protected Double computeSumChildrenWeight(DenormalizedBatchVO batch,
-                                              DenormalizedBatchOptions options,
-                                              Function<TempDenormalizedBatchVO, Double> weightGetter,
-                                              Function<TempDenormalizedBatchVO, Double> indirectWeightGetter) {
+    protected Double computeSumChildrenWeight(@NonNull DenormalizedBatchVO batch,
+                                              @NonNull DenormalizedBatchOptions options,
+                                              @NonNull Function<TempDenormalizedBatchVO, Double> weightGetter,
+                                              @NonNull Function<TempDenormalizedBatchVO, Double> indirectWeightGetter,
+                                              boolean applySamplingRatio,
+                                              @Nullable Function<TempDenormalizedBatchVO, Double> aliveWeightFactorGetter) {
         // Cannot compute children sum, when:
         // - Not exhaustive inventory
         // - No children
@@ -791,16 +997,33 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             return null;
         }
 
+        // We track children alive weight factor. If not SAME => cannot compute sum
+        MutableDouble childrenAliveWeightFactor = new MutableDouble(-1d);
+
         try {
             return Beans.getStream(batch.getChildren())
                 .map(child -> (TempDenormalizedBatchVO) child)
                 .mapToDouble(child -> {
+                    if (aliveWeightFactorGetter != null) {
+                        Double aliveWeightFactor = aliveWeightFactorGetter.apply(child);
+                        if (aliveWeightFactor == null) aliveWeightFactor = 1d;
+                        // Not set: update and continue
+                        if (childrenAliveWeightFactor.doubleValue() == -1d) {
+                            childrenAliveWeightFactor.setValue(aliveWeightFactor);
+                        }
+                        // Control that all children have alive weight factor. If not, we cannot compute sum.
+                        else if (!Objects.equals(childrenAliveWeightFactor.getValue(), aliveWeightFactor)) {
+                            // Stop here, because we cannot sum all children's weight
+                            throw new SumarisTechnicalException(String.format("Cannot compute indirect weight,"
+                                + " because some child batch has a different dressing/preservation {id: %s, label: '%s'}", child.getId(), child.getLabel()));
+                        }
+                    }
                     // Use child weight, if any
                     Double weight = weightGetter.apply(child);
                     if (weight != null) return weight;
 
                     // Compute indirect weight
-                    Double indirectWeight = computeIndirectWeight(child, options, weightGetter, indirectWeightGetter);
+                    Double indirectWeight = computeIndirectWeight(child, options, weightGetter, indirectWeightGetter, applySamplingRatio, aliveWeightFactorGetter);
                     if (indirectWeight != null) return indirectWeight;
 
                     // Stop here, because we cannot sum all children's weight
@@ -881,53 +1104,76 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
      * @param aliveWeight
      * @return
      */
-    protected Optional<BigDecimal> convertAliveWeight(TempDenormalizedBatchVO batch,
-                                                      DenormalizedBatchOptions options,
-                                                      BigDecimal aliveWeight) {
-        return DenormalizedBatches.getTaxonGroupId(batch)
-            .flatMap(taxonGroupId -> {
-                // Get dressing, or 'WHL - Whole' by default
-                int dressingId = DenormalizedBatches.getDressingId(batch)
-                    .orElseGet(() -> batch.getIsLanding()
+    protected Optional<BigDecimal> convertAliveWeightToContext(TempDenormalizedBatchVO batch,
+                                                               DenormalizedBatchOptions options,
+                                                               BigDecimal aliveWeight) {
+        // Apply inverse conversion (alive weight / conversion factor)
+        return computeAliveWeightFactor(batch, options, true /*enable defaults*/)
+            .map(conversionFactor -> {
+                // No conversion: skip
+                if (conversionFactor == 1d) return aliveWeight;
+
+                // Apply inverse conversion
+                return aliveWeight.divide(new BigDecimal(conversionFactor),
+                    // Keep original weight precision
+                    aliveWeight.scale(), RoundingMode.HALF_UP
+                );
+            });
+    }
+
+    protected Optional<Double> computeAliveWeightFactor(TempDenormalizedBatchVO batch,
+                                                            DenormalizedBatchOptions options,
+                                                            boolean enableDefaultsDressingAndPreservation) {
+
+        if (batch.getAliveWeightFactor() != null) return Optional.of(batch.getAliveWeightFactor());
+
+        Integer taxonGroupId = batch.getTaxonGroupId();
+        if (taxonGroupId == null) return Optional.empty();
+
+        // Get dressing, or 'WHL - Whole' by default
+        Integer dressingId = DenormalizedBatches.getDressingId(batch)
+            .orElseGet(() -> {
+                if (enableDefaultsDressingAndPreservation) {
+                    return batch.getIsLanding()
                         ? options.getDefaultLandingDressingId()
                         : batch.getIsDiscard() ? options.getDefaultDiscardDressingId()
-                        : QualitativeValueEnum.DRESSING_WHOLE.getId());
+                        : QualitativeValueEnum.DRESSING_WHOLE.getId();
+                }
+                return null;
+            });
 
-                // Get preservation, or 'FRE - Fresh' by default
-                int preservationId = DenormalizedBatches.getPreservationId(batch)
-                    .orElseGet(() -> batch.getIsLanding()
+        // Get preservation, or 'FRE - Fresh' by default
+        Integer preservationId = DenormalizedBatches.getPreservationId(batch)
+            .orElseGet(() -> {
+                if (enableDefaultsDressingAndPreservation) {
+                    return batch.getIsLanding()
                         ? options.getDefaultLandingPreservationId()
                         : batch.getIsDiscard() ? options.getDefaultDiscardPreservationId()
-                        : QualitativeValueEnum.PRESERVATION_FRESH.getId());
-
-                boolean isAlive = dressingId == QualitativeValueEnum.DRESSING_WHOLE.getId()
-                    && preservationId == QualitativeValueEnum.PRESERVATION_FRESH.getId();
-                if (isAlive) return Optional.of(aliveWeight); // Not need to convert
-
-                // Find the best conversion coefficient
-                Optional<RoundWeightConversionVO> conversion = roundWeightConversionService.findFirstByFilter(RoundWeightConversionFilterVO.builder()
-                    .taxonGroupIds(new Integer[]{taxonGroupId})
-                    .dressingIds(new Integer[]{dressingId})
-                    .preservingIds(new Integer[]{preservationId})
-                    .locationIds(new Integer[]{options.getRoundWeightCountryLocationId()})
-                    .date(Dates.resetTime(options.getDateTime())) // Reset time need to for cache key stability
-                    .build());
-
-                if (conversion.isEmpty()) {
-                    log.warn("No RoundWeightConversion found for {taxonGroupId: {}, dressingId: {}, preservationId: {}, locationId: {}}",
-                        taxonGroupId,
-                        dressingId,
-                        preservationId,
-                        options.getRoundWeightCountryLocationId());
-                    return Optional.empty();
+                        : QualitativeValueEnum.PRESERVATION_FRESH.getId();
                 }
-
-                // Apply inverse conversion (alive weight / conversion coefficient)
-                BigDecimal convertedWeight = aliveWeight.divide(new BigDecimal(conversion.get().getConversionCoefficient()),
-                    // Keep same precision
-                    aliveWeight.scale(), RoundingMode.HALF_UP);
-
-                return Optional.of(convertedWeight);
+                return null;
             });
+
+        // Skip (e.g. if enableDefaultsDressingAndPreservation is 'false')
+        if (preservationId==null || dressingId == null) return Optional.empty();
+
+        // Find the best conversion coefficient
+        Optional<RoundWeightConversionVO> conversion = roundWeightConversionService.findFirstByFilter(RoundWeightConversionFilterVO.builder()
+            .taxonGroupIds(new Integer[]{taxonGroupId})
+            .dressingIds(new Integer[]{dressingId})
+            .preservingIds(new Integer[]{preservationId})
+            .locationIds(new Integer[]{options.getRoundWeightCountryLocationId()})
+            .date(options.getDay())
+            .build());
+
+        if (conversion.isEmpty()) {
+            log.warn("No RoundWeightConversion found for {taxonGroupId: {}, dressingId: {}, preservationId: {}, locationId: {}}",
+                taxonGroupId,
+                dressingId,
+                preservationId,
+                options.getRoundWeightCountryLocationId());
+        }
+
+        return conversion.map(RoundWeightConversionVO::getConversionCoefficient);
     }
 }

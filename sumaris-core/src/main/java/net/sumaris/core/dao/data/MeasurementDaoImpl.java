@@ -1134,7 +1134,10 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
 
         switch (type) {
-            case BOOLEAN -> target.setNumericalValue(Boolean.parseBoolean(value) || "1".equals(value) ? 1d : 0d);
+            case BOOLEAN -> {
+                Double boolValue = ("1".equals(value) || Boolean.parseBoolean(value)) ? 1d : 0d;
+                target.setNumericalValue(boolValue);
+            }
             case QUALITATIVE_VALUE -> {
                 // If find a object structure (e.g. ReferentialVO), try to find the id
                 try {
@@ -1147,9 +1150,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             case STRING -> target.setAlphanumericalValue(value);
             case DATE -> target.setAlphanumericalValue(Dates.checkISODateTimeString(value));
             case INTEGER, DOUBLE -> target.setNumericalValue(Double.parseDouble(value));
-            default ->
-                // Unknown type
-                throw new SumarisTechnicalException(String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
+            // Unknown type
+            default -> throw new SumarisTechnicalException(String.format("Unable to set measurement value {%s} for the type {%s}", value, type.name().toLowerCase()));
         }
     }
 

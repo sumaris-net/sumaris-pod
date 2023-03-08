@@ -67,8 +67,11 @@ public class DenormalizedBatchVO
     private Double elevateContextWeight;
     private Double indirectContextWeight;
     private Double elevateWeight;
+    private Double taxonElevateContextWeight;
     private Integer individualCount;
     private Integer indirectIndividualCount;
+
+    private Integer taxonElevateIndividualCount;
     private Integer  elevateIndividualCount;
     private Double samplingRatio;
     private String samplingRatioText;

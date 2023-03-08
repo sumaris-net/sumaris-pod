@@ -22,6 +22,9 @@
 
 package net.sumaris.core.util;
 
+import javax.annotation.Nullable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -47,5 +50,29 @@ public class Numbers {
         formatter.setGroupingUsed(false);
         formatter.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.FRANCE));
         return formatter.format(value);
+    }
+
+    public static BigDecimal firstNotNullAsBigDecimal(Number... values) {
+        for (Number v: values) {
+            if (v != null) return new BigDecimal(v.toString());
+        }
+        return null;
+    }
+
+    public static Double asDouble(@Nullable BigDecimal value) {
+        if (value != null) return value.doubleValue();
+        return null;
+    }
+
+    public static double doubleValue(@Nullable BigDecimal value, double defaultValue) {
+        if (value != null) return value.doubleValue();
+        return defaultValue;
+    }
+
+    public static Double round(BigDecimal value, int scale) {
+        if (value != null) return value
+            .divide(new BigDecimal(1d), scale, RoundingMode.HALF_UP)
+            .doubleValue();
+        return null;
     }
 }

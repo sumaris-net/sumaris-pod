@@ -26,6 +26,27 @@
             <column name="indirect_rtp_weight" type="double"/>
         </addColumn>
     </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-003">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="denormalized_batch" columnName="taxon_elevate_context_weight"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="denormalized_batch">
+            <column name="taxon_elevate_context_weight" type="double"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-004">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="denormalized_batch" columnName="taxon_elevate_indiv_count"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="denormalized_batch">
+            <column name="taxon_elevate_indiv_count" type="double"/>
+        </addColumn>
+    </changeSet>
+
 
     <!-- update SYSTEM_VERSION -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-200" runOnChange="true">

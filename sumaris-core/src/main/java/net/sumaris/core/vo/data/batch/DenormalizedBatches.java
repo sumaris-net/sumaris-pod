@@ -29,8 +29,9 @@ import net.sumaris.core.model.referential.QualityFlags;
 import net.sumaris.core.model.referential.pmfm.ParameterEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.UnicodeChars;
+import net.sumaris.core.util.Numbers;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.UnicodeChars;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,11 +39,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -62,13 +59,6 @@ public class DenormalizedBatches {
             || (
                 // If batch is marked has exhaustive
                 Boolean.TRUE.equals(b.getExhaustiveInventory())
-                // mantis Allegro #12951 - remontée des poids selon le niveau de qualité
-                // Si un des lots fils (direct ou indirect) est invalide
-                // (c'est à dire si le code du niveau de qualité appartient à la liste des niveaux invalides)
-                // alors il faut considérer que l'inventaire exhaustif est non.
-                // Le but est de stopper la remontée des poids calculés
-                // s'il y a au moins un lot invalide parmi les fils, isExhaustive = false
-                && !hasSomeInvalidChild(b)
             )
        );
     }
@@ -115,13 +105,19 @@ public class DenormalizedBatches {
 
         Joiner joiner = Joiner.on(' ').skipNulls();
 
+        String arrowDown = useUnicode ? UnicodeChars.ARROW_DOWN : "~";
+
         return sources.stream()
                 .sorted(Comparator.comparing(DenormalizedBatches::computeFlatOrder))
+                // Cast as temp batch (more fields can be displayed)
+                .map(vo -> (vo instanceof TempDenormalizedBatchVO)
+                    ? (TempDenormalizedBatchVO) vo
+                    : Beans.clone(vo, TempDenormalizedBatchVO.class))
                 .map(source -> {
                     String treeIndent = useUnicode ? replaceTreeUnicode(source.getTreeIndent()) : source.getTreeIndent();
                     String hierarchicalLabel = withHierarchicalLabel ? generateHierarchicalLabel(source) : null;
-                    double elevateFactor = getElevateFactor(source).doubleValue();
-                    Double rtpWeight = ((TempDenormalizedBatchVO)source).getRtpWeight();
+                    double elevateContextFactor = Numbers.doubleValue(source.getElevateContextFactor(), 1d);
+                    double aliveFactor = source.getAliveWeightFactor() != null ? source.getAliveWeightFactor() : 1d;
                     boolean hasSpecies = source.getTaxonGroup() != null || source.getTaxonName() != null;
                     return joiner.join(
                             treeIndent,
@@ -147,38 +143,47 @@ public class DenormalizedBatches {
                         StringUtils.trimToNull(source.getSamplingRatioText()),
 
                         // Weight
-                        (source.getWeight() != null ? String.format("[%skg]", source.getWeight()) : null),
-
-                        // RTP Weight
-                        (rtpWeight != null ? String.format("{RTP=%skg}", rtpWeight) : null),
+                        (source.getWeight() != null ? String.format("[%s kg]", source.getWeight()) : null),
 
                         // Indirect weight
                         ((source.getIndirectWeight() != null && !Objects.equals(source.getIndirectWeight(), source.getWeight()))
-                                ? String.format("(%s%s kg)", useUnicode ? UnicodeChars.ARROW_DOWN : "~", source.getIndirectWeight()) : null),
+                                ? String.format("(%s%s kg)", arrowDown, source.getIndirectWeight()) : null),
 
-                        // Indirect RTP Weight
-                        ((source.getIndirectRtpWeight() != null && !Objects.equals(source.getIndirectRtpWeight(), rtpWeight))? String.format("(%sRTP=%skg)", useUnicode ? UnicodeChars.ARROW_DOWN : "~", source.getIndirectRtpWeight()) : null),
+                        // RTP Context Weight
+                        (source.getRtpContextWeight() != null ? String.format("(RTP=%s kg)", source.getRtpContextWeight()) : null),
+
+                        // Indirect RTP Context Weight
+                        ((source.getIndirectRtpContextWeight() != null && !Objects.equals(source.getIndirectRtpContextWeight(), source.getRtpContextWeight()))? String.format("(%sRTP=%skg)", arrowDown, source.getIndirectRtpWeight()) : null),
 
                         // Individual count
                         (source.getIndividualCount() != null ? String.format("[%s indiv]", source.getIndividualCount()) : null),
 
                         // Indirect individual count
                         ((source.getIndirectIndividualCount() != null && !Objects.equals(source.getIndirectIndividualCount(), source.getIndividualCount()))
-                                ? String.format("(%s%s indiv)", useUnicode ? UnicodeChars.ARROW_DOWN : "~", source.getIndirectIndividualCount()) : null),
+                                ? String.format("(%s%s indiv)", arrowDown, source.getIndirectIndividualCount()) : null),
 
-                        // Elevate factor
-                        (1d != elevateFactor ? String.format("x%s", elevateFactor) : null),
+                        // Elevate context factor
+                        (1d != elevateContextFactor ? String.format("x%s", elevateContextFactor) : null),
+
+                        // Alive factor = elevate factor / context factor)
+                        (1d != aliveFactor ? String.format("x%s", aliveFactor) : null),
 
                         "=>",
 
                         // Elevated weight
-                        (source.getElevateWeight() != null ? String.format("%skg", source.getElevateWeight()) : null),
+                        ((source.getElevateWeight() != null && !Objects.equals(source.getElevateWeight(), source.getIndirectElevateWeight())) ? String.format("%s kg", source.getElevateWeight()) : null),
+
+                        // Indirect elevated weight
+                        (source.getIndirectElevateWeight() != null ? String.format("(%s%s kg)", arrowDown, source.getIndirectElevateWeight()) : null),
 
                         // Elevated RTP weight
-                        (source.getElevateRtpWeight() != null ? String.format("(RTP=%skg)", source.getElevateRtpWeight()) : null),
+                        ((source.getElevateRtpWeight() != null && !Objects.equals(source.getElevateRtpWeight(), source.getIndirectRtpElevateWeight()))? String.format("(RTP=%s kg)", source.getElevateRtpWeight()) : null),
+
+                        // Indirect elevated RTP weight
+                        (source.getIndirectRtpElevateWeight() != null ? String.format("(%sRTP=%s kg)", arrowDown, source.getIndirectRtpElevateWeight()) : null),
 
                         // Elevated individual count
-                        (source.getElevateIndividualCount() != null ? String.format("~%s indiv", source.getElevateIndividualCount()) : null)
+                        (source.getElevateIndividualCount() != null ? String.format("%s indiv", source.getElevateIndividualCount()) : null)
 
                     ).replace("[ ]+", " ");
                 }).collect(Collectors.joining("\n"));
@@ -246,23 +251,9 @@ public class DenormalizedBatches {
             .doubleValue();
     }
 
-    public static Optional<Integer> getTaxonGroupId(DenormalizedBatchVO batch) {
-        return batch.getTaxonGroup() != null
-            ? Optional.of(batch.getTaxonGroup().getId())
-            : (batch.getInheritedTaxonGroup() != null
-                ? Optional.of(batch.getInheritedTaxonGroup().getId())
-                // TODO: return the calculated taxon group ?
-                : Optional.empty());
-    }
 
     /* -- internal functions -- */
 
-    protected static BigDecimal getElevateFactor(DenormalizedBatchVO source) {
-        if (source instanceof TempDenormalizedBatchVO) {
-            return ((TempDenormalizedBatchVO)source).getElevateFactor();
-        }
-        return new BigDecimal(1);
-    }
     protected static String replaceTreeUnicode(String treeIndent) {
         return treeIndent.replace("|-", "\u02EB")
                 .replace("|_", "\u02EA")

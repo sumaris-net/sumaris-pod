@@ -105,6 +105,15 @@ public class DenormalizedBatchOptions {
         return dateTime != null ? Dates.getYear(dateTime) : null;
     }
 
+    /**
+     * Get date, wuthout time. Useful for increase stability of cache keys
+     * @return
+     */
+    @JsonIgnore
+    public Date getDay() {
+        return dateTime != null ? Dates.resetTime(dateTime) : null;
+    }
+
     public DenormalizedBatchOptions clone() {
         return Beans.clone(this, DenormalizedBatchOptions.class);
     }
