@@ -265,11 +265,11 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
         // Log
         if (trace) {
-            log.trace("Successfully denormalized batches, in {}:\n{}",
+            log.trace("Batches denormalization succeed, in {}:\n{}",
                 TimeUtils.printDurationFrom(startTime),
                 DenormalizedBatches.dumpAsString(result, true, true));
         } else {
-            log.debug("Successfully denormalized batches, in {}", TimeUtils.printDurationFrom(startTime));
+            log.debug("Batches denormalization succeed, in {}", TimeUtils.printDurationFrom(startTime));
         }
 
         return result;
@@ -285,7 +285,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         if (catchBatch == null) return null;
 
         long startTime = System.currentTimeMillis();
-        log.debug("Denormalize batches of operation {id: {}}...", operationId);
+        log.debug("Batches denormalization of operation {id: {}}...", operationId);
 
         // Compute options, for the operation's program
         if (options == null) {
@@ -299,7 +299,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         // Save denormalized batches
         batches = denormalizedBatchRepository.saveAllByOperationId(operationId, batches);
 
-        log.debug("Denormalize batches of operation {id: {}} [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
+        log.debug("Batches denormalization of operation {id: {}} [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
         return batches;
     }
 
@@ -638,7 +638,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                     }
 
                     if (changed) {
-                        log.trace("{} {} - changes!", target.getTreeIndent(), target.getLabel());
+                        //log.trace("{} {} - changes!", target.getTreeIndent(), target.getLabel());
                         changesCount.increment();
                     }
                 });
@@ -687,7 +687,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 }
 
                 if (changed) {
-                    log.trace("{} {} - changes!", target.getTreeIndent(), target.getLabel());
+                    //log.trace("{} {} - changes!", target.getTreeIndent(), target.getLabel());
                     changesCount.increment();
                 }
             });

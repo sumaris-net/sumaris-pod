@@ -66,6 +66,10 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
     @Override
     public DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter) {
+        ProgressionModel progress = new ProgressionModel();
+        progress.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, (event) -> {
+            if (event.getNewValue() != null) log.debug(event.getNewValue().toString());
+        });
         return denormalizeByFilter(filter, new ProgressionModel());
     }
 
@@ -75,7 +79,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
         progression.setCurrent(0);
         progression.setMessage(String.format("Starting trips denormalization... filter: %s", filter));
-        log.debug(progression.getMessage());
+        //log.trace(progression.getMessage());
 
         TripFetchOptions tripFetchOptions = TripFetchOptions.builder()
             .withChildrenEntities(false)
@@ -103,7 +107,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             if (offset > 0 && offset % (pageSize * 2) == 0) {
                 progression.setCurrent(offset);
                 progression.setMessage(String.format("Processing trips denormalization... %s/%s", offset, tripTotal));
-                log.debug(progression.getMessage());
+                //log.trace(progression.getMessage());
             }
 
             // Denormalize each trip
@@ -133,7 +137,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             operationCount,
             batchCount,
             invalidBatchCount));
-        log.debug(progression.getMessage());
+        //log.debug(progression.getMessage());
 
         return DenormalizeTripResultVO.builder()
             .tripCount(tripCount)
