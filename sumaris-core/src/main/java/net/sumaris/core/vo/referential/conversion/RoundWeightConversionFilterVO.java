@@ -26,6 +26,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.sumaris.core.util.Beans;
 
 import java.util.Date;
 
@@ -45,4 +46,8 @@ public class RoundWeightConversionFilterVO {
     Integer[] dressingIds;
     Integer[] preservingIds;
     Date date;
+
+    public RoundWeightConversionFilterVO clone() {
+        return Beans.clone(this, RoundWeightConversionFilterVO.class);
+    }
 }

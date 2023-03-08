@@ -22,18 +22,20 @@
 
 package net.sumaris.core.model.referential.pmfm;
 
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = Unit.class)
+@EntityEnum(entity = Unit.class, joinAttributes = {Unit.Fields.LABEL})
 public enum UnitEnum implements Serializable {
 
     NONE(0, "None"),
-    MM(1, "mm"),
     KG(3, "kg"),
-    CM(12, "cm");
+    MM(1, "mm"),
+    CM(12, "cm")
+    ;
 
     public static UnitEnum valueOf(final int id) {
         return Arrays.stream(values())

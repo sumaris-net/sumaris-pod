@@ -31,7 +31,9 @@ import java.util.Arrays;
 @EntityEnum(entity = Parameter.class, joinAttributes = {ParameterGroup.Fields.LABEL, IEntity.Fields.ID})
 public enum ParameterEnum implements Serializable {
 
-    HULL_MATERIAL(420, "HULL_MATERIAL")
+    HULL_MATERIAL(420, "HULL_MATERIAL"),
+
+    SEX(80, "SEX")
 
     ;
 

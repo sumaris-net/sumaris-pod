@@ -35,6 +35,7 @@ import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
@@ -42,6 +43,7 @@ import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.stereotype.Service;
 
@@ -207,42 +209,58 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             .build();
     }
 
-    public DenormalizedBatchOptions createOptionsByOperation(@NonNull OperationVO operation, @Nullable DenormalizedBatchOptions optionsForPrograms) {
+    public DenormalizedBatchOptions createOptionsByOperation(@NonNull OperationVO operation,
+                                                             @Nullable DenormalizedBatchOptions inheritedOptions) {
 
-        if (optionsForPrograms == null) {
+        if (inheritedOptions == null) {
             int programId = operationService.getProgramIdById(operation.getId());
-            optionsForPrograms = denormalizedBatchService.createOptionsByProgramId(programId);
+            inheritedOptions = denormalizedBatchService.createOptionsByProgramId(programId);
         }
 
-        Optional<Integer> statisticalRectangleId = getStatisticalRectangleId(operation);
-        if (statisticalRectangleId.isEmpty()) {
+        Optional<Integer[]> fishingAreaLocationIds = getOperationFishingAreaIds(operation);
+        if (fishingAreaLocationIds.isEmpty()) {
             log.warn("Cannot found the statistical rectangle for Operation #{}, neither in positions nor in fishing areas", operation.getId());
         }
 
-        return DenormalizedBatchOptions.toBuilder(optionsForPrograms)
-            .statisticalRectangleId(statisticalRectangleId.orElse(null))
-            .dateTime(getLastEndDate(operation))
-            .build();
+        DenormalizedBatchOptions options = inheritedOptions.clone(); // Copy, to keep original options unchanged
+        options.setFishingAreaLocationIds(fishingAreaLocationIds.orElse(null));
+        options.setDateTime(Dates.resetTime(getFishingStartDateTime(operation)));
+
+        return options;
     }
 
-    public Optional<Integer> getStatisticalRectangleId(@NonNull OperationVO operation) {
+    public Optional<Integer[]> getOperationFishingAreaIds(@NonNull OperationVO operation) {
         // Get the fishing area: first, search from last position
-        return Beans.getStream(operation.getPositions())
+        Integer[] result = Beans.getStream(operation.getPositions())
             .filter(Positions::isNotNullAndValid)
-            .sorted(Collections.reverseOrder(Comparator.comparing(VesselPositionVO::getDateTime, Date::compareTo)))
-            .findFirst()
-            .flatMap(position -> locationService.getStatisticalRectangleIdByLatLong(position.getLatitude(), position.getLongitude()))
-            // Or try from fishing areas
-            .or(() -> Beans.getStream(operation.getFishingAreas())
-                .filter(fa -> fa.getLocation() != null)
-                .findFirst()
-                .map(FishingAreaVO::getLocation)
-                .map(LocationVO::getId)
-            );
+            .map(position -> locationService.getStatisticalRectangleIdByLatLong(position.getLatitude(), position.getLongitude()))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .distinct()
+            .toArray(Integer[]::new);
+        if (ArrayUtils.isNotEmpty(result)) return Optional.of(result);
+
+        // Try to get location from fishing areas
+        result = Beans.getStream(operation.getFishingAreas())
+            .filter(fa -> fa.getLocation() != null)
+            .map(FishingAreaVO::getLocation)
+            .map(LocationVO::getId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toArray(Integer[]::new);
+        if (ArrayUtils.isNotEmpty(result)) return Optional.of(result);
+
+        return Optional.empty(); // Not found
     }
 
-    public Date getLastEndDate(@NonNull OperationVO operation) {
-        // Get operation last end date (will be used for conversion)
-        return operation.getEndDateTime() != null ? operation.getEndDateTime() : operation.getFishingEndDateTime();
+    /**
+     * Get the start fishing date (or the start date if no found)
+     * @param operation
+     * @return
+     */
+    public Date getFishingStartDateTime(@NonNull OperationVO operation) {
+        return operation.getFishingStartDateTime() != null
+            ? operation.getFishingStartDateTime()
+            : operation.getStartDateTime();
     }
 }

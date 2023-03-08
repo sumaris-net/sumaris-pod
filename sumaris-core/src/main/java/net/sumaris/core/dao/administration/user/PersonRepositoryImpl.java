@@ -115,9 +115,11 @@ public class PersonRepositoryImpl
     }
 
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, key = "#username", unless="#result==null")
     public Optional<PersonVO> findByUsername(String username) {
-        return findAll(hasUsername(username)).stream().filter(p -> StatusEnum.ENABLE.getId().equals(p.getStatus().getId()))
-                .findFirst().map(this::toVO);
+        return findAll(hasUsername(username)).stream()
+            .filter(p -> StatusEnum.ENABLE.getId().equals(p.getStatus().getId()))
+            .findFirst().map(this::toVO);
     }
 
     @Override

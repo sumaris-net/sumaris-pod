@@ -25,19 +25,28 @@ package net.sumaris.core.service.referential.conversion;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.conversion.RoundWeightConversion;
 import net.sumaris.core.model.referential.location.LocationLevels;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.referential.conversion.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 
@@ -59,7 +68,7 @@ public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 	}
 
 	@Test
-	public void findByFilter() {
+	public void findByFilter() throws ParseException {
 
 		// Count all
 		long countAll = service.countByFilter(null);
@@ -92,6 +101,37 @@ public class RoundWeightConversionServiceReadTest extends AbstractServiceTest {
 
 			assertAllValid(result, fetchOptions);
 		}
+	}
+
+	@Test
+	public void findByFilterOnEndDate() {
+
+		service.findByFilter(RoundWeightConversionFilterVO.builder()
+				.statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+				.build(), null, RoundWeightConversionFetchOptions.DEFAULT)
+			.stream()
+			.filter(conversion -> conversion.getEndDate() != null)
+			.forEach(conversion -> {
+
+				// Try to find the same row again, after adding 12 hours to the end date
+				// /!\ in SIH-ADAGIO, start/end are filled with a day precision (almost), so '2012-12-31 00:00:00' stands for '2012-12-31 23:59:59'
+				RoundWeightConversionFilterVO filter = RoundWeightConversionFilterVO.builder()
+					.taxonGroupIds(new Integer[]{conversion.getTaxonGroupId()})
+					.locationIds(new Integer[]{conversion.getLocationId()})
+					.dressingIds(new Integer[]{conversion.getDressingId()})
+					.preservingIds(new Integer[]{conversion.getPreservingId()})
+					.statusIds(new Integer[]{conversion.getStatusId()})
+					.date(Dates.addHours(conversion.getEndDate(), 12)) // +12h
+					.build();
+				List<RoundWeightConversionVO> result = service.findByFilter(filter, null, RoundWeightConversionFetchOptions.DEFAULT);
+
+				Assert.assertNotNull(result);
+				Assert.assertEquals(1, result.size());
+
+				// Should be same item
+				Assert.assertEquals(conversion.getId(), result.get(0).getId());
+				Assert.assertEquals(conversion.getEndDate(), result.get(0).getEndDate());
+			});
 	}
 
 	protected void assertAllValid(List<RoundWeightConversionVO> sources, RoundWeightConversionFetchOptions fetchOptions) {

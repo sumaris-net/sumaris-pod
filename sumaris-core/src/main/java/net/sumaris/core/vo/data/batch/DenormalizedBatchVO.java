@@ -61,6 +61,9 @@ public class DenormalizedBatchVO
     private Short flatRankOrder;
     private Double weight;
     private Double indirectWeight;
+
+    private Double indirectRtpWeight;
+    private Double elevateRtpWeight;
     private Double elevateContextWeight;
     private Double indirectContextWeight;
     private Double elevateWeight;

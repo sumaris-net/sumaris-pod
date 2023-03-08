@@ -470,13 +470,22 @@ public class LocationServiceImpl implements LocationService {
     public Optional<Integer> getStatisticalRectangleIdByLatLong(Number latitude, Number longitude) {
         return getStatisticalRectangleLabelByLatLong(latitude, longitude)
             // Resolve the location, by its label (should be unique, for statistical rectangle - if not dao will return error)
-            .map(rectangleLabel -> referentialDao.findByFilter(Location.class.getSimpleName(),
-                ReferentialFilterVO.builder()
-                .label(rectangleLabel)
-                .levelIds(LocationLevels.getStatisticalRectangleLevelIds())
-                .build(), 0, 2, null, null))
-            // Extract singleton (= unique check, because of size=2)
-            .map(CollectionUtils::extractSingleton)
+            .map(rectangleLabel -> {
+                List<ReferentialVO> matches = referentialDao.findByFilter(Location.class.getSimpleName(),
+                    ReferentialFilterVO.builder()
+                        .label(rectangleLabel)
+                        .levelIds(LocationLevels.getStatisticalRectangleLevelIds())
+                        .build(), 0, 2, null, null);
+                if (CollectionUtils.isEmpty(matches)) return null;
+                try {
+                    // Extract singleton (= unique check, because of size=2)
+                    return CollectionUtils.extractSingleton(matches);
+                }
+                catch (IllegalArgumentException e) {
+                    throw new SumarisTechnicalException(String.format("More than one statistical rectangle found with label '%s'", rectangleLabel));
+                }
+            })
+            .filter(Objects::nonNull)
             // Extract the id
             .map(ReferentialVO::getId);
     }

@@ -208,6 +208,7 @@ public class WeightLengthConversionRepositoryImpl extends SumarisJpaRepositoryIm
             .and(atYear(filter.getYear()))
             .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
             .and(hasLocationIds(filter.getLocationIds()))
+            .and(hasChildLocationIds(filter.getChildLocationIds()))
             .and(hasRectangleLabels(filter.getRectangleLabels()))
             .and(hasLengthParameterIds(filter.getLengthParameterIds()))
             .and(hasLengthUnitIds(filter.getLengthUnitIds()))

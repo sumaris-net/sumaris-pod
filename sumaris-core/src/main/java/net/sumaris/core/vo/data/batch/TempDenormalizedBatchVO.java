@@ -22,11 +22,16 @@
 
 package net.sumaris.core.vo.data.batch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.pmfm.ParameterEnum;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 @Data
 @FieldNameConstants
@@ -37,9 +42,13 @@ public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
     private BigDecimal elevateFactor;
     private BigDecimal samplingFactor;
 
+    private Double rtpWeight;
+
     //private Double contextWeight;
     //private Double sumChildContextWeight;
     //private Double sumChildRoundWeight;
     //private Double sumChildRTPWeight;
+
+
 
 }

@@ -48,6 +48,7 @@ public interface WeightLengthConversionSpecifications
     extends IEntityWithStatusSpecifications<Integer, WeightLengthConversion> {
 
     String MONTH_PARAMETER = "month";
+    String CHILD_LOCATION_IDS_PARAMETER = "childLocationIds";
     String RECTANGLE_LABELS_PARAMETER = "rectangleLabels";
     String RECTANGLE_LEVEL_IDS_PARAMETER = "rectangleLevelIds";
     String LEANGTH_PMFM_IDS_PARAMETER = "lengthPmfmIds";
@@ -60,6 +61,27 @@ public interface WeightLengthConversionSpecifications
         return hasInnerJoinIds(WeightLengthConversion.Fields.LOCATION, ids);
     }
 
+    default Specification<WeightLengthConversion> hasChildLocationIds(Integer... childLocationIds) {
+        if (ArrayUtils.isEmpty(childLocationIds)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> idsParam = cb.parameter(Collection.class, CHILD_LOCATION_IDS_PARAMETER);
+
+                Subquery<LocationHierarchy> subQuery = query.subquery(LocationHierarchy.class);
+                Root<LocationHierarchy> lh = subQuery.from(LocationHierarchy.class);
+                subQuery.select(lh.get(LocationHierarchy.Fields.PARENT_LOCATION));
+
+                subQuery.where(
+                    cb.and(
+                        cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), Daos.composeJoin(root, WeightLengthConversion.Fields.LOCATION, JoinType.INNER)),
+                        Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.CHILD_LOCATION, Location.Fields.ID), JoinType.INNER).in(idsParam)
+                    )
+                );
+
+                return cb.exists(subQuery);
+            })
+            .addBind(CHILD_LOCATION_IDS_PARAMETER, Arrays.asList(childLocationIds));
+    }
     default Specification<WeightLengthConversion> hasRectangleLabels(String... rectangleLabels) {
         if (ArrayUtils.isEmpty(rectangleLabels)) return null;
         Integer[] rectangleLocationLevelIds =  LocationLevels.getStatisticalRectangleLevelIds();

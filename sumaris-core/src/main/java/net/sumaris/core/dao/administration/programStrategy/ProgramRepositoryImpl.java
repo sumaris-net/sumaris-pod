@@ -172,6 +172,12 @@ public class ProgramRepositoryImpl
     }
 
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL)
+    public ProgramVO getByLabel(String label, ProgramFetchOptions fetchOptions) {
+        return super.getByLabel(label, fetchOptions);
+    }
+
+    @Override
     protected Specification<Program> toSpecification(ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))

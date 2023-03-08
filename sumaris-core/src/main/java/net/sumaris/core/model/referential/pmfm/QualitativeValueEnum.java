@@ -33,7 +33,8 @@ public enum QualitativeValueEnum implements Serializable {
     SORTING_BULK(390, "VRAC"), // Adagio => 311
     SORTING_NON_BULK(391, "H-VRAC"), // Adagio => 310
     SORTING_UNSORTED(392, "NONE"), // Adagio => 2146
-    DRESSING_WHOLE(381, "WHL"),
+    DRESSING_WHOLE(381, "WHL"), // Entier - Adagio => 139
+    DRESSING_GUTTED(381, "GUT"), // Eviscéré - Adagio => 120
     PRESERVATION_FRESH(332, "FRE"),
     SIZE_CATEGORY_NONE(435, "UNS"),
 
@@ -47,6 +48,9 @@ public enum QualitativeValueEnum implements Serializable {
     // LANDING_OR_DISCARD
     LANDING(190, "LAN"),
     DISCARD(191, "DIS"),
+
+    // SEX
+    SEX_UNSEXED(188, "NS"), // Adagio => 302
     ;
 
     public static QualitativeValueEnum valueOf(final int id) {

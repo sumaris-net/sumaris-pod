@@ -22,8 +22,14 @@
 
 package net.sumaris.core.vo.data.batch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 
 import javax.annotation.Nullable;
 import java.util.Date;
@@ -31,6 +37,8 @@ import java.util.List;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class DenormalizedBatchOptions {
 
     public static final DenormalizedBatchOptions DEFAULT = DenormalizedBatchOptions.builder().build();
@@ -52,7 +60,7 @@ public class DenormalizedBatchOptions {
             .enableTaxonName(source.enableTaxonName)
             .taxonGroupIdsNoWeight(source.taxonGroupIdsNoWeight)
             .roundWeightCountryLocationId(source.roundWeightCountryLocationId)
-            .statisticalRectangleId(source.statisticalRectangleId);
+            .fishingAreaLocationIds(source.fishingAreaLocationIds);
     }
 
     @Builder.Default
@@ -61,12 +69,44 @@ public class DenormalizedBatchOptions {
     @Builder.Default
     private boolean enableTaxonName = true;
 
+    @Builder.Default
+    private boolean enableRtpWeight = false;
+
     private List<Integer> taxonGroupIdsNoWeight;
 
     private Integer roundWeightCountryLocationId; // Country location, used to find a round weight conversion
 
-    private Integer statisticalRectangleId; // Fishing area used to find a weight length conversion
+    private Integer[] fishingAreaLocationIds; // Fishing areas used to find a weight length conversion
 
     private Date dateTime;
+
+    @Builder.Default
+    private Integer defaultLandingDressingId = QualitativeValueEnum.DRESSING_GUTTED.getId(); // /!\ in SIH Adagio, the denormalization job use WHL as default
+
+    @Builder.Default
+    private Integer defaultDiscardDressingId = QualitativeValueEnum.DRESSING_WHOLE.getId();
+
+    @Builder.Default
+    private Integer defaultLandingPreservationId = QualitativeValueEnum.PRESERVATION_FRESH.getId();
+
+    @Builder.Default
+    private Integer defaultDiscardPreservationId = QualitativeValueEnum.PRESERVATION_FRESH.getId();
+
+    @Builder.Default
+    private int maxRtpWeightDiffPct = 10; // 10% max pct between RTP weight and weight
+
+    @JsonIgnore
+    public int getMonth() {
+        return dateTime != null ? Dates.getMonth(dateTime) + 1: null;
+    }
+
+    @JsonIgnore
+    public int getYear() {
+        return dateTime != null ? Dates.getYear(dateTime) : null;
+    }
+
+    public DenormalizedBatchOptions clone() {
+        return Beans.clone(this, DenormalizedBatchOptions.class);
+    }
 
 }

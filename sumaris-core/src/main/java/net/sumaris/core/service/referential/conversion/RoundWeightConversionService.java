@@ -29,15 +29,22 @@ import net.sumaris.core.vo.referential.conversion.RoundWeightConversionVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 public interface RoundWeightConversionService {
 
     List<RoundWeightConversionVO> findByFilter(RoundWeightConversionFilterVO filter, Page page, RoundWeightConversionFetchOptions fetchOptions);
 
+    Optional<RoundWeightConversionVO> findFirstByFilter(RoundWeightConversionFilterVO filter);
+
+    Optional<RoundWeightConversionVO> findFirstByFilter(RoundWeightConversionFilterVO filter, RoundWeightConversionFetchOptions fetchOptions);
+
     long countByFilter(RoundWeightConversionFilterVO filter);
 
     List<RoundWeightConversionVO> saveAll(List<RoundWeightConversionVO> source);
 
     void deleteAllById(List<Integer> ids);
+
+
 }

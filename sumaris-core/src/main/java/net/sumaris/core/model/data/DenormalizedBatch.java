@@ -94,6 +94,25 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @Column(name = "elevate_individual_count")
     private Integer  elevateIndividualCount;
 
+    /**
+     * Poids contextuel élevé à l'échelle du groupe de taxon, ou par défaut du taxon (cf mantis
+     * #37645).
+     * Calculé par le traitement de dénormalisation.
+     */
+    // private Double taxonElevateContextWeight;
+
+    /**
+     * Poids vif sans élévation reconstitué à partir du poids RTP (cf mantis #30088).
+     * Calculé par le traitement de dénormalisation.
+     */
+    private Double indirectRtpWeight;
+
+    /**
+     * Poids vif élevé et reconstitué à partir du poids RTP (cf mantis #30088).
+     * Calculé par le traitement de dénormalisation.
+     */
+    private Double elevateRtpWeight;
+
     @Column(name = "sampling_ratio")
     private Double samplingRatio;
 

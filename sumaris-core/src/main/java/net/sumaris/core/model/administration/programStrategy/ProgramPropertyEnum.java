@@ -38,6 +38,7 @@ public enum ProgramPropertyEnum implements Serializable {
 
     TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT("sumaris.trip.operation.batch.taxonGroups.noWeight", String.class, ""),
 
+    TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE("sumaris.trip.operation.batch.lengthWeightConversion.enable", Boolean.class, Boolean.FALSE.toString()),
     TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID("sumaris.trip.operation.batch.roundWeightConversion.country.id", Integer.class, null),
 
     TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.individual.taxonName.enable",
