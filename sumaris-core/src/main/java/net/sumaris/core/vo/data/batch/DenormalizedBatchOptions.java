@@ -33,7 +33,6 @@ import net.sumaris.core.util.Dates;
 
 import javax.annotation.Nullable;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @Builder
@@ -55,6 +54,9 @@ public class DenormalizedBatchOptions {
 
     @Builder.Default
     private boolean enableRtpWeight = false;
+
+    @Builder.Default
+    private boolean allowZeroWeightWithIndividual = true;
 
     private Integer[] taxonGroupIdsNoWeight;
 

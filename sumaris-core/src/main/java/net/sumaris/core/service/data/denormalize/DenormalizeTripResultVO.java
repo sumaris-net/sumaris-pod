@@ -24,16 +24,22 @@ package net.sumaris.core.service.data.denormalize;
 
 import lombok.Builder;
 import lombok.Data;
+import net.sumaris.core.model.technical.job.JobStatusEnum;
+import net.sumaris.core.vo.technical.job.IJobResultVO;
 
 import java.io.Serializable;
 
 @Data
 @Builder
-public class DenormalizeTripResultVO implements Serializable {
+public class DenormalizeTripResultVO implements IJobResultVO, Serializable {
 
     private long tripCount;
     private long operationCount;
     private long batchCount;
     private long invalidBatchCount;
     private long executionTime;
+
+    private String message;
+
+    private JobStatusEnum status;
 }

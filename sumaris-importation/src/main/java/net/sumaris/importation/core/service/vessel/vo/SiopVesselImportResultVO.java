@@ -27,13 +27,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
-import net.sumaris.core.vo.technical.job.IWithJobStatusVO;
+import net.sumaris.core.vo.technical.job.IJobResultVO;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SiopVesselImportResultVO implements IWithJobStatusVO {
+public class SiopVesselImportResultVO implements IJobResultVO {
 
     private Integer inserts;
     private Integer updates;

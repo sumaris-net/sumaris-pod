@@ -51,7 +51,7 @@ import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
-import net.sumaris.core.vo.technical.job.IWithJobStatusVO;
+import net.sumaris.core.vo.technical.job.IJobResultVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
@@ -210,8 +210,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 result = resultFuture.get();
 
                 // Extract the job status, from result
-                if (result instanceof IWithJobStatusVO) {
-                    job.setStatus(((IWithJobStatusVO)result).getStatus());
+                if (result instanceof IJobResultVO) {
+                    job.setStatus(((IJobResultVO)result).getStatus());
                 }
                 else {
                     log.warn("Cannot read job's status, from result (not implements IWithJobStatusVO). Will use SUCCESS");

@@ -26,7 +26,7 @@ import net.sumaris.core.model.technical.job.JobStatusEnum;
 
 import java.io.Serializable;
 
-public interface IWithJobStatusVO extends Serializable {
+public interface IJobResultVO extends Serializable {
 
     JobStatusEnum getStatus();
 

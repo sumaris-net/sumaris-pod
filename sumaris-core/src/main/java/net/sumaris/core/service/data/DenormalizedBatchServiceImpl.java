@@ -107,13 +107,19 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
+        // Check useful enumerations
+        try {
+            checkBaseEnumerations();
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
 
         // Check is can enable RTP
         {
             boolean enableRtp = true;
             List<String> errorMessages = Lists.newArrayList();
 
-            // Check useful enumerations
+            // Check enumerations used for RTP
             try {
                 checkRtpEnumerations();
             } catch (Exception e) {
@@ -689,26 +695,35 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
             // For each (leaf -> root)
             revertBatches
-                .forEach(target -> {
+                .forEach(batch -> {
                 boolean changed = false;
 
-                log.trace("- {}", target.getLabel());
+                log.trace("- {}", batch.getLabel());
 
-                if (target.getElevateWeight() == null) {
+                if (batch.getElevateWeight() == null) {
                     // No context weight to elevate: so use children elevate weight
-                    Double indirectElevateWeight = computeIndirectElevateWeight(target, options);
-                    changed = changed || !Objects.equals(indirectElevateWeight, target.getIndirectElevateWeight())
-                        || !Objects.equals(indirectElevateWeight, target.getElevateWeight());
-                    target.setIndirectElevateWeight(indirectElevateWeight);
-                    target.setElevateWeight(indirectElevateWeight);
+                    Double indirectElevateWeight = computeIndirectElevateWeight(batch, options);
+                    changed = changed || !Objects.equals(indirectElevateWeight, batch.getIndirectElevateWeight())
+                        || !Objects.equals(indirectElevateWeight, batch.getElevateWeight());
+                    batch.setIndirectElevateWeight(indirectElevateWeight);
+                    batch.setElevateWeight(indirectElevateWeight);
                 }
 
-                if (options.isEnableRtpWeight() && target.getElevateRtpWeight() == null) {
-                    Double indirectElevateRtpWeight = computeIndirectElevateRtpWeight(target, options);
-                    changed = changed || !Objects.equals(indirectElevateRtpWeight, target.getIndirectRtpElevateWeight())
-                        || !Objects.equals(indirectElevateRtpWeight, target.getElevateRtpWeight());
-                    target.setIndirectRtpElevateWeight(indirectElevateRtpWeight);
-                    target.setElevateRtpWeight(indirectElevateRtpWeight);
+                if (options.isEnableRtpWeight() && batch.getElevateRtpWeight() == null) {
+                    Double indirectElevateRtpWeight = computeIndirectElevateRtpWeight(batch, options);
+                    changed = changed || !Objects.equals(indirectElevateRtpWeight, batch.getIndirectRtpElevateWeight())
+                        || !Objects.equals(indirectElevateRtpWeight, batch.getElevateRtpWeight());
+                    batch.setIndirectRtpElevateWeight(indirectElevateRtpWeight);
+                    batch.setElevateRtpWeight(indirectElevateRtpWeight);
+                }
+
+                // Check weight = 0 AND individual
+                boolean zeroWeightWithIndividual = batch.getElevateWeight() == 0d && batch.getElevateIndividualCount() > 0;
+                if (zeroWeightWithIndividual) {
+                    String message = String.format("Invalid batch {id: %s, label: '%s'}: elevateWeight=0 but elevateIndividualCount > 0",
+                        batch.getId(), batch.getLabel());
+                    if (options.isAllowZeroWeightWithIndividual()) log.warn(message);
+                    else throw new InvalidSamplingBatchException(message);
                 }
 
                 if (changed) {
@@ -943,7 +958,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             && ArrayUtils.isNotEmpty(options.getTaxonGroupIdsNoWeight())
             && ArrayUtils.contains(options.getTaxonGroupIdsNoWeight(), parent.getInheritedTaxonGroup().getId())) {
             // TODO
-            log.warn("Batch {} - TODO compute samplingRatio, using individualCount (Taxon group no weight)", batch.getLabel());
+            log.warn("Batch {label: '{}'} - TODO try to compute samplingRatio using individualCount parent/child (taxon group no weight)", batch.getLabel());
         }
 
         if (samplingRatio == null || samplingFactor == null) {
@@ -959,10 +974,6 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             }
         }
 
-        if (samplingRatio == 0d && batch.hasChildren()) {
-            throw new InvalidSamplingBatchException(String.format("Invalid sampling batch {id: %s, label: '%s'}: weight=0kg but children batches exists",
-                batch.getId(), batch.getLabel()));
-        }
 
         // Remember values
         batch.setSamplingRatio(samplingRatio);
@@ -1258,9 +1269,18 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         return conversion.map(RoundWeightConversionVO::getConversionCoefficient);
     }
 
+    private void checkBaseEnumerations() {
+        EntityEnums.checkResolved(
+            QualitativeValueEnum.LANDING,
+            QualitativeValueEnum.DISCARD
+        );
+    }
     private void checkRtpEnumerations() {
-        EntityEnums.checkResolved(ParameterEnum.SEX, QualitativeValueEnum.SEX_UNSEXED,
-            QualitativeValueEnum.DRESSING_WHOLE, QualitativeValueEnum.DRESSING_GUTTED,
+        EntityEnums.checkResolved(
+            ParameterEnum.SEX,
+            QualitativeValueEnum.SEX_UNSEXED,
+            QualitativeValueEnum.DRESSING_WHOLE,
+            QualitativeValueEnum.DRESSING_GUTTED,
             QualitativeValueEnum.PRESERVATION_FRESH);
     }
 }

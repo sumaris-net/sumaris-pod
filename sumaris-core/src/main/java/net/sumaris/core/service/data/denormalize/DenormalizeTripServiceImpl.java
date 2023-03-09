@@ -26,6 +26,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -203,6 +204,8 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         int operationCount = 0;
         MutableInt batchesCount = new MutableInt(0);
         MutableInt errorCount = new MutableInt(0);
+        List<String> messages = Lists.newArrayList();
+
         do {
             // Fetch some operations
             List<OperationVO> operations = operationService.findAllByFilter(operationFilter,
@@ -225,10 +228,12 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
                     batchesCount.add(CollectionUtils.size(batches));
                 } catch (SumarisBusinessException be) {
                     log.error(be.getMessage());
+                    messages.add(be.getMessage());
                     errorCount.increment();
                 }
                 catch (Exception e) {
                     log.error(e.getMessage(), e);
+                    messages.add(e.getMessage());
                     errorCount.increment();
                 }
             });
@@ -246,6 +251,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             .operationCount(operationCount)
             .batchCount(batchesCount.intValue())
             .invalidBatchCount(errorCount.intValue())
+            .message(CollectionUtils.isNotEmpty(messages) ? String.join("\n", messages) : null)
             .executionTime(System.currentTimeMillis() - startTime)
             .build();
     }
