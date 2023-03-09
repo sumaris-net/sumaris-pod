@@ -27,9 +27,12 @@ package net.sumaris.core.config;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
@@ -53,6 +56,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -251,9 +255,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.addAlias("-d", "--option", SumarisConfigurationOption.CLI_DAEMONIZE.getKey(), "true");
         applicationConfig.addAlias("--output", "--option", SumarisConfigurationOption.CLI_OUTPUT_FILE.getKey());
         applicationConfig.addAlias("-f", "--option", SumarisConfigurationOption.CLI_FORCE_OUTPUT.getKey(), "true");
-        applicationConfig.addAlias("--year", "--option", SumarisConfigurationOption.CLI_FILTER_YEAR.getKey());
-        applicationConfig.addAlias("--trip", "--option", SumarisConfigurationOption.CLI_FILTER_TRIP_ID.getKey());
         applicationConfig.addAlias("--program", "--option", SumarisConfigurationOption.CLI_FILTER_PROGRAM_LABEL.getKey());
+        applicationConfig.addAlias("--year", "--option", SumarisConfigurationOption.CLI_FILTER_YEAR.getKey());
+        applicationConfig.addAlias("--trip", "--option", SumarisConfigurationOption.CLI_FILTER_TRIP_IDS.getKey());
+        applicationConfig.addAlias("--operation", "--option", SumarisConfigurationOption.CLI_FILTER_OPERATION_IDS.getKey());
+        // TODO : add --sale, --observed-location --landing
 
     }
 
@@ -908,16 +914,18 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return year == -1 ? null : year;
     }
 
-    public Integer getCliFilterTripId() {
-        int tripId = applicationConfig.getOptionAsInt(SumarisConfigurationOption.CLI_FILTER_TRIP_ID.getKey());
-        return tripId == -1 ? null : tripId;
-    }
-
     public String getCliFilterProgramLabel() {
         String programLabel = applicationConfig.getOption(SumarisConfigurationOption.CLI_FILTER_PROGRAM_LABEL.getKey());
         return StringUtils.isBlank(programLabel) ? null : programLabel;
     }
 
+    public List<Integer> getCliFilterTripIds() {
+        return getConfigurationOptionAsNumbers(SumarisConfigurationOption.CLI_FILTER_TRIP_IDS.getKey());
+    }
+
+    public List<Integer> getCliFilterOperationIds() {
+        return getConfigurationOptionAsNumbers(SumarisConfigurationOption.CLI_FILTER_OPERATION_IDS.getKey());
+    }
 
     /**
      * <p>getLaunchMode.</p>
@@ -1097,5 +1105,40 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         Preconditions.checkArgument(StringUtils.isNotBlank(columnName));
 
         return applicationConfig.getOption("sumaris." + tableName.toUpperCase() + "." + columnName.toUpperCase() + ".defaultValue");
+    }
+
+    public List<Integer> getConfigurationOptionAsNumbers(String optionKey) {
+        List<Integer> result = (List<Integer>) complexOptionsCache.getIfPresent(optionKey);
+
+        // Not exists in cache
+        if (result == null) {
+            String ids = applicationConfig.getOption(optionKey);
+            if (StringUtils.isBlank(ids)) {
+                result = ImmutableList.of();
+            } else {
+                final List<String> invalidIds = Lists.newArrayList();
+                result = Splitter.on(",").omitEmptyStrings().trimResults()
+                    .splitToList(ids)
+                    .stream()
+                    .map(id -> {
+                        try {
+                            return Integer.parseInt(id);
+                        } catch (Exception e) {
+                            invalidIds.add(id);
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+                if (CollectionUtils.isNotEmpty(invalidIds)) {
+                    log.error("Skipping invalid values found in configuration option '{}': {}", optionKey, invalidIds);
+                }
+            }
+
+            // Add to cache
+            complexOptionsCache.put(optionKey, result);
+        }
+        return result;
     }
 }

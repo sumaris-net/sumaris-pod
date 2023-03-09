@@ -62,24 +62,32 @@ public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
 
     private Double indirectElevateWeight;
 
+    private Integer taxonGroupId;
+    private Integer referenceTaxonId;
 
     @JsonIgnore
     public Integer getTaxonGroupId() {
-        return this.getTaxonGroup() != null
-            ? this.getTaxonGroup().getId()
-            : (
+        if (taxonGroupId == null) {
+            taxonGroupId = this.getTaxonGroup() != null
+                ? this.getTaxonGroup().getId()
+                : (
                 this.getInheritedTaxonGroup() != null
-                ? this.getInheritedTaxonGroup().getId()
-                // TODO: return the calculated taxon group ?
-                : null);
+                    ? this.getInheritedTaxonGroup().getId()
+                    // TODO: return the calculated taxon group ?
+                    : null);
+        }
+        return taxonGroupId;
     }
 
     public Integer getReferenceTaxonId() {
-        return this.getTaxonName() != null
-            ? this.getTaxonName().getReferenceTaxonId()
-            : (this.getInheritedTaxonName() != null
+        if (referenceTaxonId == null) {
+            referenceTaxonId = this.getTaxonName() != null
+                ? this.getTaxonName().getReferenceTaxonId()
+                : (this.getInheritedTaxonName() != null
                 ? this.getInheritedTaxonName().getReferenceTaxonId()
                 : null);
+        }
+        return referenceTaxonId;
     }
 
     public boolean hasTaxonGroup() {

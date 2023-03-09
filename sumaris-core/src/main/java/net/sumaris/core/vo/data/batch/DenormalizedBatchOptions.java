@@ -47,22 +47,6 @@ public class DenormalizedBatchOptions {
         return options != null ? options : DEFAULT;
     }
 
-    /**
-     * Allow to create a new builder, from existing source options. Allow to construct new options,
-     * without changing the original source
-     * @param source
-     * @return a new builder
-     */
-    public static DenormalizedBatchOptions.DenormalizedBatchOptionsBuilder toBuilder(@Nullable DenormalizedBatchOptions source) {
-        source = nullToDefault(source);
-        return DenormalizedBatchOptions.builder()
-            .enableTaxonGroup(source.enableTaxonGroup)
-            .enableTaxonName(source.enableTaxonName)
-            .taxonGroupIdsNoWeight(source.taxonGroupIdsNoWeight)
-            .roundWeightCountryLocationId(source.roundWeightCountryLocationId)
-            .fishingAreaLocationIds(source.fishingAreaLocationIds);
-    }
-
     @Builder.Default
     private boolean enableTaxonGroup = true;
 
@@ -72,7 +56,7 @@ public class DenormalizedBatchOptions {
     @Builder.Default
     private boolean enableRtpWeight = false;
 
-    private List<Integer> taxonGroupIdsNoWeight;
+    private Integer[] taxonGroupIdsNoWeight;
 
     private Integer roundWeightCountryLocationId; // Country location, used to find a round weight conversion
 

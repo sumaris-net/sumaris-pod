@@ -1,8 +1,8 @@
-package net.sumaris.core.service.technical;
+package net.sumaris.core.vo.technical.job;
 
 /*-
  * #%L
- * Quadrige3 Core :: Server API
+ * Quadrige3 Core :: Model Shared
  * %%
  * Copyright (C) 2017 - 2022 Ifremer
  * %%
@@ -22,22 +22,12 @@ package net.sumaris.core.service.technical;
  * #L%
  */
 
+import net.sumaris.core.model.technical.job.JobStatusEnum;
 
-import io.reactivex.rxjava3.core.Observable;
-import net.sumaris.core.event.job.JobProgressionVO;
-import net.sumaris.core.model.IProgressionModel;
-import net.sumaris.core.vo.technical.job.JobVO;
+import java.io.Serializable;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.function.Function;
+public interface IWithJobStatusVO extends Serializable {
 
-public interface JobExecutionService {
-    <R> JobVO run(JobVO job, Callable<Object> configurationLoader,
-                  Function<IProgressionModel, Future<R>> asyncMethod);
-
-    <R> JobVO run(JobVO job, Function<IProgressionModel, Future<R>> callableFuture);
-
-    Observable<JobProgressionVO> watchJobProgression(Integer id);
+    JobStatusEnum getStatus();
 
 }

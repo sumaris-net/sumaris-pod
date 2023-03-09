@@ -528,17 +528,23 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Integer.class,
         false),
 
-    CLI_FILTER_TRIP_ID(
-        "sumaris.cli.filter.tripId",
-        n("sumaris.config.option.cli.filter.tripId.description"),
-        "-1",
-        Integer.class,
-        false),
     CLI_FILTER_PROGRAM_LABEL(
         "sumaris.cli.filter.programLabel",
         n("sumaris.config.option.cli.filter.programLabel.description"),
         "",
         String.class,
+        false),
+    CLI_FILTER_TRIP_IDS(
+        "sumaris.cli.filter.tripIds",
+        n("sumaris.config.option.cli.filter.tripIds.description"),
+        "",
+        Integer.class,
+        false),
+    CLI_FILTER_OPERATION_IDS(
+        "sumaris.cli.filter.operationIds",
+        n("sumaris.config.option.cli.filter.operationIds.description"),
+        "",
+        Integer.class,
         false),
     CSV_SEPARATOR(
         "sumaris.csv.separator",

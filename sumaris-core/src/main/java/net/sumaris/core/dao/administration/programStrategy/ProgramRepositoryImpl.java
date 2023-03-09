@@ -172,7 +172,7 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS)
     public ProgramVO getByLabel(String label, ProgramFetchOptions fetchOptions) {
         return super.getByLabel(label, fetchOptions);
     }
@@ -182,8 +182,7 @@ public class ProgramRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))
             .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevelLabels()))
-            .and(hasProperty(filter.getWithProperty()))
-            ;
+            .and(hasProperty(filter.getWithProperty()));
     }
 
     @Override
@@ -273,6 +272,7 @@ public class ProgramRepositoryImpl
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
     })
     public void clearCache() {
@@ -284,6 +284,7 @@ public class ProgramRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         },
         put = {
@@ -356,6 +357,7 @@ public class ProgramRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )

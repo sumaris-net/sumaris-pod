@@ -22,6 +22,10 @@ package net.sumaris.core.service.data.denormalize;
  * #L%
  */
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +53,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service("denormalizeTripService")
 @RequiredArgsConstructor
@@ -74,12 +79,11 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
     }
 
     @Override
-    public DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter, @NonNull IProgressionModel progression) {
+    public DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO tripFilter, @NonNull IProgressionModel progression) {
         long startTime = System.currentTimeMillis();
 
         progression.setCurrent(0);
-        progression.setMessage(String.format("Starting trips denormalization... filter: %s", filter));
-        //log.trace(progression.getMessage());
+        progression.setMessage(String.format("Starting trips denormalization... filter: %s", tripFilter));
 
         TripFetchOptions tripFetchOptions = TripFetchOptions.builder()
             .withChildrenEntities(false)
@@ -87,8 +91,13 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             .withRecorderPerson(false)
             .build();
 
-        long tripTotal = tripService.countByFilter(filter);
+        long tripTotal = tripService.countByFilter(tripFilter);
         progression.setTotal(tripTotal);
+
+        // Create a cache for denormalized options, by programId
+        LoadingCache<Integer, DenormalizedBatchOptions> optionsCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES) // 5 min (if job is very long, the options will be reload)
+            .build(CacheLoader.from(denormalizedBatchService::createOptionsByProgramId));
 
         boolean hasMoreData;
         int offset = 0;
@@ -99,7 +108,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         MutableInt invalidBatchCount = new MutableInt(0);
         do {
             // Fetch some trips
-            List<TripVO> trips = tripService.findAll(filter,
+            List<TripVO> trips = tripService.findAll(tripFilter,
                 offset, pageSize, // Page
                 TripVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
                 tripFetchOptions);
@@ -112,8 +121,20 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
             // Denormalize each trip
             trips.stream()
-                .map(TripVO::getId)
-                .map(this::denormalizeById)
+                .map(trip -> {
+                    // Load denormalized options
+                    DenormalizedBatchOptions programOptions = optionsCache.getUnchecked(trip.getProgram().getId());
+
+                    // Create operations filter, for this trip
+                    OperationFilterVO operationFilter = OperationFilterVO.builder()
+                        .tripId(trip.getId())
+                        .includedIds(tripFilter.getOperationIds())
+                        .hasNoChildOperation(true)
+                        .build();
+
+                    // Denormalize trip's operation
+                    return this.denormalizeOperations(operationFilter, programOptions);
+                })
                 .forEach(result -> {
                     operationCount.add(result.getOperationCount());
                     batchCount.add(result.getBatchCount());
@@ -150,12 +171,31 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
     @Override
     public DenormalizeTripResultVO denormalizeById(int tripId) {
-        long startTime = System.currentTimeMillis();
-        long operationTotal = operationService.countByTripId(tripId);
-
         // Load denormalized options
         int programId = tripService.getProgramIdById(tripId);
         DenormalizedBatchOptions programOptions = denormalizedBatchService.createOptionsByProgramId(programId);
+
+        // Create operation filter, for this trip
+        OperationFilterVO operationFilter = OperationFilterVO.builder()
+            .tripId(tripId)
+            .hasNoChildOperation(true)
+            .build();
+
+        return denormalizeOperations(operationFilter, programOptions);
+    }
+
+    protected DenormalizeTripResultVO denormalizeOperations(@NonNull OperationFilterVO operationFilter,
+                                                            @NonNull DenormalizedBatchOptions baseOptions) {
+        long startTime = System.currentTimeMillis();
+
+        // Make sure to exclude parent operation, because should not have batches
+        // (see "filage" operation in ACOST program)
+        if (operationFilter.getHasNoChildOperation() == false) {
+            operationFilter = operationFilter.clone();
+            operationFilter.setHasNoChildOperation(true);
+        }
+
+        long operationTotal = operationService.countByFilter(operationFilter);
 
         boolean hasMoreData;
         int offset = 0;
@@ -165,10 +205,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
         MutableInt errorCount = new MutableInt(0);
         do {
             // Fetch some operations
-            List<OperationVO> operations = operationService.findAllByFilter(OperationFilterVO.builder()
-                    .tripId(tripId)
-                    .hasNoChildOperation(true) // Exclude parent operation (e.g. filage), because should not have batches
-                    .build(),
+            List<OperationVO> operations = operationService.findAllByFilter(operationFilter,
                 offset, pageSize, // Page
                 OperationVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
                 OperationFetchOptions.builder()
@@ -182,7 +219,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             operations.forEach(operation -> {
                 try {
                     // Prepare options (add fishing area, date, etc.)
-                    DenormalizedBatchOptions options = createOptionsByOperation(operation, programOptions);
+                    DenormalizedBatchOptions options = createOptionsByOperation(operation, baseOptions);
 
                     List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
                     batchesCount.add(CollectionUtils.size(batches));

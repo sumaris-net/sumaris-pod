@@ -54,7 +54,10 @@ public class Numbers {
 
     public static BigDecimal firstNotNullAsBigDecimal(Number... values) {
         for (Number v: values) {
-            if (v != null) return new BigDecimal(v.toString());
+            if (v != null) {
+                if (v instanceof BigDecimal) return (BigDecimal)v;
+                return new BigDecimal(v.doubleValue());
+            }
         }
         return null;
     }

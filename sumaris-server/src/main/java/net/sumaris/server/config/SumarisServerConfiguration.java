@@ -22,14 +22,10 @@
 
 package net.sumaris.server.config;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.server.http.security.AuthTokenTypeEnum;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.version.Version;
@@ -38,9 +34,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
 
 /**
  * <p>SumarisServerConfiguration class.</p>
@@ -95,41 +89,6 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public SumarisServerConfiguration(ConfigurableEnvironment env, String... args) {
         super(env, args);
-    }
-
-    public List<Integer> getConfigurationOptionAsNumbers(String optionKey) {
-        List<Integer> result = (List<Integer>) complexOptionsCache.getIfPresent(optionKey);
-
-        // Not exists in cache
-        if (result == null) {
-            String ids = applicationConfig.getOption(optionKey);
-            if (StringUtils.isBlank(ids)) {
-                result = ImmutableList.of();
-            } else {
-                final List<String> invalidIds = Lists.newArrayList();
-                result = Splitter.on(",").omitEmptyStrings().trimResults()
-                        .splitToList(ids)
-                        .stream()
-                        .map(id -> {
-                            try {
-                                return Integer.parseInt(id);
-                            } catch (Exception e) {
-                                invalidIds.add(id);
-                                return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-
-                if (CollectionUtils.isNotEmpty(invalidIds)) {
-                    log.error("Skipping invalid values found in configuration option '{}': {}", optionKey, invalidIds);
-                }
-            }
-
-            // Add to cache
-            complexOptionsCache.put(optionKey, result);
-        }
-        return result;
     }
 
     public List<Integer> getAccessNotSelfDataDepartmentIds() {

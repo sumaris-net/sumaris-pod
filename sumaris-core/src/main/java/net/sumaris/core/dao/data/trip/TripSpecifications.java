@@ -27,14 +27,17 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationHierarchy;
+import net.sumaris.core.util.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ListJoin;
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -50,6 +53,7 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
 
     String OBSERVED_LOCATION_ID_PARAM = "observedLocationId";
 
+    String OPERATION_IDS_PARAM = "operationIds";
     default Specification<Trip> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
@@ -143,5 +147,19 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
                 return cb.in(root.get(Trip.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
             })
             .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
+    }
+
+
+    default  Specification<Trip> withOperationIds(Integer[] operationIds) {
+        if (ArrayUtils.isEmpty(operationIds)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, OPERATION_IDS_PARAM);
+            Subquery<Operation> subQuery = query.subquery(Operation.class);
+            Root<Operation> operation = subQuery.from(Operation.class);
+            subQuery.select(operation.get(Operation.Fields.TRIP).get(Operation.Fields.ID));
+            subQuery.where(cb.in(operation.get(Operation.Fields.ID)).value(param));
+            return cb.in(root.get(IEntity.Fields.ID)).value(subQuery);
+        }).addBind(OPERATION_IDS_PARAM, Arrays.asList(operationIds));
     }
 }

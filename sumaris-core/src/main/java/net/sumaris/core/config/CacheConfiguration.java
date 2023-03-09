@@ -43,6 +43,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -82,6 +83,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Program
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
+        String PROGRAM_BY_LABEL_AND_OPTIONS = "net.sumaris.core.dao.administration.programStrategy.programByLabelAndOptions";
         String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
 
         // Program privilege
@@ -180,6 +182,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Program
             Caches.createHeapCache(cacheManager, Names.PROGRAM_BY_ID, Integer.class, ProgramVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL, String.class, ProgramVO.class, 100);
+            Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL_AND_OPTIONS, SimpleKey.class, ProgramVO.class, 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
             Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
 

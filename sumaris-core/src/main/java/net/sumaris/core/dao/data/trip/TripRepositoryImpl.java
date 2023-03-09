@@ -79,6 +79,7 @@ public class TripRepositoryImpl
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(hasQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(withOperationIds(filter.getOperationIds()))
             ;
     }
 

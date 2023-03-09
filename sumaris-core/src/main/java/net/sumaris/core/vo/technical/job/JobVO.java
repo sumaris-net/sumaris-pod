@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
@@ -63,6 +64,9 @@ public class JobVO implements
     private String issuer;
 
     private Date updateDate;
+
+    @JsonIgnore
+    private IProgressionModel progressionModel;
 
     @Override
     public int compareTo(JobVO o) {

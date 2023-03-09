@@ -43,9 +43,10 @@ public class DenormalizeTripsAction {
 
         // Create filter
         TripFilterVO.TripFilterVOBuilder filterBuilder = TripFilterVO.builder()
-            .tripId(config.getCliFilterTripId())
-            .programLabel(config.getCliFilterProgramLabel())
-            ;
+            .includedIds(config.getCliFilterTripIds().toArray(Integer[]::new))
+            .operationIds(config.getCliFilterOperationIds().toArray(Integer[]::new))
+            .programLabel(config.getCliFilterProgramLabel());
+
         Integer year = config.getCliFilterYear();
         if (year != null && year > 1970) {
             filterBuilder.startDate(Dates.getFirstDayOfYear(year))

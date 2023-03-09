@@ -509,7 +509,7 @@ public class Beans {
                     PropertyDescriptor targetDescriptor = targetProperties.get(pd.getName());
                     boolean ignored = targetDescriptor == null
                         || !targetDescriptor.getPropertyType().isAssignableFrom(pd.getPropertyType())
-                        || Collection.class.isAssignableFrom(pd.getPropertyType())
+                        || Collection.class.isAssignableFrom(pd.getPropertyType()) // Ignore List, Collection, etc
                         || targetDescriptor.getWriteMethod() == null;
                     return ignored;
                 })
