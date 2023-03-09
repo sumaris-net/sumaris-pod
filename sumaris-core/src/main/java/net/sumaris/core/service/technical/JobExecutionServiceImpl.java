@@ -161,6 +161,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                                Function<IProgressionModel, Future<R>> callableFuture) {
         final int jobId = job.getId();
 
+        // Publish job start event
+        publisher.publishEvent(new JobStartEvent(jobId, job));
+
         // Create progression model and listener to throttle events
         ProgressionModel progressionModel = new ProgressionModel();
         job.setProgressionModel(progressionModel);
@@ -199,9 +202,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             R result = null;
 
             try {
-
-                // Publish job start event
-                publisher.publishEvent(new JobStartEvent(jobId, job));
 
                 // Start job
                 Future<R> resultFuture = callableFuture.apply(progressionModel);
