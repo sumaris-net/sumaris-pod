@@ -35,6 +35,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.annotation.EntityEnums;
@@ -233,13 +234,25 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                     }
 
                     // Inherit sorting values
-                    Beans.getStream(parent.getSortingValues()).forEach(svSource -> {
-                        DenormalizedBatchSortingValueVO svTarget = new DenormalizedBatchSortingValueVO();
-                        Beans.copyProperties(svSource, svTarget);
-                        svTarget.setIsInherited(true);
-                        svTarget.setRankOrder(svSource.getRankOrder() / 10);
-                        target.addSortingValue(svTarget);
-                    });
+                    Beans.getStream(parent.getSortingValues())
+                        .forEach(svSource -> {
+                            // Make sure sorting value not already exists
+                            Beans.getStream(target.getSortingValues())
+                                .filter(svTarget -> Objects.equals(svTarget.getPmfmId(), svSource.getPmfmId()))
+                                .findFirst()
+                                .ifPresentOrElse(svTarget -> {
+                                    Beans.copyProperties(svSource, svTarget, IEntity.Fields.ID);
+                                    svTarget.setIsInherited(true);
+                                    svTarget.setRankOrder(svSource.getRankOrder() / 10);
+                                },
+                                () -> {
+                                    DenormalizedBatchSortingValueVO svTarget = new DenormalizedBatchSortingValueVO();
+                                    Beans.copyProperties(svSource, svTarget, IEntity.Fields.ID);
+                                    svTarget.setIsInherited(true);
+                                    svTarget.setRankOrder(svSource.getRankOrder() / 10);
+                                    target.addSortingValue(svTarget);
+                                });
+                        });
 
                     // Compute Alive weight, on leaf batch
                     // (to be able to compute indirect alive weight later)

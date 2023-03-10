@@ -385,6 +385,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
 
             DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+
+            // TODO Avoid to denormalize if already done ?
             denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
                     .programLabel(programLabel)
                     .includedIds(operationIds)
@@ -408,11 +410,14 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Clean row using generic filter
         long count = countFrom(tableName);
         if (count > 0) {
-            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
         // Add as a raw table (to be able to clean it later)
         context.addRawTableName(tableName);
+
+        // DEBUG
+        //context.addTableName(tableName, "RSL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }
@@ -427,6 +432,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+        xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
+
 
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
@@ -449,7 +456,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Clean row using generic filter
         if (count > 0) {
-            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
         // Add result table to context

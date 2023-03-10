@@ -27,13 +27,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
-public class DenormalizedBatchSortingValueVO {
+public class DenormalizedBatchSortingValueVO implements IValueObject<Integer> {
     @EqualsAndHashCode.Exclude
     private Integer id;
 
@@ -53,5 +54,7 @@ public class DenormalizedBatchSortingValueVO {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private DenormalizedBatchVO batch;
+
+    private Integer batchId;
 
 }
