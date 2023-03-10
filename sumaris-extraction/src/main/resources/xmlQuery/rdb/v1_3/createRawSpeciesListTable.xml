@@ -58,7 +58,10 @@
     <!-- Permet la répartition par taxons/length code, sous l'espèce comemrciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
     <select alias="SUBSAMPLING_WEIGHT" type="number">
       SPECIE_B.ELEVATE_WEIGHT * SAMPLING_B.SAMPLING_RATIO
-      * COALESCE(SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SUM(COALESCE(SAMPLING_B.ELEVATE_RTP_WEIGHT, SPECIE_B.ELEVATE_RTP_WEIGHT)), 1)
+      * COALESCE(
+          SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SUM(COALESCE(SAMPLING_B.ELEVATE_RTP_WEIGHT, SPECIE_B.ELEVATE_RTP_WEIGHT)),
+          1
+        )
     </select>
     <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
 

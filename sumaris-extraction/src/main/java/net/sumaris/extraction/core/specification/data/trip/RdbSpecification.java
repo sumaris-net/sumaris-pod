@@ -62,7 +62,7 @@ public interface RdbSpecification {
     String[] SHEET_NAMES = {
             TR_SHEET_NAME,
             HH_SHEET_NAME,
-            //"RSL",
+            //"RAW_SL",
             SL_SHEET_NAME,
             HL_SHEET_NAME,
             // CA_SHEET_NAME

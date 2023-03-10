@@ -385,6 +385,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
 
             DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+            // DEBUG
+            //options.setEnableRtpWeight(false);
 
             // TODO Avoid to denormalize if already done ?
             denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
@@ -417,7 +419,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.addRawTableName(tableName);
 
         // DEBUG
-        //context.addTableName(tableName, "RSL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        //context.addTableName(tableName, "RAW_SL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }
