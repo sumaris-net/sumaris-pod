@@ -51,6 +51,11 @@ public interface ITreeNodeEntity<ID extends Serializable, E extends IEntity<ID>>
     }
 
     @JsonIgnore
+    default boolean isLeaf() {
+        return CollectionUtils.isEmpty(getChildren());
+    }
+
+    @JsonIgnore
     default boolean hasParent() {
         return getParent() != null;
     }

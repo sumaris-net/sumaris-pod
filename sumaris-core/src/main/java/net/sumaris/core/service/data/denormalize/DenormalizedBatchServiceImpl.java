@@ -1,10 +1,8 @@
-package net.sumaris.core.service.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,6 +20,7 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+package net.sumaris.core.service.data.denormalize;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -48,6 +47,8 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
+import net.sumaris.core.service.data.OperationService;
+import net.sumaris.core.service.data.SaleService;
 import net.sumaris.core.service.referential.conversion.RoundWeightConversionService;
 import net.sumaris.core.service.referential.conversion.WeightLengthConversionService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
@@ -146,18 +147,22 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             Preconditions.checkArgument(canEnableRtpWeight, I18n.t("sumaris.error.denormalization.batch.cannotEnableRtpWeight", "See startup error"));
 
             // Check options
+            Preconditions.checkNotNull(options.getDateTime(), "Required options.dateTime when RTP weight enabled");
             Preconditions.checkNotNull(options.getRoundWeightCountryLocationId(), "Required options.roundWeightCountryLocationId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultLandingDressingId(), "Required options.defaultLandingDressingId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultDiscardDressingId(), "Required options.defaultDiscardDressingId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultLandingPreservationId(), "Required options.defaultLandingPreservationId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultDiscardDressingId(), "Required options.defaultDiscardDressingId when RTP weight enabled");
+
         }
 
         long startTime = System.currentTimeMillis();
         final MutableShort flatRankOrder = new MutableShort(0);
 
-        List<DenormalizedBatchVO> result = TreeNodeEntities.<BatchVO, DenormalizedBatchVO>streamAllAndMap(catchBatch, (source, parent) -> {
+        List<DenormalizedBatchVO> result = TreeNodeEntities.<BatchVO, DenormalizedBatchVO>streamAllAndMap(catchBatch, (source, p) -> {
                 TempDenormalizedBatchVO target = createTempVO(source);
+                TempDenormalizedBatchVO parent = p != null ? (TempDenormalizedBatchVO)p : null;
+                boolean isLeaf = source.isLeaf(); // Do not use 'target', because children are added later
 
                 // Add to parent's children
                 if (parent != null) parent.addChildren(target);
@@ -213,11 +218,6 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         }
                     }
 
-                    Double parentAliveWeight = ((TempDenormalizedBatchVO)parent).getAliveWeightFactor();
-                    if (parentAliveWeight != null) {
-                        target.setAliveWeightFactor(parentAliveWeight);
-                    }
-
                     // If current quality is invalid
                     if (QualityFlags.isInvalid(target.getQualityFlagId())) {
                         // Force both parent and current parent exhaustive inventory to FALSE
@@ -241,11 +241,13 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         target.addSortingValue(svTarget);
                     });
 
-                    // Compute alive weight factor
-                    if (target.getAliveWeightFactor() == null && target.hasTaxonGroup()) {
-                        computeAliveWeightFactor(target, options)
+                    // Compute Alive weight, on leaf batch
+                    // (to be able to compute indirect alive weight later)
+                    if (isLeaf) {
+                        computeAliveWeightFactor(target, options, true)
                             .ifPresent(target::setAliveWeightFactor);
                     }
+
                 }
 
                 return target;
@@ -401,13 +403,18 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             .map(TaxonGroupVO::getId)
             .toArray(Integer[]::new);
 
+        Integer roundWeightConversionCountryId = Programs.getPropertyAsInteger(program, ProgramPropertyEnum.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+
+        if (roundWeightConversionCountryId == null || roundWeightConversionCountryId < 0) {
+            log.warn("Missing or invalid value for program property '{}'. Will not be able to compute round weight, in batch denormalization!", ProgramPropertyEnum.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.getKey());
+        }
 
         return DenormalizedBatchOptions.builder()
             .taxonGroupIdsNoWeight(taxonGroupIdsNoWeight)
             .enableTaxonName(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE))
             .enableTaxonGroup(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUP_ENABLE))
             .enableRtpWeight(canEnableRtpWeight && Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE))
-            .roundWeightCountryLocationId(Programs.getPropertyAsInteger(program, ProgramPropertyEnum.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID))
+            .roundWeightCountryLocationId(roundWeightConversionCountryId)
             .build();
     }
 
@@ -500,10 +507,17 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 changed = changed || !Objects.equals(indirectIndividualCount, batch.getIndirectIndividualCountDecimal());
                 batch.setIndirectIndividualCountDecimal(indirectIndividualCount);
 
-                // Contextual weight
-                //Double contextWeight = computeContextWeight(target);
-                //changed = changed || !Objects.equals(contextWeight, target.getContextWeight());
-                //target.setContextWeight(contextWeight);
+                // Compute alive weight factor
+                if (batch.isLeaf()) {
+                    Double aliveWeightFactor = computeAliveWeightFactor(batch, options, batch.isLeaf()).orElse(null);
+                    changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
+                    batch.setAliveWeightFactor(aliveWeightFactor);
+                }
+                else {
+                    Double aliveWeightFactor = computeIndirectAliveWeightFactor(batch, options);
+                    changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
+                    batch.setAliveWeightFactor(aliveWeightFactor);
+                }
 
                 if (changed) changesCount.increment();
             });
@@ -718,7 +732,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 }
 
                 // Check weight = 0 AND individual
-                boolean zeroWeightWithIndividual = batch.getElevateWeight() == 0d && batch.getElevateIndividualCount() > 0;
+                boolean zeroWeightWithIndividual = batch.getElevateWeight() != null && batch.getElevateWeight() == 0d && batch.getElevateIndividualCount() > 0;
                 if (zeroWeightWithIndividual) {
                     String message = String.format("Invalid batch {id: %s, label: '%s'}: elevateWeight=0 but elevateIndividualCount > 0",
                         batch.getId(), batch.getLabel());
@@ -1188,7 +1202,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                                                                DenormalizedBatchOptions options,
                                                                BigDecimal aliveWeight) {
         // Apply inverse conversion (alive weight / conversion factor)
-        return computeAliveWeightFactor(batch, options)
+        return computeAliveWeightFactor(batch, options, batch.isLeaf())
             .map(conversionFactor -> {
 
                 // Check conversion is not negative or zero (should never occur)
@@ -1203,10 +1217,10 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
     }
 
     protected Optional<Double> computeAliveWeightFactor(TempDenormalizedBatchVO batch,
-                                                        DenormalizedBatchOptions options) {
+                                                        DenormalizedBatchOptions options,
+                                                        boolean applyDressingAndPreservationDefaults) {
 
         if (batch.getAliveWeightFactor() != null) return Optional.of(batch.getAliveWeightFactor());
-
 
         Integer taxonGroupId = batch.getTaxonGroupId();
         if (taxonGroupId == null) return Optional.empty();
@@ -1217,17 +1231,16 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             return Optional.empty();
         }
 
-        boolean isLeaf = !batch.hasChildren();
-
         // Get dressing, or 'WHL - Whole' by default
         Integer dressingId = DenormalizedBatches.getDressingId(batch)
             .orElseGet(() -> {
-                // On leaf batch: apply default
-                if (isLeaf) {
-                    return batch.getIsLanding()
+                // Apply defaults
+                if (applyDressingAndPreservationDefaults) {
+                    return Boolean.TRUE.equals(batch.getIsLanding())
                         ? options.getDefaultLandingDressingId()
-                        : batch.getIsDiscard() ? options.getDefaultDiscardDressingId()
-                        : QualitativeValueEnum.DRESSING_WHOLE.getId();
+                        : Boolean.TRUE.equals(batch.getIsDiscard())
+                            ? options.getDefaultDiscardDressingId()
+                            : QualitativeValueEnum.DRESSING_WHOLE.getId();
                 }
                 return null;
             });
@@ -1235,18 +1248,19 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         // Get preservation, or 'FRE - Fresh' by default
         Integer preservationId = DenormalizedBatches.getPreservationId(batch)
             .orElseGet(() -> {
-                // On leaf batch: apply default
-                if (isLeaf) {
-                    return batch.getIsLanding()
+                // Apply default preservation
+                if (applyDressingAndPreservationDefaults) {
+                    return Boolean.TRUE.equals(batch.getIsLanding())
                         ? options.getDefaultLandingPreservationId()
-                        : batch.getIsDiscard() ? options.getDefaultDiscardPreservationId()
-                        : QualitativeValueEnum.PRESERVATION_FRESH.getId();
+                        : Boolean.TRUE.equals(batch.getIsDiscard())
+                            ? options.getDefaultDiscardPreservationId()
+                            : QualitativeValueEnum.PRESERVATION_FRESH.getId();
                 }
                 return null;
             });
 
         // Skip (e.g. if enableDefaultsDressingAndPreservation is 'false')
-        if (preservationId==null || dressingId == null) return Optional.empty();
+        if (dressingId == null || preservationId == null) return Optional.empty();
 
         // Find the best conversion coefficient
         Optional<RoundWeightConversionVO> conversion = roundWeightConversionService.findFirstByFilter(RoundWeightConversionFilterVO.builder()
@@ -1267,6 +1281,32 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
 
         return conversion.map(RoundWeightConversionVO::getConversionCoefficient);
+    }
+
+    protected Double computeIndirectAliveWeightFactor(TempDenormalizedBatchVO batch, DenormalizedBatchOptions options) {
+        if (batch.getAliveWeightFactor() != null) return batch.getAliveWeightFactor();
+
+        // No taxon group, or no child => no indirect value
+        if (!batch.hasTaxonGroup() || !batch.hasChildren() || !DenormalizedBatches.isExhaustiveInventory(batch)) return null;
+
+        // Collect all children factors
+        List<Double> childAliveFactors = batch.getChildren()
+            .stream()
+            .map(child -> computeIndirectAliveWeightFactor((TempDenormalizedBatchVO) child, options))
+            .toList();
+
+        // Peek the first value (should be not null)
+        Double firstAliveFactor = childAliveFactors.get(0);
+        if (firstAliveFactor == null) return null;
+
+        // Check same value on each child. If not: return empty (cannot compute indirect value)
+        boolean alwaysSameValue = childAliveFactors.size() == 1 || !childAliveFactors.stream().anyMatch(value -> !firstAliveFactor.equals(value));
+        if (!alwaysSameValue) {
+            log.trace("No indirect alive weight. No unique value found in children");
+            return null;
+        }
+
+        return firstAliveFactor;
     }
 
     private void checkBaseEnumerations() {

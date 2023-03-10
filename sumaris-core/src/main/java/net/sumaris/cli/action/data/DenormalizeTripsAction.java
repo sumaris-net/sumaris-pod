@@ -27,7 +27,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.service.ServiceLocator;
-import net.sumaris.core.service.data.denormalize.DenormalizeTripService;
+import net.sumaris.core.service.data.denormalize.DenormalizedTripService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
@@ -39,7 +39,7 @@ public class DenormalizeTripsAction {
      */
     public void run() {
         SumarisConfiguration config = SumarisConfiguration.getInstance();
-        DenormalizeTripService tripService = ServiceLocator.instance().getService("denormalizeTripService", DenormalizeTripService.class);
+        DenormalizedTripService tripService = ServiceLocator.instance().getService("denormalizeTripService", DenormalizedTripService.class);
 
         // Create filter
         TripFilterVO.TripFilterVOBuilder filterBuilder = TripFilterVO.builder()

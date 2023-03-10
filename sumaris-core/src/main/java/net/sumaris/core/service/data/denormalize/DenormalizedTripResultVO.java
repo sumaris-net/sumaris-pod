@@ -31,7 +31,7 @@ import java.io.Serializable;
 
 @Data
 @Builder
-public class DenormalizeTripResultVO implements IJobResultVO, Serializable {
+public class DenormalizedTripResultVO implements IJobResultVO, Serializable {
 
     private long tripCount;
     private long operationCount;

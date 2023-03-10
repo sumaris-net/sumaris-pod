@@ -33,19 +33,19 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
-public class DenormalizeTripServiceTest extends AbstractServiceTest{
+public class DenormalizedTripServiceTest extends AbstractServiceTest{
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private DenormalizeTripService service;
+    private DenormalizedTripService service;
 
     @Test
     public void denormalizeById() {
 
         long startTime = System.currentTimeMillis();
-        DenormalizeTripResultVO result = service.denormalizeById(fixtures.getTripIdWithBatches());
+        DenormalizedTripResultVO result = service.denormalizeById(fixtures.getTripIdWithBatches());
 
         // Observers
         Assert.assertNotNull(result);
@@ -57,7 +57,7 @@ public class DenormalizeTripServiceTest extends AbstractServiceTest{
     @Test
     public void denormalizeByFilter() {
 
-        DenormalizeTripResultVO result = service.denormalizeByFilter(TripFilterVO.builder()
+        DenormalizedTripResultVO result = service.denormalizeByFilter(TripFilterVO.builder()
             .tripId(fixtures.getTripIdWithBatches())
             .build());
 

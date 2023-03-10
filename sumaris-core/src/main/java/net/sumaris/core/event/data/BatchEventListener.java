@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.event.entity.EntityEventService;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.Batch;
-import net.sumaris.core.service.data.DenormalizedBatchService;
+import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

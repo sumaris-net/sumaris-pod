@@ -42,6 +42,8 @@ public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
 
     private Double aliveWeightFactor;
 
+    private Double indirectAliveWeightFactor;
+
     // Individual count
     private BigDecimal indirectIndividualCountDecimal;
 

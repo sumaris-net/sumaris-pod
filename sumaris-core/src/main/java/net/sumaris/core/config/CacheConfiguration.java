@@ -122,7 +122,6 @@ public class CacheConfiguration extends CachingConfigurerSupport {
 
         String ROUND_WEIGHT_CONVERSION_FIRST_BY_FILTER = "net.sumaris.core.service.referential.conversion.roundWeightConversion.findFirstByFilter";
 
-
         // Vessel
         String VESSEL_SNAPSHOT_BY_ID_AND_DATE = "net.sumaris.core.service.data.vessel.vesselSnapshotByIdAndDate";
         String VESSEL_SNAPSHOTS_BY_FILTER = "net.sumaris.core.service.data.vessel.vesselSnapshotByFilter";
@@ -136,6 +135,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Other
         String GEAR_BY_ID = "net.sumaris.core.dao.referential.gear.gearById";
         String ANALYTIC_REFERENCES_BY_FILTER = "net.sumaris.core.dao.referential.analyticReferenceByFilter";
+
 
         // Data
         String MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID = "net.sumaris.core.dao.data.operation.mainUndefinedOperationGroupId";

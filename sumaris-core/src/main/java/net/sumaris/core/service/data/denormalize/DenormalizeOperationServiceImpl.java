@@ -22,7 +22,6 @@ package net.sumaris.core.service.data.denormalize;
  * #L%
  */
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -33,19 +32,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.Positions;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisBusinessException;
-import net.sumaris.core.model.IProgressionModel;
-import net.sumaris.core.model.ProgressionModel;
-import net.sumaris.core.service.data.DenormalizedBatchService;
 import net.sumaris.core.service.data.OperationService;
-import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -53,15 +46,17 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Service("denormalizeTripService")
+@Service("denormalizeOperationService")
 @RequiredArgsConstructor
 @Slf4j
-public class DenormalizeTripServiceImpl implements DenormalizeTripService {
-
-    private final TripService tripService;
+public class DenormalizeOperationServiceImpl implements DenormalizedOperationService {
 
     private final DenormalizedBatchService denormalizedBatchService;
 
@@ -69,129 +64,41 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
 
     private final LocationService locationService;
 
+    // Create a cache for denormalized options, by programId
+    private LoadingCache<Integer, DenormalizedBatchOptions> optionsByProgramIdCache;
 
-    @Override
-    public DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter) {
-        ProgressionModel progress = new ProgressionModel();
-        progress.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, (event) -> {
-            if (event.getNewValue() != null) log.debug(event.getNewValue().toString());
-        });
-        return denormalizeByFilter(filter, new ProgressionModel());
-    }
+    private LoadingCache<String, DenormalizedBatchOptions> optionsByProgramLabelCache;
 
-    @Override
-    public DenormalizeTripResultVO denormalizeByFilter(@NonNull TripFilterVO tripFilter, @NonNull IProgressionModel progression) {
-        long startTime = System.currentTimeMillis();
-
-        progression.setCurrent(0);
-        progression.setMessage(String.format("Starting trips denormalization... filter: %s", tripFilter));
-
-        TripFetchOptions tripFetchOptions = TripFetchOptions.builder()
-            .withChildrenEntities(false)
-            .withMeasurementValues(false)
-            .withRecorderPerson(false)
-            .build();
-
-        long tripTotal = tripService.countByFilter(tripFilter);
-        progression.setTotal(tripTotal);
-
+    @PostConstruct
+    protected void init() {
         // Create a cache for denormalized options, by programId
-        LoadingCache<Integer, DenormalizedBatchOptions> optionsCache = CacheBuilder.newBuilder()
+        optionsByProgramIdCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5, TimeUnit.MINUTES) // 5 min (if job is very long, the options will be reload)
             .build(CacheLoader.from(denormalizedBatchService::createOptionsByProgramId));
 
-        boolean hasMoreData;
-        int offset = 0;
-        int pageSize = 10;
-        int tripCount = 0;
-        MutableInt operationCount = new MutableInt(0);
-        MutableInt batchCount = new MutableInt(0);
-        MutableInt invalidBatchCount = new MutableInt(0);
-        do {
-            // Fetch some trips
-            List<TripVO> trips = tripService.findAll(tripFilter,
-                offset, pageSize, // Page
-                TripVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
-                tripFetchOptions);
+        // Create a cache for denormalized options, by programLabel
+        optionsByProgramLabelCache = CacheBuilder.newBuilder()
+            .expireAfterWrite(5, TimeUnit.MINUTES) // 5 min (if job is very long, the options will be reload)
+            .build(CacheLoader.from(denormalizedBatchService::createOptionsByProgramLabel));
 
-            if (offset > 0 && offset % (pageSize * 2) == 0) {
-                progression.setCurrent(offset);
-                progression.setMessage(String.format("Processing trips denormalization... %s/%s", offset, tripTotal));
-                //log.trace(progression.getMessage());
-            }
-
-            // Denormalize each trip
-            trips.stream()
-                .map(trip -> {
-                    // Load denormalized options
-                    DenormalizedBatchOptions programOptions = optionsCache.getUnchecked(trip.getProgram().getId());
-
-                    // Create operations filter, for this trip
-                    OperationFilterVO operationFilter = OperationFilterVO.builder()
-                        .tripId(trip.getId())
-                        .includedIds(tripFilter.getOperationIds())
-                        .hasNoChildOperation(true)
-                        .build();
-
-                    // Denormalize trip's operation
-                    return this.denormalizeOperations(operationFilter, programOptions);
-                })
-                .forEach(result -> {
-                    operationCount.add(result.getOperationCount());
-                    batchCount.add(result.getBatchCount());
-                    invalidBatchCount.add(result.getInvalidBatchCount());
-                });
-
-            offset += pageSize;
-            tripCount += trips.size();
-            hasMoreData = trips.size() >= pageSize;
-            if (tripCount > tripTotal) {
-                tripTotal = tripCount;
-                progression.adaptTotal(tripTotal);
-            }
-        } while (hasMoreData);
-
-        // Success log
-        progression.setCurrent(tripCount);
-        progression.setMessage(String.format("Trips denormalization finished, in %s - %s trips, %s operations, %s batches - %s invalid batch tree (skipped)",
-            TimeUtils.printDurationFrom(startTime),
-            tripCount,
-            operationCount,
-            batchCount,
-            invalidBatchCount));
-        //log.debug(progression.getMessage());
-
-        return DenormalizeTripResultVO.builder()
-            .tripCount(tripCount)
-            .operationCount(operationCount.intValue())
-            .batchCount(batchCount.intValue())
-            .invalidBatchCount(invalidBatchCount.intValue())
-            .executionTime(System.currentTimeMillis() - startTime)
-            .build();
+    }
+    @Override
+    public DenormalizedBatchOptions createOptionsByProgramId(int programId) {
+        return optionsByProgramIdCache.getUnchecked(programId);
+    }
+    @Override
+    public DenormalizedBatchOptions createOptionsByProgramLabel(String programLabel) {
+        return optionsByProgramLabelCache.getUnchecked(programLabel);
     }
 
     @Override
-    public DenormalizeTripResultVO denormalizeById(int tripId) {
-        // Load denormalized options
-        int programId = tripService.getProgramIdById(tripId);
-        DenormalizedBatchOptions programOptions = denormalizedBatchService.createOptionsByProgramId(programId);
-
-        // Create operation filter, for this trip
-        OperationFilterVO operationFilter = OperationFilterVO.builder()
-            .tripId(tripId)
-            .hasNoChildOperation(true)
-            .build();
-
-        return denormalizeOperations(operationFilter, programOptions);
-    }
-
-    protected DenormalizeTripResultVO denormalizeOperations(@NonNull OperationFilterVO operationFilter,
-                                                            @NonNull DenormalizedBatchOptions baseOptions) {
+    public DenormalizedTripResultVO denormalizeByFilter(@NonNull OperationFilterVO operationFilter,
+                                                        @NonNull DenormalizedBatchOptions baseOptions) {
         long startTime = System.currentTimeMillis();
 
         // Make sure to exclude parent operation, because should not have batches
         // (see "filage" operation in ACOST program)
-        if (operationFilter.getHasNoChildOperation() == false) {
+        if (operationFilter.getHasNoChildOperation() == null || !operationFilter.getHasNoChildOperation()) {
             operationFilter = operationFilter.clone();
             operationFilter.setHasNoChildOperation(true);
         }
@@ -246,7 +153,7 @@ public class DenormalizeTripServiceImpl implements DenormalizeTripService {
             }
         } while (hasMoreData);
 
-        return DenormalizeTripResultVO.builder()
+        return DenormalizedTripResultVO.builder()
             .tripCount(1)
             .operationCount(operationCount)
             .batchCount(batchesCount.intValue())

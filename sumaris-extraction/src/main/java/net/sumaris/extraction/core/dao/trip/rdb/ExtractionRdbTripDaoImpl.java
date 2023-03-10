@@ -40,13 +40,15 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.service.data.DenormalizedBatchService;
+import net.sumaris.core.service.data.denormalize.DenormalizedOperationService;
+import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
+import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
@@ -103,6 +105,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     @Autowired
     protected DenormalizedBatchService denormalizedBatchService;
+    @Autowired
+    protected DenormalizedOperationService denormalizedOperationService;
 
     @Override
     public Set<IExtractionType> getManagedTypes() {
@@ -376,11 +380,16 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         String stationsTableName = context.getStationTableName();
         List<String> programLabels = getTripProgramLabels(context);
         programLabels.forEach(programLabel -> {
-            DenormalizedBatchOptions options = denormalizedBatchService.createOptionsByProgramLabel(programLabel);
             String sql = String.format("SELECT distinct %s from %s where %s='%s'",
                     RdbSpecification.COLUMN_STATION_NUMBER, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
-            query(sql, Integer.class)
-                    .forEach(operationId -> denormalizedBatchService.denormalizeAndSaveByOperationId(operationId, options));
+            Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
+
+            DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+            denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
+                    .programLabel(programLabel)
+                    .includedIds(operationIds)
+                    .hasNoChildOperation(true)
+                    .build(), options);
         });
     }
 
