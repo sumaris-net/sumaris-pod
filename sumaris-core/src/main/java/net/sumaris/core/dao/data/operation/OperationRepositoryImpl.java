@@ -329,7 +329,9 @@ public class OperationRepositoryImpl
             .and(inPhysicalGearIds(filter.getPhysicalGearIds()))
             .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
             .and(hasQualityFlagIds(filter.getQualityFlagIds()))
-            .and(inDataQualityStatus(filter.getDataQualityStatus()));
+            .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(needBatchDenormalization(filter.getNeedBatchDenormalization()))
+            ;
     }
 
     @Override

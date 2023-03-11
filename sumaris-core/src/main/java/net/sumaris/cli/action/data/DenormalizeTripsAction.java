@@ -29,6 +29,7 @@ import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.data.denormalize.DenormalizedTripService;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.sound.SoundUtils;
 import net.sumaris.core.vo.filter.TripFilterVO;
 
 @Slf4j
@@ -58,5 +59,7 @@ public class DenormalizeTripsAction {
         progression.addPropertyChangeListener(IProgressionModel.Fields.MESSAGE, (event) -> log.info(progression.getMessage()));
         tripService.denormalizeByFilter(filterBuilder.build(), progression);
 
+        // Play a beep
+        SoundUtils.playWaiting(2);
     }
 }

@@ -1,0 +1,40 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-2.1.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-400">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.extraction.batch.denormalization.enable' AND SOFTWARE_FK=2
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="SOFTWARE_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
+            <column name="LABEL" value="sumaris.extraction.batch.denormalization.enable"/>
+            <column name="NAME" value="true"/>
+            <column name="SOFTWARE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
+    </changeSet>
+</databaseChangeLog>

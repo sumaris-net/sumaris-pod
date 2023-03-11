@@ -96,12 +96,14 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
                                                         @NonNull DenormalizedBatchOptions baseOptions) {
         long startTime = System.currentTimeMillis();
 
+        operationFilter = operationFilter.clone();
+
         // Make sure to exclude parent operation, because should not have batches
         // (see "filage" operation in ACOST program)
-        if (operationFilter.getHasNoChildOperation() == null || !operationFilter.getHasNoChildOperation()) {
-            operationFilter = operationFilter.clone();
-            operationFilter.setHasNoChildOperation(true);
-        }
+        operationFilter.setHasNoChildOperation(true);
+
+        // Select only operation that should be update (if not force)
+        operationFilter.setNeedBatchDenormalization(!baseOptions.isForce());
 
         long operationTotal = operationService.countByFilter(operationFilter);
 
@@ -113,48 +115,48 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
         MutableInt errorCount = new MutableInt(0);
         List<String> messages = Lists.newArrayList();
 
-        do {
-            // Fetch some operations
-            List<OperationVO> operations = operationService.findAllByFilter(operationFilter,
-                offset, pageSize, // Page
-                OperationVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
-                OperationFetchOptions.builder()
-                    .withChildrenEntities(false)
-                    .withMeasurementValues(false)
-                    // Fetch position and fishing area, to be able to compute fishing area id, need by conversion
-                    .withPositions(true)
-                    .withFishingAreas(true)
-                    .build());
+        if (operationTotal > 0) {
+            do {
+                // Fetch some operations
+                List<OperationVO> operations = operationService.findAllByFilter(operationFilter,
+                    offset, pageSize, // Page
+                    OperationVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
+                    OperationFetchOptions.builder()
+                        .withChildrenEntities(false)
+                        .withMeasurementValues(false)
+                        // Fetch position and fishing area, to be able to compute fishing area id, need by conversion
+                        .withPositions(true)
+                        .withFishingAreas(true)
+                        .build());
 
-            operations.forEach(operation -> {
-                try {
-                    // Prepare options (add fishing area, date, etc.)
-                    DenormalizedBatchOptions options = createOptionsByOperation(operation, baseOptions);
+                operations.forEach(operation -> {
+                    try {
+                        // Prepare options (add fishing area, date, etc.)
+                        DenormalizedBatchOptions options = createOptionsByOperation(operation, baseOptions);
 
-                    List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
-                    batchesCount.add(CollectionUtils.size(batches));
-                } catch (SumarisBusinessException be) {
-                    log.error(be.getMessage());
-                    messages.add(be.getMessage());
-                    errorCount.increment();
+                        List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
+                        batchesCount.add(CollectionUtils.size(batches));
+                    } catch (SumarisBusinessException be) {
+                        log.error(be.getMessage());
+                        messages.add(be.getMessage());
+                        errorCount.increment();
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                        messages.add(e.getMessage());
+                        errorCount.increment();
+                    }
+                });
+
+                offset += pageSize;
+                operationCount += operations.size();
+                hasMoreData = operations.size() >= pageSize;
+                if (operationCount > operationTotal) {
+                    operationTotal = operationCount;
                 }
-                catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                    messages.add(e.getMessage());
-                    errorCount.increment();
-                }
-            });
-
-            offset += pageSize;
-            operationCount += operations.size();
-            hasMoreData = operations.size() >= pageSize;
-            if (operationCount > operationTotal) {
-                operationTotal = operationCount;
-            }
-        } while (hasMoreData);
+            } while (hasMoreData);
+        }
 
         return DenormalizedTripResultVO.builder()
-            .tripCount(1)
             .operationCount(operationCount)
             .batchCount(batchesCount.intValue())
             .invalidBatchCount(errorCount.intValue())

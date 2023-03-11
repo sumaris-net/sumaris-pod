@@ -22,6 +22,8 @@ package net.sumaris.core.service.data.denormalize;
  * #L%
  */
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,15 +31,18 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.service.data.TripService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service("denormalizeTripService")
@@ -82,25 +87,32 @@ public class DenormalizedTripServiceImpl implements DenormalizedTripService {
         int offset = 0;
         int pageSize = 10;
         int tripCount = 0;
+        MutableInt tripErrorCount = new MutableInt(0);
         MutableInt operationCount = new MutableInt(0);
         MutableInt batchCount = new MutableInt(0);
         MutableInt invalidBatchCount = new MutableInt(0);
-        do {
-            // Fetch some trips
-            List<TripVO> trips = tripService.findAll(tripFilter,
-                offset, pageSize, // Page
-                TripVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
-                tripFetchOptions);
+        List<String> messages = Lists.newArrayList();
 
-            if (offset > 0 && offset % (pageSize * 2) == 0) {
-                progression.setCurrent(offset);
-                progression.setMessage(String.format("Processing trips denormalization... %s/%s", offset, tripTotal));
-                //log.trace(progression.getMessage());
-            }
+        if (tripTotal > 0) {
+            progression.setCurrent(0);
+            progression.setMessage(String.format("Processing trips denormalization... 0/%s", tripTotal));
 
-            // Denormalize each trip
-            trips.stream()
-                .map(trip -> {
+            do {
+                // Fetch some trips
+                List<TripVO> trips = tripService.findAll(tripFilter,
+                    offset, pageSize, // Page
+                    TripVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
+                    tripFetchOptions);
+
+                if (offset > 0 && offset % (pageSize * 2) == 0) {
+                    progression.setCurrent(offset);
+                    progression.setMessage(String.format("Processing trips denormalization... %s/%s", offset, tripTotal));
+                    //log.trace(progression.getMessage());
+                }
+
+                // Denormalize each trip
+                trips.stream().parallel()
+                    .forEach(trip -> {
                     // Load denormalized options
                     DenormalizedBatchOptions programOptions = denormalizedOperationService.createOptionsByProgramId(trip.getProgram().getId());
 
@@ -111,39 +123,53 @@ public class DenormalizedTripServiceImpl implements DenormalizedTripService {
                         .hasNoChildOperation(true)
                         .build();
 
-                    // Denormalize trip's operation
-                    return denormalizedOperationService.denormalizeByFilter(operationFilter, programOptions);
-                })
-                .forEach(result -> {
-                    operationCount.add(result.getOperationCount());
-                    batchCount.add(result.getBatchCount());
-                    invalidBatchCount.add(result.getInvalidBatchCount());
+                    try {
+                        // Denormalize trip's operation
+                        DenormalizedTripResultVO result = denormalizedOperationService.denormalizeByFilter(operationFilter, programOptions);
+
+                        operationCount.add(result.getOperationCount());
+                        batchCount.add(result.getBatchCount());
+                        invalidBatchCount.add(result.getInvalidBatchCount());
+                        if (StringUtils.isNotBlank(result.getMessage())) {
+                            messages.addAll(Splitter.on("\n").splitToList(result.getMessage()));
+                        }
+                    }
+                    catch (Exception e) {
+                        tripErrorCount.increment();
+                        String message = String.format("Error while during denormalization of trip #%s: %s", trip.getId(), e.getMessage());
+                        log.error(message, e);
+                        messages.add(message);
+                    }
                 });
 
-            offset += pageSize;
-            tripCount += trips.size();
-            hasMoreData = trips.size() >= pageSize;
-            if (tripCount > tripTotal) {
-                tripTotal = tripCount;
-                progression.adaptTotal(tripTotal);
-            }
-        } while (hasMoreData);
+                offset += pageSize;
+                tripCount += trips.size();
+                hasMoreData = trips.size() >= pageSize;
+                if (tripCount > tripTotal) {
+                    tripTotal = tripCount;
+                    progression.adaptTotal(tripTotal);
+                }
+            } while (hasMoreData);
+        }
 
         // Success log
         progression.setCurrent(tripCount);
-        progression.setMessage(String.format("Trips denormalization finished, in %s - %s trips, %s operations, %s batches - %s invalid batch tree (skipped)",
+        progression.setMessage(String.format("Trips denormalization finished, in %s - %s trips, %s operations, %s batches - %s trips in error, %s invalid batch trees (skipped)",
             TimeUtils.printDurationFrom(startTime),
             tripCount,
             operationCount,
             batchCount,
+            tripErrorCount,
             invalidBatchCount));
         //log.debug(progression.getMessage());
 
         return DenormalizedTripResultVO.builder()
             .tripCount(tripCount)
+            .tripErrorCount(tripErrorCount.intValue())
             .operationCount(operationCount.intValue())
             .batchCount(batchCount.intValue())
             .invalidBatchCount(invalidBatchCount.intValue())
+            .message(CollectionUtils.isNotEmpty(messages) ? String.join("\n", messages) : null)
             .executionTime(System.currentTimeMillis() - startTime)
             .build();
     }

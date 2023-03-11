@@ -745,7 +745,8 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 }
 
                 // Check weight = 0 AND individual
-                boolean zeroWeightWithIndividual = batch.getElevateWeight() != null && batch.getElevateWeight() == 0d && batch.getElevateIndividualCount() > 0;
+                boolean zeroWeightWithIndividual = batch.getElevateWeight() != null && batch.getElevateWeight() == 0d
+                    && batch.getElevateIndividualCount() != null && batch.getElevateIndividualCount() > 0;
                 if (zeroWeightWithIndividual) {
                     String message = String.format("Invalid batch {id: %s, label: '%s'}: elevateWeight=0 but elevateIndividualCount > 0",
                         batch.getId(), batch.getLabel());
@@ -927,13 +928,17 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 : new BigDecimal(1).divide(new BigDecimal(samplingRatio), scale, RoundingMode.HALF_UP);
 
             // Try to restore sampling ratio from text (more accuracy)
-            if (StringUtils.isNotBlank(batch.getSamplingRatioText()) && batch.getSamplingRatioText().contains("/")) {
+            if (samplingRatio > 0 && StringUtils.isNotBlank(batch.getSamplingRatioText()) && batch.getSamplingRatioText().contains("/")) {
                 String[] parts = batch.getSamplingRatioText().split("/", 2);
                 try {
-                    double d0 = Double.parseDouble(parts[0]);
-                    double d1 = Double.parseDouble(parts[1]);
-                    samplingRatio = d0 / d1;
-                    samplingFactor = new BigDecimal(d1).divide(new BigDecimal(d0), scale, RoundingMode.HALF_UP);
+                    BigDecimal shouldBeSamplingWeight = new BigDecimal(parts[0]);
+                    BigDecimal shouldBeParentWeight = new BigDecimal(parts[1]);
+                    samplingRatio = shouldBeParentWeight.doubleValue() <= 0
+                        ? 0d
+                        : shouldBeSamplingWeight.divide(shouldBeParentWeight, scale, RoundingMode.HALF_UP).doubleValue();
+                    samplingFactor = shouldBeSamplingWeight.doubleValue() <= 0
+                        ? new BigDecimal(0)
+                        : shouldBeParentWeight.divide(shouldBeSamplingWeight, scale, RoundingMode.HALF_UP);
                 } catch (Exception e) {
                     log.warn("Cannot parse samplingRatioText on batch {id: {}, label: '{}', saplingRatioText: '{}'} : {}",
                         batch.getId(),
@@ -1048,7 +1053,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 : new BigDecimal(1).divide(new BigDecimal(samplingRatio), scale, RoundingMode.HALF_UP);
 
             // Try to use the sampling ratio text (more accuracy)
-            if (StringUtils.isNotBlank(samplingBatch.getSamplingRatioText()) && samplingBatch.getSamplingRatioText().contains("/")) {
+            if (samplingRatio > 0 && StringUtils.isNotBlank(samplingBatch.getSamplingRatioText()) && samplingBatch.getSamplingRatioText().contains("/")) {
                 String[] parts = samplingBatch.getSamplingRatioText().split("/", 2);
                 try {
                     BigDecimal shouldBeSamplingWeight = new BigDecimal(parts[0]);
@@ -1058,8 +1063,12 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         || Objects.equals(shouldBeSamplingWeight, samplingIndirectWeight)) {
                         parentWeight = shouldBeParentWeight.doubleValue();
                     }
-                    samplingRatio = shouldBeSamplingWeight.divide(shouldBeParentWeight, scale, RoundingMode.HALF_UP).doubleValue();
-                    samplingFactor = shouldBeParentWeight.divide(shouldBeSamplingWeight, scale, RoundingMode.HALF_UP);
+                    samplingRatio = shouldBeParentWeight.doubleValue() <= 0d
+                        ? 0
+                        : shouldBeSamplingWeight.divide(shouldBeParentWeight, scale, RoundingMode.HALF_UP).doubleValue();
+                    samplingFactor = shouldBeSamplingWeight.doubleValue() <= 0
+                        ? new BigDecimal(0)
+                        : shouldBeParentWeight.divide(shouldBeSamplingWeight, scale, RoundingMode.HALF_UP);
                 } catch (Exception e) {
                     log.warn(String.format("Cannot parse samplingRatioText on batch {id: %s, label: '%s', saplingRatioText: '%s'} : %s",
                         samplingBatch.getId(),

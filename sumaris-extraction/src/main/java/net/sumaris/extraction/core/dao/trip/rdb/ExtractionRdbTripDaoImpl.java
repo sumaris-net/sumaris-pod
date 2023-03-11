@@ -138,6 +138,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
+            filterInfo.append("\n - Batch denormalization: " + context.isEnableBatchDenormalization());
             log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
@@ -164,7 +165,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                     if (sheetName != null && context.hasSheet(sheetName)) return context;
                 }
 
-                // Denormalize batch
+                // Execute batch denormalization (if enable)
                 if (rowCount != 0 && context.isEnableBatchDenormalization()) {
                     denormalizeBatches(context);
                 }
@@ -388,11 +389,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             // DEBUG
             //options.setEnableRtpWeight(false);
 
-            // TODO Avoid to denormalize if already done ?
             denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
                     .programLabel(programLabel)
                     .includedIds(operationIds)
                     .hasNoChildOperation(true)
+                    .needBatchDenormalization(true)
                     .build(), options);
         });
     }
@@ -426,7 +427,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
-        XMLQuery xmlQuery = createXMLQuery(context, "createRawSpeciesListTable");
+        String queryName = context.isEnableBatchDenormalization()
+            ? "createRawSpeciesListDenormalizeTable"
+            : "createRawSpeciesListTable";
+
+        XMLQuery xmlQuery = createXMLQuery(context, queryName);
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
 
@@ -435,7 +440,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
-
 
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);

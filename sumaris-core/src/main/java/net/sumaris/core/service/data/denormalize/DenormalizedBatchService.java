@@ -45,7 +45,9 @@ public interface DenormalizedBatchService {
 
 	List<DenormalizedBatchVO> denormalizeAndSaveBySaleId(int saleId, @Nullable DenormalizedBatchOptions options);
 
+	@Transactional(readOnly = true)
 	DenormalizedBatchOptions createOptionsByProgramId(int programId);
 
+	@Transactional(readOnly = true)
 	DenormalizedBatchOptions createOptionsByProgramLabel(String programLabel);
 }

@@ -47,6 +47,9 @@ public class DenormalizedBatchOptions {
     }
 
     @Builder.Default
+    private boolean force = false; // Should recompute if denormalization already done ?
+
+    @Builder.Default
     private boolean enableTaxonGroup = true;
 
     @Builder.Default

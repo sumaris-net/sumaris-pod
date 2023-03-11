@@ -57,11 +57,12 @@
             <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
             <column name="LABEL">2.1.0</column>
             <column name="DESCRIPTION">
-                - Add table VIRTUAL_COMPONENT;
+                - Add some columns in table DENORMALIZED_BATCH;
             </column>
             <column name="CREATION_DATE" valueComputed="sysdate"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
             <column name="COMMENTS">
+                - Add some columns in table DENORMALIZED_BATCH;
             </column>
         </insert>
     </changeSet>

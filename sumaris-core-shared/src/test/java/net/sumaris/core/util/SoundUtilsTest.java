@@ -20,28 +20,17 @@
  * #L%
  */
 
-package net.sumaris.core.service.data.denormalize;
+package net.sumaris.core.util;
 
-import lombok.Builder;
-import lombok.Data;
-import net.sumaris.core.model.technical.job.JobStatusEnum;
-import net.sumaris.core.vo.technical.job.IJobResultVO;
+import net.sumaris.core.util.sound.SoundUtils;
+import org.junit.Test;
 
-import java.io.Serializable;
+public class SoundUtilsTest {
 
-@Data
-@Builder
-public class DenormalizedTripResultVO implements IJobResultVO, Serializable {
 
-    private long tripCount;
-    private long operationCount;
-    private long batchCount;
+    @Test
+    public void playError() {
+        SoundUtils.playError(10);
+    }
 
-    private long tripErrorCount;
-    private long invalidBatchCount;
-    private long executionTime;
-
-    private String message;
-
-    private JobStatusEnum status;
 }

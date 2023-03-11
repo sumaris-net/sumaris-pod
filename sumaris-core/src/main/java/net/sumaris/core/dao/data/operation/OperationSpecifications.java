@@ -27,10 +27,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -39,9 +36,7 @@ import net.sumaris.core.vo.data.OperationVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -221,6 +216,41 @@ public interface OperationSpecifications
             })
             .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
     }
+
+    default Specification<Operation> needBatchDenormalization(Boolean needBatchDenormalization) {
+        if (!Boolean.TRUE.equals(needBatchDenormalization)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+
+            Join<Operation, Batch> catchBatch = Daos.composeJoin(root, Operation.Fields.BATCHES, JoinType.INNER);
+
+            // Sub select that return the update to date denormalized catch batch
+            Subquery<Integer> subQuery = query.subquery(Integer.class);
+            Root<DenormalizedBatch> denormalizedBatchRoot = subQuery.from(DenormalizedBatch.class);
+            subQuery.select(denormalizedBatchRoot.get(DenormalizedBatch.Fields.ID));
+            subQuery.where(
+                cb.and(
+                    // Catch batch
+                    cb.isNull(denormalizedBatchRoot.get(DenormalizedBatch.Fields.PARENT)),
+                    // Same operation
+                    cb.equal(denormalizedBatchRoot.get(DenormalizedBatch.Fields.OPERATION), root),
+                    // Same catch batch
+                    cb.equal(denormalizedBatchRoot.get(DenormalizedBatch.Fields.ID), catchBatch.get(Batch.Fields.ID)),
+                    // Same date
+                    cb.equal(denormalizedBatchRoot.get(DenormalizedBatch.Fields.UPDATE_DATE), catchBatch.get(Batch.Fields.UPDATE_DATE))
+                )
+            );
+
+            return cb.and(
+                // Operation with a catch batch
+                cb.isNull(catchBatch.get(Batch.Fields.PARENT)),
+                // And without an update to date denormalization
+                cb.not(cb.exists(subQuery))
+            );
+        });
+    }
+
+
 
     // Override the default function, because operation has no validation date
     default Specification<Operation> isValidated() {

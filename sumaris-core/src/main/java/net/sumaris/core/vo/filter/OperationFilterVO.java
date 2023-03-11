@@ -60,6 +60,7 @@ public class OperationFilterVO implements IDataFilter {
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
     private Integer[] boundingBox;
+    private Boolean needBatchDenormalization;
 
     @JsonIgnore
     public OperationFilterVO clone() {
