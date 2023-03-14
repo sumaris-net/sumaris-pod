@@ -325,7 +325,7 @@ public class PmfmStrategyRepositoryImpl
         acquisitionLevelIdByLabel.clear();
 
         // Fill acquisition levels map
-        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null);
+        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null, null);
         items.forEach(item -> acquisitionLevelIdByLabel.put(item.getLabel(), item.getId()));
     }
 

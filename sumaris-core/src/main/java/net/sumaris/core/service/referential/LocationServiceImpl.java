@@ -475,7 +475,7 @@ public class LocationServiceImpl implements LocationService {
                     ReferentialFilterVO.builder()
                         .label(rectangleLabel)
                         .levelIds(LocationLevels.getStatisticalRectangleLevelIds())
-                        .build(), 0, 2, null, null);
+                        .build(), 0, 2, null, null, null);
                 if (CollectionUtils.isEmpty(matches)) return null;
                 try {
                     // Extract singleton (= unique check, because of size=2)

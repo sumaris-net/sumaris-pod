@@ -25,6 +25,7 @@ package net.sumaris.core.service.referential;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +52,9 @@ public interface ReferentialService {
     List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size);
 
     @Transactional(readOnly = true)
-    List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
+    List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size,
+                                     String sortAttribute, SortDirection sortDirection,
+                                     ReferentialFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     Long countByFilter(String entityName, IReferentialFilter filter);
