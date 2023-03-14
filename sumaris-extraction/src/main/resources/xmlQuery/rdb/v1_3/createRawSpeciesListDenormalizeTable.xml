@@ -56,12 +56,22 @@
 
     <!-- other fields -->
     <select alias="WEIGHT" group="weight" type="number">SPECIE_B.ELEVATE_WEIGHT</select>
-    <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
-    <select alias="SUBSAMPLING_WEIGHT" type="number">
-      SPECIE_B.ELEVATE_WEIGHT * SAMPLING_B.SAMPLING_RATIO
-      * SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SUM(COALESCE(SAMPLING_B.ELEVATE_RTP_WEIGHT, SPECIE_B.ELEVATE_RTP_WEIGHT))
-    </select>
+    <select alias="SUBSAMPLING_WEIGHT" type="number"><![CDATA[
+      CASE
+        WHEN SAMPLING_B.SAMPLING_RATIO > 0 THEN SPECIE_B.ELEVATE_WEIGHT * SAMPLING_B.SAMPLING_RATIO
+        ELSE NULL
+      END
+    ]]></select>
     <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
+
+    <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
+    <select alias="SUBSAMPLING_RATIO" type="number"><![CDATA[
+      CASE
+        WHEN SAMPLING_B.ELEVATE_RTP_WEIGHT > 0 THEN
+          ROUND(SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SAMPLING_B.ELEVATE_RTP_WEIGHT + 0.000001, 6)
+        ELSE 1
+      END
+    ]]></select>
 
     <!-- need to link other tables -->
     <select alias="SAMPLE_ID" type="hidden">COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</select>
@@ -72,7 +82,7 @@
     <from join="true">INNER JOIN DENORMALIZED_BATCH SPECIE_B ON SPECIE_B.OPERATION_FK = S.STATION_NUMBER AND SPECIE_B.IS_LANDING &lt;&gt; SPECIE_B.IS_DISCARD</from>
     <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.INHERITED_TAXON_GROUP_FK</from>
     <from join="true">INNER JOIN DENORMALIZED_BATCH_SORT_VAL CATCH_CATEGORY_SV ON CATCH_CATEGORY_SV.BATCH_FK=SPECIE_B.ID AND CATCH_CATEGORY_SV.PMFM_FK=&amp;catchCategoryPmfmId AND CATCH_CATEGORY_SV.IS_INHERITED=0</from>
-    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SPECIE_B.ID AND SAMPLING_B.SAMPLING_RATIO &gt; 0 AND SAMPLING_B.SAMPLING_RATIO &lt; 1</from>
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SPECIE_B.ID AND SAMPLING_B.SAMPLING_RATIO &gt; 0</from>
 
     <!-- join individual measure, to be able to compute sampling by length_code and taxon -->
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH LENGTH_B ON LENGTH_B.PARENT_BATCH_FK=COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</from>
@@ -101,7 +111,7 @@
       SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
       CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
       SEX, LENGTH_CODE, SAMPLE_ID, SAMPLE_RANK_ORDER,
-      SPECIE_B.ELEVATE_WEIGHT,  SAMPLING_B.SAMPLING_RATIO
+      SPECIE_B.ELEVATE_WEIGHT,  SAMPLING_B.SAMPLING_RATIO, SAMPLING_B.ELEVATE_RTP_WEIGHT, SPECIE_B.ELEVATE_RTP_WEIGHT
     </groupby>
 
     <orderby direction="ASC">S.STATION_NUMBER, SAMPLE_RANK_ORDER</orderby>

@@ -63,6 +63,9 @@
     <!-- TODO get precision from PMFM (unit + maxDecimals) ? -->
     <select alias="LENGTH_CODE" type="text">'mm'</select>
 
+    <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
+    <select alias="SUBSAMPLING_RATIO" type="number">1</select>
+
     <!-- need to link other tables -->
     <select alias="SAMPLE_ID" type="hidden">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>
     <select alias="SAMPLE_RANK_ORDER" type="hidden">SORTING_B.RANK_ORDER</select>
