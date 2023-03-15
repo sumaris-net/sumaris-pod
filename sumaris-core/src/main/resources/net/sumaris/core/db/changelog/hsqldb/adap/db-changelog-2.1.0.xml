@@ -39,7 +39,7 @@
     </changeSet>
 
     <!-- Fix BATCH having bad qualitative value (GUT instead of WHL) -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-401">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-401" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
@@ -63,6 +63,7 @@
             )
               and qualitative_value_fk=339  /* GUT*/
             ;
+            commit;
         ]]></sql>
     </changeSet>
 </databaseChangeLog>
