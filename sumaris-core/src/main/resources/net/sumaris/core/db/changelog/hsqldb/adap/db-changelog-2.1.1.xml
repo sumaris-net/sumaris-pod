@@ -3,7 +3,7 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-2.1.0.xml">
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-2.1.1.xml">
 
     <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
     <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
@@ -18,19 +18,22 @@
         </or>
     </preConditions>
 
-    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-400">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-400">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
                 <sqlCheck expectedResult="0">
-                    SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.extraction.batch.denormalization.enable' AND SOFTWARE_FK=2
+                    SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.enumeration.QualitativeValue.SEX_UNSEXED.id' AND SOFTWARE_FK=2
+                </sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) from QUALITATIVE_VALUE WHERE UPPER(NAME)='NON SEXE'
                 </sqlCheck>
             </and>
         </preConditions>
         <insert tableName="SOFTWARE_PROPERTY">
             <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
-            <column name="LABEL" value="sumaris.extraction.batch.denormalization.enable"/>
-            <column name="NAME" value="true"/>
+            <column name="LABEL" value="sumaris.enumeration.QualitativeValue.SEX_UNSEXED.id"/>
+            <column name="NAME" valueComputed="(SELECT TO_CHAR(ID) FROM QUALITATIVE_VALUE WHERE UPPER(NAME)='NON SEXE')"/>
             <column name="SOFTWARE_FK" valueNumeric="2"/>
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
@@ -38,34 +41,20 @@
         </insert>
     </changeSet>
 
-    <!-- Fix BATCH having bad qualitative value (GUT instead of WHL) -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-401" runOnChange="true">
-        <preConditions onFail="MARK_RAN">
-            <and>
-                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
-                    <not><sqlCheck expectedResult="0">
-                        select count(distinct sm1.batch_fk)
-                        from sorting_measurement_b sm1
-                        inner join sorting_measurement_b sm2 on sm1.batch_fk = sm2.batch_fk
-                        where sm2.qualitative_value_fk = 191 and sm1.qualitative_value_fk = 339
-                    </sqlCheck>
-                </not>
-            </and>
-        </preConditions>
-        <sql endDelimiter=";" stripComments="true"><![CDATA[
-            update sorting_measurement_b sm
-            set qualitative_value_fk=331 /* WHL */
-            where batch_fk in (
-                select batch_fk
-                from sorting_measurement_b
-                where
-                    qualitative_value_fk=191 /* DIS */
-            )
-            and qualitative_value_fk=339  /* GUT*/
-            ;
-            commit;
-        ]]></sql>
-    </changeSet>
-
+    <!-- Fix BATCH having bad quality_flag, because of sumaris-app issue #407 -->
+<!--    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-402" runOnChange="true">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <and>-->
+<!--                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>-->
+<!--                <not>-->
+<!--                    <sqlCheck expectedResult="0">select count(*) from batch where quality_flag_fk = 4-->
+<!--                    </sqlCheck>-->
+<!--                </not>-->
+<!--            </and>-->
+<!--        </preConditions>-->
+<!--        <sql endDelimiter=";" stripComments="true"><![CDATA[-->
+<!--            -->
+<!--            ]]></sql>-->
+<!--    </changeSet>-->
 
 </databaseChangeLog>
