@@ -24,7 +24,6 @@ package net.sumaris.extraction.core.dao.trip.free2;
 
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
@@ -39,9 +38,7 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
 import java.util.Set;
@@ -56,11 +53,16 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         extends ExtractionRdbTripDaoImpl<C, F>
         implements Free2Specification {
 
-    @Autowired
-    protected StrategyService strategyService;
+    protected final StrategyService strategyService;
 
-    @Autowired
-    protected ProgramService programService;
+    protected final ProgramService programService;
+
+    public ExtractionFree2TripDaoImpl(StrategyService strategyService, ProgramService programService) {
+        super();
+        this.strategyService = strategyService;
+        this.programService = programService;
+        this.enableTripSamplingMethodColumn = false; // No SAMPLING_METHOD in this format
+    }
 
     @Override
     public Set<IExtractionType> getManagedTypes() {
@@ -134,14 +136,14 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         super.fillContextTableNames(context);
 
         // Set table names
-        context.setTripTableName(TABLE_NAME_PREFIX + TRIP_SHEET_NAME + "_" + context.getId());
-        context.setStationTableName(TABLE_NAME_PREFIX + STATION_SHEET_NAME + "_" + context.getId());
-        context.setGearTableName(TABLE_NAME_PREFIX + GEAR_SHEET_NAME + "_" + context.getId());
-        context.setRawSpeciesListTableName(TABLE_NAME_PREFIX + "RAW_SL" + "_" + context.getId());
-        context.setStrategyTableName(TABLE_NAME_PREFIX + STRATEGY_SHEET_NAME + "_" + context.getId());
-        context.setDetailTableName(TABLE_NAME_PREFIX + DETAIL_SHEET_NAME + "_" + context.getId());
-        context.setSpeciesListTableName(TABLE_NAME_PREFIX + SPECIES_LIST_SHEET_NAME + "_" + context.getId());
-        context.setSpeciesLengthTableName(TABLE_NAME_PREFIX + SPECIES_LENGTH_SHEET_NAME + "_" + context.getId());
+        context.setTripTableName(formatTableName(TABLE_NAME_PREFIX + TRIP_SHEET_NAME + "_%s", context.getId()));
+        context.setStationTableName(formatTableName(TABLE_NAME_PREFIX + STATION_SHEET_NAME + "_%s", context.getId()));
+        context.setGearTableName(formatTableName(TABLE_NAME_PREFIX + GEAR_SHEET_NAME + "_%s", context.getId()));
+        context.setRawSpeciesListTableName(formatTableName(TABLE_NAME_PREFIX + "RAW_SL" + "_%s", context.getId()));
+        context.setStrategyTableName(formatTableName(TABLE_NAME_PREFIX + STRATEGY_SHEET_NAME + "_%s", context.getId()));
+        context.setDetailTableName(formatTableName(TABLE_NAME_PREFIX + DETAIL_SHEET_NAME + "_%s", context.getId()));
+        context.setSpeciesListTableName(formatTableName(TABLE_NAME_PREFIX + SPECIES_LIST_SHEET_NAME + "_%s", context.getId()));
+        context.setSpeciesLengthTableName(formatTableName(TABLE_NAME_PREFIX + SPECIES_LENGTH_SHEET_NAME + "_%s", context.getId()));
 
         // Set sheet names
         context.setTripSheetName(TRIP_SHEET_NAME);

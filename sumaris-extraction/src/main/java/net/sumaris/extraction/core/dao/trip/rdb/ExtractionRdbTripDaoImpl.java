@@ -108,6 +108,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     @Autowired
     protected DenormalizedOperationService denormalizedOperationService;
 
+    protected boolean enableTripSamplingMethodColumn = true;
+
     @Override
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
@@ -263,7 +265,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         if (count > 0) {
             // Update self sampling columns
-            updateTripSamplingMethod(context);
+            if (enableTripSamplingMethodColumn) updateTripSamplingMethod(context);
 
             // Clean row using generic filter
             count -= cleanRow(context.getTripTableName(), context.getFilter(), context.getTripSheetName());

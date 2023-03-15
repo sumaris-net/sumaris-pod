@@ -4,9 +4,9 @@
   <query type="create" temp="false" table="&amp;tripTableName" option="DISTINCT">
 
     <!-- PK -->
-    <select alias="TYPE" type="text">UPPER('TR')</select>
+    <select alias="TYPE" type="text">'TR'</select>
     <select alias="PROJET" type="text">P.LABEL</select>
-    <select alias="ANNEE" type="number">EXTRACT(YEAR FROM T.RETURN_DATE_TIME)</select>
+    <select alias="ANNEE" type="number">CAST(EXTRACT(YEAR FROM T.RETURN_DATE_TIME) AS INTEGER)</select>
     <select alias="ID_MAREE" type="number">T.ID</select>
 
     <!-- Hidden columns used by linked tables -->
