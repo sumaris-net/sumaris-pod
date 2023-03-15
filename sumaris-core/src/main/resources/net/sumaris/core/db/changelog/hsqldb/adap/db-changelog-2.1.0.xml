@@ -46,8 +46,8 @@
                     <not><sqlCheck expectedResult="0">
                         select count(distinct sm1.batch_fk)
                         from sorting_measurement_b sm1
-                        inner join sorting_measurement_b sm2 on sm1.batch_fk=sm2.batch_fk
-                        where sm2.qualitative_value_fk=191 and sm1.qualitative_value_fk=339
+                        inner join sorting_measurement_b sm2 on sm1.batch_fk = sm2.batch_fk
+                        where sm2.qualitative_value_fk = 191 and sm1.qualitative_value_fk = 339
                     </sqlCheck>
                 </not>
             </and>
@@ -61,9 +61,26 @@
                 where
                     qualitative_value_fk=191 /* DIS */
             )
-              and qualitative_value_fk=339  /* GUT*/
+            and qualitative_value_fk=339  /* GUT*/
             ;
             commit;
         ]]></sql>
     </changeSet>
+
+    <!-- Fix BATCH having bad quality_flag, because of sumaris-app issue #407 -->
+<!--    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-402" runOnChange="true">-->
+<!--        <preConditions onFail="MARK_RAN">-->
+<!--            <and>-->
+<!--                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>-->
+<!--                <not>-->
+<!--                    <sqlCheck expectedResult="0">select count(*) from batch where quality_flag_fk = 4-->
+<!--                    </sqlCheck>-->
+<!--                </not>-->
+<!--            </and>-->
+<!--        </preConditions>-->
+<!--        <sql endDelimiter=";" stripComments="true"><![CDATA[-->
+<!--            -->
+<!--            ]]></sql>-->
+<!--    </changeSet>-->
+
 </databaseChangeLog>
