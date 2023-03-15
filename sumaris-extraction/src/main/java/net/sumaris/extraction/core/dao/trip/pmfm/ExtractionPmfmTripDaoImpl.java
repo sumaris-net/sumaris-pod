@@ -295,7 +295,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // - Hide sex columns, then replace by a new columns
         xmlQuery.setGroup("sex", false);
         xmlQuery.setGroup("lengthClass", false);
-        xmlQuery.setGroup("numberAtLength", false);
 
         // Add pmfm columns
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
@@ -315,6 +314,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         // Enable group, need by pmfms columns (if any)
         xmlQuery.setGroup("pmfms", hasPmfmsColumnsInjected);
+        xmlQuery.setGroup("numberAtLength", !hasPmfmsColumnsInjected);
 
         // Enable taxon columns, if enable by program property (inherited from SL or directly from HL)
         boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);

@@ -45,7 +45,12 @@
 
     <!-- other fields -->
     <select alias="WEIGHT" group="weight" type="number">CAST(SUM(SL.WEIGHT) * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)</select>
-    <select alias="SUBSAMPLING_WEIGHT" group="weight" type="number">CAST(SUM(SL.SUBSAMPLING_WEIGHT) * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)</select>
+    <select alias="SUBSAMPLING_WEIGHT" group="weight" type="number"><![CDATA[
+      CASE
+        WHEN SUBSAMPLING_WEIGHT > 0 THEN CAST(SL.SUBSAMPLING_WEIGHT * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)
+        ELSE NULL
+      END
+    ]]></select>
 
     <select alias="LENGTH_CODE" group="lengthCode" type="text">SL.LENGTH_CODE</select>
 
@@ -60,7 +65,7 @@
     <groupby>
       SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
       CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
-      SEX, LENGTH_CODE, SUBSAMPLING_RATIO
+      SEX, LENGTH_CODE, SUBSAMPLING_WEIGHT, SUBSAMPLING_RATIO
     </groupby>
   </query>
 

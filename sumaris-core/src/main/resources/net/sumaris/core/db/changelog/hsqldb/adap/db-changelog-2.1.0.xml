@@ -45,7 +45,7 @@
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
                     <not><sqlCheck expectedResult="0">
                         select count(distinct sm1.batch_fk)
-                        from sorting_measurement_b sm1 on sm1.batch_fk=b.id
+                        from sorting_measurement_b sm1
                         inner join sorting_measurement_b sm2 on sm1.batch_fk=sm2.batch_fk
                         where sm2.qualitative_value_fk=191 and sm1.qualitative_value_fk=339
                     </sqlCheck>

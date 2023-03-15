@@ -28,7 +28,7 @@
       <subquery>
         <subselect alias="SAMPLE_ID" type="number">SL.SAMPLE_ID</subselect>
         <subselect alias="ID" type="number">B.ID</subselect>
-        <subselect alias="SEX" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK WHERE SM.BATCH_FK = B.ID and SM.PMFM_FK=&amp;sexPmfmId)</subselect>
+        <subselect alias="SEX" type="text">(SELECT QV.LABEL FROM SORTING_MEASUREMENT_B SM_SEX INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM_SEX.QUALITATIVE_VALUE_FK WHERE SM_SEX.BATCH_FK = B.ID and SM_SEX.PMFM_FK=&amp;sexPmfmId)</subselect>
         <subselect alias="LENGTH_CLASS" type="number">CAST(CASE PMFM_LENGTH.UNIT_FK WHEN &amp;centimeterUnitId THEN SM_LENGTH.NUMERICAL_VALUE*10 WHEN &amp;millimeterUnitId THEN SM_LENGTH.NUMERICAL_VALUE ELSE null END AS INTEGER)</subselect>
         <subselect alias="INDIVIDUAL_COUNT" type="number">COALESCE(B.INDIVIDUAL_COUNT,1)</subselect>
         <subselect alias="COMMENTS" type="text">B.COMMENTS</subselect>
