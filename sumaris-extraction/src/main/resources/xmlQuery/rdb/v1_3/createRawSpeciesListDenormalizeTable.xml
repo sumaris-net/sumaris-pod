@@ -65,6 +65,9 @@
     <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
 
     <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
+<!--    <select alias="ELEVATE_RTP_WEIGHT" type="number">-->
+<!--      SAMPLING_B.ELEVATE_RTP_WEIGHT-->
+<!--    </select>-->
     <select alias="SUBSAMPLING_RATIO" type="number"><![CDATA[
       CASE
         WHEN SAMPLING_B.ELEVATE_RTP_WEIGHT > 0 THEN
@@ -102,6 +105,9 @@
 
     <!-- exclude species without weight (eg. RJB in ADAP) -->
     <where operator="AND" group="excludeNoWeight">SPECIE_B.WEIGHT IS NOT NULL</where>
+
+    <!-- exclude invalid batch  -->
+<!--    <where operator="AND" group="excludeInvalid">SPECIE_B.QUALITY_FLAG_FK IS NULL OR SPECIE_B.QUALITY_FLAG_FK IN (0)</where>-->
 
     <!-- 'OR IS NULL' is needed for postgresql -->
     <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != UPPER('I') OR S.FISHING_VALIDITY IS NULL ]]></where>

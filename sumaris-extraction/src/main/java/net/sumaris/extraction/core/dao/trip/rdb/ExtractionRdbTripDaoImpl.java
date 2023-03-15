@@ -390,6 +390,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
             // DEBUG
             //options.setEnableRtpWeight(false);
+            //options.setForce(true);
 
             denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
                     .programLabel(programLabel)
@@ -419,10 +420,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         // Add as a raw table (to be able to clean it later)
-        context.addRawTableName(tableName);
+        //context.addRawTableName(tableName);
 
         // DEBUG
-        //context.addTableName(tableName, "RAW_SL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        context.addTableName(tableName, "RAW_SL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }

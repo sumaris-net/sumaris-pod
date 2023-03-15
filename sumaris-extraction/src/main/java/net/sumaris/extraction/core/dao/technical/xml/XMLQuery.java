@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 public class XMLQuery {
 
     private DatabaseType dbms;
-    private AsbtractSingleXMLQuery delegate;
+    private AbstractSingleXMLQuery delegate;
 
     public XMLQuery(@NonNull DatabaseType dbms) {
         super();
@@ -261,18 +261,6 @@ public class XMLQuery {
         delegate.addSelect(pXmlFilter);
     }
 
-    public void addSubSelect(File pXmlFile) throws XMLQueryException {
-        delegate.addSubSelect(pXmlFile);
-    }
-
-    public void addSubSelect(URL pXmlFileURL) throws XMLQueryException {
-        delegate.addSubSelect(pXmlFileURL);
-    }
-
-    public void addSubSelect(String pXmlFilter) throws XMLQueryException {
-        delegate.addSubSelect(pXmlFilter);
-    }
-
     public void addSelect(String pQueryName, File pXmlFile) throws XMLQueryException {
         delegate.addSelect(pQueryName, pXmlFile);
     }
@@ -283,18 +271,6 @@ public class XMLQuery {
 
     public void addSelect(String pQueryName, String pXmlFilter) throws XMLQueryException {
         delegate.addSelect(pQueryName, pXmlFilter);
-    }
-
-    public void addSubSelect(String pQueryName, File pXmlFile) throws XMLQueryException {
-        delegate.addSubSelect(pQueryName, pXmlFile);
-    }
-
-    public void addSubSelect(String pQueryName, URL pXmlFileURL) throws XMLQueryException {
-        delegate.addSubSelect(pQueryName, pXmlFileURL);
-    }
-
-    public void addSubSelect(String pQueryName, String pXmlFilter) throws XMLQueryException {
-        delegate.addSubSelect(pQueryName, pXmlFilter);
     }
 
     public void addFrom(File pXmlFile) throws XMLQueryException {
