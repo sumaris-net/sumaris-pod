@@ -272,7 +272,7 @@ public class BatchRepositoryImpl
         // Get root
         BatchVO rootBatch = roots.get(0);
 
-        // Fill children
+        // Fill children, and children of children (=recursively)
         fillRecursiveChildren(rootBatch, sources);
 
         return rootBatch;
@@ -645,6 +645,7 @@ public class BatchRepositoryImpl
 
         List<BatchVO> children = sources.stream()
                 .filter(batch -> Objects.equals(batch.getParentId(), parentId))
+                .sorted(Comparator.comparing(BatchVO::getRankOrder))
                 .collect(Collectors.toList());
         children.forEach(batch -> batch.setChildren(fillRecursiveChildren(batch.getId(), sources)));
         return children;

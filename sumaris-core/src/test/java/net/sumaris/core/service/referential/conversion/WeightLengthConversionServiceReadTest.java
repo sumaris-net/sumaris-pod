@@ -130,7 +130,7 @@ public class WeightLengthConversionServiceReadTest extends AbstractServiceTest {
 
 		WeightLengthConversionVO conversion = conversions.get(0);
 
-		BigDecimal weight = service.computedWeight(conversion, 15d, 3, 1d);
+		BigDecimal weight = service.computedWeight(conversion, 15d, "cm", 0.5, 1d, "kg", 3);
 		log.info("Computed weight ofr COD (15cm): {}kg", weight);
 	}
 

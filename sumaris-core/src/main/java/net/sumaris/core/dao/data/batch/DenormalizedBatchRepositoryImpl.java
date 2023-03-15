@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.DenormalizedBatch;
+import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -59,10 +60,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -82,17 +80,21 @@ public class DenormalizedBatchRepositoryImpl
 
     private final ApplicationContext applicationContext;
 
+    private final DenormalizedBatchSortingValueRepository sortingValueRepository;
+
     public DenormalizedBatchRepositoryImpl(EntityManager entityManager,
                                            SumarisConfiguration config,
                                            PmfmRepository pmfmRepository,
                                            ParameterRepository parameterRepository,
                                            TaxonNameRepository taxonNameRepository,
+                                           DenormalizedBatchSortingValueRepository sortingValueRepository,
                                            ApplicationContext applicationContext) {
         super(DenormalizedBatch.class, entityManager);
         this.config = config;
         this.pmfmRepository = pmfmRepository;
         this.parameterRepository = parameterRepository;
         this.taxonNameRepository = taxonNameRepository;
+        this.sortingValueRepository = sortingValueRepository;
         this.applicationContext = applicationContext;
     }
 
@@ -113,6 +115,11 @@ public class DenormalizedBatchRepositoryImpl
         Integer saleId = source.getSale() != null ? source.getSale().getId() : null;
         if (copyIfNull || saleId != null) {
             target.setSaleId(saleId);
+        }
+
+        Integer parentId = source.getParent() != null ? source.getParent().getId() : null;
+        if (copyIfNull || parentId != null) {
+            target.setParentId(parentId);
         }
     }
 
@@ -207,6 +214,48 @@ public class DenormalizedBatchRepositoryImpl
                 }
             }
         }
+
+        // Calculated taxon group
+        {
+            Integer calculatedTaxonGroupId = source.getCalculatedTaxonGroup() != null ? source.getCalculatedTaxonGroup().getId() : null;
+            if (copyIfNull || calculatedTaxonGroupId != null) {
+                if (calculatedTaxonGroupId == null) {
+                    target.setCalculatedTaxonGroup(null);
+                } else {
+                    target.setCalculatedTaxonGroup(getReference(TaxonGroup.class, calculatedTaxonGroupId));
+                }
+            }
+        }
+
+        // Parent name
+        {
+            Integer parentBatchId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
+            if (copyIfNull || parentBatchId != null) {
+                if (parentBatchId == null) {
+                    target.setParent(null);
+                } else {
+                    target.setParent(getReference(DenormalizedBatch.class, parentBatchId));
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onAfterSaveEntity(DenormalizedBatchVO vo, DenormalizedBatch savedEntity, boolean isNew) {
+        super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        List<Integer> existingSvIds = Beans.collectIds(savedEntity.getSortingValues());
+
+        Beans.getStream(vo.getSortingValues())
+            .forEach(source -> {
+                source.setBatchId(vo.getId());
+                sortingValueRepository.save(source);
+                existingSvIds.remove(source.getId());
+            });
+
+        if (CollectionUtils.isNotEmpty(existingSvIds)) {
+            sortingValueRepository.deleteAllById(existingSvIds);
+        }
     }
 
     @Override
@@ -231,7 +280,7 @@ public class DenormalizedBatchRepositoryImpl
         // Set parent link
         sources.forEach(b -> b.setOperationId(operationId));
 
-        // Get existing fishing areas
+        // Get existing ids
         Set<Integer> existingIds = getRepository().getAllIdByOperationId(operationId);
 
         // Save
@@ -267,11 +316,17 @@ public class DenormalizedBatchRepositoryImpl
         return sources;
     }
 
-    public DenormalizedBatch toEntity(DenormalizedBatchVO vo) {
-        Preconditions.checkNotNull(vo);
-        DenormalizedBatch entity = createEntity();
-        toEntity(vo, entity, true);
-        return entity;
+    public DenormalizedBatch toEntity(DenormalizedBatchVO source) {
+        Preconditions.checkNotNull(source);
+
+        // Try to load by id, or create a new entity
+        DenormalizedBatch target =  Optional.ofNullable(source.getId())
+            .flatMap(this::findById)
+            .orElseGet(this::createEntity);
+
+        toEntity(source, target, true);
+
+        return target;
     }
 
     @Override

@@ -33,7 +33,6 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -73,7 +72,7 @@ public class ProductRdbLanding implements Serializable, IEntity<Integer> {
     private Integer id;
 
     @Column(nullable = false, length = 2, name = COLUMN_RECORD_TYPE)
-    @ColumnDefault(SHEET_NAME)
+    @ColumnDefault("'" + SHEET_NAME + "'")
     private String recordType;
 
     @Column(nullable = false, length = 3, name = COLUMN_LANDING_COUNTRY)

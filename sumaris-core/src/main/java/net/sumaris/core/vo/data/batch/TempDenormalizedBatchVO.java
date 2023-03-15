@@ -22,6 +22,7 @@
 
 package net.sumaris.core.vo.data.batch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
@@ -33,11 +34,69 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 public class TempDenormalizedBatchVO extends DenormalizedBatchVO {
 
+    // Factors
+    private BigDecimal samplingFactor;
+    private BigDecimal elevateContextFactor;
     private BigDecimal elevateFactor;
+    private BigDecimal taxonElevateFactor;
 
-    //private Double contextWeight;
-    //private Double sumChildContextWeight;
-    //private Double sumChildRoundWeight;
-    //private Double sumChildRTPWeight;
+    private Double aliveWeightFactor;
 
+    private Double indirectAliveWeightFactor;
+
+    // Individual count
+    private BigDecimal indirectIndividualCountDecimal;
+
+    // Weights
+    private Double rtpContextWeight;
+
+    /**
+     * Indirect RTP weight (not alive weight, and not elevate)
+     */
+    private Double indirectRtpContextWeight;
+
+    /**
+     * Elevate RTP weights (keeping dressing/perservation = not alive weight)
+     */
+    private Double elevateRtpContextWeight;
+
+    private Double indirectRtpElevateWeight;
+
+    private Double indirectElevateWeight;
+
+    private Integer taxonGroupId;
+    private Integer referenceTaxonId;
+
+    @JsonIgnore
+    public Integer getTaxonGroupId() {
+        if (taxonGroupId == null) {
+            taxonGroupId = this.getTaxonGroup() != null
+                ? this.getTaxonGroup().getId()
+                : (
+                this.getInheritedTaxonGroup() != null
+                    ? this.getInheritedTaxonGroup().getId()
+                    // TODO: return the calculated taxon group ?
+                    : null);
+        }
+        return taxonGroupId;
+    }
+
+    public Integer getReferenceTaxonId() {
+        if (referenceTaxonId == null) {
+            referenceTaxonId = this.getTaxonName() != null
+                ? this.getTaxonName().getReferenceTaxonId()
+                : (this.getInheritedTaxonName() != null
+                ? this.getInheritedTaxonName().getReferenceTaxonId()
+                : null);
+        }
+        return referenceTaxonId;
+    }
+
+    public boolean hasTaxonGroup() {
+        return getTaxonGroupId() != null;
+    }
+
+    public boolean hasTaxonName() {
+        return getReferenceTaxonId() != null;
+    }
 }

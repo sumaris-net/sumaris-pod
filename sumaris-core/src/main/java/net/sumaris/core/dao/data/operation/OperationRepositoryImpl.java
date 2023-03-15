@@ -132,29 +132,36 @@ public class OperationRepositoryImpl
 
         // Load children entities (not loaded by default)
         Integer operationId = source.getId();
-        if (fetchOptions != null && fetchOptions.isWithChildrenEntities() && operationId != null) {
-
+        if (operationId != null) {
             // Positions
-            target.setPositions(vesselPositionDao.getAllByOperationId(operationId));
+            if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithPositions())) {
+                target.setPositions(vesselPositionDao.getAllByOperationId(operationId));
+            }
 
             // Fishing Areas
-            target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasOperationId(operationId)));
+            if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithFishingAreas())) {
+                target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasOperationId(operationId)));
+            }
 
             // Batches
-            target.setBatches(batchRepository.findAllVO(batchRepository.hasOperationId(operationId),
+            if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithBatches())) {
+                target.setBatches(batchRepository.findAllVO(batchRepository.hasOperationId(operationId),
                     BatchFetchOptions.builder()
-                            .withChildrenEntities(false) // Use flat list, not a tree
-                            .withRecorderDepartment(false)
-                            .withMeasurementValues(true)
-                            .build()));
+                        .withChildrenEntities(false) // Use flat list, not a tree
+                        .withRecorderDepartment(false)
+                        .withMeasurementValues(true)
+                        .build()));
+            }
 
             // Samples
-            target.setSamples(sampleRepository.findAllVO(sampleRepository.hasOperationId(operationId),
+            if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithSamples())) {
+                target.setSamples(sampleRepository.findAllVO(sampleRepository.hasOperationId(operationId),
                     SampleFetchOptions.builder()
-                            .withChildrenEntities(false) // Use flat list, not a tree
-                            .withRecorderDepartment(false)
-                            .withMeasurementValues(true)
-                            .build()));
+                        .withChildrenEntities(false) // Use flat list, not a tree
+                        .withRecorderDepartment(false)
+                        .withMeasurementValues(true)
+                        .build()));
+            }
         }
 
         // Measurements
@@ -322,7 +329,9 @@ public class OperationRepositoryImpl
             .and(inPhysicalGearIds(filter.getPhysicalGearIds()))
             .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
             .and(hasQualityFlagIds(filter.getQualityFlagIds()))
-            .and(inDataQualityStatus(filter.getDataQualityStatus()));
+            .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(needBatchDenormalization(filter.getNeedBatchDenormalization()))
+            ;
     }
 
     @Override

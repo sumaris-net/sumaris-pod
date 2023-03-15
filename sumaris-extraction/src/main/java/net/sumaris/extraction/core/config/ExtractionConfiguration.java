@@ -110,8 +110,17 @@ public class ExtractionConfiguration {
     public boolean enableAdagioOptimization() {
         return getApplicationConfig().getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ADAGIO_OPTIMIZATION.getKey());
     }
+
     public String getAdagioSchema() {
         return getApplicationConfig().getOption(SumarisConfigurationOption.DB_ADAGIO_SCHEMA.getKey());
+    }
+
+    public boolean enableBatchDenormalization() {
+        return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_BATCH_DENORMALISATION_ENABLE.getKey());
+    }
+
+    public void setEnableBatchDenormalization(boolean value) {
+        getApplicationConfig().setOption(ExtractionConfigurationOption.EXTRACTION_BATCH_DENORMALISATION_ENABLE.getKey(), String.valueOf(value));
     }
 
     public File getTempDirectory() {

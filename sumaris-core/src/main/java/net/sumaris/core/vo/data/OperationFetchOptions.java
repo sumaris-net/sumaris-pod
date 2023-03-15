@@ -53,7 +53,7 @@ public class OperationFetchOptions implements IDataFetchOptions {
     private boolean withObservers = true;
 
     @Builder.Default
-    private boolean withChildrenEntities = false;
+    private boolean withChildrenEntities = false; // If tru, enable other property (positions, fishing areas, batches, samples, etc.)
 
     @Builder.Default
     private boolean withMeasurementValues = false;
@@ -66,6 +66,14 @@ public class OperationFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withTrip = false;
+
+    private boolean withPositions = false;
+
+    private boolean withFishingAreas = false;
+
+    private boolean withBatches = false;
+
+    private boolean withSamples = false;
 
     public OperationFetchOptions clone() {
         OperationFetchOptions target = new OperationFetchOptions();

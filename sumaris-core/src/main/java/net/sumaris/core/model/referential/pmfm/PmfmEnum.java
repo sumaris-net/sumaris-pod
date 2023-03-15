@@ -23,12 +23,13 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.IEntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
 @EntityEnum(entity = Pmfm.class, joinAttributes = Pmfm.Fields.LABEL, required = false)
-public enum PmfmEnum implements Serializable {
+public enum PmfmEnum implements IEntityEnum, Serializable {
 
     SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),
     HEADLINE_CUMULATIVE_LENGTH(12, "HEADLINE_CUMULATIVE_LENGTH"),

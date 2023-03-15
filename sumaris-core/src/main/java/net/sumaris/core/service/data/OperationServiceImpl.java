@@ -99,9 +99,15 @@ public class OperationServiceImpl implements OperationService {
     public List<OperationVO> findAllByTripId(int tripId,
                                              int offset, int size, String sortAttribute, SortDirection sortDirection,
                                              @NonNull OperationFetchOptions fetchOptions) {
-        return operationRepository.findAllVO(operationRepository.hasTripId(tripId),
-                Pageables.create(offset, size, sortAttribute, sortDirection),
-                fetchOptions).getContent();
+        return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(),
+                offset, size, sortAttribute, sortDirection,
+                fetchOptions);
+    }
+
+    @Override
+    public List<OperationVO> findAllByFilter(@NonNull OperationFilterVO filter,
+                                             @NonNull OperationFetchOptions fetchOptions) {
+        return operationRepository.findAll(filter, fetchOptions);
     }
 
     @Override

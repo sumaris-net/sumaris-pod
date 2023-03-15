@@ -94,6 +94,37 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @Column(name = "elevate_individual_count")
     private Integer  elevateIndividualCount;
 
+    /**
+     * Nombre d'individus élevé à l'échelle du groupe de taxon, ou par défaut du taxon (cf mantis
+     * #37645)
+     * Calculé par le traitement de dénormalisation.
+     * @return this.taxonElevateIndivCount Integer
+     */
+    @Column(name = "taxon_elevate_indiv_count")
+    private Double taxonElevateIndividualCount;
+
+    /**
+     * Poids contextuel élevé à l'échelle du groupe de taxon, ou par défaut du taxon (cf mantis
+     * #37645).
+     * Calculé par le traitement de dénormalisation.
+     */
+    @Column(name = "taxon_elevate_context_weight")
+    private Double taxonElevateContextWeight;
+
+    /**
+     * Poids vif sans élévation reconstitué à partir du poids RTP (cf mantis #30088).
+     * Calculé par le traitement de dénormalisation.
+     */
+    @Column(name = "indirect_rtp_weight")
+    private Double indirectRtpWeight;
+
+    /**
+     * Poids vif élevé et reconstitué à partir du poids RTP (cf mantis #30088).
+     * Calculé par le traitement de dénormalisation.
+     */
+    @Column(name = "elevate_rtp_weight")
+    private Double elevateRtpWeight;
+
     @Column(name = "sampling_ratio")
     private Double samplingRatio;
 
@@ -137,6 +168,20 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @JoinColumn(name = "inherited_taxon_group_fk")
     private TaxonGroup inheritedTaxonGroup;
 
+    /**
+     * L'espèce commerciale déterminée à partir de l'espèce scientifique.
+     * Calculé par le traitement de dénormalisation.
+     * Dans le cas où le lot ni aucun de ses lots pères indique une espèce commerciale, le
+     * traitement détermine la plus forte probalité d'appartenance de l'espèce scientifique à une
+     * espèce ciommerciale.
+     * Pour cela, les correspondances existantes entre TAXON_GROUP et REFERENCE_TAXON sont
+     * exploitées (cf table TAXON_GROUP_HISTORICAL_RECORD), ou le cas échéant les correspodnances
+     * trouvées dans l'arbre d'achantillonnage courant (typiquement dans la "partie retenue" PR, ou
+     * les deux types d'espèces une chance d'avoir été déjà saisis).
+     * Ce champ sert à afficher le nom commerciale probable, à côté de chaque informations relatifs
+     * à une espèce scientifique. C'est le cas par exemple dans les rapports de restitution OBSMER
+     * aux professionnels.
+     **/
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calculated_taxon_group_fk")
     private TaxonGroup calculatedTaxonGroup;

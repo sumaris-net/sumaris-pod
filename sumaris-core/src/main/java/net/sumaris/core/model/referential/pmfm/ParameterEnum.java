@@ -24,14 +24,17 @@ package net.sumaris.core.model.referential.pmfm;
 
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.IEntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
 @EntityEnum(entity = Parameter.class, joinAttributes = {ParameterGroup.Fields.LABEL, IEntity.Fields.ID})
-public enum ParameterEnum implements Serializable {
+public enum ParameterEnum implements Serializable, IEntityEnum {
 
-    HULL_MATERIAL(420, "HULL_MATERIAL")
+    HULL_MATERIAL(420, "HULL_MATERIAL"),
+
+    SEX(80, "SEX")
 
     ;
 

@@ -25,13 +25,19 @@ package net.sumaris.core.service.technical;
 
 import io.reactivex.rxjava3.core.Observable;
 import net.sumaris.core.event.job.JobProgressionVO;
+import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.vo.technical.job.JobVO;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
 public interface JobExecutionService {
-    JobVO run(JobVO job, Function<JobVO, Future<?>> asyncMethod);
+    <R> JobVO run(JobVO job, Callable<Object> configurationLoader,
+                  Function<IProgressionModel, Future<R>> asyncMethod);
+
+    <R> JobVO run(JobVO job, Function<IProgressionModel, Future<R>> callableFuture);
 
     Observable<JobProgressionVO> watchJobProgression(Integer id);
+
 }

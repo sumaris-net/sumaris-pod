@@ -22,6 +22,8 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
+import lombok.NonNull;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -32,6 +34,13 @@ public enum ProgramPropertyEnum implements Serializable {
 
     TRIP_BATCH_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.taxonName.enable", Boolean.class, Boolean.TRUE.toString()),
 
+    TRIP_BATCH_TAXON_GROUP_ENABLE("sumaris.trip.operation.batch.taxonGroup.enable", Boolean.class, Boolean.TRUE.toString()),
+
+    TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT("sumaris.trip.operation.batch.taxonGroups.noWeight", String.class, ""),
+
+    TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE("sumaris.trip.operation.batch.lengthWeightConversion.enable", Boolean.class, Boolean.FALSE.toString()),
+    TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID("sumaris.trip.operation.batch.roundWeightConversion.country.id", Integer.class, null),
+
     TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.individual.taxonName.enable",
             Boolean.class, Boolean.TRUE.toString()),
 
@@ -41,27 +50,27 @@ public enum ProgramPropertyEnum implements Serializable {
 
     ;
 
-    private String label;
+    private String key;
     private String defaultValue;
 
     private Class type;
-    ProgramPropertyEnum(String label, Class type, String defaultValue) {
-        this.label = label;
+    ProgramPropertyEnum(String key, Class type, String defaultValue) {
+        this.key = key;
         this.type = type;
         this.defaultValue = defaultValue;
     }
 
-    public static ProgramPropertyEnum findByLabel(final String label) {
-        return Arrays.stream(values()).filter(item -> item.name().equalsIgnoreCase(label)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown ProgramPropertyEnum label: " + label));
+    public static ProgramPropertyEnum findByKey(@NonNull final String key) {
+        return Arrays.stream(values()).filter(item -> key.equalsIgnoreCase(item.getKey())).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown ProgramPropertyEnum with key: " + key));
     }
 
-    public String getLabel() {
-        return label;
+    public String getKey() {
+        return key;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public void setKey(String key) {
+        this.key = key;
     }
 
 

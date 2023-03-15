@@ -48,6 +48,14 @@ public class LocationsTest {
 		String label = Locations.getRectangleLabelByLatLong(47.6f, -5.05f);
 		assertEquals("24E4", label);
 
+		// Check label = 25E5
+		label = Locations.getRectangleLabelByLatLong(48f, -5.01f);
+		assertEquals("25E5", label);
+
+		// Check label = 25E
+		label = Locations.getRectangleLabelByLatLong(48.001f, -5.0547f);
+		assertEquals("25E4", label);
+
 		// Check label with a position inside the Mediterranean sea
 		label = Locations.getRectangleLabelByLatLong(42.27f, 5.4f);
 		assertEquals("M24C2", label);

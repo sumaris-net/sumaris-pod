@@ -22,6 +22,7 @@
 
 package net.sumaris.importation.server.graphql;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
@@ -35,6 +36,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
+import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportResultVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
@@ -94,7 +96,8 @@ public class VesselImportGraphQLService {
             .build();
 
         // Execute importJob by JobService (async)
-        return jobExecutionService.run(importJob, (job) -> siopVesselImportService.asyncImportFromFile(context, job));
+        return jobExecutionService.run(importJob, () -> context,
+            (progression) -> siopVesselImportService.asyncImportFromFile(context, progression));
     }
 
 }

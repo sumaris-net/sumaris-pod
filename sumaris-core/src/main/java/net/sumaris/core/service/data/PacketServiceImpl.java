@@ -33,6 +33,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
 import net.sumaris.core.model.data.BatchSortingMeasurement;
 import net.sumaris.core.model.data.IMeasurementEntity;
@@ -82,6 +83,19 @@ public class PacketServiceImpl implements PacketService {
         this.measuredWeightPmfmId = PmfmEnum.BATCH_MEASURED_WEIGHT.getId();
         this.estimatedRatioPmfmId = PmfmEnum.BATCH_ESTIMATED_RATIO.getId();
         this.sortingPmfmId = PmfmEnum.BATCH_SORTING.getId();
+
+        try {
+
+            EntityEnums.checkResolved(
+                // Check pmfm enums
+                PmfmEnum.BATCH_CALCULATED_WEIGHT, PmfmEnum.BATCH_MEASURED_WEIGHT, PmfmEnum.BATCH_ESTIMATED_RATIO, PmfmEnum.BATCH_SORTING,
+                // Check QV enums
+                QualitativeValueEnum.SORTING_BULK
+            );
+        }
+        catch (Exception e) {
+            log.error(e.getMessage());
+        }
     }
 
     @Override

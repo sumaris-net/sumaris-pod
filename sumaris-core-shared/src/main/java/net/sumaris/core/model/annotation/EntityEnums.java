@@ -22,14 +22,18 @@
 
 package net.sumaris.core.model.annotation;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.nuiton.config.ConfigOptionDef;
+import org.nuiton.i18n.I18n;
 import org.reflections.Reflections;
 
 import java.util.List;
@@ -98,6 +102,37 @@ public final class EntityEnums {
         return options.toArray(new ConfigOptionDef[options.size()]);
     }
 
+    /**
+     * Check if an entity enumeration (@EntityEnum) has been resolved. Typically, if id!=-1
+     * @param enumerations
+     */
+    public static void checkResolved(String i18nMessageKey, @NonNull IEntityEnum... enumerations) {
+        List<String> invalidEnumerationNames = Beans.getStream(enumerations)
+            .filter(EntityEnums::isUnresolved)
+            .map(EntityEnums::name)
+            .toList();
+
+        if (CollectionUtils.isNotEmpty(invalidEnumerationNames)) {
+            throw new IllegalArgumentException(I18n.t(i18nMessageKey, Joiner.on(",").join(invalidEnumerationNames)));
+        }
+    }
+
+    public static void checkResolved(@NonNull IEntityEnum... enumerations) {
+        checkResolved("sumaris.error.enumeration.unresolved", enumerations);
+    }
+
+    public static String name(IEntityEnum enumeration) {
+        return Beans.getProperty((Object)enumeration, "name").toString();
+    }
+
+    public static boolean isUnresolved(IEntityEnum enumeration) {
+        try {
+            Object id = Beans.getProperty((Object)enumeration, "id");
+            return id == null || ((id instanceof Integer) && ((Integer)id) == UNRESOLVED_ENUMERATION_ID);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     @Data
     @AllArgsConstructor

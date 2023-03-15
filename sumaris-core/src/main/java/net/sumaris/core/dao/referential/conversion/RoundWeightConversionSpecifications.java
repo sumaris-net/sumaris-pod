@@ -27,8 +27,8 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.referential.conversion.RoundWeightConversion;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.referential.conversion.RoundWeightConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.RoundWeightConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.RoundWeightConversionVO;
@@ -66,10 +66,10 @@ public interface RoundWeightConversionSpecifications extends IEntityWithStatusSp
             return cb.not(
                 cb.or(
                     cb.lessThan(Daos.nvlEndDate(root, cb, RoundWeightConversion.Fields.END_DATE, getDatabaseType()), dateParam),
-                    cb.greaterThan(root.get(VesselFeatures.Fields.START_DATE), dateParam)
+                    cb.greaterThan(root.get(RoundWeightConversion.Fields.START_DATE), dateParam)
                 )
             );
-        }).addBind(DATE_PARAMETER, aDate);
+        }).addBind(DATE_PARAMETER, Dates.resetTime(aDate));
     }
 
 

@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -39,6 +40,7 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.nuiton.i18n.I18n;
@@ -110,16 +112,20 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
-	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
+	public List<ReferentialVO> findByFilter(String entityName,
+											IReferentialFilter filter, int offset, int size,
+											String sortAttribute, SortDirection sortDirection,
+											ReferentialFetchOptions fetchOptions) {
 		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
-				sortDirection);
+				sortDirection,
+				fetchOptions);
 	}
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size) {
 		return findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
 				IItemReferentialEntity.Fields.LABEL,
-				SortDirection.ASC);
+				SortDirection.ASC, null);
 	}
 
 	@Override

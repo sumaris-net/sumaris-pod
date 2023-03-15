@@ -91,6 +91,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -224,15 +225,11 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 	protected final ApplicationContext applicationContext;
 
-	private final ObjectMapper objectMapper;
-
-	private final ApplicationEventPublisher publisher;
-
 	private boolean running = false;
 
 	@Override
 	public SiopVesselImportResultVO importFromFile(@NonNull SiopVesselImportContextVO context,
-												   IProgressionModel progressionModel) throws IOException {
+												   @Nullable IProgressionModel progressionModel) throws IOException {
 		Files.checkExists(context.getProcessingFile());
 		Preconditions.checkNotNull(context.getRecorderPersonId());
 
@@ -442,87 +439,27 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 	}
 
 	@Override
-	public Future<SiopVesselImportResultVO> asyncImportFromFile(SiopVesselImportContextVO context, JobVO job) {
-		int jobId = job.getId();
+	public Future<SiopVesselImportResultVO> asyncImportFromFile(@NonNull SiopVesselImportContextVO context,
+																@Nullable IProgressionModel progressionModel) {
 
-		final SiopVesselImportService self = applicationContext.getBean(SiopVesselImportService.class);
-
+		SiopVesselImportResultVO result;
 		try {
-			// Affect context to job (as json)
-			job.setConfiguration(objectMapper.writeValueAsString(context));
-		} catch (JsonProcessingException e) {
-			throw new SumarisTechnicalException(e);
+			result = applicationContext.getBean(SiopVesselImportService.class)
+				.importFromFile(context, progressionModel);
+
+			// Set result status
+			result.setStatus(result.hasError() ? JobStatusEnum.ERROR : JobStatusEnum.SUCCESS);
+
+		} catch (Exception e) {
+			// Result is kept in context
+			result = context.getResult();
+			result.setMessage(t("sumaris.import.vessel.error.detail", ExceptionUtils.getStackTrace(e)));
+
+			// Set failed status
+			result.setStatus(JobStatusEnum.ERROR);
 		}
 
-		// Publish job start event
-		publisher.publishEvent(new JobStartEvent(jobId, job));
-
-		// Create progression model and listener to throttle events
-		ProgressionModel progressionModel = new ProgressionModel();
-		io.reactivex.rxjava3.core.Observable<JobProgressionVO> progressionObservable = Observable.create(emitter -> {
-
-			// Create listener on bean property and emit the value
-			PropertyChangeListener listener = evt -> {
-				ProgressionModel progression = (ProgressionModel) evt.getSource();
-				JobProgressionVO jobProgression = JobProgressionVO.fromModelBuilder(progression)
-					.id(jobId)
-					.name(job.getName())
-					.build();
-				emitter.onNext(jobProgression);
-
-				if (progression.isCompleted()) {
-					// complete observable
-					emitter.onComplete();
-				}
-			};
-
-			// Add listener on current progression and message
-			progressionModel.addPropertyChangeListener(ProgressionModel.Fields.CURRENT, listener);
-			progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, listener);
-		});
-
-		Disposable progressionSubscription = progressionObservable
-			// throttle for 500ms to filter unnecessary flow
-			.throttleLatest(500, TimeUnit.MILLISECONDS, true)
-			// Publish job progression event
-			.subscribe(jobProgressionVO -> publisher.publishEvent(new JobProgressionEvent(jobId, jobProgressionVO)));
-
-		// Execute import
-		try {
-			SiopVesselImportResultVO result;
-
-			try {
-				result = self.importFromFile(context, progressionModel);
-
-				// Set result status
-				job.setStatus(result.hasError() ? JobStatusEnum.ERROR : JobStatusEnum.SUCCESS);
-
-			} catch (Exception e) {
-				// Result is kept in context
-				result = context.getResult();
-				result.setMessage(t("sumaris.import.vessel.error.detail", ExceptionUtils.getStackTrace(e)));
-
-				// Set failed status
-				// TODO
-				//job.setStatus(JobStatusEnum.FAILED);
-				job.setStatus(JobStatusEnum.ERROR);
-			}
-
-			try {
-				// Serialize result in job report (as json)
-				job.setReport(objectMapper.writeValueAsString(result));
-			} catch (JsonProcessingException e) {
-				throw new SumarisTechnicalException(e);
-			}
-
-			return new AsyncResult<>(result);
-
-		} finally {
-
-			// Publish job end event
-			publisher.publishEvent(new JobEndEvent(jobId, job));
-			Observables.dispose(progressionSubscription);
-		}
+		return new AsyncResult<>(result);
 	}
 
 	/* -- protected methods -- */

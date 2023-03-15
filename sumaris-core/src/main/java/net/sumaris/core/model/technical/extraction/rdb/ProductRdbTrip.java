@@ -67,7 +67,7 @@ public class ProductRdbTrip implements Serializable, IEntity<Integer> {
     private Integer id;
 
     @Column(nullable = false, length = 2, name = COLUMN_RECORD_TYPE)
-    @ColumnDefault(SHEET_NAME)
+    @ColumnDefault("'" + SHEET_NAME + "'")
     private String recordType;
 
     @Column(nullable = false, length = 2, name = COLUMN_SAMPLING_TYPE)

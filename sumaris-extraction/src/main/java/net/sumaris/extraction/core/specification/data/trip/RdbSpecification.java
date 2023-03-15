@@ -44,6 +44,7 @@ public interface RdbSpecification {
     String COLUMN_YEAR = "year";
     String COLUMN_VESSEL_IDENTIFIER = "vessel_identifier";
     String COLUMN_TRIP_CODE = "trip_code";
+    String COLUMN_STATION_NUMBER = "station_number";
 
     String COLUMN_SAMPLING_METHOD = "sampling_method";
 
@@ -61,6 +62,8 @@ public interface RdbSpecification {
     String[] SHEET_NAMES = {
             TR_SHEET_NAME,
             HH_SHEET_NAME,
+
+            //"RAW_SL", // -- For DEBUG
             SL_SHEET_NAME,
             HL_SHEET_NAME,
             // CA_SHEET_NAME

@@ -462,14 +462,14 @@ public class Beans {
         return (o1, o2) -> 0;
     }
 
-    public static <T> T clone(T source, Class<T> sourceClass) {
-        T target = newInstance(sourceClass);
+    public static <T, R extends T> R clone(T source, Class<R> resultClass) {
+        R target = newInstance(resultClass);
         copyProperties(source, target);
         return target;
     }
 
-    public static <T> T clone(T source, Class<T> sourceClass, String... excludedPropertyNames) {
-        T target = newInstance(sourceClass);
+    public static <T, R extends T> R clone(T source, Class<R> resultClass, String... excludedPropertyNames) {
+        R target = newInstance(resultClass);
         copyProperties(source, target, excludedPropertyNames);
         return target;
     }
@@ -509,7 +509,7 @@ public class Beans {
                     PropertyDescriptor targetDescriptor = targetProperties.get(pd.getName());
                     boolean ignored = targetDescriptor == null
                         || !targetDescriptor.getPropertyType().isAssignableFrom(pd.getPropertyType())
-                        || Collection.class.isAssignableFrom(pd.getPropertyType())
+                        || Collection.class.isAssignableFrom(pd.getPropertyType()) // Ignore List, Collection, etc
                         || targetDescriptor.getWriteMethod() == null;
                     return ignored;
                 })

@@ -256,6 +256,10 @@ public class DatabaseFixtures {
 		return 1122;
 	}
 
+	public Integer getTaxonGroupCOD() {
+		return 1161;
+	}
+
 	public Integer getTaxonGroupIdWithManyTaxonName() {
 		return 1122; // MNZ - Baudroie
 	}

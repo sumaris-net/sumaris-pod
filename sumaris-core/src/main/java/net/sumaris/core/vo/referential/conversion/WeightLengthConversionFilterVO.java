@@ -22,17 +22,15 @@
 
 package net.sumaris.core.vo.referential.conversion;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import net.sumaris.core.util.Beans;
 
 import java.util.Date;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class WeightLengthConversionFilterVO {
 
     public static WeightLengthConversionFilterVO nullToEmpty(WeightLengthConversionFilterVO filter) {
@@ -43,6 +41,7 @@ public class WeightLengthConversionFilterVO {
     Integer[] referenceTaxonIds;
 
     Integer[] locationIds;
+    Integer[] childLocationIds;
     String[] rectangleLabels;
 
     Integer[] sexIds;
@@ -51,6 +50,10 @@ public class WeightLengthConversionFilterVO {
     Integer[] lengthUnitIds;
     Integer[] lengthPmfmIds;
 
-    Integer month;
+    Integer month; // 1=January
     Integer year;
+
+    public WeightLengthConversionFilterVO clone() {
+        return Beans.clone(this, WeightLengthConversionFilterVO.class);
+    }
 }

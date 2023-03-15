@@ -32,4 +32,6 @@ public class UnicodeChars {
     public static final String SUM = "\u2211";
 
     public static final String ARROW_DOWN = "\uA71C";
+
+    public static final String ARROW_UP = "\uA71B";
 }

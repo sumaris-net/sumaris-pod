@@ -46,8 +46,12 @@
 
         <where>1=1</where>
 
-        <where group="vesselFilter" operator="AND">T.VESSEL_IDENTIFIER in (&amp;vesselIds)</where>
-        <where group="tripFilter" operator="AND">T.TRIP_CODE in (&amp;tripCodes)</where>
+        <where group="vesselFilter" operator="AND">
+          <in field="T.VESSEL_IDENTIFIER">&amp;vesselIds</in>
+        </where>
+        <where group="tripFilter" operator="AND">
+          <in field="T.TRIP_CODE">&amp;tripCodes</in>
+        </where>
       </subquery>
     </with>
 
@@ -92,6 +96,8 @@
 
 
     <!-- Hidden field (use min trip/station as identifier) -->
+    <select alias="VESSEL_IDENTIFIERS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(T.VESSEL_IDENTIFIER)</select>
+    <select alias="VESSEL_IDENTIFIERS" dbms="oracle" type="hidden">LISTAGG(T.VESSEL_IDENTIFIER, ',')</select>
     <select alias="TRIP_CODES" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
     <select alias="TRIP_CODES" dbms="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
     <select alias="STATION_NUMBERS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
@@ -109,12 +115,7 @@
     </where>
     <where group="startDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || COALESCE(S.TIME, '00:00'), 'YYYY-MM-DD HH24:MI') >= &startDate]]></where>
     <where group="endDateFilter" operator="AND"><![CDATA[TO_DATE(S.DATE || ' ' || COALESCE(S.TIME, '00:00'), 'YYYY-MM-DD HH24:MI') <= &endDate]]></where>
-    <where group="vesselFilter" operator="AND">
-      <in field="S.VESSEL_IDENTIFIER">&amp;vesselIds</in>
-    </where>
-    <where group="tripFilter" operator="AND">
-      <in field="S.TRIP_CODE">&amp;tripCodes</in>
-    </where>
+
 
     <groupby>
       S.SAMPLING_TYPE, S.LANDING_COUNTRY, S.VESSEL_FLAG_COUNTRY, S.YEAR, S.PROJECT,

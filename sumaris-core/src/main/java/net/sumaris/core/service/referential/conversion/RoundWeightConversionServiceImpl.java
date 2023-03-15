@@ -22,25 +22,33 @@
 
 package net.sumaris.core.service.referential.conversion;
 
-import com.google.common.collect.ListMultimap;
+import com.google.common.base.Preconditions;
+import lombok.NonNull;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.conversion.RoundWeightConversionRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.model.referential.location.LocationLevels;
-import net.sumaris.core.service.referential.LocationService;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.filter.LocationFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.conversion.RoundWeightConversion;
 import net.sumaris.core.vo.referential.conversion.RoundWeightConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.RoundWeightConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.RoundWeightConversionVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("roundWeightConversionService")
 public class RoundWeightConversionServiceImpl implements RoundWeightConversionService {
+
+    private static final Page FIND_FIRST_PAGE = Page.builder().size(1)
+        .sortBy(RoundWeightConversion.Fields.START_DATE)
+        .sortDirection(SortDirection.DESC)
+        .build();
 
     @Resource
     private RoundWeightConversionRepository roundWeightConversionRepository;
@@ -50,6 +58,28 @@ public class RoundWeightConversionServiceImpl implements RoundWeightConversionSe
                                                        Page page,
                                                        RoundWeightConversionFetchOptions fetchOptions) {
         return roundWeightConversionRepository.findAll(filter, page, fetchOptions);
+    }
+
+    @Override
+    public Optional<RoundWeightConversionVO> findFirstByFilter(@NonNull RoundWeightConversionFilterVO filter) {
+        return findFirstByFilter(filter, RoundWeightConversionFetchOptions.DEFAULT);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.ROUND_WEIGHT_CONVERSION_FIRST_BY_FILTER, key = "#filter.hashCode() * #fetchOptions.hashCode()")
+    public Optional<RoundWeightConversionVO> findFirstByFilter(
+        @NonNull RoundWeightConversionFilterVO filter, @NonNull RoundWeightConversionFetchOptions fetchOptions) {
+        Preconditions.checkArgument(ArrayUtils.isNotEmpty(filter.getTaxonGroupIds()), "Require at least one taxonGroupId");
+        Preconditions.checkArgument(ArrayUtils.isNotEmpty(filter.getLocationIds()), "Require at least one locationIds");
+
+        // Try to find a conversion factor
+        List<RoundWeightConversionVO> matches = findByFilter(filter,
+            FIND_FIRST_PAGE,
+            fetchOptions
+        );
+        if (CollectionUtils.isNotEmpty(matches)) return Optional.of(matches.get(0));
+
+        return Optional.empty();
     }
 
     @Override

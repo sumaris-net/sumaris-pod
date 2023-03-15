@@ -22,13 +22,19 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 
 @Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ReferentialFetchOptions implements IFetchOptions {
 
-
+    @Builder.Default
+    private boolean withProperties = false;
 }

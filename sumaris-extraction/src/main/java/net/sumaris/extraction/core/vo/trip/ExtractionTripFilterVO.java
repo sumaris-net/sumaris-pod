@@ -42,7 +42,7 @@ public class ExtractionTripFilterVO extends TripFilterVO {
 
     private Page page;
 
-    private boolean excludeInvalidStation = true;
+    private boolean excludeInvalidStation = false;
 
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;

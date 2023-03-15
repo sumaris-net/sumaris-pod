@@ -22,12 +22,14 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
+import net.sumaris.core.util.Beans;
 
 import java.util.Date;
 
@@ -58,4 +60,10 @@ public class OperationFilterVO implements IDataFilter {
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
     private Integer[] boundingBox;
+    private Boolean needBatchDenormalization;
+
+    @JsonIgnore
+    public OperationFilterVO clone() {
+        return Beans.clone(this, OperationFilterVO.class);
+    }
 }

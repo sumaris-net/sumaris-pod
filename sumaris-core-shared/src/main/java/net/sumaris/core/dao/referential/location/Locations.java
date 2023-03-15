@@ -220,12 +220,11 @@ public class Locations {
      * Compute the statistical rectangle from the 10x10 square.
      * (See doc: square_10.md)
      * @param squareLabel 10x10 square
+     * @return null if invalid square label
      */
     public static String convertMinuteSquareToRectangle(final String squareLabel, final int minute) {
-        String calculRectangle = "";
-
         if (squareLabel == null || squareLabel.length() != 8) {
-            return calculRectangle;
+            return null;
         }
 
         int cadran = Integer.parseInt(squareLabel.substring(0, 1));

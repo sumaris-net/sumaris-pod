@@ -22,11 +22,10 @@
 
 <query type="select">
 
-  <select alias="TAXON_CODE" type="text" group="taxon">TN.LABEL</select>
   <select alias="TAXON" type="text" group="taxon">COALESCE(TN.COMMENTS, TN.NAME)</select>
 
   <from join="true" group="taxon">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = SL.REFERENCE_TAXON_ID AND TN.IS_REFERENT=true</from>
 
   <groupby group="addGroupBy">&amp;groupByColumns</groupby>
-  <groupby group="taxon">TAXON_CODE, TAXON</groupby>
+  <groupby group="taxon">TAXON</groupby>
 </query>

@@ -88,4 +88,15 @@ public class DatabaseFixtures {
 		return 2012;
 	}
 
+	public int getTripIdByProgramLabel(String programLabel) {
+		switch (programLabel) {
+			case "APASE":
+				return 70;
+			case "ADAP-MER":
+				return 100;
+			default:
+				throw new IllegalArgumentException("Add trip id for program " + programLabel);
+		}
+	}
+
 }

@@ -51,10 +51,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.common.reflection.MetadataProvider;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Environment;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.Oracle10gDialect;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
@@ -70,6 +72,7 @@ import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.persistence.*;
 import javax.persistence.metamodel.Attribute;
@@ -181,17 +184,18 @@ public class DatabaseSchemaDaoImpl
     /** {@inheritDoc} */
     @Override
     public void generateCreateSchemaFile(String filename, boolean doExecute, boolean withDrop, boolean withCreate) {
+        Metadata metadata = getMetadata();
         new SchemaExport()
             .setDelimiter(";")
             .setOutputFile(filename)
             .execute(EnumSet.of(TargetType.SCRIPT),
                 withDrop ? SchemaExport.Action.BOTH : SchemaExport.Action.CREATE,
-                getMetadata()
+                metadata
             );
 
         // Add table and columns comment
         try {
-            appendRemarks(filename);
+            appendRemarks(filename, metadata);
         } catch (SQLException | IOException e) {
             throw new SumarisTechnicalException("Error when appending comments on file", e);
         }
@@ -671,38 +675,51 @@ public class DatabaseSchemaDaoImpl
         return result;
     }
 
-    protected Metadata getMetadata() {
-
-        SumarisConfiguration config = getConfig();
-
-        Map<String, Object> sessionSettings;
-        SessionFactory session = null;
+    protected Map<String, Object> getSessionSettings(boolean configureHibernateConnectionProvider) {
         if (getEntityManager() != null) {
-            session = getEntityManager().unwrap(Session.class).getSessionFactory();
+            SessionFactory session = getEntityManager().unwrap(Session.class).getSessionFactory();
+
+            if (session != null) {
+                // Allow Hibernate to get the connection
+                if (configureHibernateConnectionProvider) {
+                    HibernateConnectionProvider.setDataSource(getDataSource());
+                }
+                return session.getProperties();
+            }
         }
-        if (session  == null) {
+
+        return getSessionSettings(getConfig().getConnectionProperties(), configureHibernateConnectionProvider);
+    }
+    protected Map<String, Object> getSessionSettings(@Nullable Properties connectionProperties, boolean configureHibernateConnectionProvider) {
+
+
+        // Allow Hibernate to get the connection
+        if (configureHibernateConnectionProvider) {
             try {
-                // To be able to retrieve connection from datasource
-                Connection conn = Daos.createConnection(config.getConnectionProperties());
+                Connection conn = Daos.createConnection(connectionProperties);
                 HibernateConnectionProvider.setConnection(conn);
             } catch (SQLException e) {
-                throw new SumarisTechnicalException("Could not open connection: " + config.getJdbcURL());
+                throw new SumarisTechnicalException("Could not open connection: " + connectionProperties.get(Environment.URL));
             }
-
-            sessionSettings = Maps.newHashMap();
-            sessionSettings.put(Environment.DIALECT, config.getHibernateDialect());
-            sessionSettings.put(Environment.DRIVER, config.getJdbcDriver());
-            sessionSettings.put(Environment.URL, config.getJdbcURL());
-            sessionSettings.put(Environment.IMPLICIT_NAMING_STRATEGY, HibernateImplicitNamingStrategy.class.getName());
-
-            sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, HibernatePhysicalNamingStrategy.class.getName());
-            //sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy");
         }
-        else {
-            // To be able to retrieve connection from datasource
-            HibernateConnectionProvider.setDataSource(getDataSource());
-            sessionSettings = session.getProperties();
-        }
+
+        Map<String, Object> sessionSettings = Maps.newHashMap();
+        sessionSettings.put(Environment.DIALECT, connectionProperties.get(Environment.DIALECT));
+        sessionSettings.put(Environment.DRIVER, connectionProperties.get(Environment.DRIVER));
+        sessionSettings.put(Environment.URL, connectionProperties.get(Environment.URL));
+        sessionSettings.put(Environment.IMPLICIT_NAMING_STRATEGY, HibernateImplicitNamingStrategy.class.getName());
+
+        sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, HibernatePhysicalNamingStrategy.class.getName());
+        //sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy");
+
+        return sessionSettings;
+    }
+
+    protected Metadata getMetadata() {
+        return getMetadata(getSessionSettings(true));
+    }
+
+    protected Metadata getMetadata(Map<String, Object> sessionSettings) {
 
         MetadataSources metadata = new MetadataSources(new StandardServiceRegistryBuilder()
             .applySettings(sessionSettings)
@@ -754,37 +771,53 @@ public class DatabaseSchemaDaoImpl
         throw new SumarisTechnicalException("Cannot generate Timezone query : not implemented for this database type");
     }
 
-    private void appendRemarks(String filename) throws SQLException, IOException {
+    private void appendRemarks(String filename, Metadata metadata) throws SQLException, IOException {
         List<String> linesToAppend = new ArrayList<>();
-        String schemaName = dataSource.getConnection().getSchema();
-        getEntityManager().getEntityManagerFactory().getMetamodel().getEntities().stream()
-            .sorted(Comparator.comparing(EntityType::getName))
-            .forEach(entityType -> {
-                Table table = entityType.getJavaType().getAnnotation(Table.class);
-                Comment tableComment = entityType.getJavaType().getAnnotation(Comment.class);
-                if (table != null) {
-                    if (tableComment != null) {
-                        Optional.ofNullable(getTableCommentQuery(schemaName, table.name(), tableComment.value())).ifPresent(linesToAppend::add);
-                    }
-                    // iterate attributes
-                    entityType.getAttributes().stream()
-                        .sorted(Comparator.comparing(Attribute::getName))
-                        .forEach(attribute -> {
-                            if (attribute.getJavaMember() instanceof Field) {
-                                Field field = (Field) attribute.getJavaMember();
-                                Column column = field.getAnnotation(Column.class);
-                                JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
-                                Comment columnComment = field.getAnnotation(Comment.class);
-                                String columnName = Optional.ofNullable(column).map(Column::name).orElse(
-                                    Optional.ofNullable(joinColumn).map(JoinColumn::name).orElse(null)
-                                );
-                                if (columnName != null && columnComment != null) {
-                                    Optional.ofNullable(getColumnCommentQuery(schemaName, table.name(), columnName, columnComment.value())).ifPresent(linesToAppend::add);
+
+        // Prepare hibernate connection (will be used by buildSessionFactory() )
+        Connection connection;
+        if (dataSource != null) {
+            connection = DataSourceUtils.getConnection(dataSource);
+            HibernateConnectionProvider.setDataSource(dataSource);
+        }
+        else {
+            connection = Daos.createConnection(getConfig().getConnectionProperties());
+            HibernateConnectionProvider.setConnection(connection);
+        }
+
+        try {
+            String schemaName = connection.getSchema();
+            metadata.buildSessionFactory().getMetamodel().getEntities().stream()
+                .sorted(Comparator.comparing(EntityType::getName))
+                .forEach(entityType -> {
+                    Table table = entityType.getJavaType().getAnnotation(Table.class);
+                    Comment tableComment = entityType.getJavaType().getAnnotation(Comment.class);
+                    if (table != null) {
+                        if (tableComment != null) {
+                            Optional.ofNullable(getTableCommentQuery(schemaName, table.name(), tableComment.value())).ifPresent(linesToAppend::add);
+                        }
+                        // iterate attributes
+                        entityType.getAttributes().stream()
+                            .sorted(Comparator.comparing(Attribute::getName))
+                            .forEach(attribute -> {
+                                if (attribute.getJavaMember() instanceof Field) {
+                                    Field field = (Field) attribute.getJavaMember();
+                                    Column column = field.getAnnotation(Column.class);
+                                    JoinColumn joinColumn = field.getAnnotation(JoinColumn.class);
+                                    Comment columnComment = field.getAnnotation(Comment.class);
+                                    String columnName = Optional.ofNullable(column).map(Column::name).orElse(
+                                        Optional.ofNullable(joinColumn).map(JoinColumn::name).orElse(null)
+                                    );
+                                    if (columnName != null && columnComment != null) {
+                                        Optional.ofNullable(getColumnCommentQuery(schemaName, table.name(), columnName, columnComment.value())).ifPresent(linesToAppend::add);
+                                    }
                                 }
-                            }
-                        });
-                }
-            });
+                            });
+                    }
+                });
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
 
         if (!linesToAppend.isEmpty()) {
             Files.write(Paths.get(filename), linesToAppend, StandardOpenOption.APPEND);
@@ -792,16 +825,40 @@ public class DatabaseSchemaDaoImpl
     }
 
     private String getTableCommentQuery(String schemaName, String tableName, String comment) {
-        if (Daos.getDialect(getEntityManager()) instanceof Oracle10gDialect) {
+        if (isOracleDialect()) {
             return String.format("comment on table %s.%s is '%s';", schemaName, tableName, comment.replaceAll("'", "''"));
         }
         return null;
     }
 
     private String getColumnCommentQuery(String schemaName, String tableName, String columnName, String comment) {
-        if (Daos.getDialect(getEntityManager()) instanceof Oracle10gDialect) {
+        if (isOracleDialect()) {
             return String.format("comment on column %s.%s.%s is '%s';", schemaName, tableName, columnName, comment.replaceAll("'", "''"));
         }
         return null;
+    }
+
+    private boolean isOracleDialect() {
+        try {
+            return getHibernateDialect() instanceof Oracle10gDialect;
+        }
+        catch (InstantiationException e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    private Dialect getHibernateDialect() throws InstantiationException {
+        EntityManager em = getEntityManager();
+        if (em != null) {
+            return Daos.getDialect(em);
+        }
+        String dialectClassName = getConfig().getHibernateDialect();
+        if (StringUtils.isBlank(dialectClassName)) return null;
+        try {
+            Class dialectClass = Class.forName(getConfig().getHibernateDialect());
+            return ((Dialect) dialectClass.getConstructor().newInstance());
+        } catch (Exception e) {
+            throw new InstantiationException(String.format("Cannot instantiate class %s: %s", dialectClassName, e.getMessage()));
+        }
     }
 }

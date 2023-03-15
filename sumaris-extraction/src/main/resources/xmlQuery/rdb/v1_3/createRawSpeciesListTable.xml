@@ -34,7 +34,7 @@
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
 
     <!-- PK (new fields) -->
-    <select alias="SPECIES" type="text">TG.LABEL</select>
+    <select alias="SPECIES" type="text">COALESCE(TG.COMMENTS, TG.NAME, TG.LABEL)</select>
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
     <select alias="CATCH_CATEGORY" type="text"><![CDATA[(SELECT
         CASE QV.ID WHEN &discardQvId THEN UPPER('DIS') WHEN &landingQvId THEN UPPER('LAN') ELSE null END
@@ -44,8 +44,8 @@
     )]]></select>
     <select alias="LANDING_CATEGORY" type="text">null</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select>
-    <select alias="SUBSAMPLING_CATEGORY" type="text">null</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select> <!-- TODO: SIZE_UNLI_CAT -->
+    <select alias="SUBSAMPLING_CATEGORY" type="text">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
     <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
 
     <!-- other fields -->
@@ -62,6 +62,9 @@
 
     <!-- TODO get precision from PMFM (unit + maxDecimals) ? -->
     <select alias="LENGTH_CODE" type="text">'mm'</select>
+
+    <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
+    <select alias="SUBSAMPLING_RATIO" type="number">1</select>
 
     <!-- need to link other tables -->
     <select alias="SAMPLE_ID" type="hidden">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>

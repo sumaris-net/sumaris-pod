@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<queries name="extractionCreateRawSpeciesListTable">
+
+  <query type="create" temp="false" table="&amp;rawSpeciesListTableName">
+
+    <!-- PK (inherited) -->
+    <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
+    <select alias="YEAR" type="number">S.YEAR</select>
+    <select alias="PROJECT" type="text">S.PROJECT</select>
+    <select alias="TRIP_CODE" type="number">S.TRIP_CODE</select>
+    <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+
+    <!-- DEBUG -->
+    <!--    <select alias="SPECIE_ID" type="number">SPECIE_B.ID</select>-->
+    <!--    <select alias="SAMPLING_RATIO" type="text">SPECIE_B.SAMPLING_RATIO</select>-->
+
+    <!-- PK (new fields) -->
+    <select alias="SPECIES" type="text">COALESCE(TN.COMMENTS, TN.NAME, TG.COMMENTS, TG.NAME)</select>
+    <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
+    <select alias="CATCH_CATEGORY" type="text"><![CDATA[
+      CASE CATCH_CATEGORY_SV.QUALITATIVE_VALUE_FK
+        WHEN &landingQvId THEN 'LAN'
+        WHEN &discardQvId THEN 'DIS'
+        ELSE NULL
+      END
+    ]]></select>
+
+    <select alias="LANDING_CATEGORY" type="text">null</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select> <!-- TODO: SIZE_UNLI_CAT -->
+    <select alias="SUBSAMPLING_CATEGORY" type="text">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
+    <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
+
+    <!-- other fields -->
+    <select alias="WEIGHT" group="weight" type="number">SPECIE_B.ELEVATE_WEIGHT</select>
+    <select alias="SUBSAMPLING_WEIGHT" type="number"><![CDATA[
+      CASE
+        WHEN SAMPLING_B.SAMPLING_RATIO > 0 THEN SPECIE_B.ELEVATE_WEIGHT * SAMPLING_B.SAMPLING_RATIO
+        ELSE NULL
+      END
+    ]]></select>
+    <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
+
+    <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
+    <select alias="SUBSAMPLING_RATIO" type="number"><![CDATA[
+      CASE
+        WHEN SAMPLING_B.ELEVATE_RTP_WEIGHT > 0 THEN
+          ROUND(SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SAMPLING_B.ELEVATE_RTP_WEIGHT + 0.000001, 6)
+        ELSE 1
+      END
+    ]]></select>
+
+    <!-- need to link other tables -->
+    <select alias="SAMPLE_ID" type="hidden">COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</select>
+    <select alias="SAMPLE_RANK_ORDER" type="hidden">COALESCE(SAMPLING_B.FLAT_RANK_ORDER, SPECIE_B.FLAT_RANK_ORDER)</select>
+
+    <from alias="S">&amp;stationTableName</from>
+<!--    <from join="true">INNER JOIN BATCH CATCH_B ON CATCH_B.OPERATION_FK = S.STATION_NUMBER AND CATCH_B.PARENT_BATCH_FK IS NULL</from>-->
+    <from join="true">INNER JOIN DENORMALIZED_BATCH SPECIE_B ON SPECIE_B.OPERATION_FK = S.STATION_NUMBER AND SPECIE_B.IS_LANDING &lt;&gt; SPECIE_B.IS_DISCARD</from>
+    <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.INHERITED_TAXON_GROUP_FK</from>
+    <from join="true">INNER JOIN DENORMALIZED_BATCH_SORT_VAL CATCH_CATEGORY_SV ON CATCH_CATEGORY_SV.BATCH_FK=SPECIE_B.ID AND CATCH_CATEGORY_SV.PMFM_FK=&amp;catchCategoryPmfmId AND CATCH_CATEGORY_SV.IS_INHERITED=0</from>
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SPECIE_B.ID AND SAMPLING_B.SAMPLING_RATIO &gt; 0</from>
+
+    <!-- join individual measure, to be able to compute sampling by length_code and taxon -->
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH LENGTH_B ON LENGTH_B.PARENT_BATCH_FK=COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</from>
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL LENGTH_SV ON LENGTH_SV.BATCH_FK=LENGTH_B.ID AND LENGTH_SV.PMFM_FK in (&amp;lengthPmfmIds) AND IS_INHERITED=0</from>
+    <from join="true">LEFT OUTER JOIN UNIT ON UNIT.ID = LENGTH_SV.UNIT_FK</from>
+    <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = LENGTH_B.REFERENCE_TAXON_FK</from>
+
+    <where>1=1</where>
+
+    <!-- Select batch with LANDING/DISCARD defined and a TAXON_GROUP -->
+    <where operator="AND" ><![CDATA[
+      (
+        (SPECIE_B.TAXON_GROUP_FK IS NOT NULL AND CATCH_CATEGORY_SV.IS_INHERITED=1)
+        OR (SPECIE_B.TAXON_GROUP_FK IS NULL AND CATCH_CATEGORY_SV.IS_INHERITED=0)
+      )
+    ]]></where>
+
+    <!-- exclude species without weight (eg. RJB in ADAP) -->
+    <where operator="AND" group="excludeNoWeight">SPECIE_B.WEIGHT IS NOT NULL</where>
+
+    <!-- 'OR IS NULL' is needed for postgresql -->
+    <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != UPPER('I') OR S.FISHING_VALIDITY IS NULL ]]></where>
+
+
+    <groupby>
+      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
+      CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
+      SEX, LENGTH_CODE, SAMPLE_ID, SAMPLE_RANK_ORDER,
+      SPECIE_B.ELEVATE_WEIGHT, SAMPLING_B.SAMPLING_RATIO, SAMPLING_B.ELEVATE_RTP_WEIGHT, SPECIE_B.ELEVATE_RTP_WEIGHT
+    </groupby>
+
+    <orderby direction="ASC">S.STATION_NUMBER, SAMPLE_RANK_ORDER</orderby>
+
+  </query>
+
+</queries>

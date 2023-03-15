@@ -56,6 +56,7 @@ public interface ProgramService {
 	@Transactional(readOnly = true)
 	ProgramVO getByLabel(String label);
 
+	@Transactional(readOnly = true)
 	ProgramVO getByLabel(String label, ProgramFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)

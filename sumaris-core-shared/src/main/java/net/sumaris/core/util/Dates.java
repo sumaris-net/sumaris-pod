@@ -25,6 +25,7 @@ package net.sumaris.core.util;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.util.DateUtil;
@@ -56,8 +57,7 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
      * @param amount the amount to remove, in month
      * @return a new date (= the given date - amount in month)
      */
-    public static Date removeMonth(Date date, int amount) {
-    	Preconditions.checkNotNull(date);
+    public static Date removeMonth(@NonNull Date date, int amount) {
     	Preconditions.checkArgument(amount > 0);
 
     	// Compute the start date
@@ -67,6 +67,28 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
 		calendar.set(Calendar.DAY_OF_MONTH, 1);
 		calendar.set(Calendar.MONTH, calendar.get(Calendar.MONTH)-amount);
 		return calendar.getTime();
+    }
+
+    /**
+     * Extract month of a date
+     * @param date a not null date
+     * @return 0 for january, 11 for december
+     */
+    public static Integer getMonth(@NonNull Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(date.getTime());
+        return calendar.get(Calendar.MONTH);
+    }
+
+    /**
+     * Extract month of a date
+     * @param date a not null date
+     * @return 1 for january, 12 for december
+     */
+    public static Integer getYear(@NonNull Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(date.getTime());
+        return calendar.get(Calendar.YEAR);
     }
 
     /**

@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -41,32 +40,35 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.service.data.denormalize.DenormalizedOperationService;
+import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
+import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
-import net.sumaris.extraction.core.dao.technical.Daos;
+import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
+import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.vo.*;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.ExtractionFilterVO;
+import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceException;
-import java.io.IOException;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,6 +79,7 @@ import static org.nuiton.i18n.I18n.t;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Repository("extractionRdbTripDao")
+@ConditionalOnBean({ExtractionConfiguration.class})
 @Lazy
 @Slf4j
 public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
@@ -97,6 +100,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     @Autowired
     protected ProgramService programService;
 
+    @Autowired
+    protected ExtractionConfiguration extractionConfiguration;
+
+    @Autowired
+    protected DenormalizedBatchService denormalizedBatchService;
+    @Autowired
+    protected DenormalizedOperationService denormalizedOperationService;
+
+    protected boolean enableTripSamplingMethodColumn = true;
 
     @Override
     public Set<IExtractionType> getManagedTypes() {
@@ -114,6 +126,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setUpdateDate(new Date());
         context.setType(LiveExtractionTypeEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
+        context.setEnableBatchDenormalization(extractionConfiguration.enableBatchDenormalization());
 
         // Start log
         Long startTime = null;
@@ -127,6 +140,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
+            filterInfo.append("\n - Batch denormalization: " + context.isEnableBatchDenormalization());
             log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
@@ -151,6 +165,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 if (rowCount != 0) {
                     rowCount = createStationTable(context);
                     if (sheetName != null && context.hasSheet(sheetName)) return context;
+                }
+
+                // Execute batch denormalization (if enable)
+                if (rowCount != 0 && context.isEnableBatchDenormalization()) {
+                    denormalizeBatches(context);
                 }
 
                 // Species Raw table
@@ -246,7 +265,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         if (count > 0) {
             // Update self sampling columns
-            updateTripSamplingMethod(context);
+            if (enableTripSamplingMethodColumn) updateTripSamplingMethod(context);
 
             // Clean row using generic filter
             count -= cleanRow(context.getTripTableName(), context.getFilter(), context.getTripSheetName());
@@ -360,6 +379,27 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return xmlQuery;
     }
 
+    protected void denormalizeBatches(C context) {
+        String stationsTableName = context.getStationTableName();
+        List<String> programLabels = getTripProgramLabels(context);
+        programLabels.forEach(programLabel -> {
+            String sql = String.format("SELECT distinct %s from %s where %s='%s'",
+                    RdbSpecification.COLUMN_STATION_NUMBER, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
+            Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
+
+            DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+            // DEBUG
+            //options.setEnableRtpWeight(false);
+
+            denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
+                    .programLabel(programLabel)
+                    .includedIds(operationIds)
+                    .hasNoChildOperation(true)
+                    .needBatchDenormalization(true)
+                    .build(), options);
+        });
+    }
+
     /**
      * Create raw table (with hidden columns used by sub table - e.g. SAMPLE_ID)
      * @param context
@@ -375,18 +415,25 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Clean row using generic filter
         long count = countFrom(tableName);
         if (count > 0) {
-            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
         // Add as a raw table (to be able to clean it later)
         context.addRawTableName(tableName);
+
+        // DEBUG
+        //context.addTableName(tableName, "RAW_SL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }
 
 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
-        XMLQuery xmlQuery = createXMLQuery(context, "createRawSpeciesListTable");
+        String queryName = context.isEnableBatchDenormalization()
+            ? "createRawSpeciesListDenormalizeTable"
+            : "createRawSpeciesListTable";
+
+        XMLQuery xmlQuery = createXMLQuery(context, queryName);
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
 
@@ -394,6 +441,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+        xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
 
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
@@ -416,7 +464,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Clean row using generic filter
         if (count > 0) {
-            cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
         // Add result table to context

@@ -43,7 +43,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
-import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -72,6 +72,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Person
         String PERSON_BY_ID = "net.sumaris.core.dao.administration.user.personById";
         String PERSON_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personByPubkey";
+        String PERSON_BY_USERNAME = "net.sumaris.core.dao.administration.user.personByUsername";
+
         String PERSON_AVATAR_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personAvatarByPubkey";
 
         // Location
@@ -81,12 +83,11 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         // Program
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
+        String PROGRAM_BY_LABEL_AND_OPTIONS = "net.sumaris.core.dao.administration.programStrategy.programByLabelAndOptions";
         String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
 
         // Program privilege
         String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
-        // Program property
-        String PROGRAM_PROPERTY_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
 
         // Strategy
         String STRATEGY_BY_ID = "net.sumaris.core.dao.administration.programStrategy.strategyById";
@@ -114,6 +115,13 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String TAXONONOMIC_LEVEL_BY_ID = "net.sumaris.core.dao.referential.taxon.taxonomicLevelById";
         String REFERENCE_TAXON_ID_BY_TAXON_NAME_ID = "net.sumaris.core.dao.referential.taxon.referenceTaxonIdByTaxonNameId";
 
+        // Weight length conversion
+        String WEIGHT_LENGTH_CONVERSION_FIRST_BY_FILTER = "net.sumaris.core.service.referential.conversion.weightLengthConversion.findFirstByFilter";
+        String WEIGHT_LENGTH_CONVERSION_IS_LENGTH_PARAMETER_ID = "net.sumaris.core.service.referential.conversion.weightLengthConversion.isLengthParameterId";
+        String WEIGHT_LENGTH_CONVERSION_IS_LENGTH_PMFM_ID = "net.sumaris.core.service.referential.conversion.weightLengthConversion.isLengthPmfmId";
+
+        String ROUND_WEIGHT_CONVERSION_FIRST_BY_FILTER = "net.sumaris.core.service.referential.conversion.roundWeightConversion.findFirstByFilter";
+
         // Vessel
         String VESSEL_SNAPSHOT_BY_ID_AND_DATE = "net.sumaris.core.service.data.vessel.vesselSnapshotByIdAndDate";
         String VESSEL_SNAPSHOTS_BY_FILTER = "net.sumaris.core.service.data.vessel.vesselSnapshotByFilter";
@@ -128,8 +136,10 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String GEAR_BY_ID = "net.sumaris.core.dao.referential.gear.gearById";
         String ANALYTIC_REFERENCES_BY_FILTER = "net.sumaris.core.dao.referential.analyticReferenceByFilter";
 
+
         // Data
         String MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID = "net.sumaris.core.dao.data.operation.mainUndefinedOperationGroupId";
+
     }
 
     @Bean
@@ -159,6 +169,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Person
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_ID, Integer.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createHeapCache(cacheManager, Names.PERSON_BY_USERNAME, String.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_AVATAR_BY_PUBKEY, ImageAttachmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
 
             // Location
@@ -171,6 +182,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Program
             Caches.createHeapCache(cacheManager, Names.PROGRAM_BY_ID, Integer.class, ProgramVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL, String.class, ProgramVO.class, 100);
+            Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL_AND_OPTIONS, SimpleKey.class, ProgramVO.class, 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
             Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
 
@@ -208,9 +220,12 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PRODUCTS_BY_FILTER, ExtractionProductVO.class, 100);
             Caches.createHeapCache(cacheManager, Names.TABLE_META_BY_NAME, String.class, SumarisTableMetadata.class, CacheTTL.DEFAULT.asDuration(), 500);
 
-
-            // Other entities
+            // Other referential
             Caches.createEternalCollectionHeapCache(cacheManager, Names.ANALYTIC_REFERENCES_BY_FILTER, ReferentialVO.class, 100);
+            Caches.createHeapCache(cacheManager, Names.WEIGHT_LENGTH_CONVERSION_FIRST_BY_FILTER, Integer.class, Object.class, CacheTTL.DEFAULT.asDuration(), 200);
+            Caches.createEternalHeapCache(cacheManager, Names.WEIGHT_LENGTH_CONVERSION_IS_LENGTH_PARAMETER_ID, Integer.class, Boolean.class, 1000);
+            Caches.createEternalHeapCache(cacheManager, Names.WEIGHT_LENGTH_CONVERSION_IS_LENGTH_PMFM_ID, Integer.class, Boolean.class, 1000);
+            Caches.createHeapCache(cacheManager, Names.ROUND_WEIGHT_CONVERSION_FIRST_BY_FILTER, Integer.class, Object.class, CacheTTL.DEFAULT.asDuration(), 200);
 
             // Data
             Caches.createHeapCache(cacheManager, Names.MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID, Integer.class, Integer.class, CacheTTL.DATA_DEFAULT.asDuration(), 100);

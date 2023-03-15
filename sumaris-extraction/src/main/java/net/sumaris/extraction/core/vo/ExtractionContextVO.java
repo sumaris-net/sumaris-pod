@@ -57,6 +57,8 @@ public class ExtractionContextVO implements IExtractionTypeWithTablesVO {
 
     Date updateDate;
 
+    boolean enableBatchDenormalization;
+
     @FieldNameConstants.Exclude
     Map<String, String> sheetNameByTableNames = new LinkedHashMap<>();
 

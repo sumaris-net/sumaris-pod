@@ -22,15 +22,22 @@
 
 package net.sumaris.core.vo.data.batch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import net.sumaris.core.vo.data.IDataFetchOptions;
+import lombok.NoArgsConstructor;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 
 import javax.annotation.Nullable;
-import java.util.List;
+import java.util.Date;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class DenormalizedBatchOptions {
 
     public static final DenormalizedBatchOptions DEFAULT = DenormalizedBatchOptions.builder().build();
@@ -40,11 +47,64 @@ public class DenormalizedBatchOptions {
     }
 
     @Builder.Default
+    private boolean force = false; // Should recompute if denormalization already done ?
+
+    @Builder.Default
     private boolean enableTaxonGroup = true;
 
     @Builder.Default
     private boolean enableTaxonName = true;
 
-    private List<Integer> taxonGroupIdsNoWeight;
+    @Builder.Default
+    private boolean enableRtpWeight = false;
+
+    @Builder.Default
+    private boolean allowZeroWeightWithIndividual = true;
+
+    private Integer[] taxonGroupIdsNoWeight;
+
+    private Integer roundWeightCountryLocationId; // Country location, used to find a round weight conversion
+
+    private Integer[] fishingAreaLocationIds; // Fishing areas used to find a weight length conversion
+
+    private Date dateTime;
+
+    @Builder.Default
+    private Integer defaultLandingDressingId = QualitativeValueEnum.DRESSING_GUTTED.getId(); // /!\ in SIH Adagio, the denormalization job use WHL as default
+
+    @Builder.Default
+    private Integer defaultDiscardDressingId = QualitativeValueEnum.DRESSING_WHOLE.getId();
+
+    @Builder.Default
+    private Integer defaultLandingPreservationId = QualitativeValueEnum.PRESERVATION_FRESH.getId();
+
+    @Builder.Default
+    private Integer defaultDiscardPreservationId = QualitativeValueEnum.PRESERVATION_FRESH.getId();
+
+    @Builder.Default
+    private int maxRtpWeightDiffPct = 10; // 10% max pct between RTP weight and weight
+
+    @JsonIgnore
+    public int getMonth() {
+        return dateTime != null ? Dates.getMonth(dateTime) + 1: null;
+    }
+
+    @JsonIgnore
+    public int getYear() {
+        return dateTime != null ? Dates.getYear(dateTime) : null;
+    }
+
+    /**
+     * Get date, wuthout time. Useful for increase stability of cache keys
+     * @return
+     */
+    @JsonIgnore
+    public Date getDay() {
+        return dateTime != null ? Dates.resetTime(dateTime) : null;
+    }
+
+    public DenormalizedBatchOptions clone() {
+        return Beans.clone(this, DenormalizedBatchOptions.class);
+    }
 
 }

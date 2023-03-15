@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.referential;
 
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
+import io.leangen.graphql.execution.ResolutionEnvironment;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
+import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
@@ -52,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @GraphQLApi
@@ -94,7 +97,10 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
-            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLEnvironment() ResolutionEnvironment env) {
+
+
 
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
         if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
@@ -109,12 +115,18 @@ public class ReferentialGraphQLService {
             restrictProgramFilter(entityName, filter);
         }
 
+        Set<String> fields = GraphQLUtils.fields(env);
+
         return referentialService.findByFilter(entityName,
                 ReferentialFilterVO.nullToEmpty(filter),
                 offset == null ? 0 : offset,
                 size == null ? 1000 : size,
                 sort == null ? ReferentialVO.Fields.LABEL : sort,
-                SortDirection.fromString(direction, SortDirection.ASC));
+                SortDirection.fromString(direction, SortDirection.ASC),
+                ReferentialFetchOptions.builder()
+                    .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
+                    .build()
+            );
     }
 
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")

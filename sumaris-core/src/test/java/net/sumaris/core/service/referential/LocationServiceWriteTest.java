@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
@@ -71,14 +70,14 @@ public class LocationServiceWriteTest extends AbstractServiceTest{
     @Test
     public void getLocationIdByLatLong() {
         // Check label with a position inside the Atlantic sea
-        Integer locationId = service.getLocationIdByLatLong(47.6f, -5.05f);
+        Integer locationId = service.getStatisticalRectangleIdByLatLong(47.6f, -5.05f).orElse(null);
         assertNotNull("Location Id could not found in DB, in the Atlantic Sea. Bad enumeration value for LocationLevelEnum.RECTANGLE_ICES ?", locationId);
         assertEquals(new Integer(115), locationId); // =id of location '24E4'
 
         // Check label with a position inside the Mediterranean sea
-        locationId = service.getLocationIdByLatLong(42.27f, 5.4f);
+        locationId = service.getStatisticalRectangleIdByLatLong(42.27f, 5.4f).orElse(null);
         assertNotNull("Location Id could not found in DB, in the Mediterranean Sea. Bad enumeration value for LocationLevelEnum.RECTANGLE_GFCM ?", locationId);
-        assertEquals(new Integer(140), locationId); // =id of location 'M24C2'
+        assertEquals(Integer.valueOf(140), locationId); // =id of location 'M24C2'
     }
 
     protected void printLocationPorts(PrintStream out, String indentation) {

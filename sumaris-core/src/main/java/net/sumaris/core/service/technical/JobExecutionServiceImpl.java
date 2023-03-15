@@ -27,12 +27,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.event.job.JobEndEvent;
+import net.sumaris.core.event.job.JobProgressionEvent;
 import net.sumaris.core.event.job.JobProgressionVO;
+import net.sumaris.core.event.job.JobStartEvent;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.jms.JmsJobEventProducer;
+import net.sumaris.core.model.IProgressionModel;
+import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.social.EventLevelEnum;
 import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.SystemRecipientEnum;
@@ -40,20 +47,24 @@ import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.Assert;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
+import net.sumaris.core.vo.technical.job.IJobResultVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.jms.Message;
+import java.beans.PropertyChangeListener;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -78,17 +89,19 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     private final ISecurityContext<PersonVO> securityContext;
     private final UserEventService userEventService;
 
+    private final ApplicationEventPublisher publisher;
     private final Map<Integer, List<Consumer<JobProgressionVO>>> jobProgressionConsumerMap = new ConcurrentHashMap<>();
     private final Map<Integer, Future<?>> jobFutureMap = new ConcurrentHashMap<>();
 
     public JobExecutionServiceImpl(JobService jobService,
                                    UserEventService userEventService,
                                    ObjectMapper objectMapper,
-                                   Optional<ISecurityContext<PersonVO>> securityContext) {
+                                   Optional<ISecurityContext<PersonVO>> securityContext, ApplicationEventPublisher publisher) {
         this.jobService = jobService;
         this.userEventService = userEventService;
         this.objectMapper = objectMapper;
         this.securityContext = securityContext.orElse(null);
+        this.publisher = publisher;
     }
 
     @PostConstruct
@@ -97,7 +110,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     }
 
     @Override
-    public JobVO run(JobVO job, Function<JobVO, Future<?>> asyncMethod) {
+    public <R> JobVO run(JobVO job, Function<IProgressionModel, Future<R>> callableFuture) {
+        return run(job, null, callableFuture);
+    }
+
+    @Override
+    public <R> JobVO run(JobVO job,
+                         Callable<Object> configurationLoader,
+                         Function<IProgressionModel, Future<R>> callableFuture) {
         Assert.notBlank(job.getName());
         Assert.notNull(job.getType());
 
@@ -111,6 +131,19 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         job.setStatus(JobStatusEnum.PENDING);
         job.setStartDate(new Date());
 
+        // Load job configuration
+        if (configurationLoader != null) {
+            try {
+                Object configuration = configurationLoader.call();
+                // Store configuration into the job (as json)
+                if (configuration != null) {
+                    job.setConfiguration(objectMapper.writeValueAsString(configuration));
+                }
+            } catch (Exception e) {
+                throw new SumarisTechnicalException(e);
+            }
+        }
+
         // Save job
         job = jobService.save(job);
 
@@ -118,10 +151,98 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         sendUserEvent(EventLevelEnum.INFO, job);
 
         // Execute async method
-        Future<?> future = asyncMethod.apply(job);
+        Future<?> future = start(job, callableFuture);
         jobFutureMap.put(job.getId(), future);
 
         return job;
+    }
+
+    public <R> Future<R> start(final JobVO job,
+                               Function<IProgressionModel, Future<R>> callableFuture) {
+        final int jobId = job.getId();
+
+        // Publish job start event
+        publisher.publishEvent(new JobStartEvent(jobId, job));
+
+        // Create progression model and listener to throttle events
+        ProgressionModel progressionModel = new ProgressionModel();
+        job.setProgressionModel(progressionModel);
+
+        // Create listeners to throttle events
+        io.reactivex.rxjava3.core.Observable<JobProgressionVO> progressionObservable = Observable.create(emitter -> {
+
+            // Create listener on bean property and emit the value
+            PropertyChangeListener listener = evt -> {
+                ProgressionModel progression = (ProgressionModel) evt.getSource();
+                JobProgressionVO jobProgression = JobProgressionVO.fromModelBuilder(progression)
+                    .id(jobId)
+                    .name(job.getName())
+                    .build();
+                emitter.onNext(jobProgression);
+
+                if (progression.isCompleted()) {
+                    // complete observable
+                    emitter.onComplete();
+                }
+            };
+
+            // Add listener on current progression and message
+            progressionModel.addPropertyChangeListener(ProgressionModel.Fields.CURRENT, listener);
+            progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, listener);
+        });
+
+        Disposable progressionSubscription = progressionObservable
+            // throttle for 500ms to filter unnecessary flow
+            .throttleLatest(500, TimeUnit.MILLISECONDS, true)
+            // Publish job progression event
+            .subscribe(jobProgressionVO -> publisher.publishEvent(new JobProgressionEvent(jobId, jobProgressionVO)));
+
+        // Execute import
+        try {
+            R result = null;
+
+            try {
+
+                // Start job
+                Future<R> resultFuture = callableFuture.apply(progressionModel);
+
+                // Wait job result
+                result = resultFuture.get();
+
+                // Extract the job status, from result
+                if (result instanceof IJobResultVO) {
+                    job.setStatus(((IJobResultVO)result).getStatus());
+                }
+                else {
+                    log.warn("Cannot read job's status, from result (not implements IWithJobStatusVO). Will use SUCCESS");
+                    job.setStatus(JobStatusEnum.SUCCESS);
+                }
+
+            } catch (Exception e) {
+                // Set failed status
+                // TODO
+                //job.setStatus(JobStatusEnum.FAILED);
+                job.setStatus(JobStatusEnum.ERROR);
+            }
+
+            // Store result as report
+            if (result != null) {
+                try {
+                    // Serialize result in job report (as json)
+                    job.setReport(objectMapper.writeValueAsString(result));
+                } catch (JsonProcessingException e) {
+                    throw new SumarisTechnicalException(e);
+                }
+            }
+
+            return new AsyncResult<>(result);
+
+        } finally {
+
+            // Publish job end event
+            publisher.publishEvent(new JobEndEvent(jobId, job));
+            Observables.dispose(progressionSubscription);
+        }
     }
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)

@@ -172,12 +172,17 @@ public class ProgramRepositoryImpl
     }
 
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS)
+    public ProgramVO getByLabel(String label, ProgramFetchOptions fetchOptions) {
+        return super.getByLabel(label, fetchOptions);
+    }
+
+    @Override
     protected Specification<Program> toSpecification(ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))
             .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevelLabels()))
-            .and(hasProperty(filter.getWithProperty()))
-            ;
+            .and(hasProperty(filter.getWithProperty()));
     }
 
     @Override
@@ -267,6 +272,7 @@ public class ProgramRepositoryImpl
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
     })
     public void clearCache() {
@@ -278,6 +284,7 @@ public class ProgramRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         },
         put = {
@@ -350,6 +357,7 @@ public class ProgramRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
         }
     )
@@ -680,7 +688,7 @@ public class ProgramRepositoryImpl
     @Override
     public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
         String value = findVOById(id)
-            .map(program -> program.getProperties().get(property.getLabel()))
+            .map(program -> program.getProperties().get(property.getKey()))
             .orElse(property.getDefaultValue());
 
         // If boolean: true = TRUE
@@ -694,7 +702,7 @@ public class ProgramRepositoryImpl
     @Override
     public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
         String value = findByLabel(label)
-            .map(program -> program.getProperties().get(property.getLabel()))
+            .map(program -> program.getProperties().get(property.getKey()))
             .orElse(property.getDefaultValue());
 
         return expectedValue.equals(value);
@@ -704,7 +712,7 @@ public class ProgramRepositoryImpl
     @Override
     public String getPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property) {
         return findByLabel(label)
-            .map(program -> program.getProperties().get(property.getLabel()))
+            .map(program -> program.getProperties().get(property.getKey()))
             .orElse(property.getDefaultValue());
     }
 }

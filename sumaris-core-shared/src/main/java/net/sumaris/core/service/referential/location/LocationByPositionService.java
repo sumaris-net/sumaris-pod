@@ -26,6 +26,8 @@ package net.sumaris.core.service.referential.location;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 /**
  * Service used to access locations
  *
@@ -39,9 +41,9 @@ public interface LocationByPositionService {
      *
      * @param latitude  a latitude (in decimal degrees - WG84)
      * @param longitude a longitude (in decimal degrees - WG84)
-     * @return A location label (corresponding to a statistical rectangle), or null if no statistical rectangle exists for this position
+     * @return A location label (corresponding to a statistical rectangle), or empty if no statistical rectangle exists for this position
      */
-    String getLocationLabelByLatLong(Number latitude, Number longitude);
+    Optional<String> getStatisticalRectangleLabelByLatLong(Number latitude, Number longitude);
 
     /**
      * Return a location Id, from a longitude and a latitude (in decimal degrees - WG84).
@@ -49,7 +51,7 @@ public interface LocationByPositionService {
      *
      * @param latitude  a latitude (in decimal degrees - WG84)
      * @param longitude a longitude (in decimal degrees - WG84)
-     * @return A location Id (corresponding to a statistical rectangle), or null if no statistical rectangle exists for this position
+     * @return A location Id (corresponding to a statistical rectangle), or empty if no statistical rectangle exists for this position
      */
-    Integer getLocationIdByLatLong(Number latitude, Number longitude);
+    Optional<Integer> getStatisticalRectangleIdByLatLong(Number latitude, Number longitude);
 }

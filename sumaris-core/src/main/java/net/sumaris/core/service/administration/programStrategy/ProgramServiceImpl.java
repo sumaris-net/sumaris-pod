@@ -25,7 +25,9 @@ package net.sumaris.core.service.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.AcquisitionLevelRepository;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.Page;
@@ -41,6 +43,7 @@ import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -51,14 +54,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service("programService")
+@RequiredArgsConstructor
 @Slf4j
 public class ProgramServiceImpl implements ProgramService {
 
-	@Autowired
-	protected ProgramRepository programRepository;
+	protected final ProgramRepository programRepository;
 
-	@Autowired
-	protected StrategyService strategyService;
+	protected final StrategyService strategyService;
 
 	@Override
 	public List<ProgramVO> getAll() {

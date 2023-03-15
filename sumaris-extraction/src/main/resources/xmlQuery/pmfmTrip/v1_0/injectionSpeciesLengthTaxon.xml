@@ -22,7 +22,6 @@
 
 <query type="select">
 
-  <select alias="TAXON_CODE" type="text" group="taxon">COALESCE(TN_INHERITED.LABEL, TN.LABEL)</select>
   <!-- TODO
     - utiliser NAME plutot que COMMENTS
     - gérer les noms vernaculaires dans TRANSCRIBING
@@ -32,5 +31,5 @@
   <from join="true" group="taxon">LEFT OUTER JOIN TAXON_NAME TN_INHERITED ON TN_INHERITED.REFERENCE_TAXON_FK = SL.REFERENCE_TAXON_ID AND TN_INHERITED.IS_REFERENT=true</from>
   <from join="true" group="taxon">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = B.REFERENCE_TAXON_ID AND TN.IS_REFERENT=true</from>
 
-  <groupby group="taxon">TAXON_CODE, TAXON</groupby>
+  <groupby group="taxon">TAXON</groupby>
 </query>

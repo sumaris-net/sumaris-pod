@@ -44,13 +44,16 @@ public class ExtractionFilterCriterionVO {
         StringBuilder sb = new StringBuilder();
         if (this.getSheetName() != null) sb.append("Sheet: ").append(this.getSheetName());
         if (this.getName() != null && this.getOperator() != null){
-            sb.append(", ").append(this.getName()).append(this.getOperator());
+            sb.append(", ").append(this.getName())
+                .append(' ')
+                .append(this.getOperator())
+                .append(' ');
         }
         else {
             sb.append(", ").append("Value: ");
         }
         if (this.getValue() != null) sb.append(this.getValue());
-        if (this.getValues() != null) sb.append('[').append(Joiner.on(',').join(this.getValues())).append(']');
+        if (this.getValues() != null) sb.append('(').append(Joiner.on(',').join(this.getValues())).append(')');
         return sb.toString();
     }
 }

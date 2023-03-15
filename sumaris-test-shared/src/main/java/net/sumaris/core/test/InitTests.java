@@ -182,7 +182,7 @@ public class InitTests extends ExternalResource {
         initServiceLocator();
 
         boolean isFileDatabase = Daos.isFileDatabase(config.getJdbcURL());
-        boolean needSchemaUpdate = true;
+        boolean needSchemaUpdate = config.isLiquibaseEnabled();
 
         if (isFileDatabase) {
             log.info("Init test data in database... [" + config.getJdbcURL() + "]");

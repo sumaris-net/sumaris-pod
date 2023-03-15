@@ -28,11 +28,10 @@ import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportResultVO;
 import org.springframework.scheduling.annotation.Async;
 
+import javax.annotation.Nullable;
 import javax.transaction.Transactional;
-import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
 
 public interface SiopVesselImportService {
@@ -47,9 +46,10 @@ public interface SiopVesselImportService {
      * @throws IOException
      */
     @Transactional
-    SiopVesselImportResultVO importFromFile(SiopVesselImportContextVO context, IProgressionModel progressionModel) throws IOException;
+    SiopVesselImportResultVO importFromFile(SiopVesselImportContextVO context, @Nullable IProgressionModel progressionModel) throws IOException;
 
 
     @Async("jobTaskExecutor")
-    Future<SiopVesselImportResultVO> asyncImportFromFile(SiopVesselImportContextVO context, JobVO job);
+    Future<SiopVesselImportResultVO> asyncImportFromFile(SiopVesselImportContextVO context,
+                                                         @Nullable IProgressionModel progressionModel);
 }

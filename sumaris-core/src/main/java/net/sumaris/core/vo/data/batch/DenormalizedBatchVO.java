@@ -61,11 +61,17 @@ public class DenormalizedBatchVO
     private Short flatRankOrder;
     private Double weight;
     private Double indirectWeight;
+
+    private Double indirectRtpWeight;
+    private Double elevateRtpWeight;
     private Double elevateContextWeight;
     private Double indirectContextWeight;
     private Double elevateWeight;
+    private Double taxonElevateContextWeight;
     private Integer individualCount;
     private Integer indirectIndividualCount;
+
+    private Integer taxonElevateIndividualCount;
     private Integer  elevateIndividualCount;
     private Double samplingRatio;
     private String samplingRatioText;

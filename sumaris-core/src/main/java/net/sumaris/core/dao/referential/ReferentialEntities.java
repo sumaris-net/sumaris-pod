@@ -133,6 +133,7 @@ public class ReferentialEntities {
                 UserProfile.class,
                 SaleType.class,
                 VesselType.class,
+                ObjectType.class,
                 // Taxon group
                 TaxonGroupType.class,
                 TaxonGroup.class,
@@ -235,6 +236,7 @@ public class ReferentialEntities {
 
         // Other level (not having "level" in id)
         result.put(Pmfm.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Pmfm.class, Pmfm.Fields.PARAMETER));
+        result.put(Parameter.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Parameter.class, Parameter.Fields.PARAMETER_GROUP));
         result.put(Fraction.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Fraction.class, Fraction.Fields.MATRIX));
         result.put(QualitativeValue.class.getSimpleName(), BeanUtils.getPropertyDescriptor(QualitativeValue.class, QualitativeValue.Fields.PARAMETER));
         result.put(TaxonGroup.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TaxonGroup.class, TaxonGroup.Fields.TAXON_GROUP_TYPE));
@@ -247,6 +249,10 @@ public class ReferentialEntities {
         result.put(ExtractionProductTable.class.getSimpleName(), BeanUtils.getPropertyDescriptor(ExtractionProductTable.class, ExtractionProductTable.Fields.PRODUCT));
         result.put(LocationLevel.class.getSimpleName(), BeanUtils.getPropertyDescriptor(LocationLevel.class, LocationLevel.Fields.LOCATION_CLASSIFICATION));
         result.put(Gear.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Gear.class, Gear.Fields.GEAR_CLASSIFICATION));
+        result.put(TranscribingItemType.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TranscribingItemType.class, TranscribingItemType.Fields.OBJECT_TYPE));
+        result.put(TranscribingItem.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TranscribingItem.class, TranscribingItem.Fields.TYPE));
+
+        // TODO remove the following put ? Too many put for the same Program class
         result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.GEAR_CLASSIFICATION));
         result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.TAXON_GROUP_TYPE));
 

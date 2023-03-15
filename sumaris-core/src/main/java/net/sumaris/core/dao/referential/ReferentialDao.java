@@ -26,9 +26,11 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.IReferentialVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -57,7 +59,8 @@ public interface ReferentialDao {
                                      int offset,
                                      int size,
                                      String sortAttribute,
-                                     SortDirection sortDirection);
+                                     SortDirection sortDirection,
+                                     @Nullable ReferentialFetchOptions fetchOptions);
 
     Long countByFilter(final String entityName, IReferentialFilter filter);
 

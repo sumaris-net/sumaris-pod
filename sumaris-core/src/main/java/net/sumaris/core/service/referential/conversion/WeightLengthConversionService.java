@@ -28,22 +28,59 @@ import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 public interface WeightLengthConversionService {
 
-    List<WeightLengthConversionVO> findByFilter(WeightLengthConversionFilterVO filter, Page page, WeightLengthConversionFetchOptions fetchOptions);
+    @Transactional(readOnly = true)
+    List<WeightLengthConversionVO> findByFilter(WeightLengthConversionFilterVO filter, Page page,
+                                                @Nullable WeightLengthConversionFetchOptions fetchOptions);
 
+    @Transactional(readOnly = true)
     long countByFilter(WeightLengthConversionFilterVO filter);
+
+    /**
+     * Get the best fit weight-length conversion.
+     * Required at least a reference taxon and location.
+     * Will try to load using this order
+     * <ul>
+     *     <li>pmfmId + year + month</li>
+     *     <li>pmfmId + year (without month)</li>
+     *     <li>pmfmId + month (without year)</li>
+     *     <li>TODO: Loop using parameterId (without pmfmId). If found, will convert unit</li>
+     * </ul>
+     * @param filter
+     * @param page
+     * @param fetchOptions
+     * @return
+     */
+    @Transactional(readOnly = true)
+    Optional<WeightLengthConversionVO> loadFirstByFilter(WeightLengthConversionFilterVO filter);
+
+    @Transactional(readOnly = true)
+    Optional<WeightLengthConversionVO> loadFirstByFilter(WeightLengthConversionFilterVO filter, @Nullable WeightLengthConversionFetchOptions fetchOptions);
+
 
     List<WeightLengthConversionVO> saveAll(List<WeightLengthConversionVO> source);
 
     void deleteAllById(List<Integer> ids);
 
+    @Transactional(readOnly = true)
     BigDecimal computedWeight(WeightLengthConversionVO conversion,
                               Number length,
-                              int scale,
-                              Number individualCount);
+                              String lengthUnit,
+                              @Nullable Number lengthPrecision,
+                              @Nullable Number individualCount,
+                              String weightUnit,
+                              int weightScale);
+
+    @Transactional(readOnly = true)
+    boolean isWeightLengthParameter(int parameterId);
+
+    @Transactional(readOnly = true)
+    boolean isWeightLengthPmfm(int pmfmId);
 }
