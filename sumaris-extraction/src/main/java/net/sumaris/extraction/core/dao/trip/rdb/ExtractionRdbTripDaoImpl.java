@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -79,7 +80,7 @@ import static org.nuiton.i18n.I18n.t;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Repository("extractionRdbTripDao")
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @Lazy
 @Slf4j
 public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
@@ -390,13 +391,22 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
             // DEBUG
             //options.setEnableRtpWeight(false);
+            //options.setForce(true);
 
-            denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
+            int pageSize = 500;
+            long pageCount = Math.round((double)(operationIds.length / pageSize) + 0.5); // Get page count
+            for (int page = 0; page < pageCount; page++) {
+                int from = page * pageSize;
+                int to = Math.min(operationIds.length, from + pageSize);
+                Integer[] pageOperationIds = Arrays.copyOfRange(operationIds, from, to);
+
+                denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
                     .programLabel(programLabel)
-                    .includedIds(operationIds)
+                    .includedIds(pageOperationIds)
                     .hasNoChildOperation(true)
                     .needBatchDenormalization(true)
                     .build(), options);
+            }
         });
     }
 
@@ -544,7 +554,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Taxon disabled by default (RDB format has only one HL.SPECIES column)
         // Butt group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
-        xmlQuery.setGroup("taxon", false);
+        xmlQuery.setGroup("taxon", this.enableSpeciesLengthTaxon(context));
 
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
         xmlQuery.setGroup("injectionPoint", false);
@@ -712,5 +722,16 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             log.error("Error while updating TR 'sampling_method' column: " + e.getMessage(), e);
             // Continue
         }
+    }
+
+    protected boolean enableSpeciesLengthTaxon(C context) {
+        List<String> programLabels = getTripProgramLabels(context);
+
+        // Check if samples have been enabled:
+        // - by program properties
+        // - or by pmfm strategies
+        return programLabels.stream()
+            .anyMatch(label ->
+                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString()));
     }
 }

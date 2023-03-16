@@ -138,16 +138,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE, Boolean.TRUE.toString()));
     }
 
-    protected boolean enableSpeciesLengthTaxon(C context) {
-        List<String> programLabels = getTripProgramLabels(context);
 
-        // Check if samples have been enabled:
-        // - by program properties
-        // - or by pmfm strategies
-        return programLabels.stream()
-            .anyMatch(label ->
-                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString()));
-    }
 
 
     @Override
