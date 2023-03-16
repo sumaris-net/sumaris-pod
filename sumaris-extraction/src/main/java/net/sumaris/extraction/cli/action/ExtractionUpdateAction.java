@@ -43,7 +43,7 @@ public class ExtractionUpdateAction {
     public void run() throws InterruptedException {
 
         // Create the job
-        ExtractionService manager = ExtractionServiceLocator.extractionManager();
+        ExtractionService manager = ExtractionServiceLocator.extractionService();
 
         // Run it !
         ProcessingFrequencyEnum frequency = ExtractionConfiguration.instance().getExtractionCliFrequency();

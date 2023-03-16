@@ -20,21 +20,11 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.service;
+package net.sumaris.core.config;
 
-import net.sumaris.core.service.ServiceLocator;
+import org.nuiton.config.ApplicationConfig;
 
-public class ExtractionServiceLocator {
+public interface ApplicationConfigAliasProvider {
 
-    public static ExtractionProductService extractionProductService() {
-        return ServiceLocator.instance().getService("extractionProductService", ExtractionProductService.class);
-    }
-
-    public static ExtractionTypeService extractionTypeService() {
-        return ServiceLocator.instance().getService("extractionTypeService", ExtractionTypeService.class);
-    }
-
-    public static ExtractionService extractionService() {
-        return ServiceLocator.instance().getService("extractionService", ExtractionService.class);
-    }
+    void addAlias(ApplicationConfig applicationConfig);
 }

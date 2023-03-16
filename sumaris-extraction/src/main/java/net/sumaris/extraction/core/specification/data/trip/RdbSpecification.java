@@ -63,7 +63,9 @@ public interface RdbSpecification {
             TR_SHEET_NAME,
             HH_SHEET_NAME,
 
-            //"RAW_SL", // -- For DEBUG
+            // -- For DEBUG only
+            //"RAW_SL",
+
             SL_SHEET_NAME,
             HL_SHEET_NAME,
             // CA_SHEET_NAME

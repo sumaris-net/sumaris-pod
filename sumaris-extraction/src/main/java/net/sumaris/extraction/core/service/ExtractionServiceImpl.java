@@ -105,9 +105,9 @@ import java.util.stream.Collectors;
  * @author blavenie
  */
 @Slf4j
-@Service("extractionManager")
+@Service("extractionService")
 @RequiredArgsConstructor
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionServiceImpl implements ExtractionService {
 
     private final ExtractionConfiguration configuration;

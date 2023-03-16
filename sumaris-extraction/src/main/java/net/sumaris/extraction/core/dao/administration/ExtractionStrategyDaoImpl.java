@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.dao.administration;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -57,17 +58,18 @@ import java.util.Set;
 
 import static org.nuiton.i18n.I18n.t;
 
+
 /**
  * @author Ludovic Pecquot <ludovic.pecquot@e-is.pro>
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Repository("extractionStrategyDao")
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @Lazy
-@ConditionalOnBean({ExtractionConfiguration.class})
 @Slf4j
 public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F extends ExtractionFilterVO>
-        extends ExtractionBaseDaoImpl<C, F>
-        implements ExtractionStrategyDao<C, F> {
+    extends ExtractionBaseDaoImpl<C, F>
+    implements ExtractionStrategyDao<C, F> {
 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.ST_SHEET_NAME + "_%s";
     private static final String SM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + StratSpecification.SM_SHEET_NAME + "_%s";
@@ -80,12 +82,12 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         // Read some config options
         String adagioSchema = this.configuration.getAdagioSchema();
         boolean enableAdagioOptimization = StringUtils.isNotBlank(adagioSchema)
-                && this.configuration.enableAdagioOptimization()
-                && this.databaseType == DatabaseType.oracle;
+            && this.configuration.enableAdagioOptimization()
+            && this.databaseType == DatabaseType.oracle;
 
         // Check if there is some changes
         boolean hasChanges = !Objects.equals(this.adagioSchema, adagioSchema)
-                || this.enableAdagioOptimization != enableAdagioOptimization;
+            || this.enableAdagioOptimization != enableAdagioOptimization;
 
         // Apply changes if need
         if (hasChanges) {
@@ -201,9 +203,9 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         // Add result table to context
         if (count > 0) {
             context.addTableName(context.getStrategyTableName(),
-                    context.getStrategySheetName(),
-                    xmlQuery.getHiddenColumnNames(),
-                    xmlQuery.hasDistinctOption());
+                context.getStrategySheetName(),
+                xmlQuery.getHiddenColumnNames(),
+                xmlQuery.hasDistinctOption());
             log.debug(String.format("Strategy table: %s rows inserted", count));
         }
         else {
@@ -261,9 +263,9 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         // Add result table to context
         if (count > 0) {
             context.addTableName(context.getStrategyMonitoringTableName(),
-                    context.getStrategyMonitoringSheetName(),
-                    xmlQuery.getHiddenColumnNames(),
-                    xmlQuery.hasDistinctOption());
+                context.getStrategyMonitoringSheetName(),
+                xmlQuery.getHiddenColumnNames(),
+                xmlQuery.hasDistinctOption());
             log.debug(String.format("StrategyMonitoring table: %s rows inserted", count));
         }
         else {

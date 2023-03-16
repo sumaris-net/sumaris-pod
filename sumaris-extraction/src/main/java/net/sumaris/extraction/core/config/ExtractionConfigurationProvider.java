@@ -24,7 +24,9 @@ package net.sumaris.extraction.core.config;
  * #L%
  */
 
+import net.sumaris.core.config.ApplicationConfigAliasProvider;
 import net.sumaris.extraction.cli.config.ExtractionConfigurationAction;
+import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigActionDef;
 import org.nuiton.config.ConfigOptionDef;
@@ -39,7 +41,7 @@ import static org.nuiton.i18n.I18n.l;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  * @since 1.0
  */
-public class ExtractionConfigurationProvider implements ApplicationConfigProvider {
+public class ExtractionConfigurationProvider implements ApplicationConfigProvider, ApplicationConfigAliasProvider {
 
 	/** {@inheritDoc} */
 	@Override
@@ -63,5 +65,12 @@ public class ExtractionConfigurationProvider implements ApplicationConfigProvide
 	@Override
 	public ConfigActionDef[] getActions() {
 		return ExtractionConfigurationAction.values();
+	}
+
+	@Override
+	public void addAlias(ApplicationConfig applicationConfig) {
+		// CLI options
+		applicationConfig.addAlias("--format", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
+		applicationConfig.addAlias("--frequency", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_FREQUENCY.getKey());
 	}
 }

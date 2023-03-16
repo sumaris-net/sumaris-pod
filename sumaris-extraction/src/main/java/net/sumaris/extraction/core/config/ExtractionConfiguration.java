@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 public class ExtractionConfiguration {
@@ -61,13 +62,27 @@ public class ExtractionConfiguration {
         setInstance(this);
 
         // Define Alias
-        addAlias(this.delegate.getApplicationConfig());
+        // Already done by provider class
+        //addAlias(this.delegate.getApplicationConfig());
 
 
     }
 
     public String getExtractionCliOutputFormat() {
         return getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
+    }
+
+    public String getCliFilterProgramLabel() {
+        return delegate.getCliFilterProgramLabel();
+    }
+    public List<Integer> getCliFilterTripIds() {
+        return delegate.getCliFilterTripIds();
+    }
+    public List<Integer> getCliFilterOperationIds() {
+        return delegate.getCliFilterOperationIds();
+    }
+    public Integer getCliFilterYear() {
+        return delegate.getCliFilterYear();
     }
 
     public ProcessingFrequencyEnum getExtractionCliFrequency() {
@@ -151,7 +166,7 @@ public class ExtractionConfiguration {
      */
     protected void addAlias(ApplicationConfig applicationConfig) {
         // CLI options
-        applicationConfig.addAlias("-format", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
-        applicationConfig.addAlias("-frequency", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_FREQUENCY.getKey());
+        applicationConfig.addAlias("--format", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
+        applicationConfig.addAlias("--frequency", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_FREQUENCY.getKey());
     }
 }
