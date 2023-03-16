@@ -41,20 +41,119 @@
         </insert>
     </changeSet>
 
+    <!-- fix LENGTH_TOTAL_CM precision (round 3 measure to upper integer) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">
+                        select count(*) from sorting_measurement_b where numerical_value - TRUNC(numerical_value) = 0.5 and pmfm_fk=81
+                    </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";" stripComments="true"><![CDATA[
+            update sorting_measurement_b
+            set numerical_value = numerical_value - 0.5
+            where (numerical_value - TRUNC(numerical_value)) = 0.5;
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- fix HAD / TAXON_GROUP comments  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">
+                        select count(*) from taxon_group where label='HAD' and comments=''
+                    </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";" stripComments="true"><![CDATA[
+            update taxon_group
+            set comments='Melanogrammis aeglefinus'
+            where label='HAD' and comments='';
+            commit;
+        ]]></sql>
+    </changeSet>
+
     <!-- Fix BATCH having bad quality_flag, because of sumaris-app issue #407 -->
-<!--    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-402" runOnChange="true">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <and>-->
-<!--                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>-->
-<!--                <not>-->
-<!--                    <sqlCheck expectedResult="0">select count(*) from batch where quality_flag_fk = 4-->
-<!--                    </sqlCheck>-->
-<!--                </not>-->
-<!--            </and>-->
-<!--        </preConditions>-->
-<!--        <sql endDelimiter=";" stripComments="true"><![CDATA[-->
-<!--            -->
-<!--            ]]></sql>-->
-<!--    </changeSet>-->
+<!--    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-403" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">select count(*) from batch where quality_flag_fk = 4
+                    </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";" stripComments="true"><![CDATA[
+            /* TODO review this !!*/
+            update batch set quality_flag_fk=0 where quality_flag_fk=4;
+            commit;
+            ]]></sql>
+    </changeSet>-->
+
+
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-404">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from METHOD where LABEL='MEASURED_IN_CM_BY_OBSERVER' OR ID=82
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="METHOD">
+            <column name="ID" valueNumeric="82"/>
+            <column name="LABEL" value="MEASURED_IN_CM_BY_OBSERVER"/>
+            <column name="NAME" value="Mesure au cm par un observateur"/>
+            <column name="IS_CALCULATED" valueBoolean="false"/>
+            <column name="IS_ESTIMATED" valueBoolean="false"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-405" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from METHOD where LABEL='MEASURED_IN_MM_BY_OBSERVER' OR ID=83
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="METHOD">
+            <column name="ID" valueNumeric="83"/>
+            <column name="LABEL" value="MEASURED_IN_MM_BY_OBSERVER"/>
+            <column name="NAME" value="Mesure au mm par un observateur"/>
+            <column name="IS_CALCULATED" valueNumeric="0"/>
+            <column name="IS_ESTIMATED" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-406" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) from PMFM where LABEL='LENGTH_TOTAL_CM' AND MAXIMUM_NUMBER_DECIMALS=1</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            update pmfm set MAXIMUM_NUMBER_DECIMALS=0, PRECISION=1, METHOD_FK=82 where LABEL='LENGTH_TOTAL_CM';
+            commit;
+        ]]></sql>
+    </changeSet>
 
 </databaseChangeLog>

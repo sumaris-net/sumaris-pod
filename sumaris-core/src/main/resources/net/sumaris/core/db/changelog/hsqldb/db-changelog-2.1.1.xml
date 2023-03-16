@@ -13,14 +13,16 @@
         </delete>
         <insert tableName="SYSTEM_VERSION">
             <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-            <column name="LABEL">2.1.0</column>
+            <column name="LABEL">2.1.1</column>
             <column name="DESCRIPTION">
                 - Add UNSEXED enumeration option, in configuration;
+                - Fix ADAP pmfm LENGTH_TOTAL_CM;
             </column>
             <column name="CREATION_DATE" valueComputed="sysdate"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
             <column name="COMMENTS">
                 - Add UNSEXED enumeration option, in configuration;
+                - Fix ADAP pmfm LENGTH_TOTAL_CM;
             </column>
         </insert>
     </changeSet>
