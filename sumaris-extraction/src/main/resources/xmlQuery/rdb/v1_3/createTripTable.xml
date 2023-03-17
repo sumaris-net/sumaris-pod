@@ -52,11 +52,7 @@
 
     <select alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_FK</select> <!-- TODO à anonymiser (hash ?)-->
     <select alias="SAMPLING_COUNTRY" type="text">COALESCE(DL.LABEL, PL.LABEL)</select>
-    <select alias="SAMPLING_METHOD" type="text">CASE UPPER('&amp;samplingMethod')
-      WHEN 'OBSERVER' THEN 'Observer'
-      WHEN 'SELFSAMPLING' THEN 'SelfSampling'
-      ELSE 'Observer'
-      END</select>
+    <select alias="SAMPLING_METHOD" type="text">CAST((CASE UPPER('&amp;samplingMethod') WHEN 'SELFSAMPLING' THEN 'SelfSampling' ELSE 'Observer' END) AS VARCHAR(12))</select>
 
     <from alias="T">TRIP</from>
 

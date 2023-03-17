@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<query type="select">
+    <!-- double -->
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="double%pmfmalias%" type="number">
+        MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN PGM.NUMERICAL_VALUE ELSE NULL END)
+    </select>
+
+    <!-- integer -->
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="integer%pmfmalias%" type="number">
+        MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN CAST(PGM.NUMERICAL_VALUE AS INT) ELSE NULL END)
+    </select>
+
+    <!-- text -->
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="string%pmfmalias%" type="text">
+        MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN PGM.ALPHANUMERICAL_VALUE  ELSE NULL END)
+    </select>
+
+    <!-- qualitative value -->
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="qualitative_value%pmfmalias%" type="text">
+        MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN PGQV.LABEL || ' - ' || PGQV.NAME ELSE NULL END)
+    </select>
+
+    <!-- boolean -->
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="boolean%pmfmalias%" type="text">
+        MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
+        (CASE PGM.NUMERICAL_VALUE WHEN 1 THEN UPPER('Y') WHEN 0 THEN UPPER('N') END)
+        ELSE NULL END)
+    </select>
+
+    <!-- date -->
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%" dbms="hsqldb" type="text">
+        MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
+        TO_CHAR(TIMESTAMP(REPLACE(REPLACE(PGM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
+        ELSE NULL END)
+
+    </select>
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%" dbms="oracle,pgsql" type="text">
+        MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
+        TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(PGM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-DD-MM')
+        ELSE NULL END)
+    </select>
+</query>

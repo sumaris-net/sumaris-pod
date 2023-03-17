@@ -22,11 +22,9 @@
 
 <query type="select">
 
-<!--  <select alias="REFERENCE_TAXON_ID" type="hidden" group="taxon">SPECIE_B.REFERENCE_TAXON_FK</select>-->
+  <select alias="STATION_COMMENTS" type="text">O.COMMENTS</select>
 
-  <from join="true">LEFT OUTER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = SPECIE_B.ID</from>
-  <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = SM.QUALITATIVE_VALUE_FK</from>
+  <!-- Already exists in the parent query
+    <groupby>&amp;groupByColumns</groupby>-->
 
-
-  <!--<groupby>&amp;groupByColumns</groupby>-->
 </query>

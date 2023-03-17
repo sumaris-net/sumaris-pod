@@ -31,7 +31,6 @@ import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnu
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
@@ -138,6 +137,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE, Boolean.TRUE.toString()));
     }
 
+    protected boolean enableStationGearPmfms(C context) {
+        return true;
+    }
 
 
 
@@ -176,6 +178,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         XMLQuery xmlQuery = super.createStationQuery(context);
 
         List<String> programLabels = getTripProgramLabels(context);
+        boolean enableGearPmfms = enableStationGearPmfms(context);
+        boolean enableParentOperation = enableParentOperation(context);
 
         // Add some join, to keep only child operation, if parent/child are allowed (in program properties)
         // + Add operation and gear comments
@@ -192,18 +196,19 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
         // Inject physical gear pmfms
-        injectPmfmColumns(context, xmlQuery,
-            programLabels,
-            AcquisitionLevelEnum.PHYSICAL_GEAR,
-            // Excluded Pmfms (already exists as RDB format columns)
-            PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
-            PmfmEnum.SELECTIVITY_DEVICE.getId()
-        );
+        if (enableGearPmfms) {
+            injectPmfmColumns(context, xmlQuery,
+                programLabels,
+                AcquisitionLevelEnum.PHYSICAL_GEAR,
+                // Excluded Pmfms (already exists as RDB format columns)
+                PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
+                PmfmEnum.SELECTIVITY_DEVICE.getId()
+            );
+        }
 
         // Compute list of pmfms, depending of acquisition levels used
         List<ExtractionPmfmColumnVO> pmfmColumns;
         URL injectionQuery;
-        boolean enableParentOperation = enableParentOperation(context);
         if (!enableParentOperation) {
             pmfmColumns = loadPmfmColumns(context, programLabels, AcquisitionLevelEnum.OPERATION);
             injectionQuery = getInjectionQueryByAcquisitionLevel(context, AcquisitionLevelEnum.OPERATION);
@@ -223,7 +228,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             PmfmEnum.TRIP_PROGRESS.getId()
         );
 
-         xmlQuery.setGroup("allowParent", enableParentOperation);
+        xmlQuery.setGroup("allowParent", enableParentOperation);
 
         return xmlQuery;
     }
@@ -392,6 +397,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         }
         return count;
     }
+
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);

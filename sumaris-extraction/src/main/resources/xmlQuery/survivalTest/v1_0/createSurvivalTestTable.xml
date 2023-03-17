@@ -120,7 +120,7 @@
       T.ID, SPECIES_CODE, SPECIES_NAME, T.SAMPLE_DATE, T.MONITORING_ID
     </groupby>
 
-    <orderby direction="ASC">T.ID,T.MONITORING_ID</orderby>
+    <orderby>T.ID ASC,T.MONITORING_ID ASC</orderby>
   </query>
 
 </queries>

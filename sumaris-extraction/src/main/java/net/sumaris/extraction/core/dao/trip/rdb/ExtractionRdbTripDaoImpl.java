@@ -294,7 +294,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmEnum.NB_OPERATION.getId()));
         Integer countryLocationLevelId = LocationLevelEnum.COUNTRY.getLabel() != null ? getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel()) : LocationLevelEnum.COUNTRY.getId();
         xmlQuery.bind("countryLocationLevelId", String.valueOf(countryLocationLevelId));
-        xmlQuery.bind("samplingMethod", ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue());
+        xmlQuery.bind("samplingMethod", StringUtils.trimToEmpty(ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue()));
 
         // Date filters
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
@@ -553,7 +553,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("numberAtLength", true);
 
         // Taxon disabled by default (RDB format has only one HL.SPECIES column)
-        // Butt group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
+        // But group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
         xmlQuery.setGroup("taxon", this.enableSpeciesLengthTaxon(context));
 
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
@@ -594,8 +594,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
-            .map(acquisitionLevelEnum -> acquisitionLevelEnum.getId())
-            .collect(Collectors.toList());
+            .map(AcquisitionLevelEnum::getId)
+            .toList();
 
         String cacheKey = acquisitionLevelIds.toString();
 
@@ -707,8 +707,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             SumarisTableMetadata table = databaseMetadata.getTable(tripTableName);
             if (table.hasColumn(RdbSpecification.COLUMN_SAMPLING_METHOD)) {
                 programLabels.forEach(programLabel -> {
-                    String samplingMethod = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD);
-                    if (!Objects.equals(samplingMethod, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue())) {
+                    String samplingMethod = StringUtils.trimToNull(this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD));
+                    if (samplingMethod != null && !Objects.equals(samplingMethod, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue())) {
                         String sql = String.format("UPDATE %s SET %s='%s' WHERE PROJECT='%s'",
                             tripTableName,
                             RdbSpecification.COLUMN_SAMPLING_METHOD,
@@ -731,7 +731,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // - by program properties
         // - or by pmfm strategies
         return programLabels.stream()
-            .anyMatch(label ->
-                this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString()));
+            .anyMatch(label -> {
+                boolean showBatchTaxonName = this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE, Boolean.TRUE.toString());
+                boolean showBatchLengthTaxonName = !showBatchTaxonName && this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString());
+                return showBatchLengthTaxonName;
+            });
     }
 }

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<queries name="extractionCreateGearTable">
+
+  <query type="create" temp="false" table="&amp;gearTableName">
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text">'PG'</select>
+    <select alias="SAMPLING_TYPE" type="text">T.SAMPLING_TYPE</select>
+    <select alias="LANDING_COUNTRY" type="text">T.LANDING_COUNTRY</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">T.VESSEL_FLAG_COUNTRY</select>
+    <select alias="YEAR" type="number">T.YEAR</select>
+    <select alias="PROJECT" type="text">T.PROJECT</select>
+    <select alias="TRIP_CODE" type="number">T.TRIP_CODE</select>
+
+    <!-- gear specific -->
+    <select alias="GEAR_IDENTIFIER" type="number">COALESCE(PG_PARENT.RANK_ORDER, PG.RANK_ORDER)</select>
+    <select alias="SUB_GEAR_IDENTIFIER" type="number"><![CDATA[
+      CASE
+        WHEN PG.PARENT_PHYSICAL_GEAR_FK IS NOT NULL THEN PG.RANK_ORDER
+        ELSE NULL
+      END
+      ]]></select>
+
+
+    <select alias="GEAR_COMMENTS" type="text">PG.COMMENTS</select>
+
+    <from alias="T">&amp;tripTableName</from>
+    <from join="true">INNER JOIN PHYSICAL_GEAR PG ON PG.TRIP_FK = T.TRIP_CODE</from>
+    <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR PG_PARENT ON PG_PARENT.ID = PG.PARENT_PHYSICAL_GEAR_FK</from>
+    <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR_MEASUREMENT PGM ON PGM.PHYSICAL_GEAR_FK = PG.ID</from>
+    <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE PGQV on PGQV.ID = PGM.QUALITATIVE_VALUE_FK</from>
+
+    <where>1=1</where>
+
+    <groupby>&amp;groupByColumns</groupby>
+
+    <orderby>GEAR_IDENTIFIER ASC, SUB_GEAR_IDENTIFIER ASC</orderby>
+  </query>
+
+</queries>
