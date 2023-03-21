@@ -137,8 +137,20 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
     - Une annotation `@GraphQLArgument(name = "<parameterName>")` pour chaque paramètre de la méthode, en remplaçant "<parameterName>" par son nom.
   - Ignorer la génération des imports.
 
+## Gestion des mise à jour BDD
 
-## Entités typescript
+Voici les contraintes de génération d'un changelog Liquibase pour la mise à jour de la base de données :
+
+- Utiliser l'email du développeur comme auteur. Par exemple "benoit.lavenier@e-is.pro".
+- Inclure toujours une précondition vérifiant que la table est absente.
+- Générer des changeset avec des id qui se suivent, sous la forme <timestamp_ms>-NNN.
+- Utiliser "_fk" pour les clés étrangères.
+- Utiliser une séquence pour l'identifiant, avec un nom suffixé par "_seq".
+- Utiliser le suffixe "_fkc" pour les noms de contraintes de clés étrangères.
+- Créer une version de changelog pour chaque base de données parmi : HsqlDB, PostgreSQL et Oracle. 
+  - Les id des changeset doivent être identiques entre ces trois versions.
+
+## Entités typescript 
 
 Voici les contraintes de génération d'une classe typescript :
 - Classe typescript
