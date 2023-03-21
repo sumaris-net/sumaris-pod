@@ -1,14 +1,19 @@
 # Guide du développeur
 
-## Entités JPA
+## Entités Java JPA
 
 Voici les contraintes de génération d'une classe et de la modélisation UML :
 
-- Classe Java :
+- Convention de nommage dans les contraintes qui suivent:
+  - "ID" représente le type de l'entité.
+  - "E" réprésente la classe de l'entité.
+
+- Classe Java `Entity` :
   - Utiliser Lombok @FieldNameConstants, @Getter et @Setter.
   - Indiquer également @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   - Impleménter `IEntity<ID>` en remplacant "ID" par le type de @id.
-  - Utiliser @EqualsAndHashCode.Include sur la clef primaire (@id)
+  - Utiliser @EqualsAndHashCode.Include sur la clef primaire.
+  - Utiliser l'annotation @Table pour définir le nom de la table en utilisant des mots en minuscules et séparés par des underscores (snake_case).
   - Utiliser "_fk" pour les clés étrangères.
   - Utiliser des séquences pour les @Id, avec un nom préfixé en "_seq".
   - Toutes les colonnes sont obligatoires (nullable = false).
@@ -21,7 +26,7 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
   - Nommer la attributs comme pour la classe entité correspondante.
     - Ne pas oublier d'y mettre les attributs `id` et `updateDate`.
   - Classes des classes entités liées suffixés aussi en `VO`.
-  - Pour chaque entités liées, ajouter aussi un attribut portant uniquement l'identifiant. Par exemple : `private Integer entityId`.
+  - Pour chaque entités liées, ajouter aussi un attribut portant uniquement l'identifiant. Par exemple : `private Integer entityId`, en remplaçant `entity` par le nom de l'attribut.
   - Pour les collections de type simple (String, Integer, etc), préférer des `array` aux `List<>`.
   - Pour les collections de classes VO, préférer l'usage de `List<>`.
   - Ignorer la génération des imports.
@@ -34,35 +39,104 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
   - Implémenter l'interface `Specifications` correspondante à l'entité (par exemple 'MaClasseSpecifications`).
 
 - Classe `RepositoryImpl` :
-  - Implémente les interfaces `Repository` et `Specifications` correspondantes à l'entité.
+  - Implémente l'interface `Specifications` correspondantes à l'entité. Il n'est pas utile d'implémenter l'interface `Repository`, qui sera injecté par JPA dans l'objet final.
   - Étendre la classe `SumarisJpaRepositoryImpl<E, ID, V>`, en remplaçant "E" est la classe de l'entité, "ID" le type de sa clef, "V" la classe ValueObject (VO)  
-  - Déclarer un constructeur comme suit, en remplaçant `MyEntity` par le nom de la classe d'entité : 
+  - Déclarer un constructeur comme suit, en remplaçant "E" par la classe de l'entité : 
     ```java
-    protected MyEntityRepositoryImpl(EntityManager entityManager) {
-      super(MyEntity.class, MyEntityVO.class, entityManager);
+    protected RepositoryImpl(EntityManager entityManager) {
+      super(E.class, E.class, entityManager);
     }
     ```
-  - Déclarer les méthodes :
-    ```java
-    public void toVO(E source, V target, boolean copyIfNull);`
-    public voic toEntity(V source, E target, boolean copyIfNull);`
-    ```
+- Déclarer les méthodes :
+  ```java
+  public void toVO(E source, V target, boolean copyIfNull);`
+  public void toEntity(V source, E target, boolean copyIfNull);`
+  ```
+  - Dans la méthode `toVO()`, pour chaque clefs étrangères de la classe entité, ajouter une conversion du type :
+  ```java
+      // Convertir chaque sous-entité en VO, en utilisant les Repository liés.
+      // Déclarer le Repository supplémentaire grâce à l'annotation @Ressource. 
+      // Par exemple, pour l'attribut `otherEntity` de type `OtherEntity` :
+      if (copyIfNull || source.getOtherEntity() != null) {
+          if (source.getOtherEntity() == null) {
+              target.setOtherEntity(null);
+          }
+          else {
+              OtherEntityVO otherEntityVO = otherEntityRepository.toVO(source.getOtherEntity());    
+              target.setOtherEntity(otherEntityVO);
+          }
+      }
+  ``` 
   - Dans la méthode `toEntity()`, pour chaque clefs étrangères de la classe entité, ajouter une conversion du type :    
     ```java
-        // Pour chaque sous-entité de la classe Entity
-        Integer entityId = source.getEntityId() != null ? source.getEntityId() : (source.getEntity() != null ? source.getEntity().getId() : null);
-        if (copyIfNull || (entityId != null)) {
-            if (entityId == null) {
-                target.setEntity(null);
+        // Convertir chaque sous-entité, en récupérant l'identifiant soit par la propriété `entityId`, soit par le VO
+        // Par exemple, pour l'attribut `otherEntity` de type `OtherEntity` :
+        Integer otherEntityId = source.getOtherEntityId() != null ? source.getOtherEntityId() : (source.getEntity() != null ? source.getOtherEntity().getId() : null);
+        if (copyIfNull || (otherEntityId != null)) {
+            if (otherEntityId == null) {
+                target.setOtherEntity(null);
             }
             else {
-                target.setEntity(getReference(Entity.class, entityId));
+                target.setOtherEntity(getReference(OtherEntity.class, otherEntityId));
             }
         }
     ``` 
 
 - Modélisation PlantUML :
   - Classe courante en bleu ciel, entités liées en gris.
+
+
+## Service Java et GraphQL
+
+- Une classe `FilterVO` :
+  - Préfixer la classe par le nom de l'entité.
+  - Utiliser Lombok avec @Data, @Builder, @FieldNameConstants
+  - Impleménter l'interface `IDataFilter` et `Serializable`.
+  - Ajouter les attributs suivant, issus de IDataFilter : 
+    ```java
+    private Integer recorderDepartmentId;
+    private Integer[] qualityFlagIds;
+    private DataQualityStatusEnum[] dataQualityStatus;
+    ```
+  - Ignorer la génération des imports.
+
+- Une classe `FetchOptions` :
+  - Préfixer la classe par le nom de l'entité.
+  - Utiliser Lombok avec @Data, @Builder
+  - Impleménter l'interface `IFetchOptions`
+  - Ignorer la génération des imports.
+
+- Une interface `Service` est implémentée par chaque classe entity :
+  - Préfixer l'interface par le nom de l'entité.
+  - Utiliser l'annotation Spring @Transactional
+  - Déclarer les méthodes suivantes, en remplaçant :
+    - "F" par son `FilterVO"`.
+    - "FO" par son `FetchOptions`.
+    ```java
+    List<E> findByFilter(F filter, Page page, FO fetchOptions);
+    Optional<E> findById(ID id, FO fetchOptions);
+    E save(E source);
+    void delete(ID id);
+    ```
+  - Ignorer la génération des imports.
+
+- Une classe `ServiceImpl`, implémente l'interface `Service` correspondante :
+  - Préfixer la classe par le nom de l'entité.
+  - Utiliser l'annotation Spring `@Service("entityService")` en remplaçant "entity" par le nom de l'entité (sans majuscule). 
+  - Déclarer le `Repository` de l'entité correspondante via l'annotation @Resource
+  - Déclarer chaque méthode de l'interface `Service`, en deleguant l'appel au `Repository` de l'entité.
+  - Ignorer la génération des imports.
+
+- Une classe `GraphQLService` :
+  - Préfixer la classe par le nom de l'entité.
+  - Utiliser Lombok avec@RequiredArgsConstructor
+  - Ajouter les annotations @Service, @RequiredArgsConstructor @GraphQLApi et @ConditionalOnWebApplication
+  - Déclarer le service de l'entité correspondante via l'annotation @Resource
+  - Pour chaque méthode déclarée dans l'interface `Service`, déclarer une méthode identifique (même nom et paramètres) en y ajoutant :
+    - Une annotation `@GraphQLQuery(name = "<methodName>", description = "<methodDescription>")` en remplacant "<methodName>" par le nom de la fonction, et et "<methodDescription>" par sa documentation.  
+    - Une annotation `@GraphQLArgument(name = "<parameterName>")` pour chaque paramètre de la méthode, en remplaçant "<parameterName>" par son nom.
+  - Ignorer la génération des imports.
+
 
 ## Entités typescript
 
