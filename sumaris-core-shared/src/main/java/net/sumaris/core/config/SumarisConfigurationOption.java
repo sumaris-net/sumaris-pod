@@ -142,7 +142,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     DB_CREATE_SCRIPT_PATH(
         "sumaris.persistence.db.script",
         n("sumaris.config.option.db.script.description"),
-        "classpath:net/sumaris/core/db/changelog/${spring.datasource.platform}/sumaris.script",
+        "classpath:net/sumaris/core/db/changelog/${spring.sql.init.platform}/sumaris.script",
         String.class,
         false),
 

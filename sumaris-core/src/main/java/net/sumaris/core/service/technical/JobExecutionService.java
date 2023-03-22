@@ -30,13 +30,16 @@ import net.sumaris.core.vo.technical.job.JobVO;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public interface JobExecutionService {
-    <R> JobVO run(JobVO job, Callable<Object> configurationLoader,
+    <R> JobVO run(JobVO job,
+                  Callable<Object> configurationLoader,
                   Function<IProgressionModel, Future<R>> asyncMethod);
 
-    <R> JobVO run(JobVO job, Function<IProgressionModel, Future<R>> callableFuture);
+    <R> JobVO run(JobVO job,
+                  Function<IProgressionModel, Future<R>> callableFuture);
 
     Observable<JobProgressionVO> watchJobProgression(Integer id);
 

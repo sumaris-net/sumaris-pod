@@ -66,7 +66,7 @@
     <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
     <select alias="LENGTH_CLASS" group="lengthClass" type="number">B.LENGTH_CLASS</select>
-    <select alias="NUMBER_AT_LENGTH"  group="numberAtLength" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
+    <select alias="NUMBER_AT_LENGTH"  group="numberAtLength,agg" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
 
     <!-- need to link other tables -->
     <select alias="SAMPLE_ID" type="hidden">SL.SAMPLE_ID</select>
@@ -80,12 +80,7 @@
       (SL.REFERENCE_TAXON_ID IS NULL OR B.REFERENCE_TAXON_ID=SL.REFERENCE_TAXON_ID)
     </where>
 
-    <groupby>
-      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
-      CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY, SL.SAMPLE_ID
-    </groupby>
-    <groupby group="sex">SL.SEX, INDIVIDUAL_SEX</groupby>
-    <groupby group="lengthClass">LENGTH_CLASS</groupby>
+    <groupby>&amp;groupByColumns</groupby>
 
   </query>
 

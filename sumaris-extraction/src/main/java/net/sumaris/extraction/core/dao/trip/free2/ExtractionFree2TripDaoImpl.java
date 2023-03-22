@@ -373,6 +373,8 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
         query.bind("weightRtpPmfmId", String.valueOf(PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId()));
 
+        query.bindGroupBy(null); // Reset the group by column binding
+
         return query;
     }
 

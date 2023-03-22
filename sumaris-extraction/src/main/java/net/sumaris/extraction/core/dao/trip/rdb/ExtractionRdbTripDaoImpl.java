@@ -129,6 +129,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
         context.setEnableBatchDenormalization(extractionConfiguration.enableBatchDenormalization());
 
+        // Fill context table names
+        fillContextTableNames(context);
+
         // Start log
         Long startTime = null;
         if (log.isInfoEnabled()) {
@@ -145,8 +148,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
-        // Fill context table names
-        fillContextTableNames(context);
 
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
@@ -428,11 +429,14 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        // Add as a raw table (to be able to clean it later)
-        context.addRawTableName(tableName);
-
-        // DEBUG
-        //context.addTableName(tableName, "RAW_SL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        if (this.production) {
+            // Add as a raw table (to be able to clean it later)
+            context.addRawTableName(tableName);
+        }
+        else {
+            // DEBUG
+            context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        }
 
         return count;
     }
@@ -458,8 +462,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
 
-        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
-        xmlQuery.setGroup("injectionPoint", false);
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+
 
         return xmlQuery;
     }
@@ -504,6 +508,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
         xmlQuery.setGroup("injectionPoint", false);
+
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -556,8 +562,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // But group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
         xmlQuery.setGroup("taxon", this.enableSpeciesLengthTaxon(context));
 
-        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
-        xmlQuery.setGroup("injectionPoint", false);
+
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }

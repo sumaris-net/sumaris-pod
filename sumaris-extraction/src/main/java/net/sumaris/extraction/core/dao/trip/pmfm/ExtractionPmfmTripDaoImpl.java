@@ -37,7 +37,6 @@ import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.pmfm.ExtractionPmfmTripContextVO;
@@ -68,6 +67,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
+
 
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.PMFM_TRIP);
@@ -152,6 +152,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         XMLQuery xmlQuery = super.createTripQuery(context);
 
+        xmlQuery.setGroup("departureDateTime", false);
+        xmlQuery.setGroup("returnDateTime", false);
+
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
 
         // Get columns, BEFORE to add pmfms columns
@@ -189,12 +192,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // - Hide GearType (not in the COST format)
         xmlQuery.setGroup("gearType", false);
 
-        // Bind groupBy columns
-        Set<String> excludedColumns = ImmutableSet.of(RdbSpecification.COLUMN_GEAR_TYPE);
-        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
-            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
-        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
-
         // Inject physical gear pmfms
         if (enableGearPmfms) {
             injectPmfmColumns(context, xmlQuery,
@@ -230,23 +227,23 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         xmlQuery.setGroup("allowParent", enableParentOperation);
 
+        // Bind group by columns
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+
         return xmlQuery;
     }
 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
 
-        xmlQuery.bind("groupByColumns", String.join(",", xmlQuery.getColumnNames(e ->
-                true)));
-
         injectPmfmColumns(context, xmlQuery,
-                getTripProgramLabels(context),
-                AcquisitionLevelEnum.SORTING_BATCH,
-                // Excluded PMFM (already exists as RDB format columns)
-                PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
-                PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
-                PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
-                PmfmEnum.DISCARD_OR_LANDING.getId()
+            getTripProgramLabels(context),
+            AcquisitionLevelEnum.SORTING_BATCH,
+            // Excluded PMFM (already exists as RDB format columns)
+            PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
+            PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
+            PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
+            PmfmEnum.DISCARD_OR_LANDING.getId()
         );
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
@@ -273,10 +270,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
                 PmfmEnum.DISCARD_OR_LANDING.getId());
 
-
         // Add group by pmfms
-        xmlQuery.setGroup("addGroupBy", StringUtils.isNotBlank(pmfmsColumns));
-        xmlQuery.bind("groupByColumns", pmfmsColumns);
+//        xmlQuery.setGroup("addGroupBy", StringUtils.isNotBlank(pmfmsColumns));
+//        xmlQuery.bind("groupByColumns", pmfmsColumns);
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         xmlQuery.setGroup("taxon", this.enableSpeciesListTaxon(context));
@@ -406,7 +402,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         switch (queryName) {
             case "injectionTripPmfm":
             case "injectionPhysicalGearPmfm":
-            case "injectionOperationPmfm":
+            case "injectionStationPmfm":
             case "injectionParentOperationPmfm":
             case "injectionRawSpeciesListPmfm":
             case "injectionSpeciesListPmfm":
@@ -486,9 +482,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case TRIP:
                 return getXMLQueryURL(context, "injectionTripPmfm");
             case OPERATION:
-                return getXMLQueryURL(context, "injectionOperationPmfm");
+                return getXMLQueryURL(context, "injectionStationPmfm");
             case CHILD_OPERATION:
-                return getXMLQueryURL(context, "injectionParentOperationPmfm");
+                return getXMLQueryURL(context, "injectionStationParentPmfm");
             case PHYSICAL_GEAR:
                 return getXMLQueryURL(context, "injectionPhysicalGearPmfm");
             case SORTING_BATCH:
@@ -511,10 +507,10 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         String pmfmAlias = this.databaseType == DatabaseType.postgresql ? pmfm.getAlias().toLowerCase() : pmfm.getAlias();
         String pmfmLabel = this.databaseType == DatabaseType.postgresql ? pmfm.getLabel().toLowerCase() : pmfm.getLabel();
 
-        if (StringUtils.isBlank(injectionPointName)) {
-            xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias);
-        } else {
+        if (StringUtils.isNotBlank(injectionPointName)) {
             xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias, injectionPointName);
+        } else {
+            xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias);
         }
 
         xmlQuery.bind("pmfmId" + pmfmAlias, String.valueOf(pmfm.getPmfmId()));

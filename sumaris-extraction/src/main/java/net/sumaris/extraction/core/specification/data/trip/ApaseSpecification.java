@@ -22,6 +22,8 @@
 
 package net.sumaris.extraction.core.specification.data.trip;
 
+import net.sumaris.core.dao.referential.pmfm.PmfmSpecifications;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
@@ -29,12 +31,13 @@ public interface ApaseSpecification extends RdbSpecification {
     String FORMAT = "APASE";
     String VERSION_1_0 = "1.0";
 
-    String PG_SHEET_NAME = "PG"; // Physical gear
+    String FG_SHEET_NAME = "FG"; // Fishing gear
 
     String[] SHEET_NAMES = {
         TR_SHEET_NAME,
-        PG_SHEET_NAME,
+        FG_SHEET_NAME,
         HH_SHEET_NAME,
+        SL_RAW_SHEET_NAME,
         SL_SHEET_NAME,
         HL_SHEET_NAME
     };

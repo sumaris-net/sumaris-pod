@@ -44,7 +44,7 @@
     <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
     <!-- other fields -->
-    <select alias="WEIGHT" group="weight" type="number">CAST(SUM(SL.WEIGHT) * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)</select>
+    <select alias="WEIGHT" group="weight,agg" type="number">CAST(SUM(SL.WEIGHT) * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)</select>
     <select alias="SUBSAMPLING_WEIGHT" group="weight" type="number"><![CDATA[
       CASE
         WHEN SUBSAMPLING_WEIGHT > 0 THEN CAST(SL.SUBSAMPLING_WEIGHT * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)
@@ -55,18 +55,15 @@
     <select alias="LENGTH_CODE" group="lengthCode" type="text">SL.LENGTH_CODE</select>
 
     <!-- need to link other tables -->
-    <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(SL.SAMPLE_ID)</select>
-    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden">LISTAGG(SL.SAMPLE_ID, ',')</select>
+    <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden" group="agg">ARRAY_AGG(SL.SAMPLE_ID)</select>
+    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg">LISTAGG(SL.SAMPLE_ID, ',')</select>
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>
 
     <where>1=1</where>
 
-    <groupby>
-      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
-      CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
-      SEX, LENGTH_CODE, SUBSAMPLING_WEIGHT, SUBSAMPLING_RATIO
-    </groupby>
+    <groupby>&amp;groupByColumns</groupby>
+    <groupby>SL.SUBSAMPLING_RATIO</groupby>
   </query>
 
 </queries>

@@ -29,6 +29,8 @@ public interface RjbTripSpecification extends RdbSpecification {
     String FORMAT = "RJB_TRIP";
     String VERSION_1_0 = "1.0";
 
+    String COLUMN_INDIVIDUAL_COUNT = "individual_count";
+
     String[] SHEET_NAMES = {
         TR_SHEET_NAME,
         HH_SHEET_NAME,

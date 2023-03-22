@@ -18,7 +18,7 @@
         <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
 
         <!-- Default datasource platform -->
-        <spring.datasource.platform>hsqldb</spring.datasource.platform>
+        <spring.sql.init.platform>hsqldb</spring.sql.init.platform>
     </properties>
 
     <dependencies>
@@ -221,7 +221,7 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
                 <property>
-                    <name>spring.datasource.platform</name>
+                    <name>spring.sql.init.platform</name>
                     <value>hsqldb</value>
                 </property>
             </activation>

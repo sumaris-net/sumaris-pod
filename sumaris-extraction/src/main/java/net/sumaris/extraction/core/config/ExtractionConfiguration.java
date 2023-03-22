@@ -68,6 +68,10 @@ public class ExtractionConfiguration {
 
     }
 
+    public boolean isProduction() {
+        return this.delegate.isProduction();
+    }
+
     public String getExtractionCliOutputFormat() {
         return getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
     }

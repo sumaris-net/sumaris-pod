@@ -71,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -166,7 +167,6 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
         // Create progression model and listener to throttle events
         ProgressionModel progressionModel = new ProgressionModel();
-        job.setProgressionModel(progressionModel);
 
         // Create listeners to throttle events
         io.reactivex.rxjava3.core.Observable<JobProgressionVO> progressionObservable = Observable.create(emitter -> {

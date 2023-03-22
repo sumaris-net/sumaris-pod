@@ -23,39 +23,20 @@ package net.sumaris.extraction.core.dao.trip.apase;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
-import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.pmfm.ExtractionPmfmTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.ApaseSpecification;
-import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.apase.ExtractionApaseContextVO;
-import net.sumaris.extraction.core.vo.trip.pmfm.ExtractionPmfmTripContextVO;
-import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.Nullable;
-import javax.persistence.PersistenceException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Extraction for the APASE project (trawl selectivity)
@@ -68,7 +49,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         extends ExtractionPmfmTripDaoImpl<C, F>
         implements ApaseSpecification {
 
-    private static final String PG_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + PG_SHEET_NAME + "_%s";
+    private static final String FG_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + FG_SHEET_NAME + "_%s";
 
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.APASE);
@@ -99,10 +80,13 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         super.fillContextTableNames(context);
 
         // Set unique table names
-        context.setGearTableName(formatTableName(PG_TABLE_NAME_PATTERN, context.getId()));
+        context.setGearTableName(formatTableName(FG_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet names
-        context.setGearSheetName(ApaseSpecification.PG_SHEET_NAME);
+        context.setGearSheetName(ApaseSpecification.FG_SHEET_NAME);
+
+        // Always enable batch denormalization
+        context.setEnableBatchDenormalization(true);
     }
 
     protected long createGearTable(C context) {
@@ -174,24 +158,17 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         xmlQuery.bind("tripTableName", context.getTripTableName());
         xmlQuery.bind("gearTableName", context.getGearTableName());
 
-        // Special case for COST format:
-        // - Hide GearType (not in the COST format)
-        xmlQuery.setGroup("gearType", false);
-
-        // Bind groupBy columns
-        Set<String> excludedColumns = ImmutableSet.of(RdbSpecification.COLUMN_GEAR_TYPE);
-        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
-            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
-        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
-
         // Inject physical gear pmfms
-        injectPmfmColumns(context, xmlQuery,
+        injectPmfmColumns(context,
+            xmlQuery,
             getTripProgramLabels(context),
             AcquisitionLevelEnum.PHYSICAL_GEAR,
-            // Excluded Pmfms (already exists as RDB format columns)
-            PmfmEnum.SMALLER_MESH_GAUGE_MM.getId(),
-            PmfmEnum.SELECTIVITY_DEVICE.getId()
+            "injectionPhysicalGearPmfm",
+            "pmfmInjection"
         );
+
+        // Bind group by columns
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -202,7 +179,6 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         Preconditions.checkNotNull(context.getVersion());
 
         switch (queryName) {
-            case "injectionStationTable":
             case "createGearTable":
             case "injectionPhysicalGearPmfm":
                 return getQueryFullName(ApaseSpecification.FORMAT, ApaseSpecification.VERSION_1_0, queryName);

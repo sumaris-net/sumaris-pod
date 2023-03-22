@@ -20,16 +20,11 @@
   #L%
   -->
 
-<query type="select">
+<queries name="extractionDistinctProgram">
 
-  <!-- This 2 columns should exists in parent query, BUT are hidden -->
-  <select alias="DEPARTURE_DATE_TIME" type="date">T.DEPARTURE_DATE_TIME</select>
-  <select alias="RETURN_DATE_TIME" type="date">T.RETURN_DATE_TIME</select>
+  <query type="select" option="distinct">
+    <select alias="DISTINCT_PROGRAM" type="number">PROJECT</select>
+    <from><![CDATA[&tableName]]></from>
+  </query>
 
-  <select alias="TRIP_COMMENTS" type="text">T.COMMENTS</select>
-
-  <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.TRIP_FK = T.ID</from>
-  <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK</from>
-
-  <groupby>&amp;groupByColumns</groupby>
-</query>
+</queries>

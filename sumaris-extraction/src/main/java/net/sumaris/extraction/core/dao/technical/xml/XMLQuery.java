@@ -30,12 +30,14 @@ import fr.ifremer.common.xmlquery.*;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.Text;
 import org.jdom2.filter.Filters;
 import org.jdom2.output.Format;
 
@@ -44,6 +46,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author ludovic.pecquot@e-is.pro
@@ -52,6 +55,9 @@ public class XMLQuery {
 
     private DatabaseType dbms;
     private AsbtractSingleXMLQuery delegate;
+
+    private Set<String> deactivatedGroups = null;
+    private String groupByParamName = null;
 
     public XMLQuery(@NonNull DatabaseType dbms) {
         super();
@@ -76,7 +82,6 @@ public class XMLQuery {
                 throw new IllegalArgumentException("Not XMLQuery instance found for database type: " + dbms.name());
         }
     }
-
     /**
      * Get column names, with type="hidden"
      *
@@ -131,15 +136,38 @@ public class XMLQuery {
                 // Apply filter
                 .filter(filter::evaluate)
                 // Get alias
-                .map(element -> element.getAttribute("alias"))
-                .filter(Objects::nonNull)
-                .map(Attribute::getValue)
-                .filter(Objects::nonNull)
-                .map(String::toLowerCase)
+                .map(this::getAlias)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (Exception e) {
             throw new SumarisTechnicalException(e);
         }
+    }
+
+    public Stream<Element> streamSelectElements(final Predicate<Element> filter) {
+        Preconditions.checkNotNull(filter);
+
+        try {
+            List<Element> selectElements = XPaths.compile("//query/select", Filters.element())
+                .evaluate(getDocument());
+            if (CollectionUtils.isEmpty(selectElements)) return Stream.empty();
+
+
+            // Apply filter
+            return selectElements.stream().filter(filter::evaluate);
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    public String getAlias(final Element element) {
+        return getAttributeValue(element, "alias", true);
+    }
+
+
+    public String getTextContent(final Element element, String separator) {
+        return Beans.getStream(element.getContent(Filters.text()))
+        .map(Text::getValue)
+        .collect(Collectors.joining(separator));
     }
 
     public String getAttributeValue(final Element element, String attrName, boolean forceLowerCase) {
@@ -154,6 +182,20 @@ public class XMLQuery {
         String attrValue = getAttributeValue(element, "group", false);
         if (StringUtils.isBlank(attrValue)) return false;
         return Arrays.asList(attrValue.split(",")).contains(groupName);
+    }
+
+    public void removeGroup(final Element element, String groupName) {
+        String attrValue = getAttributeValue(element, "group", false);
+        if (StringUtils.isBlank(attrValue)) return;
+        String newAttrValue = Arrays.stream(attrValue.split(","))
+            .filter(g -> !groupName.equals(g))
+            .collect(Collectors.joining(","));
+        if (StringUtils.isBlank(newAttrValue)) {
+            element.removeAttribute("group");
+        }
+        else {
+            element.setAttribute("group", newAttrValue);
+        }
     }
 
     /**
@@ -173,6 +215,23 @@ public class XMLQuery {
 
     public Element getFirstQueryTag() {
         return delegate.getFirstQueryTag();
+    }
+
+    public List<Element> getGroupByTags(final Predicate<Element> filter) {
+        Preconditions.checkNotNull(filter);
+
+        try {
+            List<Element> groupByElements = XPaths.compile("//query/groupby", Filters.element())
+                .evaluate(getDocument());
+            if (CollectionUtils.isEmpty(groupByElements)) return null;
+
+            return groupByElements.stream()
+                // Apply filter
+                .filter(filter::evaluate)
+                .toList();
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(e);
+        }
     }
 
     /* -- delegated functions -- */
@@ -434,6 +493,17 @@ public class XMLQuery {
     }
 
     public void setGroup(String groupName, boolean active) {
+        if (deactivatedGroups == null) {
+            deactivatedGroups = new HashSet<>();
+        }
+        // Activer le groupe
+        if (active) {
+            deactivatedGroups.remove(groupName);
+        }
+        // Ignorer le groupe
+        else {
+            deactivatedGroups.add(groupName);
+        }
         delegate.setGroup(groupName, active);
     }
 
@@ -505,5 +575,27 @@ public class XMLQuery {
         return delegate.getXmlAsString(pElement);
     }
 
+    public void bindGroupBy(String value) {
+        this.groupByParamName = value;
+    }
 
+    public void setGroupByParamName(String value) {
+        this.groupByParamName = value;
+    }
+
+    public String getGroupByParamName() {
+        return groupByParamName;
+    }
+
+    public boolean isDisabled(Element element) {
+        String groupName = getAttributeValue(element, "group", false);
+        if (StringUtils.isBlank(groupName)) return false;
+
+        boolean disabled = true;
+        StringTokenizer tokenizer = new StringTokenizer(groupName, ",");
+        while (disabled && tokenizer.hasMoreTokens()) {
+            disabled = deactivatedGroups.contains(tokenizer.nextToken());
+        }
+        return disabled;
+    }
 }

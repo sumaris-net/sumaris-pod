@@ -50,6 +50,8 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
 
     public static String ISO_TIMESTAMP_SPEC = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
+    public static String CSV_DATE_TIME = "yyyy-MM-dd HH:mm:ss";
+
     /**
      * Remove a amount of month to a date
      *

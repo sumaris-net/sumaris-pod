@@ -51,7 +51,7 @@ echo "---- Prepare release [OK]"
 echo ""
 
 echo "---- Performing release..."
-mvn clean deploy -DperformRelease -DskipTests -Dspring.datasource.platform=hsqldb
+mvn clean deploy -DperformRelease -DskipTests -Dspring.sql.init.platform=hsqldb
 [[ $? -ne 0 ]] && exit 1
 echo "---- Perform release [OK]"
 echo ""

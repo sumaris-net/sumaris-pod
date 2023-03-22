@@ -69,7 +69,10 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
     protected XMLQuery createTripQuery(C context) {
         XMLQuery xmlQuery = super.createTripQuery(context);
 
+        xmlQuery.setGroup("departureDateTime", false);
+
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
+
 
         return xmlQuery;
     }

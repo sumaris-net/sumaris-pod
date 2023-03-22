@@ -68,7 +68,8 @@ public class DenormalizedTripServiceImpl implements DenormalizedTripService {
     }
 
     @Override
-    public DenormalizedTripResultVO denormalizeByFilter(@NonNull TripFilterVO tripFilter, @NonNull IProgressionModel progression) {
+    public DenormalizedTripResultVO denormalizeByFilter(@NonNull TripFilterVO tripFilter,
+                                                        @NonNull IProgressionModel progression) {
         long startTime = System.currentTimeMillis();
 
         progression.setCurrent(0);
@@ -111,8 +112,7 @@ public class DenormalizedTripServiceImpl implements DenormalizedTripService {
                 }
 
                 // Denormalize each trip
-                trips.stream().parallel()
-                    .forEach(trip -> {
+                trips.parallelStream().forEach(trip -> {
                     // Load denormalized options
                     DenormalizedBatchOptions programOptions = denormalizedOperationService.createOptionsByProgramId(trip.getProgram().getId());
 

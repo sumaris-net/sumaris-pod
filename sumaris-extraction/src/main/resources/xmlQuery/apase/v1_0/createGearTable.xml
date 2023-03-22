@@ -26,7 +26,7 @@
   <query type="create" temp="false" table="&amp;gearTableName">
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">'PG'</select>
+    <select alias="RECORD_TYPE" type="text">'FG'</select>
     <select alias="SAMPLING_TYPE" type="text">T.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">T.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">T.VESSEL_FLAG_COUNTRY</select>
@@ -36,6 +36,7 @@
 
     <!-- gear specific -->
     <select alias="GEAR_IDENTIFIER" type="number">COALESCE(PG_PARENT.RANK_ORDER, PG.RANK_ORDER)</select>
+    <select alias="GEAR_TYPE" group="gearType" type="text">G.LABEL</select>
     <select alias="SUB_GEAR_IDENTIFIER" type="number"><![CDATA[
       CASE
         WHEN PG.PARENT_PHYSICAL_GEAR_FK IS NOT NULL THEN PG.RANK_ORDER
@@ -44,10 +45,13 @@
       ]]></select>
 
 
+    <injection name="pmfmInjection" type="select" group="injectionPoint"/>
+
     <select alias="GEAR_COMMENTS" type="text">PG.COMMENTS</select>
 
     <from alias="T">&amp;tripTableName</from>
     <from join="true">INNER JOIN PHYSICAL_GEAR PG ON PG.TRIP_FK = T.TRIP_CODE</from>
+    <from join="true">INNER JOIN GEAR G ON G.ID = PG.GEAR_FK</from>
     <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR PG_PARENT ON PG_PARENT.ID = PG.PARENT_PHYSICAL_GEAR_FK</from>
     <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR_MEASUREMENT PGM ON PGM.PHYSICAL_GEAR_FK = PG.ID</from>
     <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE PGQV on PGQV.ID = PGM.QUALITATIVE_VALUE_FK</from>

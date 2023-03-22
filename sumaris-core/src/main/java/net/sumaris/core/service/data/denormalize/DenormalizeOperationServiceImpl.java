@@ -103,7 +103,9 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
         operationFilter.setHasNoChildOperation(true);
 
         // Select only operation that should be update (if not force)
-        operationFilter.setNeedBatchDenormalization(!baseOptions.isForce());
+        //operationFilter.setNeedBatchDenormalization(!baseOptions.isForce());
+        // DEBUG
+        operationFilter.setNeedBatchDenormalization(false);
 
         long operationTotal = operationService.countByFilter(operationFilter);
 

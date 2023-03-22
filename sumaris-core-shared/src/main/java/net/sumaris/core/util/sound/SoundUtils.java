@@ -101,6 +101,20 @@ public class SoundUtils {
         }
     }
 
+    public static void playFinished() {
+        try {
+            SoundUtils.tone(800, 100);
+            Thread.sleep(200);
+            SoundUtils.tone(800, 700, 0.7);
+            Thread.sleep(350);
+            SoundUtils.tone(800, 1000);
+            Thread.sleep(3000);
+        }
+        catch (Exception e) {
+            log.debug("Cannot play error sound: " + e.getMessage());
+        }
+    }
+
     private void playSound(File f) {
         Preconditions.checkArgument(f.exists());
 

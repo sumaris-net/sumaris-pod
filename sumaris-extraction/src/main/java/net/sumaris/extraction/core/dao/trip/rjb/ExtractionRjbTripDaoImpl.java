@@ -23,9 +23,14 @@ package net.sumaris.extraction.core.dao.trip.rjb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
@@ -38,6 +43,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -111,8 +117,19 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
 
-        // TODO externalize
-        xmlQuery.bind("taxonGroupLabels", Daos.getSqlInEscapedStrings("RJB_1", "RJB_2"));
+        // Bind groupBy columns
+        Set<String> excludedColumns = ImmutableSet.of(
+            RdbSpecification.COLUMN_WEIGHT,
+            RdbSpecification.COLUMN_SUBSAMPLING_WEIGHT,
+            RjbTripSpecification.COLUMN_INDIVIDUAL_COUNT
+        );
+        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
+            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
+        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
+
+        // Bind where clause
+        Set<String> taxonGroupNoWeights = getTaxonGroupNoWeights(context);
+        xmlQuery.bind("taxonGroupLabels", Daos.getSqlInEscapedStrings(taxonGroupNoWeights));
 
         return xmlQuery;
     }
@@ -163,5 +180,17 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             default:
                 return super.getQueryFullName(context, queryName);
         }
+    }
+
+    protected Set<String> getTaxonGroupNoWeights(C context) {
+
+        Set<String> result = Sets.newHashSet();
+        getTripProgramLabels(context).stream()
+            .forEach(programLabel -> {
+                String values = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+                if (StringUtils.isBlank(values)) return;
+                Splitter.on(",").split(values).forEach( result::add);
+            });
+        return result;
     }
 }

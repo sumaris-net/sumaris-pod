@@ -28,5 +28,6 @@
   <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = SM.QUALITATIVE_VALUE_FK</from>
 
 
-  <!--<groupby>&amp;groupByColumns</groupby>-->
+  <!-- Already exists in the parent query
+      <groupby>&amp;groupByColumns</groupby>-->
 </query>

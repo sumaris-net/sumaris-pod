@@ -23,9 +23,7 @@ package net.sumaris.core.vo.technical.job;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.IUpdateDateEntity;
@@ -39,6 +37,9 @@ import java.util.Date;
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
+@Builder
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class JobVO implements
     IValueObject<Integer>,
     IUpdateDateEntity<Integer, Date>, Comparable<JobVO> {
@@ -64,9 +65,6 @@ public class JobVO implements
     private String issuer;
 
     private Date updateDate;
-
-    @JsonIgnore
-    private IProgressionModel progressionModel;
 
     @Override
     public int compareTo(JobVO o) {

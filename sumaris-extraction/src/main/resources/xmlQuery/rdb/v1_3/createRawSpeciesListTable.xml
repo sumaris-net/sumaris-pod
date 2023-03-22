@@ -36,7 +36,8 @@
     <!-- PK (new fields) -->
     <select alias="SPECIES" type="text">COALESCE(TG.COMMENTS, TG.NAME, TG.LABEL)</select>
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
-    <select alias="CATCH_CATEGORY" type="text"><![CDATA[(SELECT
+    <select alias="CATCH_CATEGORY" type="text"><![CDATA[
+    (SELECT
         CASE QV.ID WHEN &discardQvId THEN UPPER('DIS') WHEN &landingQvId THEN UPPER('LAN') ELSE null END
       FROM SORTING_MEASUREMENT_B SM
         INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
@@ -67,7 +68,7 @@
     <select alias="SUBSAMPLING_RATIO" type="number">1</select>
 
     <!-- need to link other tables -->
-    <select alias="SAMPLE_ID" type="hidden">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>
+    <select alias="SAMPLE_ID" type="number">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>
     <select alias="SAMPLE_RANK_ORDER" type="hidden">SORTING_B.RANK_ORDER</select>
     <select alias="REFERENCE_TAXON_ID" type="hidden">SPECIE_B.REFERENCE_TAXON_FK</select>
 
@@ -82,15 +83,9 @@
     <!-- 'OR IS NULL' is needed for postgresql -->
     <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != UPPER('I') OR S.FISHING_VALIDITY IS NULL ]]></where>
 
-    <groupby>
-      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, STATION_NUMBER, SPECIES,
-      CATCH_CATEGORY, LANDING_CATEGORY, COMMERCIAL_SIZE_CATEGORY_SCALE, COMMERCIAL_SIZE_CATEGORY, SUBSAMPLING_CATEGORY,
-      SEX, LENGTH_CODE, SAMPLE_ID, SAMPLE_RANK_ORDER
-    </groupby>
+    <groupby>&amp;groupByColumns</groupby>
 
-    <groupby group="taxon">REFERENCE_TAXON_ID</groupby>
-
-    <orderby>S.STATION_NUMBER ASC, SAMPLE_RANK_ORDER ASC</orderby>
+    <orderby>STATION_NUMBER ASC, SAMPLE_RANK_ORDER ASC</orderby>
 
   </query>
 

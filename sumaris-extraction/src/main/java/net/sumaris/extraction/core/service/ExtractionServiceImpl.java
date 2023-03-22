@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.extraction.ExtractionTableRepository;
+import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -743,9 +745,14 @@ public class ExtractionServiceImpl implements ExtractionService {
         String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
         String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
 
+        Map<String, String> dateFormats = Maps.newHashMap();
+        columnNames.stream().map(table::getColumnMetadata)
+            .filter(SumarisTableMetadatas::isDateColumn)
+            .forEach(column -> dateFormats.put(column.getName(), Dates.CSV_DATE_TIME));
+
         extractionCsvDao.dumpQueryToCSV(outputFile, query,
             getAliasByColumnMap(columnNames),
-            null,
+            dateFormats,
             null,
             null);
 

@@ -90,12 +90,14 @@ public class DatabaseFixtures {
 
 	public int getTripIdByProgramLabel(String programLabel) {
 		switch (programLabel) {
+			case "SUMARiS":
+				return 1; // The validated trip
 			case "APASE":
 				return 70;
 			case "ADAP-MER":
 				return 100;
 			default:
-				throw new IllegalArgumentException("Add trip id for program " + programLabel);
+				throw new IllegalArgumentException("Missing a trip id for the program: " + programLabel);
 		}
 	}
 

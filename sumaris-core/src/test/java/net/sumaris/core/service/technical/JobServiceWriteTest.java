@@ -106,12 +106,11 @@ public class JobServiceWriteTest extends AbstractServiceTest{
     }
 
     private JobVO createJob(String issuer) {
-        JobVO target = new JobVO();
-        target.setName("Extraction test job");
-        target.setType(ProcessingTypeEnum.SIOP_VESSELS_IMPORTATION.getLabel());
-        target.setIssuer(issuer);
-        target.setStatus(JobStatusEnum.PENDING);
-
-        return target;
+        return JobVO.builder()
+            .name("Extraction test job")
+            .type(ProcessingTypeEnum.SIOP_VESSELS_IMPORTATION.getLabel())
+            .issuer(issuer)
+            .status(JobStatusEnum.PENDING)
+            .build();
     }
 }

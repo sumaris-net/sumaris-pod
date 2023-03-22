@@ -60,6 +60,6 @@ public class DenormalizeTripsAction {
         tripService.denormalizeByFilter(filterBuilder.build(), progression);
 
         // Play a beep
-        SoundUtils.playWaiting(2);
+        SoundUtils.playFinished();
     }
 }

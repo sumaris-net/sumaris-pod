@@ -120,7 +120,9 @@ public class ExtractionGraphQLService {
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 
         IExtractionType checkedType = extractionService.getByExample(type);
-        extractionSecurityService.checkReadAccess(checkedType);
+
+        // Check access rights
+        //extractionSecurityService.checkReadAccess(checkedType);
 
         Page page = Page.builder()
             .offset(offset)

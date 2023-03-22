@@ -178,13 +178,13 @@ public class UserEventGraphQLService {
             filter.setStartDate(userEventService.getLastReadDate(filter.getRecipients()));
         }
 
-        log.info("Checking events count for User#{} by events and every {} sec", filter.getRecipients(), intervalInSeconds);
+        log.info("Checking events count for users {} every {} sec", filter.getRecipients(), intervalInSeconds);
 
         UserEventFilterVO finalFilter = filter;
         return entityWatchService.watchEntitiesCount(
                 UserEvent.class,
                 Observables.distinctUntilChanged(() -> {
-                    log.debug("Checking events count for User#{} from {}", finalFilter.getRecipients(), finalFilter.getStartDate());
+                    log.debug("Checking events count for users {} from {}", finalFilter.getRecipients(), finalFilter.getStartDate());
                     // find new user events
                     List<UserEventVO> list = userEventService.findAll(finalFilter);
                     // get max read date of current result and set next filter
