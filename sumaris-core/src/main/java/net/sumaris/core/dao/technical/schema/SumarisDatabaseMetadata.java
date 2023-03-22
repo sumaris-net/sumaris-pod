@@ -198,9 +198,9 @@ public class SumarisDatabaseMetadata {
 				if (tableName.toUpperCase().startsWith(tablePrefix.toUpperCase())) {
 					result.add(rs.getString("TABLE_NAME"));
 				}
-				// JDBC meta return a bad tableName: should never occur !!
+				// JDBC meta return a bad tableName (e.g. because '_' special character) => ignore
 				else {
-					log.warn("Invalid getTables() result: Table name '{}' should not be returned, because its not match the pattern '{}'. Please check like pattern, or Daos.getEscapedForLike() function", tableName, tablePrefix);
+					log.trace("Ignoring getTables() result, because table name '{}' not start with '{}'", tableName, tablePrefix);
 				}
 			}
 			return result;

@@ -163,6 +163,10 @@ public class XMLQuery {
         return getAttributeValue(element, "alias", true);
     }
 
+    public String getAlias(final Element element, boolean forceLowerCase) {
+        return getAttributeValue(element, "alias", forceLowerCase);
+    }
+
 
     public String getTextContent(final Element element, String separator) {
         return Beans.getStream(element.getContent(Filters.text()))

@@ -243,6 +243,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
             PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
             PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
+            PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
+            PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
             PmfmEnum.DISCARD_OR_LANDING.getId()
         );
 
@@ -268,11 +270,13 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
                 PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
                 PmfmEnum.DISCARD_OR_LANDING.getId());
 
         // Add group by pmfms
-//        xmlQuery.setGroup("addGroupBy", StringUtils.isNotBlank(pmfmsColumns));
-//        xmlQuery.bind("groupByColumns", pmfmsColumns);
+        xmlQuery.setGroup("pmfms", StringUtils.isNotBlank(pmfmsColumns));
+        //xmlQuery.bind("pmfmsGroupByColumns", pmfmsColumns);
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         xmlQuery.setGroup("taxon", this.enableSpeciesListTaxon(context));

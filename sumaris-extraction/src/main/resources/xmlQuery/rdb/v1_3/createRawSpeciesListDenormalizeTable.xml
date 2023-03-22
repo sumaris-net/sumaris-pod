@@ -65,10 +65,11 @@
     <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
 
     <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
+    <!-- /!\ La division par count(SPECIES_B.ID) est nécessaire à cause des jointure possible dans les injection de PMFM -->
     <select alias="SUBSAMPLING_RATIO" type="number" group="agg"><![CDATA[
       CASE
         WHEN SAMPLING_B.ELEVATE_RTP_WEIGHT > 0 THEN
-          ROUND(SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SAMPLING_B.ELEVATE_RTP_WEIGHT + 0.000001, 6)
+          ROUND(SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SAMPLING_B.ELEVATE_RTP_WEIGHT / COUNT(SPECIE_B.ID) + 0.0000005, 6)
         ELSE 1
       END
     ]]></select>

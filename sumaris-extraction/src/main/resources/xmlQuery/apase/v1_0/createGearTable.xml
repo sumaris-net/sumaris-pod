@@ -44,7 +44,7 @@
       END
       ]]></select>
 
-
+    <!-- Injection point for pmfms -->
     <injection name="pmfmInjection" type="select" group="injectionPoint"/>
 
     <select alias="GEAR_COMMENTS" type="text">PG.COMMENTS</select>

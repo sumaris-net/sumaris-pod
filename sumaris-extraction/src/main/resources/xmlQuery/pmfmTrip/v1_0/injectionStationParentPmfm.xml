@@ -2,31 +2,31 @@
 
 <query type="select">
     <!-- double -->
-    <select alias="&amp;pmfmlabel%pmfmalias%" group="double%pmfmalias% type="number">
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="double%pmfmalias%,agg" type="number">
         COALESCE(MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN VUM2.NUMERICAL_VALUE ELSE NULL END),
                 MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN VUM.NUMERICAL_VALUE ELSE NULL END))
     </select>
 
     <!-- integer -->
-    <select alias="&amp;pmfmlabel%pmfmalias%" group="integer%pmfmalias% type="number">
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="integer%pmfmalias%,agg" type="number">
         COALESCE(MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN CAST(VUM2.NUMERICAL_VALUE AS INT) ELSE NULL END),
                 MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN CAST(VUM.NUMERICAL_VALUE AS INT) ELSE NULL END))
     </select>
 
     <!-- text -->
-    <select alias="&amp;pmfmlabel%pmfmalias%" group="string%pmfmalias% type="text">
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="string%pmfmalias%,agg" type="text">
         COALESCE(MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN VUM2.ALPHANUMERICAL_VALUE  ELSE NULL END),
                 MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN VUM.ALPHANUMERICAL_VALUE  ELSE NULL END))
     </select>
 
     <!-- qualitative value -->
-    <select alias="&amp;pmfmlabel%pmfmalias%" group="qualitative_value%pmfmalias% type="text">
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="qualitative_value%pmfmalias%,agg" type="text">
         COALESCE(MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN QV2.LABEL || ' - ' || QV2.NAME ELSE NULL END),
                 MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN QV.LABEL || ' - ' || QV.NAME ELSE NULL END))
     </select>
 
     <!-- boolean -->
-    <select alias="&amp;pmfmlabel%pmfmalias%" group="boolean%pmfmalias% type="text">
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="boolean%pmfmalias%,agg" type="text">
         COALESCE(MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmalias%
                     THEN (CASE VUM2.NUMERICAL_VALUE WHEN 1 THEN UPPER('Y') WHEN 0 THEN UPPER('N') END)
                     ELSE NULL END),
@@ -36,7 +36,7 @@
     </select>
 
     <!-- date -->
-    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias% dbms="hsqldb" type="text">
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%,agg" dbms="hsqldb" type="text">
         COALESCE(MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmalias%
                     THEN TO_CHAR(TIMESTAMP(REPLACE(REPLACE(VUM2.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
                     ELSE NULL END),
@@ -45,7 +45,7 @@
                     ELSE NULL END))
 
     </select>
-    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias% dbms="oracle,pgsql" type="text">
+    <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%,agg" dbms="oracle,pgsql" type="text">
         COALESCE(MAX(CASE VUM2.PMFM_FK WHEN &amp;pmfmId%pmfmalias%
                     THEN TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(VUM2.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-DD-MM')
                     ELSE NULL END),

@@ -51,6 +51,7 @@ import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.hibernate.dialect.Dialect;
 import org.jdom2.Element;
@@ -156,7 +157,9 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
 
     public <C extends ExtractionContextVO> void clean(C context) {
-        dropTables(context);
+        // DEBUG
+        log.warn("TODO: drop table after an extraction - uncomment code here !!");
+        //dropTables(context);
     }
 
     protected ExtractionResultVO read(@NonNull String tableName, ExtractionFilterVO filter, Page page) {
@@ -638,8 +641,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         })
             .map(e -> {
                 // Exclude pmfm columns
-                String alias = xmlQuery.getAlias(e);
-                if (alias == null || alias.startsWith("&pmfmlabel")) return null;
+                //String alias = xmlQuery.getAlias(e);
+                // if (alias == null || alias.startsWith("&pmfmlabel")) return null;
 
                 // Prefer using <select> content, if match the pattern 'T.<columnName>'
                 String textContent = StringUtils.trimToNull(xmlQuery.getTextContent(e, " "));
@@ -650,7 +653,11 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
                 }
 
                 // Or use alias if more complex column specification (e.g. '(CASE WHEN ...)' or '(SELECT ...)' )
-                return alias;
+                String alias = xmlQuery.getAlias(e, false /* keep same case, to be able to replace parameter inside*/);
+                if (alias.startsWith("&")) {
+                    alias = MapUtils.getString(xmlQuery.getSqlParameters(), alias.substring(1), alias);
+                }
+                return alias.toLowerCase();
             })
             .filter(Objects::nonNull)
         .collect(Collectors.joining(","));

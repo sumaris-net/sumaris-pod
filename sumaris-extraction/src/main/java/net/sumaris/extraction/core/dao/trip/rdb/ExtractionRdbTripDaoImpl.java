@@ -618,8 +618,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Load pmfm columns
         List<ExtractionPmfmColumnVO> result = strategyService.findDenormalizedPmfmsByFilter(
                 PmfmStrategyFilterVO.builder()
-                    .programLabels(programLabels.toArray(new String[programLabels.size()]))
-                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[acquisitionLevelIds.size()]))
+                    .programLabels(programLabels.toArray(new String[0]))
+                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[0]))
                     .build(),
                 PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
             )
@@ -630,10 +630,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 .collect(Collectors.groupingBy(ExtractionPmfmColumnVO::getPmfmId))
                 .values().stream().map(list -> list.get(0))
 
-                // Sort by label
-                // TODO sort by rankOrder ?
-                .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getLabel, String::compareTo))
-                .collect(Collectors.toList());
+                // Sort by rankOrder
+                .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getRankOrder, Integer::compareTo))
+                .toList();
 
         // save result into the context map
         pmfmColumns.put(cacheKey, result);
