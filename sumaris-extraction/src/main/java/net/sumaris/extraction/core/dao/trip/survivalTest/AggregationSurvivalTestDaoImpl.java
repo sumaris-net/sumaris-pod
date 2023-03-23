@@ -28,7 +28,7 @@ import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
+import net.sumaris.xml.query.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;

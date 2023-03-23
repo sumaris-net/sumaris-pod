@@ -1,4 +1,4 @@
-package net.sumaris.extraction.core.dao.technical.xml;
+package net.sumaris.xml.query.utils;
 
 /*-
  * #%L

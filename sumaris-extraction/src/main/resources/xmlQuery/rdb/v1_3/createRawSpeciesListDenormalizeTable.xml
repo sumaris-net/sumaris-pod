@@ -40,18 +40,20 @@
     <!-- PK (new fields) -->
     <select alias="SPECIES" type="text">COALESCE(TN.COMMENTS, TN.NAME, TG.COMMENTS, TG.NAME)</select>
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
-    <select alias="CATCH_CATEGORY" type="text"><![CDATA[
-      CASE CATCH_CATEGORY_SV.QUALITATIVE_VALUE_FK
-        WHEN &landingQvId THEN 'LAN'
-        WHEN &discardQvId THEN 'DIS'
-        ELSE NULL
-      END
-    ]]></select>
+    <select alias="CATCH_CATEGORY" type="text" group="agg">
+      MAX(CASE SM.PMFM_FK WHEN &amp;catchCategoryPmfmId THEN QV.LABEL ELSE NULL END)
+    </select>
 
-    <select alias="LANDING_CATEGORY" type="text">null</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select> <!-- TODO: SIZE_UNLI_CAT -->
-    <select alias="SUBSAMPLING_CATEGORY" type="text">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
+    <select alias="LANDING_CATEGORY" type="text">'HUC'</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text" group="agg">
+      MAX(CASE TG.LABEL WHEN 'NEP' THEN 'Nephrops' ELSE 'EU' END)
+    </select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text" group="agg">
+      MAX(CASE WHEN SM.PMFM_FK IN (&amp;sizeCategoryPmfmIds) THEN QV.LABEL ELSE NULL END)
+    </select>
+    <select alias="SUBSAMPLING_CATEGORY" type="text" group="agg">
+      MAX(CASE SM.PMFM_FK WHEN &amp;subsamplingCategoryPmfmId THEN QV.LABEL ELSE NULL END)
+    </select>
     <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
 
     <!-- other fields -->
@@ -62,7 +64,7 @@
         ELSE NULL
       END
     ]]></select>
-    <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
+    <select alias="LENGTH_CODE" type="text" group="agg">MAX(UNIT.LABEL)</select>
 
     <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
     <!-- /!\ La division par count(SPECIES_B.ID) est nécessaire à cause des jointure possible dans les injection de PMFM -->
@@ -80,25 +82,25 @@
     <select alias="REFERENCE_TAXON_ID" type="number">LENGTH_B.REFERENCE_TAXON_FK</select>
 
     <from alias="S">&amp;stationTableName</from>
-<!--    <from join="true">INNER JOIN BATCH CATCH_B ON CATCH_B.OPERATION_FK = S.STATION_NUMBER AND CATCH_B.PARENT_BATCH_FK IS NULL</from>-->
     <from join="true">INNER JOIN DENORMALIZED_BATCH SPECIE_B ON SPECIE_B.OPERATION_FK = S.STATION_NUMBER AND SPECIE_B.IS_LANDING &lt;&gt; SPECIE_B.IS_DISCARD</from>
     <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.INHERITED_TAXON_GROUP_FK</from>
-    <from join="true">INNER JOIN DENORMALIZED_BATCH_SORT_VAL CATCH_CATEGORY_SV ON CATCH_CATEGORY_SV.BATCH_FK=SPECIE_B.ID AND CATCH_CATEGORY_SV.PMFM_FK=&amp;catchCategoryPmfmId</from>
+    <from join="true">INNER JOIN DENORMALIZED_BATCH_SORT_VAL SM ON SM.BATCH_FK=SPECIE_B.ID</from>
+    <from join="true">INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK</from>
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SPECIE_B.ID AND SAMPLING_B.SAMPLING_RATIO &gt; 0</from>
 
     <!-- join individual measure, to be able to compute sampling by length_code and taxon -->
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH LENGTH_B ON LENGTH_B.PARENT_BATCH_FK=COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</from>
-    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL LENGTH_SV ON LENGTH_SV.BATCH_FK=LENGTH_B.ID AND LENGTH_SV.PMFM_FK in (&amp;lengthPmfmIds) AND IS_INHERITED=0</from>
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL LENGTH_SV ON LENGTH_SV.BATCH_FK=LENGTH_B.ID AND LENGTH_SV.PMFM_FK in (&amp;lengthPmfmIds) AND LENGTH_SV.IS_INHERITED=0</from>
     <from join="true">LEFT OUTER JOIN UNIT ON UNIT.ID = LENGTH_SV.UNIT_FK</from>
     <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = LENGTH_B.REFERENCE_TAXON_FK</from>
 
     <where>1=1</where>
 
     <!-- Select batch with LANDING/DISCARD defined and a TAXON_GROUP -->
-    <where operator="AND" ><![CDATA[
+    <where operator="AND" group="speciesBatchFilter"><![CDATA[
       (
-        (SPECIE_B.TAXON_GROUP_FK IS NOT NULL AND CATCH_CATEGORY_SV.IS_INHERITED=1)
-        OR (SPECIE_B.TAXON_GROUP_FK IS NULL AND CATCH_CATEGORY_SV.IS_INHERITED=0)
+        (SPECIE_B.TAXON_GROUP_FK IS NOT NULL AND SM.IS_INHERITED=1)
+        OR (SPECIE_B.TAXON_GROUP_FK IS NULL AND SM.IS_INHERITED=0)
       )
     ]]></where>
 

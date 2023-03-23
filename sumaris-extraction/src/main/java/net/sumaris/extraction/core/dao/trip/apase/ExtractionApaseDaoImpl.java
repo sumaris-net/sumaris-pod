@@ -23,19 +23,22 @@ package net.sumaris.extraction.core.dao.trip.apase;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.pmfm.ExtractionPmfmTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.ApaseSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.apase.ExtractionApaseContextVO;
+import net.sumaris.xml.query.XMLQuery;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -173,6 +176,12 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         return xmlQuery;
     }
 
+    @Override
+    protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
+        XMLQuery query = super.createRawSpeciesListQuery(context, excludeInvalidStation);
+
+        return query;
+    }
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
@@ -180,11 +189,19 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
 
         switch (queryName) {
             case "createGearTable":
+            case "createRawSpeciesListDenormalizeTable":
             case "injectionPhysicalGearPmfm":
+            case "injectionRawSpeciesListTable":
                 return getQueryFullName(ApaseSpecification.FORMAT, ApaseSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
         }
     }
 
+    @Override
+    protected List<Integer> getSizeCategoryPmfmIds() {
+        return ImmutableList.of(
+            PmfmEnum.TRAWL_SIZE_CAT.getId()
+        );
+    }
 }

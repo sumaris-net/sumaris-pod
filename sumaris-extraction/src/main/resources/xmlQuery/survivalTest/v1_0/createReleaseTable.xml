@@ -26,15 +26,15 @@
 
     <with alias="SAMPLE_WITH_MEAS">
       <subquery>
-        <subselect alias="STATION_NUMBER" type="number">S.STATION_NUMBER</subselect>
-        <subselect alias="ID" type="number">PARENT_SA.ID</subselect>
-        <subselect alias="SAMPLE_DATE" type="date">PARENT_SA.SAMPLE_DATE</subselect>
-        <subselect alias="REFERENCE_TAXON_FK" type="text">PARENT_SA.REFERENCE_TAXON_FK</subselect>
-        <subselect alias="TAXON_GROUP_FK" type="text">PARENT_SA.TAXON_GROUP_FK</subselect>
-        <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
-        <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
-        <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
-        <subselect alias="COMMENTS" type="text">SA.COMMENTS</subselect>
+        <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+        <select alias="ID" type="number">PARENT_SA.ID</select>
+        <select alias="SAMPLE_DATE" type="date">PARENT_SA.SAMPLE_DATE</select>
+        <select alias="REFERENCE_TAXON_FK" type="text">PARENT_SA.REFERENCE_TAXON_FK</select>
+        <select alias="TAXON_GROUP_FK" type="text">PARENT_SA.TAXON_GROUP_FK</select>
+        <select alias="PMFM_LABEL" type="text">PMFM.LABEL</select>
+        <select alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</select>
+        <select alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</select>
+        <select alias="COMMENTS" type="text">SA.COMMENTS</select>
 
         <from alias="S">&amp;stationTableName</from>
         <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_NUMBER AND SA.LABEL LIKE UPPER('INDIVIDUAL_RELEASE#%')</from>
@@ -45,15 +45,15 @@
 
         <union>
           <subquery>
-            <subselect alias="STATION_NUMBER" type="number">S.STATION_NUMBER</subselect>
-            <subselect alias="ID" type="number">SA.ID</subselect>
-            <subselect alias="SAMPLE_DATE" type="date">SA.SAMPLE_DATE</subselect>
-            <subselect alias="REFERENCE_TAXON_FK" type="text">SA.REFERENCE_TAXON_FK</subselect>
-            <subselect alias="TAXON_GROUP_FK" type="text">SA.TAXON_GROUP_FK</subselect>
-            <subselect alias="PMFM_LABEL" type="text">PMFM.LABEL</subselect>
-            <subselect alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</subselect>
-            <subselect alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</subselect>
-            <subselect alias="COMMENTS" type="text">null</subselect>
+            <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+            <select alias="ID" type="number">SA.ID</select>
+            <select alias="SAMPLE_DATE" type="date">SA.SAMPLE_DATE</select>
+            <select alias="REFERENCE_TAXON_FK" type="text">SA.REFERENCE_TAXON_FK</select>
+            <select alias="TAXON_GROUP_FK" type="text">SA.TAXON_GROUP_FK</select>
+            <select alias="PMFM_LABEL" type="text">PMFM.LABEL</select>
+            <select alias="ALPHA_VALUE" type="text">COALESCE(SQV.LABEL, SM.ALPHANUMERICAL_VALUE)</select>
+            <select alias="NUM_VALUE" type="number">SM.NUMERICAL_VALUE</select>
+            <select alias="COMMENTS" type="text">null</select>
 
             <from alias="S">&amp;stationTableName</from>
             <from join="true">INNER JOIN SAMPLE CHILD_SA ON CHILD_SA.OPERATION_FK = S.STATION_NUMBER AND CHILD_SA.LABEL LIKE UPPER('INDIVIDUAL_RELEASE#%')</from>

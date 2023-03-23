@@ -26,9 +26,9 @@
 
     <with alias="TRIP_SUMMARY">
       <subquery>
-        <subselect alias="TRIP_CODE" type="number">T.TRIP_CODE</subselect>
-        <subselect alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_IDENTIFIER</subselect>
-        <subselect alias="VESSEL_LENGTH_CLASS" type="text"><![CDATA[
+        <select alias="TRIP_CODE" type="number">T.TRIP_CODE</select>
+        <select alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_IDENTIFIER</select>
+        <select alias="VESSEL_LENGTH_CLASS" type="text"><![CDATA[
         CASE
           WHEN (T.VESSEL_LENGTH < 6) THEN '0-6'
           WHEN (T.VESSEL_LENGTH < 10) THEN '6-10'
@@ -37,10 +37,10 @@
           WHEN (T.VESSEL_LENGTH < 24) THEN '15-24'
           WHEN (T.VESSEL_LENGTH < 40) THEN '24-40'
           WHEN (T.VESSEL_LENGTH >= 40) THEN '>=40'
-        END]]></subselect>
+        END]]></select>
 
-        <subselect alias="NUMBER_OF_SETS" type="number">T.NUMBER_OF_SETS</subselect>
-        <subselect alias="FISHING_TIME" type="number">(SELECT SUM(FISHING_TIME) FROM &amp;rawStationTableName WHERE TRIP_CODE=T.TRIP_CODE)</subselect>
+        <select alias="NUMBER_OF_SETS" type="number">T.NUMBER_OF_SETS</select>
+        <select alias="FISHING_TIME" type="number">(SELECT SUM(FISHING_TIME) FROM &amp;rawStationTableName WHERE TRIP_CODE=T.TRIP_CODE)</select>
 
         <from alias="T">&amp;rawTripTableName</from>
 

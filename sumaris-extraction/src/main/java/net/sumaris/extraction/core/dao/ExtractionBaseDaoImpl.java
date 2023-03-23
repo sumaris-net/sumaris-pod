@@ -30,11 +30,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Beans;
@@ -45,11 +45,12 @@ import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
+import net.sumaris.xml.query.XMLQuery;
+import net.sumaris.xml.query.XMLQueryImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -276,8 +277,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
      * Create a new XML Query
      * @return
      */
-    protected XMLQuery createXMLQuery() {
-        return new XMLQuery(databaseType);
+    protected XMLQueryImpl createXMLQuery() {
+        return new XMLQueryImpl(databaseType);
     }
 
     protected <C extends ExtractionContextVO> void dropTables(@NonNull C context) {
@@ -588,7 +589,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
     protected XMLQuery createXMLQuery(String queryName) {
-        XMLQuery query = createXMLQuery();
+        XMLQueryImpl query = createXMLQuery();
         query.setQuery(getXMLQueryClasspathURL(queryName));
         return query;
     }

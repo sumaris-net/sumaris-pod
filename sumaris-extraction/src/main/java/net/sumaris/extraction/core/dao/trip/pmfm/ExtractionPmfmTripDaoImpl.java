@@ -33,14 +33,14 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmValueType;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.pmfm.ExtractionPmfmTripContextVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.xml.query.XMLQuery;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -236,19 +236,27 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
 
+        // Excluded PMFM (already exists as RDB format columns)
+        ImmutableList<Object> excludedPmfmIds = ImmutableList.builder()
+                .add(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
+                    PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
+                    PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
+                    PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
+                    PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
+                    PmfmEnum.DISCARD_OR_LANDING.getId(),
+                    PmfmEnum.BATCH_SORTING.getId())
+                    .addAll(getSizeCategoryPmfmIds())
+            .build();
         injectPmfmColumns(context, xmlQuery,
             getTripProgramLabels(context),
             AcquisitionLevelEnum.SORTING_BATCH,
-            // Excluded PMFM (already exists as RDB format columns)
-            PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
-            PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
-            PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
-            PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
-            PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
-            PmfmEnum.DISCARD_OR_LANDING.getId()
+            excludedPmfmIds.toArray(new Integer[0])
         );
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
+        if (!context.isEnableBatchDenormalization()) {
+            xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
+        }
+
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
@@ -262,17 +270,25 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"), "afterSpeciesInjection");
 
+        // Excluded PMFM (already exists as RDB format columns)
+        ImmutableList<Object> excludedPmfmIds = ImmutableList.builder()
+            .add(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
+                PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
+                PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
+                PmfmEnum.DISCARD_OR_LANDING.getId(),
+                PmfmEnum.BATCH_SORTING.getId())
+            .addAll(getSizeCategoryPmfmIds())
+            .build();
+
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
                 AcquisitionLevelEnum.SORTING_BATCH,
                 "injectionSpeciesListPmfm",
                 "afterSexInjection",
-                PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
-                PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
-                PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
-                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
-                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
-                PmfmEnum.DISCARD_OR_LANDING.getId());
+            excludedPmfmIds.toArray(new Integer[0])
+        );
 
         // Add group by pmfms
         xmlQuery.setGroup("pmfms", StringUtils.isNotBlank(pmfmsColumns));

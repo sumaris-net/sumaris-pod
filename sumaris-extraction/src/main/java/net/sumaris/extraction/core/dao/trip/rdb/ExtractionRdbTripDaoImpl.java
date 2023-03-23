@@ -41,8 +41,8 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.service.data.denormalize.DenormalizedOperationService;
 import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
+import net.sumaris.core.service.data.denormalize.DenormalizedOperationService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
@@ -55,7 +55,6 @@ import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -63,6 +62,7 @@ import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.xml.query.XMLQuery;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -455,6 +455,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+        xmlQuery.bind("sizeCategoryPmfmIds", Daos.getSqlInNumbers(getSizeCategoryPmfmIds()));
+        xmlQuery.bind("subsamplingCategoryPmfmId", String.valueOf(PmfmEnum.BATCH_SORTING.getId()));
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
 
         // Exclude not valid station
@@ -579,6 +581,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             PmfmEnum.LENGTH_CARAPACE_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
             PmfmEnum.SEGMENT_LENGTH_MM.getId()
+        );
+    }
+
+    protected List<Integer> getSizeCategoryPmfmIds() {
+        return ImmutableList.of(
+            PmfmEnum.SIZE_CATEGORY.getId(),
+            PmfmEnum.SIZE_UNLI_CAT.getId()
         );
     }
 

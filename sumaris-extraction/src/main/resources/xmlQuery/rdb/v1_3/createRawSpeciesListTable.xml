@@ -43,9 +43,16 @@
         INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId
     )]]></select>
-    <select alias="LANDING_CATEGORY" type="text">null</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">null</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">null</select> <!-- TODO: SIZE_UNLI_CAT -->
+    <select alias="LANDING_CATEGORY" type="text">'HUC'</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">
+      MAX(CASE TG.LABEL WHEN 'NEP' THEN 'Nephrops' ELSE 'EU' END)
+    </select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">
+    (SELECT
+      QV.LABEL
+      FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
+      WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK in (&amp;sizeCategoryPmfmIds)
+    )</select>
     <select alias="SUBSAMPLING_CATEGORY" type="text">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
     <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
 
