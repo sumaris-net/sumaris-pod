@@ -297,8 +297,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
             .add(
                 // Already in the catch table
                 PmfmEnum.CATCH_WEIGHT.getId(),
-                PmfmEnum.DISCARD_WEIGHT.getId(),
-                PmfmEnum.CHILD_GEAR.getId()
+                PmfmEnum.DISCARD_WEIGHT.getId()
             )
             .build();
     }

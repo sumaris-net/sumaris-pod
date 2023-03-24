@@ -432,14 +432,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        if (this.production) {
-            // Add as a raw table (to be able to clean it later)
-            context.addRawTableName(tableName);
-        }
-        else {
-            // DEBUG
-            context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
-        }
+        //if (this.production) {
+        // Add as a raw table (to be able to clean it later)
+        context.addRawTableName(tableName);
+        // DEBUG
+        //else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }
