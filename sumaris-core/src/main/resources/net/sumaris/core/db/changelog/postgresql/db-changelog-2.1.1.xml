@@ -4,7 +4,7 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.1.1.xml">
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-2.1.1.xml">
 
     <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-1">
         <preConditions onFail="MARK_RAN">
@@ -19,17 +19,15 @@
             <where>LABEL='2.1.1'</where>
         </delete>
         <insert tableName="SYSTEM_VERSION">
-            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="ID" valueComputed="nextval('system_version_seq')"/>
             <column name="LABEL">2.1.1</column>
             <column name="DESCRIPTION">
-                - Add UNSEXED enumeration option, in configuration;
-                - Fix ADAP pmfm LENGTH_TOTAL_CM;
+                - Extraction: rename SUBSAMPLING_WEIGHT into SUBSAMPLE_WEIGHT;
             </column>
-            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
             <column name="COMMENTS">
-                - Add UNSEXED enumeration option, in configuration;
-                - Fix ADAP pmfm LENGTH_TOTAL_CM;
+                - Extraction: rename SUBSAMPLING_WEIGHT into SUBSAMPLE_WEIGHT;
             </column>
         </insert>
     </changeSet>

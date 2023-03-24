@@ -60,7 +60,7 @@ public interface RdbSpecification {
 
     String COLUMN_REFERENCE_TAXON_ID = "reference_taxon_id";
     String COLUMN_WEIGHT = "weight";
-    String COLUMN_SUBSAMPLING_WEIGHT = "subsampling_weight";
+    String COLUMN_SUBSAMPLE_WEIGHT = "subsample_weight";
     String COLUMN_INDIVIDUAL_SEX = "individual_sex";
     String COLUMN_LENGTH_CLASS = "length_class";
 

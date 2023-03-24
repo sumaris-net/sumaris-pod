@@ -25,7 +25,6 @@ package net.sumaris.extraction.core.dao.trip.rjb;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
@@ -43,7 +42,6 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -120,7 +118,7 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Bind groupBy columns
         Set<String> excludedColumns = ImmutableSet.of(
             RdbSpecification.COLUMN_WEIGHT,
-            RdbSpecification.COLUMN_SUBSAMPLING_WEIGHT,
+            RdbSpecification.COLUMN_SUBSAMPLE_WEIGHT,
             RjbTripSpecification.COLUMN_INDIVIDUAL_COUNT
         );
         Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
