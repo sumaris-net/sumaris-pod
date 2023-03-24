@@ -113,7 +113,7 @@ public final class ExtractionTableColumnOrder {
                     ProductRdbSpeciesList.COLUMN_SUBSAMPLING_CATEGORY,
                     ProductRdbSpeciesList.COLUMN_SEX,
                     ProductRdbSpeciesList.COLUMN_WEIGHT,
-                    ProductRdbSpeciesList.COLUMN_SUBSAMPLING_WEIGHT,
+                    ProductRdbSpeciesList.COLUMN_SUBSAMPLE_WEIGHT,
                     ProductRdbSpeciesList.COLUMN_LENGTH_CODE
             })
             .put(key(RdbSpecification.FORMAT, RdbSpecification.HL_SHEET_NAME), new String[]{

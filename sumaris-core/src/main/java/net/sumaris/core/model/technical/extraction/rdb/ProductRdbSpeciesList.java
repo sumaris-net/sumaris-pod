@@ -61,7 +61,7 @@ public class ProductRdbSpeciesList implements Serializable, IEntity<Integer> {
     public static final String COLUMN_COMMERCIAL_SIZE_CATEGORY = "commercial_size_category";
     public static final String COLUMN_SUBSAMPLING_CATEGORY = "subsampling_category";
     public static final String COLUMN_WEIGHT= "weight";
-    public static final String COLUMN_SUBSAMPLING_WEIGHT = "subsampling_weight";
+    public static final String COLUMN_SUBSAMPLE_WEIGHT = "subsample_weight";
     public static final String COLUMN_LENGTH_CODE = "length_code";
 
     @Id
@@ -119,8 +119,8 @@ public class ProductRdbSpeciesList implements Serializable, IEntity<Integer> {
     @Column(nullable = false, scale = 12, precision = 2, name = COLUMN_WEIGHT)
     private Double weight;
 
-    @Column( scale = 12, precision = 2, name = COLUMN_SUBSAMPLING_WEIGHT)
-    private Double subsamplingWeight;
+    @Column( scale = 12, precision = 2, name = COLUMN_SUBSAMPLE_WEIGHT)
+    private Double subsampleWeight;
 
     @Column(length = 5, name = COLUMN_LENGTH_CODE)
     private String lengthCode;

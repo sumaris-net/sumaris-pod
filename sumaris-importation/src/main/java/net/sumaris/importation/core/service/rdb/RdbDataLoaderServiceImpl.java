@@ -161,7 +161,7 @@ public class RdbDataLoaderServiceImpl implements RdbDataLoaderService {
 					ProductRdbSpeciesList.COLUMN_COMMERCIAL_SIZE_CATEGORY,
 					ProductRdbSpeciesList.COLUMN_SUBSAMPLING_CATEGORY,
 					ProductRdbSpeciesList.COLUMN_WEIGHT,
-					ProductRdbSpeciesList.COLUMN_SUBSAMPLING_WEIGHT,
+					ProductRdbSpeciesList.COLUMN_SUBSAMPLE_WEIGHT,
 					ProductRdbSpeciesList.COLUMN_LENGTH_CODE
 			})
 			.put(ProductRdbSpeciesLength.TABLE, new String[]{
