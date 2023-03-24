@@ -39,7 +39,9 @@ public class ExtractionApaseContextVO extends ExtractionPmfmTripContextVO {
 
     // Table names
     String gearTableName; // PG (physical gear) table
+    String catchTableName; // CT (Catch) table
 
     // Sheet names
     String gearSheetName; // PG
+    String catchSheetName; // CT
 }

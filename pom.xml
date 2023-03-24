@@ -1183,6 +1183,7 @@
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
               <arg>--enable-preview</arg>
+              <!--<arg>-AgeneratedSourcesDirectory=${project.build.outputDirectory}</arg>-->
             </compilerArgs>
             <annotationProcessorPaths>
               <path>

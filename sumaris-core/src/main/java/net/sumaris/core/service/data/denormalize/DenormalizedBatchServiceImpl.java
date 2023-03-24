@@ -149,7 +149,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
             // Check options
             Preconditions.checkNotNull(options.getDateTime(), "Required options.dateTime when RTP weight enabled");
-            Preconditions.checkNotNull(options.getRoundWeightCountryLocationId(), "Required options.roundWeightCountryLocationId when RTP weight enabled");
+            Preconditions.checkNotNull(options.getAliveWeightCountryLocationId(), "Required options.roundWeightCountryLocationId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultLandingDressingId(), "Required options.defaultLandingDressingId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultDiscardDressingId(), "Required options.defaultDiscardDressingId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultLandingPreservationId(), "Required options.defaultLandingPreservationId when RTP weight enabled");
@@ -342,7 +342,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             .enableTaxonName(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE))
             .enableTaxonGroup(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUP_ENABLE))
             .enableRtpWeight(canEnableRtpWeight && Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE))
-            .roundWeightCountryLocationId(roundWeightConversionCountryId)
+            .aliveWeightCountryLocationId(roundWeightConversionCountryId)
             .build();
     }
 
@@ -529,15 +529,19 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 batch.setIndirectIndividualCountDecimal(indirectIndividualCount);
 
                 // Compute alive weight factor
-                if (batch.isLeaf()) {
-                    Double aliveWeightFactor = computeAliveWeightFactor(batch, options, batch.isLeaf()).orElse(null);
-                    changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
-                    batch.setAliveWeightFactor(aliveWeightFactor);
+                if (options.isEnableAliveWeight() && options.getAliveWeightCountryLocationId() != null) {
+                    if (batch.isLeaf()) {
+                        Double aliveWeightFactor = computeAliveWeightFactor(batch, options, batch.isLeaf()).orElse(null);
+                        changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
+                        batch.setAliveWeightFactor(aliveWeightFactor);
+                    } else {
+                        Double aliveWeightFactor = computeIndirectAliveWeightFactor(batch, options);
+                        changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
+                        batch.setAliveWeightFactor(aliveWeightFactor);
+                    }
                 }
                 else {
-                    Double aliveWeightFactor = computeIndirectAliveWeightFactor(batch, options);
-                    changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
-                    batch.setAliveWeightFactor(aliveWeightFactor);
+                    batch.setAliveWeightFactor(1d);
                 }
 
                 if (changed) changesCount.increment();
@@ -1300,7 +1304,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             .taxonGroupIds(new Integer[]{taxonGroupId})
             .dressingIds(new Integer[]{dressingId})
             .preservingIds(new Integer[]{preservationId})
-            .locationIds(new Integer[]{options.getRoundWeightCountryLocationId()})
+            .locationIds(new Integer[]{options.getAliveWeightCountryLocationId()})
             .date(options.getDay())
             .build());
 
@@ -1309,7 +1313,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 taxonGroupId,
                 dressingId,
                 preservationId,
-                options.getRoundWeightCountryLocationId());
+                options.getAliveWeightCountryLocationId());
         }
 
 

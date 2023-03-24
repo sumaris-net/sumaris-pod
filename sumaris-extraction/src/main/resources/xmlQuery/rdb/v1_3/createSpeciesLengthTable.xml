@@ -57,7 +57,9 @@
     <select alias="CATCH_CATEGORY" type="text">SL.CATCH_CATEGORY</select>
     <select alias="LANDING_CATEGORY" type="text">SL.LANDING_CATEGORY</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">SL.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
-    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">SL.COMMERCIAL_SIZE_CATEGORY</select>
+    <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">
+      (CASE SL.COMMERCIAL_SIZE_CATEGORY WHEN 'NA' THEN NULL ELSE SL.COMMERCIAL_SIZE_CATEGORY END)
+    </select>
     <select alias="SUBSAMPLING_CATEGORY" type="text">SL.SUBSAMPLING_CATEGORY</select>
     <select alias="SEX" group="sex" type="text">SL.SEX</select>
 

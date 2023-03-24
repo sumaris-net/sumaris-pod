@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.extraction.core.dao.trip.pmfm.ExtractionPmfmTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.ApaseSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -53,6 +54,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         implements ApaseSpecification {
 
     private static final String FG_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + FG_SHEET_NAME + "_%s";
+    private static final String CT_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + CT_SHEET_NAME + "_%s";
 
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.APASE);
@@ -70,6 +72,13 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
 
             // Physical gear
             long rowCount = createGearTable(context);
+            if (rowCount == 0) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
+
+            // Catch
+            rowCount = createCatchTable(context);
+            if (rowCount == 0) return context;
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
 
             return context;
         }
@@ -84,19 +93,25 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
 
         // Set unique table names
         context.setGearTableName(formatTableName(FG_TABLE_NAME_PATTERN, context.getId()));
+        context.setCatchTableName(formatTableName(CT_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet names
         context.setGearSheetName(ApaseSpecification.FG_SHEET_NAME);
+        context.setCatchSheetName(ApaseSpecification.CT_SHEET_NAME);
 
         // Always enable batch denormalization
         context.setEnableBatchDenormalization(true);
+
+        context.addColumnNameReplacement(PmfmEnum.CHILD_GEAR.getLabel(), ApaseSpecification.COLUMN_SUB_GEAR_IDENTIFIER)
+            .addColumnNameReplacement(PmfmEnum.BATCH_GEAR_POSITION.getLabel(), ApaseSpecification.COLUMN_SUB_GEAR_POSITION);
+
     }
 
     protected long createGearTable(C context) {
 
         XMLQuery xmlQuery = createGearQuery(context);
 
-        // aggregate insertion
+        // execute insertion
         execute(context, xmlQuery);
         long count = countFrom(context.getGearTableName());
 
@@ -115,6 +130,35 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         }
         else {
             context.addRawTableName(context.getGearTableName());
+        }
+
+
+        return count;
+    }
+
+    protected long createCatchTable(C context) {
+
+        XMLQuery xmlQuery = createCatchQuery(context);
+
+        // execute insertion
+        execute(context, xmlQuery);
+        long count = countFrom(context.getCatchTableName());
+
+        // Clean row using generic filter
+        if (count > 0) {
+            count -= cleanRow(context.getCatchTableName(), context.getFilter(), context.getCatchSheetName());
+        }
+
+        if (count > 0) {
+            // Add result table to context
+            context.addTableName(context.getCatchTableName(),
+                context.getCatchSheetName(),
+                xmlQuery.getHiddenColumnNames(),
+                xmlQuery.hasDistinctOption());
+            log.debug(String.format("Catch table: %s rows inserted", count));
+        }
+        else {
+            context.addRawTableName(context.getCatchTableName());
         }
 
 
@@ -147,6 +191,14 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     }
 
     @Override
+    protected DenormalizedBatchOptions createDenormalizedBatchOptions(String programLabel) {
+        DenormalizedBatchOptions options = super.createDenormalizedBatchOptions(programLabel);
+        options.setEnableRtpWeight(false);
+        options.setEnableAliveWeight(false);
+        return options;
+    }
+
+    @Override
     protected XMLQuery createStationQuery(C context) {
         XMLQuery query = super.createStationQuery(context);
 
@@ -176,11 +228,39 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         return xmlQuery;
     }
 
+    protected XMLQuery createCatchQuery(C context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createCatchTable");
+        xmlQuery.bind("tripTableName", context.getTripTableName());
+        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("catchTableName", context.getCatchTableName());
+
+        // Inject pmfms
+        injectPmfmColumns(context,
+            xmlQuery,
+            getTripProgramLabels(context),
+            AcquisitionLevelEnum.SORTING_BATCH,
+            null,
+            "pmfmsInjection",
+            getCatchExcludedPmfmIds().toArray(new Integer[0])
+        );
+
+        //xmlQuery.bind("subsamplingCategoryPmfmId", PmfmEnum.BATCH_SORTING.getId().toString());
+        xmlQuery.bind("catchWeightPmfmId", PmfmEnum.CATCH_WEIGHT.getId().toString());
+        xmlQuery.bind("batchGearPositionPmfmId", PmfmEnum.BATCH_GEAR_POSITION.getId().toString());
+
+        // Bind group by columns
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+
+
+        return xmlQuery;
+    }
+
     @Override
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
-        XMLQuery query = super.createRawSpeciesListQuery(context, excludeInvalidStation);
+        XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
 
-        return query;
+
+        return xmlQuery;
     }
 
     protected String getQueryFullName(C context, String queryName) {
@@ -189,13 +269,38 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
 
         switch (queryName) {
             case "createGearTable":
+            case "createCatchTable":
             case "createRawSpeciesListDenormalizeTable":
+            case "injectionRawSpeciesListPmfm":
             case "injectionPhysicalGearPmfm":
             case "injectionRawSpeciesListTable":
+            case "injectionSpeciesLengthTable":
                 return getQueryFullName(ApaseSpecification.FORMAT, ApaseSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
         }
+    }
+
+    protected List<Integer> getCatchExcludedPmfmIds() {
+        return ImmutableList.<Integer>builder()
+            .addAll(super.getSpeciesListExcludedPmfmIds())
+            .add(
+                PmfmEnum.CATCH_WEIGHT.getId(),
+                PmfmEnum.DISCARD_WEIGHT.getId()
+            )
+            .build();
+    }
+    @Override
+    protected List<Integer> getSpeciesListExcludedPmfmIds() {
+        return ImmutableList.<Integer>builder()
+            .addAll(super.getSpeciesListExcludedPmfmIds())
+            .add(
+                // Already in the catch table
+                PmfmEnum.CATCH_WEIGHT.getId(),
+                PmfmEnum.DISCARD_WEIGHT.getId(),
+                PmfmEnum.CHILD_GEAR.getId()
+            )
+            .build();
     }
 
     @Override

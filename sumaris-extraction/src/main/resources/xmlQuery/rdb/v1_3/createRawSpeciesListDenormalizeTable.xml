@@ -56,9 +56,12 @@
     </select>
     <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
 
+    <!-- pmfms -->
+    <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
+
     <!-- other fields -->
     <select alias="WEIGHT" group="weight" type="number">SPECIE_B.ELEVATE_WEIGHT</select>
-    <select alias="SUBSAMPLING_WEIGHT" type="number"><![CDATA[
+    <select alias="SUBSAMPLE_WEIGHT" type="number"><![CDATA[
       CASE
         WHEN SAMPLING_B.SAMPLING_RATIO > 0 THEN SPECIE_B.ELEVATE_WEIGHT * SAMPLING_B.SAMPLING_RATIO
         ELSE NULL

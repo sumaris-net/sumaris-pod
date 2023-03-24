@@ -24,6 +24,7 @@ package net.sumaris.xml.query;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.xml.query.utils.ClasspathEntityResolver;
 import org.jdom2.*;
 import org.jdom2.filter.Filters;
@@ -45,16 +46,31 @@ import java.util.*;
 
 public class XMLQuery2Impl {
     private Document document;
+
+    private DatabaseType dbms;
     private Map<String, String> bindings;
     private Map<String, Boolean> groupBindings;
 
     public XMLQuery2Impl() {
+        this(null);
+    }
+
+    public XMLQuery2Impl(DatabaseType dbms) {
+        this.dbms = dbms;
         bindings = new HashMap<>();
         groupBindings = new HashMap<>();
     }
 
+    public void setDbms(DatabaseType dbms) {
+        this.dbms = dbms;
+    }
+
     public void setQuery(String xmlResourcePath) throws IOException, JDOMException {
         InputStream xmlInputStream = getInputStream(xmlResourcePath);
+        document = readXmlInputSTream(xmlInputStream, true);
+    }
+
+    public void setQuery(InputStream xmlInputStream) throws IOException, JDOMException {
         document = readXmlInputSTream(xmlInputStream, true);
     }
 
@@ -197,10 +213,13 @@ public class XMLQuery2Impl {
             result = getClass().getClassLoader().getResourceAsStream(resourcePath);
         }
         else {
+            if (resourcePath.startsWith("file:")) {
+                resourcePath = resourcePath.substring("file:".length());
+            }
             result = getClass().getResourceAsStream(resourcePath);
         }
         if (result == null) {
-            throw new FileNotFoundException("Cannot find reource at: " + resourcePath);
+            throw new FileNotFoundException("Cannot find resource at: " + resourcePath);
         }
         return result;
     }

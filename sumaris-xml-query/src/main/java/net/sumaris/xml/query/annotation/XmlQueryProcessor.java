@@ -23,8 +23,14 @@
 package net.sumaris.xml.query.annotation;
 
 import javassist.*;
+import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.ConstPool;
+import javassist.bytecode.annotation.StringMemberValue;
 import net.sumaris.core.dao.technical.DatabaseType;
+import net.sumaris.core.util.StringUtils;
+import net.sumaris.xml.query.XMLQuery;
 import net.sumaris.xml.query.XMLQueryImpl;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -35,10 +41,15 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Set;
 
-@SupportedAnnotationTypes("XmlQuery")
+@SupportedAnnotationTypes("net.sumaris.xml.query.annotation.XmlQuery")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class XmlQueryProcessor extends AbstractProcessor {
 
@@ -65,20 +76,34 @@ public class XmlQueryProcessor extends AbstractProcessor {
         String interfaceName = annotatedInterface.getQualifiedName().toString();
         String implClassName = interfaceName + "Impl";
         String implConstructorName = annotatedInterface.getSimpleName() + "Impl";
+        String beanName = annotatedInterface.getSimpleName().toString().substring(0,1).toLowerCase() + annotatedInterface.getSimpleName().toString().substring(1);
 
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Generating class " + implClassName);
 
-            String xmlResourcePath = xmlQueryAnnotation.value();
+        String xmlResourcePath = xmlQueryAnnotation.value();
         DatabaseType dbms = xmlQueryAnnotation.dbms();
         if (dbms == null) dbms = DatabaseType.hsqldb;
 
         // Load the XML file and create an instance of the XmlQuery class
         XMLQueryImpl xmlQuery = new XMLQueryImpl(dbms);
         try {
-            xmlQuery.setQuery(xmlResourcePath);
+            if (xmlResourcePath.startsWith("classpath:")) {
+                xmlResourcePath = xmlResourcePath.substring("classpath:".length());
+                FileObject resource = processingEnv.getFiler().getResource(StandardLocation.CLASS_PATH, "", xmlResourcePath);
+                InputStream xmlInputStream = resource.openInputStream();
+                xmlQuery.setQuery(xmlInputStream);
+            }
+            else {
+                xmlQuery.setQuery(xmlResourcePath);
+            }
         } catch (Exception e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to load XML resource: " + xmlResourcePath);
             return;
+        }
+
+        String outputDirectory = processingEnv.getOptions().get("generatedSourcesDirectory");
+        if (outputDirectory == null) {
+            outputDirectory = "target/classes";
         }
 
         // Extract groups from the XML file
@@ -86,7 +111,9 @@ public class XmlQueryProcessor extends AbstractProcessor {
 
         try {
             ClassPool classPool = ClassPool.getDefault();
-            CtClass ctInterface = classPool.get(interfaceName);
+            classPool.appendClassPath(new ClassClassPath(XMLQuery.class));
+
+            CtClass ctInterface = classPool.get(XMLQuery.class.getName());
             CtClass generatedClass = classPool.makeClass(implClassName);
             generatedClass.addInterface(ctInterface);
 
@@ -106,17 +133,31 @@ public class XmlQueryProcessor extends AbstractProcessor {
             // Generate constructor
             CtConstructor constructor = CtNewConstructor.make("public "+ implConstructorName + "() {" +
                 "    super(\"" + dbms.name() + "\");" +
+                "    this.setQuery(\"" + xmlResourcePath + "\");" +
                 "}", generatedClass);
             generatedClass.addConstructor(constructor);
 
+            // Add annotation @Component
+            CtClass ctComponent = classPool.get(Component.class.getName());
+            ConstPool constPool = generatedClass.getClassFile().getConstPool();
+            AnnotationsAttribute annotationsAttribute = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+            javassist.bytecode.annotation.Annotation componentAnnotation = new javassist.bytecode.annotation.Annotation(constPool, ctComponent);
+            componentAnnotation.addMemberValue("value", new StringMemberValue(beanName, generatedClass.getClassFile().getConstPool()));
+            annotationsAttribute.addAnnotation(componentAnnotation);
+            generatedClass.getClassFile().addAttribute(annotationsAttribute);
+
             // Save the generated class
-            String outputDirectory = processingEnv.getOptions().get("generatedSourcesDirectory");
-            if (outputDirectory == null) {
-                outputDirectory = "target/classes";
-            }
             generatedClass.writeFile(outputDirectory);
         } catch (CannotCompileException | NotFoundException | IOException e) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to generate class: " + e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            String stackTrace = sw.toString();
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, String.format("Failed to generate class '%s' into '%s': %s",
+                implClassName,
+                outputDirectory,
+                stackTrace
+                ));
         }
     }
 

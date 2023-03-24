@@ -59,11 +59,14 @@ public class DenormalizedBatchOptions {
     private boolean enableRtpWeight = false;
 
     @Builder.Default
+    private boolean enableAliveWeight = true;
+
+    @Builder.Default
     private boolean allowZeroWeightWithIndividual = true;
 
     private Integer[] taxonGroupIdsNoWeight;
 
-    private Integer roundWeightCountryLocationId; // Country location, used to find a round weight conversion
+    private Integer aliveWeightCountryLocationId; // Country location, used to find a alive weight conversion
 
     private Integer[] fishingAreaLocationIds; // Fishing areas used to find a weight length conversion
 

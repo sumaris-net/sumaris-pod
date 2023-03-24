@@ -56,13 +56,16 @@
     <select alias="SUBSAMPLING_CATEGORY" type="text">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
     <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
 
+    <!-- pmfms -->
+    <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
+
     <!-- other fields -->
     <select alias="WEIGHT" group="weight" type="number"><![CDATA[COALESCE(
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true),
       (CASE WHEN (SAMPLING_B.SAMPLING_RATIO IS NULL OR SAMPLING_B.SAMPLING_RATIO = 0) THEN NULL ELSE (SELECT QM.NUMERICAL_VALUE/SAMPLING_B.SAMPLING_RATIO FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SAMPLING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true) END)
       )]]>
     </select>
-    <select alias="SUBSAMPLING_WEIGHT" group="weight" type="number"><![CDATA[COALESCE(
+    <select alias="SUBSAMPLE_WEIGHT" group="weight" type="number"><![CDATA[COALESCE(
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SAMPLING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true),
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true)
       )]]>

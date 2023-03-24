@@ -32,11 +32,16 @@ public interface ApaseSpecification extends RdbSpecification {
     String VERSION_1_0 = "1.0";
 
     String FG_SHEET_NAME = "FG"; // Fishing gear
+    String CT_SHEET_NAME = "CT"; // Catch
+
+    String COLUMN_SUB_GEAR_IDENTIFIER = "sub_gear_identifier";
+    String COLUMN_SUB_GEAR_POSITION = "sub_gear_position";
 
     String[] SHEET_NAMES = {
         TR_SHEET_NAME,
         FG_SHEET_NAME,
         HH_SHEET_NAME,
+        CT_SHEET_NAME,
         SL_RAW_SHEET_NAME,
         SL_SHEET_NAME,
         HL_SHEET_NAME

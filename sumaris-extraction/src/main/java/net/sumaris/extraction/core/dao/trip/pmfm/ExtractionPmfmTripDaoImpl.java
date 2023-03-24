@@ -236,27 +236,18 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
 
-        // Excluded PMFM (already exists as RDB format columns)
-        ImmutableList<Object> excludedPmfmIds = ImmutableList.builder()
-                .add(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
-                    PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
-                    PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
-                    PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
-                    PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
-                    PmfmEnum.DISCARD_OR_LANDING.getId(),
-                    PmfmEnum.BATCH_SORTING.getId())
-                    .addAll(getSizeCategoryPmfmIds())
-            .build();
         injectPmfmColumns(context, xmlQuery,
             getTripProgramLabels(context),
             AcquisitionLevelEnum.SORTING_BATCH,
-            excludedPmfmIds.toArray(new Integer[0])
+            null,
+            "pmfmsInjection",
+            // Excluded PMFM (already exists as RDB format columns)
+            getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
 
         if (!context.isEnableBatchDenormalization()) {
             xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
         }
-
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
@@ -270,24 +261,13 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"), "afterSpeciesInjection");
 
-        // Excluded PMFM (already exists as RDB format columns)
-        ImmutableList<Object> excludedPmfmIds = ImmutableList.builder()
-            .add(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
-                PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
-                PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
-                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
-                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
-                PmfmEnum.DISCARD_OR_LANDING.getId(),
-                PmfmEnum.BATCH_SORTING.getId())
-            .addAll(getSizeCategoryPmfmIds())
-            .build();
-
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
                 AcquisitionLevelEnum.SORTING_BATCH,
                 "injectionSpeciesListPmfm",
                 "afterSexInjection",
-            excludedPmfmIds.toArray(new Integer[0])
+            // Excluded PMFM (already exists as RDB format columns)
+            getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
 
         // Add group by pmfms
@@ -308,6 +288,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.setGroup("sex", false);
         xmlQuery.setGroup("lengthClass", false);
 
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"), "afterSexInjection");
+
         // Add pmfm columns
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
             getTripProgramLabels(context),
@@ -321,8 +303,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 .addAll(getSpeciesLengthPmfmIds()).build().toArray(Integer[]::new)
         );
         boolean hasPmfmsColumnsInjected = StringUtils.isNotBlank(pmfmsColumns);
-
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"), "afterSexInjection");
 
         // Enable group, need by pmfms columns (if any)
         xmlQuery.setGroup("pmfms", hasPmfmsColumnsInjected);

@@ -381,6 +381,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return xmlQuery;
     }
 
+    protected DenormalizedBatchOptions createDenormalizedBatchOptions(String programLabel) {
+        return denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+    }
     protected void denormalizeBatches(C context) {
         String stationsTableName = context.getStationTableName();
         List<String> programLabels = getTripProgramLabels(context);
@@ -389,7 +392,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                     RdbSpecification.COLUMN_STATION_NUMBER, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
             Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
 
-            DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+            DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
             // DEBUG
             //options.setEnableRtpWeight(false);
             //options.setForce(true);
@@ -582,6 +585,23 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
             PmfmEnum.SEGMENT_LENGTH_MM.getId()
         );
+    }
+
+    protected List<Integer> getSpeciesListExcludedPmfmIds() {
+        return ImmutableList.<Integer>builder()
+            .add(
+                PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
+                PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
+                PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
+                PmfmEnum.DISCARD_OR_LANDING.getId(),
+                PmfmEnum.BATCH_SORTING.getId(),
+                PmfmEnum.CATCH_WEIGHT.getId(),
+                PmfmEnum.DISCARD_WEIGHT.getId()
+            )
+            .addAll(getSizeCategoryPmfmIds())
+            .build();
     }
 
     protected List<Integer> getSizeCategoryPmfmIds() {

@@ -63,7 +63,7 @@
 
     <!-- other fields -->
     <select alias="WEIGHT" group="weight" type="number">SUM(SL.WEIGHT)</select>
-    <select alias="SUBSAMPLING_WEIGHT" group="weight" type="number">SUM(SL.SUBSAMPLING_WEIGHT)</select>
+    <select alias="SUBSAMPLE_WEIGHT" group="weight" type="number">SUM(SL.SUBSAMPLE_WEIGHT)</select>
     <select alias="LENGTH_CODE" type="text">SL.LENGTH_CODE</select>
 
 

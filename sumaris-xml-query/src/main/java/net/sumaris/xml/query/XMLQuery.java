@@ -31,6 +31,8 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,10 @@ import java.util.stream.Stream;
  * @author ludovic.pecquot@e-is.pro
  */
 public interface XMLQuery {
+
+    void setQuery(String resourcePath);
+
+    void setQuery(InputStream is) throws IOException;
 
     String getSQLQueryAsString();
     Set<String> getHiddenColumnNames();
