@@ -74,13 +74,13 @@
 
     <select alias="DISPO_SELECT" type="text"><![CDATA[
     COALESCE((SELECT 'Oui' FROM PHYSICAL_GEAR_MEASUREMENT PGM
-      WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId), 'Non')]]></select>
+      WHERE PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK IN (&selectionDevicePmfmIds)), 'Non')]]></select>
 
     <select alias="DISPO_SELECT1" type="text"><![CDATA[
     (SELECT QV.NAME FROM PHYSICAL_GEAR_MEASUREMENT PGM
       INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK
     WHERE
-      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId)]]></select>
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK IN (&selectionDevicePmfmIds))]]></select>
 
     <!-- TODO: ajouter un PSFM pour le 2eme dispositif selectif -->
     <select alias="DISPO_SELECT2" type="text">null</select>

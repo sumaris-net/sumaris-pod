@@ -9,12 +9,12 @@
   it under the terms of the GNU Affero General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU Affero General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #L%
@@ -81,10 +81,11 @@
       MAX(CASE VUM.PMFM_FK WHEN &amp;mainWaterDepthPmfmId THEN CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) ELSE NULL END)
     </select>
 
-    <!-- TODO: check METIER -> TAXON_GROUP -> TAXON_GROUP_TYPE ? -->
-    <select alias="NATIONAL_METIER" type="text" dbms="hsqldb,pgsql">null</select>
-    <select alias="EU_METIER_LEVEL5" type="text">
-      M.LABEL
+    <select alias="NATIONAL_METIER" type="text"  group="agg">
+      MAX(CASE TG_M.TAXON_GROUP_TYPE_FK WHEN &amp;nationalTaxonGroupTypeId THEN M.LABEL ELSE NULL END)
+    </select>
+    <select alias="EU_METIER_LEVEL5" type="text" group="agg">
+      MAX(CASE TG_M.TAXON_GROUP_TYPE_FK WHEN &amp;ueLevel5TaxonGroupTypeId THEN M.LABEL ELSE NULL END)
     </select>
 
     <select alias="EU_METIER_LEVEL6" type="text" dbms="hsqldb,pgsql">null</select>
@@ -93,7 +94,7 @@
       MAX(CASE PGM.PMFM_FK WHEN &amp;meshSizePmfmId THEN CAST(ROUND(PGM.NUMERICAL_VALUE) AS INTEGER) ELSE NULL END)
     </select>
     <select alias="SELECTION_DEVICE" group="agg" type="text">
-      MAX(CASE PGM.PMFM_FK WHEN &amp;selectionDevicePmfmId THEN PGQV.LABEL ELSE NULL END)
+      MAX(CASE WHEN PGM.PMFM_FK IN (&amp;selectionDevicePmfmIds) THEN PGQV.LABEL ELSE NULL END)
     </select>
 
     <select alias="MESH_SIZE_IN_SELECTION_DEVICE" type="text" dbms="hsqldb,pgsql">null</select>
@@ -101,6 +102,7 @@
     <from alias="T">&amp;tripTableName</from>
     <from join="true">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>
     <from join="true">LEFT OUTER JOIN METIER M ON M.ID = O.METIER_FK</from>
+    <from join="true">LEFT OUTER JOIN TAXON_GROUP TG_M ON TG_M.ID = M.TAXON_GROUP_FK</from>
     <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR PG ON PG.ID = O.PHYSICAL_GEAR_FK</from>
     <from join="true">LEFT OUTER JOIN GEAR G ON G.ID = PG.GEAR_FK</from>
 
