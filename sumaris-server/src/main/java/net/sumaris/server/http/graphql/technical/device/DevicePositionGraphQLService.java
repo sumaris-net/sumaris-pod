@@ -1,6 +1,7 @@
 package net.sumaris.server.http.graphql.technical.device;
 
 import io.leangen.graphql.annotations.GraphQLArgument;
+import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.technical.Page;
@@ -39,14 +40,14 @@ public class DevicePositionGraphQLService {
         return devicePositionService.findById(id, fetchOptions).orElse(null);
     }
 
-    @GraphQLQuery(name = "save", description = "Save a DevicePosition")
-    public DevicePositionVO save(
-            @GraphQLArgument(name = "source") DevicePositionVO source) {
-        return devicePositionService.save(source);
+    @GraphQLMutation(name = "saveDevicePosition", description = "Save a DevicePosition")
+    public DevicePositionVO saveDevicePosition(
+            @GraphQLArgument(name = "devicePosition") DevicePositionVO devicePosition) {
+        return devicePositionService.save(devicePosition);
     }
 
-    @GraphQLQuery(name = "delete", description = "Delete a DevicePosition by id")
-    public void delete(
+    @GraphQLMutation(name = "deleteDevicePosition", description = "Delete a DevicePosition by id")
+    public void deleteDevicePosition(
             @GraphQLArgument(name = "id") Integer id) {
         devicePositionService.delete(id);
     }

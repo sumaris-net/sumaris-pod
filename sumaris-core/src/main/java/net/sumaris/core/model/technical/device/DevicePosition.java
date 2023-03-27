@@ -4,7 +4,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IDataEntity;
@@ -61,19 +60,19 @@ public class DevicePosition implements IDataEntity<Integer> {
     @Column(nullable = false)
     private Date creationDate;
 
-    @Column(name="control_date")
+    @Column(name="control_date", nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name="validation_date")
+    @Column(name="validation_date", nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private Date validationDate;
 
-    @Column(name="qualification_date")
+    @Column(name="qualification_date", nullable = true)
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS, nullable = true)
     private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)

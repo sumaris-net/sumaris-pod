@@ -4,8 +4,8 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.technical.device.DevicePositionFetchOptions;
 import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 

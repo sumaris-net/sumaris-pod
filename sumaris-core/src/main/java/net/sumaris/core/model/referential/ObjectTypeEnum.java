@@ -32,7 +32,10 @@ import java.util.Arrays;
 public enum ObjectTypeEnum implements Serializable {
 
     VESSEL(1, "VESSEL"),
-    SAMPLE(2, "SAMPLE")
+    SAMPLE(2, "SAMPLE"),
+    FISHING_TRIP(3,"FISHING_TRIP"),
+    LANDING(4,"LANDING"),
+    OBSERVED_LOCATION(5,"OBSERVED_LOCATION")
     ;
 
     public static ObjectTypeEnum valueOf(final int id) {
