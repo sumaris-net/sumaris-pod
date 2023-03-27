@@ -33,6 +33,7 @@
         <select alias="INDIVIDUAL_COUNT" type="number">COALESCE(B.INDIVIDUAL_COUNT,1)</select>
         <select alias="COMMENTS" type="text">B.COMMENTS</select>
         <select alias="PARAMETER_LABEL" type="text">P_LENGTH.LABEL</select>
+        <select alias="PARAMETER_NAME" type="text">P_LENGTH.NAME</select>
         <select alias="REFERENCE_TAXON_ID" group="taxon" type="number">B.REFERENCE_TAXON_FK</select> <!-- used by PMFM TRIP -->
 
         <from alias="SL">&amp;rawSpeciesListTableName</from>

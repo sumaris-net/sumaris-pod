@@ -31,6 +31,8 @@
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
   <select alias="NUMBER_AT_LENGTH" type="number" group="pmfms,agg">SUM(B.INDIVIDUAL_COUNT) / COUNT(DISTINCT SM.ID)</select>
 
+  <select alias="MEASURE_TYPE" type="text">B.PARAMETER_NAME</select>
+
   <select alias="ELEVATE_NUMBER_AT_LENGTH" type="number" group="numberAtLength,agg">SUM(DENORMALIZED_B.ELEVATE_INDIVIDUAL_COUNT)</select>
   <select alias="ELEVATE_NUMBER_AT_LENGTH" type="number" group="pmfms,agg">SUM(DENORMALIZED_B.ELEVATE_INDIVIDUAL_COUNT) / COUNT(DISTINCT SM.ID)</select>
 
