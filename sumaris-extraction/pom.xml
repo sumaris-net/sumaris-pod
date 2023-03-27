@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>net.sumaris</groupId>
 		<artifactId>sumaris-pod</artifactId>
-		<version>2.1.0</version>
+		<version>2.1.1</version>
 	</parent>
 
 	<artifactId>sumaris-extraction</artifactId>
@@ -26,6 +26,11 @@
 		<dependency>
 			<groupId>net.sumaris</groupId>
 			<artifactId>sumaris-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sumaris</groupId>
+			<artifactId>sumaris-xml-query</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -50,20 +55,6 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-		</dependency>
-
-		<!-- XML Query to build SQL from XML -->
-		<dependency>
-			<groupId>fr.ifremer.common</groupId>
-			<artifactId>xmlquery</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>jaxen</groupId>
-			<artifactId>jaxen</artifactId>
 		</dependency>
 
 		<!-- OpenCSV for extraction result -->

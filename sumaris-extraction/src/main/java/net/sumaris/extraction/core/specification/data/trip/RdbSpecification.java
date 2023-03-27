@@ -33,6 +33,7 @@ public interface RdbSpecification {
 
     String TR_SHEET_NAME = "TR";
     String HH_SHEET_NAME = "HH";
+    String SL_RAW_SHEET_NAME = "SL_RAW";
     String SL_SHEET_NAME = "SL";
     String HL_SHEET_NAME = "HL";
     String CA_SHEET_NAME = "CA";
@@ -56,14 +57,22 @@ public interface RdbSpecification {
     String COLUMN_DATE = "date";
     String COLUMN_TIME = "time";
     String COLUMN_FISHING_TIME = "fishing_time";
-    String COLUMN_INDIVIDUAL_SEX = "individual_sex";
+
+    String COLUMN_REFERENCE_TAXON_ID = "reference_taxon_id";
     String COLUMN_WEIGHT = "weight";
+    String COLUMN_SUBSAMPLE_WEIGHT = "subsample_weight";
+    String COLUMN_INDIVIDUAL_SEX = "individual_sex";
+    String COLUMN_LENGTH_CLASS = "length_class";
+
+    String COLUMN_NUMBER_AT_LENGTH = "number_at_length";
 
     String[] SHEET_NAMES = {
             TR_SHEET_NAME,
             HH_SHEET_NAME,
 
-            //"RAW_SL", // -- For DEBUG
+            // -- For DEBUG only
+            "SL_RAW",
+
             SL_SHEET_NAME,
             HL_SHEET_NAME,
             // CA_SHEET_NAME

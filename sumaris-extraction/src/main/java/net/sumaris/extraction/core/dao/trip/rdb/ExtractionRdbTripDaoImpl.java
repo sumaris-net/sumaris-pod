@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -40,8 +41,8 @@ import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.service.data.denormalize.DenormalizedOperationService;
 import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
+import net.sumaris.core.service.data.denormalize.DenormalizedOperationService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
@@ -54,7 +55,6 @@ import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -62,6 +62,7 @@ import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.xml.query.XMLQuery;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -79,7 +80,7 @@ import static org.nuiton.i18n.I18n.t;
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Repository("extractionRdbTripDao")
-@ConditionalOnBean({ExtractionConfiguration.class})
+@ConditionalOnBean({ExtractionAutoConfiguration.class})
 @Lazy
 @Slf4j
 public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F extends ExtractionFilterVO>
@@ -128,6 +129,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
         context.setEnableBatchDenormalization(extractionConfiguration.enableBatchDenormalization());
 
+        // Fill context table names
+        fillContextTableNames(context);
+
         // Start log
         Long startTime = null;
         if (log.isInfoEnabled()) {
@@ -144,8 +148,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
-        // Fill context table names
-        fillContextTableNames(context);
 
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
@@ -293,7 +295,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmEnum.NB_OPERATION.getId()));
         Integer countryLocationLevelId = LocationLevelEnum.COUNTRY.getLabel() != null ? getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel()) : LocationLevelEnum.COUNTRY.getId();
         xmlQuery.bind("countryLocationLevelId", String.valueOf(countryLocationLevelId));
-        xmlQuery.bind("samplingMethod", ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue());
+        xmlQuery.bind("samplingMethod", StringUtils.trimToEmpty(ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue()));
 
         // Date filters
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
@@ -379,6 +381,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return xmlQuery;
     }
 
+    protected DenormalizedBatchOptions createDenormalizedBatchOptions(String programLabel) {
+        return denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+    }
     protected void denormalizeBatches(C context) {
         String stationsTableName = context.getStationTableName();
         List<String> programLabels = getTripProgramLabels(context);
@@ -387,16 +392,25 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                     RdbSpecification.COLUMN_STATION_NUMBER, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
             Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
 
-            DenormalizedBatchOptions options = denormalizedOperationService.createOptionsByProgramLabel(programLabel);
+            DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
             // DEBUG
             //options.setEnableRtpWeight(false);
+            //options.setForce(true);
 
-            denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
+            int pageSize = 500;
+            long pageCount = Math.round((double)(operationIds.length / pageSize) + 0.5); // Get page count
+            for (int page = 0; page < pageCount; page++) {
+                int from = page * pageSize;
+                int to = Math.min(operationIds.length, from + pageSize);
+                Integer[] pageOperationIds = Arrays.copyOfRange(operationIds, from, to);
+
+                denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
                     .programLabel(programLabel)
-                    .includedIds(operationIds)
+                    .includedIds(pageOperationIds)
                     .hasNoChildOperation(true)
                     .needBatchDenormalization(true)
                     .build(), options);
+            }
         });
     }
 
@@ -418,11 +432,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
+        //if (this.production) {
         // Add as a raw table (to be able to clean it later)
         context.addRawTableName(tableName);
-
         // DEBUG
-        //context.addTableName(tableName, "RAW_SL", rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        //else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }
@@ -441,6 +455,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+        xmlQuery.bind("sizeCategoryPmfmIds", Daos.getSqlInNumbers(getSizeCategoryPmfmIds()));
+        xmlQuery.bind("subsamplingCategoryPmfmId", String.valueOf(PmfmEnum.BATCH_SORTING.getId()));
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
 
         // Exclude not valid station
@@ -448,8 +464,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
 
-        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
-        xmlQuery.setGroup("injectionPoint", false);
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+
 
         return xmlQuery;
     }
@@ -494,6 +510,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
         xmlQuery.setGroup("injectionPoint", false);
+
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -543,11 +561,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("numberAtLength", true);
 
         // Taxon disabled by default (RDB format has only one HL.SPECIES column)
-        // Butt group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
-        xmlQuery.setGroup("taxon", false);
+        // But group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
+        xmlQuery.setGroup("taxon", this.enableSpeciesLengthTaxon(context));
 
-        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
-        xmlQuery.setGroup("injectionPoint", false);
+
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -563,6 +581,30 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             PmfmEnum.LENGTH_CARAPACE_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
             PmfmEnum.SEGMENT_LENGTH_MM.getId()
+        );
+    }
+
+    protected List<Integer> getSpeciesListExcludedPmfmIds() {
+        return ImmutableList.<Integer>builder()
+            .add(
+                PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
+                PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
+                PmfmEnum.BATCH_ESTIMATED_WEIGHT.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.getId(),
+                PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId(),
+                PmfmEnum.DISCARD_OR_LANDING.getId(),
+                PmfmEnum.BATCH_SORTING.getId(),
+                PmfmEnum.CATCH_WEIGHT.getId(),
+                PmfmEnum.DISCARD_WEIGHT.getId()
+            )
+            .addAll(getSizeCategoryPmfmIds())
+            .build();
+    }
+
+    protected List<Integer> getSizeCategoryPmfmIds() {
+        return ImmutableList.of(
+            PmfmEnum.SIZE_CATEGORY.getId(),
+            PmfmEnum.SIZE_UNLI_CAT.getId()
         );
     }
 
@@ -584,8 +626,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
-            .map(acquisitionLevelEnum -> acquisitionLevelEnum.getId())
-            .collect(Collectors.toList());
+            .map(AcquisitionLevelEnum::getId)
+            .toList();
 
         String cacheKey = acquisitionLevelIds.toString();
 
@@ -602,8 +644,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Load pmfm columns
         List<ExtractionPmfmColumnVO> result = strategyService.findDenormalizedPmfmsByFilter(
                 PmfmStrategyFilterVO.builder()
-                    .programLabels(programLabels.toArray(new String[programLabels.size()]))
-                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[acquisitionLevelIds.size()]))
+                    .programLabels(programLabels.toArray(new String[0]))
+                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[0]))
                     .build(),
                 PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
             )
@@ -614,10 +656,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 .collect(Collectors.groupingBy(ExtractionPmfmColumnVO::getPmfmId))
                 .values().stream().map(list -> list.get(0))
 
-                // Sort by label
-                // TODO sort by rankOrder ?
-                .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getLabel, String::compareTo))
-                .collect(Collectors.toList());
+                // Sort by rankOrder
+                .sorted(Comparator.comparing(ExtractionPmfmColumnVO::getRankOrder, Integer::compareTo))
+                .toList();
 
         // save result into the context map
         pmfmColumns.put(cacheKey, result);
@@ -697,8 +738,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             SumarisTableMetadata table = databaseMetadata.getTable(tripTableName);
             if (table.hasColumn(RdbSpecification.COLUMN_SAMPLING_METHOD)) {
                 programLabels.forEach(programLabel -> {
-                    String samplingMethod = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD);
-                    if (!Objects.equals(samplingMethod, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue())) {
+                    String samplingMethod = StringUtils.trimToNull(this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD));
+                    if (samplingMethod != null && !Objects.equals(samplingMethod, ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue())) {
                         String sql = String.format("UPDATE %s SET %s='%s' WHERE PROJECT='%s'",
                             tripTableName,
                             RdbSpecification.COLUMN_SAMPLING_METHOD,
@@ -712,5 +753,19 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             log.error("Error while updating TR 'sampling_method' column: " + e.getMessage(), e);
             // Continue
         }
+    }
+
+    protected boolean enableSpeciesLengthTaxon(C context) {
+        List<String> programLabels = getTripProgramLabels(context);
+
+        // Check if samples have been enabled:
+        // - by program properties
+        // - or by pmfm strategies
+        return programLabels.stream()
+            .anyMatch(label -> {
+                boolean showBatchTaxonName = this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE, Boolean.TRUE.toString());
+                boolean showBatchLengthTaxonName = !showBatchTaxonName && this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString());
+                return showBatchLengthTaxonName;
+            });
     }
 }

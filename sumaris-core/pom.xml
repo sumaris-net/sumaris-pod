@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>2.1.0</version>
+    <version>2.1.1</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -34,7 +34,7 @@
     <test>AllTests</test>
 
     <!-- Default datasource type -->
-    <spring.datasource.platform>hsqldb</spring.datasource.platform>
+    <spring.sql.init.platform>hsqldb</spring.sql.init.platform>
   </properties>
 
   <dependencies>
@@ -377,7 +377,7 @@
       <activation>
         <activeByDefault>true</activeByDefault>
         <property>
-          <name>spring.datasource.platform</name>
+          <name>spring.sql.init.platform</name>
           <value>hsqldb</value>
         </property>
       </activation>
@@ -391,7 +391,7 @@
         <jdbc.password />
         <jdbc.driver>org.hsqldb.jdbc.JDBCDriver</jdbc.driver>
         <jdbc.schema>PUBLIC</jdbc.schema>
-        <spring.datasource.platform>hsqldb</spring.datasource.platform>
+        <spring.sql.init.platform>hsqldb</spring.sql.init.platform>
         <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
@@ -408,7 +408,7 @@
       <id>oracle</id>
       <activation>
         <property>
-          <name>spring.datasource.platform</name>
+          <name>spring.sql.init.platform</name>
           <value>oracle</value>
         </property>
       </activation>
@@ -420,7 +420,7 @@
         <jdbc.password>SUMARIS_TU</jdbc.password>
         <jdbc.schema>SUMARIS_TU</jdbc.schema>
         <jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
-        <spring.datasource.platform>oracle</spring.datasource.platform>
+        <spring.sql.init.platform>oracle</spring.sql.init.platform>
         <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.OracleSpatial10gDialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
@@ -437,7 +437,7 @@
       <id>pgsql</id>
       <activation>
         <property>
-          <name>spring.datasource.platform</name>
+          <name>spring.sql.init.platform</name>
           <value>pgsql</value>
         </property>
       </activation>
@@ -449,7 +449,7 @@
         <jdbc.password>sumaris</jdbc.password>
         <jdbc.schema>public</jdbc.schema>
         <jdbc.driver>org.postgresql.Driver</jdbc.driver>
-        <spring.datasource.platform>pgsql</spring.datasource.platform>
+        <spring.sql.init.platform>pgsql</spring.sql.init.platform>
         <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.PostgreSQL10Dialect</hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>

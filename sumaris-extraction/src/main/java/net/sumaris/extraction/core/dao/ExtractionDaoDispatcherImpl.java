@@ -36,6 +36,7 @@ import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
@@ -79,7 +80,7 @@ public class ExtractionDaoDispatcherImpl implements ExtractionDaoDispatcher {
         applicationContext.getBeansOfType(ExtractionDao.class).values()
             .forEach(dao -> {
                     Set<IExtractionType> types = dao.getManagedTypes();
-                    types.forEach(type -> {
+                    Beans.getStream(types).forEach(type -> {
                         // Check if unique, by format
                         if (daoByType.containsKey(type)) {
                             throw new BeanInitializationException(

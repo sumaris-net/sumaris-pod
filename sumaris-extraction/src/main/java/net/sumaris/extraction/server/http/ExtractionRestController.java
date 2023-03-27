@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -81,6 +82,7 @@ import java.util.Objects;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 @ConditionalOnWebApplication
 public class ExtractionRestController implements ExtractionRestPaths {
@@ -92,22 +94,16 @@ public class ExtractionRestController implements ExtractionRestPaths {
             MediaType.APPLICATION_XHTML_XML
     );
 
-    @Autowired
-    private SumarisConfiguration configuration;
+    private final SumarisConfiguration configuration;
 
-    @Autowired
-    private ExtractionService extractionService;
+    private final ExtractionService extractionService;
 
-    @Autowired
-    private ExtractionTypeService extractionTypeService;
-    @Autowired
-    private ExtractionDocumentationService extractionDocumentationService;
+    private final ExtractionTypeService extractionTypeService;
+    private final ExtractionDocumentationService extractionDocumentationService;
 
-    @Autowired
-    private ExtractionSecurityService extractionSecurityService;
+    private final ExtractionSecurityService extractionSecurityService;
 
-    @Autowired
-    private IFileController downloadController;
+    private final IFileController downloadController;
 
     @PostConstruct
     public void init() {

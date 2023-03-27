@@ -184,6 +184,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // Define Alias
         addAlias(applicationConfig);
+        for (ApplicationConfigProvider provider : providers) {
+            if (provider instanceof ApplicationConfigAliasProvider) {
+                ((ApplicationConfigAliasProvider)provider).addAlias(applicationConfig);
+            }
+        }
 
         // parse config file and inline arguments
         try {

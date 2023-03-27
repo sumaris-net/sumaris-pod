@@ -538,18 +538,18 @@ public abstract class DatabaseResource implements TestRule {
      * @return a {@link String} object.
      */
     protected String getDatasourcePlatform(String defaultValue) {
-        String result = System.getProperty("spring.datasource.platform");
+        String result = System.getProperty("spring.sql.init.platform");
 
         // Check validity
         if (result == null && StringUtils.isNotBlank(defaultValue)) {
             result = defaultValue;
-            log.debug("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [{}] will use default environment : {}", testClass, defaultValue);
+            log.debug("Could not find build environment. Please add -Dspring.sql.init.platform=<hsqldb|oracle|pgsql>. Test [{}] will use default environment : {}", testClass, defaultValue);
         } else if (!"hsqldb".equals(result)
                 && !"oracle".equals(result)
                 && !"pgsql".equals(result)) {
 
             if (log.isWarnEnabled()) {
-                log.warn("Could not find build environment. Please add -Dspring.datasource.platform=<hsqldb|oracle|pgsql>. Test [{}] will be skipped.", testClass);
+                log.warn("Could not find build environment. Please add -Dspring.sql.init.platform=<hsqldb|oracle|pgsql>. Test [{}] will be skipped.", testClass);
             }
             Assume.assumeTrue(false);
         }

@@ -27,7 +27,5 @@
 
   <!-- reinsert last RDB fields, but after SEX -->
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
-  <select alias="NUMBER_AT_LENGTH" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
-
-  <groupby>B.SEX, LENGTH_CLASS</groupby>
+  <select alias="NUMBER_AT_LENGTH" type="number" group="agg">SUM(B.INDIVIDUAL_COUNT)</select>
 </query>

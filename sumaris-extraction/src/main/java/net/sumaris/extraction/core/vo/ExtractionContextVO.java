@@ -191,7 +191,7 @@ public class ExtractionContextVO implements IExtractionTypeWithTablesVO {
     }
 
 
-    public <C extends AggregationRdbTripContextVO> C addColumnNameReplacement(String sourceColumnName, String targetColumnName) {
+    public <C extends ExtractionContextVO> C addColumnNameReplacement(String sourceColumnName, String targetColumnName) {
         // Try to fix remplacement error
         columnNamesMapping.put(sourceColumnName.toLowerCase(), targetColumnName.toLowerCase());
         columnNamesMapping.put(sourceColumnName.toUpperCase(), targetColumnName.toUpperCase());

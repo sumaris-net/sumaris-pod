@@ -26,8 +26,8 @@
 
     <with alias="SL">
       <subquery>
-        <subselect alias="ID" type="number">MIN(ID)</subselect>
-        <subselect alias="PK_STR" type="text">
+        <select alias="ID" type="number">MIN(ID)</select>
+        <select alias="PK_STR" type="text">
           SAMPLING_TYPE  || '|' ||
           LANDING_COUNTRY || '|' ||
           VESSEL_FLAG_COUNTRY || '|' ||
@@ -41,8 +41,8 @@
           COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
           COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
           COALESCE(SUBSAMPLING_CATEGORY, '')
-        </subselect>
-        <subselect alias="COUNT" type="number">COUNT(DISTINCT ID)</subselect>
+        </select>
+        <select alias="COUNT" type="number">COUNT(DISTINCT ID)</select>
 
         <from>&amp;rawSpeciesListTableName</from>
 
@@ -63,8 +63,8 @@
     </with>
     <with alias="HL">
       <subquery>
-        <subselect alias="ID" type="number">ID</subselect>
-        <subselect alias="FK_STR" type="text">
+        <select alias="ID" type="number">ID</select>
+        <select alias="FK_STR" type="text">
           SAMPLING_TYPE  || '|' ||
           LANDING_COUNTRY || '|' ||
           VESSEL_FLAG_COUNTRY || '|' ||
@@ -78,7 +78,7 @@
           COALESCE(COMMERCIAL_SIZE_CATEGORY_SCALE, '') || '|' ||
           COALESCE(COMMERCIAL_SIZE_CATEGORY, '') || '|' ||
           COALESCE(SUBSAMPLING_CATEGORY, '')
-        </subselect>
+        </select>
 
         <from>&amp;rawSpeciesLengthTableName</from>
 

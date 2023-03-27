@@ -73,6 +73,7 @@ public class JmsConfiguration {
             DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
             factory.setConnectionFactory(jmsConnectionFactory);
             factory.setMessageConverter(messageConverter);
+            factory.setPubSubDomain(true); // Use Topic instead of Queue
 
             jmsListenerContainerFactoryConfigurer
                     .ifPresent(c -> c.configure(factory, jmsConnectionFactory));

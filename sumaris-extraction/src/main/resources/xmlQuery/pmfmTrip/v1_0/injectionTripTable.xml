@@ -22,8 +22,9 @@
 
 <query type="select">
 
-  <select alias="DEPARTURE_DATE_TIME" type="date">TO_CHAR(T.DEPARTURE_DATE_TIME, 'YYYY-MM-DD HH24:MI:SS')</select>
-  <select alias="RETURN_DATE_TIME" type="date">TO_CHAR(T.RETURN_DATE_TIME, 'YYYY-MM-DD HH24:MI:SS')</select>
+  <!-- This 2 columns should exists in parent query, BUT are hidden -->
+  <select alias="DEPARTURE_DATE_TIME" type="date">T.DEPARTURE_DATE_TIME</select>
+  <select alias="RETURN_DATE_TIME" type="date">T.RETURN_DATE_TIME</select>
 
   <select alias="TRIP_COMMENTS" type="text">T.COMMENTS</select>
 

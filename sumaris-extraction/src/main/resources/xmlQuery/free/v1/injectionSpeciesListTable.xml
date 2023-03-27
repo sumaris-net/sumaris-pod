@@ -24,7 +24,7 @@
 <query type="select">
 
   <!-- Total (elevated) individual count -->
-  <select alias="NUMBER_INDIVIDUAL" type="number">(CASE WHEN (SL.WEIGHT IS NOT NULL AND SL.WEIGHT > 0) THEN
+  <select alias="NUMBER_INDIVIDUAL" type="number" group="agg">(CASE WHEN (SL.WEIGHT IS NOT NULL AND SL.WEIGHT > 0) THEN
     (
       SELECT
         SUM(COALESCE(BL.INDIVIDUAL_COUNT, 1))

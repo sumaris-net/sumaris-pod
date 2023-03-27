@@ -1,0 +1,43 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-2.1.1.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="P01_RDB_SPECIES_LIST" columnName="SUBSAMPLING_WEIGHT"/>
+        </preConditions>
+        <renameColumn tableName="P01_RDB_SPECIES_LIST" oldColumnName="SUBSAMPLING_WEIGHT" newColumnName="SUBSAMPLE_WEIGHT"/>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-2" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="denormalized_batch_sort_va_seq"/></not>
+        </preConditions>
+        <createSequence sequenceName="denormalized_batch_sort_va_seq" incrementBy="50" startValue="50"/>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='2.1.1'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="nextval('system_version_seq')"/>
+            <column name="LABEL">2.1.1</column>
+            <column name="DESCRIPTION">
+                - Extraction: rename SUBSAMPLING_WEIGHT into SUBSAMPLE_WEIGHT;
+                - Extraction: Create missing sequence denormalized_batch_sort_va_seq;
+            </column>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="COMMENTS">
+                - Extraction: rename SUBSAMPLING_WEIGHT into SUBSAMPLE_WEIGHT;
+                - Extraction: Create missing sequence denormalized_batch_sort_va_seq;
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -23,13 +23,13 @@
 <query type="select">
 
   <select alias="STATION_COMMENTS" type="text">O.COMMENTS</select>
-  <select alias="GEAR_COMMENTS" type="text">PG.COMMENTS</select>
+  <select alias="GEAR_COMMENTS" type="text" group="gearComments">PG.COMMENTS</select>
 
   <from join="true" group="allowParent">LEFT OUTER JOIN OPERATION O2 ON O2.ID = O.OPERATION_FK</from>
   <from join="true" group="allowParent">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM2 ON VUM2.OPERATION_FK = O2.ID</from>
   <from join="true" group="allowParent">LEFT OUTER JOIN QUALITATIVE_VALUE QV2 on QV2.ID = VUM2.QUALITATIVE_VALUE_FK</from>
 
-  <where>O.QUALITY_FLAG_FK != 8</where>
+  <where operator="AND">O.QUALITY_FLAG_FK != 8</where>
 
   <!-- Already exists in the parent query
     <groupby>&amp;groupByColumns</groupby>-->

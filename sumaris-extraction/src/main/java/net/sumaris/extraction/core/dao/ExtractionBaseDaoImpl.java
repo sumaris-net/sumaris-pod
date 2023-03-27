@@ -30,11 +30,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Beans;
@@ -45,14 +45,19 @@ import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
+import net.sumaris.xml.query.XMLQuery;
+import net.sumaris.xml.query.XMLQueryImpl;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.hibernate.dialect.Dialect;
+import org.jdom2.Element;
+import org.jdom2.Text;
+import org.jdom2.filter.Filters;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -79,6 +84,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     extends HibernateDaoSupport {
 
     protected static final String XML_QUERY_PATH = "xmlQuery";
+    protected static final String GROUP_BY_PARAM_NAME = "groupByColumns";
 
     @Autowired
     protected ExtractionConfiguration configuration;
@@ -101,11 +107,14 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     protected int hibernateQueryTimeout;
 
+    protected boolean production;
+
     @PostConstruct
     public void init() {
         this.databaseType = Daos.getDatabaseType(configuration.getJdbcURL());
         this.dropTableQuery = getDialect().getDropTableString("%s");
         this.hibernateQueryTimeout = Math.max(1, Math.round(configuration.getExtractionQueryTimeout() / 1000));
+        this.production = configuration.isProduction();
     }
 
     protected Dialect getDialect() {
@@ -149,6 +158,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
 
     public <C extends ExtractionContextVO> void clean(C context) {
+        // DEBUG
+        //log.warn("TODO: drop table after an extraction - uncomment code here !!");
         dropTables(context);
     }
 
@@ -266,8 +277,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
      * Create a new XML Query
      * @return
      */
-    protected XMLQuery createXMLQuery() {
-        return new XMLQuery(databaseType);
+    protected XMLQueryImpl createXMLQuery() {
+        return new XMLQueryImpl(databaseType);
     }
 
     protected <C extends ExtractionContextVO> void dropTables(@NonNull C context) {
@@ -530,6 +541,16 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
     protected int execute(C context, XMLQuery xmlQuery) {
+
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
+
+        // Generate then bind group by columns
+        if (StringUtils.isNotBlank(xmlQuery.getGroupByParamName())) {
+            computeAndBindGroupBy(xmlQuery);
+        }
+
+        // Get the SQL
         String sql = xmlQuery.getSQLQueryAsString();
 
         // Do column names replacement (e.g. see FREE extraction)
@@ -568,7 +589,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
     protected XMLQuery createXMLQuery(String queryName) {
-        XMLQuery query = createXMLQuery();
+        XMLQueryImpl query = createXMLQuery();
         query.setQuery(getXMLQueryClasspathURL(queryName));
         return query;
     }
@@ -588,4 +609,60 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         }
     }
 
+    protected void computeAndBindGroupBy(XMLQuery xmlQuery) {
+        computeAndBindGroupBy(xmlQuery, xmlQuery.getGroupByParamName());
+    }
+
+    protected void computeAndBindGroupBy(XMLQuery xmlQuery, @NonNull String paramName) {
+        // Check a <groupby> tag exists with the expected parameter name
+        if (!this.production) {
+            List<Element> matchesGroupBy = xmlQuery.getGroupByTags(element -> {
+                String content = Beans.getStream(element.getContent(Filters.text()))
+                    .map(Text::getValue)
+                    .collect(Collectors.joining("\n"));
+                return content.contains("&" + paramName);
+            });
+            if (CollectionUtils.isEmpty(matchesGroupBy)) {
+                log.warn("Unable to found a <groupby> with parameter '&{}'", paramName);
+            }
+        }
+
+        // Get groupBy columns
+        String groupByColumns = xmlQuery.streamSelectElements(e -> {
+            // Exclude column with group 'agg'
+            boolean isAgg = xmlQuery.hasGroup(e, "agg");
+            if (isAgg) {
+                // Remove the agg group, to avoid the element to be disabled
+                xmlQuery.removeGroup(e, "agg");
+                return false;
+            }
+
+            // Exclude disabled columns (by group)
+            return !xmlQuery.isDisabled(e);
+        })
+            .map(e -> {
+                // Exclude pmfm columns
+                //String alias = xmlQuery.getAlias(e);
+                // if (alias == null || alias.startsWith("&pmfmlabel")) return null;
+
+                // Prefer using <select> content, if match the pattern 'T.<columnName>'
+                String textContent = StringUtils.trimToNull(xmlQuery.getTextContent(e, " "));
+                if (textContent != null
+                    && !"null".equalsIgnoreCase(textContent)
+                    && textContent.matches("([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+")) {
+                    return textContent.trim().toLowerCase();
+                }
+
+                // Or use alias if more complex column specification (e.g. '(CASE WHEN ...)' or '(SELECT ...)' )
+                String alias = xmlQuery.getAlias(e, false /* keep same case, to be able to replace parameter inside*/);
+                if (alias.startsWith("&")) {
+                    alias = MapUtils.getString(xmlQuery.getSqlParameters(), alias.substring(1), alias);
+                }
+                return alias.toLowerCase();
+            })
+            .filter(Objects::nonNull)
+        .collect(Collectors.joining(","));
+
+        xmlQuery.bind(paramName, groupByColumns);
+    }
 }

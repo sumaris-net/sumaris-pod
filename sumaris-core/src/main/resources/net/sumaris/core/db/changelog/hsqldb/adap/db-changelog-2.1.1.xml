@@ -1,0 +1,162 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-2.1.1.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-400">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.enumeration.QualitativeValue.SEX_UNSEXED.id' AND SOFTWARE_FK=2
+                </sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) from QUALITATIVE_VALUE WHERE UPPER(NAME)='NON SEXE'
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="SOFTWARE_PROPERTY">
+            <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
+            <column name="LABEL" value="sumaris.enumeration.QualitativeValue.SEX_UNSEXED.id"/>
+            <column name="NAME" valueComputed="(SELECT TO_CHAR(ID) FROM QUALITATIVE_VALUE WHERE UPPER(NAME)='NON SEXE')"/>
+            <column name="SOFTWARE_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
+    </changeSet>
+
+    <!-- fix LENGTH_TOTAL_CM precision (round 3 measure to upper integer) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">
+                        select count(*) from sorting_measurement_b
+                        where (numerical_value - TRUNC(numerical_value)) = 0.5
+                        and pmfm_fk=81
+                    </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";" stripComments="true"><![CDATA[
+            update sorting_measurement_b
+            set numerical_value = numerical_value - 0.5
+            where (numerical_value - TRUNC(numerical_value)) = 0.5;
+            and pmfm_fk=81
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- fix HAD / TAXON_GROUP comments  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">
+                        select count(*) from taxon_group where label='HAD' and comments=''
+                    </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";" stripComments="true"><![CDATA[
+            update taxon_group
+            set comments='Melanogrammus aeglefinus'
+            where label='HAD' and comments='';
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- Fix BATCH having bad quality_flag, because of sumaris-app issue #407 -->
+<!--    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-403" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">select count(*) from batch where quality_flag_fk = 4
+                    </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";" stripComments="true"><![CDATA[
+            /* TODO review this !!*/
+            update batch set quality_flag_fk=0 where quality_flag_fk=4;
+            commit;
+            ]]></sql>
+    </changeSet>-->
+
+
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-404">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from METHOD where LABEL='MEASURED_IN_CM_BY_OBSERVER' OR ID=82
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="METHOD">
+            <column name="ID" valueNumeric="82"/>
+            <column name="LABEL" value="MEASURED_IN_CM_BY_OBSERVER"/>
+            <column name="NAME" value="Mesure au cm par un observateur"/>
+            <column name="IS_CALCULATED" valueBoolean="false"/>
+            <column name="IS_ESTIMATED" valueBoolean="false"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-405" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*) from METHOD where LABEL='MEASURED_IN_MM_BY_OBSERVER' OR ID=83
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="METHOD">
+            <column name="ID" valueNumeric="83"/>
+            <column name="LABEL" value="MEASURED_IN_MM_BY_OBSERVER"/>
+            <column name="NAME" value="Mesure au mm par un observateur"/>
+            <column name="IS_CALCULATED" valueNumeric="0"/>
+            <column name="IS_ESTIMATED" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+        </insert>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-406" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) from PMFM where LABEL='LENGTH_TOTAL_CM' AND MAXIMUM_NUMBER_DECIMALS=1</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            update pmfm set MAXIMUM_NUMBER_DECIMALS=0, PRECISION=1, METHOD_FK=82 where LABEL='LENGTH_TOTAL_CM';
+            commit;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

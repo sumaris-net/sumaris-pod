@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
+import net.sumaris.xml.query.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
@@ -372,6 +372,8 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         XMLQuery query = super.createSpeciesListQuery(context);
 
         query.bind("weightRtpPmfmId", String.valueOf(PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId()));
+
+        query.bindGroupBy(null); // Reset the group by column binding
 
         return query;
     }

@@ -26,6 +26,5 @@
 
   <from join="true" group="taxon">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = SL.REFERENCE_TAXON_ID AND TN.IS_REFERENT=true</from>
 
-  <groupby group="addGroupBy">&amp;groupByColumns</groupby>
-  <groupby group="taxon">TAXON</groupby>
+<!--  <groupby group="pmfms">&amp;pmfmsGroupByColumns</groupby>-->
 </query>

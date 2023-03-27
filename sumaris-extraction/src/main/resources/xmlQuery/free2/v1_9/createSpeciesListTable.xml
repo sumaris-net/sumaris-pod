@@ -7,39 +7,39 @@
     <with alias="TEMP_SPECIES_LIST">
       <subquery>
         <!-- PK -->
-        <subselect alias="ID_VRAC" type="number">SL.ID_VRAC</subselect>
-        <subselect alias="ID_CAPTURE" type="number">SL.SAMPLE_ID</subselect>
+        <select alias="ID_VRAC" type="number">SL.ID_VRAC</select>
+        <select alias="ID_CAPTURE" type="number">SL.SAMPLE_ID</select>
 
         <!-- TODO
           - utiliser NAME plutot que COMMENTS
           - gérer les noms vernaculaires dans TRANSCRIBING
           - ET afficher les nom vernaculaires dans les UI (nécessaire pour ADAP) -->
-        <subselect alias="ESPECE" type="text">COALESCE(TN.COMMENTS, TN.NAME)</subselect>
-        <subselect alias="ESPECE_COM" type="text">TG.NAME</subselect>
-        <subselect alias="PRESENTATION" type="text">
+        <select alias="ESPECE" type="text">COALESCE(TN.COMMENTS, TN.NAME)</select>
+        <select alias="ESPECE_COM" type="text">TG.NAME</select>
+        <select alias="PRESENTATION" type="text">
             CASE
               WHEN SL.PRESENTATION IS NOT NULL THEN SL.PRESENTATION
               WHEN SL.CATCH_CATEGORY = 'LAN' THEN 'GUT - Eviscéré'
               WHEN SL.CATCH_CATEGORY = 'DIS' THEN 'WHL - Entier'
             ELSE null
             END
-        </subselect>
-        <subselect alias="TAUX_ECH" type="number">
+        </select>
+        <select alias="TAUX_ECH" type="number">
           CASE
           WHEN SL.SAMPLING_RATIO is not null THEN ROUND(SL.SAMPLING_RATIO, 7)
           WHEN SL.WEIGHT is not null AND SL.WEIGHT != 0 AND SL.SUBSAMPLE_WEIGHT is not null THEN ROUND(SL.SUBSAMPLE_WEIGHT/SL.WEIGHT, 7)
           ELSE 1
           END
-        </subselect>
-        <subselect alias="POIDS_REF" type="number">SL.SUBSAMPLE_WEIGHT</subselect>
-        <subselect alias="METHODE_POIDS_REF" type="text">METHOD.NAME</subselect>
-        <subselect alias="WEIGHT_RTP" type="number">COALESCE(
+        </select>
+        <select alias="POIDS_REF" type="number">SL.SUBSAMPLE_WEIGHT</select>
+        <select alias="METHODE_POIDS_REF" type="text">METHOD.NAME</select>
+        <select alias="WEIGHT_RTP" type="number">COALESCE(
           SL.WEIGHT_RTP,
           (SELECT ROUND(SUM(QM.NUMERICAL_VALUE), 6) FROM BATCH B_LENGTH inner join QUANTIFICATION_MEASUREMENT_B QM on QM.BATCH_FK = B_LENGTH.ID where B_LENGTH.PARENT_BATCH_FK=SL.SAMPLE_ID and QM.PMFM_FK=&amp;weightRtpPmfmId)
           )
-        </subselect>
+        </select>
 
-        <subselect alias="NOMBRE" type="number">SAMPLE_BATCH.INDIVIDUAL_COUNT</subselect>
+        <select alias="NOMBRE" type="number">SAMPLE_BATCH.INDIVIDUAL_COUNT</select>
 
         <from alias="SL">&amp;rawSpeciesListTableName</from>
         <from join="true">INNER JOIN BATCH SAMPLE_BATCH ON SAMPLE_BATCH.ID = SL.SAMPLE_ID</from>

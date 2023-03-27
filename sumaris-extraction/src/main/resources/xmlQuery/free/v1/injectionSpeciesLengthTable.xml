@@ -23,14 +23,13 @@
 
 <query type="select">
 
-  <!-- rename INDIVIDUAL_SEX by SEX-->
+  <!-- rename INDIVIDUAL_SEX by SEX + mark as "agg" to force the groupby (avoid an error in generated groupby, because SEX is ambigous) -->
   <select alias="SEX" type="text">B.SEX</select>
 
   <!-- reinsert last RDB fields, but after SEX -->
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
-  <select alias="NUMBER_AT_LENGTH" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
+  <select alias="NUMBER_AT_LENGTH" type="number" group="agg">SUM(B.INDIVIDUAL_COUNT)</select>
 
   <select alias="MEASURE_TYPE" type="text">B.PARAMETER_LABEL</select>
 
-  <groupby>B.SEX, LENGTH_CLASS, MEASURE_TYPE</groupby>
 </query>

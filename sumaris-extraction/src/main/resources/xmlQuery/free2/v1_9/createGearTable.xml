@@ -57,36 +57,36 @@
     <union>
       <subquery>
         <!-- PK -->
-        <subselect alias="TYPE" type="text">'Engins'</subselect>
-        <subselect alias="ID_MAREE" type="number">S.ID_MAREE</subselect>
-        <subselect alias="ID_OP" type="number">S.ID_OP</subselect>
-        <subselect alias="NUM_OP" type="number">S.NUM_OP</subselect>
+        <select alias="TYPE" type="text">'Engins'</select>
+        <select alias="ID_MAREE" type="number">S.ID_MAREE</select>
+        <select alias="ID_OP" type="number">S.ID_OP</select>
+        <select alias="NUM_OP" type="number">S.NUM_OP</select>
 
         <!-- Hidden columns used by linked tables -->
 
         <!-- other fields -->
-        <subselect alias="PARAMETER_FK" type="text"><![CDATA[
+        <select alias="PARAMETER_FK" type="text"><![CDATA[
       (CASE WHEN P.LABEL = UPPER('FAKE') THEN UPPER('TODO')
        ELSE P.LABEL
        END)
-    ]]></subselect>
-        <subselect alias="NAME" type="text">P.NAME</subselect>
-        <subselect alias="NUMERICAL_VALUE" type="number">CASE P.IS_BOOLEAN WHEN TRUE THEN null ELSE PGM.NUMERICAL_VALUE END</subselect>
-        <subselect alias="QUALITATIVE_VALUE_NAME" type="number"><![CDATA[
+    ]]></select>
+        <select alias="NAME" type="text">P.NAME</select>
+        <select alias="NUMERICAL_VALUE" type="number">CASE P.IS_BOOLEAN WHEN TRUE THEN null ELSE PGM.NUMERICAL_VALUE END</select>
+        <select alias="QUALITATIVE_VALUE_NAME" type="number"><![CDATA[
       CASE
       WHEN (P.IS_BOOLEAN AND PGM.NUMERICAL_VALUE = 1) THEN 'Oui'
       WHEN (P.IS_BOOLEAN AND PGM.NUMERICAL_VALUE = 0) THEN 'Non'
       WHEN (P.LABEL = UPPER('WING_LINE_FORM')) THEN QV.NAME
       ELSE  COALESCE(QV.LABEL, QV.NAME)
       END
-    ]]></subselect>
-        <subselect alias="CHARACTERISTICS" type="text">'MO'</subselect>
+    ]]></select>
+        <select alias="CHARACTERISTICS" type="text">'MO'</select>
 
-        <subselect alias="UNITE" type="text">COALESCE(UNIT.NAME, 'Aucune')</subselect>
+        <select alias="UNITE" type="text">COALESCE(UNIT.NAME, 'Aucune')</select>
 
-        <subselect alias="SUPPORT" type="text">COALESCE(MATRIX.name, 'engin')</subselect>
-        <subselect alias="FRACTION" type="text">COALESCE(FRACTION.name, 'totale')</subselect>
-        <subselect alias="METHODE" type="text">COALESCE(METHOD.name, 'Déclaration d''un professionnel')</subselect>
+        <select alias="SUPPORT" type="text">COALESCE(MATRIX.name, 'engin')</select>
+        <select alias="FRACTION" type="text">COALESCE(FRACTION.name, 'totale')</select>
+        <select alias="METHODE" type="text">COALESCE(METHOD.name, 'Déclaration d''un professionnel')</select>
 
         <from alias="S">&amp;stationTableName</from>
         <from join="true">INNER JOIN GEAR_USE_MEASUREMENT PGM ON PGM.OPERATION_FK = S.ID_OP</from>

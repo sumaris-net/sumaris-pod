@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.xml.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.Free1Specification;
@@ -34,6 +33,7 @@ import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.xml.query.XMLQuery;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -69,7 +69,10 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
     protected XMLQuery createTripQuery(C context) {
         XMLQuery xmlQuery = super.createTripQuery(context);
 
+        xmlQuery.setGroup("departureDateTime", false);
+
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
+
 
         return xmlQuery;
     }

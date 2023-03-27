@@ -58,7 +58,7 @@
         <!-- SAMPLE -->
         <select alias="SPECIES_CODE" type="number">ST.SPECIES_CODE</select>
         <select alias="SPECIES_NAME" type="number">ST.SPECIES_NAME</select>
-        <select alias="INDIVIDUAL_COUNT" type="number">SUM(ST.INDIVIDUAL_COUNT)</select>
+        <select alias="INDIVIDUAL_COUNT" type="number"  group="agg">SUM(ST.INDIVIDUAL_COUNT)</select>
 
         <from alias="S">&amp;stationTableName</from>
         <from dbms="hsqldb"><![CDATA[

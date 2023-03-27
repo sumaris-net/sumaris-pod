@@ -1,0 +1,36 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.1.1.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-1">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="P01_RDB_SPECIES_LIST" columnName="SUBSAMPLING_WEIGHT"/>
+        </preConditions>
+        <renameColumn tableName="P01_RDB_SPECIES_LIST" oldColumnName="SUBSAMPLING_WEIGHT" newColumnName="SUBSAMPLE_WEIGHT"/>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='2.1.1'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">2.1.1</column>
+            <column name="DESCRIPTION">
+                - Add UNSEXED enumeration option, in configuration;
+                - Fix ADAP pmfm LENGTH_TOTAL_CM;
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="COMMENTS">
+                - Add UNSEXED enumeration option, in configuration;
+                - Fix ADAP pmfm LENGTH_TOTAL_CM;
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

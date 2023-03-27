@@ -59,7 +59,6 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Gear.class)
     @JoinColumn(name = "gear_fk", nullable = false)
-    
     private Gear gear;
 
     @Column(length = LENGTH_COMMENTS)

@@ -23,37 +23,52 @@
 /*
  * Created on 29 juil. 2004
  */
-package net.sumaris.extraction.core.dao.technical.xml;
+package net.sumaris.xml.query;
 
 import com.google.common.base.Preconditions;
 import fr.ifremer.common.xmlquery.*;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.xml.query.utils.XPaths;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
+import org.apache.commons.io.IOUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.Text;
 import org.jdom2.filter.Filters;
 import org.jdom2.output.Format;
+import org.jdom2.util.IteratorIterable;
 
-import java.io.File;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * @author ludovic.pecquot@e-is.pro
  */
-public class XMLQuery {
+public class XMLQueryImpl implements XMLQuery {
 
     private DatabaseType dbms;
-    private AsbtractSingleXMLQuery delegate;
+    private AbstractSingleXMLQuery delegate;
 
-    public XMLQuery(@NonNull DatabaseType dbms) {
+    private Set<String> deactivatedGroups = null;
+    private String groupByParamName = null;
+
+    public XMLQueryImpl(@NonNull String dbmsName) {
+        this(DatabaseType.valueOf(dbmsName));
+    }
+
+    public XMLQueryImpl(@NonNull DatabaseType dbms) {
         super();
         this.dbms = dbms;
         switch (dbms) {
@@ -82,6 +97,7 @@ public class XMLQuery {
      *
      * @return
      */
+    @Override
     public Set<String> getHiddenColumnNames() {
 
         try {
@@ -101,6 +117,7 @@ public class XMLQuery {
         }
     }
 
+    @Override
     public Set<String> getVisibleColumnNames() {
         return getColumnNames(element -> {
             Attribute typeAttr = element.getAttribute("type");
@@ -108,6 +125,7 @@ public class XMLQuery {
         });
     }
 
+    @Override
     public Set<String> getNotNumericColumnNames() {
         return getColumnNames(element -> {
             Attribute typeAttr = element.getAttribute("type");
@@ -115,10 +133,12 @@ public class XMLQuery {
         });
     }
 
+    @Override
     public Set<String> getAllColumnNames() {
         return getColumnNames(element -> true);
     }
 
+    @Override
     public Set<String> getColumnNames(final Predicate<Element> filter) {
         Preconditions.checkNotNull(filter);
 
@@ -131,17 +151,49 @@ public class XMLQuery {
                 // Apply filter
                 .filter(filter::evaluate)
                 // Get alias
-                .map(element -> element.getAttribute("alias"))
-                .filter(Objects::nonNull)
-                .map(Attribute::getValue)
-                .filter(Objects::nonNull)
-                .map(String::toLowerCase)
+                .map(this::getAlias)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (Exception e) {
             throw new SumarisTechnicalException(e);
         }
     }
 
+    @Override
+    public Stream<Element> streamSelectElements(final Predicate<Element> filter) {
+        Preconditions.checkNotNull(filter);
+
+        try {
+            List<Element> selectElements = XPaths.compile("//query/select", Filters.element())
+                .evaluate(getDocument());
+            if (CollectionUtils.isEmpty(selectElements)) return Stream.empty();
+
+
+            // Apply filter
+            return selectElements.stream().filter(filter::evaluate);
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    @Override
+    public String getAlias(final Element element) {
+        return getAttributeValue(element, "alias", true);
+    }
+
+    @Override
+    public String getAlias(final Element element, boolean forceLowerCase) {
+        return getAttributeValue(element, "alias", forceLowerCase);
+    }
+
+
+    @Override
+    public String getTextContent(final Element element, String separator) {
+        return Beans.getStream(element.getContent(Filters.text()))
+        .map(Text::getValue)
+        .collect(Collectors.joining(separator));
+    }
+
+    @Override
     public String getAttributeValue(final Element element, String attrName, boolean forceLowerCase) {
         Attribute attr = element.getAttribute(attrName);
         if (attr == null) return null;
@@ -150,10 +202,41 @@ public class XMLQuery {
         return value;
     }
 
+    @Override
     public boolean hasGroup(final Element element, String groupName) {
         String attrValue = getAttributeValue(element, "group", false);
         if (StringUtils.isBlank(attrValue)) return false;
         return Arrays.asList(attrValue.split(",")).contains(groupName);
+    }
+
+    @Override
+    public void removeGroup(final Element element, String groupName) {
+        String attrValue = getAttributeValue(element, "group", false);
+        if (StringUtils.isBlank(attrValue)) return;
+        String newAttrValue = Arrays.stream(attrValue.split(","))
+            .filter(g -> !groupName.equals(g))
+            .collect(Collectors.joining(","));
+        if (StringUtils.isBlank(newAttrValue)) {
+            element.removeAttribute("group");
+        }
+        else {
+            element.setAttribute("group", newAttrValue);
+        }
+    }
+
+    @Override
+    public Set<String> extractGroups() {
+        Set<String> groups = new HashSet<>();
+
+        IteratorIterable<Element> groupElements = getDocument().getDescendants(Filters.element());
+        for (Element groupElement : groupElements) {
+            String groupName = groupElement.getAttributeValue("group");
+            if (groupName != null && !groupName.isEmpty()) {
+                groups.add(groupName);
+            }
+        }
+
+        return groups;
     }
 
     /**
@@ -161,18 +244,38 @@ public class XMLQuery {
      *
      * @return
      */
+    @Override
     public boolean hasDistinctOption() {
         Attribute optionAtr = getFirstQueryTag().getAttribute("option");
         return optionAtr != null && "distinct".equalsIgnoreCase(optionAtr.getValue());
     }
 
+    @Override
     public Document getDocument() {
         return delegate.getDocument();
     }
 
-
+    @Override
     public Element getFirstQueryTag() {
         return delegate.getFirstQueryTag();
+    }
+
+    @Override
+    public List<Element> getGroupByTags(final Predicate<Element> filter) {
+        Preconditions.checkNotNull(filter);
+
+        try {
+            List<Element> groupByElements = XPaths.compile("//query/groupby", Filters.element())
+                .evaluate(getDocument());
+            if (CollectionUtils.isEmpty(groupByElements)) return null;
+
+            return groupByElements.stream()
+                // Apply filter
+                .filter(filter::evaluate)
+                .toList();
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(e);
+        }
     }
 
     /* -- delegated functions -- */
@@ -181,6 +284,7 @@ public class XMLQuery {
         delegate.manageRootElement();
     }
 
+    @Override
     public String getSQLQueryAsString() {
         String query = delegate.getSQLQueryAsString();
 
@@ -241,6 +345,12 @@ public class XMLQuery {
         delegate.setQuery(pQueryFile);
     }
 
+    public void setQuery(InputStream inputStream) throws XMLQueryException, IOException {
+        StringWriter writer = new StringWriter();
+        IOUtils.copy(inputStream, writer, "UTF-8");
+        delegate.setQuery(writer.toString(), true);
+    }
+
     public void setQuery(File pQueryFile, boolean pManageRootElement) throws XMLQueryException {
         delegate.setQuery(pQueryFile, pManageRootElement);
     }
@@ -261,18 +371,6 @@ public class XMLQuery {
         delegate.addSelect(pXmlFilter);
     }
 
-    public void addSubSelect(File pXmlFile) throws XMLQueryException {
-        delegate.addSubSelect(pXmlFile);
-    }
-
-    public void addSubSelect(URL pXmlFileURL) throws XMLQueryException {
-        delegate.addSubSelect(pXmlFileURL);
-    }
-
-    public void addSubSelect(String pXmlFilter) throws XMLQueryException {
-        delegate.addSubSelect(pXmlFilter);
-    }
-
     public void addSelect(String pQueryName, File pXmlFile) throws XMLQueryException {
         delegate.addSelect(pQueryName, pXmlFile);
     }
@@ -283,18 +381,6 @@ public class XMLQuery {
 
     public void addSelect(String pQueryName, String pXmlFilter) throws XMLQueryException {
         delegate.addSelect(pQueryName, pXmlFilter);
-    }
-
-    public void addSubSelect(String pQueryName, File pXmlFile) throws XMLQueryException {
-        delegate.addSubSelect(pQueryName, pXmlFile);
-    }
-
-    public void addSubSelect(String pQueryName, URL pXmlFileURL) throws XMLQueryException {
-        delegate.addSubSelect(pQueryName, pXmlFileURL);
-    }
-
-    public void addSubSelect(String pQueryName, String pXmlFilter) throws XMLQueryException {
-        delegate.addSubSelect(pQueryName, pXmlFilter);
     }
 
     public void addFrom(File pXmlFile) throws XMLQueryException {
@@ -353,50 +439,62 @@ public class XMLQuery {
         delegate.addGroupBy(pXmlFilter);
     }
 
+    @Override
     public void injectQuery(File pXmlFile) throws XMLQueryException {
         delegate.injectQuery(pXmlFile);
     }
 
+    @Override
     public void injectQuery(URL pXmlFileURL) throws XMLQueryException {
         delegate.injectQuery(pXmlFileURL);
     }
 
+    @Override
     public void injectQuery(String pXmlFilter) throws XMLQueryException {
         delegate.injectQuery(pXmlFilter);
     }
 
+    @Override
     public void injectQuery(File pXmlFile, String injectionPointName) throws XMLQueryException {
         delegate.injectQuery(pXmlFile, injectionPointName);
     }
 
+    @Override
     public void injectQuery(URL pXmlFileURL, String injectionPointName) throws XMLQueryException {
         delegate.injectQuery(pXmlFileURL, injectionPointName);
     }
 
+    @Override
     public void injectQuery(String pXmlFilter, String injectionPointName) throws XMLQueryException {
         delegate.injectQuery(pXmlFilter, injectionPointName);
     }
 
+    @Override
     public void injectQuery(File pXmlFile, String pattern, String replacement) throws XMLQueryException {
         delegate.injectQuery(pXmlFile, pattern, replacement);
     }
 
+    @Override
     public void injectQuery(URL pXmlFileURL, String pattern, String replacement) throws XMLQueryException {
         delegate.injectQuery(pXmlFileURL, pattern, replacement);
     }
 
+    @Override
     public void injectQuery(String pXmlFilter, String pattern, String replacement) throws XMLQueryException {
         delegate.injectQuery(pXmlFilter, pattern, replacement);
     }
 
+    @Override
     public void injectQuery(File pXmlFile, String pattern, String replacement, String injectionPointName) throws XMLQueryException {
         delegate.injectQuery(pXmlFile, pattern, replacement, injectionPointName);
     }
 
+    @Override
     public void injectQuery(URL pXmlFileURL, String pattern, String replacement, String injectionPointName) throws XMLQueryException {
         delegate.injectQuery(pXmlFileURL, pattern, replacement, injectionPointName);
     }
 
+    @Override
     public void injectQuery(String pXmlFilter, String pattern, String replacement, String injectionPointName) throws XMLQueryException {
         delegate.injectQuery(pXmlFilter, pattern, replacement, injectionPointName);
     }
@@ -425,6 +523,7 @@ public class XMLQuery {
         return delegate.getXmlQueryAsDocuments();
     }
 
+    @Override
     public void bind(String pName, String pValue) throws XMLQueryException {
         delegate.bind(pName, pValue);
     }
@@ -433,22 +532,38 @@ public class XMLQuery {
         delegate.validate();
     }
 
+    @Override
     public void setGroup(String groupName, boolean active) {
+        if (deactivatedGroups == null) {
+            deactivatedGroups = new HashSet<>();
+        }
+        // Activer le groupe
+        if (active) {
+            deactivatedGroups.remove(groupName);
+        }
+        // Ignorer le groupe
+        else {
+            deactivatedGroups.add(groupName);
+        }
         delegate.setGroup(groupName, active);
     }
 
+    @Override
     public void setDbms(String dbms) {
         delegate.setDbms(dbms);
     }
 
+    @Override
     public String getQueryName() throws XMLQueryException {
         return delegate.getQueryName();
     }
 
+    @Override
     public int getSelectCount() throws XMLQueryException {
         return delegate.getSelectCount();
     }
 
+    @Override
     public int getSelectCountFirstLevel() throws XMLQueryException {
         return delegate.getSelectCountFirstLevel();
     }
@@ -505,5 +620,27 @@ public class XMLQuery {
         return delegate.getXmlAsString(pElement);
     }
 
+    public void bindGroupBy(String value) {
+        this.groupByParamName = value;
+    }
 
+    public void setGroupByParamName(String value) {
+        this.groupByParamName = value;
+    }
+
+    public String getGroupByParamName() {
+        return groupByParamName;
+    }
+
+    public boolean isDisabled(Element element) {
+        String groupName = getAttributeValue(element, "group", false);
+        if (StringUtils.isBlank(groupName)) return false;
+
+        boolean disabled = true;
+        StringTokenizer tokenizer = new StringTokenizer(groupName, ",");
+        while (disabled && tokenizer.hasMoreTokens()) {
+            disabled = deactivatedGroups.contains(tokenizer.nextToken());
+        }
+        return disabled;
+    }
 }

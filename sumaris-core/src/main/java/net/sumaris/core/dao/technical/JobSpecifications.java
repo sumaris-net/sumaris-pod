@@ -76,16 +76,17 @@ public interface JobSpecifications extends IEntityWithJoinSpecifications<Integer
     }
 
     default Specification<ProcessingHistory> hasJobStatus(JobStatusEnum... jobStatus) {
-        Integer[] statusIds = Arrays.stream(jobStatus)
+        if (ArrayUtils.isEmpty(jobStatus)) return null;
+        List<Integer> statusIds = Arrays.stream(jobStatus)
             .map(JobStatusEnum::getProcessingStatus)
             .filter(Objects::nonNull)
             .map(ProcessingStatusEnum::getId)
             .filter(id -> id != null && id >= 0)
-            .toArray(Integer[]::new);
-        if (ArrayUtils.isEmpty(statusIds)) return null;
+            .toList();
+        if (CollectionUtils.isEmpty(statusIds)) return null;
         return hasInnerJoinIds(
             ProcessingHistory.Fields.PROCESSING_STATUS,
-            statusIds);
+            statusIds.toArray(new Integer[0]));
     }
 
     List<JobVO> findAll(JobFilterVO filter);

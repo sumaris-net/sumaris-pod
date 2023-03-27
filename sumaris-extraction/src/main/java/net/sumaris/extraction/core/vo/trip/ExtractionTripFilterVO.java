@@ -22,8 +22,7 @@ package net.sumaris.extraction.core.vo.trip;
  * #L%
  */
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -33,6 +32,8 @@ import net.sumaris.core.vo.filter.TripFilterVO;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldNameConstants
 public class ExtractionTripFilterVO extends TripFilterVO {
 

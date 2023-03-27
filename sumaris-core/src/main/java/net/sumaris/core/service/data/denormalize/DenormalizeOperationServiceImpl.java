@@ -105,6 +105,9 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
         // Select only operation that should be update (if not force)
         operationFilter.setNeedBatchDenormalization(!baseOptions.isForce());
 
+        // DEBUG - force denormalization
+        //if (!this.production && !baseOptions.isForce()) operationFilter.setNeedBatchDenormalization(false);
+
         long operationTotal = operationService.countByFilter(operationFilter);
 
         boolean hasMoreData;

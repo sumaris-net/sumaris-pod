@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>net.sumaris</groupId>
+		<artifactId>sumaris-pod</artifactId>
+		<version>2.1.1</version>
+	</parent>
+
+	<artifactId>sumaris-xml-query</artifactId>
+	<name>SUMARiS:: XML Query</name>
+	<description>SUMARiS XMl query module</description>
+
+	<properties>
+		<!-- i18n configuration -->
+		<i18n.bundleOutputName>sumaris-xml-query-i18n</i18n.bundleOutputName>
+		<i18n.bundleCsvFile>${i18n.bundleOutputName}.csv</i18n.bundleCsvFile>
+		<config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
+
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.sumaris</groupId>
+			<artifactId>sumaris-core-shared</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- XML Query to build SQL from XML -->
+		<dependency>
+			<groupId>fr.ifremer.common</groupId>
+			<artifactId>xmlquery</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>jaxen</groupId>
+			<artifactId>jaxen</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.12.1</version>
+		</dependency>
+
+		<!-- Unit test -->
+		<dependency>
+			<groupId>net.sumaris</groupId>
+			<artifactId>sumaris-test-shared</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.dbunit</groupId>
+			<artifactId>dbunit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mattbertolini</groupId>
+			<artifactId>liquibase-slf4j</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc8</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.nuiton.i18n</groupId>
+				<artifactId>i18n-maven-plugin</artifactId>
+
+				<executions>
+					<execution>
+						<id>scan-sources</id>
+						<configuration>
+							<entries>
+								<entry>
+									<specificGoal>parserValidation</specificGoal>
+									<basedir>${maven.src.dir}/main/java/</basedir>
+									<includes>
+										<param>**/**-validation.xml</param>
+									</includes>
+								</entry>
+							</entries>
+						</configuration>
+						<goals>
+							<goal>parserJava</goal>
+							<goal>parserValidation</goal>
+							<goal>gen</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>make-bundle</id>
+						<goals>
+							<goal>bundle</goal>
+							<goal>generate-csv-bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+			</plugin>
+
+		</plugins>
+
+	</build>
+
+</project>

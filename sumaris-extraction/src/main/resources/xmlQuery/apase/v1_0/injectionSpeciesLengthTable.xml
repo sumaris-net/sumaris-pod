@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+
+  <!-- rename INDIVIDUAL_SEX by SEX-->
+  <select alias="SEX" type="text">B.SEX</select>
+  <select alias="SUB_GEAR_POSITION" type="text">SL.SUB_GEAR_POSITION</select>
+  <select alias="SUB_GEAR_IDENTIFIER" type="number">SL.SUB_GEAR_IDENTIFIER</select>
+
+  <!-- reinsert last RDB fields, but after SEX -->
+  <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
+  <select alias="NUMBER_AT_LENGTH" type="number" group="pmfms,agg">SUM(B.INDIVIDUAL_COUNT) / COUNT(DISTINCT SM.ID)</select>
+
+  <select alias="MEASURE_TYPE" type="text">B.PARAMETER_NAME</select>
+
+  <select alias="ELEVATE_NUMBER_AT_LENGTH" type="number" group="numberAtLength,agg">SUM(DENORMALIZED_B.ELEVATE_INDIVIDUAL_COUNT)</select>
+  <select alias="ELEVATE_NUMBER_AT_LENGTH" type="number" group="pmfms,agg">SUM(DENORMALIZED_B.ELEVATE_INDIVIDUAL_COUNT) / COUNT(DISTINCT SM.ID)</select>
+
+  <!-- Need by sumaris-app report -->
+  <select alias="TAXON_GROUP_ID" type="number">SL.TAXON_GROUP_ID</select>
+  <select alias="REFERENCE_TAXON_ID" type="number" group="taxon">B.REFERENCE_TAXON_ID</select>
+
+  <from join="true">INNER JOIN DENORMALIZED_BATCH DENORMALIZED_B ON DENORMALIZED_B.ID = B.ID</from>
+  <from join="true" group="pmfms">INNER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = B.ID</from>
+  <from join="true" group="pmfms">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID = SM.QUALITATIVE_VALUE_FK</from>
+
+</query>

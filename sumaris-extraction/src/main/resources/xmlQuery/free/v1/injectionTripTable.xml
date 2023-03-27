@@ -24,6 +24,7 @@
 
   <select alias="HARBOUR_NAME" type="text">L.NAME</select>
 
+  <!-- this column exists in original query, but is hidden -->
   <select alias="DEPARTURE_DATE_TIME" type="date">T.DEPARTURE_DATE_TIME</select>
 
 </query>

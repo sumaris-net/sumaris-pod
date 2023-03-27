@@ -26,17 +26,21 @@ package net.sumaris.extraction.cli.action;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.cli.action.ActionUtils;
+import net.sumaris.core.util.Dates;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.exception.UnknownFormatException;
 import net.sumaris.extraction.core.service.*;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +56,7 @@ public class ExtractionExecuteAction {
     public void run() {
         ExtractionConfiguration config = ExtractionConfiguration.instance();
         ExtractionTypeService extractionTypeService = ExtractionServiceLocator.extractionTypeService();
-        ExtractionService service = ExtractionServiceLocator.extractionManager();
+        ExtractionService service = ExtractionServiceLocator.extractionService();
 
         String format = config.getExtractionCliOutputFormat();
         IExtractionType type;
@@ -70,6 +74,7 @@ public class ExtractionExecuteAction {
             return;
         }
 
+
         log.info("Starting {} extraction...",
                 StringUtils.capitalize(type.getFormat().toLowerCase()));
 
@@ -80,8 +85,24 @@ public class ExtractionExecuteAction {
         long startTime = System.currentTimeMillis();
         File tempFile;
         try {
-            tempFile = service.executeAndDump(type, null, null);
-            if (!tempFile.exists()) {
+            boolean isLiveTrips = ExtractionTypes.isLive(type) && ExtractionTypes.isOnTrips(type);
+            if (isLiveTrips) {
+                LiveExtractionTypeEnum liveFormat = LiveExtractionTypeEnum.valueOf(type.getFormat());
+                ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+                filter.setProgramLabel(config.getCliFilterProgramLabel());
+                filter.setIncludedIds(config.getCliFilterTripIds().toArray(Integer[]::new));
+                filter.setOperationIds(config.getCliFilterOperationIds().toArray(Integer[]::new));
+                Integer year = config.getCliFilterYear();
+                if (year != null && year > 1970) {
+                    filter.setStartDate(Dates.getFirstDayOfYear(year));
+                    filter.setEndDate(Dates.getLastSecondOfYear(year));
+                }
+                tempFile = service.executeAndDumpTrips(liveFormat, filter);
+            }
+            else {
+                tempFile = service.executeAndDump(type, null, null);
+            }
+            if (tempFile != null && !tempFile.exists()) {
                 log.error("No data");
                 return;
             }

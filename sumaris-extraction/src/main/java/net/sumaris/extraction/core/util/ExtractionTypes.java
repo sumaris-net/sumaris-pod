@@ -24,17 +24,14 @@ package net.sumaris.extraction.core.util;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
-import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.extraction.core.specification.data.trip.AggSpecification;
-import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
-import net.sumaris.extraction.core.vo.ExtractionContextVO;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import org.apache.commons.collections4.CollectionUtils;
+import net.sumaris.extraction.core.specification.data.trip.Free2Specification;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -123,5 +120,10 @@ public class ExtractionTypes {
             return findOneMatch(AggExtractionTypeEnum.values(), source);
         }
         return findOneMatch(LiveExtractionTypeEnum.values(), source);
+    }
+
+    public static boolean isOnTrips(@NonNull IExtractionType source) {
+        return Beans.getStream(source.getSheetNames()).anyMatch(sheetName -> RdbSpecification.TR_SHEET_NAME.equalsIgnoreCase(sheetName)
+        || Free2Specification.TRIP_SHEET_NAME.equalsIgnoreCase(sheetName));
     }
 }

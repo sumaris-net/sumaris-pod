@@ -149,7 +149,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
             // Check options
             Preconditions.checkNotNull(options.getDateTime(), "Required options.dateTime when RTP weight enabled");
-            Preconditions.checkNotNull(options.getRoundWeightCountryLocationId(), "Required options.roundWeightCountryLocationId when RTP weight enabled");
+            Preconditions.checkNotNull(options.getAliveWeightCountryLocationId(), "Required options.roundWeightCountryLocationId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultLandingDressingId(), "Required options.defaultLandingDressingId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultDiscardDressingId(), "Required options.defaultDiscardDressingId when RTP weight enabled");
             Preconditions.checkNotNull(options.getDefaultLandingPreservationId(), "Required options.defaultLandingPreservationId when RTP weight enabled");
@@ -163,104 +163,19 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         List<DenormalizedBatchVO> result = TreeNodeEntities.<BatchVO, DenormalizedBatchVO>streamAllAndMap(catchBatch, (source, p) -> {
                 TempDenormalizedBatchVO target = createTempVO(source);
                 TempDenormalizedBatchVO parent = p != null ? (TempDenormalizedBatchVO)p : null;
-                boolean isLeaf = source.isLeaf(); // Do not use 'target', because children are added later
+                boolean isLeaf = parent != null && source.isLeaf(); // Do not use 'target', because children are added later
 
                 // Add to parent's children
                 if (parent != null) parent.addChildren(target);
 
-                // Depth level
-                if (parent == null) {
-                    target.setTreeLevel((short) 1); // First level
-                    if (target.getIsLanding() == null) target.setIsLanding(false);
-                    if (target.getIsDiscard() == null) target.setIsDiscard(false);
-                } else {
-                    target.setTreeLevel((short) (parent.getTreeLevel() + 1));
-                    // Inherit taxon group
-                    if (target.getInheritedTaxonGroup() == null && parent.getInheritedTaxonGroup() != null) {
-                        target.setInheritedTaxonGroup(parent.getInheritedTaxonGroup());
-                    }
-                    // Inherit taxon name
-                    if (target.getInheritedTaxonName() == null && parent.getInheritedTaxonName() != null) {
-                        target.setInheritedTaxonName(parent.getInheritedTaxonName());
-                    }
-                    // Exhaustive inventory
-                    if (target.getExhaustiveInventory() == null) {
-                        // Always true, when:
-                        // - taxon name is defined
-                        // - taxon group is defined and taxon Name disable (in options)
-                        if (target.getInheritedTaxonName() != null) {
-                            target.setExhaustiveInventory(Boolean.TRUE);
-                        } else if (target.getInheritedTaxonGroup() != null && !options.isEnableTaxonName()) {
-                            target.setExhaustiveInventory(Boolean.TRUE);
-                        } else if (parent.getExhaustiveInventory() != null) {
-                            target.setExhaustiveInventory(parent.getExhaustiveInventory());
-                        }
-                    }
-                    // Inherit location
-                    if (parent.getLocationId() != null) {
-                        target.setLocationId(parent.getLocationId());
-                    }
-                    // Inherit landing / discard
-                    if (target.getIsLanding() == null) {
-                        target.setIsLanding(parent.getIsLanding());
-                    }
-                    if (target.getIsDiscard() == null) {
-                        target.setIsDiscard(parent.getIsDiscard());
-                    }
+                // Copy parent's values
+                computeInheritedValues(target, parent, options);
 
-                    // Inherit quality flag
-                    if (parent.getQualityFlagId() != null) {
-                        if (target.getQualityFlagId() == null) {
-                            target.setQualityFlagId(parent.getQualityFlagId());
-                        }
-                        // Keep the worst value, if current has a value
-                        else {
-                            target.setQualityFlagId(QualityFlags.worst(parent.getQualityFlagId(), target.getQualityFlagId()));
-                        }
-                    }
-
-                    // If current quality is invalid
-                    if (QualityFlags.isInvalid(target.getQualityFlagId())) {
-                        // Force both parent and current parent exhaustive inventory to FALSE
-                        // NOTE Allegro:
-                        //   mantis Allegro #12951 - remontée des poids selon le niveau de qualité
-                        //   Si un des lots fils (direct ou indirect) est invalide
-                        //   (c'est à dire si le code du niveau de qualité appartient à la liste des niveaux invalides)
-                        //   alors il faut considérer que l'inventaire exhaustif est non.
-                        //   Le but est de stopper la remontée des poids calculés
-                        //   s'il y a au moins un lot invalide parmi les fils, isExhaustive = false
-                        parent.setExhaustiveInventory(Boolean.FALSE);
-                        target.setExhaustiveInventory(Boolean.FALSE);
-                    }
-
-                    // Inherit sorting values
-                    Beans.getStream(parent.getSortingValues())
-                        .forEach(svSource -> {
-                            // Make sure sorting value not already exists
-                            Beans.getStream(target.getSortingValues())
-                                .filter(svTarget -> Objects.equals(svTarget.getPmfmId(), svSource.getPmfmId()))
-                                .findFirst()
-                                .ifPresentOrElse(svTarget -> {
-                                    Beans.copyProperties(svSource, svTarget, IEntity.Fields.ID);
-                                    svTarget.setIsInherited(true);
-                                    svTarget.setRankOrder(svSource.getRankOrder() / 10);
-                                },
-                                () -> {
-                                    DenormalizedBatchSortingValueVO svTarget = new DenormalizedBatchSortingValueVO();
-                                    Beans.copyProperties(svSource, svTarget, IEntity.Fields.ID);
-                                    svTarget.setIsInherited(true);
-                                    svTarget.setRankOrder(svSource.getRankOrder() / 10);
-                                    target.addSortingValue(svTarget);
-                                });
-                        });
-
-                    // Compute Alive weight, on leaf batch
-                    // (to be able to compute indirect alive weight later)
-                    if (isLeaf) {
-                        computeAliveWeightFactor(target, options, true)
-                            .ifPresent(target::setAliveWeightFactor);
-                    }
-
+                // Compute Alive weight, on leaf batch
+                // (to be able to compute indirect alive weight later)
+                if (isLeaf) {
+                    computeAliveWeightFactor(target, options, true)
+                        .ifPresent(target::setAliveWeightFactor);
                 }
 
                 return target;
@@ -427,8 +342,100 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             .enableTaxonName(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_NAME_ENABLE))
             .enableTaxonGroup(Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUP_ENABLE))
             .enableRtpWeight(canEnableRtpWeight && Programs.getPropertyAsBoolean(program, ProgramPropertyEnum.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE))
-            .roundWeightCountryLocationId(roundWeightConversionCountryId)
+            .aliveWeightCountryLocationId(roundWeightConversionCountryId)
             .build();
+    }
+
+    protected void computeInheritedValues(TempDenormalizedBatchVO target,
+                                          TempDenormalizedBatchVO parent,
+                                          DenormalizedBatchOptions options) {
+        // Special case for catch batch
+        if (parent == null) {
+            target.setTreeLevel((short) 1); // First level
+            if (target.getIsLanding() == null) target.setIsLanding(false);
+            if (target.getIsDiscard() == null) target.setIsDiscard(false);
+            return;
+        }
+
+        target.setTreeLevel((short) (parent.getTreeLevel() + 1));
+        // Inherit taxon group
+        if (target.getInheritedTaxonGroup() == null && parent.getInheritedTaxonGroup() != null) {
+            target.setInheritedTaxonGroup(parent.getInheritedTaxonGroup());
+        }
+        // Inherit taxon name
+        if (target.getInheritedTaxonName() == null && parent.getInheritedTaxonName() != null) {
+            target.setInheritedTaxonName(parent.getInheritedTaxonName());
+        }
+        // Exhaustive inventory
+        if (target.getExhaustiveInventory() == null) {
+            // Always true, when:
+            // - taxon name is defined
+            // - taxon group is defined and taxon Name disable (in options)
+            if (target.getInheritedTaxonName() != null) {
+                target.setExhaustiveInventory(Boolean.TRUE);
+            } else if (target.getInheritedTaxonGroup() != null && !options.isEnableTaxonName()) {
+                target.setExhaustiveInventory(Boolean.TRUE);
+            } else if (parent.getExhaustiveInventory() != null) {
+                target.setExhaustiveInventory(parent.getExhaustiveInventory());
+            }
+        }
+        // Inherit location
+        if (parent.getLocationId() != null) {
+            target.setLocationId(parent.getLocationId());
+        }
+        // Inherit landing / discard
+        if (target.getIsLanding() == null) {
+            target.setIsLanding(parent.getIsLanding());
+        }
+        if (target.getIsDiscard() == null) {
+            target.setIsDiscard(parent.getIsDiscard());
+        }
+
+        // Inherit quality flag
+        if (parent.getQualityFlagId() != null) {
+            if (target.getQualityFlagId() == null) {
+                target.setQualityFlagId(parent.getQualityFlagId());
+            }
+            // Keep the worst value, if current has a value
+            else {
+                target.setQualityFlagId(QualityFlags.worst(parent.getQualityFlagId(), target.getQualityFlagId()));
+            }
+        }
+
+        // If current quality is invalid
+        if (QualityFlags.isInvalid(target.getQualityFlagId())) {
+            // Force both parent and current parent exhaustive inventory to FALSE
+            // NOTE Allegro:
+            //   mantis Allegro #12951 - remontée des poids selon le niveau de qualité
+            //   Si un des lots fils (direct ou indirect) est invalide
+            //   (c'est à dire si le code du niveau de qualité appartient à la liste des niveaux invalides)
+            //   alors il faut considérer que l'inventaire exhaustif est non.
+            //   Le but est de stopper la remontée des poids calculés
+            //   s'il y a au moins un lot invalide parmi les fils, isExhaustive = false
+            parent.setExhaustiveInventory(Boolean.FALSE);
+            target.setExhaustiveInventory(Boolean.FALSE);
+        }
+
+        // Inherit sorting values
+        Beans.getStream(parent.getSortingValues())
+            .forEach(svSource -> {
+                // Make sure sorting value not already exists
+                Beans.getStream(target.getSortingValues())
+                    .filter(svTarget -> Objects.equals(svTarget.getPmfmId(), svSource.getPmfmId()))
+                    .findFirst()
+                    .ifPresentOrElse(svTarget -> {
+                            Beans.copyProperties(svSource, svTarget, IEntity.Fields.ID);
+                            svTarget.setIsInherited(true);
+                            svTarget.setRankOrder(svSource.getRankOrder() / 10);
+                        },
+                        () -> {
+                            DenormalizedBatchSortingValueVO svTarget = new DenormalizedBatchSortingValueVO();
+                            Beans.copyProperties(svSource, svTarget, IEntity.Fields.ID);
+                            svTarget.setIsInherited(true);
+                            svTarget.setRankOrder(svSource.getRankOrder() / 10);
+                            target.addSortingValue(svTarget);
+                        });
+            });
     }
 
     protected void computeRtpWeights(List<DenormalizedBatchVO> batches, DenormalizedBatchOptions options) {
@@ -492,6 +499,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
         MutableInt changesCount = new MutableInt(0);
         MutableInt loopCounter = new MutableInt(0);
+        int maxLoop = 1; // TODO check this
         do {
             changesCount.setValue(0);
             loopCounter.increment();
@@ -521,15 +529,19 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 batch.setIndirectIndividualCountDecimal(indirectIndividualCount);
 
                 // Compute alive weight factor
-                if (batch.isLeaf()) {
-                    Double aliveWeightFactor = computeAliveWeightFactor(batch, options, batch.isLeaf()).orElse(null);
-                    changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
-                    batch.setAliveWeightFactor(aliveWeightFactor);
+                if (options.isEnableAliveWeight() && options.getAliveWeightCountryLocationId() != null) {
+                    if (batch.isLeaf()) {
+                        Double aliveWeightFactor = computeAliveWeightFactor(batch, options, batch.isLeaf()).orElse(null);
+                        changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
+                        batch.setAliveWeightFactor(aliveWeightFactor);
+                    } else {
+                        Double aliveWeightFactor = computeIndirectAliveWeightFactor(batch, options);
+                        changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
+                        batch.setAliveWeightFactor(aliveWeightFactor);
+                    }
                 }
                 else {
-                    Double aliveWeightFactor = computeIndirectAliveWeightFactor(batch, options);
-                    changed = changed || !Objects.equals(aliveWeightFactor, batch.getAliveWeightFactor());
-                    batch.setAliveWeightFactor(aliveWeightFactor);
+                    batch.setAliveWeightFactor(1d);
                 }
 
                 if (changed) changesCount.increment();
@@ -539,7 +551,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         }
 
         // Continue while changes has been applied on tree
-        while (changesCount.intValue() > 0);
+        while (changesCount.intValue() > 0 && loopCounter.intValue() < maxLoop);
     }
 
     /**
@@ -592,6 +604,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
     protected void computeElevatedValues(List<DenormalizedBatchVO> batches, DenormalizedBatchOptions options) {
         MutableInt changesCount = new MutableInt(0);
         MutableInt loopCounter = new MutableInt(0);
+        int maxLoop = 1; // TODO check this
 
         do {
             changesCount.setValue(0);
@@ -702,7 +715,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 });
 
             log.trace("Computing elevated values (pass #{}) [OK] - {} changes", loopCounter, changesCount);
-        } while (changesCount.intValue() > 0);
+        } while (changesCount.intValue() > 0 && loopCounter.intValue() < maxLoop);
     }
 
     protected void computeIndirectElevatedValues(List<DenormalizedBatchVO> batches, DenormalizedBatchOptions options) {
@@ -715,6 +728,8 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
         MutableInt changesCount = new MutableInt(0);
         MutableInt loopCounter = new MutableInt(0);
+        int maxLoop = 1; // TODO check this value
+
         do {
             changesCount.setValue(0);
             loopCounter.increment();
@@ -761,7 +776,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             });
 
             log.trace("Computing indirect elevated values (pass #{}) [OK] - {} changes", loopCounter, changesCount);
-        } while (changesCount.intValue() > 0);
+        } while (changesCount.intValue() > 0 && loopCounter.intValue() < maxLoop);
     }
 
     protected Optional<Double> computeRtpContextWeight(TempDenormalizedBatchVO batch, DenormalizedBatchOptions options) {
@@ -1289,7 +1304,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             .taxonGroupIds(new Integer[]{taxonGroupId})
             .dressingIds(new Integer[]{dressingId})
             .preservingIds(new Integer[]{preservationId})
-            .locationIds(new Integer[]{options.getRoundWeightCountryLocationId()})
+            .locationIds(new Integer[]{options.getAliveWeightCountryLocationId()})
             .date(options.getDay())
             .build());
 
@@ -1298,7 +1313,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 taxonGroupId,
                 dressingId,
                 preservationId,
-                options.getRoundWeightCountryLocationId());
+                options.getAliveWeightCountryLocationId());
         }
 
 

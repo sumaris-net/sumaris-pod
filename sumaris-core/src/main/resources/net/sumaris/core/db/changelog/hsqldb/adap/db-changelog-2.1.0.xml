@@ -67,20 +67,5 @@
         ]]></sql>
     </changeSet>
 
-    <!-- Fix BATCH having bad quality_flag, because of sumaris-app issue #407 -->
-<!--    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-402" runOnChange="true">-->
-<!--        <preConditions onFail="MARK_RAN">-->
-<!--            <and>-->
-<!--                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>-->
-<!--                <not>-->
-<!--                    <sqlCheck expectedResult="0">select count(*) from batch where quality_flag_fk = 4-->
-<!--                    </sqlCheck>-->
-<!--                </not>-->
-<!--            </and>-->
-<!--        </preConditions>-->
-<!--        <sql endDelimiter=";" stripComments="true"><![CDATA[-->
-<!--            -->
-<!--            ]]></sql>-->
-<!--    </changeSet>-->
 
 </databaseChangeLog>

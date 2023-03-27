@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  SUMARiS:: XML Query
+  %%
+  Copyright (C) 2018 - 2023 SUMARiS Consortium
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+
+    <!ELEMENT link EMPTY>
+    <!ATTLIST link
+        action CDATA #REQUIRED
+        param CDATA #REQUIRED
+        >
+    <!ELEMENT injection EMPTY>
+    <!ATTLIST injection
+        name CDATA #REQUIRED
+        type CDATA #IMPLIED
+				group CDATA #IMPLIED
+        >
+    <!ELEMENT queries (params_sql?, query+)>
+    <!ATTLIST queries
+        name CDATA #REQUIRED
+        >
+    <!ELEMENT query (with*, (select | injection)*, nested_select*, set*, from*, where*, union*, complement*, groupby*, orderby*)>
+    <!ATTLIST query
+        name CDATA #IMPLIED
+        option CDATA #IMPLIED
+        type CDATA #IMPLIED
+        table CDATA #IMPLIED
+        temp CDATA #IMPLIED
+        >
+    <!ELEMENT with (subquery+)>
+    <!ATTLIST with
+        alias CDATA #REQUIRED
+        tooltip CDATA #IMPLIED
+        align (left | right | center) #IMPLIED
+        width CDATA #IMPLIED
+        group CDATA #IMPLIED
+        >
+    <!ELEMENT select (#PCDATA | link)*>
+    <!ATTLIST select
+        alias CDATA #IMPLIED
+        type (text | hidden | number | date) #IMPLIED
+        tooltip CDATA #IMPLIED
+        align (left | right | center) #IMPLIED
+        width CDATA #IMPLIED
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT nested_select (query)>
+    <!ATTLIST nested_select
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+		<!ELEMENT set (#PCDATA | link)*>
+		<!ATTLIST set
+			name CDATA #REQUIRED
+			alias CDATA #IMPLIED
+			type (text | hidden | number | date) #IMPLIED
+			tooltip CDATA #IMPLIED
+			align (left | right | center) #IMPLIED
+			width CDATA #IMPLIED
+			group CDATA #IMPLIED
+			dbms CDATA #IMPLIED
+			>
+    <!ELEMENT from (#PCDATA | subquery)*>
+    <!ATTLIST from
+        alias CDATA #IMPLIED
+        join CDATA #IMPLIED
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT subquery (select+, from+, where*, union*, complement*, groupby*, orderby*)>
+    <!ATTLIST subquery
+        name CDATA #IMPLIED
+        option CDATA #IMPLIED
+        >
+    <!ELEMENT union (subquery)>
+    <!ATTLIST union
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        all CDATA #IMPLIED
+        >
+    <!ELEMENT in (#PCDATA | subquery)*>
+    <!ATTLIST in
+        field CDATA #REQUIRED
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT notin (#PCDATA | subquery)*>
+    <!ATTLIST notin
+        field CDATA #REQUIRED
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT where (#PCDATA | in | notin | where)*>
+    <!ATTLIST where
+        operator (AND | OR) #IMPLIED
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT orderby (#PCDATA)>
+    <!ATTLIST orderby
+        direction (ASC | DESC) #IMPLIED
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT complement (#PCDATA)>
+    <!ATTLIST complement
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT groupby (#PCDATA)>
+    <!ATTLIST groupby
+        group CDATA #IMPLIED
+        dbms CDATA #IMPLIED
+        >
+    <!ELEMENT params_sql (param_sql*)>
+    <!ELEMENT param_sql (#PCDATA)>
+    <!ATTLIST param_sql
+        name CDATA #REQUIRED
+        >
+    <!ELEMENT indexes (index+)>
+    <!ATTLIST indexes
+        name CDATA #REQUIRED
+        >
+    <!ELEMENT index (#PCDATA)>
+    <!ATTLIST index
+        type CDATA #REQUIRED
+        name CDATA #REQUIRED
+        table CDATA #IMPLIED
+        field CDATA #IMPLIED
+        >

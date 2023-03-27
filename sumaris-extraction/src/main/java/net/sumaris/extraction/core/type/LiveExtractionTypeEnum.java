@@ -48,7 +48,8 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
     FREE2 (Free2Specification.FORMAT, Free2Specification.SHEET_NAMES, Free2Specification.VERSION_1_9),
     SURVIVAL_TEST (SurvivalTestSpecification.FORMAT, SurvivalTestSpecification.SHEET_NAMES, SurvivalTestSpecification.VERSION_1_0),
     PMFM_TRIP(PmfmTripSpecification.FORMAT, PmfmTripSpecification.SHEET_NAMES, PmfmTripSpecification.VERSION_1_0),
-    RJB_TRIP(RjbTripSpecification.FORMAT, RjbTripSpecification.SHEET_NAMES, RjbTripSpecification.VERSION_1_0)
+    RJB_TRIP(RjbTripSpecification.FORMAT, RjbTripSpecification.SHEET_NAMES, RjbTripSpecification.VERSION_1_0),
+    APASE(ApaseSpecification.FORMAT, ApaseSpecification.SHEET_NAMES, ApaseSpecification.VERSION_1_0)
     ;
 
     private Integer id;
