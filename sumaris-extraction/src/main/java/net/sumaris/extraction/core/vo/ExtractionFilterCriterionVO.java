@@ -23,15 +23,13 @@ package net.sumaris.extraction.core.vo;
  */
 
 import com.google.common.base.Joiner;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class ExtractionFilterCriterionVO {
 
     private String sheetName;

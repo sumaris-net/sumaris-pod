@@ -212,7 +212,7 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
 
         xmlQuery.bind("gearSpeedPmfmIds", String.valueOf(PmfmEnum.GEAR_SPEED.getId()));
 
-        xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
+        xmlQuery.bind("selectionDevicePmfmIds", Daos.getSqlInNumbers(getSelectivityDevicePmfmIds()));
         xmlQuery.bind("acousticDeterrentDevicePmfmId", String.valueOf(PmfmEnum.ACOUSTIC_DETERRENT_DEVICE.getId()));
 
         return xmlQuery;

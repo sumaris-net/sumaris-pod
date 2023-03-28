@@ -38,6 +38,7 @@ import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
+import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
@@ -365,14 +366,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
         xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
         xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
-        xmlQuery.bind("selectionDevicePmfmId", String.valueOf(PmfmEnum.SELECTIVITY_DEVICE.getId()));
+        xmlQuery.bind("selectionDevicePmfmIds", Daos.getSqlInNumbers(getSelectivityDevicePmfmIds()));
         xmlQuery.bind("tripProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
+        xmlQuery.bind("nationalTaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.NATIONAL.getId()));
+        xmlQuery.bind("ueLevel5TaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.DCF_METIER_LVL_5.getId()));
 
         xmlQuery.setGroup("gearType", true);
         xmlQuery.setGroup("date", true);
         xmlQuery.setGroup("time", true);
         xmlQuery.setGroup("fishingTime", true);
-        xmlQuery.setGroup("agg", true);
 
         // Compute groupBy (exclude columns with the 'agg' group)
         Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
@@ -606,6 +608,14 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             PmfmEnum.SIZE_CATEGORY.getId(),
             PmfmEnum.SIZE_UNLI_CAT.getId()
         );
+    }
+
+    protected List<Integer> getSelectivityDevicePmfmIds() {
+        return ImmutableList.<Integer>builder()
+            .add(
+                PmfmEnum.SELECTIVITY_DEVICE.getId()
+            )
+            .build();
     }
 
     /**

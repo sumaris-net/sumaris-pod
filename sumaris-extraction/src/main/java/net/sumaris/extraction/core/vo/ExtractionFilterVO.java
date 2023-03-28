@@ -35,7 +35,7 @@ import java.util.Set;
 
 @Data
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(force = true)
 @AllArgsConstructor
 @FieldNameConstants
 @EqualsAndHashCode
@@ -55,6 +55,8 @@ public class ExtractionFilterVO implements Serializable {
     private List<ExtractionFilterCriterionVO> criteria;
 
     private String sheetName;
+
+    private Set<String> sheetNames;
 
     @Builder.Default
     private Boolean preview = false;
@@ -87,4 +89,17 @@ public class ExtractionFilterVO implements Serializable {
             && MapUtils.isEmpty(meta);
     }
 
+    public ExtractionFilterVO clone() {
+        return ExtractionFilterVO.builder()
+            .operator(this.operator)
+            .criteria(this.criteria)
+            .sheetName(this.sheetName)
+            .sheetNames(this.sheetNames)
+            .preview(this.preview)
+            .distinct(this.distinct)
+            .includeColumnNames(this.includeColumnNames)
+            .excludeColumnNames(this.excludeColumnNames)
+            .meta(this.meta)
+            .build();
+    }
 }

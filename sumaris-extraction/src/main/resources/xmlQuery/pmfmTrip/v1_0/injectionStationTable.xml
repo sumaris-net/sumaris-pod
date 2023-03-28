@@ -29,7 +29,8 @@
   <from join="true" group="allowParent">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM2 ON VUM2.OPERATION_FK = O2.ID</from>
   <from join="true" group="allowParent">LEFT OUTER JOIN QUALITATIVE_VALUE QV2 on QV2.ID = VUM2.QUALITATIVE_VALUE_FK</from>
 
-  <where operator="AND">O.QUALITY_FLAG_FK != 8</where>
+  <!-- Skip not completed parent operation -->
+  <where operator="AND" group="allowParent">O.QUALITY_FLAG_FK != 8</where>
 
   <!-- Already exists in the parent query
     <groupby>&amp;groupByColumns</groupby>-->

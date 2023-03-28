@@ -270,6 +270,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         switch (queryName) {
             case "createGearTable":
             case "createCatchTable":
+            case "injectionStationTable":
             case "createRawSpeciesListDenormalizeTable":
             case "injectionRawSpeciesListPmfm":
             case "injectionPhysicalGearPmfm":
@@ -307,5 +308,15 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         return ImmutableList.of(
             PmfmEnum.TRAWL_SIZE_CAT.getId()
         );
+    }
+
+    @Override
+    protected List<Integer> getSelectivityDevicePmfmIds() {
+        return ImmutableList.<Integer>builder()
+            .add(
+                PmfmEnum.SELECTIVITY_DEVICE.getId(),
+                PmfmEnum.SELECTIVITY_DEVICE_APASE.getId()
+            )
+            .build();
     }
 }
