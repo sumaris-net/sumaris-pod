@@ -209,18 +209,17 @@ public class UserEventGraphQLService {
         // Read type
         EventTypeEnum type = event.getType();
 
+        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+        Preconditions.checkNotNull(user);
+
+        if (event.getIssuer() == null) {
+            event.setIssuer(user.getPubkey());
+        }
+
         // Is user is NOT an admin
         if (!authService.isAdmin()) {
-            PersonVO user = authService.getAuthenticatedUser().orElse(null);
-            Preconditions.checkNotNull(user);
-
             // Check issuer = himself
-            if (event.getIssuer() == null) {
-                event.setIssuer(user.getPubkey());
-            }
-            else {
-                Preconditions.checkArgument(Objects.equals(user.getPubkey(), event.getIssuer()));
-            }
+            Preconditions.checkArgument(Objects.equals(user.getPubkey(), event.getIssuer()));
 
             // Check event type = DEBUG_DATA or INBOX_MESSAGE
             Preconditions.checkArgument (type == EventTypeEnum.DEBUG_DATA || type == EventTypeEnum.INBOX_MESSAGE,
