@@ -466,6 +466,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
 
+        // Scientific name by default
+        boolean enableScientificName = this.enableSpeciesScientificName(context);
+        xmlQuery.setGroup("scientificSpeciesName", enableScientificName);
+        xmlQuery.setGroup("commonSpeciesName", !enableScientificName);
+
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
 
@@ -763,6 +768,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             log.error("Error while updating TR 'sampling_method' column: " + e.getMessage(), e);
             // Continue
         }
+    }
+
+    protected boolean enableSpeciesScientificName(C context) {
+        // Can be override by subclasses
+        return true;
     }
 
     protected boolean enableSpeciesLengthTaxon(C context) {

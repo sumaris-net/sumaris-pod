@@ -168,6 +168,11 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     /* -- protected methods -- */
 
     @Override
+    protected boolean enableSpeciesScientificName(C context) {
+        return false; // Use common name
+    }
+
+    @Override
     protected boolean isSamplesEnabled(C context) {
         return false;
     }
