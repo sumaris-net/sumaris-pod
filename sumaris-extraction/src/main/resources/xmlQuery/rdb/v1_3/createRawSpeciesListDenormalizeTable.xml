@@ -38,8 +38,7 @@
     <!--    <select alias="SAMPLING_RATIO" type="text">SPECIE_B.SAMPLING_RATIO</select>-->
 
     <!-- PK (new fields) -->
-    <select alias="SPECIES" type="text" group="scientificSpeciesName">COALESCE(TN.COMMENTS, TN.NAME, TG.COMMENTS, TG.NAME)</select>
-    <select alias="SPECIES" type="text" group="commonSpeciesName">COALESCE(TN.NAME, TN.COMMENTS, TG.NAME, TG.COMMENTS, )</select>
+    <select alias="SPECIES" type="text">COALESCE(TN.COMMENTS, TN.NAME, TG.COMMENTS, TG.NAME)</select>
 
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
     <select alias="CATCH_CATEGORY" type="text" group="agg">
