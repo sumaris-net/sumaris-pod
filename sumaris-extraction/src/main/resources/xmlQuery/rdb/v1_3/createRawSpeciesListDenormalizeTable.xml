@@ -39,6 +39,7 @@
 
     <!-- PK (new fields) -->
     <select alias="SPECIES" type="text">COALESCE(TN.COMMENTS, TN.NAME, TG.COMMENTS, TG.NAME)</select>
+
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
     <select alias="CATCH_CATEGORY" type="text" group="agg">
       MAX(CASE SM.PMFM_FK WHEN &amp;catchCategoryPmfmId THEN QV.LABEL ELSE NULL END)
