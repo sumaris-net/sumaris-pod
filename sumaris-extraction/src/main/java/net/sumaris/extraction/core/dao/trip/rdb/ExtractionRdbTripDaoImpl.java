@@ -410,7 +410,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                     .programLabel(programLabel)
                     .includedIds(pageOperationIds)
                     .hasNoChildOperation(true)
-                    .needBatchDenormalization(true)
+                    .needBatchDenormalization(!options.isForce())
                     .build(), options);
             }
         });
@@ -582,6 +582,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             PmfmEnum.LENGTH_TOTAL_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
+            PmfmEnum.LENGTH_MANTLE_CM.getId(),
             PmfmEnum.SEGMENT_LENGTH_MM.getId()
         );
     }
