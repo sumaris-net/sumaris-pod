@@ -1,6 +1,5 @@
 package net.sumaris.core.dao.technical.device;
 
-import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.DataEntities;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
@@ -9,9 +8,8 @@ import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.technical.device.DevicePosition;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.technical.device.DevicePositionFetchOptions;
+import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
 
@@ -20,11 +18,8 @@ import javax.persistence.EntityManager;
 import java.util.Date;
 
 public class DevicePositionRepositoryImpl
-        extends DataRepositoryImpl<DevicePosition, DevicePositionVO, DevicePositionFilterVO, DevicePositionFetchOptions>
+        extends DataRepositoryImpl<DevicePosition, DevicePositionVO, DevicePositionFilterVO, DataFetchOptions>
         implements DevicePositionSpecifications {
-
-    @Resource
-    private DepartmentRepository departmentRepository;
 
     @Resource
     private PersonRepository personRepository;
@@ -68,8 +63,11 @@ public class DevicePositionRepositoryImpl
     }
 
     @Override
-    public void toVO(DevicePosition source, DevicePositionVO target, boolean copyIfNull) {
-        super.toVO(source, target, copyIfNull);
+    public void toVO(DevicePosition source,
+                     DevicePositionVO target,
+                     DataFetchOptions fetchOptions,
+                     boolean copyIfNull) {
+        super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Object type
         if (copyIfNull || source.getObjectType() != null) {
@@ -83,24 +81,10 @@ public class DevicePositionRepositoryImpl
             }
         }
 
-        // Recorder department
-        if (copyIfNull || source.getRecorderDepartment() != null) {
-            if (source.getRecorderDepartment() == null) {
-                target.setRecorderDepartment(null);
-            } else {
-                DepartmentVO departmentVO = departmentRepository.toVO(source.getRecorderDepartment());
-                target.setRecorderDepartment(departmentVO);
-            }
-        }
-
         // Recorder person
-        if (copyIfNull || source.getRecorderPerson() != null) {
-            if (source.getRecorderPerson() == null) {
-                target.setRecorderPerson(null);
-            } else {
-                PersonVO personVO = personRepository.toVO(source.getRecorderPerson());
-                target.setRecorderPerson(personVO);
-            }
+        if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {
+            PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson(), PERSON_FETCH_OPTIONS);
+            target.setRecorderPerson(recorderPerson);
         }
 
     }
