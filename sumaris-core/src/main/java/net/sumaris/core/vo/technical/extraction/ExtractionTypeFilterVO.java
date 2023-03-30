@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 public class ExtractionTypeFilterVO implements IReferentialFilter {
 
     public static ExtractionTypeFilterVO nullToEmpty(ExtractionTypeFilterVO filter) {
-        return filter != null ? filter : ExtractionTypeFilterVO.builder().build();
+        return filter != null ? filter : new ExtractionTypeFilterVO();
     }
 
     public static Predicate<IExtractionType> toPredicate(@NonNull ExtractionTypeFilterVO filter) {

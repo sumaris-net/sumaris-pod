@@ -37,10 +37,10 @@ public class OperationFetchOptions implements IDataFetchOptions {
     public static final OperationFetchOptions DEFAULT = OperationFetchOptions.builder().build();
 
     public static OperationFetchOptions nullToEmpty(OperationFetchOptions options) {
-        return options != null ? options : OperationFetchOptions.builder().build();
+        return options != null ? options : new OperationFetchOptions();
     }
     public static OperationFetchOptions clone(OperationFetchOptions options) {
-        return options != null ? options.clone() : OperationFetchOptions.builder().build();
+        return options != null ? options.clone() : new OperationFetchOptions();
     }
 
     @Builder.Default

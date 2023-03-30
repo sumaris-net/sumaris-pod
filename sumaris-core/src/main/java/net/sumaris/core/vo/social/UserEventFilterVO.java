@@ -43,7 +43,7 @@ import java.util.List;
 public class UserEventFilterVO {
 
     public static UserEventFilterVO nullToEmpty(UserEventFilterVO f) {
-        return f != null ? f : UserEventFilterVO.builder().build();
+        return f != null ? f : new UserEventFilterVO();
     }
 
     @Deprecated

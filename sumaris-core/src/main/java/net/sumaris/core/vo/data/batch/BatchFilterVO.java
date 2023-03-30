@@ -22,8 +22,10 @@
 
 package net.sumaris.core.vo.data.batch;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.vo.filter.IDataFilter;
@@ -33,11 +35,13 @@ import net.sumaris.core.vo.filter.IDataFilter;
  */
 @Data
 @FieldNameConstants
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class BatchFilterVO implements IDataFilter {
 
     public static BatchFilterVO nullToEmpty(BatchFilterVO f) {
-        return f != null ? f : BatchFilterVO.builder().build();
+        return f != null ? f : new BatchFilterVO();
     }
 
     private Integer operationId;

@@ -39,7 +39,7 @@ import java.util.List;
 public class VesselFilterVO implements IRootDataFilter {
 
     public static VesselFilterVO nullToEmpty(VesselFilterVO f) {
-        return f != null ? f : VesselFilterVO.builder().build();
+        return f != null ? f : new VesselFilterVO();
     }
 
     private String programLabel;

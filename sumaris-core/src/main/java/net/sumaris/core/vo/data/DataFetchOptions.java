@@ -33,6 +33,10 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class DataFetchOptions implements IDataFetchOptions {
 
+    public static DataFetchOptions nullToEmpty(DataFetchOptions fetchOptions) {
+        return fetchOptions == null ? new DataFetchOptions() : fetchOptions;
+    }
+
     public static final DataFetchOptions DEFAULT = DataFetchOptions.builder().build();
 
     public static final DataFetchOptions MINIMAL = DataFetchOptions.builder()
