@@ -397,7 +397,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
             // DEBUG
             //options.setEnableRtpWeight(false);
-            //options.setForce(true);
+            //if (!this.production) options.setForce(true);
 
             int pageSize = 500;
             long pageCount = Math.round((double)(operationIds.length / pageSize) + 0.5); // Get page count

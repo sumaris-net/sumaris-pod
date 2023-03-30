@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>2.2.2</version>
+  <version>2.2.3</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -92,7 +92,7 @@
     <hsqldb.version>2.4.1</hsqldb.version>
     <h2.version>1.4.199</h2.version>
     <ojdbc8.version>12.2.0.1</ojdbc8.version>
-    <pgsql.version>42.2.5</pgsql.version>
+    <pgsql.version>42.2.27</pgsql.version>
 
     <slf4j.version>1.7.32</slf4j.version>
     <logback.version>1.2.9</logback.version>
