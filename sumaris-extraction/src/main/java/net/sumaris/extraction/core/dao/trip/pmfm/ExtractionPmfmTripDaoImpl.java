@@ -403,7 +403,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionTripPmfm":
             case "injectionPhysicalGearPmfm":
             case "injectionStationPmfm":
-            case "injectionParentOperationPmfm":
+            case "injectionStationParentPmfm":
             case "injectionRawSpeciesListPmfm":
             case "injectionSpeciesListPmfm":
             case "injectionSamplePmfm":
