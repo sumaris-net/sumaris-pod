@@ -173,7 +173,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
                 // Compute Alive weight, on leaf batch
                 // (to be able to compute indirect alive weight later)
-                if (isLeaf) {
+                if (isLeaf && options.isEnableAliveWeight() && options.getAliveWeightCountryLocationId() != null) {
                     computeAliveWeightFactor(target, options, true)
                         .ifPresent(target::setAliveWeightFactor);
                 }
