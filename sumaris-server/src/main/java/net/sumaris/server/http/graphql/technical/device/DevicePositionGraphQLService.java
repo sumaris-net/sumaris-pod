@@ -12,8 +12,10 @@ import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.security.IsUser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -38,6 +40,14 @@ public class DevicePositionGraphQLService {
         Preconditions.checkNotNull(filter, "Missing filter");
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
         return devicePositionService.findAll(filter, offset, size, sort, sortDirection, fetchOptions);
+    }
+
+    @GraphQLQuery(name = "devicePositionsCount", description = "Get operations count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long countDevicePositions(@GraphQLArgument(name = "filter") DevicePositionFilterVO filter) {
+        Preconditions.checkNotNull(filter, "Missing filter");
+        return devicePositionService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "devicePosition", description = "Find DevicePosition by id")

@@ -60,4 +60,9 @@ public class DevicePositionServiceImpl implements DevicePositionService {
         devicePositionRepository.deleteById(id);
     }
 
+    @Override
+    public Long countByFilter(DevicePositionFilterVO filter) {
+        return devicePositionRepository.count(filter);
+    }
+
 }

@@ -29,4 +29,7 @@ public interface DevicePositionService {
     List<DevicePositionVO> findAll(DevicePositionFilterVO filter,
                          Page page,
                          DataFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
+    Long countByFilter(DevicePositionFilterVO filter);
 }
