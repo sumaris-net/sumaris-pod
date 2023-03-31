@@ -60,6 +60,8 @@
   <PROGRAM_PROPERTY ID="226" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-10-18"  LABEL="sumaris.report.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="227" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-10-18"  LABEL="sumaris.trip.gear.minChildrenCount" NAME="2"/>
   <PROGRAM_PROPERTY ID="228" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2023-03-20"  LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/> <!-- FRA -->
+  <PROGRAM_PROPERTY ID="229" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2023-03-30"  LABEL="sumaris.trip.report.type" NAME="selectivity"/>
+
 
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="70" LOCATION_CLASSIFICATION_FK="1"/>
