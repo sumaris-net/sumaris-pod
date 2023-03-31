@@ -263,6 +263,16 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         return xmlQuery;
     }
 
+    @Override
+    protected XMLQuery createSpeciesLengthQuery(C context) {
+        XMLQuery xmlQuery = super.createSpeciesLengthQuery(context);
+        // Always disable pmfms (should only keep the length pmfms, in LENGTH_CLASS column)
+        xmlQuery.setGroup("pmfms", false);
+        xmlQuery.setGroup("numberAtLength", true);
+        return xmlQuery;
+
+    }
+
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getVersion());
@@ -276,6 +286,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
             case "injectionPhysicalGearPmfm":
             case "injectionRawSpeciesListTable":
             case "injectionSpeciesLengthTable":
+            case "injectionSpeciesLengthPmfm":
                 return getQueryFullName(ApaseSpecification.FORMAT, ApaseSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
