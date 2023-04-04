@@ -24,25 +24,17 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 31/08/2020.

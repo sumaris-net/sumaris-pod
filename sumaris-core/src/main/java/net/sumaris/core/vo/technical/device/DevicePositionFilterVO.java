@@ -26,6 +26,8 @@ public class DevicePositionFilterVO implements IDataFilter {
     private Date startDate;
     private Date endDate;
 
+    private Integer objectId;
+    private String objectTypeLabel;
     private Integer objectTypeId;
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;

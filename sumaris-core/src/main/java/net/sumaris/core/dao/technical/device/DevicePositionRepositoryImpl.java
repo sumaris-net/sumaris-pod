@@ -1,5 +1,6 @@
 package net.sumaris.core.dao.technical.device;
 
+import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.model.administration.user.Department;
@@ -12,25 +13,27 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import java.util.Date;
 
+@RequiredArgsConstructor
 public class DevicePositionRepositoryImpl
         extends DataRepositoryImpl<DevicePosition, DevicePositionVO, DevicePositionFilterVO, DataFetchOptions>
         implements DevicePositionSpecifications {
 
-    @Resource
-    private PersonRepository personRepository;
+    private final PersonRepository personRepository;
 
-    public DevicePositionRepositoryImpl(EntityManager entityManager) {
+    public DevicePositionRepositoryImpl(EntityManager entityManager,
+                                        PersonRepository personRepository) {
         super(DevicePosition.class, DevicePositionVO.class, entityManager);
+        this.personRepository = personRepository;
     }
 
     @Override
     public void toEntity(DevicePositionVO source, DevicePosition target, boolean copyIfNull) {
-        // TODO checkCanSave
         super.toEntity(source, target, copyIfNull);
 
         if (target.getId() == null || target.getCreationDate() == null) {
@@ -87,5 +90,15 @@ public class DevicePositionRepositoryImpl
             target.setRecorderPerson(recorderPerson);
         }
 
+    }
+
+    @Override
+    protected Specification<DevicePosition> toSpecification(DevicePositionFilterVO filter, DataFetchOptions fetchOptions) {
+        return super.toSpecification(filter, fetchOptions)
+            .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
+            .and(hasRecorderPersonId(filter.getRecorderPersonId()))
+            .and(hasObjectTypeLabel(filter.getObjectTypeLabel()))
+            .and(hasObjectTypeId(filter.getObjectTypeId()))
+            .and(hasObjectId(filter.getObjectTypeId()));
     }
 }

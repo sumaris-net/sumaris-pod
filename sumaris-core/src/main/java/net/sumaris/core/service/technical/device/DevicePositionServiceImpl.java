@@ -1,9 +1,12 @@
 package net.sumaris.core.service.technical.device;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.device.DevicePositionRepository;
+import net.sumaris.core.model.administration.user.UserToken;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
@@ -12,24 +15,21 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service("devicePositionService")
+@RequiredArgsConstructor
 @Slf4j
 public class DevicePositionServiceImpl implements DevicePositionService {
 
-    @Resource
-    private DevicePositionRepository devicePositionRepository;
+    private final DevicePositionRepository devicePositionRepository;
 
-    // TODO
-//    @Override
-//    public List<DevicePositionVO> findAll(DataFetchOptions filter,
-//                                          Page page,
-//                                          DataFetchOptions fetchOptions) {
-//        return devicePositionRepository.findAll(DataFetchOptions.nullToEmpty(filter), page, fetchOptions);
-//    }
     @Override
-    public List<DevicePositionVO> findAll(DevicePositionFilterVO filter, Page page, DataFetchOptions fetchOptions) {
-        return null;
+    public List<DevicePositionVO> findAll(DevicePositionFilterVO filter,
+                                          Page page,
+                                          DataFetchOptions fetchOptions) {
+        return devicePositionRepository.findAll(DevicePositionFilterVO.nullToEmpty(filter),
+            page, fetchOptions);
     }
 
     @Override
@@ -41,7 +41,10 @@ public class DevicePositionServiceImpl implements DevicePositionService {
             SortDirection sortDirection,
             DataFetchOptions fetchOptions
     ) {
-        return devicePositionRepository.findAll(DevicePositionFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+        return devicePositionRepository.findAll(DevicePositionFilterVO.nullToEmpty(filter),
+            offset, size,
+            sortAttribute, sortDirection,
+            fetchOptions);
     }
 
 
@@ -56,8 +59,22 @@ public class DevicePositionServiceImpl implements DevicePositionService {
     }
 
     @Override
+    public List<DevicePositionVO> saveAll(List<DevicePositionVO> sources) {
+        return Beans.getStream(sources)
+            .map(devicePositionRepository::save)
+            .toList();
+    }
+
+
+    @Override
     public void delete(int id) {
         devicePositionRepository.deleteById(id);
+    }
+
+    @Override
+    public void deleteAll(List<Integer> ids) {
+        Beans.getStream(ids)
+            .forEach(devicePositionRepository::deleteById);
     }
 
     @Override

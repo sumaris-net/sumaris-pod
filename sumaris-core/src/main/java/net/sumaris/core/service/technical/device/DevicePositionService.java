@@ -13,23 +13,30 @@ import java.util.Optional;
 @Transactional
 public interface DevicePositionService {
 
-    Optional<DevicePositionVO> findById(int id, DataFetchOptions fetchOptions);
-    DevicePositionVO save(DevicePositionVO source);
-    void delete(int id);
+    @Transactional(readOnly = true)
+    List<DevicePositionVO> findAll(DevicePositionFilterVO filter,
+                                   int offset,
+                                   int size,
+                                   String sortAttribute,
+                                   SortDirection sortDirection,
+                                   DataFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     List<DevicePositionVO> findAll(DevicePositionFilterVO filter,
-                         int offset,
-                         int size,
-                         String sortAttribute,
-                         SortDirection sortDirection,
-                         DataFetchOptions fetchOptions);
-
-    @Transactional(readOnly = true)
-    List<DevicePositionVO> findAll(DevicePositionFilterVO filter,
-                         Page page,
-                         DataFetchOptions fetchOptions);
+                                   Page page,
+                                   DataFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     Long countByFilter(DevicePositionFilterVO filter);
+
+    @Transactional(readOnly = true)
+    Optional<DevicePositionVO> findById(int id, DataFetchOptions fetchOptions);
+
+    DevicePositionVO save(DevicePositionVO source);
+
+    List<DevicePositionVO> saveAll(List<DevicePositionVO> sources);
+    void delete(int id);
+
+    void deleteAll(List<Integer> ids);
+
 }

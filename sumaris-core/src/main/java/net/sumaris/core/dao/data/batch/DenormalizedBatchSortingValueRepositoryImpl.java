@@ -22,47 +22,17 @@
 
 package net.sumaris.core.dao.data.batch;
 
-import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
-import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
-import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.DenormalizedBatch;
 import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Sale;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.QualityFlagEnum;
-import net.sumaris.core.model.referential.pmfm.*;
-import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Numbers;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.QuantificationMeasurementVO;
-import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.model.referential.pmfm.Parameter;
+import net.sumaris.core.model.referential.pmfm.Pmfm;
+import net.sumaris.core.model.referential.pmfm.QualitativeValue;
+import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchSortingValueVO;
-import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
-import net.sumaris.core.vo.referential.ParameterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
-import org.springframework.context.ApplicationContext;
-import org.springframework.dao.DataRetrievalFailureException;
 
-import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 09/06/2020.
