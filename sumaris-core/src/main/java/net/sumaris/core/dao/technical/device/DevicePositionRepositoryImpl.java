@@ -1,7 +1,6 @@
 package net.sumaris.core.dao.technical.device;
 
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.dao.data.DataEntities;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -10,6 +9,7 @@ import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.technical.device.DevicePosition;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
 
@@ -38,8 +38,14 @@ public class DevicePositionRepositoryImpl
         }
 
         // Object type
-        ObjectTypeEnum objectTypeId = DataEntities.getObjectType(source.getObjectType().getName());
-        target.getObjectType().setId(objectTypeId.getId());
+        Integer objectTypeId =  ObjectTypeEnum.byLabel(source.getObjectType().getLabel()).getId();
+        if (copyIfNull || (objectTypeId != null)) {
+            if (objectTypeId == null) {
+                target.setObjectType(null);
+            } else {
+                target.setObjectType(getReference(ObjectType.class, objectTypeId));
+            }
+        }
 
         // Recorder department
         Integer recorderDepartmentId = source.getRecorderDepartmentId() != null ? source.getRecorderDepartmentId() : (source.getRecorderDepartment() != null ? source.getRecorderDepartment().getId() : null);
@@ -70,16 +76,10 @@ public class DevicePositionRepositoryImpl
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Object type
-        if (copyIfNull || source.getObjectType() != null) {
-            if (source.getObjectType() == null) {
-                target.setObjectType(null);
-            } else {
-                ObjectType objectType = new ObjectType();
-                objectType.setId(source.getObjectType().getId());
-                objectType.setLabel(source.getObjectType().getLabel());
-                target.setObjectType(objectType);
-            }
-        }
+        ReferentialVO objectType = ReferentialVO.builder()
+                .label(source.getObjectType().getLabel())
+                .build();
+        target.setObjectType(objectType);
 
         // Recorder person
         if ((fetchOptions == null || fetchOptions.isWithRecorderPerson()) && source.getRecorderPerson() != null) {

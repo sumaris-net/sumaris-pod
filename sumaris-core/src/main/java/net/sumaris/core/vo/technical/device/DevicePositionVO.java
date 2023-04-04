@@ -6,6 +6,7 @@ import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 
@@ -17,7 +18,7 @@ public class DevicePositionVO implements IDataVO<Integer> {
     private Date dateTime;
     private Double latitude;
     private Double longitude;
-    private ObjectType objectType;
+    private ReferentialVO objectType;
     private Integer objectId;
     private PersonVO recorderPerson;
     private Integer recorderPersonId;
