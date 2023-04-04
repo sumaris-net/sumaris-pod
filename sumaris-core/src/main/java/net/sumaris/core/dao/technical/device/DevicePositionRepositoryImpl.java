@@ -1,6 +1,5 @@
 package net.sumaris.core.dao.technical.device;
 
-import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.model.administration.user.Department;
@@ -15,11 +14,9 @@ import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import java.util.Date;
 
-@RequiredArgsConstructor
 public class DevicePositionRepositoryImpl
         extends DataRepositoryImpl<DevicePosition, DevicePositionVO, DevicePositionFilterVO, DataFetchOptions>
         implements DevicePositionSpecifications {

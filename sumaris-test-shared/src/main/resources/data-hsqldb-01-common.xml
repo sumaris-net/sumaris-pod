@@ -2058,6 +2058,7 @@
 
 
   <!-- tables to clean -->
+  <DEVICE_POSITION/>
   <IMAGE_ATTACHMENT/>
   <DEPARTMENT/>
   <PERSON/>
