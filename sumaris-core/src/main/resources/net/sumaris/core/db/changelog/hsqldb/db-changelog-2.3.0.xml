@@ -1,13 +1,9 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
-        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.2.0.xml">
-
-    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
-    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.3.0.xml">
 
     <changeSet id="1676958320000-001" author="benoit.lavenier@e-is.pro">
         <preConditions onFail="MARK_RAN">
@@ -68,47 +64,14 @@
         <createSequence sequenceName="device_position_seq"/>
     </changeSet>
 
-    <changeSet author="maxime@indelog.fr" id="1676958320000-010" runOnChange="true">
-        <preConditions onFail="MARK_RAN">
-            <and>
-                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
-                <sqlCheck expectedResult="0">SELECT count(*) FROM object_type where label='TRIP'</sqlCheck>
-            </and>
-        </preConditions>
-        <insert tableName="object_type">
-            <column name="ID" valueComputed="NEXT VALUE FOR object_type_seq"/>
-            <column name="LABEL">FISHING_TRIP</column>
-            <column name="NAME">Marée</column>
-            <column name="STATUS_FK" valueNumeric="1"/>
-            <column name="CREATION_DATE" valueComputed="current_timestamp" />
-            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-        </insert>
-        <insert tableName="object_type">
-            <column name="ID" valueComputed="NEXT VALUE FOR object_type_seq"/>
-            <column name="LABEL">LANDING</column>
-            <column name="NAME">Débarquement</column>
-            <column name="STATUS_FK" valueNumeric="1"/>
-            <column name="CREATION_DATE" valueComputed="current_timestamp" />
-            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-        </insert>
-        <insert tableName="object_type">
-            <column name="ID" valueComputed="NEXT VALUE FOR object_type_seq"/>
-            <column name="LABEL">OBSERVED_LOCATION</column>
-            <column name="NAME">Lieu observé</column>
-            <column name="STATUS_FK" valueNumeric="1"/>
-            <column name="CREATION_DATE" valueComputed="current_timestamp" />
-            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-        </insert>
-    </changeSet>
-
     <!-- update SYSTEM_VERSION -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1676958320000-200" runOnChange="true">
         <delete tableName="SYSTEM_VERSION">
-            <where>LABEL='2.2.0'</where>
+            <where>LABEL='2.3.0'</where>
         </delete>
         <insert tableName="SYSTEM_VERSION">
             <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-            <column name="LABEL">2.2.0</column>
+            <column name="LABEL">2.3.0</column>
             <column name="DESCRIPTION">
                 - Add DEVICE_POSITION table;
             </column>
