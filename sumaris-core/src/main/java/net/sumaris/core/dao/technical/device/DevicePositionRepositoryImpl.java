@@ -96,6 +96,6 @@ public class DevicePositionRepositoryImpl
             .and(hasRecorderPersonId(filter.getRecorderPersonId()))
             .and(hasObjectTypeLabel(filter.getObjectTypeLabel()))
             .and(hasObjectTypeId(filter.getObjectTypeId()))
-            .and(hasObjectId(filter.getObjectTypeId()));
+            .and(hasObjectId(filter.getObjectId()));
     }
 }
