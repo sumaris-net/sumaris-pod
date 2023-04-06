@@ -97,6 +97,12 @@ public class DevicePositionGraphQLService {
         devicePositionService.delete(id);
     }
 
+    @GraphQLMutation(name = "deleteDevicePositions", description = "Delete many device positions by id")
+    public void deleteDevicePositions(
+        @GraphQLArgument(name = "ids") List<Integer> ids) {
+        devicePositionService.deleteAll(ids);
+    }
+
     /* -- internal functions -- */
 
     private void sanitizeBeforeSave(DevicePositionVO source) {
