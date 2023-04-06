@@ -18,6 +18,7 @@ import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
+import net.sumaris.server.http.security.IsUser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,7 @@ public class DevicePositionGraphQLService {
 
     @GraphQLQuery(name = "devicePositions", description = "Find device positions by filter")
     @Transactional(readOnly = true)
-    //  TODO  @IsUser
+    @IsUser
     public List<DevicePositionVO> findAllDevicePositions(
             @NonNull @GraphQLArgument(name = "filter") DevicePositionFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
@@ -57,7 +58,7 @@ public class DevicePositionGraphQLService {
 
     @GraphQLQuery(name = "devicePositionsCount", description = "Get device position count")
     @Transactional(readOnly = true)
-    //  TODO  @IsUser
+    @IsUser
     public long countDevicePositions(@GraphQLArgument(name = "filter") DevicePositionFilterVO filter) {
         Preconditions.checkNotNull(filter, "Missing filter");
 
@@ -68,6 +69,7 @@ public class DevicePositionGraphQLService {
     }
 
     @GraphQLQuery(name = "devicePosition", description = "Find device position by id")
+    @IsUser
     public DevicePositionVO findById(
             @GraphQLArgument(name = "id") Integer id,
             @GraphQLArgument(name = "fetchOptions") DataFetchOptions fetchOptions) {
@@ -75,6 +77,7 @@ public class DevicePositionGraphQLService {
     }
 
     @GraphQLMutation(name = "saveDevicePositions", description = "Save many device positions")
+    @IsUser
     public List<DevicePositionVO> saveDevicePositions(
         @GraphQLArgument(name = "devicePositions") List<DevicePositionVO> devicePositions) {
 
@@ -85,6 +88,7 @@ public class DevicePositionGraphQLService {
     }
 
     @GraphQLMutation(name = "saveDevicePosition", description = "Save a device position")
+    @IsUser
     public DevicePositionVO saveDevicePosition(
             @GraphQLArgument(name = "devicePosition") DevicePositionVO devicePosition) {
         sanitizeBeforeSave(devicePosition);
@@ -92,15 +96,26 @@ public class DevicePositionGraphQLService {
     }
 
     @GraphQLMutation(name = "deleteDevicePosition", description = "Delete a device position by id")
+    @IsUser
     public void deleteDevicePosition(
             @GraphQLArgument(name = "id") Integer id) {
         devicePositionService.delete(id);
     }
 
     @GraphQLMutation(name = "deleteDevicePositions", description = "Delete many device positions by id")
+    @IsUser
     public void deleteDevicePositions(
         @GraphQLArgument(name = "ids") List<Integer> ids) {
         devicePositionService.deleteAll(ids);
+    }
+
+    @GraphQLMutation(name = "deleteDevicePositionsByFilter", description = "Delete many device positions by filter")
+    @IsUser
+    public void deleteDevicePositionsByFilter(@NonNull @GraphQLArgument(name = "filter") DevicePositionFilterVO filter) {
+        Preconditions.checkNotNull(filter.getObjectId());
+        Preconditions.checkArgument(filter.getObjectTypeLabel() != null || filter.getObjectTypeId() != null, "Missing required 'filter.objectTypeId' or 'filter.objectTypeLabel");
+        sanitizeFilter(filter);
+        devicePositionService.deleteByFilter(filter);
     }
 
     /* -- internal functions -- */

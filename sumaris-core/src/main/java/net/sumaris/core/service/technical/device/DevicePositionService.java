@@ -39,4 +39,5 @@ public interface DevicePositionService {
 
     void deleteAll(List<Integer> ids);
 
+    void deleteByFilter(DevicePositionFilterVO filter);
 }

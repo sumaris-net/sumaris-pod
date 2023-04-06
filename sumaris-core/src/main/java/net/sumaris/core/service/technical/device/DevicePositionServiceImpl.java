@@ -5,17 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.device.DevicePositionRepository;
-import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.technical.device.DevicePositionFilterVO;
 import net.sumaris.core.vo.technical.device.DevicePositionVO;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service("devicePositionService")
 @RequiredArgsConstructor
@@ -75,6 +72,12 @@ public class DevicePositionServiceImpl implements DevicePositionService {
     public void deleteAll(List<Integer> ids) {
         Beans.getStream(ids)
             .forEach(devicePositionRepository::deleteById);
+    }
+
+    public void deleteByFilter(DevicePositionFilterVO filter) {
+        List<DevicePositionVO> position = devicePositionRepository.findAll(filter);
+        List<Integer> positionIds = position.stream().map(DevicePositionVO::getId).toList();
+        deleteAll(positionIds);
     }
 
     @Override
