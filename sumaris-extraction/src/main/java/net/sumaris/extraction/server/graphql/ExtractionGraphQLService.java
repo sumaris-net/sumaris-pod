@@ -22,6 +22,7 @@
 
 package net.sumaris.extraction.server.graphql;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
@@ -51,10 +52,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -106,14 +108,14 @@ public class ExtractionGraphQLService {
     }
 
     @GraphQLQuery(name = "extraction", description = "Read extraction data")
-    public ObjectNode[] readAsJson(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
-                                   @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                   @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                   @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                   @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                   @GraphQLArgument(name = "sortBy") String sort,
-                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                   @GraphQLArgument(name = "cacheDuration") String cacheDuration
+    public JsonNode readAsJson(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
+                               @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                               @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                               @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                               @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                               @GraphQLArgument(name = "sortBy") String sort,
+                               @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                               @GraphQLArgument(name = "cacheDuration") String cacheDuration
     ) {
         Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
         Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
@@ -131,19 +133,41 @@ public class ExtractionGraphQLService {
             .sortDirection(SortDirection.fromString(direction))
             .build();
 
+        // If one one sheetname, force to use 'sheetName' instead of 'sheetNames'
+        if (CollectionUtils.size(filter.getSheetNames()) == 1 && filter.getSheetName() == null){
+            filter.setSheetName(filter.getSheetNames().iterator().next());
+            filter.setSheetNames(null);
+        }
+
+        boolean hasManySheetNames = CollectionUtils.size(filter.getSheetNames()) > 1;
+        CacheTTL ttl = CacheTTL.fromString(cacheDuration);
+
         // Read product
-        ExtractionResultVO data;
         if (ExtractionTypes.isProduct(type)) {
-            data = extractionService.read(checkedType, filter, strata, page,
-                CacheTTL.fromString(cacheDuration));
+            // Many sheetNames
+            if (hasManySheetNames) {
+                Map<String, ExtractionResultVO> data = extractionService.readMany(checkedType, filter, strata, page, ttl);
+                return extractionService.toJsonMap(data);
+            }
+            // Single sheet name (=preview mode)
+            else {
+                ExtractionResultVO data = extractionService.read(checkedType, filter, strata, page, ttl);
+                return extractionService.toJsonArray(data);
+            }
         }
         // Live extraction
         else {
-            data = extractionService.executeAndRead(checkedType, filter, strata, page,
-                CacheTTL.fromString(cacheDuration));
+            // Many sheetNames
+            if (hasManySheetNames) {
+                Map<String, ExtractionResultVO> data = extractionService.executeAndReadMany(checkedType, filter, strata, page, ttl);
+                return extractionService.toJsonMap(data);
+            }
+            // Single sheet name (=preview mode)
+            else {
+                ExtractionResultVO data = extractionService.executeAndRead(checkedType, filter, strata, page, ttl);
+                return extractionService.toJsonArray(data);
+            }
         }
-
-        return extractionService.toJson(data);
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Extract data into a file")

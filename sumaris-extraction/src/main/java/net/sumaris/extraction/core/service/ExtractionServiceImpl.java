@@ -23,7 +23,9 @@ package net.sumaris.extraction.core.service;
  */
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -102,6 +104,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author blavenie
@@ -209,8 +212,25 @@ public class ExtractionServiceImpl implements ExtractionService {
         ExtractionFilterVO finalFilter = ExtractionFilterVO.nullToEmpty(filter);
 
         // Get cached result
-        return getCachedResultOrPut(finalType, finalFilter, strata, page, ttl,
+        return getCachedResultOrPut(finalType, finalFilter, strata, page,
+            ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX, ttl,
             () -> executeAndRead(finalType, finalFilter, strata, page, true /*already fetched*/));
+    }
+
+    @Override
+    public Map<String, ExtractionResultVO> executeAndReadMany(IExtractionType type,
+                                                              @NonNull ExtractionFilterVO filter,
+                                                              @Nullable AggregationStrataVO strata,
+                                                              Page page,
+                                                              @Nullable CacheTTL ttl) {
+
+        // Fetch type
+        IExtractionType finalType = getByExample(type);
+
+        // Get cached result
+        return getCachedResultOrPut(finalType, filter, strata, page,
+            ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_MANY_PREFIX, ttl,
+            () -> executeAndReadMany(finalType, filter, strata, page, true /*already fetched*/));
     }
 
     @Override
@@ -220,6 +240,18 @@ public class ExtractionServiceImpl implements ExtractionService {
                                    Page page,
                                    CacheTTL ttl) {
         return read(type, filter, strata, page, ttl, false);
+    }
+
+    @Override
+    public Map<String, ExtractionResultVO> readMany(IExtractionType type, @NonNull ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, Page page, @Nullable CacheTTL ttl) {
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(filter.getSheetNames()));
+
+        // Fetch type
+        IExtractionType finalType = getByExample(type);
+
+        return getCachedResultOrPut(type, filter, strata, page,
+            ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_MANY_PREFIX, ttl,
+            () -> readMany(finalType, filter, strata, page, true /*already fetched*/));
     }
 
     @Override
@@ -477,6 +509,20 @@ public class ExtractionServiceImpl implements ExtractionService {
             })
             .filter(Objects::nonNull)
             .forEach(Cache::clear);
+
+        // Clear all rows (many sheetNames) cache (by TTL)
+        Arrays.stream(CacheTTL.values())
+            .map(ttl -> {
+                try {
+                    return cacheManager.get().getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_MANY_PREFIX + ttl.name());
+                }
+                catch (Exception e) {
+                    // Cache not exists: skip
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .forEach(Cache::clear);
     }
 
     @Override
@@ -527,25 +573,21 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     @Override
-    public ObjectNode[] toJson(ExtractionResultVO source) {
+    public ObjectNode toJsonMap(Map<String, ExtractionResultVO> source) {
         if (source == null) return null;
-        if (CollectionUtils.isEmpty(source.getColumns())) {
-            log.warn("Cannot convert extraction result: missing columns. Is the result empty ?");
-            return null;
-        }
+        final ObjectNode node = objectMapper.createObjectNode();
+        source.entrySet().forEach(e -> {
+            ArrayNode array = node.putArray(e.getKey());
+            toJsonStream(e.getValue()).forEach(array::add);
+        });
+        return node;
+    }
 
-        String[] columnNames = source.getColumns().stream()
-            .map(ExtractionTableColumnVO::getLabel)
-            .toArray(String[]::new);
-
-        return Beans.getStream(source.getRows())
-            .map(row -> {
-                ObjectNode node = objectMapper.createObjectNode();
-                for (int i = 0; i < row.length; i++) {
-                    node.put(columnNames[i], row[i]);
-                }
-                return node;
-            }).toArray(ObjectNode[]::new);
+    @Override
+    public ArrayNode toJsonArray(ExtractionResultVO source) {
+        ArrayNode array = objectMapper.createArrayNode();
+        toJsonStream(source).forEach(array::add);
+        return array;
     }
 
 
@@ -600,6 +642,9 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     /* -- protected -- */
 
+
+
+
     protected boolean initRectangleLocations() {
         boolean updateAreas = false;
         try {
@@ -635,6 +680,59 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     }
 
+    protected Map<String, ExtractionResultVO> executeAndReadMany(@NonNull IExtractionType type,
+                                                                               @NonNull ExtractionFilterVO filter,
+                                                                               @Nullable AggregationStrataVO strata,
+                                                                               @NonNull Page page,
+                                                                               boolean skipFetchType) {
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(filter.getSheetNames()));
+
+        // Fetch type (if need)
+        type = skipFetchType ? type : getByExample(type);
+
+        ExtractionContextVO context = null;
+        try {
+            // Mark as NOT a preview (to force all sheet to be rendered)
+            filter.setPreview(false);
+
+            // Execute extraction into temp tables
+            context = execute(type, filter, strata);
+
+            // Force commit
+            Daos.commitIfHsqldbOrPgsql(dataSource);
+            Map<String, ExtractionResultVO> result = Maps.newHashMap();
+
+            for (String sheetName: filter.getSheetNames()) {
+
+                // Result has not the expected sheetname: skip
+                if (!context.hasSheet(sheetName)) {
+                    log.debug("No data found for sheetName {}, in extraction #{}. Skipping", sheetName, context.getId());
+                    result.put(sheetName, createEmptyResult());
+                }
+                else {
+                    try {
+                        // Create a read filter, with sheetname only, because filter already applied by execute()
+                        ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
+                            .sheetName(sheetName)
+                            .build();
+
+                        ExtractionResultVO sheetData = read(context, readFilter, strata, page, true /*already checked*/);
+                        result.put(sheetName, sheetData);
+                    } catch (DataNotFoundException e) {
+                        result.put(sheetName, createEmptyResult());
+                    }
+                }
+            }
+
+            return result;
+        }
+        finally {
+            // Clean created tables
+            if (context != null) {
+                asyncClean(context);
+            }
+        }
+    }
     protected <R extends ExtractionResultVO> R executeAndRead(@NonNull IExtractionType type,
                                                               @NonNull ExtractionFilterVO filter,
                                                               @Nullable AggregationStrataVO strata,
@@ -653,14 +751,14 @@ public class ExtractionServiceImpl implements ExtractionService {
 
             // Result has not the expected sheetname: skip
             if (filter.getSheetName() != null && !context.hasSheet(filter.getSheetName())) {
-                log.warn("No sheetName to read, in extraction #{}. Skipping", context.getId());
+                log.debug("No sheetName to read, in extraction #{}. Skipping", context.getId());
                 return (R)createEmptyResult();
             }
 
             // Force commit
             Daos.commitIfHsqldbOrPgsql(dataSource);
 
-            // Create a read filter, with sheetname only, because already applied by execute()
+            // Create a read filter, with sheetname only, because filter already applied by execute()
             ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
                 .sheetName(filter.getSheetName())
                 .build();
@@ -679,6 +777,29 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
+    protected Map<String, ExtractionResultVO> readMany(@NonNull IExtractionType type,
+                                                       @NonNull ExtractionFilterVO filter,
+                                                       AggregationStrataVO strata,
+                                                       Page page,
+                                                       boolean skipFetchType) {
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(filter.getSheetNames()));
+
+        // Fetch type (if need)
+        type = skipFetchType ? type : getByExample(type);
+        Map<String, ExtractionResultVO> result = Maps.newHashMap();
+
+        for (String sheetName: filter.getSheetNames()) {
+            try {
+                ExtractionResultVO sheetResult = read(type, filter, strata, page, true /*already checked*/);
+                result.put(sheetName, sheetResult);
+            } catch (DataNotFoundException e) {
+                result.put(sheetName, createEmptyResult());
+            }
+        }
+
+        return result;
+    }
+
     protected ExtractionResultVO read(@NonNull IExtractionType type,
                                       ExtractionFilterVO filter,
                                       @Nullable AggregationStrataVO strata,
@@ -690,7 +811,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         IExtractionType finalType = skipFetchType ? type : getByExample(type);
         ExtractionFilterVO finalFilter = ExtractionFilterVO.nullToEmpty(filter);
 
-        return getCachedResultOrPut(finalType, finalFilter, strata, page, ttl,
+        return getCachedResultOrPut(finalType, finalFilter, strata, page,
+            ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX, ttl,
             () -> read(finalType, finalFilter, strata, page, true /*already fetched*/));
     }
 
@@ -941,6 +1063,27 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
+    protected Stream<ObjectNode> toJsonStream(ExtractionResultVO source) {
+        if (source == null) return Stream.empty();
+        if (CollectionUtils.isEmpty(source.getColumns())) {
+            log.warn("Cannot convert extraction result: missing columns. Is the result empty ?");
+            return Stream.empty();
+        }
+
+        String[] columnNames = source.getColumns().stream()
+            .map(ExtractionTableColumnVO::getLabel)
+            .toArray(String[]::new);
+
+        return Beans.getStream(source.getRows())
+            .map(row -> {
+                ObjectNode node = objectMapper.createObjectNode();
+                for (int i = 0; i < row.length; i++) {
+                    node.put(columnNames[i], row[i]);
+                }
+                return node;
+            });
+    }
+
     protected Integer computeCacheKey(IExtractionType type, ExtractionFilterVO filter, AggregationStrataVO strata, Page page) {
         // Compute a cache key
         // note: Not need to use TTL in cache key, because using a cache by TTL
@@ -952,9 +1095,10 @@ public class ExtractionServiceImpl implements ExtractionService {
             .build();
     }
 
-    protected <R extends ExtractionResultVO> R getCachedResultOrPut(@NonNull IExtractionType type,
+    protected <R> R getCachedResultOrPut(@NonNull IExtractionType type,
                                                                     @NonNull ExtractionFilterVO filter,
                                                                     @Nullable AggregationStrataVO strata, Page page,
+                                                                    String cacheNamePrefix,
                                                                     @Nullable CacheTTL ttl,
                                                                     Supplier<R> supplier) {
         ttl = CacheTTL.nullToDefault(CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl), CacheTTL.DEFAULT);
@@ -967,7 +1111,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Get the cache
         Cache<Integer, R> cache = cacheManager.get()
-            .getCache(ExtractionCacheConfiguration.Names.EXTRACTION_ROWS_PREFIX + ttl.name());
+            .getCache(cacheNamePrefix + ttl.name());
 
         // Reuse cached value if exists
         R result = cache.get(cacheKey);

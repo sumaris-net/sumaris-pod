@@ -25,6 +25,7 @@ package net.sumaris.core.service.data.denormalize;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -41,8 +42,10 @@ public interface DenormalizedBatchService {
 	@Transactional(readOnly = true)
 	List<DenormalizedBatchVO> denormalize(BatchVO catchBatch, @NotNull DenormalizedBatchOptions options);
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	List<DenormalizedBatchVO> denormalizeAndSaveByOperationId(int operationId, @Nullable DenormalizedBatchOptions options);
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	List<DenormalizedBatchVO> denormalizeAndSaveBySaleId(int saleId, @Nullable DenormalizedBatchOptions options);
 
 	@Transactional(readOnly = true)

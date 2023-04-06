@@ -35,7 +35,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
-import org.hibernate.annotations.Cascade;
+import lombok.Getter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -173,7 +173,7 @@ public class DenormalizedBatch  implements IEntity<Integer> {
      * Calculé par le traitement de dénormalisation.
      * Dans le cas où le lot ni aucun de ses lots pères indique une espèce commerciale, le
      * traitement détermine la plus forte probalité d'appartenance de l'espèce scientifique à une
-     * espèce ciommerciale.
+     * espèce commerciale.
      * Pour cela, les correspondances existantes entre TAXON_GROUP et REFERENCE_TAXON sont
      * exploitées (cf table TAXON_GROUP_HISTORICAL_RECORD), ou le cas échéant les correspodnances
      * trouvées dans l'arbre d'achantillonnage courant (typiquement dans la "partie retenue" PR, ou
@@ -198,8 +198,7 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @JoinColumn(name = "reference_taxon_fk")
     private ReferenceTaxon referenceTaxon;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatch.class, mappedBy = Fields.PARENT)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatch.class, mappedBy = Fields.PARENT, cascade = CascadeType.REMOVE)
     private List<DenormalizedBatch> children = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -207,17 +206,17 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @ToString.Exclude
     private DenormalizedBatch parent;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "operation_fk")
     @ToString.Exclude
     private Operation operation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "sale_fk")
     @ToString.Exclude
     private Sale sale;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatchSortingValue.class, mappedBy = DenormalizedBatchSortingValue.Fields.BATCH)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatchSortingValue.class, mappedBy = DenormalizedBatchSortingValue.Fields.BATCH,
+        cascade = CascadeType.REMOVE)
     private List<DenormalizedBatchSortingValue> sortingValues = new ArrayList<>();
 }

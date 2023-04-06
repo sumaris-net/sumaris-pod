@@ -22,6 +22,7 @@
 
 package net.sumaris.extraction.core.service.oracle;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
@@ -104,9 +105,9 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
                 .build());
         Assert.assertNotNull(result);
 
-        ObjectNode[] jsonNodes = service.toJson(result);
-        Assert.assertNotNull(jsonNodes);
-        String jsonStr = this.objectMapper.writeValueAsString(jsonNodes);
+        ArrayNode array = service.toJsonArray(result);
+        Assert.assertNotNull(array);
+        String jsonStr = this.objectMapper.writeValueAsString(array);
         Assert.assertTrue(jsonStr.length() > 10);
     }
 

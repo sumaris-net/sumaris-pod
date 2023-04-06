@@ -22,10 +22,5 @@
 
 <query type="select">
 
-  <select alias="STATION_COMMENTS" type="text">O.COMMENTS</select>
-  <select alias="GEAR_IDENTIFIER" type="number">PG.RANK_ORDER</select>
-
-  <!-- Already exists in the parent query
-    <groupby>&amp;groupByColumns</groupby>-->
-
+  <!-- Leave empty APASE: no pmfms, other than length pmfms, stored in column LENGTH_CLASS -->
 </query>

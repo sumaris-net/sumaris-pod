@@ -35,7 +35,7 @@
     (SELECT QV.NAME FROM PHYSICAL_GEAR_MEASUREMENT PGM
       INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=PGM.QUALITATIVE_VALUE_FK
     WHERE
-      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK=&selectionDevicePmfmId)]]></select>
+      PGM.PHYSICAL_GEAR_FK=PG.ID and PGM.PMFM_FK IN (&selectionDevicePmfmIds))]]></select>
 
   <!-- in FREE1 specification -->
   <select alias="EFFECTIVE_EFFORT" type="number"><![CDATA[

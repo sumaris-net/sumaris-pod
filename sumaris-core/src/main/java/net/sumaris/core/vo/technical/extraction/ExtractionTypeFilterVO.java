@@ -26,6 +26,7 @@ import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -52,6 +53,7 @@ public class ExtractionTypeFilterVO implements IReferentialFilter {
             && (filter.getLabel() == null || filter.getLabel().equalsIgnoreCase(s.getLabel()))
             && (filter.getName() == null || filter.getName().equalsIgnoreCase(s.getName()))
             && (filter.getFormat() == null || filter.getFormat().equalsIgnoreCase(s.getFormat()))
+            && (filter.getFormats() == null || ArrayUtils.contains(filter.getFormats(), s.getLabel()))
             && (filter.getVersion() == null || filter.getVersion().equalsIgnoreCase(s.getVersion()))
             && (filter.getIsSpatial() == null || Objects.equals(filter.getIsSpatial(), s.getIsSpatial()))
             && (filter.getStatusIds() == null || Arrays.asList(filter.getStatusIds()).contains(s.getStatusId()))
@@ -61,6 +63,7 @@ public class ExtractionTypeFilterVO implements IReferentialFilter {
     }
 
     private String format;
+    private String[] formats;
     private String version;
     private Integer parentId;
 

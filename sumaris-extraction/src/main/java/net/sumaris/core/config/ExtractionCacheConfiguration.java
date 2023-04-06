@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
+import java.util.Map;
 
 @Configuration
 @ConditionalOnBean({CacheConfiguration.class})
@@ -48,6 +49,8 @@ public class ExtractionCacheConfiguration {
     public interface Names {
 
         String EXTRACTION_ROWS_PREFIX = "net.sumaris.core.dao.technical.extraction.extractionRows.";
+
+        String EXTRACTION_ROWS_MANY_PREFIX = "net.sumaris.core.dao.technical.extraction.extractionRowsMany.";
 
         String EXTRACTION_TYPES = "net.sumaris.extraction.core.service.extractionTypes";
         String EXTRACTION_TYPE_BY_EXAMPLE = "net.sumaris.extraction.core.service.productByExample";
@@ -65,8 +68,12 @@ public class ExtractionCacheConfiguration {
 
             Arrays.stream(CacheTTL.values())
                 .filter(ttl -> ttl.asDuration().getSeconds() > 0) // Skip NONE
-                .forEach(ttl -> Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_PREFIX + ttl.name(),
-                    Integer.class, ExtractionResultVO.class, ttl.asDuration(), 50));
+                .forEach(ttl -> {
+                    Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_PREFIX + ttl.name(),
+                        Integer.class, ExtractionResultVO.class, ttl.asDuration(), 50);
+                    Caches.createHeapCache(cacheManager, Names.EXTRACTION_ROWS_MANY_PREFIX + ttl.name(),
+                        Integer.class, Map.class, ttl.asDuration(), 25);
+                });
         };
     }
 }
