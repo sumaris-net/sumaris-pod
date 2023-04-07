@@ -77,36 +77,44 @@ public interface ExtractionTripDao<
             // Parse EQUALS
             source.getCriteria().stream()
                     .filter(criterion ->
-                        (StringUtils.isNotBlank(criterion.getValue()) || ArrayUtils.isNotEmpty(criterion.getValues()))
-                                    && ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator()))
+                        (criterion.hasValue() || criterion.hasValues())
+                        && ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator()))
                     .forEach(criterion -> {
-                        switch (criterion.getName().toLowerCase()) {
-                            case RdbSpecification.COLUMN_PROJECT:
-                                target.setProgramLabel(criterion.getValue());
-                                break;
-                            case RdbSpecification.COLUMN_YEAR:
-                                int year = Integer.parseInt(criterion.getValue());
-                                target.setStartDate(Dates.getFirstDayOfYear(year));
-                                target.setEndDate(Dates.getLastSecondOfYear(year));
-                                break;
-                            case RdbSpecification.COLUMN_VESSEL_IDENTIFIER:
-                                try {
-                                    int vesselId = Integer.parseInt(criterion.getValue());
-                                    target.setVesselId(vesselId);
-                                } catch(NumberFormatException e) {
-                                    // Skip
-                                }
-                                break;
+                        String columnName = criterion.getName().toLowerCase();
+                        // Single value
+                        if (criterion.hasValue()) {
+                            switch (columnName) {
+                                case RdbSpecification.COLUMN_PROJECT:
+                                    target.setProgramLabel(criterion.getValue());
+                                    break;
+                                case RdbSpecification.COLUMN_YEAR:
+                                    int year = Integer.parseInt(criterion.getValue());
+                                    target.setStartDate(Dates.getFirstDayOfYear(year));
+                                    target.setEndDate(Dates.getLastSecondOfYear(year));
+                                    break;
+                                case RdbSpecification.COLUMN_VESSEL_IDENTIFIER:
+                                    try {
+                                        int vesselId = Integer.parseInt(criterion.getValue());
+                                        target.setVesselId(vesselId);
+                                    } catch (NumberFormatException e) {
+                                        // Skip
+                                    }
+                                    break;
 
-                            case RdbSpecification.COLUMN_TRIP_CODE:
-                                if (StringUtils.isNotBlank(criterion.getValue())) {
+                                case RdbSpecification.COLUMN_TRIP_CODE:
                                     try {
                                         int tripId = Integer.parseInt(criterion.getValue());
                                         target.setTripId(tripId);
                                     } catch (NumberFormatException e) {
                                         // Skip
                                     }
-                                } else if (ArrayUtils.isNotEmpty(criterion.getValues())) {
+                                    break;
+                            }
+                        }
+                        // Read many values
+                        else {
+                            switch (columnName) {
+                                case RdbSpecification.COLUMN_TRIP_CODE:
                                     try {
                                         Integer[] tripIds = Arrays.stream(criterion.getValues()).map(Integer::parseInt)
                                             .toArray(Integer[]::new);
@@ -114,8 +122,8 @@ public interface ExtractionTripDao<
                                     } catch (NumberFormatException e) {
                                         // Skip
                                     }
-                                }
-                                break;
+                                    break;
+                            }
                         }
                     });
 

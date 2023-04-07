@@ -22,8 +22,11 @@ package net.sumaris.extraction.core.vo;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Joiner;
 import lombok.*;
+import net.sumaris.core.util.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 @Data
 @Builder
@@ -53,5 +56,14 @@ public class ExtractionFilterCriterionVO {
         if (this.getValue() != null) sb.append(this.getValue());
         if (this.getValues() != null) sb.append('(').append(Joiner.on(',').join(this.getValues())).append(')');
         return sb.toString();
+    }
+
+    @JsonIgnore
+    public boolean hasValue() {
+        return StringUtils.isNotBlank(value);
+    }
+    @JsonIgnore
+    public boolean hasValues() {
+        return ArrayUtils.isNotEmpty(values);
     }
 }
