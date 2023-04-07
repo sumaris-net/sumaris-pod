@@ -177,6 +177,8 @@ public class OperationRepositoryImpl
                 fetchOptions = OperationFetchOptions.clone(fetchOptions);
                 fetchOptions.setWithParentOperation(false);
                 fetchOptions.setWithChildOperation(false);
+                // TODO check if can disable children entities (e.G; position can be used, ins PIFIL/ACOST)
+                //fetchOptions.setWithChildrenEntities(false);
                 target.setParentOperation(toVO(source.getParentOperation(), fetchOptions));
             }
         }

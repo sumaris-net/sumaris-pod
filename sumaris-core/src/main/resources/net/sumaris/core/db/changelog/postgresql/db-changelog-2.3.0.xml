@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+                   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-2.3.0.xml">
+
+  <changeSet id="1676958320000-001" author="benoit.lavenier@e-is.pro">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="device_position"/>
+      </not>
+    </preConditions>
+    <createTable tableName="device_position">
+      <column name="id" type="integer">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="date_time" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="latitude" type="double">
+        <constraints nullable="false"/>
+      </column>
+      <column name="longitude" type="double">
+        <constraints nullable="false"/>
+      </column>
+      <column name="object_id" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="object_type_fk" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_person_fk" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="control_date" type="timestamp">
+        <constraints nullable="true"/>
+      </column>
+      <column name="validation_date" type="timestamp">
+        <constraints nullable="true"/>
+      </column>
+      <column name="qualification_date" type="timestamp">
+        <constraints nullable="true"/>
+      </column>
+      <column name="qualification_comments" type="VARCHAR(2000)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="quality_flag_fk" type="integer">
+        <constraints nullable="true"/>
+      </column>
+    </createTable>
+    <addForeignKeyConstraint constraintName="device_position_object_type_fkc" baseTableName="device_position" baseColumnNames="object_type_fk" referencedTableName="object_type" referencedColumnNames="id"/>
+    <addForeignKeyConstraint constraintName="device_position_recorder_person_fkc" baseTableName="device_position" baseColumnNames="recorder_person_fk" referencedTableName="person" referencedColumnNames="id"/>
+    <addForeignKeyConstraint constraintName="device_position_recorder_department_fkc" baseTableName="device_position" baseColumnNames="recorder_department_fk" referencedTableName="department" referencedColumnNames="id"/>
+    <createSequence sequenceName="device_position_seq"/>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1676958320000-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='2.3.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="nextval('system_version_seq')"/>
+      <column name="LABEL">2.3.0</column>
+      <column name="DESCRIPTION">
+        - Add DEVICE_POSITION table;
+      </column>
+      <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Add DEVICE_POSITION table;
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

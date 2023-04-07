@@ -249,9 +249,9 @@ public class WeightLengthConversionServiceImpl implements WeightLengthConversion
         }
     )
     public List<WeightLengthConversionVO> saveAll(List<WeightLengthConversionVO> sources) {
-        return sources.stream()
+        return Beans.getStream(sources)
             .map(weightLengthConversionRepository::save)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override

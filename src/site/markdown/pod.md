@@ -1,16 +1,16 @@
 
 
-# Database and Pod
+# Pod installation
 
 SUMARiS use a database engine to store data.
 
 
-It can exists many SUMARiS databases instances on the web.
+It can exist many SUMARiS databases instances on the web.
 Each database instance is accessible through a [server software](https://en.wikipedia.org/wiki/Server_(computing)), called **SUMARiS Pod**.
 
 A Pod manage only one database instance.
 
-## Main features of the Pod
+## Main features
 
 The SUMARiS Pod has several features:
 

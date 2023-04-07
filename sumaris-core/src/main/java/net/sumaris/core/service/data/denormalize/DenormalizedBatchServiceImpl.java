@@ -334,7 +334,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         Integer roundWeightConversionCountryId = Programs.getPropertyAsInteger(program, ProgramPropertyEnum.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
 
         if (roundWeightConversionCountryId == null || roundWeightConversionCountryId < 0) {
-            log.warn("Missing or invalid value for program property '{}'. Will not be able to compute round weight, in batch denormalization!", ProgramPropertyEnum.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.getKey());
+            log.warn("Missing or invalid value for program property '{}'. Will not be able to compute alive weights, in batch denormalization!", ProgramPropertyEnum.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.getKey());
         }
 
         return DenormalizedBatchOptions.builder()

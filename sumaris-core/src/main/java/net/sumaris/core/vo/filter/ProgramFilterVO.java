@@ -35,7 +35,7 @@ import java.util.Date;
 public class ProgramFilterVO implements IReferentialFilter {
 
     public static ProgramFilterVO nullToEmpty(ProgramFilterVO filter) {
-        return filter != null ? filter : ProgramFilterVO.builder().build();
+        return filter != null ? filter : new ProgramFilterVO();
     }
 
     // IReferentialFilter properties

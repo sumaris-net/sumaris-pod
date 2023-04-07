@@ -423,6 +423,8 @@ public class TripServiceImpl implements TripService {
     public void delete(int id) {
         log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
 
+        // Construct the event data
+        // (should be done before deletion, to be able to get the VO)
         TripVO eventData = enableTrash ?
             get(id, TripFetchOptions.FULL_GRAPH) :
             null;

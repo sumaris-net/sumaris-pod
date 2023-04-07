@@ -30,6 +30,7 @@ import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.AggregationContextVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
@@ -77,5 +78,10 @@ public class ExtractionTripContextVO extends AggregationContextVO {
         return tripFilter != null ? tripFilter.getTripId() : null;
     }
 
-
+    public List<Integer> getTripIds() {
+        if (tripFilter == null) return null;
+        if (tripFilter.getTripId() != null) return ImmutableList.of(tripFilter.getTripId());
+        if (ArrayUtils.isNotEmpty(tripFilter.getIncludedIds())) return ImmutableList.copyOf(tripFilter.getIncludedIds());
+        return null;
+    }
 }

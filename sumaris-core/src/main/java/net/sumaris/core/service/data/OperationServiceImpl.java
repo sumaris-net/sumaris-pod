@@ -188,7 +188,9 @@ public class OperationServiceImpl implements OperationService {
     public void delete(int id) {
         // Construct the event data
         // (should be done before deletion, to be able to get the VO)
-        OperationVO eventData = enableTrash ? get(id) : null;
+        OperationVO eventData = enableTrash
+            ? get(id, OperationFetchOptions.FULL_GRAPH)
+            : null;
 
         // Apply deletion
         operationRepository.deleteById(id);

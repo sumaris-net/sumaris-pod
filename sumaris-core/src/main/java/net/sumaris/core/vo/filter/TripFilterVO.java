@@ -40,7 +40,7 @@ import java.util.Date;
 public class TripFilterVO implements IRootDataFilter, IVesselFilter {
 
     public static TripFilterVO nullToEmpty(@Nullable TripFilterVO filter) {
-        return filter == null ? TripFilterVO.builder().build() : filter;
+        return filter == null ? new TripFilterVO() : filter;
     }
 
     private Date startDate;

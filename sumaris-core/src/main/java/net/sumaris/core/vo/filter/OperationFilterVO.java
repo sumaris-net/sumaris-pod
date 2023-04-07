@@ -41,7 +41,7 @@ import java.util.Date;
 public class OperationFilterVO implements IDataFilter {
 
     public static OperationFilterVO nullToEmpty(OperationFilterVO f) {
-        return f != null ? f : OperationFilterVO.builder().build();
+        return f != null ? f : new OperationFilterVO();
     }
 
     private Integer tripId;

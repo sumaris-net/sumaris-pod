@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.filter.IReferentialFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 

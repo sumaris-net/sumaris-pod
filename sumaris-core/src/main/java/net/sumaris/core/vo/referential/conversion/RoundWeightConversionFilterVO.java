@@ -37,7 +37,7 @@ import java.util.Date;
 public class RoundWeightConversionFilterVO {
 
     public static RoundWeightConversionFilterVO nullToEmpty(RoundWeightConversionFilterVO filter) {
-        return filter == null ? RoundWeightConversionFilterVO.builder().build() : filter;
+        return filter == null ? new RoundWeightConversionFilterVO() : filter;
     }
 
     Integer[] statusIds;

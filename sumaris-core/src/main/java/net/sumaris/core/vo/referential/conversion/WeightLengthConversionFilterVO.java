@@ -34,7 +34,7 @@ import java.util.Date;
 public class WeightLengthConversionFilterVO {
 
     public static WeightLengthConversionFilterVO nullToEmpty(WeightLengthConversionFilterVO filter) {
-        return filter == null ? WeightLengthConversionFilterVO.builder().build() : filter;
+        return filter == null ? new WeightLengthConversionFilterVO() : filter;
     }
 
     Integer[] statusIds;

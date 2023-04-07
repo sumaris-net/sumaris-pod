@@ -81,6 +81,8 @@
     <SOFTWARE_PROPERTY ID="86" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.technicalTables.update" NAME="true"/>
     <SOFTWARE_PROPERTY ID="87" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.vessel.registrationCode.naturalOrder.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="88" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.vessel.registrationCode.searchAsPrefix" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="89" STATUS_FK="1" SOFTWARE_FK="4" CREATION_DATE="2019-02-11" LABEL="sumaris.device.position.tracking.enable" NAME="true"/>
+
 
     <!-- ****** IMAGINE properties ****** -->
     <SOFTWARE_PROPERTY ID="100" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
