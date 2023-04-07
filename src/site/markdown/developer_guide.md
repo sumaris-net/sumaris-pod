@@ -49,8 +49,8 @@ Here are the generation constraints for a class and UML modeling:
     ```
   - Declare the methods:
     ```java
-    public void toVO(E source, V target, boolean copyIfNull);`
-    public void toEntity(V source, E target, boolean copyIfNull);`
+    public void toVO(E source, V target, boolean copyIfNull);
+    public void toEntity(V source, E target, boolean copyIfNull);
     ```
     - In the toVO() method, for each foreign key in the entity class, add a conversion like this:
     ```java
@@ -131,7 +131,12 @@ Here are the generation constraints for a class and UML modeling:
   - Add the annotations @Service, @RequiredArgsConstructor, @GraphQLApi, and @ConditionalOnWebApplication
   - Declare the corresponding entity service using the @Resource annotation
   - For each method declared in the `Service` interface, declare an identical method (same name and parameters) by adding:
-    - A `@GraphQLQuery(name = "<methodName>", description = "<methodDescription>")` annotation, replacing "<methodName>" with the function name, and "<methodDescription>" with its documentation.
+    - For a read function: 
+      - A `@GraphQLQuery(name = "<methodName>", description = "<methodDescription>")` annotation, replacing "<methodName>" with the function name, and "<methodDescription>" with its documentation.
+      - A `@Transactional(readOnly = true)` annotation.
+    - For a write function (with a prefix 'save' or 'delete'): 
+      - A `@GraphQLMutation(name = "<methodName>", description = "<methodDescription>")` annotation, replacing "<methodName>" with the function name, and "<methodDescription>" with its documentation.
+      - A `@Transactional` annotation.
     - A `@GraphQLArgument(name = "<parameterName>")` annotation for each method parameter, replacing "<parameterName>" with its name.
   - Ignore the generation of imports.
 
