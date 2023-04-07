@@ -177,6 +177,7 @@ public class OperationRepositoryImpl
                 fetchOptions = OperationFetchOptions.clone(fetchOptions);
                 fetchOptions.setWithParentOperation(false);
                 fetchOptions.setWithChildOperation(false);
+                fetchOptions.setWithChildrenEntities(false);
                 target.setParentOperation(toVO(source.getParentOperation(), fetchOptions));
             }
         }

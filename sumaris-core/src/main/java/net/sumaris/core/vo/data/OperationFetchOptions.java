@@ -36,6 +36,12 @@ public class OperationFetchOptions implements IDataFetchOptions {
 
     public static final OperationFetchOptions DEFAULT = OperationFetchOptions.builder().build();
 
+    public static final OperationFetchOptions FULL_GRAPH = OperationFetchOptions.builder()
+        .withChildrenEntities(true)
+        .withMeasurementValues(true)
+        .withParentOperation(true)
+        .build();
+
     public static OperationFetchOptions nullToEmpty(OperationFetchOptions options) {
         return options != null ? options : new OperationFetchOptions();
     }
@@ -53,7 +59,7 @@ public class OperationFetchOptions implements IDataFetchOptions {
     private boolean withObservers = true;
 
     @Builder.Default
-    private boolean withChildrenEntities = false; // If tru, enable other property (positions, fishing areas, batches, samples, etc.)
+    private boolean withChildrenEntities = false; // If true, enable other property (positions, fishing areas, batches, samples, etc.)
 
     @Builder.Default
     private boolean withMeasurementValues = false;
