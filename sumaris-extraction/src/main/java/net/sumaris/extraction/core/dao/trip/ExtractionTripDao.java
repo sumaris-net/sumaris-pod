@@ -85,16 +85,16 @@ public interface ExtractionTripDao<
                         if (criterion.hasValue()) {
                             switch (columnName) {
                                 case RdbSpecification.COLUMN_PROJECT:
-                                    target.setProgramLabel(criterion.getValue());
+                                    target.setProgramLabel(criterion.getValue().trim());
                                     break;
                                 case RdbSpecification.COLUMN_YEAR:
-                                    int year = Integer.parseInt(criterion.getValue());
+                                    int year = Integer.parseInt(criterion.getValue().trim());
                                     target.setStartDate(Dates.getFirstDayOfYear(year));
                                     target.setEndDate(Dates.getLastSecondOfYear(year));
                                     break;
                                 case RdbSpecification.COLUMN_VESSEL_IDENTIFIER:
                                     try {
-                                        int vesselId = Integer.parseInt(criterion.getValue());
+                                        int vesselId = Integer.parseInt(criterion.getValue().trim());
                                         target.setVesselId(vesselId);
                                     } catch (NumberFormatException e) {
                                         // Skip
@@ -103,7 +103,7 @@ public interface ExtractionTripDao<
 
                                 case RdbSpecification.COLUMN_TRIP_CODE:
                                     try {
-                                        int tripId = Integer.parseInt(criterion.getValue());
+                                        int tripId = Integer.parseInt(criterion.getValue().trim());
                                         target.setTripId(tripId);
                                     } catch (NumberFormatException e) {
                                         // Skip
@@ -116,7 +116,9 @@ public interface ExtractionTripDao<
                             switch (columnName) {
                                 case RdbSpecification.COLUMN_TRIP_CODE:
                                     try {
-                                        Integer[] tripIds = Arrays.stream(criterion.getValues()).map(Integer::parseInt)
+                                        Integer[] tripIds = Arrays.stream(criterion.getValues())
+                                            .map(String::trim)
+                                            .map(Integer::parseInt)
                                             .toArray(Integer[]::new);
                                         target.setIncludedIds(tripIds);
                                     } catch (NumberFormatException e) {
@@ -138,7 +140,8 @@ public interface ExtractionTripDao<
                         case RdbSpecification.COLUMN_TRIP_CODE:
                             try {
                                 Integer[] tripIds = Arrays.stream(criterion.getValues())
-                                    .map(Integer::valueOf)
+                                    .map(String::trim)
+                                    .map(Integer::parseInt)
                                     .toArray(Integer[]::new);
                                 target.setIncludedIds(tripIds);
                             } catch(NumberFormatException e) {
