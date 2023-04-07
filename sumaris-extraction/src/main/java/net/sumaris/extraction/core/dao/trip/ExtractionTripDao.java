@@ -77,7 +77,7 @@ public interface ExtractionTripDao<
             // Parse EQUALS
             source.getCriteria().stream()
                     .filter(criterion ->
-                            org.apache.commons.lang3.StringUtils.isNotBlank(criterion.getValue())
+                        (StringUtils.isNotBlank(criterion.getValue()) || ArrayUtils.isNotEmpty(criterion.getValues()))
                                     && ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator()))
                     .forEach(criterion -> {
                         switch (criterion.getName().toLowerCase()) {
@@ -99,11 +99,21 @@ public interface ExtractionTripDao<
                                 break;
 
                             case RdbSpecification.COLUMN_TRIP_CODE:
-                                try {
-                                    int tripId = Integer.parseInt(criterion.getValue());
-                                    target.setTripId(tripId);
-                                } catch(NumberFormatException e) {
-                                    // Skip
+                                if (StringUtils.isNotBlank(criterion.getValue())) {
+                                    try {
+                                        int tripId = Integer.parseInt(criterion.getValue());
+                                        target.setTripId(tripId);
+                                    } catch (NumberFormatException e) {
+                                        // Skip
+                                    }
+                                } else if (ArrayUtils.isNotEmpty(criterion.getValues())) {
+                                    try {
+                                        Integer[] tripIds = Arrays.stream(criterion.getValues()).map(Integer::parseInt)
+                                            .toArray(Integer[]::new);
+                                        target.setIncludedIds(tripIds);
+                                    } catch (NumberFormatException e) {
+                                        // Skip
+                                    }
                                 }
                                 break;
                         }
