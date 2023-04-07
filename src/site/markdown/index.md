@@ -8,9 +8,6 @@ Originally, the [SUMARiS project](www.sumaris.net) aimed to build a shared datab
 
 However, these tools are now reusable **to collect many kind of halieutic data**, for many purposes such as fisheries stock assessment.
 
-<u>SUMARiS project web site</u>: [www.sumaris.net](https://www.sumaris.net)
-
-
 
 ## Main features
 
@@ -35,18 +32,20 @@ SUMARiS tools comes with:
     * Built-in camera support (coming soon);
 
 
-## Documentation  
+## User documentation  
 
- - User manual: [A quick start guide](doc/user-manual/index.md) ([EN](doc/user-manual/index.md) | [FR](doc/user-manual/index_fr.md));
- - [Functional use cases](doc/use-case/index_en.md) ([EN](doc/use-case/index_en.md) | [FR](doc/use-case/index.md));
- - [Database conceptual model](doc/use-case/index_en.md);
- - [Database conceptual model](doc/model/index.md) of the database;
- - [Database tables](./sumaris-core/hibernate/tables/index.html) with all associated columns;
+- User manual: [A quick start guide](doc/user-manual/index.md) ([EN](doc/user-manual/index.md) | [FR](doc/user-manual/index_fr.md));
+- [Functional use cases](doc/use-case/index_en.md) ([EN](doc/use-case/index_en.md) | [FR](doc/use-case/index.md));
+
+## Technical documentation
+
+- [Developer guide](developer_guide.md) ([EN](developer_guide.md) | [FR](developer_guide_fr.md));;
+- [Database documentation](db.md);
 
 ## Installation
   
 - [App installation](app.md) 
-- [Pod and database installation](pod.md)
+- [Pod installation](pod.md)
 
 ## License
 
@@ -73,7 +72,7 @@ Ways in which you can help:
 
 ## Project's partners
 
-SUMARiS tools have been developed by the following consortium:
+SUMARiS tools have been developed by the following partners:
 
 [![](./images/logos/logo-eis.png)](https://www.e-is.pro)
 [![](./images/logos/logo-ifremer.png)](https://www.ifremer.fr)
@@ -81,5 +80,7 @@ SUMARiS tools have been developed by the following consortium:
 [![](./images/logos/logo-interreg2seas.png)](https://www.interreg2seas.eu)
 [![](./images/logos/logo-nausicaa.png)](https://www.nausicaa.fr)
 [![](./images/logos/logo-fromnord.png)](http://www.fromnord.fr)
-[![](./images/logos/logo-redercentrale.png)](https://www.rederscentrale.be/)
+[![](./images/logos/logo-redercentrale.png)](https://www.rederscentrale.be)
 [![](./images/logos/logo-lpdb.png)](https://www.pecheursdebretagne.eu)
+[![](./images/logos/logo-aglia.png)](https://www.aglia.fr)
+[![](./images/logos/logo-sfa.png)](https://www.sfa.sc)

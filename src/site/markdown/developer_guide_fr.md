@@ -52,7 +52,7 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
   public void toVO(E source, V target, boolean copyIfNull);`
   public void toEntity(V source, E target, boolean copyIfNull);`
   ```
-  - Dans la méthode `toVO()`, pour chaque clefs étrangères de la classe entité, ajouter une conversion du type :
+  - Dans la méthode `toVO()`, pour chaque clef étrangères de la classe entité, ajouter une conversion du type :
   ```java
       // Convertir chaque sous-entité en VO, en utilisant les Repository liés.
       // Déclarer le Repository supplémentaire grâce à l'annotation @Ressource. 
