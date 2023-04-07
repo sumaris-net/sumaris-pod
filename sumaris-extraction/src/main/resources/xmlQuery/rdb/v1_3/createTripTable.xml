@@ -92,12 +92,14 @@
       <in field="T.RETURN_LOCATION_FK"><![CDATA[&locationIds]]></in>
     </where>
     <where operator="AND" group="departmentFilter">
-      <in field="T.RECORDER_DEPARTMENT_FK"><![CDATA[&recDepIds]]></in>
+      <in field="T.RECORDER_DEPARTMENT_FK">&amp;recDepIds</in>
     </where>
     <where operator="AND" group="vesselFilter">
-      <in field="T.VESSEL_FK"><![CDATA[&vesselIds]]></in>
+      <in field="T.VESSEL_FK">&amp;vesselIds</in>
     </where>
-    <where operator="AND" group="tripFilter"><![CDATA[T.ID = &tripId]]></where>
+    <where operator="AND" group="tripFilter">
+      <in field="T.ID">&amp;tripIds</in>
+    </where>
 
     <!-- Filter on controlled (finished) trips -->
     <where operator="AND" group="controlledFilter">T.CONTROL_DATE IS NOT NULL</where>

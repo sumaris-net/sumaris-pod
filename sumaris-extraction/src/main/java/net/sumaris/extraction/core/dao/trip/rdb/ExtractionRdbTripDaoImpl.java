@@ -265,12 +265,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         execute(context, xmlQuery);
         long count = countFrom(context.getTripTableName());
 
+        // Update self sampling columns
+        if (count > 0 && enableTripSamplingMethodColumn) {
+            updateTripSamplingMethod(context);
+        }
 
+        // Clean row using generic filter
         if (count > 0) {
-            // Update self sampling columns
-            if (enableTripSamplingMethodColumn) updateTripSamplingMethod(context);
-
-            // Clean row using generic filter
             count -= cleanRow(context.getTripTableName(), context.getFilter(), context.getTripSheetName());
         }
 
@@ -313,16 +314,19 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
 
         // Recorder Department filter
-        xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(context.getRecorderDepartmentIds()));
-        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(context.getRecorderDepartmentIds()));
+        List<Integer> recorderDepartmentIds = context.getRecorderDepartmentIds();
+        xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(recorderDepartmentIds));
+        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(recorderDepartmentIds));
 
         // Vessel filter
-        xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(context.getVesselIds()));
-        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(context.getVesselIds()));
+        List<Integer> vesselIds = context.getVesselIds();
+        xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(vesselIds));
+        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(vesselIds));
 
         // Trip filter
-        xmlQuery.setGroup("tripFilter", context.getTripId() != null);
-        if (context.getTripId() != null) xmlQuery.bind("tripId", context.getTripId().toString());
+        List tripIds = context.getTripIds();
+        xmlQuery.setGroup("tripFilter", CollectionUtils.isNotEmpty(tripIds));
+        xmlQuery.bind("tripIds", Daos.getSqlInNumbers(tripIds));
 
         return xmlQuery;
     }
