@@ -47,6 +47,7 @@ import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.Assert;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
@@ -55,9 +56,12 @@ import net.sumaris.core.vo.technical.job.IJobResultVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
+import org.nuiton.i18n.I18n;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -71,10 +75,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -91,18 +93,23 @@ public class JobExecutionServiceImpl implements JobExecutionService {
     private final UserEventService userEventService;
 
     private final ApplicationEventPublisher publisher;
-    private final Map<Integer, List<Consumer<JobProgressionVO>>> jobProgressionConsumerMap = new ConcurrentHashMap<>();
-    private final Map<Integer, Future<?>> jobFutureMap = new ConcurrentHashMap<>();
+    private final Map<Integer, List<Consumer<JobProgressionVO>>> jobProgressionListeners = new ConcurrentHashMap<>();
+    private final Map<Integer, Future<?>> runningJobsById = new ConcurrentHashMap<>();
+
+    private final TaskExecutor taskExecutor;
 
     public JobExecutionServiceImpl(JobService jobService,
                                    UserEventService userEventService,
                                    ObjectMapper objectMapper,
-                                   Optional<ISecurityContext<PersonVO>> securityContext, ApplicationEventPublisher publisher) {
+                                   Optional<TaskExecutor> taskExecutor,
+                                   Optional<ISecurityContext<PersonVO>> securityContext,
+                                   ApplicationEventPublisher publisher) {
         this.jobService = jobService;
         this.userEventService = userEventService;
         this.objectMapper = objectMapper;
         this.securityContext = securityContext.orElse(null);
         this.publisher = publisher;
+        this.taskExecutor = taskExecutor.orElse(null);
     }
 
     @PostConstruct
@@ -146,24 +153,30 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
 
         // Save job
-        job = jobService.save(job);
+        JobVO finalJob = jobService.save(job);
 
         // Notify user
-        sendUserEvent(EventLevelEnum.INFO, job);
+        sendUserEvent(EventLevelEnum.INFO, finalJob);
 
-        // Execute async method
-        Future<?> future = start(job, callableFuture);
-        jobFutureMap.put(job.getId(), future);
+        // Start async
+        if (this.taskExecutor != null) {
+            this.taskExecutor.execute(() -> start(finalJob, callableFuture));
+        }
+        else {
+            start(finalJob, callableFuture);
+        }
 
         return job;
     }
 
-    public <R> Future<R> start(final JobVO job,
-                               Function<IProgressionModel, Future<R>> callableFuture) {
+    public <R> Future<R> start(JobVO job,
+                               Function<IProgressionModel,
+                               Future<R>> callableFuture) {
         final int jobId = job.getId();
 
         // Publish job start event
-        publisher.publishEvent(new JobStartEvent(jobId, job));
+        job.setStatus(JobStatusEnum.RUNNING);
+        publisher.publishEvent(new JobStartEvent(job.getId(), job));
 
         // Create progression model and listener to throttle events
         ProgressionModel progressionModel = new ProgressionModel();
@@ -206,6 +219,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 // Start job
                 Future<R> resultFuture = callableFuture.apply(progressionModel);
 
+                // Store as running job, to be able to cancelled it
+                this.runningJobsById.put(jobId, resultFuture);
+
                 // Wait job result
                 result = resultFuture.get();
 
@@ -219,10 +235,11 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 }
 
             } catch (Exception e) {
-                // Set failed status
-                // TODO
-                //job.setStatus(JobStatusEnum.FAILED);
-                job.setStatus(JobStatusEnum.ERROR);
+                boolean cancelled = e instanceof CancellationException || e instanceof InterruptedException;
+                // Set status (failed or cancelled)
+                job.setStatus(cancelled ? JobStatusEnum.CANCELLED : JobStatusEnum.FATAL);
+                // Add error to log
+                if (!cancelled) job.appendToLog(e.getMessage());
             }
 
             // Store result as report
@@ -235,53 +252,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 }
             }
 
-            return new AsyncResult<>(result);
+            return new AsyncResult(result);
 
         } finally {
-
             // Publish job end event
             publisher.publishEvent(new JobEndEvent(jobId, job));
             Observables.dispose(progressionSubscription);
-        }
-    }
-
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.SECONDS)
-    public void waitJobFuture() {
-        synchronized (jobFutureMap) {
-            if (!jobFutureMap.isEmpty()) {
-                // Get finished task
-                List<Map.Entry<Integer, Future<?>>> doneJobs = jobFutureMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().isDone() || entry.getValue().isCancelled())
-                    .collect(Collectors.toList());
-                // Mark jobs as finished
-                for (Map.Entry<Integer, Future<?>> doneJob: doneJobs) {
-                    // Get the future
-                    Integer jobId = doneJob.getKey();
-                    boolean cancelled = false;
-                    Exception exception = null;
-                    try {
-                        doneJob.getValue().get();
-                    } catch (Exception e) {
-                        exception = e;
-                        cancelled = e instanceof CancellationException || e instanceof InterruptedException;
-                    }
-                    // If an exception was thrown
-                    if (exception != null) {
-                        unregisterListeners(jobId);
-                        // Update job
-                        JobVO job = jobService.get(jobId);
-                        job.setEndDate(new Date());
-                        job.setStatus(cancelled ? JobStatusEnum.CANCELLED : JobStatusEnum.FATAL);
-                        job.setLog(exception.toString());
-                        log.error(t("sumaris.core.job.failed", job.getName()), exception);
-                        jobService.save(job);
-                        // Send notification
-                        sendUserEvent(cancelled ? EventLevelEnum.WARNING : EventLevelEnum.ERROR, job);
-                    }
-                    // Remove from map
-                    jobFutureMap.remove(jobId);
-                }
-            }
+            runningJobsById.remove(jobId);
         }
     }
 
@@ -296,14 +273,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 .build()
         );
         oldPendingJobs.forEach(job -> {
-            if (jobFutureMap.containsKey(job.getId())) {
+            if (runningJobsById.containsKey(job.getId())) {
                 // Cancel by Future
-                jobFutureMap.get(job.getId()).cancel(job.getStatus().equals(JobStatusEnum.RUNNING));
+                runningJobsById.get(job.getId()).cancel(job.getStatus().equals(JobStatusEnum.RUNNING));
             } else {
                 // Just update the job
                 job.setEndDate(new Date());
                 job.setStatus(JobStatusEnum.CANCELLED);
-                job.setLog("Cancelled by system");
+                job.setLog(I18n.t("sumaris.server.job.cancel.message", SystemRecipientEnum.SYSTEM));
                 jobService.save(job);
             }
 
@@ -311,7 +288,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     }
 
-    public Observable<JobProgressionVO> watchJobProgression(Integer id) {
+    public Observable<JobProgressionVO> watchJobProgression(int id) {
 
         JobVO job = jobService.findById(id).orElse(null);
         if (job == null) {
@@ -323,18 +300,30 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             return Observable.empty();
         }
 
-        JobProgressionVO startProgression = new JobProgressionVO(id, job.getName(), t("sumaris.core.job.progression.pending"), 0, 0);
-
         Observable<JobProgressionVO> observable = Observable.create(emitter -> {
             Consumer<JobProgressionVO> listener = emitter::onNext;
-            registerListener(id, listener);
-            emitter.setCancellable(() -> unregisterListener(id, listener));
+            registerProgressionListener(id, listener);
+            emitter.setCancellable(() -> unregisterProgressionListener(id, listener));
         });
 
-        return observable
-            .observeOn(Schedulers.io())
-            .startWithItem(startProgression)
-            .takeUntil(Observable.interval(1, TimeUnit.SECONDS).filter(o -> !hasListeners(id))) // use a timer to watch listeners exists
+        Observable<JobProgressionVO> result = observable
+            .observeOn(Schedulers.io());
+
+        // Add an initiale progression, only if pending
+        if (job.getStatus() == JobStatusEnum.PENDING) {
+            JobProgressionVO firstProgression = new JobProgressionVO(id, job.getName(), t("sumaris.core.job.progression.pending"), 0, 0);
+            result = result.startWithItem(firstProgression);
+        }
+
+        return result
+            // Add a destroy timer
+            .takeUntil(Observable.interval(
+                5 /*wait 10s before to start timer*/,
+                1, TimeUnit.SECONDS // Check every 1s
+                )
+                // Emit (=will destroy the observable) if not more listeners
+                .filter(o -> !hasProgressionListeners(id))
+            )
             .doOnLifecycle(
                 (subscription) -> log.debug("Watching job progression (id={})", id),
                 () -> log.debug("Stop watching job progression (id={})", id)
@@ -342,67 +331,104 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
     }
 
-    @JmsListener(destination = JmsJobEventProducer.DESTINATION, selector = "operation = 'start'", containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    protected void onJobStartEvent(JobVO job, Message message) {
+    @Override
+    public JobVO cancel(@NonNull JobVO job, @NonNull String message) {
+        Preconditions.checkNotNull(job.getId());
 
-        if (job == null) {
+        // Already finished: skip
+        if (JobStatusEnum.isFinished(job.getStatus())) {
+            return job;
+        }
+
+        log.info("Cancelling job #{}... ({})", job.getId(), message);
+
+        if (runningJobsById.containsKey(job.getId())) {
+            // Cancel by Future
+            Future<?> future = runningJobsById.remove(job.getId());
+            boolean mayInterruptIfRunning = job.getStatus().equals(JobStatusEnum.RUNNING);
+            future.cancel(mayInterruptIfRunning);
+
+            // Just update the job
+            job.setStatus(JobStatusEnum.CANCELLED);
+
+        } else {
+            // Just update the job
+            job.setStatus(JobStatusEnum.CANCELLED);
+            job.appendToLog(message);
+            // Publish job end event
+            publisher.publishEvent(new JobEndEvent(job.getId(), job));
+        }
+
+
+        return job;
+    }
+
+    @JmsListener(destination = JmsJobEventProducer.DESTINATION, selector = "operation = 'start'", containerFactory = JmsConfiguration.CONTAINER_FACTORY)
+    protected void onJobStartEvent(JobVO source, Message message) {
+
+        if (source == null) {
             log.warn("The JobStartEvent send empty payload. Message: {}", message);
             return;
         }
-        log.debug("Receiving job start event for job {}", job);
+        log.debug("Receiving job start event for job {}", source);
 
-        Integer jobId = job.getId();
-        if (jobId == null || jobService.findById(jobId).isEmpty()) {
-            // todo: Job not exists, create as external job ?
-            log.warn("This job doesn't exists: {}", job);
+        Integer jobId = source.getId();
+
+        // Get the job entity
+        JobVO target = Optional.ofNullable(jobId).flatMap(jobService::findById).orElse(null);
+        if (target == null) {
+            log.warn("This job doesn't exists: {}", source);
             return;
         }
 
-        // Get the job entity
-        JobVO jobToUpdate = jobService.get(jobId);
         // Update start date
-        jobToUpdate.setStartDate(new Date());
-        jobToUpdate.setStatus(JobStatusEnum.RUNNING);
+        target.setStartDate(new Date());
+        target.setStatus(JobStatusEnum.RUNNING);
         // set Context
-        jobToUpdate.setConfiguration(job.getConfiguration());
+        target.setConfiguration(source.getConfiguration());
 
-        // Save and Notify user
-        jobService.save(jobToUpdate);
-        sendUserEvent(EventLevelEnum.INFO, jobToUpdate);
+        // Save
+        jobService.save(target);
 
+        // Notify user
+        sendUserEvent(EventLevelEnum.INFO, target);
     }
 
     @JmsListener(destination = JmsJobEventProducer.DESTINATION, selector = "operation = 'end'", containerFactory = JmsConfiguration.CONTAINER_FACTORY)
-    protected void onJobEndEvent(JobVO job, Message message) {
+    protected void onJobEndEvent(JobVO source, Message message) {
 
-        if (job == null) {
+        if (source == null) {
             log.warn("The JobEndEvent send empty payload. Message: {}", message);
             return;
         }
-        log.debug("Receiving job end event for job {}", job);
+        log.debug("Receiving job end event for job {}", source);
 
-        Integer jobId = job.getId();
-        if (jobId == null || jobService.findById(jobId).isEmpty()) {
-            log.warn("This job doesn't exists: {}", job);
+        Integer jobId = source.getId();
+        JobVO target = Optional.ofNullable(jobId).flatMap(jobService::findById).orElse(null);
+        if (target == null) {
+            log.warn("This job doesn't exists: {}", source);
             return;
         }
 
-        JobVO target = jobService.get(jobId);
         // Set end date
         target.setEndDate(new Date());
-        target.setStatus(job.getStatus());
+        target.setStatus(source.getStatus());
         // Update context if changed
-        target.setConfiguration(job.getConfiguration());
+        target.setConfiguration(source.getConfiguration());
         // Set report
-        target.setReport(job.getReport());
+        target.setReport(source.getReport());
+        // Set log
+        if (StringUtils.isNotBlank(source.getLog())) {
+            target.setLog(source.getLog());
+        }
 
         // Unregister listeners
-        unregisterListeners(jobId);
+        unregisterProgressionListeners(jobId);
 
         // Save and Notify user
         jobService.save(target);
 
-        EventLevelEnum eventLevel = switch (job.getStatus()) {
+        EventLevelEnum eventLevel = switch (source.getStatus()) {
             case ERROR, FATAL -> EventLevelEnum.ERROR;
             case WARNING, CANCELLED -> EventLevelEnum.WARNING;
             default -> EventLevelEnum.INFO;
@@ -424,7 +450,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         log.debug("Receiving job progression event for job {}", progression);
 
         // Notify listeners
-        List<Consumer<JobProgressionVO>> listeners = getListeners(jobId);
+        List<Consumer<JobProgressionVO>> listeners = getProgressionListeners(jobId);
         if (CollectionUtils.isNotEmpty(listeners)) {
             log.debug("Consume job progression event for job id={} (listener count: {}}", jobId, listeners.size());
             listeners.forEach(listener -> listener.accept(progression));
@@ -456,28 +482,28 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         return userEventService.save(userEvent);
     }
 
-    private List<Consumer<JobProgressionVO>> getListeners(Integer jobId) {
-        return jobProgressionConsumerMap.get(jobId);
+    private List<Consumer<JobProgressionVO>> getProgressionListeners(Integer jobId) {
+        return jobProgressionListeners.get(jobId);
     }
 
-    private boolean hasListeners(Integer jobId) {
-        return jobProgressionConsumerMap.containsKey(jobId);
+    private boolean hasProgressionListeners(Integer jobId) {
+        return jobProgressionListeners.containsKey(jobId);
     }
 
-    private void registerListener(Integer jobId, Consumer<JobProgressionVO> listener) {
-        jobProgressionConsumerMap.computeIfAbsent(jobId, id -> new CopyOnWriteArrayList<>()).add(listener);
+    private void registerProgressionListener(Integer jobId, Consumer<JobProgressionVO> listener) {
+        jobProgressionListeners.computeIfAbsent(jobId, id -> new CopyOnWriteArrayList<>()).add(listener);
     }
 
-    private void unregisterListener(Integer jobId, Consumer<JobProgressionVO> listener) {
-        jobProgressionConsumerMap.computeIfPresent(jobId, (id, listeners) -> {
+    private void unregisterProgressionListener(Integer jobId, Consumer<JobProgressionVO> listener) {
+        jobProgressionListeners.computeIfPresent(jobId, (id, listeners) -> {
             listeners.remove(listener);
             return listeners.isEmpty() ? null : listeners;
         });
     }
 
-    private void unregisterListeners(Integer jobId) {
-        if (hasListeners(jobId)) {
-            jobProgressionConsumerMap.remove(jobId);
+    private void unregisterProgressionListeners(Integer jobId) {
+        if (jobProgressionListeners.containsKey(jobId)) {
+            jobProgressionListeners.remove(jobId);
         }
     }
 

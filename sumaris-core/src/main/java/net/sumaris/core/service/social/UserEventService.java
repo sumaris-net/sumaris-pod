@@ -26,6 +26,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
@@ -52,6 +53,7 @@ public interface UserEventService {
     @Transactional(readOnly = true)
     Timestamp getLastReadDate(String ...recipients);
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     UserEventVO save(UserEventVO event);
 
     void delete(int id);

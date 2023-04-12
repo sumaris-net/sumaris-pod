@@ -24,6 +24,7 @@ package net.sumaris.core.exception;
 
 public interface ErrorCodes extends net.sumaris.shared.exception.ErrorCodes {
 
-    // Data exception
+    // Data exception >= 600
     int INVALID_SAMPLING_BATCH_EXCEPTION = 600;
+    int SIOP_VESSEL_IMPORT_ALREADY_RUNNING = 601;
 }

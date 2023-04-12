@@ -45,7 +45,7 @@ public class DevicePosition implements IDataEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "device_position_seq")
-    @SequenceGenerator(name = "device_position_seq", sequenceName = "device_position_seq", allocationSize = 1)
+    @SequenceGenerator(name = "device_position_seq", sequenceName = "device_position_seq", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 

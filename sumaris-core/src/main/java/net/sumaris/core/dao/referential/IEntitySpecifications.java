@@ -63,7 +63,6 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
                 .addBind(INCLUDED_IDS_PARAMETER, includedId);
         }
 
-
         return BindableSpecification.<E>where((root, query, cb) -> {
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
                 return cb.in(root.get(IEntity.Fields.ID)).value(param);

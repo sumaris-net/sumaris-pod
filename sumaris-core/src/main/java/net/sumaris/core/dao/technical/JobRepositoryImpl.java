@@ -74,7 +74,13 @@ public class JobRepositoryImpl
     public List<JobVO> findAll(JobFilterVO filter) {
         return super.streamAll(toSpecification(filter))
             .map(this::toVO)
-            .collect(Collectors.toList());
+            .toList();
+    }
+
+    @Override
+    public List<JobVO> findAll(JobFilterVO filter, net.sumaris.core.dao.technical.Page page) {
+        return this.findAll(filter, page != null ? page.asPageable(): Pageable.unpaged())
+            .getContent();
     }
 
     @Override
@@ -88,7 +94,10 @@ public class JobRepositoryImpl
             .where(id(filter.getId(), Integer.class))
             .and(hasIssuers(filter.getIssuer(), filter.getIssuerEmail()))
             .and(hasTypes(filter.getTypes()))
-            .and(hasJobStatus(filter.getStatus()));
+            .and(hasJobStatus(filter.getStatus()))
+            .and(includedIds(filter.getIncludedIds()))
+            .and(excludedIds(filter.getExcludedIds()))
+        ;
     }
 
     @Override

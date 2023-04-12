@@ -57,6 +57,11 @@ public class JobFilterVO implements Serializable {
     @Builder.Default
     private JobStatusEnum[] status = null;
 
+    @Builder.Default
+    private Integer[] includedIds = null;
+    @Builder.Default
+    private Integer[] excludedIds = null;
+
     private Date lastUpdateDate;
     private Date startedBefore;
 

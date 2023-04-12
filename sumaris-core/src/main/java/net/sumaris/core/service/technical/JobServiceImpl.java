@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.JobRepository;
+import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -116,6 +117,11 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<JobVO> findAll(JobFilterVO filter) {
         return jobRepository.findAll(filter);
+    }
+
+    @Override
+    public List<JobVO> findAll(JobFilterVO filter, net.sumaris.core.dao.technical.Page page) {
+        return jobRepository.findAll(filter, page);
     }
 
     @Override

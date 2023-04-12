@@ -34,8 +34,8 @@ public enum JobStatusEnum implements Serializable {
     ERROR("ERROR", ProcessingStatusEnum.ERROR),
     WARNING("WARNING", ProcessingStatusEnum.WARNING),
 
-    RUNNING("RUNNING", ProcessingStatusEnum.WAITING_EXECUTION),
-    FATAL("FATAL", ProcessingStatusEnum.ERROR), // TODO: add FATAL in ProcessingStatusEnum ?
+    RUNNING("RUNNING", ProcessingStatusEnum.RUNNING),
+    FATAL("FATAL", ProcessingStatusEnum.FATAL),
     CANCELLED("CANCELLED", ProcessingStatusEnum.CANCELLED)
     ;
 
