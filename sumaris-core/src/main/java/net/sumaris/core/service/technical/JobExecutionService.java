@@ -41,6 +41,7 @@ public interface JobExecutionService {
     <R> JobVO run(JobVO job,
                   Function<IProgressionModel, Future<R>> callableFuture);
 
-    Observable<JobProgressionVO> watchJobProgression(Integer id);
+    Observable<JobProgressionVO> watchJobProgression(int id);
 
+    JobVO cancel(JobVO job, String message);
 }

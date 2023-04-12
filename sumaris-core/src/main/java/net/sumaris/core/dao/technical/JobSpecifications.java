@@ -91,5 +91,7 @@ public interface JobSpecifications extends IEntityWithJoinSpecifications<Integer
 
     List<JobVO> findAll(JobFilterVO filter);
 
+    List<JobVO> findAll(JobFilterVO filter, net.sumaris.core.dao.technical.Page page);
+
     Page<JobVO> findAll(JobFilterVO filter, Pageable pageable);
 }

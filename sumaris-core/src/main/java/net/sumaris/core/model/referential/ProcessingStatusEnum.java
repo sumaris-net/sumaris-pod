@@ -45,7 +45,9 @@ public enum ProcessingStatusEnum implements Serializable  {
     WAITING_EXECUTION(4, "WAITING_EXECUTION"),
     WARNING(5, "WARNING"),
     RUNNING(6, "RUNNING"),
-    CANCELLED(7, "CANCELLED");
+    CANCELLED(7, "CANCELLED"),
+
+    FATAL(8, "FATAL");
 
     public static ProcessingStatusEnum valueOf(final int id) {
         return Arrays.stream(values())

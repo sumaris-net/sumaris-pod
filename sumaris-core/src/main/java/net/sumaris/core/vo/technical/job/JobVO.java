@@ -75,4 +75,14 @@ public class JobVO implements
     public String asSource() {
         return String.format("job:%s", getId());
     }
+
+    @JsonIgnore
+    public void appendToLog(String message) {
+        if (this.log != null && this.log.trim().length() > 0) {
+            this.log += "\n" + message;
+        }
+        else {
+            this.log = message;
+        }
+    }
 }

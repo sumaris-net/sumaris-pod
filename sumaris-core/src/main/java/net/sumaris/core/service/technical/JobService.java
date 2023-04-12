@@ -44,6 +44,7 @@ public interface JobService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     boolean updateProcessingTypes();
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     JobVO save(JobVO source);
 
     @Transactional(readOnly = true)
@@ -54,6 +55,9 @@ public interface JobService {
 
     @Transactional(readOnly = true)
     List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter);
+
+    @Transactional(readOnly = true)
+    List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter, net.sumaris.core.dao.technical.Page page);
 
     @Transactional(readOnly = true)
     Page<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter, Pageable page);

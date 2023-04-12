@@ -22,25 +22,17 @@
 
 package net.sumaris.importation.core.service.vessel;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.disposables.Disposable;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.event.job.JobEndEvent;
-import net.sumaris.core.event.job.JobProgressionEvent;
-import net.sumaris.core.event.job.JobProgressionVO;
-import net.sumaris.core.event.job.JobStartEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -63,7 +55,6 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -76,7 +67,6 @@ import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportResultVO;
 import net.sumaris.importation.core.util.csv.CSVFileReader;
@@ -85,20 +75,16 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.nuiton.i18n.I18n.t;
@@ -234,14 +220,20 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		Preconditions.checkNotNull(context.getRecorderPersonId());
 
 		SiopVesselImportResultVO result = context.getResult();
+		progressionModel = Optional.ofNullable(progressionModel).orElseGet(ProgressionModel::new);
 
 		// Make sure this job run once, to avoid duplication
-		if (running) throw new SumarisTechnicalException("Unable to import vessels: another process is still in progress");
+		if (running) {
+			String message = t("sumaris.import.job.error.alreadyRunning");
+			progressionModel.setMessage(message);
+			progressionModel.setTotal(1);
+			progressionModel.setCurrent(1);
+			throw new SiopVesselAlreadyRunningException(message);
+		}
 		running = true;
 
 		try {
 			// Init progression model
-			progressionModel = Optional.ofNullable(progressionModel).orElseGet(ProgressionModel::new);
 			progressionModel.setMessage(t("sumaris.import.job.start", context.getProcessingFile().getName()));
 
 			PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
@@ -423,7 +415,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			}
 			catch(Exception e) {
 				log.error(e.getMessage(), e);
-				throw e;
+				throw new SumarisTechnicalException(e);
 			}
 			finally {
 				Files.deleteQuietly(tempFile);
@@ -456,7 +448,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 			result.setMessage(t("sumaris.import.vessel.error.detail", ExceptionUtils.getStackTrace(e)));
 
 			// Set failed status
-			result.setStatus(JobStatusEnum.ERROR);
+			result.setStatus(JobStatusEnum.FATAL);
 		}
 
 		return new AsyncResult<>(result);

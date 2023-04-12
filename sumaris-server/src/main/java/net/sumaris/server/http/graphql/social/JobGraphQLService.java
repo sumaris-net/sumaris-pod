@@ -22,27 +22,31 @@ package net.sumaris.server.http.graphql.social;
  * #L%
  */
 
-import io.leangen.graphql.annotations.GraphQLArgument;
-import io.leangen.graphql.annotations.GraphQLNonNull;
-import io.leangen.graphql.annotations.GraphQLQuery;
-import io.leangen.graphql.annotations.GraphQLSubscription;
+import io.leangen.graphql.annotations.*;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.job.JobProgressionVO;
+import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.social.UserEventVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
-import net.sumaris.core.event.job.JobProgressionVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.security.ISecurityContext;
 import net.sumaris.server.service.technical.EntityWatchService;
+import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.domain.Sort;
@@ -60,23 +64,45 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class JobGraphQLService {
-
+    final static int DEFAULT_PAGE_SIZE = 100;
+    final static int MAX_PAGE_SIZE = 1000;
     private final JobService jobService;
     private final JobExecutionService jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
     private final EntityWatchService entityWatchService;
 
+    private final AuthService authService;
+
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
-    public List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter) {
-        return jobService.findAll(filter);
+    @IsUser
+    public List<JobVO> findAll(@GraphQLArgument(name = "filter") JobFilterVO filter,
+                               @GraphQLArgument(name = "page") Page page) {
+        // Default page size
+        if (page == null) {
+            page = Page.builder()
+                .offset(0)
+                .size(DEFAULT_PAGE_SIZE)
+                .sortBy(UserEventVO.Fields.UPDATE_DATE)
+                .sortDirection(SortDirection.DESC)
+                .build();
+        }
+
+        // Limit to 1000 items
+        if (page.getSize() > MAX_PAGE_SIZE) {
+            page.setSize(MAX_PAGE_SIZE);
+        }
+
+        return jobService.findAll(filter, page);
     }
 
     @GraphQLQuery(name = "job", description = "Get a job")
+    @IsUser
     public JobVO getJob(@GraphQLArgument(name = "id") int id) {
         return jobService.findById(id).orElse(null);
     }
 
     @GraphQLSubscription(name = "updateJobs", description = "Subscribe to changes on jobs")
+    @IsUser
     public Publisher<List<JobVO>> updateJobs(
         @GraphQLArgument(name = "filter") JobFilterVO filter,
         @GraphQLArgument(name = "interval") Integer interval
@@ -115,14 +141,43 @@ public class JobGraphQLService {
     }
 
     @GraphQLSubscription(name = "updateJobProgression", description = "Subscribe to changes on job progression")
+    @IsUser
     public Publisher<JobProgressionVO> updateJobProgression(
         @GraphQLNonNull @GraphQLArgument(name = "id") final int id,
         @GraphQLArgument(name = "interval") Integer interval
     ) {
 
-        log.info("Checking progression for Job#{}", id);
-
+        log.info("Listening job progression for Job#{}", id);
         return jobExecutionService.watchJobProgression(id)
             .toFlowable(BackpressureStrategy.LATEST);
+    }
+
+    @GraphQLMutation(name = "cancelJob", description = "Cancel a running Job")
+    @IsUser
+    public JobVO cancelJob(
+        @GraphQLNonNull @GraphQLArgument(name = "id") final int id
+    ) {
+
+        JobVO job = this.jobService.get(id);
+
+        PersonVO user = this.authService.getAuthenticatedUser().orElseThrow(UnauthorizedException::new);
+        if (SystemRecipientEnum.SYSTEM.getLabel().equalsIgnoreCase(job.getIssuer())) {
+            // Only admin can stop a SYSTEM job
+            if (!this.authService.isAdmin()) {
+                log.warn("User #{} cannot cancel the SYSTEM job #{} - User is not admin", user.getId());
+                throw new UnauthorizedException();
+            }
+        }
+        else {
+            // Make sure user is the job issuer
+            if (!job.getIssuer().equalsIgnoreCase(user.getPubkey()) && !job.getIssuer().equalsIgnoreCase(user.getEmail())) {
+                log.warn("User #{} cannot cancel the job #{} - no same issuer", user.getId(), job.getIssuer());
+                throw new UnauthorizedException();
+            }
+        }
+
+        String message = I18n.t("sumaris.server.job.cancel.message", String.format("%s %s", user.getLastName(), user.getFirstName()));
+
+        return this.jobExecutionService.cancel(job, message);
     }
 }
