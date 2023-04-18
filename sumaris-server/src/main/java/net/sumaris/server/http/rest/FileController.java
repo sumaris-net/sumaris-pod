@@ -52,12 +52,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFileAttributes;
 
 @Controller
 @Slf4j
 public class FileController implements IFileController {
-
     private final Path downloadDirectory;
     private final Path uploadDirectory;
     private final ServletContext servletContext;
@@ -170,32 +168,23 @@ public class FileController implements IFileController {
         }
 
         Path userDirectory = this.downloadDirectory.resolve(userPath);
-        Files.createDirectories(userDirectory);
-        Path targetFile = userDirectory.resolve(sourceFile.getName());
-
-        if (Files.exists(targetFile)) {
-            int counter = 1;
-            String baseName = Files.getNameWithoutExtension(sourceFile);
-            String extension = Files.getExtension(sourceFile).orElse("");
-            do {
-                String fileName = String.format("%s-%s.%s",
-                    baseName,
-                    counter++);
-                fileName += extension;
-                targetFile = userDirectory.resolve(fileName);
-            } while (Files.exists(targetFile));
-        }
-
-        if (moveSourceFile) {
-            Files.moveFile(sourceFile, targetFile.toFile());
-        }
-        else {
-            Files.copyFile(sourceFile, targetFile.toFile());
-        }
+        Path targetFile = registerFileToDir(sourceFile, userDirectory, true,HandleExistingTargetFile.INCREMENT_NAME);
 
         return Joiner.on('/').join(
                 configuration.getServerUrl() + RestPaths.DOWNLOAD_PATH,
                 userPath,
+                targetFile.getFileName().toString());
+    }
+
+    public String registerPulbicFile(File sourceFile, boolean moveSourceFile) throws IOException {
+        String downloadSubDir = PUBLIC_DIRECTORY;
+        Path targetDir = downloadDirectory.resolve(downloadSubDir);
+
+        Path targetFile = registerFileToDir(sourceFile, targetDir, moveSourceFile,HandleExistingTargetFile.INCREMENT_NAME);
+
+        return Joiner.on('/').join(
+                configuration.getServerUrl() + RestPaths.DOWNLOAD_PATH,
+                downloadSubDir,
                 targetFile.getFileName().toString());
     }
 
@@ -289,6 +278,57 @@ public class FileController implements IFileController {
 
         return targetLocation;
 
+    }
+
+    protected Path registerFileToDir(
+            File sourceFile,
+            Path dirName,
+            boolean moveSourceFile,
+            HandleExistingTargetFile handleExistingTargetFile
+    ) throws IOException {
+
+        Path targetDirPath = this.downloadDirectory.resolve(dirName);
+        if (Files.exists(targetDirPath)) {
+            Files.createDirectories(targetDirPath);
+        }
+
+        Path targetFile = targetDirPath.resolve(sourceFile.getName());
+        if (Files.exists(targetFile)) {
+            switch (handleExistingTargetFile) {
+                case REPLACE -> {
+                    Files.deleteQuietly(targetFile);
+                    Files.copyFile(sourceFile, targetFile.toFile());
+                }
+                case INCREMENT_NAME -> {
+                    targetFile = computeIncrementedFilePath(targetFile);
+                    Files.copyFile(sourceFile, targetFile.toFile());
+                }
+                case THROW -> throw new IOException("Target file exists.");
+            }
+            if (moveSourceFile) Files.deleteQuietly(sourceFile);
+        } else {
+            if (moveSourceFile) Files.moveFile(sourceFile, targetFile.toFile());
+            else Files.copyFile(sourceFile, targetFile.toFile());
+        }
+
+        return targetFile;
+    }
+
+    protected Path computeIncrementedFilePath(Path filePath) {
+        Path parentDir = filePath.getParent();
+        String baseName = Files.getNameWithoutExtension(filePath.toFile());
+        String extension = Files.getExtension(filePath.toFile()).orElse("");
+
+        int counter = 1;
+        do {
+            String fileName = String.format("%s-%s.%s",
+                    baseName,
+                    counter++,
+                    extension);
+            filePath = parentDir.resolve(fileName);
+        } while (Files.exists(filePath));
+
+        return filePath;
     }
 
     protected void writeMultipartFile(MultipartFile source, Path target, boolean replace) throws IOException {
