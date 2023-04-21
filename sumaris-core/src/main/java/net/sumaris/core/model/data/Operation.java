@@ -72,7 +72,6 @@ public class Operation implements IDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OPERATION_SEQ")
     @SequenceGenerator(name = "OPERATION_SEQ", sequenceName = "OPERATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

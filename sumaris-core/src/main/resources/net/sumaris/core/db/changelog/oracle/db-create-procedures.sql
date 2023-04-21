@@ -39,11 +39,11 @@
 
 -- --------------------------------------------------------------------------
 --
--- SPLIT function - usefull to generate 'create synonym' order
+-- SPLIT function - useful to generate 'create synonym' order
 --   -> see file 'create-other-users-synonyms.sql' for more details
 --
 -- --------------------------------------------------------------------------
-create or replace type split_tbl as table of varchar2(32767);
+CREATE OR REPLACE type split_tbl as table of varchar2(32767);
 //
 
 CREATE OR REPLACE FUNCTION "SPLIT"
@@ -57,14 +57,6 @@ is
 --$
 --$  MOD : SPLIT
 --$  ROL : Split value, to be used in a join query.
---$        For instance, the query: 'SELECT T.COLUMN_VALUE from table(split ('VALUE1,VALUE2', ',')) T'
---$        will return:
---$          /--------------\
---$          | COLUMN_VALUE |
---$          |--------------|
---$          |    VALUE1    |
---$          |    VALUE2    |
---$          \--------------/
 --$
 --$  param :
 --$    - p_list: List of value
@@ -73,8 +65,14 @@ is
 --$
 --$  return : the rectangle label
 --$
---$  example : select SIH2_ADAGIO_DBA.F_TO_RECTANGLE(47.6, -5.05) from DUAL; -- 24E4
---$            select SIH2_ADAGIO_DBA.F_TO_RECTANGLE(42.27, 5.4) from DUAL; -- M24C2
+--$  example : The query: 'SELECT T.COLUMN_VALUE from table(split ('VALUE1,VALUE2', ',')) T'
+--$        will return:
+--$          /--------------\
+--$          | COLUMN_VALUE |
+--$          |--------------|
+--$          |    VALUE1    |
+--$          |    VALUE2    |
+--$          \--------------/
 --$
 --$ History :
 --$  16/05/19 BL Creation (used by extraction - e.g. ICES RDB and COST formats)
@@ -100,7 +98,7 @@ begin
 end SPLIT;
 //
 
-create or replace FUNCTION F_TO_RECTANGLE
+CREATE OR REPLACE FUNCTION F_TO_RECTANGLE
 (
   LAT IN number,
   LON IN number
@@ -168,7 +166,7 @@ END;
 -- --------------------------------------------------------------------------
 -- 10/02/16 EB  Trace execution in PROCESSING_HISTORY
 -- --------------------------------------------------------------------------
-create or replace PROCEDURE P_FILL_TAXON_GROUP_HIERARCHY
+CREATE OR REPLACE PROCEDURE P_FILL_TAXON_GROUP_HIERARCHY
 AS
     PATH_FATHER VARCHAR2(255);
     NB_FATHERS NUMBER;

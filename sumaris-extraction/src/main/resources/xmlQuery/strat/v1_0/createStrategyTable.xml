@@ -25,7 +25,7 @@
   <query type="create" temp="false" table="&amp;strategyTableName" option="DISTINCT">
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">UPPER('ST')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType">UPPER('ST')</select>
     <select alias="PROJECT" type="text">P.LABEL</select>
     <select alias="STRATEGY" type="text">S.LABEL</select>
     <select alias="STRATEGY_NAME" type="text">S.NAME</select>

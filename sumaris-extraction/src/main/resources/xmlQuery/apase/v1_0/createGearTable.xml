@@ -26,7 +26,7 @@
   <query type="create" temp="false" table="&amp;gearTableName">
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">'FG'</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType">UPPER('FG')</select>
     <select alias="SAMPLING_TYPE" type="text">T.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">T.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">T.VESSEL_FLAG_COUNTRY</select>

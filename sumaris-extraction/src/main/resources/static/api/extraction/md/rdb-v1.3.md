@@ -2,8 +2,6 @@
 
 Download the full documentation at : https://www.ices.dk/data/Documents/RDB/RDB%20Exchange%20Format.pdf (PDF)
 
-
-
 ## Data types and record types
 The following data types are defined:
 - CS = Commercial fisheries sampling
@@ -23,10 +21,9 @@ The record types are given in a specific hierarchy (Figure 1) and order within t
 file. Each data record consists of a range of data fields. The required order is given
 below.
 
-> Figure 1. TODO
-
-
-Req. stand for required. In the Req. column the “M” stands for mandatory and “O” stands for optional.
+In the rest of the document :
+- `Req.` stands for required. In the Req. column the “M” stands for mandatory and “O” stands for optional.
+- `*` = key field (warning: can be null)
 
 ## Trip (TR)
 

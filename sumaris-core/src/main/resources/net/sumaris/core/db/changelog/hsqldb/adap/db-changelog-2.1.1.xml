@@ -41,7 +41,7 @@
         </insert>
     </changeSet>
 
-    <!-- fix LENGTH_TOTAL_CM precision (round 3 measure to upper integer) -->
+    <!-- fix LENGTH_TOTAL_CM precision (round 3 measure to lower integer) -->
     <changeSet author="benoit.lavenier@e-is.pro" id="1678209977762-401" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>

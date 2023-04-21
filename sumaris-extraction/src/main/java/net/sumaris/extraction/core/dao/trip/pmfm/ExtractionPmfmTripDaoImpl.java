@@ -68,6 +68,11 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
+    public ExtractionPmfmTripDaoImpl() {
+        super();
+        // Hide RECORD_TYPE columns
+        this.enableRecordTypeColumn = false;
+    }
 
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.PMFM_TRIP);
@@ -319,9 +324,37 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     }
 
     protected long createSampleTable(C context) {
+        String tableName = context.getSampleTableName();
 
-        log.debug(String.format("Extraction #%s > Creating sample table...", context.getId()));
+        XMLQuery xmlQuery = createSampleQuery(context);
+
+        // execute insertion
+        execute(context, xmlQuery);
+        long count = countFrom(tableName);
+
+        // Clean row using generic tripFilter
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), ST_SHEET_NAME);
+        }
+
+        // Add result table to context
+        if (count > 0) {
+            context.addTableName(tableName,
+                    ST_SHEET_NAME,
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug(String.format("Extraction #%s > Sample table: %s rows inserted", context.getId(), count));
+        } else {
+            context.addRawTableName(tableName);
+        }
+        return count;
+    }
+
+    protected XMLQuery createSampleQuery(C context) {
+
         XMLQuery xmlQuery = createXMLQuery(context, "createSampleTable");
+        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("sampleTableName", context.getSampleTableName());
 
         List<String> programLabels = getTripProgramLabels(context);
 
@@ -340,60 +373,48 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             );
         }
 
-        xmlQuery.bind("stationTableName", context.getStationTableName());
-        xmlQuery.bind("sampleTableName", context.getSampleTableName());
+        // Record type
+        xmlQuery.setGroup("recordType", enableRecordTypeColumn);
 
-        // aggregate insertion
-        execute(context, xmlQuery);
-        long count = countFrom(context.getSampleTableName());
-
-        // Clean row using generic tripFilter
-        if (count > 0) {
-            count -= cleanRow(context.getSampleTableName(), context.getFilter(), ST_SHEET_NAME);
-        }
-
-        // Add result table to context
-        if (count > 0) {
-            context.addTableName(context.getSampleTableName(),
-                    ST_SHEET_NAME,
-                    xmlQuery.getHiddenColumnNames(),
-                    xmlQuery.hasDistinctOption());
-            log.debug(String.format("Extraction #%s > Sample table: %s rows inserted", context.getId(), count));
-        } else {
-            context.addRawTableName(context.getSampleTableName());
-        }
-        return count;
+        return xmlQuery;
     }
 
     protected long createReleaseTable(C context) {
+        String tableName = context.getReleaseTableName();
 
-        log.debug(String.format("Extraction #%s > Creating releases table...", context.getId()));
-        XMLQuery xmlQuery = createXMLQuery(context, "createReleaseTable");
-        xmlQuery.bind("stationTableName", context.getStationTableName());
-        xmlQuery.bind("releaseTableName", context.getReleaseTableName());
+        XMLQuery xmlQuery = createReleaseQuery(context);
 
         // aggregate insertion
         execute(context, xmlQuery);
-        long count = countFrom(context.getReleaseTableName());
+        long count = countFrom(tableName);
 
         // Clean row using generic tripFilter
         if (count > 0) {
-            count -= cleanRow(context.getReleaseTableName(), context.getFilter(), RL_SHEET_NAME);
+            count -= cleanRow(tableName, context.getFilter(), RL_SHEET_NAME);
         }
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getReleaseTableName(),
+            context.addTableName(tableName,
                     RL_SHEET_NAME,
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug(String.format("Extraction #%s > Release table: %s rows inserted", context.getId(), count));
         } else {
-            context.addRawTableName(context.getReleaseTableName());
+            context.addRawTableName(tableName);
         }
         return count;
     }
 
+    protected XMLQuery createReleaseQuery(C context) {
+        XMLQuery xmlQuery = createXMLQuery(context, "createReleaseTable");
+        xmlQuery.bind("stationTableName", context.getStationTableName());
+        xmlQuery.bind("releaseTableName", context.getReleaseTableName());
+
+        xmlQuery.setGroup("recordType", enableRecordTypeColumn);
+
+        return xmlQuery;
+    }
 
     protected String getQueryFullName(C context, String queryName) {
         Preconditions.checkNotNull(context);

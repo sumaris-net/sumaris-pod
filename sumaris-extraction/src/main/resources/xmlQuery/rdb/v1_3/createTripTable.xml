@@ -25,7 +25,7 @@
   <query type="create" temp="false" table="&amp;tripTableName" option="DISTINCT">
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">UPPER('TR')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType,agg">UPPER('TR')</select>
     <select alias="SAMPLING_TYPE" type="text">UPPER('S')</select>
     <select alias="LANDING_COUNTRY" type="text">PL.LABEL</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">VL.LABEL</select>
@@ -51,6 +51,8 @@
     <select alias="DAYS_AT_SEA" dbms="pgsql" type="number">F_DATEDIFF('day', T.DEPARTURE_DATE_TIME, T.RETURN_DATE_TIME)</select>
 
     <select alias="VESSEL_IDENTIFIER" type="number">T.VESSEL_FK</select> <!-- TODO à anonymiser (hash ?)-->
+    <injection name="afterVesselInjection" type="select" group="injectionPoint"/>
+
     <select alias="SAMPLING_COUNTRY" type="text">COALESCE(DL.LABEL, PL.LABEL)</select>
     <select alias="SAMPLING_METHOD" type="text">(CASE UPPER('&amp;samplingMethod') WHEN 'SELFSAMPLING' THEN 'SelfSampling' ELSE 'Observer' END)</select>
 

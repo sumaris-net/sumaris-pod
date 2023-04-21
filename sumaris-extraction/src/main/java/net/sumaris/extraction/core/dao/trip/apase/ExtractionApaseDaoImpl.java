@@ -56,6 +56,11 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     private static final String FG_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + FG_SHEET_NAME + "_%s";
     private static final String CT_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + CT_SHEET_NAME + "_%s";
 
+    public ExtractionApaseDaoImpl() {
+        super();
+        this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format
+    }
+
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.APASE);
     }
@@ -103,7 +108,11 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         context.setEnableBatchDenormalization(true);
 
         context.addColumnNameReplacement(PmfmEnum.CHILD_GEAR.getLabel(), ApaseSpecification.COLUMN_SUB_GEAR_IDENTIFIER)
-            .addColumnNameReplacement(PmfmEnum.BATCH_GEAR_POSITION.getLabel(), ApaseSpecification.COLUMN_SUB_GEAR_POSITION);
+            .addColumnNameReplacement(PmfmEnum.BATCH_GEAR_POSITION.getLabel(), ApaseSpecification.COLUMN_SUB_GEAR_POSITION)
+            // Rename 'SELECTIVITY_DEVICE_APASE' into 'SELECTION_DEVICE'
+            .addColumnNameReplacement(PmfmEnum.SELECTIVITY_DEVICE_APASE.getLabel(), ApaseSpecification.COLUMN_SELECTION_DEVICE)
+            .addColumnNameReplacement(PmfmEnum.HEADLINE_CUMULATIVE_LENGTH.getLabel(), PmfmEnum.HEADLINE_LENGTH.getLabel())
+        ;
 
     }
 
@@ -199,11 +208,19 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     }
 
     @Override
+    protected XMLQuery createTripQuery(C context) {
+        XMLQuery xmlQuery = super.createTripQuery(context);
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripVessel"), "afterVesselInjection");
+        return xmlQuery;
+    }
+
+    @Override
     protected XMLQuery createStationQuery(C context) {
         XMLQuery query = super.createStationQuery(context);
 
-        // Disable gear info (will be on PG table)
+        // Disable some gear columns (will be on PG table)
         query.setGroup("gearComments", false);
+        query.setGroup("selectionDevice", false);
 
         return query;
     }
@@ -258,8 +275,6 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     @Override
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
-
-
         return xmlQuery;
     }
 
@@ -278,6 +293,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         Preconditions.checkNotNull(context.getVersion());
 
         switch (queryName) {
+            case "injectionTripVessel":
             case "createGearTable":
             case "createCatchTable":
             case "injectionStationTable":

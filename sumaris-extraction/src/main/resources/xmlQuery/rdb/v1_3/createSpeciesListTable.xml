@@ -25,7 +25,7 @@
   <query type="create" temp="false" table="&amp;speciesListTableName" option="DISTINCT">
 
     <!-- PK (inherited) -->
-    <select alias="RECORD_TYPE" type="text">UPPER('SL')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType,agg">UPPER('SL')</select>
     <select alias="SAMPLING_TYPE" type="text">SL.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">SL.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">SL.VESSEL_FLAG_COUNTRY</select>
@@ -57,8 +57,10 @@
     <select alias="LENGTH_CODE" group="lengthCode" type="text">SL.LENGTH_CODE</select>
 
     <!-- need to link other tables -->
+    <select alias="STATION_ID" type="hidden">SL.STATION_ID</select>
     <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden" group="agg">ARRAY_AGG(SL.SAMPLE_ID)</select>
     <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg">LISTAGG(SL.SAMPLE_ID, ',')</select>
+
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>
 

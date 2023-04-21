@@ -28,9 +28,6 @@
     <select alias="ID_MAREE" type="number">S.ID_MAREE</select>
     <select alias="ID_OP" type="number">S.ID_OP</select>
 
-    <!-- Hidden columns used by linked tables -->
-    <select alias="STATION_NUMBER" type="hidden">S.STATION_NUMBER</select>
-
 
     <select alias="ID_VRAC" type="hidden">CATCH_B.ID + SORTING_B.RANK_ORDER</select>
     <select alias="NUM_VRAC" type="hidden">SORTING_B.RANK_ORDER</select>
@@ -82,7 +79,7 @@
     <select alias="SAMPLE_ID" type="hidden">COALESCE(SAMPLING_B.ID, SORTING_B.ID)</select>
 
     <from alias="S">&amp;stationTableName</from>
-    <from join="true">INNER JOIN BATCH CATCH_B ON CATCH_B.OPERATION_FK = S.STATION_NUMBER AND CATCH_B.PARENT_BATCH_FK IS NULL</from>
+    <from join="true">INNER JOIN BATCH CATCH_B ON CATCH_B.OPERATION_FK = S.ID_OP AND CATCH_B.PARENT_BATCH_FK IS NULL</from>
     <from join="true">INNER JOIN BATCH SPECIE_B ON SPECIE_B.PARENT_BATCH_FK  = CATCH_B.ID</from>
     <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.TAXON_GROUP_FK</from>
     <from join="true">INNER JOIN BATCH SORTING_B ON SORTING_B.PARENT_BATCH_FK = SPECIE_B.ID</from>

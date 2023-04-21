@@ -10,8 +10,6 @@
     <select alias="ID_OP" type="number">S.ID_OP</select>
     <select alias="NUM_OP" type="number">S.NUM_OP</select>
 
-    <!-- Hidden columns used by linked tables -->
-
     <!-- other fields -->
     <select alias="PARAMETER_FK" type="text"><![CDATA[
       (CASE UPPER(P.LABEL)

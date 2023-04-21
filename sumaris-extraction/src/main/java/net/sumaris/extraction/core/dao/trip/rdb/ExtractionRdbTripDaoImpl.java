@@ -112,6 +112,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected boolean enableTripSamplingMethodColumn = true;
 
+    protected boolean enableRecordTypeColumn = true;
+
     @Override
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
@@ -328,6 +330,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("tripFilter", CollectionUtils.isNotEmpty(tripIds));
         xmlQuery.bind("tripIds", Daos.getSqlInNumbers(tripIds));
 
+        // Record type
+        xmlQuery.setGroup("recordType", enableRecordTypeColumn);
+
         return xmlQuery;
     }
 
@@ -379,6 +384,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("date", true);
         xmlQuery.setGroup("time", true);
         xmlQuery.setGroup("fishingTime", true);
+        xmlQuery.setGroup("selectionDevice", true);
+
+        // Record type
+        xmlQuery.setGroup("recordType", enableRecordTypeColumn);
 
         // Compute groupBy (exclude columns with the 'agg' group)
         Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
@@ -394,8 +403,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         String stationsTableName = context.getStationTableName();
         List<String> programLabels = getTripProgramLabels(context);
         programLabels.forEach(programLabel -> {
-            String sql = String.format("SELECT distinct %s from %s where %s='%s'",
-                    RdbSpecification.COLUMN_STATION_NUMBER, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
+            String sql = String.format("SELECT distinct CAST(%s AS INTEGER) from %s where %s='%s'",
+                    RdbSpecification.COLUMN_STATION_ID, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
             Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
 
             DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
@@ -514,6 +523,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
 
+        // Record type
+        xmlQuery.setGroup("recordType", enableRecordTypeColumn);
+
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
         xmlQuery.setGroup("injectionPoint", false);
 
@@ -565,6 +577,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("sex", true);
         xmlQuery.setGroup("lengthClass", true);
         xmlQuery.setGroup("numberAtLength", true);
+
+        // Record type
+        xmlQuery.setGroup("recordType", enableRecordTypeColumn);
 
         // Taxon disabled by default (RDB format has only one HL.SPECIES column)
         // But group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
@@ -618,7 +633,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected List<Integer> getSelectivityDevicePmfmIds() {
         return ImmutableList.<Integer>builder()
             .add(
-                PmfmEnum.SELECTIVITY_DEVICE.getId()
+                PmfmEnum.SELECTIVITY_DEVICE.getId(),
+                PmfmEnum.SELECTIVITY_DEVICE_APASE.getId()
             )
             .build();
     }

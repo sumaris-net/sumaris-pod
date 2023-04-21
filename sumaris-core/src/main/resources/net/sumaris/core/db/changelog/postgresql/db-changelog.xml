@@ -2,7 +2,7 @@
 <databaseChangeLog
   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/db-changelog-master.xml">
 
   <include relativeToChangelogFile="true" file="db-changelog-1.8.7.xml"/>
@@ -59,9 +59,11 @@
   <include relativeToChangelogFile="true" file="open/db-changelog-2.1.0.xml"/>
 
   <include relativeToChangelogFile="true" file="db-changelog-2.1.1.xml"/>
-
   <include relativeToChangelogFile="true" file="db-changelog-2.3.0.xml"/>
+
   <include relativeToChangelogFile="true" file="db-changelog-2.3.2.xml"/>
+  <include relativeToChangelogFile="true" file="all/db-changelog-2.3.2.xml"/>
+  <include relativeToChangelogFile="true" file="open/db-changelog-2.3.2.xml"/>
 
   <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
   <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>

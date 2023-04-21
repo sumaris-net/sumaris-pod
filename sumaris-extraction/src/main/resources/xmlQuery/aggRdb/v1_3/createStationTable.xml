@@ -56,7 +56,7 @@
     </with>
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">UPPER('HH')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType">UPPER('HH')</select>
     <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
@@ -84,10 +84,10 @@
     <!-- cumulative effort -->
     <select alias="VESSEL_COUNT" type="text">COUNT(DISTINCT T.VESSEL_IDENTIFIER)</select>
     <select alias="FISHING_TIME" type="number">SUM(S.FISHING_TIME)</select>
-    <select alias="STATION_COUNT" type="number">COUNT(DISTINCT S.STATION_NUMBER)</select>
+    <select alias="STATION_COUNT" type="number">COUNT(*)</select>
 
-    <select alias="TRIP_COUNT_BY_STATION" type="number">CASE AVG(T.NUMBER_OF_SETS) WHEN 0 THEN AVG(T.NUMBER_OF_SETS) ELSE CAST(COUNT(DISTINCT S.TRIP_CODE) AS DECIMAL) * COUNT(DISTINCT S.STATION_NUMBER) / AVG(T.NUMBER_OF_SETS) END</select>
-    <select alias="TRIP_COUNT_BY_FISHING_TIME" type="number">CASE AVG(T.FISHING_TIME) WHEN 0 THEN AVG(T.FISHING_TIME) ELSE CAST(COUNT(DISTINCT T.TRIP_CODE) AS DECIMAL) * SUM(S.FISHING_TIME) / AVG(T.FISHING_TIME) END</select>
+    <select alias="TRIP_COUNT_BY_STATION" type="number">CASE AVG(T.NUMBER_OF_SETS) WHEN 0 THEN 0 ELSE CAST(COUNT(DISTINCT S.TRIP_CODE) AS DECIMAL) * COUNT(*) / AVG(T.NUMBER_OF_SETS) END</select>
+    <select alias="TRIP_COUNT_BY_FISHING_TIME" type="number">CASE AVG(T.FISHING_TIME) WHEN 0 THEN 0 ELSE CAST(COUNT(DISTINCT T.TRIP_CODE) AS DECIMAL) * SUM(S.FISHING_TIME) / AVG(T.FISHING_TIME) END</select>
 
     <!-- for debug on TRIP_COUNT_* computation
     <select alias="TRIP_COUNT_RAW" type="number">COUNT(DISTINCT S.TRIP_CODE)</select>
@@ -101,7 +101,7 @@
     <select alias="TRIP_CODES" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
     <select alias="TRIP_CODES" dbms="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
     <select alias="STATION_NUMBERS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
-    <select alias="STATION_NUMBERS" dbms="oracle" type="hidden">LISTAGG(S.STATION_NUMBER, ',')</select>
+    <select alias="STATION_NUMBERS" dbms="oracle" type="hidden">LISTAGG(TO_CHAR(TRIP_CODE) || '|' || TO_CHAR(STATION_NUMBER), ',')</select>
 
     <from alias="S">&amp;rawStationTableName</from>
     <from join="true">INNER JOIN TRIP_SUMMARY T on T.TRIP_CODE = S.TRIP_CODE</from>

@@ -24,7 +24,7 @@
 
   <query type="create" temp="false" table="&amp;speciesLengthTableName">
 
-    <select alias="RECORD_TYPE" type="text">UPPER('HL')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType">UPPER('HL')</select>
 
     <!-- PK inherited from HH -->
     <select alias="SAMPLING_TYPE" type="text">SL.SAMPLING_TYPE</select>
@@ -59,6 +59,7 @@
     <select alias="LENGTH_CLASS" group="lengthClass" type="number">HL.LENGTH_CLASS</select>
     <select alias="NUMBER_AT_LENGTH"  group="numberAtLength" type="number">SUM(HL.NUMBER_AT_LENGTH)</select>
 
+    <!-- need to link other tables -->
     <select alias="ID" group="hasId" type="hidden">HL.ID</select>
 
     <from alias="SL" >&amp;speciesListTableName</from>
