@@ -145,7 +145,7 @@
     <graphiql-spring-boot.version>11.1.0</graphiql-spring-boot.version>
     <graphql-java-servlet.version>14.0.0</graphql-java-servlet.version>
     <graphql-spring-boot.version>14.1.0</graphql-spring-boot.version>
-    <spqr.version>0.12.0</spqr.version>
+    <spqr.version>0.12.2</spqr.version>
     <reactor.version>3.5.0</reactor.version>
     <kotlin.version>1.3.70</kotlin.version>
     <unboundid-ldapsdk.version>4.0.14</unboundid-ldapsdk.version>
@@ -533,6 +533,11 @@
         <groupId>com.graphql-java</groupId>
         <artifactId>graphql-java</artifactId>
         <version>${graphql-java.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.graphql-java</groupId>
+        <artifactId>graphql-java-extended-validation</artifactId>
+        <version>19.1</version>
       </dependency>
       <dependency>
         <groupId>com.graphql-java-kickstart</groupId>

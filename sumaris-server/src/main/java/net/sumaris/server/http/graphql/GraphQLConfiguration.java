@@ -27,14 +27,27 @@ import graphql.GraphQL;
 import graphql.com.google.common.collect.Lists;
 import graphql.execution.SubscriptionExecutionStrategy;
 import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphqlTypeComparatorRegistry;
 import io.leangen.geantyref.GenericTypeReflector;
 import io.leangen.graphql.GraphQLSchemaGenerator;
+import io.leangen.graphql.GraphQLSchemaProcessor;
+import io.leangen.graphql.generator.BuildContext;
+import io.leangen.graphql.generator.mapping.DelegatingOutputConverter;
+import io.leangen.graphql.metadata.messages.DelegatingMessageBundle;
+import io.leangen.graphql.metadata.messages.MessageBundle;
+import io.leangen.graphql.metadata.messages.ResourceMessageBundle;
+import io.leangen.graphql.metadata.messages.SimpleMessageBundle;
 import io.leangen.graphql.metadata.strategy.query.AnnotatedResolverBuilder;
+import io.leangen.graphql.metadata.strategy.type.DefaultTypeInfoGenerator;
+import io.leangen.graphql.metadata.strategy.type.TypeInfoGenerator;
 import io.leangen.graphql.metadata.strategy.value.jackson.JacksonValueMapperFactory;
 import io.leangen.graphql.util.Utils;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.annotation.Comment;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.server.http.graphql.technical.DefaultTypeTransformer;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -50,8 +63,10 @@ import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
 
 import java.io.Serializable;
 import java.lang.reflect.AnnotatedType;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnClass(GraphQLSchemaGenerator.class)
@@ -76,6 +91,19 @@ public class GraphQLConfiguration implements WebSocketConfigurer {
         final GraphQLSchemaGenerator generator = new GraphQLSchemaGenerator()
             .withBasePackages("net.sumaris")
             .withResolverBuilders(new AnnotatedResolverBuilder())
+            .withTypeInfoGenerator(new DefaultTypeInfoGenerator() {
+                @Override
+                public String generateTypeDescription(AnnotatedType type, MessageBundle messageBundle) {
+                    String description = super.generateTypeDescription(type, messageBundle);
+                    if (StringUtils.isNotBlank(description)) return description;
+                    Comment[] comments = type.getAnnotationsByType(Comment.class);
+                    description = Arrays.stream(comments)
+                        .map(Comment::value)
+                        .filter(StringUtils::isNotBlank)
+                        .collect(Collectors.joining("\n"));
+                    return description;
+                }
+            })
             .withTypeTransformer(new DefaultTypeTransformer(false, true)
             // Replace unbounded IEntity<ID> with IEntity<Serializable>
             .addUnboundedReplacement(IEntity.class, Serializable.class))
