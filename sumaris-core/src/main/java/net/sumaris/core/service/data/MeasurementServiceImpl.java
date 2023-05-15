@@ -163,8 +163,19 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
+	public Map<Integer, String> getLandingMeasurementsMap(int landingId, List<Integer> pmfmIds) {
+		return measurementDao.getLandingMeasurementsMap(landingId, pmfmIds);
+	}
+
+	@Override
 	public Map<Integer, String> getSurveyMeasurementsMap(int landingId) {
 		return measurementDao.getSurveyMeasurementsMap(landingId);
+	}
+
+
+	@Override
+	public Map<Integer, String> getSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
+		return measurementDao.getSurveyMeasurementsMap(landingId, pmfmIds);
 	}
 
 	@Override

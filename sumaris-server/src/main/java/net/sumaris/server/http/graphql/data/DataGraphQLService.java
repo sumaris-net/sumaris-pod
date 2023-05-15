@@ -1352,6 +1352,18 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getLandingMeasurementsMap(@GraphQLContext LandingVO landing,
+                                                          @GraphQLArgument(name = "pmfmIds") List<Integer> pmfmIds) {
+        if (landing.getMeasurementValues() != null) return landing.getMeasurementValues();
+        if (landing.getId() == null) return null;
+        Map<Integer, String> result = new HashMap<>();
+        Optional.ofNullable(measurementService.getLandingMeasurementsMap(landing.getId(), pmfmIds)).ifPresent(result::putAll);
+        Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId(), pmfmIds)).ifPresent(result::putAll);
+        return result;
+    }
+
+
     // Measurement pmfm
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")
     public PmfmVO getMeasurementPmfm(@GraphQLContext MeasurementVO measurement) {
