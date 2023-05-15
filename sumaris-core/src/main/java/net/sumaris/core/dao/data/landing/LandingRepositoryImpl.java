@@ -41,9 +41,7 @@ import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -65,7 +63,8 @@ public class LandingRepositoryImpl
     private boolean isOracleDatabase;
     private boolean enableVesselRegistrationNaturalOrder;
 
-    @Autowired
+    protected boolean enableAdagioOptimization = false;
+
     public LandingRepositoryImpl(EntityManager entityManager,
                                  LocationRepository locationRepository,
                                  GenericConversionService conversionService) {
@@ -81,8 +80,9 @@ public class LandingRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        isOracleDatabase = event.getConfiguration().isOracleDatabase();
-        enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
+        this.isOracleDatabase = event.getConfiguration().isOracleDatabase();
+        this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
+        this.enableAdagioOptimization = event.getConfiguration().enableAdagioOptimization();
     }
 
     @Override
@@ -105,7 +105,11 @@ public class LandingRepositoryImpl
             .and(inLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()))
-            .and(inDataQualityStatus(filter.getDataQualityStatus()));
+            .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(hasStrategyLabels(filter.getStrategyLabels()))
+            .and(hasSampleLabels(filter.getSampleLabels(), this.enableAdagioOptimization))
+            .and(hasSampleTagIds(filter.getSampleTagIds(), this.enableAdagioOptimization))
+            ;
     }
 
     @Override

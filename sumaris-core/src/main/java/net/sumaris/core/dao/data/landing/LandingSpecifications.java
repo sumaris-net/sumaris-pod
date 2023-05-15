@@ -23,17 +23,19 @@ package net.sumaris.core.dao.data.landing;
  */
 
 import net.sumaris.core.dao.data.RootDataSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.data.Landing;
+import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -48,6 +50,10 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
     String LOCATION_IDS_PARAM = "locationIds";
     String VESSEL_ID_PARAM = "vesselId";
     String EXCLUDE_VESSEL_IDS_PARAM = "excludeVesselIds";
+
+    String STRATEGY_LABELS = "strategyLabels";
+    String SAMPLE_LABELS = "sampleLabels";
+    String SAMPLE_TAG_IDS = "sampleTagIds";
 
     default Specification<Landing> hasObservedLocationId(Integer observedLocationId) {
         if (observedLocationId == null) return null;
@@ -110,26 +116,134 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
         }).addBind(EXCLUDE_VESSEL_IDS_PARAM, excludeVesselIds);
     }
 
-    // fixme : not used but could be mixed with TripSpecifications & PhysicalGearSpecifications
     default Specification<Landing> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
             // Start + end date
             if (startDate != null && endDate != null) {
                 return cb.and(
-                    cb.greaterThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), startDate),
-                    cb.lessThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), endDate)
+                    cb.not(cb.lessThan(root.get(Landing.Fields.DATE_TIME), startDate)),
+                    cb.not(cb.greaterThan(root.get(Landing.Fields.DATE_TIME), endDate))
                 );
             }
-            // Start date
+            // Start date only
             else if (startDate != null) {
                 return cb.greaterThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), startDate);
             }
-            // End date
+            // End date only
             else {
                 return cb.lessThanOrEqualTo(root.get(Landing.Fields.DATE_TIME), endDate);
             }
         };
+    }
+
+    default Specification<Landing> hasStrategyLabels(String[] strategyLabels) {
+        if (ArrayUtils.isEmpty(strategyLabels)) return null;
+
+        // Check if pmfm STRATEGY_LABEL has been resolved
+        final Integer strategyLabelPmfmId = PmfmEnum.STRATEGY_LABEL.getId();
+        if (strategyLabelPmfmId == null || strategyLabelPmfmId.intValue() == -1) {
+            return null;
+        }
+
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, STRATEGY_LABELS);
+
+            // Add distinct, because of left join
+            query.distinct(true);
+
+            // Search by Trip -> Operation -> Sample
+            ListJoin<Sample, LandingMeasurement> landingMeasurements = Daos.composeJoinList(root, Landing.Fields.LANDING_MEASUREMENTS, JoinType.LEFT);
+            return cb.and(
+                cb.equal(landingMeasurements.get(LandingMeasurement.Fields.PMFM), strategyLabelPmfmId),
+                cb.in(landingMeasurements.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE)).value(param)
+            );
+        })
+        .addBind(STRATEGY_LABELS, Arrays.asList(strategyLabels));
+    }
+
+    default Specification<Landing> hasSampleLabels(String[] sampleLabels, boolean enableAdagioOptimization) {
+        if (ArrayUtils.isEmpty(sampleLabels)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<String> param = cb.parameter(String.class, SAMPLE_LABELS);
+
+                // Add distinct, because of left join
+                query.distinct(true);
+
+                // Search by Trip -> Operation -> Sample
+                Join<Landing, Trip> trip = Daos.composeJoin(root, Landing.Fields.TRIP, JoinType.LEFT);
+                ListJoin<Trip, Operation> operations = Daos.composeJoinList(trip, Trip.Fields.OPERATIONS, JoinType.LEFT);
+                ListJoin<Operation, Sample> opSamples = Daos.composeJoinList(operations, Operation.Fields.SAMPLES, JoinType.LEFT);
+                Predicate searchByUndefinedOperation = cb.and(
+                    cb.equal(trip.get(Trip.Fields.DEPARTURE_DATE_TIME), operations.get(Operation.Fields.START_DATE_TIME)),
+                    cb.equal(trip.get(Trip.Fields.RETURN_DATE_TIME), operations.get(Operation.Fields.END_DATE_TIME)),
+                    cb.in(opSamples.get(Sample.Fields.LABEL)).value(param)
+                );
+
+                // When running on an Adagio database, skip searching by Landing -> Sample
+                // (because sample are always linked to an undefined operation)
+                if (enableAdagioOptimization) return searchByUndefinedOperation;
+
+                // Search by Landing -> Sample
+                ListJoin<Landing, Sample> landingSamples = Daos.composeJoinList(root, Landing.Fields.SAMPLES, JoinType.LEFT);
+                Predicate searchByLanding = cb.and(
+                    cb.in(landingSamples.get(Sample.Fields.LABEL)).value(param)
+                );
+
+                return cb.or(
+                    searchByUndefinedOperation,
+                    searchByLanding
+                );
+            })
+            .addBind(SAMPLE_LABELS, Arrays.asList(sampleLabels));
+    }
+
+    default Specification<Landing> hasSampleTagIds(String[] sampleTagIds, boolean enableAdagioOptimization) {
+        if (ArrayUtils.isEmpty(sampleTagIds)) return null;
+
+        // Check if pmfm TAG_ID has been resolved
+        final Integer tagIdPmfmId = PmfmEnum.TAG_ID.getId();
+        if (tagIdPmfmId == null || tagIdPmfmId.intValue() == -1) {
+            return null;
+        }
+
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, SAMPLE_TAG_IDS);
+
+            // Add distinct, because of left join
+            query.distinct(true);
+
+            // Search by Trip -> Operation -> Sample
+            Join<Landing, Trip> trip = Daos.composeJoin(root, Landing.Fields.TRIP, JoinType.LEFT);
+            ListJoin<Trip, Operation> operations = Daos.composeJoinList(trip, Trip.Fields.OPERATIONS, JoinType.LEFT);
+            ListJoin<Operation, Sample> opSamples = Daos.composeJoinList(operations, Operation.Fields.SAMPLES, JoinType.LEFT);
+            ListJoin<Sample, SampleMeasurement> opSampleMeasurements = Daos.composeJoinList(opSamples, Sample.Fields.MEASUREMENTS, JoinType.LEFT);
+            Predicate searchByUndefinedOperation = cb.and(
+                cb.equal(trip.get(Trip.Fields.DEPARTURE_DATE_TIME), operations.get(Operation.Fields.START_DATE_TIME)),
+                cb.equal(trip.get(Trip.Fields.RETURN_DATE_TIME), operations.get(Operation.Fields.END_DATE_TIME)),
+                cb.equal(opSampleMeasurements.get(SampleMeasurement.Fields.PMFM), tagIdPmfmId),
+                cb.in(opSampleMeasurements.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE)).value(param)
+            );
+
+            // When running on an Adagio database, skip searching by Landing -> Sample
+            // (because sample are always linked to an undefined operation)
+            if (enableAdagioOptimization) return searchByUndefinedOperation;
+
+            // Search by Landing -> Sample
+            ListJoin<Landing, Sample> landingSamples = Daos.composeJoinList(root, Landing.Fields.SAMPLES, JoinType.LEFT);
+            ListJoin<Sample, SampleMeasurement> landingSampleMeasurements = Daos.composeJoinList(landingSamples, Sample.Fields.MEASUREMENTS, JoinType.LEFT);
+            Predicate searchByLanding = cb.and(
+                cb.equal(landingSampleMeasurements.get(SampleMeasurement.Fields.PMFM), tagIdPmfmId),
+                cb.in(landingSampleMeasurements.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE)).value(param)
+            );
+
+            return cb.or(
+                searchByUndefinedOperation,
+                searchByLanding
+            );
+        })
+        .addBind(SAMPLE_TAG_IDS, Arrays.asList(sampleTagIds));
     }
 
     List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, LandingFetchOptions fetchOptions);
