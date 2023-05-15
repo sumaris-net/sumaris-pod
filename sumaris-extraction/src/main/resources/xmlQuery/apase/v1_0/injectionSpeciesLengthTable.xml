@@ -31,9 +31,10 @@
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
   <select alias="NUMBER_AT_LENGTH" type="number" group="pmfms,agg">SUM(B.INDIVIDUAL_COUNT) / COUNT(DISTINCT SM.ID)</select>
 
-  <select alias="ELEVATE_NUMBER_AT_LENGTH" type="number" group="agg">SUM(DENORMALIZED_B.ELEVATE_INDIVIDUAL_COUNT)</select>
+  <select alias="ELEVATED_NUMBER_AT_LENGTH" type="number" group="agg">SUM(DENORMALIZED_B.ELEVATE_INDIVIDUAL_COUNT)</select>
 
-  <select alias="MEASURE_TYPE" type="text">B.PARAMETER_NAME</select>
+  <select alias="MEASURE_TYPE" type="text">B.PARAMETER_LABEL</select>
+  <select alias="MEASURE_TYPE_NAME" type="text">B.PARAMETER_NAME</select>
 
   <!-- Need by sumaris-app report -->
   <select alias="TAXON_GROUP_ID" type="number">SL.TAXON_GROUP_ID</select>

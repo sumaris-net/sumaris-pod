@@ -34,6 +34,7 @@ public interface ApaseSpecification extends RdbSpecification {
     String FG_SHEET_NAME = "FG"; // Fishing gear
     String CT_SHEET_NAME = "CT"; // Catch
 
+
     String COLUMN_SUB_GEAR_IDENTIFIER = "sub_gear_identifier";
     String COLUMN_SUB_GEAR_POSITION = "sub_gear_position";
 

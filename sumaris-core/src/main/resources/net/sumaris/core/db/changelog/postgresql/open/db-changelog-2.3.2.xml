@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-2.3.2.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
+    <property name="sqlCheck.open.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Rename PMFM 'MESH_GAUGE_ASS_MM' into 'MESH_GAUGE_CODEND_MM' -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">select count(*) from PMFM where label='MESH_GAUGE_ASS_MM'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            update PMFM set LABEL='MESH_GAUGE_CODEND_MM' where label='MESH_GAUGE_ASS_MM';
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- Change APASE data to use the use PMFM 'HEADLINE_LENGTH'  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="1"><![CDATA[
+                    select count(distinct P.LABEL)
+                    from PHYSICAL_GEAR_MEASUREMENT PGM
+                    inner join PMFM on PMFM.ID=PGM.PMFM_FK
+                    inner join PHYSICAL_GEAR PG on PG.ID=PGM.PHYSICAL_GEAR_FK
+                    inner join TRIP T on T.ID=PG.TRIP_FK
+                    inner join PROGRAM P on P.ID=T.PROGRAM_FK
+                    where PMFM.LABEL='HEADLINE_CUMULATIVE_LENGTH'
+                ]]></sqlCheck>
+                <sqlCheck expectedResult="1">select count(*) from PMFM where label='HEADLINE_LENGTH'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            update PHYSICAL_GEAR_MEASUREMENT
+                set PMFM_FK = (select ID from PMFM where label='HEADLINE_LENGTH')
+                where PMFM_FK = (select ID from PMFM where label='HEADLINE_CUMULATIVE_LENGTH');
+            update TRIP set update_date=current_timestamp where program_fk = (select ID from program where label='APASE');
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- Change APASE PMFM_STRATEGY to use the use PMFM 'HEADLINE_LENGTH'  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-403" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0"><![CDATA[
+                        select count(*)
+                        from PMFM_STRATEGY
+                        inner join PMFM on PMFM.ID=PMFM_STRATEGY.PMFM_FK
+                        inner join STRATEGY S on S.ID=PMFM_STRATEGY.STRATEGY_FK
+                        inner join PROGRAM P on P.ID=S.PROGRAM_FK
+                        where P.LABEL='APASE' and PMFM.LABEL='HEADLINE_CUMULATIVE_LENGTH'
+                    ]]></sqlCheck>
+                </not>
+                <sqlCheck expectedResult="1">select count(*) from PMFM where label='HEADLINE_LENGTH'</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            update PMFM_STRATEGY
+                set PMFM_FK = (select ID from PMFM where label='HEADLINE_LENGTH')
+                where PMFM_FK = (select ID from PMFM where label='HEADLINE_CUMULATIVE_LENGTH');
+            update STRATEGY set update_date=current_timestamp where program_fk = (select ID from program where label='APASE');
+            update PROGRAM set update_date=current_timestamp where label='APASE';
+            commit;
+        ]]></sql>
+    </changeSet>
+
+    <!-- Add LOCATION_LEVEL for FAO_AREA  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-404" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM LOCATION_LEVEL where LABEL='FAO_AREA' or ID=101</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="LOCATION_LEVEL">
+            <column name="ID" valueNumeric="101"/>
+            <column name="LABEL">FAO_AREA</column>
+            <column name="NAME">Zone FAO</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="LOCATION_CLASSIFICATION_FK" valueComputed="(select id from LOCATION_CLASSIFICATION WHERE LABEL='SEA')"/>
+        </insert>
+    </changeSet>
+
+
+    <!-- Add LOCATION_LEVEL for ICES_SUB_AREA  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-405" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM LOCATION_LEVEL where LABEL='ICES_SUB_AREA' or ID=110</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="LOCATION_LEVEL">
+            <column name="ID" valueNumeric="110"/>
+            <column name="LABEL">ICES_SUB_AREA</column>
+            <column name="NAME">Sous-zone CIEM/ICES</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="LOCATION_CLASSIFICATION_FK" valueComputed="(select id from LOCATION_CLASSIFICATION WHERE LABEL='SEA')"/>
+        </insert>
+    </changeSet>
+
+
+    <!-- Add LOCATION_LEVEL for ICES_SUB_DIVISION  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-406" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM LOCATION_LEVEL where LABEL='ICES_SUB_DIVISION' or ID=112</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="LOCATION_LEVEL">
+            <column name="ID" valueNumeric="112"/>
+            <column name="LABEL">ICES_SUB_DIVISION</column>
+            <column name="NAME">Sous-Division CIEM/ICES</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="LOCATION_CLASSIFICATION_FK" valueComputed="(select id from LOCATION_CLASSIFICATION WHERE LABEL='SEA')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Add LOCATION_LEVEL for GFCM_SUB_AREA  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-407" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM LOCATION_LEVEL where LABEL='GFCM_SUB_AREA' or ID=140</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="LOCATION_LEVEL">
+            <column name="ID" valueNumeric="140"/>
+            <column name="LABEL">GFCM_SUB_AREA</column>
+            <column name="NAME">Sous-zone CGPM/GFCM</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="LOCATION_CLASSIFICATION_FK" valueComputed="(select id from LOCATION_CLASSIFICATION WHERE LABEL='SEA')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Add LOCATION_LEVEL for GFCM_DIVISION  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-408" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM LOCATION_LEVEL where LABEL='GFCM_DIVISION' or ID=141</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="LOCATION_LEVEL">
+            <column name="ID" valueNumeric="141"/>
+            <column name="LABEL">GFCM_DIVISION</column>
+            <column name="NAME">Division CGPM/GFCM</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="LOCATION_CLASSIFICATION_FK" valueComputed="(select id from LOCATION_CLASSIFICATION WHERE LABEL='SEA')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert LOCATION on missing levels (101, 110, 112, 141) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1600856443393-408">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT count(*) FROM LOCATION where LOCATION_LEVEL_FK in (101,110,112,140,141)</sqlCheck>
+            </and>
+        </preConditions>
+        <sqlFile path="insert_location-2.3.2.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    </changeSet>
+</databaseChangeLog>

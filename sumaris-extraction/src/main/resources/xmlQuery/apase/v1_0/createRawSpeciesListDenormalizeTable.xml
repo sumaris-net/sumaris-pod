@@ -68,6 +68,7 @@
     <select alias="SUBSAMPLING_RATIO" type="number" group="agg">1</select>
 
     <!-- need to link other tables -->
+    <select alias="STATION_ID" type="number">S.STATION_ID</select>
     <select alias="SAMPLE_ID" type="number">COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</select>
     <select alias="SAMPLE_RANK_ORDER" type="hidden">COALESCE(SAMPLING_B.FLAT_RANK_ORDER, SPECIE_B.FLAT_RANK_ORDER)</select>
     <select alias="TAXON_GROUP_ID" type="number">SPECIE_B.TAXON_GROUP_FK</select>
@@ -75,7 +76,7 @@
     <select alias="PARAMETER_ID" type="number">LENGTH_SV.PARAMETER_FK</select>
 
     <from alias="S">&amp;stationTableName</from>
-    <from join="true">INNER JOIN DENORMALIZED_BATCH CATCH ON CATCH.OPERATION_FK = S.STATION_NUMBER</from>
+    <from join="true">INNER JOIN DENORMALIZED_BATCH CATCH ON CATCH.OPERATION_FK = S.STATION_ID</from>
     <from join="true">INNER JOIN DENORMALIZED_BATCH LAN_OR_DIS ON LAN_OR_DIS.PARENT_BATCH_FK = CATCH.ID</from>
     <from join="true">INNER JOIN DENORMALIZED_BATCH SPECIE_B ON SPECIE_B.PARENT_BATCH_FK = LAN_OR_DIS.ID</from>
     <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.TAXON_GROUP_FK</from>
@@ -102,7 +103,7 @@
 
     <groupby>SPECIE_B.ELEVATE_WEIGHT,SAMPLING_B.ELEVATE_RTP_WEIGHT</groupby>
 
-    <orderby>STATION_NUMBER ASC, SAMPLE_RANK_ORDER ASC</orderby>
+    <orderby>TRIP_CODE ASC, STATION_NUMBER ASC, SAMPLE_RANK_ORDER ASC</orderby>
 
   </query>
 

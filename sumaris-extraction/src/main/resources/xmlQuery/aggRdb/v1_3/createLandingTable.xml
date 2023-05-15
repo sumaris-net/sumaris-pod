@@ -25,7 +25,7 @@
   <query type="create" temp="false" table="&amp;landingTableName">
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">UPPER('CL')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType">UPPER('CL')</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">VESSEL_FLAG_COUNTRY</select>
     <select alias="LANDING_COUNTRY" type="text">LANDING_COUNTRY</select>
     <select alias="SPECIES" type="text">MIN(CASE TG.LABEL WHEN NULL THEN CL.SPECIES ELSE TG.LABEL || ' - ' || TG.NAME END)</select>

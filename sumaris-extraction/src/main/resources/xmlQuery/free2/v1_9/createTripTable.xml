@@ -4,7 +4,7 @@
   <query type="create" temp="false" table="&amp;tripTableName" option="DISTINCT">
 
     <!-- PK -->
-    <select alias="TYPE" type="text">'TR'</select>
+    <select alias="TYPE" type="text">UPPER('TR')</select>
     <select alias="PROJET" type="text">P.LABEL</select>
     <select alias="ANNEE" type="number">CAST(EXTRACT(YEAR FROM T.RETURN_DATE_TIME) AS INTEGER)</select>
     <select alias="ID_MAREE" type="number">T.ID</select>
@@ -54,7 +54,12 @@
       VUM.TRIP_FK=T.ID and VUM.PMFM_FK IN (&contractCodePmfmIds))]]></select>
 
     <!-- TODO Ajouter cette colonne dans l'entité Trip -->
+    <select alias="SAMPLING_STRATA" type="text" dbms="oracle">CAST(null as VARCHAR2(40))</select>
     <select alias="SAMPLING_STRATA" type="text" dbms="hsqldb,pgsql">null</select>
+
+    <!-- need by Station table, to exclude operation group -->
+    <select alias="DEPARTURE_DATE_TIME" type="hidden" group="departureDateTime">T.DEPARTURE_DATE_TIME</select>
+    <select alias="RETURN_DATE_TIME" type="hidden" group="returnDateTime">T.RETURN_DATE_TIME</select>
 
     <from alias="T">TRIP</from>
     <from join="true">INNER JOIN PROGRAM P ON P.ID = T.PROGRAM_FK</from>

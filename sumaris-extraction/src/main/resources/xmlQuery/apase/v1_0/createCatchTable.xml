@@ -25,7 +25,7 @@
   <query type="create" temp="false" table="&amp;catchTableName">
 
     <!-- PK (inherited) -->
-    <select alias="RECORD_TYPE" type="text">'CT'</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType">'CT'</select>
     <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
@@ -42,10 +42,11 @@
     <select alias="DISCARD_WEIGHT" type="number" group="agg">null</select> <!-- TODO -->
 
     <!-- Make to have one row by catch batch -->
+    <select alias="STATION_ID" type="hidden">S.STATION_ID</select>
     <select alias="CATCH_ID" type="hidden">CATCH.ID</select>
 
     <from alias="S">&amp;stationTableName</from>
-    <from join="true">INNER JOIN DENORMALIZED_BATCH CATCH ON CATCH.OPERATION_FK = S.STATION_NUMBER</from>
+    <from join="true">INNER JOIN DENORMALIZED_BATCH CATCH ON CATCH.OPERATION_FK = S.STATION_ID</from>
     <from join="true">INNER JOIN QUANTIFICATION_MEASUREMENT_B QM ON QM.BATCH_FK=CATCH.ID AND QM.PMFM_FK=&amp;catchWeightPmfmId AND QM.IS_REFERENCE_QUANTIFICATION=true</from>
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL SM ON SM.BATCH_FK=CATCH.ID</from>
     <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK</from>

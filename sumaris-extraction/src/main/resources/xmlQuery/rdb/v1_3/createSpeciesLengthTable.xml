@@ -45,7 +45,7 @@
     </with>
 
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">UPPER('HL')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType,agg">UPPER('HL')</select>
     <select alias="SAMPLING_TYPE" type="text">SL.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">SL.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">SL.VESSEL_FLAG_COUNTRY</select>
@@ -72,6 +72,7 @@
     <select alias="NUMBER_AT_LENGTH"  group="numberAtLength,agg" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
 
     <!-- need to link other tables -->
+    <select alias="STATION_ID" type="hidden">SL.STATION_ID</select>
     <select alias="SAMPLE_ID" type="hidden">SL.SAMPLE_ID</select>
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>

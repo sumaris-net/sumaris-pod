@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/all/db-changelog-2.3.2.xml">
+
+
+    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+
+    <!-- Add Parameter 'HEADLINE_LENGTH'  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from PARAMETER where label='HEADLINE_LENGTH'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="parameter">
+            <column name="ID" valueComputed="nextval('parameter_seq')"/>
+            <column name="LABEL">HEADLINE_LENGTH</column>
+            <column name="NAME">Longueur de la corde de dos</column>
+            <column name="IS_BOOLEAN" valueNumeric="0"/>
+            <column name="IS_QUALITATIVE" valueNumeric="0"/>
+            <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- Add PMFM 'HEADLINE_LENGTH'  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-302" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from PMFM where label='HEADLINE_LENGTH'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm">
+            <column name="ID" valueComputed="nextval('pmfm_seq')"/>
+            <column name="PARAMETER_FK" valueComputed="(select id from parameter where label='HEADLINE_LENGTH')"/>
+            <column name="LABEL">HEADLINE_LENGTH</column>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="2"/>
+            <column name="UNIT_FK" valueNumeric="2"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

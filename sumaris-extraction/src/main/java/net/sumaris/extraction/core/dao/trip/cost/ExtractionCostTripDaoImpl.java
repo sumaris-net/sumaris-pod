@@ -48,6 +48,12 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         extends ExtractionRdbTripDaoImpl<C, F>
         implements CostSpecification {
 
+    public ExtractionCostTripDaoImpl() {
+        super();
+
+        this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format - Issue #416
+    }
+
     @Override
     public Set<IExtractionType> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.COST);

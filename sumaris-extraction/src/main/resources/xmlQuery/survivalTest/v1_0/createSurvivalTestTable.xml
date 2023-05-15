@@ -26,7 +26,7 @@
 
     <with alias="SAMPLE_WITH_MEAS">
       <subquery>
-        <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+        <select alias="STATION_ID" type="number">S.STATION_ID</select>
         <select alias="ID" type="number">SA.ID</select>
         <select alias="SAMPLE_DATE" type="date">SA.SAMPLE_DATE</select>
         <select alias="REFERENCE_TAXON_FK" type="text">SA.REFERENCE_TAXON_FK</select>
@@ -37,7 +37,7 @@
         <select alias="MONITORING_ID" type="number">CHILD_SA.RANK_ORDER</select>
 
         <from alias="S">&amp;stationTableName</from>
-        <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_NUMBER AND SA.LABEL LIKE UPPER('SAMPLE#%')</from>
+        <from join="true">INNER JOIN SAMPLE SA ON SA.OPERATION_FK = S.STATION_ID AND SA.LABEL LIKE UPPER('SAMPLE#%')</from>
         <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = SA.ID</from>
         <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
         <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SQV ON SQV.ID=SM.QUALITATIVE_VALUE_FK</from>
@@ -45,7 +45,7 @@
 
         <union>
           <subquery>
-            <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
+            <select alias="STATION_ID" type="number">S.STATION_ID</select>
             <select alias="ID" type="number">PARENT_SA.ID</select>
             <select alias="SAMPLE_DATE" type="date">PARENT_SA.SAMPLE_DATE</select>
             <select alias="REFERENCE_TAXON_FK" type="text">PARENT_SA.REFERENCE_TAXON_FK</select>
@@ -56,7 +56,7 @@
             <select alias="MONITORING_ID" type="number">SA.RANK_ORDER</select>
 
             <from alias="S">&amp;stationTableName</from>
-            <from join="true">INNER JOIN SAMPLE PARENT_SA ON PARENT_SA.OPERATION_FK = S.STATION_NUMBER AND PARENT_SA.LABEL LIKE UPPER('SAMPLE#%')</from>
+            <from join="true">INNER JOIN SAMPLE PARENT_SA ON PARENT_SA.OPERATION_FK = S.STATION_ID AND PARENT_SA.LABEL LIKE UPPER('SAMPLE#%')</from>
             <from join="true">INNER JOIN SAMPLE SA ON SA.PARENT_SAMPLE_FK = PARENT_SA.ID AND SA.LABEL LIKE UPPER('INDIVIDUAL_MONITORING#%')</from>
             <from join="true">INNER JOIN SAMPLE_MEASUREMENT  SM ON SM.SAMPLE_FK = SA.ID</from>
             <from join="true">LEFT OUTER JOIN PMFM ON PMFM.ID = SM.PMFM_FK</from>
@@ -66,7 +66,7 @@
       </subquery>
     </with>
     <!-- PK -->
-    <select alias="RECORD_TYPE" type="text">UPPER('ST')</select>
+    <select alias="RECORD_TYPE" type="text" group="recordType,agg">UPPER('ST')</select>
     <select alias="SAMPLING_TYPE" type="text">S.SAMPLING_TYPE</select>
     <select alias="LANDING_COUNTRY" type="text">S.LANDING_COUNTRY</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">S.VESSEL_FLAG_COUNTRY</select>
@@ -111,12 +111,12 @@
     <select alias="COMMENTS" type="text">MAX(CASE T.PMFM_LABEL WHEN 'CLOUD_COVER_PCT' THEN T.NUM_VALUE END)</select>
 
     <from alias="S">&amp;stationTableName</from>
-    <from join="true">INNER JOIN SAMPLE_WITH_MEAS T ON T.STATION_NUMBER = S.STATION_NUMBER</from>
+    <from join="true">INNER JOIN SAMPLE_WITH_MEAS T ON T.STATION_ID = S.STATION_ID</from>
     <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = T.REFERENCE_TAXON_FK AND TN.IS_REFERENT=true</from>
     <from join="true">LEFT OUTER JOIN TAXON_GROUP TG ON TG.ID = T.TAXON_GROUP_FK</from>
 
     <groupby>
-      RECORD_TYPE, SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, S.STATION_NUMBER,
+      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, S.STATION_NUMBER,
       T.ID, SPECIES_CODE, SPECIES_NAME, T.SAMPLE_DATE, T.MONITORING_ID
     </groupby>
 
