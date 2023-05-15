@@ -33,7 +33,6 @@
     <select alias="START_DATE" type="date">APP.START_DATE</select>
     <select alias="END_DATE" type="date">APP.END_DATE</select>
 
-    <!-- TODO: EFFORT à renommer en ??? -->
     <select alias="EXPECTED_EFFORT" type="number">APP.ACQUISITION_NUMBER</select>
     <select alias="REALIZED_EFFORT" type="number">count(distinct SM.ID)</select>
 
@@ -69,14 +68,14 @@
     <!-- Use optimization for ADAGIO (fix IMAGINE issue) -->
     <from join="true" group="adagio">
       LEFT OUTER JOIN &amp;adagioSchema.LANDING L ON L.PROGRAM_FK = ST.PROJECT
-      AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
-      AND L.LANDING_DATE_TIME &lt; APP.END_DATE + INTERVAL '1' DAY
-      AND EXISTS (
-      SELECT 1 FROM &amp;adagioSchema.LANDING_MEASUREMENT LM
-      WHERE LM.LANDING_FK = L.ID
-      AND LM.PMFM_FK = &amp;strategyLabelPmfmId
-      AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
-      )
+        AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
+        AND L.LANDING_DATE_TIME &lt; APP.END_DATE + INTERVAL '1' DAY
+        AND EXISTS (
+          SELECT 1 FROM &amp;adagioSchema.LANDING_MEASUREMENT LM
+          WHERE LM.LANDING_FK = L.ID
+          AND LM.PMFM_FK = &amp;strategyLabelPmfmId
+          AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+        )
     </from>
     <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.FISHING_TRIP FT ON FT.ID = L.FISHING_TRIP_FK</from>
     <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.OPERATION O ON O.FISHING_TRIP_FK = FT.ID</from>
