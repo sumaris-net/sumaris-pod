@@ -457,14 +457,14 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
     @Transactional(readOnly = true)
     @IsUser
-    public List<ObservedLocationVO> findAllObservedLocations(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
-                                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                             @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
-                                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                             @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
-                                                             @GraphQLEnvironment ResolutionEnvironment env
-    ) {
+    public List<ObservedLocationVO> findObservedLocations(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
+                                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                          @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
+                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
+                                                          @GraphQLEnvironment ResolutionEnvironment env
+) {
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
         // Read from trash
@@ -494,7 +494,7 @@ public class DataGraphQLService {
         // Add additional properties if needed
         fillObservedLocationsFields(result, fields);
 
-        timeLog.log(now, "findAllObservedLocations");
+        timeLog.log(now, "findObservedLocations");
 
         return result;
     }
@@ -970,10 +970,29 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                         @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.Fields.DATE_TIME) String sort,
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                        @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                         @GraphQLEnvironment ResolutionEnvironment env
     ) {
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
+
+        // Read from trash
+        if (trash) {
+            // Check user is admin
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
+
+            // Set default sort
+            sort = sort != null ? sort : LandingVO.Fields.UPDATE_DATE;
+
+            // Call the trash service
+            return trashService.findAll(Landing.class.getSimpleName(),
+                Pageables.create(offset, size, sort, sortDirection),
+                LandingVO.class).getContent();
+        }
+
+        filter = fillRootDataFilter(filter, LandingFilterVO.class);
         Set<String> fields = GraphQLUtils.fields(env);
 
+        long now = TimeLog.getTime();
         final List<LandingVO> result = landingService.findAll(
                 filter,
                 Page.builder()
@@ -987,13 +1006,26 @@ public class DataGraphQLService {
         // Add additional properties if needed
         fillLandingsFields(result, fields);
 
+        timeLog.log(now, "findLandings");
+
         return result;
     }
 
     @GraphQLQuery(name = "landingsCount", description = "Get total number of landings")
     @Transactional(readOnly = true)
     @IsUser
-    public long countLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter) {
+    public long countLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter,
+                              @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
+        if (trash) {
+            // Check user is admin
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
+
+            // Call the trash service
+            return trashService.count(Landing.class.getSimpleName());
+        }
+
+        filter = fillRootDataFilter(filter, LandingFilterVO.class);
+
         return landingService.countByFilter(filter);
     }
 
