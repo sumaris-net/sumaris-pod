@@ -1,0 +1,26 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.3.5.xml">
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958334000-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='2.3.5'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">2.3.5</column>
+            <column name="DESCRIPTION">
+                - Rename a program option for report
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="COMMENTS">
+                - Rename a program option for report
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
