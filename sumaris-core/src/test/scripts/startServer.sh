@@ -11,7 +11,7 @@ export DB_DIRECTORY="../../../target/db-server"
 export DB_TIMEZONE=UTC
 #export DB_TIMEZONE=Europe/Paris
 #export JAVA_OPTS="-server -Xmx2g -Duser.timezone=${DB_TIMEZONE}"
-export JAVA_OPTS="-server -Xms512m -Xmx512m -Duser.timezone=${DB_TIMEZONE}"
+export JAVA_OPTS="-server -Xms256m -Xmx512m -Duser.timezone=${DB_TIMEZONE}"
 
 ARG=$1
 

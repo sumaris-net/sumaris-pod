@@ -46,18 +46,15 @@ public class AppliedStrategy implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "APPLIED_STRATEGY_SEQ")
     @SequenceGenerator(name = "APPLIED_STRATEGY_SEQ", sequenceName="APPLIED_STRATEGY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "strategy_fk", nullable = false)
-    
     private Strategy strategy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_fk", nullable = false)
-    
     private Location location;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = AppliedPeriod.Fields.APPLIED_STRATEGY)

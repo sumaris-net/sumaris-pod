@@ -286,8 +286,7 @@ public class SampleServiceImpl implements SampleService {
 
 	private void saveImageAttachments(SampleVO sample) {
 		List<Integer> existingIdsToRemove = imageAttachmentRepository.getIdsFromObject(sample.getId(), ObjectTypeEnum.SAMPLE.getId());
-		sample.getImages()
-			.stream()
+		Beans.getStream(sample.getImages())
 			.filter(Objects::nonNull)
 			.forEach(image -> {
 				boolean exists = existingIdsToRemove.remove(image.getId());
