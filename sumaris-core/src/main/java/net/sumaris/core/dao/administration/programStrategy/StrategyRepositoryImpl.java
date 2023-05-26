@@ -839,7 +839,7 @@ public class StrategyRepositoryImpl
                 target.setAppliedStrategy(parent);
                 target.setStartDate(source.getStartDate());
             } else {
-                log.warn("TODO find existing AppliedPeriod on date : " + source.getStartDate().toString());
+                log.warn("Already existing AppliedPeriod on date: {}. Will update it", source.getStartDate().toString());
             }
             target.setEndDate(source.getEndDate());
             target.setAcquisitionNumber(source.getAcquisitionNumber());

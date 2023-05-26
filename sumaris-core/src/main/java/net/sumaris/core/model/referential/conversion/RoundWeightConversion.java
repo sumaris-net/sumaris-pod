@@ -148,7 +148,6 @@ public class RoundWeightConversion implements IReferentialWithStatusEntity<Integ
     private QualitativeValue dressing;
 
     @Column(name = "start_date", nullable = false)
-
     private Date startDate;
 
     @Column(name = "end_date")
