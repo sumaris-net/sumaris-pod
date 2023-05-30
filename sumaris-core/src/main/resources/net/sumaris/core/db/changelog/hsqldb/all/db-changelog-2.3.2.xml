@@ -8,8 +8,26 @@
     <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
     <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-301">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">select count(*) from parameter_group where label='GEAR' or id=6</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="parameter_group">
+            <column name="id" valueNumeric="6"/>
+            <column name="status_fk" valueNumeric="1"/>
+            <column name="creation_date" valueComputed="current_timestamp"/>
+            <column name="update_date" valueComputed="current_timestamp"/>
+            <column name="label">GEAR</column>
+            <column name="name">Caractéristiques d'engin</column>
+            <column name="description">Permet de grouper les paramètres qui sont relatifs aux engins</column>
+        </insert>
+    </changeSet>
+
     <!-- Add Parameter 'HEADLINE_LENGTH'  -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-301" runOnChange="true">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-302" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
@@ -26,11 +44,12 @@
             <column name="STATUS_FK" valueNumeric="1"/>
             <column name="CREATION_DATE" valueComputed="sysdate" />
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="PARAMETER_GROUP_FK" valueComputed="(SELECT PG.ID FROM PARAMETER_GROUP PG where PG.label='GEAR')"/>
         </insert>
     </changeSet>
 
     <!-- Add PMFM 'HEADLINE_LENGTH'  -->
-    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-302" runOnChange="true">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958330000-303" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
