@@ -58,7 +58,7 @@
         <sql endDelimiter=";" stripComments="true"><![CDATA[
             update sorting_measurement_b
                 set numerical_value = numerical_value - 0.5
-                where (numerical_value - TRUNC(numerical_value)) = 0.5;
+                where (numerical_value - TRUNC(numerical_value)) = 0.5
                 and pmfm_fk=81;
             commit;
         ]]></sql>

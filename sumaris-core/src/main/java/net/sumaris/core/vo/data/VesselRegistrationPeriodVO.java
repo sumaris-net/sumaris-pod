@@ -28,6 +28,7 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IValueObject;
+import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.vo.referential.LocationVO;
 
 import java.util.Date;
@@ -35,10 +36,12 @@ import java.util.Date;
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
+@Comment("Vessel registration period")
 public class VesselRegistrationPeriodVO implements IEntity<Integer>, IValueObject<Integer> {
 
     @EqualsAndHashCode.Exclude
     private Integer id;
+
     private String registrationCode;
     private String intRegistrationCode;
     private LocationVO registrationLocation;
@@ -51,6 +54,4 @@ public class VesselRegistrationPeriodVO implements IEntity<Integer>, IValueObjec
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private VesselVO vessel;
-
-
 }
