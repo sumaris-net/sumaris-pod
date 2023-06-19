@@ -30,7 +30,7 @@ import net.sumaris.shared.exception.ErrorCodes;
  */
 public class NotUniqueException extends SumarisBusinessException {
 
-    public static final int ERROR_CODE = ErrorCodes.NOT_UNIQUE;
+    public static final int ERROR_CODE = ErrorCodes.DATA_NOT_UNIQUE;
 
     /**
      * <p>Constructor for NotUniqueException.</p>
