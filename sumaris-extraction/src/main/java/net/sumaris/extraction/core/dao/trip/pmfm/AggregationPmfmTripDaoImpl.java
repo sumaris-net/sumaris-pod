@@ -233,6 +233,9 @@ public class AggregationPmfmTripDaoImpl<
             );
         }
 
+        // Set specific Oracle groups depending on version
+        applyOracleGroups(xmlQuery);
+
         return xmlQuery;
     }
 

@@ -59,7 +59,8 @@
     <!-- need to link other tables -->
     <select alias="STATION_ID" type="hidden">SL.STATION_ID</select>
     <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden" group="agg">ARRAY_AGG(SL.SAMPLE_ID)</select>
-    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg">LISTAGG(SL.SAMPLE_ID, ',')</select>
+    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg,oracle11">LISTAGG(SL.SAMPLE_ID, ',')</select>
+    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg,oracle12">LISTAGG(SL.SAMPLE_ID, ',') WITHIN GROUP (ORDER BY SL.SAMPLE_ID)</select>
 
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>

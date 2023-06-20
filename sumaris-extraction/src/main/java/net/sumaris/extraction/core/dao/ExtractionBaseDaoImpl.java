@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.dao;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import fr.ifremer.common.xmlquery.AbstractXMLQuery;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
@@ -59,6 +60,8 @@ import org.jdom2.Element;
 import org.jdom2.Text;
 import org.jdom2.filter.Filters;
 import org.nuiton.i18n.I18n;
+import org.nuiton.version.Version;
+import org.nuiton.version.Versions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -71,6 +74,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -144,7 +149,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
         // Force distinct if there is excluded columns AND distinct is enable on the XML query
         boolean enableDistinct = filter.isDistinct() || CollectionUtils.isNotEmpty(readFilter.getExcludeColumnNames())
-            && context.isDistinctEnable(tableName);
+                                                        && context.isDistinctEnable(tableName);
         readFilter.setDistinct(enableDistinct);
 
         // Replace default sort attribute
@@ -220,8 +225,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper, long offset, int size) {
         Query nativeQuery = createNativeQuery(query)
-                .setFirstResult((int)offset)
-                .setMaxResults(size);
+            .setFirstResult((int) offset)
+            .setMaxResults(size);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
         return resultStream.map(rowMapper).collect(Collectors.toList());
     }
@@ -235,6 +240,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     /**
      * Create an index
+     *
      * @param tableName
      * @param indexName
      * @param columnNames
@@ -247,12 +253,12 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
         // Create index
         queryUpdate(String.format("CREATE %sINDEX %s on %s (%s)",
-                isUnique ? "UNIQUE " : "",
-                indexName,
-                tableName,
-                columnNames.stream()
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.joining(","))
+            isUnique ? "UNIQUE " : "",
+            indexName,
+            tableName,
+            columnNames.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(","))
         ));
     }
 
@@ -275,6 +281,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     /**
      * Create a new XML Query
+     *
      * @return
      */
     protected XMLQueryImpl createXMLQuery() {
@@ -285,25 +292,24 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         Preconditions.checkNotNull(context.getTableNamePrefix());
 
         Set<String> tableNames = ImmutableSet.<String>builder()
-                .addAll(context.getTableNames())
-                .addAll(context.getRawTableNames())
-                .build();
+            .addAll(context.getTableNames())
+            .addAll(context.getRawTableNames())
+            .build();
 
         if (CollectionUtils.isEmpty(tableNames)) return;
 
         tableNames.stream()
-                // Keep only tables with EXT_ prefix
-                .filter(tableName -> tableName != null && tableName.startsWith(context.getTableNamePrefix()))
-                .forEach(tableName -> {
-                    try {
-                        dropTable(tableName);
-                        databaseMetadata.clearCache(tableName);
-                    }
-                    catch (SumarisTechnicalException e) {
-                        log.error(e.getMessage());
-                        // Continue
-                    }
-                });
+            // Keep only tables with EXT_ prefix
+            .filter(tableName -> tableName != null && tableName.startsWith(context.getTableNamePrefix()))
+            .forEach(tableName -> {
+                try {
+                    dropTable(tableName);
+                    databaseMetadata.clearCache(tableName);
+                } catch (SumarisTechnicalException e) {
+                    log.error(e.getMessage());
+                    // Continue
+                }
+            });
     }
 
     protected <F extends ExtractionFilterVO> int cleanRow(String tableName, F filter, String sheetName) {
@@ -340,6 +346,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     /**
      * Create a native query, with the timeout for extraction (should b longer than the default timeout)
+     *
      * @param sql
      * @return
      */
@@ -355,6 +362,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     /**
      * Enable/Disable group, depending on the DBMS
+     *
      * @param xmlQuery
      */
     protected void setDbms(XMLQuery xmlQuery) {
@@ -371,7 +379,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         }
     }
 
-    protected String formatTableName(String tableName, long time){
+    protected String formatTableName(String tableName, long time) {
         String finalTableName = String.format(tableName, time);
         if (this.databaseType != null) {
             switch (this.databaseType) {
@@ -431,7 +439,6 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
 
-
     protected Predicate<String> createIncludeExcludePredicate(ExtractionFilterVO filter) {
         return createIncludeExcludePredicate(filter.getIncludeColumnNames(), filter.getExcludeColumnNames());
     }
@@ -476,7 +483,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         Preconditions.checkNotNull(tableName);
         String upperTableName = tableName.toUpperCase();
         Preconditions.checkArgument(upperTableName.startsWith(ExtractionDao.TABLE_NAME_PREFIX)
-            || upperTableName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
+                                    || upperTableName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
 
         // Make sue sequence name length is lower than 30 characters
         if (upperTableName.length() + ExtractionDao.SEQUENCE_NAME_SUFFIX.length() > 30) {
@@ -495,7 +502,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     protected void dropSequence(String sequenceName) {
         Preconditions.checkNotNull(sequenceName);
         Preconditions.checkArgument(sequenceName.startsWith(ExtractionDao.TABLE_NAME_PREFIX)
-            || sequenceName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
+                                    || sequenceName.startsWith(AggregationDao.TABLE_NAME_PREFIX));
         Preconditions.checkArgument(sequenceName.endsWith(ExtractionDao.SEQUENCE_NAME_SUFFIX));
         try {
             String sql = getDialect().getDropSequenceStrings(sequenceName)[0];
@@ -507,7 +514,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     /**
      * Read table metadata, to get column.
-     *
+     * <p>
      * /!\ Important: column order must be the unchanged !! Otherwise getTableGroupByRows() will not work well
      *
      * @param table
@@ -627,19 +634,28 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
             }
         }
 
+        boolean isOracle = this.databaseType == DatabaseType.oracle;
+
         // Get groupBy columns
         String groupByColumns = xmlQuery.streamSelectElements(e -> {
-            // Exclude column with group 'agg'
-            boolean isAgg = xmlQuery.hasGroup(e, "agg");
-            if (isAgg) {
-                // Remove the agg group, to avoid the element to be disabled
-                xmlQuery.removeGroup(e, "agg");
-                return false;
-            }
+                // Exclude column with different dbms
+                String dbms = e.getAttributeValue(AbstractXMLQuery.ATTR_DBMS);
+                if (StringUtils.isNotBlank(dbms) && !dbms.contains(this.databaseType.name())) {
+                    return false;
+                }
 
-            // Exclude disabled columns (by group)
-            return !xmlQuery.isDisabled(e);
-        })
+
+                // Exclude column with group 'agg'
+                boolean isAgg = xmlQuery.hasGroup(e, "agg");
+                if (isAgg) {
+                    // Remove the agg group, to avoid the element to be disabled
+                    xmlQuery.removeGroup(e, "agg");
+                    return false;
+                }
+
+                // Exclude disabled columns (by group)
+                return !xmlQuery.isDisabled(e);
+            })
             .map(e -> {
                 // Exclude pmfm columns
                 //String alias = xmlQuery.getAlias(e);
@@ -647,10 +663,34 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
                 // Prefer using <select> content, if match the pattern 'T.<columnName>'
                 String textContent = StringUtils.trimToNull(xmlQuery.getTextContent(e, " "));
-                if (textContent != null
-                    && !"null".equalsIgnoreCase(textContent)
-                    && textContent.matches("([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+")) {
-                    return textContent.trim().toLowerCase();
+                if (textContent != null && !"null".equalsIgnoreCase(textContent)) {
+                    if (isOracle) {
+
+                        // Exclude some specific limitation for Oracle
+                        if (textContent.toUpperCase().contains("FROM")) {
+                            return null;
+                        }
+
+                        // Specific function
+                        // ex: ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME) should return O.TRIP_FK,O.START_DATE_TIME
+                        Matcher functionMatcher = Pattern
+                            .compile("ROW_NUMBER\\(\\) OVER \\(PARTITION BY (([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+) ORDER BY (([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+)\\)")
+                            .matcher(textContent.toUpperCase());
+                        if (functionMatcher.find()) {
+                            // Return the column names to group
+                            return functionMatcher.group(1) + "," + functionMatcher.group(3);
+                        }
+
+                        // Find parameters
+                        Matcher paramterMatcher = Pattern.compile("&[a-zA-Z0-9_]+").matcher(textContent);
+                        while (paramterMatcher.find()) {
+                            String match = paramterMatcher.group();
+                            textContent = textContent.replaceAll(match, MapUtils.getString(xmlQuery.getSqlParameters(), match.substring(1), match));
+                        }
+                        return textContent.trim();
+                    } else if (textContent.matches("([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+")) {
+                        return textContent.trim().toLowerCase(); // FIXME: Why toLowerCase ???
+                    }
                 }
 
                 // Or use alias if more complex column specification (e.g. '(CASE WHEN ...)' or '(SELECT ...)' )
@@ -658,11 +698,23 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
                 if (alias.startsWith("&")) {
                     alias = MapUtils.getString(xmlQuery.getSqlParameters(), alias.substring(1), alias);
                 }
-                return alias.toLowerCase();
+                return alias.toLowerCase(); // FIXME: Why toLowerCase ???
             })
             .filter(Objects::nonNull)
-        .collect(Collectors.joining(","));
+            .collect(Collectors.joining(","));
 
         xmlQuery.bind(paramName, groupByColumns);
+    }
+
+    /**
+     * Set specific Oracle groups depending on version
+     */
+    protected void applyOracleGroups(XMLQuery xmlQuery) {
+        if (databaseType == DatabaseType.oracle) {
+            Version version = Daos.getOracleVersion(getDataSource());
+            boolean isOracle12 = version.afterOrEquals(Versions.valueOf("12"));
+            xmlQuery.setGroup("oracle11", !isOracle12);
+            xmlQuery.setGroup("oracle12", isOracle12);
+        }
     }
 }

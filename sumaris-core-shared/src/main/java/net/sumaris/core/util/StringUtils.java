@@ -124,4 +124,16 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         }
         return defaultValue;
     }
+
+    public static String removeLastToken(String string, String delimiter) {
+        if (string == null || delimiter == null) {
+            return string;
+        }
+        int lastIndex = string.lastIndexOf(delimiter);
+        if (lastIndex != -1) {
+            return string.substring(0, lastIndex);
+        }
+        return string;
+    }
+
 }

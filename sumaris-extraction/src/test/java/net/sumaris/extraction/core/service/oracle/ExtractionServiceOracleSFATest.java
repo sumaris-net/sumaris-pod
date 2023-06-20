@@ -1,0 +1,132 @@
+/*
+ * #%L
+ * SUMARiS
+ * %%
+ * Copyright (C) 2019 SUMARiS Consortium
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+
+package net.sumaris.extraction.core.service.oracle;
+
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.extraction.core.DatabaseResource;
+import net.sumaris.extraction.core.service.ExtractionServiceTest;
+import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
+import org.junit.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * @author peck7 on 17/12/2018.
+ */
+@Slf4j
+//@Ignore("Use only SFA Oracle database")
+@ActiveProfiles("oracle")
+@TestPropertySource(locations = "classpath:application-oracle-sfa.properties")
+public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
+
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle-sfa");
+
+    @Autowired
+    protected ConfigurationService configurationService;
+
+    @Before
+    public void setup() {
+        try {
+            // force apply software configuration
+            configurationService.applySoftwareProperties();
+        }
+        catch (Exception e) {
+            // Continue
+        }
+    }
+
+    @Test
+    public void executePmfmTrip() throws IOException {
+
+        String programLabel = "LOGBOOK-SEA-CUCUMBER";
+
+        // Validate some trips
+//        List<TripVO> trips =
+//            tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
+//                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
+//                .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
+//        Assume.assumeTrue(trips.size() > 0);
+//        trips.forEach(trip -> {
+//            if (trip.getControlDate() == null) tripService.control(trip);
+//            if (trip.getValidationDate() == null) tripService.validate(trip);
+//        });
+
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(programLabel);
+        filter.setExcludeInvalidStation(false);
+
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel() + "_SFA");
+
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, PmfmTripSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+        }
+
+        // HL.csv
+//        {
+//            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+//            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+//
+//            assertHasColumn(speciesLengthFile, "sex");
+//        }
+    }
+
+
+    /* -- protected methods -- */
+
+//    protected void assertHasColumn(File file, String columnName) throws IOException {
+//        //String headerName = StringUtils.underscoreToChangeCase(columnName);
+//        Assert.assertTrue(String.format("Missing header '%s' in file: %s", columnName, file.getPath()),
+//            hasHeaderInCsvFile(file, columnName));
+//    }
+}

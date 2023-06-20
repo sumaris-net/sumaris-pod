@@ -22,8 +22,10 @@
 
 <query type="select">
 
-  <select alias="STATION_COMMENTS" type="text">O.COMMENTS</select>
-  <select alias="GEAR_COMMENTS" type="text" group="gearComments">PG.COMMENTS</select>
+  <select alias="STATION_COMMENTS" type="text" dbms="hsqldb,pgsql">O.COMMENTS</select>
+  <select alias="STATION_COMMENTS" type="text" dbms="oracle">CAST(O.COMMENTS AS VARCHAR2(2000))</select>
+  <select alias="GEAR_COMMENTS" type="text" group="gearComments" dbms="hsqldb,pgsql">PG.COMMENTS</select>
+  <select alias="GEAR_COMMENTS" type="text" group="gearComments" dbms="oracle">CAST(PG.COMMENTS AS VARCHAR2(2000))</select>
 
   <from join="true" group="allowParent">LEFT OUTER JOIN OPERATION O2 ON O2.ID = O.OPERATION_FK</from>
   <from join="true" group="allowParent">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM2 ON VUM2.OPERATION_FK = O2.ID</from>

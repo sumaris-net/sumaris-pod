@@ -23,11 +23,9 @@ package net.sumaris.extraction.core.service;
  */
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +41,6 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.extraction.ExtractionTableRepository;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -864,16 +861,32 @@ public class ExtractionServiceImpl implements ExtractionService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
-        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
-        String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
-
         Map<String, String> dateFormats = Maps.newHashMap();
         columnNames.stream().map(table::getColumnMetadata)
             .filter(SumarisTableMetadatas::isDateColumn)
             .forEach(column -> dateFormats.put(column.getName(), Dates.CSV_DATE_TIME));
 
+        // If 'date' column is present and database type is Oracle, must escape this reserved word
+        if (Daos.isOracleDatabase(dataSource) && columnNames.contains("date")) {
+            columnNames = columnNames.stream()
+                .map(column -> {
+                    if ("date".equals(column)) {
+                        return "\"DATE\"";
+                    }
+                    return column;
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+
+        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+        String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
+
+        log.debug(query);
+
+        Map<String, String> aliases = getAliasByColumnMap(columnNames);
+
         extractionCsvDao.dumpQueryToCSV(outputFile, query,
-            getAliasByColumnMap(columnNames),
+            aliases,
             dateFormats,
             null,
             null);
@@ -894,8 +907,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
-    protected Map<String, String> getAliasByColumnMap(Set<String> tableNames) {
-        return tableNames.stream()
+    protected Map<String, String> getAliasByColumnMap(Set<String> columnNames) {
+        return columnNames.stream()
             .collect(Collectors.toMap(
                 String::toUpperCase,
                 StringUtils::underscoreToChangeCase));

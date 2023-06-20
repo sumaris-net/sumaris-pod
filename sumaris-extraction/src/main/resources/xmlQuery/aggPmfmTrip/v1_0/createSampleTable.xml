@@ -53,7 +53,8 @@
 
         <!-- hidden column -->
         <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(ST.SAMPLE_ID)</select>
-        <select alias="SAMPLE_IDS" dbms="oracle" type="hidden">LISTAGG(ST.SAMPLE_ID, ',')</select>
+        <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="oracle11">LISTAGG(ST.SAMPLE_ID, ',')</select>
+        <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="oracle12">LISTAGG(ST.SAMPLE_ID, ',') WITHIN GROUP (ORDER BY ST.SAMPLE_ID)</select>
 
         <!-- SAMPLE -->
         <select alias="SPECIES_CODE" type="number">ST.SPECIES_CODE</select>

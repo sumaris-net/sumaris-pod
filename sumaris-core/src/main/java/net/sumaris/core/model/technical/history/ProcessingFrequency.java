@@ -22,8 +22,9 @@
 
 package net.sumaris.core.model.technical.history;
 
-import lombok.*;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;

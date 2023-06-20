@@ -393,6 +393,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
         xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
 
+        // Set specific Oracle groups depending on version
+        applyOracleGroups(xmlQuery);
+
         return xmlQuery;
     }
 
@@ -530,6 +533,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("injectionPoint", false);
 
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+
+        // Set specific Oracle groups depending on version
+        applyOracleGroups(xmlQuery);
 
         return xmlQuery;
     }

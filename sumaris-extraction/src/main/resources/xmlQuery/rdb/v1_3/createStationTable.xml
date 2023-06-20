@@ -62,10 +62,14 @@
     <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="oracle">CAST(FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60) as INTEGER)</select>
     <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="pgsql">F_DATEDIFF('minute', COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME))</select>
 
-    <select alias="POS_START_LAT" type="number">P_START.LATITUDE</select>
-    <select alias="POS_START_LON" type="number">P_START.LONGITUDE</select>
-    <select alias="POS_END_LAT" type="number">P_END.LATITUDE</select>
-    <select alias="POS_END_LON" type="number">P_END.LONGITUDE</select>
+    <select alias="POS_START_LAT" type="number" dbms="hsqldb,pgsql">P_START.LATITUDE</select>
+    <select alias="POS_START_LAT" type="number" dbms="oracle">CAST(P_START.LATITUDE AS NUMBER(38, 7))</select>
+    <select alias="POS_START_LON" type="number" dbms="hsqldb,pgsql">P_START.LONGITUDE</select>
+    <select alias="POS_START_LON" type="number" dbms="oracle">CAST(P_START.LONGITUDE AS NUMBER(38, 7))</select>
+    <select alias="POS_END_LAT" type="number" dbms="hsqldb,pgsql">P_END.LATITUDE</select>
+    <select alias="POS_END_LAT" type="number" dbms="oracle">CAST(P_END.LATITUDE AS NUMBER(38, 7))</select>
+    <select alias="POS_END_LON" type="number" dbms="hsqldb,pgsql">P_END.LONGITUDE</select>
+    <select alias="POS_END_LON" type="number" dbms="oracle">CAST(P_END.LONGITUDE AS NUMBER(38, 7))</select>
 
     <select alias="AREA" dbms="oracle" type="text">CAST(null as VARCHAR2(10))</select>
     <select alias="AREA" type="text" dbms="hsqldb,pgsql">null</select><!-- TODO get it by LOCATION_HIERARCHY -->

@@ -176,7 +176,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 );
         }
 
-        xmlQuery.bind("groupByColumns", groupByColumns);
+        computeAndBindGroupBy(xmlQuery, "groupByColumns");
 
         return xmlQuery;
     }
@@ -375,6 +375,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
+
+        // Set specific Oracle groups depending on version
+        applyOracleGroups(xmlQuery);
 
         return xmlQuery;
     }
