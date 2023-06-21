@@ -25,7 +25,6 @@ package net.sumaris.extraction.core.config;
  */
 
 import net.sumaris.core.dao.technical.cache.CacheTTL;
-import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import org.nuiton.config.ConfigOptionDef;
@@ -110,6 +109,19 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             Boolean.FALSE.toString(),
             Boolean.class,
             false),
+
+    EXTRACTION_LANDING_CATEGORY_DEFAULT(
+        "sumaris.extraction.rdb.landingCategory.default",
+        n("sumaris.config.option.extraction.rdb.landingCategory.default.description"),
+        "HUC", // Default value of the RDB format
+        String.class,
+        false),
+    EXTRACTION_COMMERCIAL_SIZE_CATEGORY_SCALE_DEFAULT(
+        "sumaris.extraction.rdb.commercialSizeCategoryScale.default",
+        n("sumaris.config.option.extraction.rdb.commercialSizeCategoryScale.default.description"),
+        "EU", // Default value of the RDB format
+        String.class,
+        false)
     ;
 
     /** Configuration key. */

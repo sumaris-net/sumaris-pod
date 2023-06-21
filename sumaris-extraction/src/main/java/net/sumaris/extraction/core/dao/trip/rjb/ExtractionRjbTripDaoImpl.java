@@ -43,6 +43,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Extraction for RJB (Pocheteaux). We use individual count, instead of weight
@@ -180,15 +183,4 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
     }
 
-    protected Set<String> getTaxonGroupNoWeights(C context) {
-
-        Set<String> result = Sets.newHashSet();
-        getTripProgramLabels(context).stream()
-            .forEach(programLabel -> {
-                String values = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-                if (StringUtils.isBlank(values)) return;
-                Splitter.on(",").split(values).forEach( result::add);
-            });
-        return result;
-    }
 }

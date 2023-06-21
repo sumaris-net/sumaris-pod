@@ -158,6 +158,13 @@ public class ExtractionConfiguration {
         return getApplicationConfig().getOptionAsInt(ExtractionConfigurationOption.EXTRACTION_QUERY_TIMEOUT.getKey());
     }
 
+    public String getExtractionDefaultLandingCategory() {
+        return getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_LANDING_CATEGORY_DEFAULT.getKey());
+    }
+    public String getExtractionDefaultCommercialSizeCategoryScale() {
+        return getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_COMMERCIAL_SIZE_CATEGORY_SCALE_DEFAULT.getKey());
+    }
+
     public char getCsvSeparator() {
         return delegate.getCsvSeparator();
     }
@@ -173,4 +180,5 @@ public class ExtractionConfiguration {
         applicationConfig.addAlias("--format", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_OUTPUT_FORMAT.getKey());
         applicationConfig.addAlias("--frequency", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_FREQUENCY.getKey());
     }
+
 }

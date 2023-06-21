@@ -45,9 +45,9 @@
       MAX(CASE SM.PMFM_FK WHEN &amp;catchCategoryPmfmId THEN QV.LABEL ELSE NULL END)
     </select>
 
-    <select alias="LANDING_CATEGORY" type="text">'HUC'</select>
+    <select alias="LANDING_CATEGORY" type="text">'&amp;defaultLandingCategory'</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text" group="agg">
-      MAX(CASE TG.LABEL WHEN 'NEP' THEN 'Nephrops' ELSE 'EU' END)
+      MAX(CASE TG.LABEL WHEN 'NEP' THEN 'Nephrops' ELSE '&amp;defaultCommercialSizeCategoryScale' END)
     </select>
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text" group="agg">
       MAX(CASE WHEN SM.PMFM_FK IN (&amp;sizeCategoryPmfmIds) THEN QV.LABEL ELSE NULL END)

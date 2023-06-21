@@ -117,7 +117,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     /* -- protected methods -- */
 
     protected boolean isSamplesEnabled(C context) {
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
 
         // Check if samples have been enabled:
         // - by program properties
@@ -129,13 +129,13 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     }
 
     protected boolean enableParentOperation(C context) {
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
         return programLabels.stream()
             .anyMatch(label -> this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_OPERATION_ALLOW_PARENT, Boolean.TRUE.toString()));
     }
 
     protected boolean enableSpeciesListTaxon(C context) {
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
 
         return programLabels.stream()
             .anyMatch(label ->
@@ -162,21 +162,18 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
 
-        // Get columns, BEFORE to add pmfms columns
-        String groupByColumns = String.join(",", xmlQuery.getAllColumnNames());
-
         // Add PMFM from program, if on program has been set
         String programLabel = context.getTripFilter().getProgramLabel();
         if (StringUtils.isNotBlank(programLabel)) {
             injectPmfmColumns(context, xmlQuery,
-                    Collections.singletonList(programLabel),
+                    Collections.singleton(programLabel),
                     AcquisitionLevelEnum.TRIP,
                     // Excluded PMFM (already exists as RDB format columns)
                     PmfmEnum.NB_OPERATION.getId()
                 );
         }
 
-        computeAndBindGroupBy(xmlQuery, "groupByColumns");
+        computeAndBindGroupBy(xmlQuery, GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -185,7 +182,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         XMLQuery xmlQuery = super.createStationQuery(context);
 
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
         boolean enableGearPmfms = enableStationGearPmfms(context);
         boolean enableParentOperation = enableParentOperation(context);
 
@@ -258,13 +255,18 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
         xmlQuery.setGroup("taxon", enableTaxonColumns);
 
+        // Enable individual count, if there is som taxon group no weight in program's options
+        Set<String> taxonGroupNoWeights = getTaxonGroupNoWeights(context);
+        xmlQuery.setGroup("individualCount", CollectionUtils.isNotEmpty(taxonGroupNoWeights));
+
         return xmlQuery;
     }
 
     protected XMLQuery createSpeciesListQuery(C context) {
         XMLQuery xmlQuery = super.createSpeciesListQuery(context);
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable"), "afterSpeciesInjection");
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterSpecies"), "afterSpeciesInjection");
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterSex"), "afterSexInjection");
 
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
@@ -277,10 +279,13 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         // Add group by pmfms
         xmlQuery.setGroup("pmfms", StringUtils.isNotBlank(pmfmsColumns));
-        //xmlQuery.bind("pmfmsGroupByColumns", pmfmsColumns);
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         xmlQuery.setGroup("taxon", this.enableSpeciesListTaxon(context));
+
+        // Enable individual count, if there is som taxon group no weight in program's options
+        Set<String> taxonGroupNoWeights = getTaxonGroupNoWeights(context);
+        xmlQuery.setGroup("individualCount", CollectionUtils.isNotEmpty(taxonGroupNoWeights));
 
         return xmlQuery;
     }
@@ -356,7 +361,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("sampleTableName", context.getSampleTableName());
 
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
 
         // Inject PMFM columns on SAMPLE
         List<ExtractionPmfmColumnVO> samplePmfms = loadPmfmColumns(context, programLabels, AcquisitionLevelEnum.SAMPLE);
@@ -375,9 +380,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
-
-        // Set specific Oracle groups depending on version
-        applyOracleGroups(xmlQuery);
 
         return xmlQuery;
     }
@@ -434,7 +436,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionTripTable":
             case "injectionStationTable":
             case "injectionRawSpeciesListTable":
-            case "injectionSpeciesListTable":
+            case "injectionSpeciesListTable_afterSpecies":
+            case "injectionSpeciesListTable_afterSex":
             case "injectionSpeciesLengthPmfm":
             case "injectionSpeciesLengthTable":
             case "injectionSpeciesLengthTaxon":
@@ -448,7 +451,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
     protected String injectPmfmColumns(C context,
                                        XMLQuery xmlQuery,
-                                       List<String> programLabels,
+                                       Set<String> programLabels,
                                        AcquisitionLevelEnum acquisitionLevel,
                                        Integer... excludedPmfmIds) {
         return injectPmfmColumns(context, xmlQuery, programLabels, acquisitionLevel, null, null, excludedPmfmIds);
@@ -457,7 +460,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
     protected String injectPmfmColumns(C context,
                                        XMLQuery xmlQuery,
-                                       List<String> programLabels,
+                                       Set<String> programLabels,
                                        AcquisitionLevelEnum acquisitionLevel,
                                        @Nullable String injectionQueryName,
                                        @Nullable String injectionPointName,

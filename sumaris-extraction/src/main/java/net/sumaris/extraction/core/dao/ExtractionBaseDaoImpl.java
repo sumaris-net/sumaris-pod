@@ -212,9 +212,16 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
     protected <R> List<R> query(String query, Class<R> jdbcClass) {
+        return queryToStream(query, jdbcClass).collect(Collectors.toList());
+    }
+
+    protected <R> Set<R> queryToSet(String query, Class<R> jdbcClass) {
+        return queryToStream(query, jdbcClass).collect(Collectors.toSet());
+    }
+
+    protected <R> Stream<R> queryToStream(String query, Class<R> jdbcClass) {
         Query nativeQuery = createNativeQuery(query);
-        Stream<R> resultStream = (Stream<R>) nativeQuery.getResultStream().map(jdbcClass::cast);
-        return resultStream.collect(Collectors.toList());
+        return (Stream<R>) nativeQuery.getResultStream().map(jdbcClass::cast);
     }
 
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper) {
@@ -549,8 +556,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     protected int execute(C context, XMLQuery xmlQuery) {
 
-        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
-        xmlQuery.setGroup("injectionPoint", false);
+        // Apply default groups
+        applyDefaultGroups(xmlQuery);
 
         // Generate then bind group by columns
         if (StringUtils.isNotBlank(xmlQuery.getGroupByParamName())) {
@@ -716,14 +723,22 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
     /**
-     * Set specific Oracle groups depending on version
+     * Set default groups
      */
-    protected void applyOracleGroups(XMLQuery xmlQuery) {
+    protected void applyDefaultGroups(XMLQuery xmlQuery) {
+
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
+
         if (databaseType == DatabaseType.oracle) {
             Version version = Daos.getOracleVersion(getDataSource());
             boolean isOracle12 = version.afterOrEquals(Versions.valueOf("12"));
             xmlQuery.setGroup("oracle11", !isOracle12);
             xmlQuery.setGroup("oracle12", isOracle12);
+        }
+        else {
+            xmlQuery.setGroup("oracle11", false);
+            xmlQuery.setGroup("oracle12", false);
         }
     }
 }

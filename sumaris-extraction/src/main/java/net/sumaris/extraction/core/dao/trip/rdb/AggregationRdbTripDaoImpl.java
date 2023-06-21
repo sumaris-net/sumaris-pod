@@ -371,9 +371,6 @@ public class AggregationRdbTripDaoImpl<
         xmlQuery.setGroup("euMetierLevel6", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_EU_METIER_LEVEL6));
         xmlQuery.setGroup("gearType", rawStationTable.hasColumn(AggRdbSpecification.COLUMN_GEAR_TYPE));
 
-        // Set specific Oracle groups depending on version
-        applyOracleGroups(xmlQuery);
-
         return xmlQuery;
     }
 
@@ -545,9 +542,6 @@ public class AggregationRdbTripDaoImpl<
         SumarisTableMetadata rawSpeciesListTable = databaseMetadata.getTable(rawSpeciesListTableName);
         xmlQuery.setGroup("hasSampleIds", rawSpeciesListTable.hasColumn(COLUMN_SAMPLE_IDS));
         xmlQuery.setGroup("hasId", rawSpeciesListTable.hasColumn(COLUMN_ID));
-
-        // Set specific Oracle groups depending on version
-        applyOracleGroups(xmlQuery);
 
         return xmlQuery;
     }

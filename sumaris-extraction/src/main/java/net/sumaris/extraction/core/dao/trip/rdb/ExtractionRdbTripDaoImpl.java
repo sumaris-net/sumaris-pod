@@ -23,6 +23,7 @@ package net.sumaris.extraction.core.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -73,6 +74,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -191,7 +193,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
                 // Species Length
                 if (rowCount != 0) {
-                    createSpeciesLengthTable(context);
+                    rowCount = createSpeciesLengthTable(context);
                     if (sheetName != null && context.hasSheet(sheetName)) return context;
                 }
             }
@@ -389,12 +391,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
 
-        // Compute groupBy (exclude columns with the 'agg' group)
-        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
-        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
-
-        // Set specific Oracle groups depending on version
-        applyOracleGroups(xmlQuery);
+        // Compute groupBy
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -404,7 +402,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
     protected void denormalizeBatches(C context) {
         String stationsTableName = context.getStationTableName();
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
         programLabels.forEach(programLabel -> {
             String sql = String.format("SELECT distinct CAST(%s AS INTEGER) from %s where %s='%s'",
                     RdbSpecification.COLUMN_STATION_ID, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
@@ -450,11 +448,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        //if (this.production) {
-        // Add as a raw table (to be able to clean it later)
-        context.addRawTableName(tableName);
+        if (this.production) {
+            // Add as a raw table (to be able to clean it later)
+            context.addRawTableName(tableName);
+        }
         // DEBUG
-        //else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }
@@ -469,6 +468,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
 
+        // Bind some constants (e.g. should be RDB defaults, but can be overridden by configuration)
+        xmlQuery.bind("defaultLandingCategory", configuration.getExtractionDefaultLandingCategory());
+        xmlQuery.bind("defaultCommercialSizeCategoryScale", configuration.getExtractionDefaultCommercialSizeCategoryScale());
+
         // Bind some ids
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
@@ -476,6 +479,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("sizeCategoryPmfmIds", Daos.getSqlInNumbers(getSizeCategoryPmfmIds()));
         xmlQuery.bind("subsamplingCategoryPmfmId", String.valueOf(PmfmEnum.BATCH_SORTING.getId()));
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
+
+
 
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
@@ -533,9 +538,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("injectionPoint", false);
 
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
-
-        // Set specific Oracle groups depending on version
-        applyOracleGroups(xmlQuery);
 
         return xmlQuery;
     }
@@ -650,7 +652,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
      * @param context
      */
     protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
-                                                           List<String> programLabels,
+                                                           Set<String> programLabels,
                                                            AcquisitionLevelEnum... acquisitionLevels) {
 
         if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
@@ -703,18 +705,19 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return result;
     }
 
-    protected List<String> getTripProgramLabels(C context) {
+    protected Set<String> getTripProgramLabels(C context) {
 
-        List<String> result = context.getTripProgramLabels();
-        if (result != null) return result; // Already computed
+        Set<String> result = context.getTripProgramLabels();
+        if (result == null) {
 
-        XMLQuery xmlQuery = createXMLQuery(context, "distinctTripProgram");
-        xmlQuery.bind("tableName", context.getTripTableName());
+            XMLQuery xmlQuery = createXMLQuery(context, "distinctTripProgram");
+            xmlQuery.bind("tableName", context.getTripTableName());
 
-        result = query(xmlQuery.getSQLQueryAsString(), String.class);
+            result = queryToSet(xmlQuery.getSQLQueryAsString(), String.class);
 
-        // Store in context, to avoid another query execution
-        context.setTripProgramLabels(result);
+            // Fill cache
+            context.setTripProgramLabels(result);
+        }
 
         return result;
     }
@@ -770,7 +773,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
      */
     protected void updateTripSamplingMethod(C context) {
         try {
-            List<String> programLabels = getTripProgramLabels(context);
+            Set<String> programLabels = getTripProgramLabels(context);
             String tripTableName = context.getTripTableName();
             SumarisTableMetadata table = databaseMetadata.getTable(tripTableName);
             if (table.hasColumn(RdbSpecification.COLUMN_SAMPLING_METHOD)) {
@@ -793,7 +796,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     protected boolean enableSpeciesLengthTaxon(C context) {
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
 
         // Check if samples have been enabled:
         // - by program properties
@@ -804,5 +807,24 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 boolean showBatchLengthTaxonName = !showBatchTaxonName && this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString());
                 return showBatchLengthTaxonName;
             });
+    }
+
+
+    protected Set<String> getTaxonGroupNoWeights(C context) {
+        Set<String> result = context.getTaxonGroupNoWeights();
+        if (result == null) {
+
+            result = getTripProgramLabels(context).stream()
+                .flatMap(programLabel -> {
+                    String values = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+                    if (StringUtils.isBlank(values)) return Stream.empty();
+                    return Splitter.on(",").splitToStream(values);
+                }).collect(Collectors.toSet());
+
+            // Fill cache
+            context.setTaxonGroupNoWeights(result);
+        }
+
+        return result;
     }
 }

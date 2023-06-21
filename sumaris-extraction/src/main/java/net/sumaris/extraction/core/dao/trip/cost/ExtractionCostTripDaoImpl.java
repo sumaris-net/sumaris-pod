@@ -78,12 +78,6 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
         // - Hide GearType (not in the COST format)
         xmlQuery.setGroup("gearType", false);
 
-        // Bind groupBy columns
-        Set<String> excludedColumns = ImmutableSet.of(RdbSpecification.COLUMN_GEAR_TYPE);
-        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
-            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
-        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
-
         return xmlQuery;
     }
 

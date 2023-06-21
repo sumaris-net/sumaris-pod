@@ -215,9 +215,6 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.bind("selectionDevicePmfmIds", Daos.getSqlInNumbers(getSelectivityDevicePmfmIds()));
         xmlQuery.bind("acousticDeterrentDevicePmfmId", String.valueOf(PmfmEnum.ACOUSTIC_DETERRENT_DEVICE.getId()));
 
-        // Set specific Oracle groups depending on version
-        applyOracleGroups(xmlQuery);
-
         return xmlQuery;
     }
 
