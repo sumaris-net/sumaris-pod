@@ -26,13 +26,14 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
+import net.sumaris.core.dao.technical.schema.SumarisMetadataUtils;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.dao.technical.sql.LogicalOperatorEnum;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.util.Dates;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.vo.ExtractionFilterCriterionVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.core.util.Dates;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,14 +43,13 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 /**
  * Helper class for extraction
  *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-public class SumarisTableMetadatas {
+public class SumarisTableUtils extends SumarisMetadataUtils {
 
     public static String getSqlWhereClause(SumarisTableMetadata table, ExtractionFilterVO filter) {
 
@@ -144,10 +144,6 @@ public class SumarisTableMetadatas {
         return !isNumericColumn(column);
     }
 
-    public static String getAliasedColumnName(@Nullable String alias, String columnName) {
-        return StringUtils.isNotBlank(alias) ? alias + "." + columnName : columnName;
-    }
-
     public static String getAliasedTableName(@Nullable String alias, String tableName) {
         return StringUtils.isNotBlank(alias) ? tableName + " AS " + alias : tableName;
     }
@@ -201,12 +197,6 @@ public class SumarisTableMetadatas {
         return sb.toString();
     }
 
-    public static Collection<String> getAliasedColumns(String tableAlias,
-                                           Collection<String> columnNames) {
-        if (StringUtils.isBlank(tableAlias)) return columnNames;
-        return columnNames.stream().map(c -> tableAlias + "." + c).collect(Collectors.toList());
-    }
-
 
     /* -- protected functions -- */
 
@@ -222,8 +212,6 @@ public class SumarisTableMetadatas {
         StringBuilder sql = new StringBuilder();
         StringBuilder logicalOperator = new StringBuilder();
 
-        String aliasWithPoint = tableAlias != null ? (tableAlias + ".") : "";
-
         filter.getCriteria().stream()
             .filter(criterion -> appliedSheetName == null || appliedSheetName.equals(criterion.getSheetName()))
             .forEach(criterion -> {
@@ -238,7 +226,7 @@ public class SumarisTableMetadatas {
                         // Continue (=skip)
                     }
                 } else {
-                    String columnAndAlias = aliasWithPoint + column.getName();
+                    String columnAndAlias = SumarisTableUtils.getAliasedColumnName(tableAlias, column.getEscapedName());
 
                     // Append logical operator (between criterion)
                     sql.append(logicalOperator);

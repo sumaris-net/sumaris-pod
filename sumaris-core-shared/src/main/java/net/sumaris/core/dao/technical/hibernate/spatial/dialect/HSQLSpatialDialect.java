@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.hibernate.types.IntegerArrayUserType;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.HSQLDialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
-import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
 import org.hibernate.spatial.GeolatteGeometryType;
@@ -70,5 +69,10 @@ public class HSQLSpatialDialect extends HSQLDialect {
         typeContributions.contributeType(new JTSGeometryType(LongVarcharTypeDescriptor.INSTANCE));
         typeContributions.contributeJavaTypeDescriptor(GeolatteGeometryJavaTypeDescriptor.INSTANCE);
         typeContributions.contributeJavaTypeDescriptor(JTSGeometryJavaTypeDescriptor.INSTANCE);
+    }
+
+    @Override
+    public boolean supportsSelectAliasInGroupByClause() {
+        return true;
     }
 }

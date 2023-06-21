@@ -44,7 +44,7 @@ import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOption
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
@@ -184,7 +184,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         List<ExtractionTableColumnVO> columns = toProductColumnVOs(table, columnNames, ExtractionTableColumnFetchOptions.FULL);
         result.setColumns(columns);
 
-        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+        String whereClause = SumarisTableUtils.getSqlWhereClause(table, filter);
 
         // Count rows
         Number total = countFrom(table, whereClause);
@@ -319,7 +319,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         SumarisTableMetadata table = databaseMetadata.getTable(tableName);
         Preconditions.checkNotNull(table);
 
-        String whereClauseContent = SumarisTableMetadatas.getInverseSqlWhereClauseContent(table, filter, sheetName, table.getAlias(), true);
+        String whereClauseContent = SumarisTableUtils.getInverseSqlWhereClauseContent(table, filter, sheetName, table.getAlias(), true);
         if (StringUtils.isBlank(whereClauseContent)) return 0;
 
         String deleteQuery = table.getDeleteQuery(whereClauseContent);
@@ -634,7 +634,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
             }
         }
 
-        boolean isOracle = this.databaseType == DatabaseType.oracle;
+        boolean supportsSelectAliasInGroupByClause = getDialect().supportsSelectAliasInGroupByClause();
 
         // Get groupBy columns
         String groupByColumns = xmlQuery.streamSelectElements(e -> {
@@ -661,21 +661,36 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
                 //String alias = xmlQuery.getAlias(e);
                 // if (alias == null || alias.startsWith("&pmfmlabel")) return null;
 
-                // Prefer using <select> content, if match the pattern 'T.<columnName>'
                 String textContent = StringUtils.trimToNull(xmlQuery.getTextContent(e, " "));
-                if (textContent != null && !"null".equalsIgnoreCase(textContent)) {
-                    if (isOracle) {
 
-                        // Exclude some specific limitation for Oracle
-                        if (textContent.toUpperCase().contains("FROM")) {
-                            return null;
-                        }
+                // Exclude some specific limitation (exclude subquery)
+                if (textContent != null && textContent.toUpperCase().contains(" FROM ")) {
+                    return null;
+                }
 
-                        // Specific function
+                if (supportsSelectAliasInGroupByClause) {
+
+                    // Prefer using <select> content, if match the pattern 'T.<columnName>'
+                    if (textContent != null && !"null".equalsIgnoreCase(textContent) && textContent.matches("([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+")) {
+                        return textContent.trim().toLowerCase(); // FIXME: Why toLowerCase ???
+                    }
+                    // Or use alias if more complex column specification (e.g. '(CASE WHEN ...)' or '(SELECT ...)' )
+                    String alias = xmlQuery.getAlias(e, false /* keep same case, to be able to replace parameter inside*/);
+                    if (alias.startsWith("&")) {
+                        alias = MapUtils.getString(xmlQuery.getSqlParameters(), alias.substring(1), alias);
+                    }
+                    return alias.toLowerCase(); // FIXME: Why toLowerCase ???
+
+                } else {
+
+                    // Use content
+                    if (textContent != null && !"null".equalsIgnoreCase(textContent)) {
+
+                        // Specific function (Oracle)
                         // ex: ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME) should return O.TRIP_FK,O.START_DATE_TIME
                         Matcher functionMatcher = Pattern
-                            .compile("ROW_NUMBER\\(\\) OVER \\(PARTITION BY (([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+) ORDER BY (([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+)\\)")
-                            .matcher(textContent.toUpperCase());
+                                .compile("ROW_NUMBER\\(\\) OVER \\(PARTITION BY (([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+) ORDER BY (([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+)\\)")
+                                .matcher(textContent.toUpperCase());
                         if (functionMatcher.find()) {
                             // Return the column names to group
                             return functionMatcher.group(1) + "," + functionMatcher.group(3);
@@ -688,17 +703,11 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
                             textContent = textContent.replaceAll(match, MapUtils.getString(xmlQuery.getSqlParameters(), match.substring(1), match));
                         }
                         return textContent.trim();
-                    } else if (textContent.matches("([a-zA-Z0-9_]+\\.)?[a-zA-Z0-9_]+")) {
-                        return textContent.trim().toLowerCase(); // FIXME: Why toLowerCase ???
                     }
+
+                    return null;
                 }
 
-                // Or use alias if more complex column specification (e.g. '(CASE WHEN ...)' or '(SELECT ...)' )
-                String alias = xmlQuery.getAlias(e, false /* keep same case, to be able to replace parameter inside*/);
-                if (alias.startsWith("&")) {
-                    alias = MapUtils.getString(xmlQuery.getSqlParameters(), alias.substring(1), alias);
-                }
-                return alias.toLowerCase(); // FIXME: Why toLowerCase ???
             })
             .filter(Objects::nonNull)
             .collect(Collectors.joining(","));

@@ -36,12 +36,12 @@ public class SumarisHibernateColumnMetadata extends SumarisColumnMetadata {
 	protected final Column delegate;
 
 
-	public SumarisHibernateColumnMetadata(ResultSet rs, Column column) throws SQLException {
-		this(rs, column, null);
+	public SumarisHibernateColumnMetadata(SumarisTableMetadata table, ResultSet rs, Column column) throws SQLException {
+		this(table, rs, column, null);
 	}
 
-	public SumarisHibernateColumnMetadata(ResultSet rs, Column column, String defaultValue) throws SQLException {
-		super(rs, defaultValue);
+	public SumarisHibernateColumnMetadata(SumarisTableMetadata table, ResultSet rs, Column column, String defaultValue) throws SQLException {
+		super(table, rs, defaultValue);
 		this.delegate = column;
 	}
 

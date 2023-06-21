@@ -38,6 +38,7 @@ public class SumarisColumnMetadata {
 	protected final String schema;
 	protected final String table;
 	protected final String name;
+	protected final String escapedName;
 	protected final boolean nullable;
 
 	protected final String defaultValue;
@@ -51,11 +52,11 @@ public class SumarisColumnMetadata {
 	protected final String description;
 	protected final int ordinalPosition;
 
-	public SumarisColumnMetadata(ResultSet rs) throws SQLException {
-		this(rs, null);
+	public SumarisColumnMetadata(SumarisTableMetadata table, ResultSet rs) throws SQLException {
+		this(table, rs, null);
 	}
 
-	public SumarisColumnMetadata(ResultSet rs, String defaultValue) throws SQLException {
+	public SumarisColumnMetadata(SumarisTableMetadata table, ResultSet rs, String defaultValue) throws SQLException {
 		this.defaultValue = defaultValue;
 
 		// Add additional info from JDBC meta
@@ -64,6 +65,7 @@ public class SumarisColumnMetadata {
 		this.schema = rs.getString("TABLE_SCHEM");
 		this.table = rs.getString("TABLE_NAME");
 		this.name = rs.getString("COLUMN_NAME");
+		this.escapedName = table.getEscapedColumnName(this.name);
 		this.nullable = rs.getInt("NULLABLE") == DatabaseMetaData.columnNullable;
 		this.columnSize = rs.getInt("COLUMN_SIZE");
 		this.decimalDigits = rs.getInt("DECIMAL_DIGITS");
@@ -81,6 +83,10 @@ public class SumarisColumnMetadata {
 
 	public String getName() {
 		return this.name;
+	}
+
+	public String getEscapedName() {
+		return escapedName;
 	}
 
 	public String getNullable() {

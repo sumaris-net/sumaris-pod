@@ -35,7 +35,7 @@ import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.core.dao.technical.SQLAggregatedFunction;
-import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.extraction.core.vo.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -76,7 +76,7 @@ public abstract class AggregationBaseDaoImpl<
             );
             result.setColumns(columns);
 
-            whereBuilder.append(SumarisTableMetadatas.getSqlWhereClause(table, filter));
+            whereBuilder.append(SumarisTableUtils.getSqlWhereClause(table, filter));
         } else {
             log.warn("Unable to find metadata for table " + tableName);
         }
@@ -91,7 +91,7 @@ public abstract class AggregationBaseDaoImpl<
             .map(c -> {
                 SQLAggregatedFunction sqlAggregatedFunction = otherColumnNames.get(c);
                 if (sqlAggregatedFunction == null) {
-                    return SumarisTableMetadatas.getAliasedColumnName(tableAlias, c);
+                    return SumarisTableUtils.getAliasedColumnName(tableAlias, c);
                 }
                 else {
                     SumarisColumnMetadata column = table != null ? table.getColumnMetadata(c) : null;
@@ -101,20 +101,20 @@ public abstract class AggregationBaseDaoImpl<
                         // TODO: make sure this replacement will NOT affect the AVG function
                         return String.format("%s(COALESCE(%s, 0))",
                             sqlAggregatedFunction.name().toLowerCase(),
-                            SumarisTableMetadatas.getAliasedColumnName(tableAlias, c));
+                            SumarisTableUtils.getAliasedColumnName(tableAlias, c));
                     }
 
                     return String.format("%s(%s))",
                         sqlAggregatedFunction.name().toLowerCase(),
-                        SumarisTableMetadatas.getAliasedColumnName(tableAlias, c));
+                        SumarisTableUtils.getAliasedColumnName(tableAlias, c));
                 }
             })
             .collect(Collectors.toList());
 
-        Collection<String> groupByColumns = SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames);
-        String tableWithAlias = SumarisTableMetadatas.getAliasedTableName(tableAlias, tableName);
+        Collection<String> groupByColumns = SumarisTableUtils.getAliasedColumns(tableAlias, groupByColumnNames);
+        String tableWithAlias = SumarisTableUtils.getAliasedTableName(tableAlias, tableName);
 
-        String sql = SumarisTableMetadatas.getCountGroupByQuery(
+        String sql = SumarisTableUtils.getCountGroupByQuery(
             tableWithAlias,
             columnNamesWithFunction,
             whereBuilder.toString(),
@@ -125,14 +125,14 @@ public abstract class AggregationBaseDaoImpl<
         // No data: stop here
         if (count == 0) return result;
 
-        sql = SumarisTableMetadatas.getSelectGroupByQuery(
+        sql = SumarisTableUtils.getSelectGroupByQuery(
             tableWithAlias,
             columnNamesWithFunction,
             whereBuilder.toString(),
             // Group by
             groupByColumns,
             // Sort by same columns, because of pageable
-            SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumnNames),
+            SumarisTableUtils.getAliasedColumns(tableAlias, groupByColumnNames),
             page.getSortDirection());
 
         // Execute the query
@@ -151,18 +151,18 @@ public abstract class AggregationBaseDaoImpl<
                                                    String sortColumn, SortDirection direction) {
 
         final String tableAlias = table.getAlias();
-        String tableWithAlias = SumarisTableMetadatas.getAliasedTableName(tableAlias, table.getName());
+        String tableWithAlias = SumarisTableUtils.getAliasedTableName(tableAlias, table.getName());
         String aggColumnNameWithFunction = String.format("%s(COALESCE(%s, 0)) AGG_VALUE",
             aggFunction.name().toLowerCase(),
-            SumarisTableMetadatas.getAliasedColumnName(tableAlias, aggColumnName));
+            SumarisTableUtils.getAliasedColumnName(tableAlias, aggColumnName));
 
-        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+        String whereClause = SumarisTableUtils.getSqlWhereClause(table, filter);
 
-        techColumnName = SumarisTableMetadatas.getAliasedColumnName(tableAlias, techColumnName);
+        techColumnName = SumarisTableUtils.getAliasedColumnName(tableAlias, techColumnName);
         direction = direction != null || StringUtils.isNotBlank(sortColumn) ? direction : SortDirection.DESC;
-        sortColumn = StringUtils.isNotBlank(sortColumn) ? SumarisTableMetadatas.getAliasedColumnName(tableAlias, sortColumn) : "AGG_VALUE";
+        sortColumn = StringUtils.isNotBlank(sortColumn) ? SumarisTableUtils.getAliasedColumnName(tableAlias, sortColumn) : "AGG_VALUE";
 
-        String sql = SumarisTableMetadatas.getSelectGroupByQuery(
+        String sql = SumarisTableUtils.getSelectGroupByQuery(
             tableWithAlias,
             // Select
             ImmutableList.of(
@@ -193,28 +193,28 @@ public abstract class AggregationBaseDaoImpl<
         Preconditions.checkNotNull(table, "Unknown table: " + tableName);
 
         final String tableAlias = table.getAlias();
-        String tableWithAlias = SumarisTableMetadatas.getAliasedTableName(tableAlias, tableName);
+        String tableWithAlias = SumarisTableUtils.getAliasedTableName(tableAlias, tableName);
         String aggValueColumnName = "AGG_VALUE";
         String aggColumnNameWithFunction = String.format("%s(COALESCE(%s, 0)) %s",
             aggFunction.name().toLowerCase(),
-            SumarisTableMetadatas.getAliasedColumnName(tableAlias, aggColumnName),
+            SumarisTableUtils.getAliasedColumnName(tableAlias, aggColumnName),
             aggValueColumnName);
 
-        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
-        techColumnName = SumarisTableMetadatas.getAliasedColumnName(tableAlias, techColumnName);
+        String whereClause = SumarisTableUtils.getSqlWhereClause(table, filter);
+        techColumnName = SumarisTableUtils.getAliasedColumnName(tableAlias, techColumnName);
 
-        String groupBySql = SumarisTableMetadatas.getSelectGroupByQuery(
+        String groupBySql = SumarisTableUtils.getSelectGroupByQuery(
             tableWithAlias,
             // Select
             ImmutableSet.<String>builder()
                 .add(aggColumnNameWithFunction)
-                .addAll(SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumns))
+                .addAll(SumarisTableUtils.getAliasedColumns(tableAlias, groupByColumns))
                 .add(techColumnName)
                 .build(),
             whereClause,
             // Group by (tech + times)
             ImmutableSet.<String>builder()
-                .addAll(SumarisTableMetadatas.getAliasedColumns(tableAlias, groupByColumns))
+                .addAll(SumarisTableUtils.getAliasedColumns(tableAlias, groupByColumns))
                 .add(techColumnName)
                 .build(),
             null, null);

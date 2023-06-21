@@ -67,7 +67,7 @@ import net.sumaris.extraction.core.dao.ExtractionDaoDispatcher;
 import net.sumaris.extraction.core.dao.administration.ExtractionStrategyDao;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.csv.ExtractionCsvDao;
-import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
@@ -863,25 +863,11 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         Map<String, String> dateFormats = Maps.newHashMap();
         columnNames.stream().map(table::getColumnMetadata)
-            .filter(SumarisTableMetadatas::isDateColumn)
+            .filter(SumarisTableUtils::isDateColumn)
             .forEach(column -> dateFormats.put(column.getName(), Dates.CSV_DATE_TIME));
 
-        // If 'date' column is present and database type is Oracle, must escape this reserved word
-        if (Daos.isOracleDatabase(dataSource) && columnNames.contains("date")) {
-            columnNames = columnNames.stream()
-                .map(column -> {
-                    if ("date".equals(column)) {
-                        return "\"DATE\"";
-                    }
-                    return column;
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        }
-
-        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
+        String whereClause = SumarisTableUtils.getSqlWhereClause(table, filter);
         String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
-
-        log.debug(query);
 
         Map<String, String> aliases = getAliasByColumnMap(columnNames);
 
