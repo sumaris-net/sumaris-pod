@@ -61,6 +61,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
+import net.sumaris.server.http.security.AnonymousUserDetails;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -219,14 +220,16 @@ public class DataGraphQLService {
     @IsUser
     public TripVO getTripById(@GraphQLNonNull @GraphQLArgument(name = "id") int id,
                               @GraphQLEnvironment ResolutionEnvironment env) {
+
+        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+
         final TripVO result = tripService.get(id);
 
         // Check read access
-        dataAccessControlService.checkCanRead(result);
+        dataAccessControlService.checkCanRead(userId, result);
 
         // Add additional properties if needed
         fillTripFields(result, GraphQLUtils.fields(env));
-
 
         return result;
     }
@@ -270,7 +273,11 @@ public class DataGraphQLService {
                         .build();
             }
         }
+        // Make sure user can write
+        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+        dataAccessControlService.checkCanWrite(userId, trip);
 
+        // Save
         final TripVO result = tripService.save(trip, options);
 
         // Add additional properties if needed
@@ -303,7 +310,11 @@ public class DataGraphQLService {
                         .build();
             }
         }
+        // Make sure user can write
+        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+        dataAccessControlService.checkCanWriteAll(userId, trips);
 
+        // Save
         final List<TripVO> result = tripService.save(trips, options);
 
         // Add additional properties if needed
@@ -522,10 +533,12 @@ public class DataGraphQLService {
     @IsUser
     public ObservedLocationVO getObservedLocationById(@GraphQLArgument(name = "id") int id,
                                                       @GraphQLEnvironment ResolutionEnvironment env) {
+        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+
         final ObservedLocationVO result = observedLocationService.get(id);
 
-        // Check access rights
-        dataAccessControlService.checkCanRead(result);
+        // Check read access
+        dataAccessControlService.checkCanRead(userId, result);
 
         // Add additional properties if needed
         fillObservedLocationFields(result, GraphQLUtils.fields(env));
@@ -539,9 +552,12 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
-        // Make sure user can write
-        dataAccessControlService.checkCanWrite(observedLocation);
 
+        // Make sure user can write
+        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+        dataAccessControlService.checkCanWrite(userId, observedLocation);
+
+        // Save
         ObservedLocationVO result = observedLocationService.save(observedLocation, options);
 
         // Fill expected fields
@@ -556,6 +572,14 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
+
+        // Make sure user can write
+        if (!authService.isAdmin()) {
+            int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+            dataAccessControlService.checkCanWriteAll(userId, observedLocations);
+        }
+
+
         final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, options);
 
         // Fill expected fields

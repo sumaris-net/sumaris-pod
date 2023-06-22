@@ -80,7 +80,7 @@ public class DenormalizedBatchSortingValue implements IEntity<Integer>
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "batch_fk", nullable = false)
     @ToString.Exclude
     private DenormalizedBatch batch;

@@ -25,6 +25,7 @@ package net.sumaris.server.service.administration;
 import net.sumaris.core.vo.data.IRootDataVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,10 +42,13 @@ public interface DataAccessControlService {
     void checkIsAdmin(String message);
 
     @Transactional(readOnly = true)
-    void checkCanRead(IRootDataVO data);
+    void checkCanRead(int userId, IRootDataVO data);
 
     @Transactional(readOnly = true)
-    void checkCanWrite(IRootDataVO data);
+    void checkCanWrite(int userId, IRootDataVO data);
+
+    @Transactional(readOnly = true)
+    <T extends IRootDataVO> void checkCanWriteAll(int userId, Collection<T> data);
 
     @Transactional(readOnly = true)
     Optional<Integer[]> getAuthorizedProgramIds(Integer[] programIds);

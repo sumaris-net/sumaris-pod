@@ -132,7 +132,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setUpdateDate(new Date());
         context.setType(LiveExtractionTypeEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
-        context.setEnableBatchDenormalization(extractionConfiguration.enableBatchDenormalization());
 
         // Fill context table names
         fillContextTableNames(context);
@@ -149,7 +148,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            filterInfo.append("\n - Batch denormalization: " + context.isEnableBatchDenormalization());
+            filterInfo.append("\n - Batch denormalization: " + extractionConfiguration.enableBatchDenormalization());
             log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
@@ -175,7 +174,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 }
 
                 // Execute batch denormalization (if enable)
-                if (rowCount != 0 && context.isEnableBatchDenormalization()) {
+                if (rowCount != 0 && enableBatchDenormalization(context)) {
                     denormalizeBatches(context);
                 }
 
@@ -404,9 +403,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         String stationsTableName = context.getStationTableName();
         Set<String> programLabels = getTripProgramLabels(context);
         programLabels.forEach(programLabel -> {
-            String sql = String.format("SELECT distinct CAST(%s AS INTEGER) from %s where %s='%s'",
+            String sql = String.format("SELECT distinct CAST(%s AS INT) from %s where %s='%s'",
                     RdbSpecification.COLUMN_STATION_ID, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
-            Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
+            Number[] operationIds = query(sql, Number.class).toArray(Number[]::new);
 
             DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
             // DEBUG
@@ -418,7 +417,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             for (int page = 0; page < pageCount; page++) {
                 int from = page * pageSize;
                 int to = Math.min(operationIds.length, from + pageSize);
-                Integer[] pageOperationIds = Arrays.copyOfRange(operationIds, from, to);
+                Integer[] pageOperationIds = Arrays.stream(Arrays.copyOfRange(operationIds, from, to))
+                    .mapToInt(Number::intValue)
+                    .mapToObj(Integer::valueOf)
+                    .toArray(Integer[]::new);
 
                 denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
                     .programLabel(programLabel)
@@ -460,7 +462,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
-        String queryName = context.isEnableBatchDenormalization()
+        String queryName = enableBatchDenormalization(context)
             ? "createRawSpeciesListDenormalizeTable"
             : "createRawSpeciesListTable";
 
@@ -823,6 +825,25 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
             // Fill cache
             context.setTaxonGroupNoWeights(result);
+        }
+
+        return result;
+    }
+
+    protected boolean enableBatchDenormalization(C context) {
+        Boolean result = context.getEnableBatchDenormalization();
+        if (result == null) {
+
+            result = extractionConfiguration.enableBatchDenormalization()
+                || getTripProgramLabels(context).stream()
+                .anyMatch(programLabel -> {
+                    String value = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE);
+                    if (StringUtils.isBlank(value)) return false; // = default value
+                    return Boolean.parseBoolean(value);
+                });
+
+            // Fill cache
+            context.setEnableBatchDenormalization(result);
         }
 
         return result;

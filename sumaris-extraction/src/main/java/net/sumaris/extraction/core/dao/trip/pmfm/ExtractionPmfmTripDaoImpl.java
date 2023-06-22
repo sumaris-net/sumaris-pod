@@ -247,7 +247,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
 
-        if (!context.isEnableBatchDenormalization()) {
+        if (!enableBatchDenormalization(context)) {
             xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
         }
 

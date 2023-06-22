@@ -46,7 +46,9 @@ public enum ProgramPropertyEnum implements Serializable {
 
     PROGRAM_STRATEGY_DEPARTMENT_ENABLE("sumaris.program.strategy.department.enable", Boolean.class, Boolean.FALSE.toString()),
 
-    TRIP_EXTRACTION_SAMPLING_METHOD("sumaris.trip.extraction.sampling.method", String.class, "Observer")
+    TRIP_EXTRACTION_SAMPLING_METHOD("sumaris.trip.extraction.sampling.method", String.class, "Observer"),
+
+    TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE("sumaris.trip.extraction.batch.denormalization.enable", Boolean.class, Boolean.FALSE.toString()),
 
     ;
 

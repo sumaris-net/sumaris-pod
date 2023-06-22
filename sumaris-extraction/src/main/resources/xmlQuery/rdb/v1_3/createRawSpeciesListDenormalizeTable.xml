@@ -39,7 +39,6 @@
 
     <!-- PK (new fields) -->
     <select alias="SPECIES" type="text">COALESCE(TN.COMMENTS, TN.NAME, TG.COMMENTS, TG.NAME)</select>
-
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
     <select alias="CATCH_CATEGORY" type="text" group="agg">
       MAX(CASE SM.PMFM_FK WHEN &amp;catchCategoryPmfmId THEN QV.LABEL ELSE NULL END)
@@ -55,7 +54,8 @@
     <select alias="SUBSAMPLING_CATEGORY" type="text" group="agg">
       MAX(CASE SM.PMFM_FK WHEN &amp;subsamplingCategoryPmfmId THEN QV.LABEL ELSE NULL END)
     </select>
-    <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
+    <select alias="SEX" type="text" dbms="hsqldb,pgsql">null</select><!-- always define in the HL table -->
+    <select alias="SEX" type="text" dbms="oracle">CAST(NULL AS VARCHAR(1))</select><!-- always define in the HL table -->
 
     <!-- pmfms -->
     <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
@@ -91,8 +91,8 @@
     <from alias="S">&amp;stationTableName</from>
     <from join="true">INNER JOIN DENORMALIZED_BATCH SPECIE_B ON SPECIE_B.OPERATION_FK = S.STATION_ID AND SPECIE_B.IS_LANDING &lt;&gt; SPECIE_B.IS_DISCARD</from>
     <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.INHERITED_TAXON_GROUP_FK</from>
-    <from join="true">INNER JOIN DENORMALIZED_BATCH_SORT_VAL SM ON SM.BATCH_FK=SPECIE_B.ID</from>
-    <from join="true">INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK</from>
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL SM ON SM.BATCH_FK=SPECIE_B.ID</from>
+    <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK</from>
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SPECIE_B.ID AND SAMPLING_B.SAMPLING_RATIO &gt; 0</from>
 
     <!-- join individual measure, to be able to compute sampling by length_code and taxon -->

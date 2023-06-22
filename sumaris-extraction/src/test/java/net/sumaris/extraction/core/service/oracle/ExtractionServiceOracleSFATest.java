@@ -24,6 +24,7 @@ package net.sumaris.extraction.core.service.oracle;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.core.util.Files;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
@@ -64,20 +65,54 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     }
 
     @Test
-    public void executePmfmTrip() throws IOException {
+    public void executeLogbookSeaCucumber() throws IOException {
 
         String programLabel = "LOGBOOK-SEA-CUCUMBER";
 
-        // Validate some trips
-//        List<TripVO> trips =
-//            tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
-//                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
-//                .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
-//        Assume.assumeTrue(trips.size() > 0);
-//        trips.forEach(trip -> {
-//            if (trip.getControlDate() == null) tripService.control(trip);
-//            if (trip.getValidationDate() == null) tripService.validate(trip);
-//        });
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(programLabel);
+        filter.setExcludeInvalidStation(false);
+
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel() + "_SFA");
+
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, PmfmTripSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+        }
+
+        // HL.csv => empty or not exists
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(!Files.exists(speciesLengthFile.toPath()) || countLineInCsvFile(speciesLengthFile) == 0);
+        }
+    }
+
+    @Test
+    public void executeLogbookLobster() throws IOException {
+
+        String programLabel = "LOGBOOK-LOBSTER";
 
         ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
         filter.setProgramLabel(programLabel);
@@ -113,14 +148,13 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
         }
 
         // HL.csv
-//        {
-//            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
-//            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
-//
-//            assertHasColumn(speciesLengthFile, "sex");
-//        }
-    }
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
 
+            assertHasColumn(speciesLengthFile, "sex");
+        }
+    }
 
     /* -- protected methods -- */
 
