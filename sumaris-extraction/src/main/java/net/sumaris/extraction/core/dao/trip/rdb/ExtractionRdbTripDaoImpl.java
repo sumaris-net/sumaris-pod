@@ -483,11 +483,16 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
 
 
-
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
+
+        // Set defaults
+        xmlQuery.setGroup("excludeNoWeight", true);
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
+
+        // Enable Landing/discard
+        xmlQuery.setGroup("hasLandingOrDiscardPmfm", true);
 
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
@@ -650,6 +655,49 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     /**
+     * Fill the context's pmfm infos
+     * @param context
+     */
+    protected List<DenormalizedPmfmStrategyVO> loadPmfms(C context,
+                                                           Set<String> programLabels,
+                                                           AcquisitionLevelEnum... acquisitionLevels) {
+
+        if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
+
+        // Create the map that holds the result
+        Map<String, List<DenormalizedPmfmStrategyVO>> pmfms = context.getPmfmsCacheMap();
+        List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
+            .map(AcquisitionLevelEnum::getId)
+            .toList();
+
+        String cacheKey = acquisitionLevelIds.toString();
+
+        // Already loaded: use the cached values
+        if (pmfms.containsKey(cacheKey)) return pmfms.get(cacheKey);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
+                programLabels,
+                cacheKey
+            );
+        }
+
+        // Load pmfm columns
+        List<DenormalizedPmfmStrategyVO> result = strategyService.findDenormalizedPmfmsByFilter(
+                PmfmStrategyFilterVO.builder()
+                    .programLabels(programLabels.toArray(new String[0]))
+                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[0]))
+                    .build(),
+                PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
+            );
+
+        // save result into the context map
+        pmfms.put(cacheKey, result);
+
+        return result;
+    }
+
+    /**
      * Fill the context's pmfm infos (e.g. used to generate
      * @param context
      */
@@ -660,11 +708,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
 
         // Create the map that holds the result
-        Map<String, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsCacheMap();
-        if (pmfmColumns == null) {
-            pmfmColumns = Maps.newHashMap();
-            context.setPmfmsCacheMap(pmfmColumns);
-        }
+        Map<String, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsColumnsCacheMap();
 
         List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
             .map(AcquisitionLevelEnum::getId)
@@ -683,15 +727,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         // Load pmfm columns
-        List<ExtractionPmfmColumnVO> result = strategyService.findDenormalizedPmfmsByFilter(
-                PmfmStrategyFilterVO.builder()
-                    .programLabels(programLabels.toArray(new String[0]))
-                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[0]))
-                    .build(),
-                PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
-            )
+        List<ExtractionPmfmColumnVO> result = loadPmfms(context, programLabels, acquisitionLevels)
                 .stream()
-                .map(pmfmStrategy -> toPmfmColumnVO(pmfmStrategy, null))
+                .map(pmfm -> toPmfmColumnVO(pmfm, null))
 
                 // Group by pmfmId
                 .collect(Collectors.groupingBy(ExtractionPmfmColumnVO::getPmfmId))

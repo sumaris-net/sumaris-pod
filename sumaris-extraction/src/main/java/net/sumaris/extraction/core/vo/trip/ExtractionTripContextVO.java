@@ -23,10 +23,12 @@ package net.sumaris.extraction.core.vo.trip;
  */
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
+import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.extraction.core.vo.AggregationContextVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -48,7 +50,8 @@ public class ExtractionTripContextVO extends AggregationContextVO {
 
     TripFilterVO tripFilter;
 
-    Map<String, List<ExtractionPmfmColumnVO>> pmfmsCacheMap;
+    Map<String, List<DenormalizedPmfmStrategyVO>> pmfmsCacheMap = Maps.newHashMap();
+    Map<String, List<ExtractionPmfmColumnVO>> pmfmsColumnsCacheMap = Maps.newHashMap();
 
     public Date getStartDate() {
         return tripFilter != null ? tripFilter.getStartDate() : null;

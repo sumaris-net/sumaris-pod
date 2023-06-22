@@ -247,17 +247,25 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
 
-        if (!enableBatchDenormalization(context)) {
-            xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
-        }
+        boolean enableBatchDenormalization = enableBatchDenormalization(context);
+        xmlQuery.injectQuery(getXMLQueryURL(context, enableBatchDenormalization ? "injectionRawSpeciesListDenormalizeTable" : "injectionRawSpeciesListTable"));
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
         xmlQuery.setGroup("taxon", enableTaxonColumns);
 
         // Enable individual count, if there is som taxon group no weight in program's options
-        Set<String> taxonGroupNoWeights = getTaxonGroupNoWeights(context);
-        xmlQuery.setGroup("individualCount", CollectionUtils.isNotEmpty(taxonGroupNoWeights));
+        boolean hasTaxonGroupNoWeights = CollectionUtils.isNotEmpty(getTaxonGroupNoWeights(context));
+        xmlQuery.setGroup("individualCount", hasTaxonGroupNoWeights);
+        xmlQuery.setGroup("excludeNoWeight", !hasTaxonGroupNoWeights);
+
+        xmlQuery.setGroup("pmfmsJoin", !enableBatchDenormalization);
+
+        boolean hasLandingOrDiscardPmfm = PmfmEnum.DISCARD_OR_LANDING.getId() != -1 &&
+            loadPmfms(context, getTripProgramLabels(context), AcquisitionLevelEnum.SORTING_BATCH)
+                .stream()
+                .anyMatch(c -> c.getId() == PmfmEnum.DISCARD_OR_LANDING.getId());
+        xmlQuery.setGroup("hasLandingOrDiscardPmfm", hasLandingOrDiscardPmfm);
 
         return xmlQuery;
     }
@@ -436,6 +444,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionTripTable":
             case "injectionStationTable":
             case "injectionRawSpeciesListTable":
+            case "injectionRawSpeciesListDenormalizeTable":
             case "injectionSpeciesListTable_afterSpecies":
             case "injectionSpeciesListTable_afterSex":
             case "injectionSpeciesLengthPmfm":

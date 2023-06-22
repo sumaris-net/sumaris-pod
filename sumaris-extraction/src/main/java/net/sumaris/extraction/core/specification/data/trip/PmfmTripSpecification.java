@@ -39,7 +39,7 @@ public interface PmfmTripSpecification extends RdbSpecification {
             HH_SHEET_NAME,
 
             // For DEBUG
-            //SL_RAW_SHEET_NAME,
+            SL_RAW_SHEET_NAME,
 
             SL_SHEET_NAME,
             HL_SHEET_NAME,

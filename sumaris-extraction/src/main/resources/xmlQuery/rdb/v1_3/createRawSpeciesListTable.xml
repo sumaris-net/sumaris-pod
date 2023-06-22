@@ -34,7 +34,7 @@
     <select alias="STATION_NUMBER" type="number">S.STATION_NUMBER</select>
 
     <!-- PK (new fields) -->
-    <select alias="SPECIES" type="text">COALESCE(TN.COMMENTS, TN.NAME, TG.COMMENTS, TG.NAME)</select>
+    <select alias="SPECIES" type="text">COALESCE(TG.COMMENTS, TG.NAME, TG.LABEL)</select>
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
     <select alias="CATCH_CATEGORY" type="text"><![CDATA[
     (SELECT
