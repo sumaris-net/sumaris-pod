@@ -42,13 +42,13 @@ public interface DataAccessControlService {
     void checkIsAdmin(String message);
 
     @Transactional(readOnly = true)
-    void checkCanRead(int userId, IRootDataVO data);
+    void checkCanRead(IRootDataVO data);
 
     @Transactional(readOnly = true)
-    void checkCanWrite(int userId, IRootDataVO data);
+    void checkCanWrite(IRootDataVO data);
 
     @Transactional(readOnly = true)
-    <T extends IRootDataVO> void checkCanWriteAll(int userId, Collection<T> data);
+    <T extends IRootDataVO> void checkCanWriteAll(Collection<T> data);
 
     @Transactional(readOnly = true)
     Optional<Integer[]> getAuthorizedProgramIds(Integer[] programIds);

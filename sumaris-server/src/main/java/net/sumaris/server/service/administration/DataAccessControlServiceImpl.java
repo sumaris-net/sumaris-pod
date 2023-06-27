@@ -94,7 +94,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     }
 
     @Override
-    public void checkCanRead(int userId, IRootDataVO data) {
+    public void checkCanRead(IRootDataVO data) {
 
         // TODO
         // Restrict to self department data
@@ -105,11 +105,11 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     }
 
     @Override
-    public void checkCanWrite(int userId, IRootDataVO data) {
+    public void checkCanWrite(IRootDataVO data) {
         Preconditions.checkNotNull(data.getProgram());
         Preconditions.checkNotNull(data.getProgram().getId());
 
-        boolean authorized = getAuthorizedProgramIdsByUserId(userId, new Integer[]{data.getProgram().getId()})
+        boolean authorized = getAuthorizedProgramIds(new Integer[]{data.getProgram().getId()})
             .map(ArrayUtils::isNotEmpty)
             .orElse(false);
 
@@ -119,12 +119,12 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     }
 
     @Override
-    public <T extends IRootDataVO> void checkCanWriteAll(int userId, Collection<T> data) {
+    public <T extends IRootDataVO> void checkCanWriteAll(Collection<T> data) {
         Integer[] programIds = data.stream().map(IRootDataVO::getProgram)
             .map(ProgramVO::getId)
             .collect(Collectors.toSet())
             .toArray(Integer[]::new);
-        boolean authorized = getAuthorizedProgramIdsByUserId(userId, programIds)
+        boolean authorized = getAuthorizedProgramIds(programIds)
             .map(authorizedProgramIds -> authorizedProgramIds.length == programIds.length)
             .orElse(false);
 

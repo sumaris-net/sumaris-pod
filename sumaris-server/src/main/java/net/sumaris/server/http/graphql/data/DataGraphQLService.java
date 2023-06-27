@@ -221,12 +221,10 @@ public class DataGraphQLService {
     public TripVO getTripById(@GraphQLNonNull @GraphQLArgument(name = "id") int id,
                               @GraphQLEnvironment ResolutionEnvironment env) {
 
-        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
-
         final TripVO result = tripService.get(id);
 
         // Check read access
-        dataAccessControlService.checkCanRead(userId, result);
+        dataAccessControlService.checkCanRead(result);
 
         // Add additional properties if needed
         fillTripFields(result, GraphQLUtils.fields(env));
@@ -275,7 +273,7 @@ public class DataGraphQLService {
         }
         // Make sure user can write
         int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
-        dataAccessControlService.checkCanWrite(userId, trip);
+        dataAccessControlService.checkCanWrite(trip);
 
         // Save
         final TripVO result = tripService.save(trip, options);
@@ -311,8 +309,7 @@ public class DataGraphQLService {
             }
         }
         // Make sure user can write
-        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
-        dataAccessControlService.checkCanWriteAll(userId, trips);
+        dataAccessControlService.checkCanWriteAll(trips);
 
         // Save
         final List<TripVO> result = tripService.save(trips, options);
@@ -538,7 +535,7 @@ public class DataGraphQLService {
         final ObservedLocationVO result = observedLocationService.get(id);
 
         // Check read access
-        dataAccessControlService.checkCanRead(userId, result);
+        dataAccessControlService.checkCanRead(result);
 
         // Add additional properties if needed
         fillObservedLocationFields(result, GraphQLUtils.fields(env));
@@ -554,8 +551,7 @@ public class DataGraphQLService {
             @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Make sure user can write
-        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
-        dataAccessControlService.checkCanWrite(userId, observedLocation);
+        dataAccessControlService.checkCanWrite(observedLocation);
 
         // Save
         ObservedLocationVO result = observedLocationService.save(observedLocation, options);
@@ -574,11 +570,7 @@ public class DataGraphQLService {
             @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Make sure user can write
-        if (!authService.isAdmin()) {
-            int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
-            dataAccessControlService.checkCanWriteAll(userId, observedLocations);
-        }
-
+        dataAccessControlService.checkCanWriteAll(observedLocations);
 
         final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, options);
 
