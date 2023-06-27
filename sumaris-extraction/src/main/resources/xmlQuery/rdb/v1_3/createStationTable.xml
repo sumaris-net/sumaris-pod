@@ -33,7 +33,7 @@
     <select alias="PROJECT" type="text">T.PROJECT</select>
     <select alias="TRIP_CODE" type="number">T.TRIP_CODE</select>
     <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql">ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME)</select>
-    <select alias="STATION_NUMBER" type="number" dbms="hsqldb"><![CDATA[
+    <select alias="STATION_NUMBER" type="number" dbms="hsqldb" group="agg"><![CDATA[
       (SELECT COUNT(*)
         FROM operation O2
         WHERE O2.TRIP_FK = O.TRIP_FK
@@ -144,6 +144,7 @@
     </where>
 
     <groupby>&amp;groupByColumns</groupby>
+    <groupby dbms="hsqldb">STATION_NUMBER</groupby>
 
 <!--    <orderby direction="ASC">STATION_NUMBER</orderby>-->
 
