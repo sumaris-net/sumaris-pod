@@ -33,10 +33,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
-import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
@@ -130,6 +127,16 @@ public class ProgramServiceImpl implements ProgramService {
 	public boolean hasAcquisitionLevelByLabel(String label, AcquisitionLevelEnum acquisitionLevel) {
 		ProgramVO program = getByLabel(label);
 		return hasAcquisitionLevelById(program.getId(), acquisitionLevel);
+	}
+
+	@Override
+	public List<String> getAllPrivilegesByUserId(int id, Integer personId) {
+		// TODO Replace mock to program Privileges Enum
+		return List.of(
+				ProgramPrivilegeEnum.MANAGER.name(),
+				ProgramPrivilegeEnum.OBSERVER.name()
+		);
+//		return programRepository.getAllPrivilegesByUserId(id, personId);
 	}
 
 	@Override

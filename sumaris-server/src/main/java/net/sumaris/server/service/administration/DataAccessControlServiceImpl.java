@@ -30,6 +30,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.ForbiddenException;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
@@ -93,9 +94,10 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
         // TODO
         // Restrict to self department data
-        /*PersonVO user = authService.getAuthenticatedUser().orElse(null);
-        int userDepartmentId = user.getDepartment().getId();
-        if (userDepartmentId !== recorderDepartmentId && accessNotSelfDataMinRole.)*/
+//        PersonVO user = authService.getAuthenticatedUser().orElse(null);
+//        if (user == null) return;;
+//        int userDepartmentId = user.getDepartment().getId();
+//        if (userDepartmentId !== recorderDepartmentId && accessNotSelfDataMinRole.);
 
     }
 
