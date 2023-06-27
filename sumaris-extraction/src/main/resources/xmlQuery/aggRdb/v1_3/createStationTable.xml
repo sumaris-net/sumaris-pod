@@ -123,7 +123,7 @@
     <groupby>
       S.SAMPLING_TYPE, S.LANDING_COUNTRY, S.VESSEL_FLAG_COUNTRY, S.YEAR, S.PROJECT,
       S.CATCH_REGISTRATION, S.SPECIES_REGISTRATION,
-      VESSEL_LENGTH_CLASS
+      T.VESSEL_LENGTH_CLASS
     </groupby>
     <groupby group="quarter">QUARTER</groupby>
     <groupby group="month">MONTH</groupby>
@@ -141,7 +141,6 @@
     <orderby group="area">S.AREA</orderby>
     <orderby group="rect">S.STATISTICAL_RECTANGLE</orderby>
     <orderby group="square">SQUARE</orderby>
-<!--    <orderby direction="ASC">SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, VESSEL_LENGTH, DATE, SQUARE, GEAR_TYPE</orderby>-->
 
   </query>
 
