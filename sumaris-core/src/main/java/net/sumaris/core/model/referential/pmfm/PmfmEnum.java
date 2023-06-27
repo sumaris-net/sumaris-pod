@@ -28,7 +28,10 @@ import net.sumaris.core.model.annotation.IEntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = Pmfm.class, joinAttributes = Pmfm.Fields.LABEL, required = false)
+@EntityEnum(entity = Pmfm.class,
+    configAttributes = Pmfm.Fields.ID,
+    resolveAttributes = Pmfm.Fields.LABEL,
+    required = false)
 public enum PmfmEnum implements IEntityEnum, Serializable {
 
     SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),

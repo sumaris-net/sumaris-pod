@@ -27,7 +27,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.util.Arrays;
 import java.util.Optional;
 
-@EntityEnum(entity = UserProfile.class, joinAttributes = UserProfile.Fields.LABEL)
+@EntityEnum(entity = UserProfile.class, resolveAttributes = UserProfile.Fields.LABEL)
 public enum UserProfileEnum {
 
     ADMIN(1, "ADMIN"),

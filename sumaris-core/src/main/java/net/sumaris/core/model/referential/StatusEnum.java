@@ -28,7 +28,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = Status.class, joinAttributes = {IEntity.Fields.ID})
+@EntityEnum(entity = Status.class, resolveAttributes = {IEntity.Fields.ID})
 public enum StatusEnum implements Serializable {
 
     DISABLE(0),

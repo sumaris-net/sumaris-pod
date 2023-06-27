@@ -28,7 +28,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = ObjectType.class, joinAttributes = ObjectType.Fields.LABEL)
+@EntityEnum(entity = ObjectType.class, resolveAttributes = ObjectType.Fields.LABEL)
 public enum ObjectTypeEnum implements Serializable {
 
     VESSEL(1, "VESSEL"),

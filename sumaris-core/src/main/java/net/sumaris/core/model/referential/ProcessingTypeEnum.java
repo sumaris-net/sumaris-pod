@@ -28,7 +28,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = ProcessingType.class, joinAttributes = {IItemReferentialEntity.Fields.LABEL})
+@EntityEnum(entity = ProcessingType.class, resolveAttributes = {IItemReferentialEntity.Fields.LABEL})
 public enum ProcessingTypeEnum implements Serializable {
 
     DENORMALIZE_BATCH(1, "DENORMALIZE_BATCH"),

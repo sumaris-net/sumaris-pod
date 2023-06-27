@@ -28,7 +28,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 
-@EntityEnum(entity = ProcessingFrequency.class, joinAttributes = {"label"})
+@EntityEnum(entity = ProcessingFrequency.class, resolveAttributes = {"label"})
 public enum ProcessingFrequencyEnum implements Serializable {
 
     NEVER(0, "NEVER"),

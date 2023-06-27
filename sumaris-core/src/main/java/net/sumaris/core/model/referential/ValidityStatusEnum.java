@@ -33,7 +33,7 @@ import java.util.Arrays;
  *
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
-@EntityEnum(entity = ValidityStatus.class, joinAttributes = {IEntity.Fields.ID})
+@EntityEnum(entity = ValidityStatus.class, resolveAttributes = {IEntity.Fields.ID})
 public enum ValidityStatusEnum implements Serializable {
 
     INVALID(0),

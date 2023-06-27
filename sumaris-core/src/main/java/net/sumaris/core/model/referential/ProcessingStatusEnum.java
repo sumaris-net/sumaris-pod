@@ -36,7 +36,7 @@ import java.util.Arrays;
  * - échec
  * - etc.
  */
-@EntityEnum(entity = ProcessingStatus.class, joinAttributes = {IItemReferentialEntity.Fields.LABEL})
+@EntityEnum(entity = ProcessingStatus.class, resolveAttributes = {IItemReferentialEntity.Fields.LABEL})
 public enum ProcessingStatusEnum implements Serializable  {
 
     ERROR(1, "ERROR"),

@@ -27,7 +27,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = Program.class, joinAttributes = {Program.Fields.LABEL})
+@EntityEnum(entity = Program.class, resolveAttributes = {Program.Fields.LABEL})
 public enum ProgramEnum implements Serializable {
 
     SIH(0, "SIH");

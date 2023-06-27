@@ -29,7 +29,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = QualityFlag.class, joinAttributes = {IEntity.Fields.ID})
+@EntityEnum(entity = QualityFlag.class, resolveAttributes = {IEntity.Fields.ID})
 public enum QualityFlagEnum implements Serializable {
 
     NOT_QUALIFIED(0, "Not qualified"),
