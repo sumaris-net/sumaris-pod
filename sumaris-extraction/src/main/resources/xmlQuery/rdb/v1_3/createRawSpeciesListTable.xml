@@ -53,29 +53,29 @@
       FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK in (&amp;sizeCategoryPmfmIds)
     )</select>
-    <select alias="SUBSAMPLING_CATEGORY" type="text" dbms="hsqldb,pgsql">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
-    <select alias="SUBSAMPLING_CATEGORY" type="text" dbms="oracle">CAST(NULL AS VARCHAR(1))</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
+    <select alias="SUBSAMPLING_CATEGORY" type="text" group="agg" dbms="hsqldb,pgsql">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
+    <select alias="SUBSAMPLING_CATEGORY" type="text" group="agg" dbms="oracle">CAST(NULL AS VARCHAR(1))</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
     <select alias="SEX" type="text" dbms="hsqldb,pgsql">null</select><!-- always define in the HL table -->
-    <select alias="SEX" type="text" dbms="oracle">CAST(NULL AS VARCHAR(1))</select><!-- always define in the HL table -->
+    <select alias="SEX" type="text" group="agg" dbms="oracle">CAST(NULL AS VARCHAR(1))</select><!-- always define in the HL table -->
 
     <!-- pmfms -->
     <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
 
     <!-- other fields -->
-    <select alias="WEIGHT" group="weight" type="number"><![CDATA[COALESCE(
+    <select alias="WEIGHT" group="weight,agg" type="number"><![CDATA[MAX(COALESCE(
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true),
       (CASE WHEN (SAMPLING_B.SAMPLING_RATIO IS NULL OR SAMPLING_B.SAMPLING_RATIO = 0) THEN NULL ELSE (SELECT QM.NUMERICAL_VALUE/SAMPLING_B.SAMPLING_RATIO FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SAMPLING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true) END)
-      )]]>
+      ))]]>
     </select>
-    <select alias="SUBSAMPLE_WEIGHT" group="weight" type="number"><![CDATA[COALESCE(
+    <select alias="SUBSAMPLE_WEIGHT" group="weight,agg" type="number"><![CDATA[MAX(COALESCE(
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SAMPLING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true),
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true)
-      )]]>
+      ))]]>
     </select>
 
     <!-- TODO get precision from PMFM (unit + maxDecimals) ? -->
-    <select alias="LENGTH_CODE" type="text"><![CDATA[
-    (CASE WHEN (SAMPLING_B.SAMPLING_RATIO IS NOT NULL AND SAMPLING_B.SAMPLING_RATIO > 0) THEN 'cm' ELSE null END)
+    <select alias="LENGTH_CODE" type="text" group="agg"><![CDATA[
+      MAX(CASE WHEN (SAMPLING_B.SAMPLING_RATIO IS NOT NULL AND SAMPLING_B.SAMPLING_RATIO > 0) THEN 'cm' ELSE null END)
     ]]></select>
 
     <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
@@ -101,7 +101,7 @@
     <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != UPPER('I') OR S.FISHING_VALIDITY IS NULL ]]></where>
 
     <groupby>&amp;groupByColumns</groupby>
-    <groupby dbms="oracle">SORTING_B.ID,SAMPLING_B.SAMPLING_RATIO,SAMPLING_B.ID</groupby>
+    <groupby>SORTING_B.ID,SAMPLING_B.ID</groupby>
 
     <orderby>TRIP_CODE ASC, STATION_NUMBER ASC, SAMPLE_RANK_ORDER ASC</orderby>
 

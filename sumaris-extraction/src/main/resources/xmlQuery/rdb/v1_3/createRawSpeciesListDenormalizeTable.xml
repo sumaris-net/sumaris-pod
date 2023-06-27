@@ -64,6 +64,7 @@
     <select alias="WEIGHT" group="weight" type="number">SPECIE_B.ELEVATE_WEIGHT</select>
     <select alias="SUBSAMPLE_WEIGHT" type="number"><![CDATA[
       CASE
+        WHEN SAMPLING_B.SAMPLING_RATIO IS NULL THEN SPECIE_B.ELEVATE_WEIGHT
         WHEN SAMPLING_B.SAMPLING_RATIO > 0 THEN SPECIE_B.ELEVATE_WEIGHT * SAMPLING_B.SAMPLING_RATIO
         ELSE NULL
       END
@@ -72,7 +73,7 @@
     <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
 
     <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
-    <!-- /!\ La division par count(SPECIES_B.ID) est nécessaire à cause des jointure possible dans les injection de PMFM -->
+    <!-- /!\ La division par count(SPECIES_B.ID) est nécessaire à cause des jointures possibles dans les injections de PMFM -->
     <select alias="SUBSAMPLING_RATIO" type="number" group="agg"><![CDATA[
       CASE
         WHEN SAMPLING_B.ELEVATE_RTP_WEIGHT > 0 THEN
@@ -93,7 +94,7 @@
     <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.INHERITED_TAXON_GROUP_FK</from>
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL SM ON SM.BATCH_FK=SPECIE_B.ID</from>
     <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK</from>
-    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SPECIE_B.ID AND SAMPLING_B.SAMPLING_RATIO &gt; 0</from>
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SPECIE_B.ID AND COALESCE(SAMPLING_B.SAMPLING_RATIO, 1) &gt; 0</from>
 
     <!-- join individual measure, to be able to compute sampling by length_code and taxon -->
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH LENGTH_B ON LENGTH_B.PARENT_BATCH_FK=COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</from>
@@ -103,27 +104,31 @@
 
     <where>1=1</where>
 
-    <where operator="AND" group="hasLandingOrDiscardPmfm">SPECIE_B.IS_LANDING &lt;&gt; SPECIE_B.IS_DISCARD</where>
+    <!-- Make sure to skip individual measurement -->
+    <where operator="AND">SPECIE_B.LABEL NOT LIKE 'SORTING_BATCH_INDIVIDUAL#%'</where>
 
+    <!-- Case when QV pmfm exists -->
     <!-- Select batch with LANDING/DISCARD defined and a TAXON_GROUP -->
-    <where operator="AND" group="speciesBatchFilter"><![CDATA[
+    <where operator="AND" group="hasLandingOrDiscardPmfm"><![CDATA[(
+      SPECIE_B.IS_LANDING <> SPECIE_B.IS_DISCARD
       (
         (SPECIE_B.TAXON_GROUP_FK IS NOT NULL AND SM.IS_INHERITED=1)
-        OR (SPECIE_B.TAXON_GROUP_FK IS NULL AND SM.IS_INHERITED=0)
+        OR (SPECIE_B.TAXON_GROUP_FK IS NULL  AND SM.IS_INHERITED=0)
       )
     ]]></where>
+    <!-- Case when no QV pmfm (e.g. program 'LOGBOOK-LOBSTER' for SFA) -->
+    <where operator="AND" group="!hasLandingOrDiscardPmfm">
+      SPECIE_B.TAXON_GROUP_FK IS NOT NULL
+    </where>
 
     <!-- exclude species without weight (eg. RJB in ADAP) -->
-<!--    <where operator="AND" group="excludeNoWeight">SPECIE_B.WEIGHT IS NOT NULL</where>-->
-    <!-- TODO check if useful in ADAP -->
-    <!-- <where operator="AND" group="excludeNoWeight">CATCH_CATEGORY_SV.IS_INHERITED=0</where>-->
+<!--    <where operator="AND" group="excludeNoWeight">SPECIE_B.WEIGHT IS NOT NULL OR SPECIE_B.INDIVIDUAL_COUNT IS NOT NULL</where>-->
 
     <!-- 'OR IS NULL' is needed for postgresql -->
     <where operator="AND" group="excludeInvalidStation"><![CDATA[S.FISHING_VALIDITY != UPPER('I') OR S.FISHING_VALIDITY IS NULL ]]></where>
 
 
     <groupby>&amp;groupByColumns</groupby>
-
     <groupby>SPECIE_B.ELEVATE_WEIGHT,SAMPLING_B.ELEVATE_RTP_WEIGHT</groupby>
 
     <orderby>TRIP_CODE ASC, STATION_NUMBER ASC, SAMPLE_RANK_ORDER ASC</orderby>

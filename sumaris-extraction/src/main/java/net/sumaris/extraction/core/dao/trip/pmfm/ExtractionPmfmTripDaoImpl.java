@@ -266,6 +266,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 .stream()
                 .anyMatch(c -> c.getId() == PmfmEnum.DISCARD_OR_LANDING.getId());
         xmlQuery.setGroup("hasLandingOrDiscardPmfm", hasLandingOrDiscardPmfm);
+        xmlQuery.setGroup("!hasLandingOrDiscardPmfm", !hasLandingOrDiscardPmfm);
 
         return xmlQuery;
     }

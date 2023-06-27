@@ -23,7 +23,7 @@
 <query type="select">
 
   <!-- individualCount - only if some taxonGroupNoWeight exists -->
-  <select alias="INDIVIDUAL_COUNT" type="number" group="individualCount">SL.INDIVIDUAL_COUNT</select>
-  <select alias="SUBSAMPLING_INDIVIDUAL_COUNT" type="number" group="individualCount">SL.SUBSAMPLING_INDIVIDUAL_COUNT</select>
+  <select alias="INDIVIDUAL_COUNT" type="number" group="individualCount,agg">SUM(SL.INDIVIDUAL_COUNT)</select>
+  <select alias="SUBSAMPLING_INDIVIDUAL_COUNT" type="number" group="individualCount,agg">SUM(SL.SUBSAMPLING_INDIVIDUAL_COUNT)</select>
 
 </query>

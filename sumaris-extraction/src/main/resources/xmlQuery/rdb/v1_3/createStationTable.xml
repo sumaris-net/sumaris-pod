@@ -38,7 +38,7 @@
         FROM operation O2
         WHERE O2.TRIP_FK = O.TRIP_FK
         AND O2.START_DATE_TIME <= O.START_DATE_TIME
-        AND O2.START_DATE_TIME <> T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME <> T.RETURN_DATE_TIME
+        AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
       )
     ]]></select>
 
@@ -71,10 +71,10 @@
     <select alias="POS_END_LON" type="number" dbms="hsqldb,pgsql">P_END.LONGITUDE</select>
     <select alias="POS_END_LON" type="number" dbms="oracle">CAST(P_END.LONGITUDE AS NUMBER(38, 7))</select>
 
-    <select alias="AREA" dbms="oracle" type="text">CAST(null as VARCHAR2(10))</select>
+    <select alias="AREA" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
     <select alias="AREA" type="text" dbms="hsqldb,pgsql">null</select><!-- TODO get it by LOCATION_HIERARCHY -->
 
-    <select alias="STATISTICAL_RECTANGLE" dbms="hsqldb,pgsql" type="text">
+    <select alias="STATISTICAL_RECTANGLE" type="text" dbms="hsqldb,pgsql">
       CASE WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
         F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
       ELSE
@@ -82,11 +82,11 @@
       END
     </select>
     <!-- TODO adapt the function 'F_TO_RECTANGLE' for Oracle, or use spatial query  -->
-    <select alias="STATISTICAL_RECTANGLE" dbms="oracle" type="text">CAST(null as VARCHAR2(10))</select>
+    <select alias="STATISTICAL_RECTANGLE" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
 
     <!-- TODO: use SIH sub polygon
     <select alias="SUB_POLYGON" type="text">F_TO_SQUARE(P_END.LATITUDE, P_END.LONGITUDE, 10)</select>-->
-    <select alias="SUB_POLYGON" dbms="oracle" type="text">CAST(null as VARCHAR2(10))</select>
+    <select alias="SUB_POLYGON" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
     <select alias="SUB_POLYGON" type="text" dbms="hsqldb,pgsql">null</select>
 
     <select alias="MAIN_FISHING_DEPTH" group="agg" type="number">
@@ -103,7 +103,7 @@
       MAX(CASE TG_M.TAXON_GROUP_TYPE_FK WHEN &amp;ueLevel5TaxonGroupTypeId THEN M.LABEL ELSE NULL END)
     </select>
 
-    <select alias="EU_METIER_LEVEL6" type="text" dbms="oracle">CAST(null as VARCHAR2(10))</select>
+    <select alias="EU_METIER_LEVEL6" type="text" group="agg" dbms="oracle">CAST(null as VARCHAR2(10))</select>
     <select alias="EU_METIER_LEVEL6" type="text" dbms="hsqldb,pgsql">null</select>
 
     <select alias="GEAR_TYPE" group="gearType" type="text">G.LABEL</select>
@@ -115,7 +115,7 @@
       MAX(CASE WHEN PGM.PMFM_FK IN (&amp;selectionDevicePmfmIds) THEN PGQV.LABEL ELSE NULL END)
     </select>
 
-    <select alias="MESH_SIZE_IN_SELECTION_DEVICE" type="text" dbms="oracle">CAST(null as VARCHAR2(10))</select>
+    <select alias="MESH_SIZE_IN_SELECTION_DEVICE" type="text" group="agg" dbms="oracle">CAST(null as VARCHAR2(10))</select>
     <select alias="MESH_SIZE_IN_SELECTION_DEVICE" type="text" dbms="hsqldb,pgsql">null</select>
 
     <!-- need to link other tables -->

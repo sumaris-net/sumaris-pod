@@ -403,6 +403,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         String stationsTableName = context.getStationTableName();
         Set<String> programLabels = getTripProgramLabels(context);
         programLabels.forEach(programLabel -> {
+            // Get all operation ids
             String sql = String.format("SELECT distinct CAST(%s AS INT) from %s where %s='%s'",
                     RdbSpecification.COLUMN_STATION_ID, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
             Number[] operationIds = query(sql, Number.class).toArray(Number[]::new);
@@ -493,6 +494,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Enable Landing/discard
         xmlQuery.setGroup("hasLandingOrDiscardPmfm", true);
+        xmlQuery.setGroup("!hasLandingOrDiscardPmfm", false);
 
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
@@ -611,8 +613,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return 0;
     }
 
-    protected List<Integer> getSpeciesLengthPmfmIds() {
-        return ImmutableList.of(
+    protected Set<Integer> getSpeciesLengthPmfmIds() {
+        return ImmutableSet.of(
             PmfmEnum.LENGTH_TOTAL_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
@@ -621,8 +623,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         );
     }
 
-    protected List<Integer> getSpeciesListExcludedPmfmIds() {
-        return ImmutableList.<Integer>builder()
+    protected Set<Integer> getSpeciesListExcludedPmfmIds() {
+        return ImmutableSet.<Integer>builder()
             .add(
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
@@ -638,15 +640,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .build();
     }
 
-    protected List<Integer> getSizeCategoryPmfmIds() {
-        return ImmutableList.of(
+    protected Set<Integer> getSizeCategoryPmfmIds() {
+        return ImmutableSet.of(
             PmfmEnum.SIZE_CATEGORY.getId(),
             PmfmEnum.SIZE_UNLI_CAT.getId()
         );
     }
 
-    protected List<Integer> getSelectivityDevicePmfmIds() {
-        return ImmutableList.<Integer>builder()
+    protected Set<Integer> getSelectivityDevicePmfmIds() {
+        return ImmutableSet.<Integer>builder()
             .add(
                 PmfmEnum.SELECTIVITY_DEVICE.getId(),
                 PmfmEnum.SELECTIVITY_DEVICE_APASE.getId()
@@ -872,8 +874,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         Boolean result = context.getEnableBatchDenormalization();
         if (result == null) {
 
-            result = extractionConfiguration.enableBatchDenormalization()
-                || getTripProgramLabels(context).stream()
+            result = extractionConfiguration.enableBatchDenormalization() // Enable denormalization for all programs
+                || getTripProgramLabels(context).stream() // Check if denormalization has been enabled on program
                 .anyMatch(programLabel -> {
                     String value = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE);
                     if (StringUtils.isBlank(value)) return false; // = default value

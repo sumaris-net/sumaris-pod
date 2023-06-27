@@ -309,8 +309,8 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         }
     }
 
-    protected List<Integer> getCatchExcludedPmfmIds() {
-        return ImmutableList.<Integer>builder()
+    protected Set<Integer> getCatchExcludedPmfmIds() {
+        return ImmutableSet.<Integer>builder()
             .addAll(super.getSpeciesListExcludedPmfmIds())
             .add(
                 PmfmEnum.CATCH_WEIGHT.getId(),
@@ -319,8 +319,8 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
             .build();
     }
     @Override
-    protected List<Integer> getSpeciesListExcludedPmfmIds() {
-        return ImmutableList.<Integer>builder()
+    protected Set<Integer> getSpeciesListExcludedPmfmIds() {
+        return ImmutableSet.<Integer>builder()
             .addAll(super.getSpeciesListExcludedPmfmIds())
             .add(
                 // Already in the catch table
@@ -331,15 +331,15 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     }
 
     @Override
-    protected List<Integer> getSizeCategoryPmfmIds() {
-        return ImmutableList.of(
+    protected Set<Integer> getSizeCategoryPmfmIds() {
+        return ImmutableSet.of(
             PmfmEnum.TRAWL_SIZE_CAT.getId()
         );
     }
 
     @Override
-    protected List<Integer> getSelectivityDevicePmfmIds() {
-        return ImmutableList.<Integer>builder()
+    protected Set<Integer> getSelectivityDevicePmfmIds() {
+        return ImmutableSet.<Integer>builder()
             .add(
                 PmfmEnum.SELECTIVITY_DEVICE.getId(),
                 PmfmEnum.SELECTIVITY_DEVICE_APASE.getId()
