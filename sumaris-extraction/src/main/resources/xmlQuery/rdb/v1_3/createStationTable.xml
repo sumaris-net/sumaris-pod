@@ -44,50 +44,54 @@
 
     <!-- other fields -->
     <select alias="FISHING_VALIDITY" type="text" group="agg">
-      MAX(CASE VUM.PMFM_FK WHEN &amp;tripProgressPmfmId THEN
-        CASE VUM.NUMERICAL_VALUE
-          WHEN 1 THEN UPPER('V')
-          WHEN 0 THEN UPPER('I')
+      MAX(
+        CASE VUM.PMFM_FK WHEN &amp;tripProgressPmfmId THEN
+          CASE VUM.NUMERICAL_VALUE
+            WHEN 1 THEN UPPER('V')
+            WHEN 0 THEN UPPER('I')
+          ELSE null END
         ELSE null END
-      ELSE null END)
+      )
     </select>
     <select alias="AGGREGATION_LEVEL" type="text">UPPER('H')</select>
     <select alias="CATCH_REGISTRATION" type="text">'All'</select><!-- TODO : check batch lan/dis -->
     <select alias="SPECIES_REGISTRATION" type="text">'Par'</select><!-- TODO : check batch exhaustiveness -->
-    <select alias="DATE" group="date" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'YYYY-MM-DD')</select>
-    <select alias="TIME" group="time" type="text">TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'HH24:MI')</select>
+    <select alias="DATE" type="text" group="date,agg">MAX(TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'YYYY-MM-DD'))</select>
+    <select alias="TIME" type="text" group="time,agg">MAX(TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'HH24:MI'))</select>
 
     <!-- FISHING TIME -->
-    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="hsqldb">DATEDIFF('minute', COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME))</select>
-    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="oracle">CAST(FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60) as INTEGER)</select>
-    <select alias="FISHING_TIME" group="fishingTime" type="number" dbms="pgsql">F_DATEDIFF('minute', COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME))</select>
+    <select alias="FISHING_TIME" type="number" dbms="hsqldb" group="fishingTime,agg">MAX(DATEDIFF('minute', COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME)))</select>
+    <select alias="FISHING_TIME" type="number" dbms="pgsql" group="fishingTime,agg">MAX(F_DATEDIFF('minute', COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME)))</select>
+    <select alias="FISHING_TIME" type="number" dbms="oracle" group="fishingTime,agg">MAX(CAST(FLOOR((COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME) - COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)) * 24 * 60) as INTEGER))</select>
 
-    <select alias="POS_START_LAT" type="number" dbms="hsqldb,pgsql">P_START.LATITUDE</select>
-    <select alias="POS_START_LAT" type="number" dbms="oracle">CAST(P_START.LATITUDE AS NUMBER(38, 7))</select>
-    <select alias="POS_START_LON" type="number" dbms="hsqldb,pgsql">P_START.LONGITUDE</select>
-    <select alias="POS_START_LON" type="number" dbms="oracle">CAST(P_START.LONGITUDE AS NUMBER(38, 7))</select>
-    <select alias="POS_END_LAT" type="number" dbms="hsqldb,pgsql">P_END.LATITUDE</select>
-    <select alias="POS_END_LAT" type="number" dbms="oracle">CAST(P_END.LATITUDE AS NUMBER(38, 7))</select>
-    <select alias="POS_END_LON" type="number" dbms="hsqldb,pgsql">P_END.LONGITUDE</select>
-    <select alias="POS_END_LON" type="number" dbms="oracle">CAST(P_END.LONGITUDE AS NUMBER(38, 7))</select>
+    <select alias="POS_START_LAT" type="number" dbms="hsqldb,pgsql" group="agg">MAX(P_START.LATITUDE)</select>
+    <select alias="POS_START_LAT" type="number" dbms="oracle" group="agg">MAX(CAST(P_START.LATITUDE AS NUMBER(38, 7)))</select>
+    <select alias="POS_START_LON" type="number" dbms="hsqldb,pgsql" group="agg">MAX(P_START.LONGITUDE)</select>
+    <select alias="POS_START_LON" type="number" dbms="oracle" group="agg">MAX(CAST(P_START.LONGITUDE AS NUMBER(38, 7)))</select>
+    <select alias="POS_END_LAT" type="number" dbms="hsqldb,pgsql" group="agg">MAX(P_END.LATITUDE)</select>
+    <select alias="POS_END_LAT" type="number" dbms="oracle" group="agg">MAX(CAST(P_END.LATITUDE AS NUMBER(38, 7)))</select>
+    <select alias="POS_END_LON" type="number" dbms="hsqldb,pgsql" group="agg">MAX(P_END.LONGITUDE)</select>
+    <select alias="POS_END_LON" type="number" dbms="oracle" group="agg">MAX(CAST(P_END.LONGITUDE AS NUMBER(38, 7)))</select>
 
-    <select alias="AREA" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
     <select alias="AREA" type="text" dbms="hsqldb,pgsql">null</select><!-- TODO get it by LOCATION_HIERARCHY -->
+    <select alias="AREA" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
 
-    <select alias="STATISTICAL_RECTANGLE" type="text" dbms="hsqldb,pgsql">
-      CASE WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
-        F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
-      ELSE
-        L_AREA.LABEL
-      END
+    <select alias="STATISTICAL_RECTANGLE" type="text" dbms="hsqldb,pgsql" group="agg">
+      MAX(
+        CASE WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
+          F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
+        ELSE
+          L_AREA.LABEL
+        END
+      )
     </select>
     <!-- TODO adapt the function 'F_TO_RECTANGLE' for Oracle, or use spatial query  -->
     <select alias="STATISTICAL_RECTANGLE" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
 
     <!-- TODO: use SIH sub polygon
     <select alias="SUB_POLYGON" type="text">F_TO_SQUARE(P_END.LATITUDE, P_END.LONGITUDE, 10)</select>-->
-    <select alias="SUB_POLYGON" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
     <select alias="SUB_POLYGON" type="text" dbms="hsqldb,pgsql">null</select>
+    <select alias="SUB_POLYGON" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
 
     <select alias="MAIN_FISHING_DEPTH" group="agg" type="number">
       MAX(CASE VUM.PMFM_FK WHEN &amp;mainFishingDepthPmfmId THEN CAST(ROUND(VUM.NUMERICAL_VALUE) AS INTEGER) ELSE NULL END)
@@ -103,15 +107,15 @@
       MAX(CASE TG_M.TAXON_GROUP_TYPE_FK WHEN &amp;ueLevel5TaxonGroupTypeId THEN M.LABEL ELSE NULL END)
     </select>
 
-    <select alias="EU_METIER_LEVEL6" type="text" group="agg" dbms="oracle">CAST(null as VARCHAR2(10))</select>
     <select alias="EU_METIER_LEVEL6" type="text" dbms="hsqldb,pgsql">null</select>
+    <select alias="EU_METIER_LEVEL6" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
 
-    <select alias="GEAR_TYPE" group="gearType" type="text">G.LABEL</select>
-    <select alias="MESH_SIZE" group="agg" type="number">
+    <select alias="GEAR_TYPE" type="text" group="gearType,agg">MAX(G.LABEL)</select>
+    <select alias="MESH_SIZE" type="number" group="agg">
       MAX(CASE PGM.PMFM_FK WHEN &amp;meshSizePmfmId THEN CAST(ROUND(PGM.NUMERICAL_VALUE) AS INTEGER) ELSE NULL END)
     </select>
     <!-- TODO use the RDB code list - see issue #146 -->
-    <select alias="SELECTION_DEVICE" group="agg,selectionDevice" type="text">
+    <select alias="SELECTION_DEVICE" type="text" group="selectionDevice,agg">
       MAX(CASE WHEN PGM.PMFM_FK IN (&amp;selectionDevicePmfmIds) THEN PGQV.LABEL ELSE NULL END)
     </select>
 
@@ -145,8 +149,6 @@
 
     <groupby>&amp;groupByColumns</groupby>
     <groupby dbms="hsqldb">STATION_NUMBER</groupby>
-
-<!--    <orderby direction="ASC">STATION_NUMBER</orderby>-->
 
   </query>
 
