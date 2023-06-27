@@ -28,6 +28,7 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.util.Files;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.ZipUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -166,5 +167,16 @@ public abstract class AbstractServiceTest {
         target.setParent(parent);
 
         return target;
+    }
+
+    protected void assertHasColumn(File file, String columnName) throws IOException {
+        String headerName = StringUtils.underscoreToChangeCase(columnName);
+        Assert.assertTrue(String.format("Missing header '%s' in file: %s", headerName, file.getPath()),
+            hasHeaderInCsvFile(file, headerName));
+    }
+    protected void assertHasNoColumn(File file, String columnName) throws IOException {
+        String headerName = StringUtils.underscoreToChangeCase(columnName);
+        Assert.assertFalse(String.format("Should not have header '%s' in file: %s", headerName, file.getPath()),
+            hasHeaderInCsvFile(file, headerName));
     }
 }
