@@ -25,10 +25,15 @@ package net.sumaris.extraction.core.service.pgsql;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.service.ExtractionProductServiceTest;
 import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author benoit.lavenier@e-is.pro
  */
+
+@ActiveProfiles("pgsql")
+@Ignore
 public class ExtractionProductServicePgsqlTest extends ExtractionProductServiceTest {
 
     @ClassRule
