@@ -84,7 +84,7 @@
     <!-- SAMPLE -->
     <select alias="SPECIES_CODE" type="text">COALESCE(TN.LABEL, TG.LABEL)</select>
     <select alias="SPECIES_NAME" type="text">COALESCE(TN.NAME, TG.NAME)</select>
-    <select alias="SAMPLE_DATE" type="text">T.SAMPLE_DATE</select>
+    <select alias="SAMPLE_DATE" type="text">TO_CHAR(T.SAMPLE_DATE, 'YYYY-DD-MM HH24:MI:SS')</select>
     <select alias="INDIVIDUAL_COUNT" type="number">COALESCE(T.INDIVIDUAL_COUNT, 1)</select>
     <select alias="SAMPLE_COMMENTS" type="text">MAX(T.SAMPLE_COMMENTS)</select>
     <select alias="MONITORING_COMMENTS" type="text">MAX(T.MONITORING_COMMENTS)</select>
