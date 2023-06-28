@@ -47,7 +47,6 @@ import javax.persistence.*;
  */
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -80,7 +79,7 @@ public class DenormalizedBatchSortingValue implements IEntity<Integer>
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "batch_fk", nullable = false)
     @ToString.Exclude
     private DenormalizedBatch batch;

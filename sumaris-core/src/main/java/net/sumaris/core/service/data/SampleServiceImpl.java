@@ -306,7 +306,7 @@ public class SampleServiceImpl implements SampleService {
 
 		// Remove
 		if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
-			imageAttachmentRepository.deleteAllById(existingIdsToRemove);
+			imageAttachmentRepository.deleteAllByIdInBatch(existingIdsToRemove);
 		}
 	}
 

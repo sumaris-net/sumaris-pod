@@ -238,7 +238,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         onBeforeSaveEntity(source, entity, isNew);
 
         // Save entity
-        E savedEntity = super.save(entity);
+        E savedEntity = save(entity);
 
         // Update VO
         onAfterSaveEntity(source, savedEntity, isNew);
@@ -295,6 +295,26 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     protected Class<V> getVOClass() {
         if (voClass == null) throw new NotImplementedException("Not implemented yet. Should be override by subclass or use correct constructor");
         return voClass;
+    }
+
+    @Override
+    public void deleteAllById(Iterable<? extends ID> ids) {
+        // Simple deletion (no event to publish)
+        if (!publishEvent) {
+            super.deleteAllById(ids);
+            return;
+        }
+
+        // First, load entity to deleted
+        List<V> vos = findAllById((Iterable<ID>) ids).stream().map(this::toVO).toList();
+
+        if (CollectionUtils.isEmpty(vos)) return; // Nothing to delete
+
+        // Do deletion
+        super.deleteAllById(Beans.collectIds(vos));
+
+        // Emit delete events
+        vos.forEach(this::publishDeleteEvent);
     }
 
     @Override
