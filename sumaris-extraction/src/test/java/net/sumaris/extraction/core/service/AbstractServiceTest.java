@@ -171,12 +171,12 @@ public abstract class AbstractServiceTest {
 
     protected void assertHasColumn(File file, String columnName) throws IOException {
         String headerName = StringUtils.underscoreToChangeCase(columnName);
-        Assert.assertTrue(String.format("Missing header '%s' in file: %s", headerName, file.getPath()),
+        Assert.assertTrue(String.format("Missing the column header '%s' in file: %s", headerName, file.getPath()),
             hasHeaderInCsvFile(file, headerName));
     }
     protected void assertHasNoColumn(File file, String columnName) throws IOException {
         String headerName = StringUtils.underscoreToChangeCase(columnName);
-        Assert.assertFalse(String.format("Should not have header '%s' in file: %s", headerName, file.getPath()),
+        Assert.assertFalse(String.format("Should not have the column header '%s' in file: %s", headerName, file.getPath()),
             hasHeaderInCsvFile(file, headerName));
     }
 }

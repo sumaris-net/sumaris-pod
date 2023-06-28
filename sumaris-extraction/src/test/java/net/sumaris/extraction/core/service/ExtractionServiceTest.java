@@ -361,8 +361,11 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
             Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
 
-            // Make sure this column exists (column with a 'dbms' attribute)
-            assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+            // Make sure individual_count column NOT exists
+            assertHasColumn(speciesListFile, RjbTripSpecification.COLUMN_INDIVIDUAL_COUNT);
+
+            // Make sure weight column NOT exists
+            assertHasNoColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
         }
 
         // HL.csv
@@ -591,8 +594,6 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    @Ignore
-    // FIXME: add BATCH on RJB species, with individual count only (no weights) in ADAP XML data
     public void executeAggRjbTrip() throws IOException {
 
         IExtractionType type = AggExtractionTypeEnum.AGG_RJB_TRIP;
@@ -605,9 +606,9 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
             .criteria(ImmutableList.of(
                 ExtractionFilterCriterionVO.builder()
-                    .name(ProductRdbStation.COLUMN_TRIP_CODE)
+                    .name(ProductRdbStation.COLUMN_PROJECT)
                     .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value("1379") // a ADAP RJB trip
+                    .value("ADAP-MER")
                     .build()
             ))
             .build();

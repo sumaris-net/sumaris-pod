@@ -607,6 +607,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             ExtractionContextVO context = new ExtractionContextVO();
             context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
             extTableNames.stream()
+                // Exclude table used in products
                 .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());
@@ -620,6 +621,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             ExtractionContextVO context = new ExtractionContextVO();
             context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
             aggTableNames.stream()
+                // Exclude table used in products
                 .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());

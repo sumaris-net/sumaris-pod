@@ -303,11 +303,11 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
             .addAll(context.getRawTableNames())
             .build();
 
-        if (CollectionUtils.isEmpty(tableNames)) return;
+        if (CollectionUtils.isEmpty(tableNames) || StringUtils.isBlank(context.getTableNamePrefix())) return;
 
         tableNames.stream()
-            // Keep only tables with EXT_ prefix
-            .filter(tableName -> tableName != null && tableName.startsWith(context.getTableNamePrefix()))
+            // Filter on tables with the 'EXT_' prefix
+            .filter(tableName -> tableName != null && StringUtils.startsWithIgnoreCase(tableName, context.getTableNamePrefix()))
             .forEach(tableName -> {
                 try {
                     dropTable(tableName);
