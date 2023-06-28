@@ -43,7 +43,5 @@ import org.junit.runners.Suite;
 })
 public class AllTests {
 
-	@ClassRule
-	public static InitTests initTests = new InitTests();
 
 }

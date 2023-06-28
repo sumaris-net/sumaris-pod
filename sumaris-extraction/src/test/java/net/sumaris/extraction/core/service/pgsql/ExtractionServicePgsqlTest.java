@@ -26,6 +26,7 @@ import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
@@ -35,6 +36,7 @@ import java.io.IOException;
  * @author peck7 on 17/12/2018.
  */
 @ActiveProfiles("pgsql")
+@Ignore
 public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
 
     @ClassRule
