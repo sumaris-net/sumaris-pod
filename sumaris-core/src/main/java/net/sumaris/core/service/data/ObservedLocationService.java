@@ -23,6 +23,7 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
@@ -41,9 +42,8 @@ import java.util.List;
 @Transactional
 public interface ObservedLocationService {
 
-
 	@Transactional(readOnly = true)
-	List<ObservedLocationVO> getAll(int offset, int size);
+	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size);

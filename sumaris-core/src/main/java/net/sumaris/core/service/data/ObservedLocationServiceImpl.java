@@ -27,15 +27,20 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.ObservedLocationMeasurement;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,15 +62,13 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	protected MeasurementDao measurementDao;
 
 	@Autowired
+	private ProgramService programService;
+
+	@Autowired
 	protected LandingService landingService;
 
 	@Autowired
 	private ApplicationEventPublisher publisher;
-
-	@Override
-	public List<ObservedLocationVO> getAll(int offset, int size) {
-		return findAll(null, offset, size, null, null, null);
-	}
 
 	@Override
 	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size) {
@@ -76,6 +79,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
 											SortDirection sortDirection, DataFetchOptions fetchOptions) {
 		return observedLocationRepository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+	}
+
+	@Override
+	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+		return observedLocationRepository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), page, fetchOptions);
 	}
 
 	@Override
@@ -175,7 +183,37 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		return observedLocationRepository.validate(observedLocation);
+		String programLabel = observedLocation.getProgram().getLabel();
+
+		observedLocation = observedLocationRepository.validate(observedLocation);
+
+		// Get if observedLocation has a meta program
+		String subProgramLabel = programService.getPropertyValueByProgramLabel(
+				programLabel,
+				ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+
+		// Validate children observed locations
+		if (StringUtils.isNoneBlank(subProgramLabel)) {
+			findAll(ObservedLocationFilterVO.builder()
+					.programLabel(subProgramLabel)
+					.startDate(observedLocation.getStartDateTime())
+					.endDate(observedLocation.getEndDateTime())
+					.build(), Page.builder().offset(0).size(1000).build(),
+					DataFetchOptions.MINIMAL)
+				.forEach(this::validate);
+		}
+
+		// Validate children landings
+		else {
+			landingService.findAll(LandingFilterVO.builder()
+							.observedLocationId(observedLocation.getId())
+							.build(),
+							Page.builder().offset(0).size(1000).build(),
+							LandingFetchOptions.MINIMAL)
+					.forEach(l -> landingService.validate(l));
+		}
+
+		return observedLocation;
 	}
 
 	@Override
