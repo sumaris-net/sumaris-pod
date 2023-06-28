@@ -38,12 +38,12 @@
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
     <select alias="CATCH_CATEGORY" type="text"><![CDATA[
     (SELECT
-        CASE QV.ID WHEN &discardQvId THEN UPPER('DIS') WHEN &landingQvId THEN UPPER('LAN') ELSE null END
+        CASE QV.ID WHEN &discardQvId THEN 'DIS' WHEN &landingQvId THEN 'LAN' ELSE null END
       FROM SORTING_MEASUREMENT_B SM
         INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId
     )]]></select>
-    <select alias="LANDING_CATEGORY" type="text">'&amp;defaultLandingCategory'</select>
+    <select alias="LANDING_CATEGORY" type="text" group="agg">'&amp;defaultLandingCategory'</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text" group="agg">
       MAX(CASE TG.LABEL WHEN 'NEP' THEN 'Nephrops' ELSE '&amp;defaultCommercialSizeCategoryScale' END)
     </select>
@@ -53,10 +53,10 @@
       FROM SORTING_MEASUREMENT_B SM INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK in (&amp;sizeCategoryPmfmIds)
     )</select>
-    <select alias="SUBSAMPLING_CATEGORY" type="text" group="agg" dbms="hsqldb,pgsql">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
-    <select alias="SUBSAMPLING_CATEGORY" type="text" group="agg" dbms="oracle">CAST(NULL AS VARCHAR(1))</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
-    <select alias="SEX" type="text" dbms="hsqldb,pgsql">null</select><!-- always define in the HL table -->
-    <select alias="SEX" type="text" group="agg" dbms="oracle">CAST(NULL AS VARCHAR(1))</select><!-- always define in the HL table -->
+    <select alias="SUBSAMPLING_CATEGORY" type="text" dbms="hsqldb,pgsql" group="agg">null</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
+    <select alias="SUBSAMPLING_CATEGORY" type="text" dbms="oracle" group="agg">CAST(NULL AS VARCHAR(1))</select> <!-- TODO: BATCH_SORTING (Vrac, Hors Vrac) -->
+    <select alias="SEX" type="text" dbms="hsqldb,pgsql" group="agg">null</select><!-- always define in the HL table -->
+    <select alias="SEX" type="text" dbms="oracle" group="agg">CAST(NULL AS VARCHAR(1))</select><!-- always define in the HL table -->
 
     <!-- pmfms -->
     <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
@@ -78,7 +78,7 @@
       MAX(CASE WHEN (SAMPLING_B.SAMPLING_RATIO IS NOT NULL AND SAMPLING_B.SAMPLING_RATIO > 0) THEN 'cm' ELSE null END)
     ]]></select>
 
-    <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé a partir des RTP (cf Baudroie dans ADAP) -->
+    <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé à partir des RTP (cf Baudroie dans ADAP) -->
     <select alias="SUBSAMPLING_RATIO" type="number">1</select>
 
     <!-- need to link other tables -->

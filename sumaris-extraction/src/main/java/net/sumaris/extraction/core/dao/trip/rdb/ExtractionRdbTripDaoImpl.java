@@ -24,9 +24,7 @@ package net.sumaris.extraction.core.dao.trip.rdb;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -451,12 +449,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        if (this.production) {
+        //if (this.production) {
             // Add as a raw table (to be able to clean it later)
             context.addRawTableName(tableName);
-        }
+        //}
         // DEBUG
-        else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        //else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
         return count;
     }
@@ -479,6 +477,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+        xmlQuery.bind("landingCategoryPmfmId", String.valueOf(PmfmEnum.LANDING_CATEGORY.getId()));
         xmlQuery.bind("sizeCategoryPmfmIds", Daos.getSqlInNumbers(getSizeCategoryPmfmIds()));
         xmlQuery.bind("subsamplingCategoryPmfmId", String.valueOf(PmfmEnum.BATCH_SORTING.getId()));
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));

@@ -83,7 +83,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void executeWithDenormalisation() throws IOException {
+    public void executeWithDenormalization() throws IOException {
 
         // Enable batch optimization, in extraction
         extractionConfiguration.setEnableBatchDenormalization(true);
@@ -279,19 +279,9 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Test
     public void executePmfmADAP() throws IOException {
-
-        String programLabel = fixtures.getProgramLabelForPmfmExtraction(1);
-
         // Validate some trips
-        List<TripVO> trips =
-        tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
-                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
-            .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
-        Assume.assumeTrue(trips.size() > 0);
-        trips.forEach(trip -> {
-            if (trip.getControlDate() == null) tripService.control(trip);
-            if (trip.getValidationDate() == null) tripService.validate(trip);
-        });
+        String programLabel = fixtures.getProgramLabelForPmfmExtraction(1);
+        validateTrips(programLabel);
 
         ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
         filter.setProgramLabel(programLabel);
@@ -301,6 +291,55 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
         Assert.assertTrue(outputFile.exists());
         File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel());
+
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, PmfmTripSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, PmfmTripSpecification.COLUMN_WEIGHT);
+        }
+
+        // HL.csv
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+
+            assertHasColumn(speciesLengthFile, "sex");
+        }
+
+    }
+
+    @Test
+    public void executeRjbADAP() throws IOException {
+        // Validate some trips
+        String programLabel = fixtures.getProgramLabelForPmfmExtraction(1);
+        validateTrips(programLabel);
+
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(programLabel);
+        filter.setExcludeInvalidStation(false);
+
+        // Test the RJB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.RJB_TRIP, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.RJB_TRIP.getLabel());
 
         // TR.csv
         {
@@ -872,4 +911,15 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     }
 
 
+    protected void validateTrips(String programLabel) {
+        // Validate some trips
+        List<TripVO> trips =
+            tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
+                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
+                .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
+        trips.forEach(trip -> {
+            if (trip.getControlDate() == null) tripService.control(trip);
+            if (trip.getValidationDate() == null) tripService.validate(trip);
+        });
+    }
 }

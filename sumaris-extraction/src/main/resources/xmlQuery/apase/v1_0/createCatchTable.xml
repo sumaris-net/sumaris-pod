@@ -38,8 +38,8 @@
     <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
 
     <!-- Weights -->
-    <select alias="CATCH_WEIGHT" type="number" group="agg">MAX(CATCH.WEIGHT)</select>
-    <select alias="DISCARD_WEIGHT" type="number" group="agg">null</select> <!-- TODO -->
+    <select alias="CATCH_WEIGHT" type="number" group="agg">CAST(MAX(CATCH.WEIGHT * 1000) AS INT)</select>
+    <select alias="DISCARD_WEIGHT" type="number" group="agg">CAST(SUM(VRAC_HV.WEIGHT) / COUNT(DISTINCT VRAC_HV.ID)  * 1000 AS INT)</select>
 
     <!-- Make to have one row by catch batch -->
     <select alias="STATION_ID" type="hidden">S.STATION_ID</select>
@@ -50,8 +50,8 @@
     <from join="true">INNER JOIN QUANTIFICATION_MEASUREMENT_B QM ON QM.BATCH_FK=CATCH.ID AND QM.PMFM_FK=&amp;catchWeightPmfmId AND QM.IS_REFERENCE_QUANTIFICATION=true</from>
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL SM ON SM.BATCH_FK=CATCH.ID</from>
     <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK</from>
-<!--    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH DISCARD ON DISCARD.PARENT_BATCH_FK = CATCH.ID</from>-->
-<!--    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH VRAC_HV ON VRAC_HV.PARENT_BATCH_FK = DISCARD.ID</from>-->
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH DISCARD ON DISCARD.PARENT_BATCH_FK = CATCH.ID AND DISCARD.IS_DISCARD=1 AND DISCARD.IS_LANDING=0</from>
+    <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH VRAC_HV ON VRAC_HV.PARENT_BATCH_FK = DISCARD.ID</from>
 
     <where>1=1</where>
 

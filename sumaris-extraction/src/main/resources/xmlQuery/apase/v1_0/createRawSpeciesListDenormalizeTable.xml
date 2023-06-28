@@ -40,7 +40,6 @@
     <!-- PK (new fields) -->
     <select alias="SPECIES" type="text">COALESCE(TN.NAME, TN.COMMENTS, TG.NAME, TG.COMMENTS)</select>
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
-
     <select alias="CATCH_CATEGORY" type="text" group="agg">
       MAX(CASE SM.PMFM_FK WHEN &amp;catchCategoryPmfmId THEN QV.LABEL ELSE NULL END)
     </select>
@@ -55,13 +54,14 @@
     <select alias="SUBSAMPLING_CATEGORY" type="text" group="agg">
       MAX(CASE SM.PMFM_FK WHEN &amp;subsamplingCategoryPmfmId THEN QV.LABEL ELSE NULL END)
     </select>
-    <select alias="SEX" type="text">null</select><!-- always define in the HL table -->
+    <select alias="SEX" type="text" dbms="hsqldb,pgsql">null</select><!-- always define in the HL table -->
+    <select alias="SEX" type="text" dbms="oracle" group="agg">CAST(NULL AS VARCHAR(1))</select><!-- always define in the HL table -->
 
     <!-- pmfms -->
     <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
 
     <!-- other fields -->
-    <select alias="WEIGHT" group="weight" type="number">SPECIE_B.ELEVATE_CONTEXT_WEIGHT</select>
+    <select alias="WEIGHT" type="number" group="weight,agg">MAX(SPECIE_B.ELEVATE_CONTEXT_WEIGHT)</select>
     <select alias="SUBSAMPLE_WEIGHT" type="number" group="agg">MAX(SAMPLING_B.WEIGHT)</select>
     <select alias="LENGTH_CODE" type="text" group="agg">MAX(UNIT.LABEL)</select>
 
@@ -88,7 +88,7 @@
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH LENGTH_B ON LENGTH_B.PARENT_BATCH_FK=COALESCE(SAMPLING_B.ID, SPECIE_B.ID)</from>
     <from join="true">LEFT OUTER JOIN DENORMALIZED_BATCH_SORT_VAL LENGTH_SV ON LENGTH_SV.BATCH_FK=LENGTH_B.ID AND LENGTH_SV.PMFM_FK in (&amp;lengthPmfmIds) AND LENGTH_SV.IS_INHERITED=false</from>
     <from join="true">LEFT OUTER JOIN UNIT ON UNIT.ID = LENGTH_SV.UNIT_FK</from>
-    <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = LENGTH_B.REFERENCE_TAXON_FK</from>
+    <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = LENGTH_B.REFERENCE_TAXON_FK AND TN.IS_REFERENT=true</from>
 
     <where>1=1</where>
 
@@ -100,7 +100,6 @@
 
 
     <groupby>&amp;groupByColumns</groupby>
-
     <groupby>SPECIE_B.ELEVATE_WEIGHT,SAMPLING_B.ELEVATE_RTP_WEIGHT</groupby>
 
     <orderby>TRIP_CODE ASC, STATION_NUMBER ASC, SAMPLE_RANK_ORDER ASC</orderby>

@@ -23,29 +23,22 @@ package net.sumaris.extraction.core.dao.trip.rjb;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.dao.technical.Daos;
-import net.sumaris.xml.query.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RjbTripSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.xml.query.XMLQuery;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Extraction for RJB (Pocheteaux). We use individual count, instead of weight
@@ -65,8 +58,10 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     @Override
     public <R extends C> R execute(F filter) {
+        // Execute inherited extraction
         R context = super.execute(filter);
 
+        // Override some context properties
         context.setType(LiveExtractionTypeEnum.RJB_TRIP);
 
         return context;
@@ -74,10 +69,11 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     /* -- protected methods -- */
 
+    @Override
     protected XMLQuery createTripQuery(C context) {
-
         XMLQuery xmlQuery = super.createTripQuery(context);
 
+        // Inject specific select clause
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionTripTable"));
 
         // Bind some referential ids
@@ -91,8 +87,8 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return xmlQuery;
     }
 
+    @Override
     protected XMLQuery createStationQuery(C context) {
-
         XMLQuery xmlQuery = super.createStationQuery(context);
 
         // Special case for COST format:
@@ -115,18 +111,10 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // - Hide weight columns, then replace by a new columns
         xmlQuery.setGroup("weight", false);
+        xmlQuery.setGroup("excludeNoWeight", false);
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionRawSpeciesListTable"));
-
-        // Bind groupBy columns
-        Set<String> excludedColumns = ImmutableSet.of(
-            RdbSpecification.COLUMN_WEIGHT,
-            RdbSpecification.COLUMN_SUBSAMPLE_WEIGHT,
-            RjbTripSpecification.COLUMN_INDIVIDUAL_COUNT
-        );
-        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg")
-            && !excludedColumns.contains(xmlQuery.getAttributeValue(e, "alias", true)));
-        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
+        boolean enableBatchDenormalization = enableBatchDenormalization(context);
+        xmlQuery.injectQuery(getXMLQueryURL(context, enableBatchDenormalization ? "injectionRawSpeciesListDenormalizeTable" : "injectionRawSpeciesListTable"));
 
         // Bind where clause
         Set<String> taxonGroupNoWeights = getTaxonGroupNoWeights(context);
@@ -163,6 +151,7 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"));
 
+        // Bind PMFM ids
         xmlQuery.bind("isDeadPmfmId", String.valueOf(PmfmEnum.IS_DEAD.getId()));
 
         return xmlQuery;
@@ -175,6 +164,7 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         switch (queryName) {
             case "injectionTripTable":
             case "injectionRawSpeciesListTable":
+            case "injectionRawSpeciesListDenormalizeTable":
             case "injectionSpeciesListTable":
             case "injectionSpeciesLengthTable":
                 return getQueryFullName(RjbTripSpecification.FORMAT, RjbTripSpecification.VERSION_1_0, queryName);

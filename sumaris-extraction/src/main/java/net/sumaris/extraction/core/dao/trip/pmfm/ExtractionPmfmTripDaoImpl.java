@@ -257,7 +257,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // Enable individual count, if there is som taxon group no weight in program's options
         boolean hasTaxonGroupNoWeights = CollectionUtils.isNotEmpty(getTaxonGroupNoWeights(context));
         xmlQuery.setGroup("individualCount", hasTaxonGroupNoWeights);
-        xmlQuery.setGroup("excludeNoWeight", !hasTaxonGroupNoWeights);
+        boolean excludeNoWeight = !hasTaxonGroupNoWeights;
+        xmlQuery.setGroup("excludeNoWeight", excludeNoWeight);
+        xmlQuery.setGroup("!excludeNoWeight", !excludeNoWeight);
 
         xmlQuery.setGroup("pmfmsJoin", !enableBatchDenormalization);
 

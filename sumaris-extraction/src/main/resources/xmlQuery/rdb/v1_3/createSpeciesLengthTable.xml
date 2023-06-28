@@ -74,7 +74,9 @@
     <!-- need to link other tables -->
     <select alias="STATION_ID" type="hidden">SL.STATION_ID</select>
     <select alias="SAMPLE_ID" type="hidden">SL.SAMPLE_ID</select>
-    <select alias="MEASURE_ID" type="hidden">B.ID</select>
+    <select alias="MEASURE_IDS" dbms="hsqldb,pgsql" type="hidden" group="agg">ARRAY_AGG(B.ID)</select>
+    <select alias="MEASURE_IDS" dbms="oracle" type="hidden" group="agg,oracle11">LISTAGG(B.ID, ',')</select>
+    <select alias="MEASURE_IDS" dbms="oracle" type="hidden" group="agg,oracle12">LISTAGG(B.ID, ',') WITHIN GROUP (ORDER BY B.ID)</select>
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>
     <from join="true">INNER JOIN BATCH_LENGTH B ON B.SAMPLE_ID=SL.SAMPLE_ID</from>
