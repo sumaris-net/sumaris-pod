@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>2.4.0</version>
+  <version>2.4.1</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -168,7 +168,7 @@
     <nuitonConfigVersion>3.5</nuitonConfigVersion>
     <nuitonVersionVersion>1.0-rc-2</nuitonVersionVersion>
     <nuitonUtilsVersion>3.0</nuitonUtilsVersion>
-    <nuitonI18nVersion>4.0</nuitonI18nVersion>
+    <nuitonI18nVersion>4.1</nuitonI18nVersion>
     <nuitonEugeneVersion>3.0-alpha-10</nuitonEugeneVersion>
     <topiaVersion>3.3.1</topiaVersion>
 

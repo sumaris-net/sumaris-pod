@@ -44,8 +44,8 @@
       MAX(
         CASE
           WHEN SM.PMFM_FK = &amp;catchCategoryPmfmId THEN QV.LABEL
-          WHEN SPECIE_B.IS_DISCARD THEN 'DIS'
-          WHEN SPECIE_B.IS_LANDING THEN 'LAN'
+          WHEN SPECIE_B.IS_DISCARD=true THEN 'DIS'
+          WHEN SPECIE_B.IS_LANDING=true THEN 'LAN'
           ELSE NULL
         END
       )
@@ -55,7 +55,7 @@
       MAX(
         CASE
           WHEN SM.PMFM_FK = &amp;landingCategoryPmfmId THEN QV.LABEL
-          WHEN SPECIE_B.IS_LANDING THEN '&amp;defaultLandingCategory'
+          WHEN SPECIE_B.IS_LANDING=true THEN '&amp;defaultLandingCategory'
           ELSE NULL
         END
       )
@@ -63,8 +63,8 @@
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text" group="agg">
       MAX(
         CASE
-          WHEN SPECIE_B.IS_LANDING AND TG.LABEL = 'NEP' THEN 'Nephrops'
-          WHEN SPECIE_B.IS_LANDING THEN '&amp;defaultCommercialSizeCategoryScale'
+          WHEN SPECIE_B.IS_LANDING=true AND TG.LABEL = 'NEP' THEN 'Nephrops'
+          WHEN SPECIE_B.IS_LANDING=true THEN '&amp;defaultCommercialSizeCategoryScale'
           ELSE NULL
         END
       )
