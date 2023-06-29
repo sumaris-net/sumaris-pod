@@ -192,7 +192,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 				programLabel,
 				ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
 
-		// Validate children observed locations
+		// Validate sub observed locations
 		if (StringUtils.isNoneBlank(subProgramLabel)) {
 			findAll(ObservedLocationFilterVO.builder()
 					.programLabel(subProgramLabel)

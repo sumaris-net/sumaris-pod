@@ -1103,6 +1103,17 @@ public class DataGraphQLService {
                 .map(l -> fillLandingFields(l, fields));
     }
 
+    @GraphQLMutation(name = "controlLanding", description = "Control a landing")
+    @IsUser
+    public LandingVO controlLanding(@GraphQLNonNull @GraphQLArgument(name = "landing") LandingVO landing, @GraphQLEnvironment ResolutionEnvironment env) {
+        final LandingVO result = landingService.control(landing);
+
+        // Add additional properties if needed
+        fillLandingFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
     /* -- Aggregated landings -- */
 
     @GraphQLQuery(name = "aggregatedLandings", description = "Find aggregated landings by filter")
