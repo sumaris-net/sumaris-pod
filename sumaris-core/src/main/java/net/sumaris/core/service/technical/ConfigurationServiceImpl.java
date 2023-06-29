@@ -24,12 +24,10 @@ package net.sumaris.core.service.technical;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
-import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.annotation.EntityEnum;
-import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.event.config.ConfigurationEventListener;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -41,12 +39,16 @@ import net.sumaris.core.event.schema.SchemaEvent;
 import net.sumaris.core.event.schema.SchemaReadyEvent;
 import net.sumaris.core.event.schema.SchemaUpdatedEvent;
 import net.sumaris.core.exception.DenyDeletionException;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.config.ApplicationConfig;
 import org.nuiton.config.ApplicationConfigHelper;
 import org.nuiton.config.ApplicationConfigProvider;
@@ -64,7 +66,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -322,12 +323,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         // For each enum classes
         EntityEnums.getEntityEnumClasses(configuration).forEach(enumClass -> {
-            if (debug) log.debug(String.format("- Processing %s ...", enumClass.getSimpleName()));
+            log.debug("- Processing {} ...", enumClass.getSimpleName());
 
             // Get annotation detail
             final EntityEnum annotation = enumClass.getAnnotation(EntityEnum.class);
             final String entityClassName = annotation.entity().getSimpleName();
-            final String[] joinAttributes = annotation.joinAttributes();
+            final String[] resolveAttributes = annotation.resolveAttributes();
+            final String[] configAttributes = annotation.configAttributes();
+            // Create a sorted array, with first
+            final Set<String> sortedAttributes = Sets.newLinkedHashSet();
+            if (ArrayUtils.isNotEmpty(configAttributes)) sortedAttributes.addAll(Arrays.asList(configAttributes));
+            if (ArrayUtils.isNotEmpty(resolveAttributes)) sortedAttributes.addAll(Arrays.asList(resolveAttributes));
 
             // Compute a option key (e.g. 'sumaris.enumeration.MyEntity.MY_ENUM_VALUE.id')
             String tempConfigPrefix = StringUtils.defaultIfBlank(annotation.configPrefix(), "");
@@ -351,23 +357,26 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 enumContentBuilder.setLength(0);
                 configKeysBuilder.setLength(0);
 
-                // Try to resolve, using each join attributes
-                Optional<? extends IEntity> entity = Stream.of(joinAttributes).map(joinAttribute -> {
-                    Object joinValue = Beans.getProperty(enumValue, joinAttribute);
-
-                    if (joinValue == null) return null; // Skip this attribute
+                // Try to resolve, using each attributes
+                Optional<? extends IEntity> entity = sortedAttributes.stream().map(attribute -> {
+                    Object joinValue = Beans.getProperty(enumValue, attribute);
 
                     // If there is a config option, use it as join value
-                    String configOptionKey = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute);
-                    boolean hasConfigOption = appConfig.hasOption(configOptionKey);
-                    if (hasConfigOption) {
-                        joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
+                    String configOptionKey = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), attribute);
+                    boolean enableConfigOverride = ArrayUtils.isEmpty(configAttributes) || ArrayUtils.contains(configAttributes, attribute);
+                    if (enableConfigOverride) {
+                        boolean hasConfigOption = appConfig.hasOption(configOptionKey);
+                        if (hasConfigOption) {
+                            joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
+                        }
                     }
+
+                    if (joinValue == null) return null; // Skip this attribute
 
                     // Find entities that match the attribute
                     List<? extends IEntity> matchEntities;
                     try {
-                        matchEntities = entityManager.createQuery(String.format(queryPattern, joinAttribute), annotation.entity())
+                        matchEntities = entityManager.createQuery(String.format(queryPattern, attribute), annotation.entity())
                             .setParameter(1, joinValue)
                             .getResultList();
                     }
@@ -385,21 +394,21 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         return matchEntities.get(0);
                     }
                     else {
-                        if (IEntity.Fields.ID.equals(joinAttribute)) {
-                            enumContentBuilder.append(", ").append(joinAttribute).append(": ").append(joinValue);
+                        if (IEntity.Fields.ID.equals(attribute)) {
+                            enumContentBuilder.append(", ").append(attribute).append(": ").append(joinValue);
                         }
                         else {
-                            enumContentBuilder.append(", ").append(joinAttribute).append(": '").append(joinValue).append("'");
+                            enumContentBuilder.append(", ").append(attribute).append(": '").append(joinValue).append("'");
                         }
-                        configKeysBuilder.append(", '").append(configOptionKey).append("'");
+                        if (enableConfigOverride) configKeysBuilder.append(", '").append(configOptionKey).append("'");
                         return null;
                     }
                 })
-                        .filter(Objects::nonNull)
-                        .findFirst();
+                .filter(Objects::nonNull)
+                .findFirst();
                 if (entity.isPresent()) {
                     successCounter.incrementAndGet();
-                    if (debug) log.debug(String.format("Updating %s with %s", enumValue, entity.get()));
+                    log.debug("Updating {} with {}", enumValue, entity.get());
 
                     // Update the enum
                     Beans.copyProperties(entity.get(), enumValue);

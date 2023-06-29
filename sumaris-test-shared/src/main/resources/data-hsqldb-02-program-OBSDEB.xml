@@ -38,7 +38,6 @@
   <PROGRAM2PERSON ID="32" PROGRAM_FK="31" PERSON_FK="3" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2020-09-29"/>
   <PROGRAM2PERSON ID="33" PROGRAM_FK="31" PERSON_FK="2" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2020-09-29"/>
 
-  <PROGRAM_PROPERTY ID="41" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.observers.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="42" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.landing.editor" NAME="trip"/>
   <PROGRAM_PROPERTY ID="43" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.landing.dateTime.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="44" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.metiers.enable" NAME="true"/>
@@ -47,8 +46,8 @@
   <PROGRAM_PROPERTY ID="47" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.createVessel.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="48" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.vessel.type.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="49" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.sale.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="50" STATUS_FK="1" PROGRAM_FK="30" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.observers.enable" NAME="true"/>
 
-  <PROGRAM_PROPERTY ID="50" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="51" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.program" NAME="SIH-OBSDEB"/>
   <PROGRAM_PROPERTY ID="52" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.startDay" NAME="1"/>
   <PROGRAM_PROPERTY ID="53" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.dayCount" NAME="7"/>
@@ -57,6 +56,7 @@
   <PROGRAM_PROPERTY ID="56" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.vessel.type.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="57" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.startTime.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="58" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.trip.location.level.ids" NAME="2"/>
+  <PROGRAM_PROPERTY ID="59" STATUS_FK="1" PROGRAM_FK="31" CREATION_DATE="2019-02-11"  LABEL="sumaris.observedLocation.aggregatedLandings.enable" NAME="true"/>
 
   <!-- strategies -->
   <STRATEGY ID="20" PROGRAM_FK="30" LABEL="OBSDEB" NAME="Stratégie adaptée à la saisie sous Obsdeb" STATUS_FK="1" CREATION_DATE="2018-03-08" UPDATE_DATE="2018-03-08"/>

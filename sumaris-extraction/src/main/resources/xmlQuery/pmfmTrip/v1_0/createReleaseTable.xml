@@ -84,8 +84,8 @@
     <select alias="SPECIES_NAME" type="number">COALESCE(TN.NAME, TG.NAME)</select>
     <select alias="TAG_ID" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('TAG_ID') THEN T.ALPHA_VALUE END)</select>
     <!-- INDIVIDUAL RELEASE -->
-    <select alias="MEASURE_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'MEASURE_TIME' THEN TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')) END)</select>
-    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') END)</select>
+    <select alias="MEASURE_TIME" type="text" dbms="hsqldb">MAX(CASE T.PMFM_LABEL WHEN 'MEASURE_TIME' THEN TO_CHAR(TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', '')), 'YYYY-MM-DD HH24:MI:SS') END)</select>
+    <select alias="MEASURE_TIME" type="text" dbms="oracle,pgsql">MAX(CASE T.PMFM_LABEL WHEN UPPER('MEASURE_TIME') THEN TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(T.ALPHA_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD HH24:MI:SS') END)</select>
     <select alias="LATITUDE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('LATITUDE') THEN T.NUM_VALUE END)</select>
     <select alias="LONGITUDE" type="text">MAX(CASE T.PMFM_LABEL WHEN UPPER('LONGITUDE') THEN T.NUM_VALUE END)</select>
     <select alias="COMMENTS" type="text">MAX(T.COMMENTS)</select>

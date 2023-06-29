@@ -61,7 +61,8 @@ public class DatabaseResource extends net.sumaris.core.test.DatabaseResource {
 
 	@Override
 	protected String getDbModuleDirectory() {
-		return TestConfiguration.MODULE_NAME;
+		// Use the sumaris-core DB
+		return "sumaris-core";
 	}
 
 }

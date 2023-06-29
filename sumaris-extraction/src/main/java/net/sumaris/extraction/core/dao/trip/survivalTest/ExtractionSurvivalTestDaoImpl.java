@@ -89,7 +89,6 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         return context;
     }
 
-
     /* -- protected methods -- */
 
     @Override

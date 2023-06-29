@@ -29,18 +29,20 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.Oracle10gDialect;
+import org.hibernate.engine.jdbc.env.spi.AnsiSqlKeywords;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Metadata on a database table. Useful to request a table:
@@ -65,7 +67,9 @@ public class SumarisTableMetadata {
 	protected static final String QUERY_SELECT_COUNT_ALL = "SELECT count(*) FROM %s %s";
 	protected static final String QUERY_SELECT_MAX = "SELECT max(%s) FROM %s";
 	protected static final String QUERY_HQL_SELECT = "from %s";
+	protected static final Set<String> COLUMN_NAMES_TO_ESCAPE = AnsiSqlKeywords.INSTANCE.sql2003().stream().map(String::toLowerCase).collect(Collectors.toSet());
 
+	protected final SumarisDatabaseMetadata dbMeta;
 	protected final QualifiedTableName tableName;
 	protected final String tableAlias;
 
@@ -92,6 +96,7 @@ public class SumarisTableMetadata {
 		Preconditions.checkNotNull(dbMeta);
 		Preconditions.checkNotNull(jdbcDbMeta);
 
+		this.dbMeta = dbMeta;
 		this.tableAlias = DEFAULT_TABLE_ALIAS;
 		this.tableName = tableName;
 
@@ -147,6 +152,32 @@ public class SumarisTableMetadata {
 
 	public Set<String> getColumnNames() {
 		return columns.keySet();
+	}
+
+	public List<String> getEscapedColumnNames() {
+		return getEscapedColumnNames(getColumnNames());
+	}
+
+	public List<String> getEscapedColumnNames(Collection<String> columnNames) {
+		return columnNames.stream().map(this::getColumnMetadata).map(SumarisColumnMetadata::getEscapedName).toList();
+	}
+
+	public boolean isColumnNameToEscape(String columnName) {
+		return COLUMN_NAMES_TO_ESCAPE.contains(columnName.toLowerCase());
+	}
+
+	public String getEscapedColumnName(String columnName) {
+		if (dbMeta.getDialect() instanceof Oracle10gDialect) {
+			columnName = columnName.toUpperCase();
+		}
+		if (isColumnNameToEscape(columnName)) {
+			columnName = dbMeta.getDialect().openQuote() + columnName + dbMeta.getDialect().closeQuote();
+		}
+		return columnName;
+	}
+
+	public SumarisDatabaseMetadata getDbMeta() {
+		return dbMeta;
 	}
 
 	public String getAlias() {
@@ -214,8 +245,9 @@ public class SumarisTableMetadata {
 
 		// Add order by
 		if (StringUtils.isNotBlank(sort)) {
+			String sortColumn = getColumnMetadata(sort).getEscapedName();
 			sb.append(" ORDER BY ")
-					.append(String.format("%s.%s %s", tableAlias, sort, (direction != null ? direction.name() : "")));
+					.append(String.format("%s %s", SumarisMetadataUtils.getAliasedColumnName(tableAlias, sortColumn), (direction != null ? direction.name() : "")));
 		}
 
 		return sb.toString();
@@ -297,10 +329,10 @@ public class SumarisTableMetadata {
 		String whereClause = null;
 		if (columnNames != null && columnNames.length > 0) {
 			StringBuilder whereClauseBuilder = new StringBuilder();
-			for (String columnName : columnNames) {
+			for (String columnName : getEscapedColumnNames(List.of(columnNames))) {
 				whereClauseBuilder
 						.append("AND ")
-						.append(tableAlias).append('.').append(columnName)
+						.append(SumarisMetadataUtils.getAliasedColumnName(tableAlias, columnName))
 						.append(" = ?");
 			}
 			whereClause = whereClauseBuilder.substring(4);
@@ -353,7 +385,7 @@ public class SumarisTableMetadata {
 				String defaultValue = SumarisConfiguration.getInstance().getColumnDefaultValue(getName(), columnName);
 
 				// Create column meta
-				SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(rs, defaultValue);
+				SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(this, rs, defaultValue);
 				result.put(columnName.toLowerCase(), columnMeta);
 			}
 		}
@@ -434,7 +466,7 @@ public class SumarisTableMetadata {
 		StringBuilder queryParams = new StringBuilder();
 		StringBuilder valueParams = new StringBuilder();
 
-		for (String columnName : columnNames) {
+		for (String columnName : getEscapedColumnNames(columnNames)) {
 			queryParams.append(", ").append(columnName);
 			valueParams.append(", ?");
 		}
@@ -454,7 +486,7 @@ public class SumarisTableMetadata {
 		StringBuilder updateParams = new StringBuilder();
 		StringBuilder pkParams = new StringBuilder();
 
-		for (String columnName : getColumnNames()) {
+		for (String columnName : getEscapedColumnNames()) {
 			updateParams.append(", ").append(columnName).append(" = ?");
 		}
 
@@ -493,17 +525,7 @@ public class SumarisTableMetadata {
 				String.format("No column found for table: %s",
 						getName()));
 
-		StringBuilder queryParams = new StringBuilder();
-
-		for (String columnName : columnNames) {
-			queryParams.append(", ");
-			if (tableAlias != null) {
-				queryParams.append(tableAlias).append(".");
-			}
-			queryParams.append(columnName);
-		}
-
-		return queryParams.substring(2);
+		return String.join(", ", SumarisMetadataUtils.getAliasedColumns(tableAlias, getEscapedColumnNames(columnNames)));
 	}
 
 	/**
@@ -562,11 +584,8 @@ public class SumarisTableMetadata {
 		// add a tripFilter on update date column
 		if (isWithUpdateDateColumn()) {
 
-			String updateDateColumn = dbMeta.getDefaultUpdateDateColumnName();
-
-			query += String.format(" WHERE (%s.%s IS NULL OR %s.%s > ?)",
-					tableAlias, updateDateColumn,
-					tableAlias, updateDateColumn);
+			String updateDateColumn = SumarisMetadataUtils.getAliasedColumnName(tableAlias, dbMeta.getDefaultUpdateDateColumnName());
+			query += String.format(" WHERE (%s IS NULL OR %s > ?)", updateDateColumn, updateDateColumn);
 		}
 		return query;
 	}
@@ -579,11 +598,8 @@ public class SumarisTableMetadata {
 		// add a tripFilter on update date column
 		if (isWithUpdateDateColumn()) {
 
-			String updateDateColumn = dbMeta.getDefaultUpdateDateColumnName();
-
-			query += String.format(" WHERE (%s.%s IS NULL OR %s.%s > ?)",
-					tableAlias, updateDateColumn,
-					tableAlias, updateDateColumn);
+			String updateDateColumn = SumarisMetadataUtils.getAliasedColumnName(tableAlias, dbMeta.getDefaultUpdateDateColumnName());
+			query += String.format(" WHERE (%s IS NULL OR %s > ?)", updateDateColumn, updateDateColumn);
 		}
 		return query;
 	}

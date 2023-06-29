@@ -57,11 +57,12 @@
   <PROGRAM_PROPERTY ID="223" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.i18nSuffix" NAME="TRAWL_SELECTIVITY."/>
   <PROGRAM_PROPERTY ID="224" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.operation.editor" NAME="selectivity"/>
   <PROGRAM_PROPERTY ID="225" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-04-15"  LABEL="sumaris.trip.gear.help.message" NAME="Pour les maillages, saisir uniquement les &lt;b&gt;maillages à la jauge&lt;/b&gt;."/>
-  <PROGRAM_PROPERTY ID="226" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-10-18"  LABEL="sumaris.report.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="227" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-10-18"  LABEL="sumaris.trip.gear.minChildrenCount" NAME="2"/>
-  <PROGRAM_PROPERTY ID="228" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2023-03-20"  LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/> <!-- FRA -->
+  <PROGRAM_PROPERTY ID="226" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-10-18"  LABEL="sumaris.trip.gear.minChildrenCount" NAME="2"/>
+  <PROGRAM_PROPERTY ID="227" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2023-03-20"  LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/> <!-- FRA -->
+  <PROGRAM_PROPERTY ID="228" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2022-10-18"  LABEL="sumaris.trip.report.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="229" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2023-03-30"  LABEL="sumaris.trip.report.type" NAME="selectivity"/>
   <PROGRAM_PROPERTY ID="230" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2023-03-30"  LABEL="sumaris.extraction.formats" NAME="APASE"/>
+  <PROGRAM_PROPERTY ID="231" STATUS_FK="1" PROGRAM_FK="70" CREATION_DATE="2023-03-30"  LABEL="sumaris.trip.extraction.batch.denormalization.enable" NAME="true"/>
 
 
 

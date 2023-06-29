@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.junit.Assert;
@@ -58,14 +59,15 @@ public class VesselSnapshotDaoImplReadTest extends AbstractDaoTest {
 
         VesselFilterVO filter = VesselFilterVO.builder().build();
 
-        List<VesselSnapshotVO> result = dao.findByFilter(filter, 0, 10, null, null);
+        List<VesselSnapshotVO> result = dao.findByFilter(filter, 0, 10, VesselSnapshotVO.Fields.ID, SortDirection.ASC);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());
         VesselSnapshotVO vessel1 = result.get(0);
         Assert.assertEquals(1, vessel1.getId().intValue());
         Assert.assertEquals("CN851751", vessel1.getExteriorMarking());
-        Assert.assertEquals("FRA000851751", vessel1.getRegistrationCode());
+        Assert.assertEquals("851751", vessel1.getRegistrationCode());
+        Assert.assertEquals("FRA000851751", vessel1.getIntRegistrationCode());
         Assert.assertNotNull(vessel1.getBasePortLocation());
         Assert.assertEquals(10, vessel1.getBasePortLocation().getId().intValue());
         Assert.assertNotNull(vessel1.getRegistrationLocation());

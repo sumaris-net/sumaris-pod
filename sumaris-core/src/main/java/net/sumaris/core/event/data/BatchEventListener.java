@@ -65,11 +65,11 @@ public class BatchEventListener {
         BatchVO catchBatch = batch != null && batch.getParent() == null && batch.getParentId() == null ? batch : null;
         if (catchBatch == null) return; // Skip if not a catch batch
 
+        // TODO: compute options
         if (catchBatch.getOperationId() != null) {
             denormalizedBatchService.denormalizeAndSaveByOperationId(catchBatch.getOperationId(), null);
         }
         else if (catchBatch.getSaleId() != null) {
-            // TODO: compute options
             denormalizedBatchService.denormalizeAndSaveBySaleId(catchBatch.getSaleId(), null);
         }
         else {

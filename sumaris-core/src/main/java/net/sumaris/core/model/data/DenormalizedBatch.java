@@ -32,10 +32,12 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import lombok.Getter;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -51,13 +53,19 @@ import java.util.List;
  */
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "denormalized_batch")
 public class DenormalizedBatch  implements IEntity<Integer> {
 
     @Id
+    @EqualsAndHashCode.Include
     private Integer id;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn(name="id", referencedColumnName="id")
+    private Batch batch;
 
     @Column(length = 40)
     private String label;
@@ -206,17 +214,17 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @ToString.Exclude
     private DenormalizedBatch parent;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_fk")
     @ToString.Exclude
     private Operation operation;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_fk")
     @ToString.Exclude
     private Sale sale;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatchSortingValue.class, mappedBy = DenormalizedBatchSortingValue.Fields.BATCH,
-        cascade = CascadeType.REMOVE)
+    cascade = CascadeType.REMOVE)
     private List<DenormalizedBatchSortingValue> sortingValues = new ArrayList<>();
 }

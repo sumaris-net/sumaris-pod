@@ -22,14 +22,18 @@
 
 package net.sumaris.server.service.administration;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.ForbiddenException;
+import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
@@ -42,6 +46,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service("dataAccessControlService")
 public class DataAccessControlServiceImpl implements DataAccessControlService {
@@ -101,7 +106,30 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     @Override
     public void checkCanWrite(IRootDataVO data) {
-        // TODO
+        Preconditions.checkNotNull(data.getProgram());
+        Preconditions.checkNotNull(data.getProgram().getId());
+
+        boolean authorized = getAuthorizedProgramIds(new Integer[]{data.getProgram().getId()})
+            .map(ArrayUtils::isNotEmpty)
+            .orElse(false);
+
+        // User has no rights: no access
+        if (!authorized) throw new UnauthorizedException();
+
+    }
+
+    @Override
+    public <T extends IRootDataVO> void checkCanWriteAll(Collection<T> data) {
+        Integer[] programIds = data.stream().map(IRootDataVO::getProgram)
+            .map(ProgramVO::getId)
+            .collect(Collectors.toSet())
+            .toArray(Integer[]::new);
+        boolean authorized = getAuthorizedProgramIds(programIds)
+            .map(authorizedProgramIds -> authorizedProgramIds.length == programIds.length)
+            .orElse(false);
+
+        // User has no rights: no access
+        if (!authorized) throw new UnauthorizedException();
     }
 
     @Override

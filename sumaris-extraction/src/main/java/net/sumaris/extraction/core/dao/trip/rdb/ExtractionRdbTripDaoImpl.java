@@ -23,9 +23,8 @@ package net.sumaris.extraction.core.dao.trip.rdb;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
@@ -73,6 +72,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.PersistenceException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.nuiton.i18n.I18n.t;
 
@@ -130,7 +130,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setUpdateDate(new Date());
         context.setType(LiveExtractionTypeEnum.RDB);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
-        context.setEnableBatchDenormalization(extractionConfiguration.enableBatchDenormalization());
 
         // Fill context table names
         fillContextTableNames(context);
@@ -147,7 +146,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             else {
                 filterInfo.append("(without filter)");
             }
-            filterInfo.append("\n - Batch denormalization: " + context.isEnableBatchDenormalization());
+            filterInfo.append("\n - Batch denormalization: " + extractionConfiguration.enableBatchDenormalization());
             log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
@@ -173,7 +172,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 }
 
                 // Execute batch denormalization (if enable)
-                if (rowCount != 0 && context.isEnableBatchDenormalization()) {
+                if (rowCount != 0 && enableBatchDenormalization(context)) {
                     denormalizeBatches(context);
                 }
 
@@ -191,7 +190,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
                 // Species Length
                 if (rowCount != 0) {
-                    createSpeciesLengthTable(context);
+                    rowCount = createSpeciesLengthTable(context);
                     if (sheetName != null && context.hasSheet(sheetName)) return context;
                 }
             }
@@ -389,9 +388,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
 
-        // Compute groupBy (exclude columns with the 'agg' group)
-        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
-        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
+        // Compute groupBy
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -401,11 +399,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
     protected void denormalizeBatches(C context) {
         String stationsTableName = context.getStationTableName();
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
         programLabels.forEach(programLabel -> {
-            String sql = String.format("SELECT distinct CAST(%s AS INTEGER) from %s where %s='%s'",
+            // Get all operation ids
+            String sql = String.format("SELECT distinct CAST(%s AS INT) from %s where %s='%s'",
                     RdbSpecification.COLUMN_STATION_ID, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
-            Integer[] operationIds = query(sql, Integer.class).toArray(Integer[]::new);
+            Number[] operationIds = query(sql, Number.class).toArray(Number[]::new);
 
             DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
             // DEBUG
@@ -417,7 +416,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             for (int page = 0; page < pageCount; page++) {
                 int from = page * pageSize;
                 int to = Math.min(operationIds.length, from + pageSize);
-                Integer[] pageOperationIds = Arrays.copyOfRange(operationIds, from, to);
+                Integer[] pageOperationIds = Arrays.stream(Arrays.copyOfRange(operationIds, from, to))
+                    .mapToInt(Number::intValue)
+                    .mapToObj(Integer::valueOf)
+                    .toArray(Integer[]::new);
 
                 denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
                     .programLabel(programLabel)
@@ -448,8 +450,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         //if (this.production) {
-        // Add as a raw table (to be able to clean it later)
-        context.addRawTableName(tableName);
+            // Add as a raw table (to be able to clean it later)
+            context.addRawTableName(tableName);
+        //}
         // DEBUG
         //else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
 
@@ -458,7 +461,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
-        String queryName = context.isEnableBatchDenormalization()
+        String queryName = enableBatchDenormalization(context)
             ? "createRawSpeciesListDenormalizeTable"
             : "createRawSpeciesListTable";
 
@@ -466,18 +469,31 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("stationTableName", context.getStationTableName());
         xmlQuery.bind("rawSpeciesListTableName", context.getRawSpeciesListTableName());
 
+        // Bind some constants (e.g. should be RDB defaults, but can be overridden by configuration)
+        xmlQuery.bind("defaultLandingCategory", configuration.getExtractionDefaultLandingCategory());
+        xmlQuery.bind("defaultCommercialSizeCategoryScale", configuration.getExtractionDefaultCommercialSizeCategoryScale());
+
         // Bind some ids
         xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
         xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
         xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
+        xmlQuery.bind("landingCategoryPmfmId", String.valueOf(PmfmEnum.LANDING_CATEGORY.getId()));
         xmlQuery.bind("sizeCategoryPmfmIds", Daos.getSqlInNumbers(getSizeCategoryPmfmIds()));
         xmlQuery.bind("subsamplingCategoryPmfmId", String.valueOf(PmfmEnum.BATCH_SORTING.getId()));
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
 
+
         // Exclude not valid station
         xmlQuery.setGroup("excludeInvalidStation", excludeInvalidStation);
+
+        // Set defaults
+        xmlQuery.setGroup("excludeNoWeight", true);
         xmlQuery.setGroup("weight", true);
         xmlQuery.setGroup("lengthCode", true);
+
+        // Enable Landing/discard
+        xmlQuery.setGroup("hasLandingOrDiscardPmfm", true);
+        xmlQuery.setGroup("!hasLandingOrDiscardPmfm", false);
 
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
@@ -596,8 +612,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return 0;
     }
 
-    protected List<Integer> getSpeciesLengthPmfmIds() {
-        return ImmutableList.of(
+    protected Set<Integer> getSpeciesLengthPmfmIds() {
+        return ImmutableSet.of(
             PmfmEnum.LENGTH_TOTAL_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
@@ -606,8 +622,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         );
     }
 
-    protected List<Integer> getSpeciesListExcludedPmfmIds() {
-        return ImmutableList.<Integer>builder()
+    protected Set<Integer> getSpeciesListExcludedPmfmIds() {
+        return ImmutableSet.<Integer>builder()
             .add(
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
@@ -623,15 +639,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .build();
     }
 
-    protected List<Integer> getSizeCategoryPmfmIds() {
-        return ImmutableList.of(
+    protected Set<Integer> getSizeCategoryPmfmIds() {
+        return ImmutableSet.of(
             PmfmEnum.SIZE_CATEGORY.getId(),
             PmfmEnum.SIZE_UNLI_CAT.getId()
         );
     }
 
-    protected List<Integer> getSelectivityDevicePmfmIds() {
-        return ImmutableList.<Integer>builder()
+    protected Set<Integer> getSelectivityDevicePmfmIds() {
+        return ImmutableSet.<Integer>builder()
             .add(
                 PmfmEnum.SELECTIVITY_DEVICE.getId(),
                 PmfmEnum.SELECTIVITY_DEVICE_APASE.getId()
@@ -640,21 +656,60 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     /**
-     * Fill the context's pmfm infos (e.g. used to generate
+     * Fill the context's pmfm infos
      * @param context
      */
-    protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
-                                                           List<String> programLabels,
+    protected List<DenormalizedPmfmStrategyVO> loadPmfms(C context,
+                                                           Set<String> programLabels,
                                                            AcquisitionLevelEnum... acquisitionLevels) {
 
         if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
 
         // Create the map that holds the result
-        Map<String, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsCacheMap();
-        if (pmfmColumns == null) {
-            pmfmColumns = Maps.newHashMap();
-            context.setPmfmsCacheMap(pmfmColumns);
+        Map<String, List<DenormalizedPmfmStrategyVO>> pmfms = context.getPmfmsCacheMap();
+        List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
+            .map(AcquisitionLevelEnum::getId)
+            .toList();
+
+        String cacheKey = acquisitionLevelIds.toString();
+
+        // Already loaded: use the cached values
+        if (pmfms.containsKey(cacheKey)) return pmfms.get(cacheKey);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
+                programLabels,
+                cacheKey
+            );
         }
+
+        // Load pmfm columns
+        List<DenormalizedPmfmStrategyVO> result = strategyService.findDenormalizedPmfmsByFilter(
+                PmfmStrategyFilterVO.builder()
+                    .programLabels(programLabels.toArray(new String[0]))
+                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[0]))
+                    .build(),
+                PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
+            );
+
+        // save result into the context map
+        pmfms.put(cacheKey, result);
+
+        return result;
+    }
+
+    /**
+     * Fill the context's pmfm infos (e.g. used to generate
+     * @param context
+     */
+    protected List<ExtractionPmfmColumnVO> loadPmfmColumns(C context,
+                                                           Set<String> programLabels,
+                                                           AcquisitionLevelEnum... acquisitionLevels) {
+
+        if (CollectionUtils.isEmpty(programLabels)) return Collections.emptyList(); // no selected programs: skip
+
+        // Create the map that holds the result
+        Map<String, List<ExtractionPmfmColumnVO>> pmfmColumns = context.getPmfmsColumnsCacheMap();
 
         List<Integer> acquisitionLevelIds = Beans.getStream(acquisitionLevels)
             .map(AcquisitionLevelEnum::getId)
@@ -673,15 +728,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         // Load pmfm columns
-        List<ExtractionPmfmColumnVO> result = strategyService.findDenormalizedPmfmsByFilter(
-                PmfmStrategyFilterVO.builder()
-                    .programLabels(programLabels.toArray(new String[0]))
-                    .acquisitionLevelIds(acquisitionLevelIds.toArray(new Integer[0]))
-                    .build(),
-                PmfmStrategyFetchOptions.builder().withCompleteName(false).build()
-            )
+        List<ExtractionPmfmColumnVO> result = loadPmfms(context, programLabels, acquisitionLevels)
                 .stream()
-                .map(pmfmStrategy -> toPmfmColumnVO(pmfmStrategy, null))
+                .map(pmfm -> toPmfmColumnVO(pmfm, null))
 
                 // Group by pmfmId
                 .collect(Collectors.groupingBy(ExtractionPmfmColumnVO::getPmfmId))
@@ -697,18 +746,19 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return result;
     }
 
-    protected List<String> getTripProgramLabels(C context) {
+    protected Set<String> getTripProgramLabels(C context) {
 
-        List<String> result = context.getTripProgramLabels();
-        if (result != null) return result; // Already computed
+        Set<String> result = context.getTripProgramLabels();
+        if (result == null) {
 
-        XMLQuery xmlQuery = createXMLQuery(context, "distinctTripProgram");
-        xmlQuery.bind("tableName", context.getTripTableName());
+            XMLQuery xmlQuery = createXMLQuery(context, "distinctTripProgram");
+            xmlQuery.bind("tableName", context.getTripTableName());
 
-        result = query(xmlQuery.getSQLQueryAsString(), String.class);
+            result = queryToSet(xmlQuery.getSQLQueryAsString(), String.class);
 
-        // Store in context, to avoid another query execution
-        context.setTripProgramLabels(result);
+            // Fill cache
+            context.setTripProgramLabels(result);
+        }
 
         return result;
     }
@@ -764,7 +814,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
      */
     protected void updateTripSamplingMethod(C context) {
         try {
-            List<String> programLabels = getTripProgramLabels(context);
+            Set<String> programLabels = getTripProgramLabels(context);
             String tripTableName = context.getTripTableName();
             SumarisTableMetadata table = databaseMetadata.getTable(tripTableName);
             if (table.hasColumn(RdbSpecification.COLUMN_SAMPLING_METHOD)) {
@@ -787,7 +837,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     }
 
     protected boolean enableSpeciesLengthTaxon(C context) {
-        List<String> programLabels = getTripProgramLabels(context);
+        Set<String> programLabels = getTripProgramLabels(context);
 
         // Check if samples have been enabled:
         // - by program properties
@@ -798,5 +848,43 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 boolean showBatchLengthTaxonName = !showBatchTaxonName && this.programService.hasPropertyValueByProgramLabel(label, ProgramPropertyEnum.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE, Boolean.TRUE.toString());
                 return showBatchLengthTaxonName;
             });
+    }
+
+
+    protected Set<String> getTaxonGroupNoWeights(C context) {
+        Set<String> result = context.getTaxonGroupNoWeights();
+        if (result == null) {
+
+            result = getTripProgramLabels(context).stream()
+                .flatMap(programLabel -> {
+                    String values = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+                    if (StringUtils.isBlank(values)) return Stream.empty();
+                    return Splitter.on(",").splitToStream(values);
+                }).collect(Collectors.toSet());
+
+            // Fill cache
+            context.setTaxonGroupNoWeights(result);
+        }
+
+        return result;
+    }
+
+    protected boolean enableBatchDenormalization(C context) {
+        Boolean result = context.getEnableBatchDenormalization();
+        if (result == null) {
+
+            result = extractionConfiguration.enableBatchDenormalization() // Enable denormalization for all programs
+                || getTripProgramLabels(context).stream() // Check if denormalization has been enabled on program
+                .anyMatch(programLabel -> {
+                    String value = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE);
+                    if (StringUtils.isBlank(value)) return false; // = default value
+                    return Boolean.parseBoolean(value);
+                });
+
+            // Fill cache
+            context.setEnableBatchDenormalization(result);
+        }
+
+        return result;
     }
 }

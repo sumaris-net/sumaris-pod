@@ -28,7 +28,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = TaxonomicLevel.class, joinAttributes = {IEntity.Fields.ID})
+@EntityEnum(entity = TaxonomicLevel.class, resolveAttributes = {IEntity.Fields.ID})
 public enum TaxonomicLevelEnum implements Serializable {
 
     FAMILY(17, "FAMILY"),

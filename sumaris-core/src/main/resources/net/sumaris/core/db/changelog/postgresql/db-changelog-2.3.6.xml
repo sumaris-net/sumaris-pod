@@ -1,0 +1,38 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-2.3.6.xml">
+
+    <!-- Rename sequence EXTRACTION_PRODUCT_FREQ_SEQ into PROCESSING_FREQUENCY_SEQ -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958335000-001" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sequenceExists sequenceName="EXTRACTION_PRODUCT_FREQ_SEQ"></sequenceExists>
+                <not><sequenceExists sequenceName="PROCESSING_FREQUENCY_SEQ"></sequenceExists></not>
+            </and>
+        </preConditions>
+        <sql>
+            ALTER SEQUENCE EXTRACTION_PRODUCT_FREQ_SEQ RENAME TO PROCESSING_FREQUENCY_SEQ;
+        </sql>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958335000-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='2.3.6'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="nextval('system_version_seq')"/>
+            <column name="LABEL">2.3.6</column>
+            <column name="DESCRIPTION">
+                - Rename sequence EXTRACTION_PRODUCT_FREQ_SEQ into PROCESSING_FREQUENCY_SEQ
+            </column>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="COMMENTS">
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -23,7 +23,6 @@ package net.sumaris.core.dao.administration.programStrategy.denormalized;
  */
 
 import com.google.common.base.Preconditions;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -36,6 +35,7 @@ import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
@@ -44,7 +44,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
@@ -148,6 +147,11 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         // Unit symbol
         if (pmfm.getUnit() != null && !Objects.equals(pmfm.getUnit().getId(), UnitEnum.NONE.getId())) {
             target.setUnitLabel(pmfm.getUnit().getLabel());
+        }
+
+        // Label
+        if (StringUtils.isBlank(target.getLabel())) {
+            target.setLabel(parameter.getLabel() + (StringUtils.isNotBlank(target.getUnitLabel()) ? "_" + target.getUnitLabel() : ""));
         }
 
         // Qualitative values (from Pmfm if any, or from Parameter)

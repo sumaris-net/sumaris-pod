@@ -24,6 +24,10 @@ package net.sumaris.core.dao.technical.schema;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 /**
  * Copy from jdbc-synchro library
  */
@@ -55,4 +59,15 @@ public class SumarisMetadataUtils {
         }
         return name;
     }
+
+    public static Collection<String> getAliasedColumns(@Nullable String tableAlias, Collection<String> columnNames) {
+        if (StringUtils.isBlank(tableAlias)) return columnNames;
+        return columnNames.stream().map(c -> tableAlias + "." + c).collect(Collectors.toList());
+    }
+
+    public static String getAliasedColumnName(@Nullable String alias, String columnName) {
+        return StringUtils.isNotBlank(alias) ? alias + "." + columnName : columnName;
+    }
+
+
 }

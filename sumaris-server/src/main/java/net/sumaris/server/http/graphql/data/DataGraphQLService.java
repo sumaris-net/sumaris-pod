@@ -61,6 +61,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
+import net.sumaris.server.http.security.AnonymousUserDetails;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -219,6 +220,7 @@ public class DataGraphQLService {
     @IsUser
     public TripVO getTripById(@GraphQLNonNull @GraphQLArgument(name = "id") int id,
                               @GraphQLEnvironment ResolutionEnvironment env) {
+
         final TripVO result = tripService.get(id);
 
         // Check read access
@@ -226,7 +228,6 @@ public class DataGraphQLService {
 
         // Add additional properties if needed
         fillTripFields(result, GraphQLUtils.fields(env));
-
 
         return result;
     }
@@ -270,7 +271,11 @@ public class DataGraphQLService {
                         .build();
             }
         }
+        // Make sure user can write
+        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+        dataAccessControlService.checkCanWrite(trip);
 
+        // Save
         final TripVO result = tripService.save(trip, options);
 
         // Add additional properties if needed
@@ -303,7 +308,10 @@ public class DataGraphQLService {
                         .build();
             }
         }
+        // Make sure user can write
+        dataAccessControlService.checkCanWriteAll(trips);
 
+        // Save
         final List<TripVO> result = tripService.save(trips, options);
 
         // Add additional properties if needed
@@ -457,14 +465,14 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "observedLocations", description = "Search in observed locations")
     @Transactional(readOnly = true)
     @IsUser
-    public List<ObservedLocationVO> findAllObservedLocations(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
-                                                             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                             @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
-                                                             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                                             @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
-                                                             @GraphQLEnvironment ResolutionEnvironment env
-    ) {
+    public List<ObservedLocationVO> findObservedLocations(@GraphQLArgument(name = "filter") ObservedLocationFilterVO filter,
+                                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                          @GraphQLArgument(name = "sortBy", defaultValue = ObservedLocationVO.Fields.START_DATE_TIME) String sort,
+                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
+                                                          @GraphQLEnvironment ResolutionEnvironment env
+) {
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
         // Read from trash
@@ -494,7 +502,7 @@ public class DataGraphQLService {
         // Add additional properties if needed
         fillObservedLocationsFields(result, fields);
 
-        timeLog.log(now, "findAllObservedLocations");
+        timeLog.log(now, "findObservedLocations");
 
         return result;
     }
@@ -522,9 +530,11 @@ public class DataGraphQLService {
     @IsUser
     public ObservedLocationVO getObservedLocationById(@GraphQLArgument(name = "id") int id,
                                                       @GraphQLEnvironment ResolutionEnvironment env) {
+        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
+
         final ObservedLocationVO result = observedLocationService.get(id);
 
-        // Check access rights
+        // Check read access
         dataAccessControlService.checkCanRead(result);
 
         // Add additional properties if needed
@@ -539,9 +549,11 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
+
         // Make sure user can write
         dataAccessControlService.checkCanWrite(observedLocation);
 
+        // Save
         ObservedLocationVO result = observedLocationService.save(observedLocation, options);
 
         // Fill expected fields
@@ -556,6 +568,10 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations,
             @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
+
+        // Make sure user can write
+        dataAccessControlService.checkCanWriteAll(observedLocations);
+
         final List<ObservedLocationVO> result = observedLocationService.save(observedLocations, options);
 
         // Fill expected fields
@@ -970,10 +986,29 @@ public class DataGraphQLService {
                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                         @GraphQLArgument(name = "sortBy", defaultValue = LandingVO.Fields.DATE_TIME) String sort,
                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                        @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                         @GraphQLEnvironment ResolutionEnvironment env
     ) {
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
+
+        // Read from trash
+        if (trash) {
+            // Check user is admin
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
+
+            // Set default sort
+            sort = sort != null ? sort : LandingVO.Fields.UPDATE_DATE;
+
+            // Call the trash service
+            return trashService.findAll(Landing.class.getSimpleName(),
+                Pageables.create(offset, size, sort, sortDirection),
+                LandingVO.class).getContent();
+        }
+
+        filter = fillRootDataFilter(filter, LandingFilterVO.class);
         Set<String> fields = GraphQLUtils.fields(env);
 
+        long now = TimeLog.getTime();
         final List<LandingVO> result = landingService.findAll(
                 filter,
                 Page.builder()
@@ -987,13 +1022,26 @@ public class DataGraphQLService {
         // Add additional properties if needed
         fillLandingsFields(result, fields);
 
+        timeLog.log(now, "findLandings");
+
         return result;
     }
 
     @GraphQLQuery(name = "landingsCount", description = "Get total number of landings")
     @Transactional(readOnly = true)
     @IsUser
-    public long countLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter) {
+    public long countLandings(@GraphQLArgument(name = "filter") LandingFilterVO filter,
+                              @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
+        if (trash) {
+            // Check user is admin
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
+
+            // Call the trash service
+            return trashService.count(Landing.class.getSimpleName());
+        }
+
+        filter = fillRootDataFilter(filter, LandingFilterVO.class);
+
         return landingService.countByFilter(filter);
     }
 
@@ -1351,6 +1399,18 @@ public class DataGraphQLService {
         Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
         return result;
     }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getLandingMeasurementsMap(@GraphQLContext LandingVO landing,
+                                                          @GraphQLArgument(name = "pmfmIds") List<Integer> pmfmIds) {
+        if (landing.getMeasurementValues() != null) return landing.getMeasurementValues();
+        if (landing.getId() == null) return null;
+        Map<Integer, String> result = new HashMap<>();
+        Optional.ofNullable(measurementService.getLandingMeasurementsMap(landing.getId(), pmfmIds)).ifPresent(result::putAll);
+        Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId(), pmfmIds)).ifPresent(result::putAll);
+        return result;
+    }
+
 
     // Measurement pmfm
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")

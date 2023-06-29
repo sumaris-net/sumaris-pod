@@ -29,6 +29,7 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
+import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
@@ -41,7 +42,8 @@ import java.io.File;
 @SpringBootApplication(
     exclude = {
         LiquibaseAutoConfiguration.class,
-        FreeMarkerAutoConfiguration.class
+        FreeMarkerAutoConfiguration.class,
+        JmsAutoConfiguration.class
     },
     scanBasePackages = {
             "net.sumaris.core.config",

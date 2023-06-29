@@ -23,11 +23,9 @@ package net.sumaris.extraction.core.service;
  */
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -43,7 +41,6 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.extraction.ExtractionTableRepository;
-import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -70,7 +67,7 @@ import net.sumaris.extraction.core.dao.ExtractionDaoDispatcher;
 import net.sumaris.extraction.core.dao.administration.ExtractionStrategyDao;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.csv.ExtractionCsvDao;
-import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
@@ -610,6 +607,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             ExtractionContextVO context = new ExtractionContextVO();
             context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
             extTableNames.stream()
+                // Exclude table used in products
                 .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());
@@ -623,6 +621,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             ExtractionContextVO context = new ExtractionContextVO();
             context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
             aggTableNames.stream()
+                // Exclude table used in products
                 .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());
@@ -864,16 +863,18 @@ public class ExtractionServiceImpl implements ExtractionService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
-        String whereClause = SumarisTableMetadatas.getSqlWhereClause(table, filter);
-        String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
-
         Map<String, String> dateFormats = Maps.newHashMap();
         columnNames.stream().map(table::getColumnMetadata)
-            .filter(SumarisTableMetadatas::isDateColumn)
+            .filter(SumarisTableUtils::isDateColumn)
             .forEach(column -> dateFormats.put(column.getName(), Dates.CSV_DATE_TIME));
 
+        String whereClause = SumarisTableUtils.getSqlWhereClause(table, filter);
+        String query = table.getSelectQuery(enableDistinct, columnNames, whereClause, null, null);
+
+        Map<String, String> aliases = getAliasByColumnMap(columnNames);
+
         extractionCsvDao.dumpQueryToCSV(outputFile, query,
-            getAliasByColumnMap(columnNames),
+            aliases,
             dateFormats,
             null,
             null);
@@ -894,8 +895,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         }
     }
 
-    protected Map<String, String> getAliasByColumnMap(Set<String> tableNames) {
-        return tableNames.stream()
+    protected Map<String, String> getAliasByColumnMap(Set<String> columnNames) {
+        return columnNames.stream()
             .collect(Collectors.toMap(
                 String::toUpperCase,
                 StringUtils::underscoreToChangeCase));

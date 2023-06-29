@@ -35,6 +35,9 @@ public @interface EntityEnum  {
     Class<? extends IEntity> entity();
 
     String configPrefix() default "sumaris.enumeration.";
-    String[] joinAttributes() default {IEntity.Fields.ID, "label"};
+    String[] resolveAttributes() default {IEntity.Fields.ID, "label"};
+
+    String[] configAttributes() default {};
+
     boolean required() default true;
 }

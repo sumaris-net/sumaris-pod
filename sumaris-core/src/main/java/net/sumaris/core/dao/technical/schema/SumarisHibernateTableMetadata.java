@@ -27,8 +27,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.util.StringUtils;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.ForeignKey;
@@ -39,7 +37,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -149,12 +146,12 @@ public class SumarisHibernateTableMetadata extends SumarisTableMetadata {
 
 				Column column = columns.get(columnName);
 				if (column != null) {
-					SumarisHibernateColumnMetadata columnMeta = new SumarisHibernateColumnMetadata(rs, column, defaultValue);
+					SumarisHibernateColumnMetadata columnMeta = new SumarisHibernateColumnMetadata(this, rs, column, defaultValue);
 					result.put(columnName.toLowerCase(), columnMeta);
 				}
 				else {
 					log.warn(String.format("Column {%s} not mapped in the entity class {%s}", columnName, persistentClass.getEntityName()));
-					SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(rs, defaultValue);
+					SumarisColumnMetadata columnMeta = new SumarisColumnMetadata(this, rs, defaultValue);
 					result.put(columnName.toLowerCase(), columnMeta);
 				}
 			}

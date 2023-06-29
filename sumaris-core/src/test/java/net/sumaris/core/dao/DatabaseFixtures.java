@@ -157,6 +157,27 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public String getSampleLabel(int index) {
+		Preconditions.checkArgument(index >= 0);
+		// See ADAP-CONTROLE data
+		switch (index) {
+			case 0:
+			default:
+				return "01002";
+		}
+	}
+	public String getSampleTagId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		// See SIH-OBSBIO data
+		switch (index) {
+			case 0:
+				return "20LEUCCIR001-0001";
+			case 1:
+			default:
+				return "20LEUCCIR001-0002";
+		}
+	}
+
 	public Integer getBatchId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

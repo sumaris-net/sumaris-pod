@@ -28,7 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripContextVO;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -54,5 +54,6 @@ public class ExtractionRdbTripContextVO extends ExtractionTripContextVO {
     String sampleSheetName; // CA
 
     // Cached computed values
-    List<String> tripProgramLabels;
+    Set<String> tripProgramLabels;
+    Set<String> taxonGroupNoWeights;
 }

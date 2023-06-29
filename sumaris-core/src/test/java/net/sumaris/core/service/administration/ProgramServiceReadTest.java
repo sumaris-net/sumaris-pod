@@ -76,7 +76,7 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
         Assert.assertEquals(10, program.getId().intValue());
 
         Assert.assertNotNull(program.getProperties());
-        Assert.assertEquals(18, program.getProperties().size());
+        Assert.assertEquals(22, program.getProperties().size());
 
         Assert.assertNotNull(program.getGearClassificationId());
         Assert.assertNotNull(program.getTaxonGroupTypeId());

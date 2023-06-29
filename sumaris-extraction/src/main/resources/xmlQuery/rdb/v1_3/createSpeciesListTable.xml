@@ -46,12 +46,12 @@
     <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
     <!-- other fields -->
-    <select alias="WEIGHT" group="weight,agg" type="number">CAST(SUM(SL.WEIGHT) * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)</select>
-    <select alias="SUBSAMPLE_WEIGHT" group="weight" type="number"><![CDATA[
-      CASE
+    <select alias="WEIGHT" group="weight,agg" type="number">CAST(SUM(SL.WEIGHT * SL.SUBSAMPLING_RATIO * 1000) AS INTEGER)</select>
+    <select alias="SUBSAMPLE_WEIGHT" group="weight,agg" type="number"><![CDATA[
+      SUM(CASE
         WHEN SUBSAMPLE_WEIGHT > 0 THEN CAST(SL.SUBSAMPLE_WEIGHT * SL.SUBSAMPLING_RATIO * 1000 AS INTEGER)
         ELSE NULL
-      END
+      END)
     ]]></select>
 
     <select alias="LENGTH_CODE" group="lengthCode" type="text">SL.LENGTH_CODE</select>
@@ -59,7 +59,8 @@
     <!-- need to link other tables -->
     <select alias="STATION_ID" type="hidden">SL.STATION_ID</select>
     <select alias="SAMPLE_IDS" dbms="hsqldb,pgsql" type="hidden" group="agg">ARRAY_AGG(SL.SAMPLE_ID)</select>
-    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg">LISTAGG(SL.SAMPLE_ID, ',')</select>
+    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg,oracle11">LISTAGG(SL.SAMPLE_ID, ',')</select>
+    <select alias="SAMPLE_IDS" dbms="oracle" type="hidden" group="agg,oracle12">LISTAGG(SL.SAMPLE_ID, ',') WITHIN GROUP (ORDER BY SL.SAMPLE_ID)</select>
 
 
     <from alias="SL">&amp;rawSpeciesListTableName</from>
@@ -67,7 +68,6 @@
     <where>1=1</where>
 
     <groupby>&amp;groupByColumns</groupby>
-    <groupby>SL.SUBSAMPLING_RATIO</groupby>
   </query>
 
 </queries>

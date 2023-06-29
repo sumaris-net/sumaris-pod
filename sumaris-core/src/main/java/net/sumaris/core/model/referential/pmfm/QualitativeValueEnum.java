@@ -22,14 +22,13 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.annotation.EntityEnum;
 import net.sumaris.core.model.annotation.IEntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = QualitativeValue.class, joinAttributes = {QualitativeValue.Fields.LABEL, QualitativeValue.Fields.ID})
+@EntityEnum(entity = QualitativeValue.class, resolveAttributes = {QualitativeValue.Fields.LABEL, QualitativeValue.Fields.ID})
 public enum QualitativeValueEnum implements Serializable, IEntityEnum {
 
     SORTING_BULK(390, "VRAC"), // Adagio => 311

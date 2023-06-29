@@ -31,7 +31,7 @@ import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
-import net.sumaris.extraction.core.dao.technical.schema.SumarisTableMetadatas;
+import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.xml.query.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.AggregationRdbTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.AggRdbSpecification;
@@ -319,8 +319,8 @@ public class AggregationPmfmTripDaoImpl<
         columns
             .forEach(column -> {
                 String columnName = column.getName();
-                String aliasedColumnName = SumarisTableMetadatas.getAliasedColumnName(tableAlias, column.getName());
-                boolean isNumericColumn = SumarisTableMetadatas.isNumericColumn(column);
+                String aliasedColumnName = SumarisTableUtils.getAliasedColumnName(tableAlias, column.getEscapedName());
+                boolean isNumericColumn = SumarisTableUtils.isNumericColumn(column);
                 String suffix = StringUtils.capitalize(StringUtils.underscoreToChangeCase(columnName));
                 xmlQuery.injectQuery(injectionQuery, "%suffix%", suffix);
                 xmlQuery.bind("columnAlias" + suffix, columnName);

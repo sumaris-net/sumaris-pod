@@ -22,7 +22,9 @@
 
 <query type="select">
 
-<!--  <select alias="REFERENCE_TAXON_ID" type="hidden" group="taxon">SPECIE_B.REFERENCE_TAXON_FK</select>-->
+  <!-- individualCount - only if some taxonGroupNoWeight exists -->
+  <select alias="INDIVIDUAL_COUNT" type="number" group="individualCount,agg">MAX(COALESCE(SORTING_B.INDIVIDUAL_COUNT, SPECIE_B.INDIVIDUAL_COUNT))</select>
+  <select alias="SUBSAMPLING_INDIVIDUAL_COUNT" type="number" group="individualCount,agg">MAX(COALESCE(SAMPLING_B.INDIVIDUAL_COUNT, SORTING_B.INDIVIDUAL_COUNT))</select>
 
   <from join="true" group="pmfms">LEFT OUTER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = SPECIE_B.ID</from>
   <from join="true" group="pmfms">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = SM.QUALITATIVE_VALUE_FK</from>

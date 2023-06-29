@@ -28,7 +28,10 @@ import net.sumaris.core.model.annotation.IEntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = Pmfm.class, joinAttributes = Pmfm.Fields.LABEL, required = false)
+@EntityEnum(entity = Pmfm.class,
+    configAttributes = Pmfm.Fields.ID,
+    resolveAttributes = Pmfm.Fields.LABEL,
+    required = false)
 public enum PmfmEnum implements IEntityEnum, Serializable {
 
     SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),
@@ -43,6 +46,8 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     GEAR_LABEL(120, "GEAR_LABEL"), // Libellé de l'engin
     NET_LENGTH(41, "NET_LENGTH"),
     DISCARD_OR_LANDING(90, "DISCARD_OR_LANDING"),
+
+    LANDING_CATEGORY(421, "LANDING_CATEGORY"),
 
     CONVEYOR_BELT(20, "CONVEYOR_BELT"),
     NB_FISHERMEN(21, "NB_FISHERMEN"),

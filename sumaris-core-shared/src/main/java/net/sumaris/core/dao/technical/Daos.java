@@ -12,12 +12,12 @@ package net.sumaris.core.dao.technical;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -261,9 +261,9 @@ public class Daos {
      */
     public static Connection createConnection(Properties connectionProperties) throws SQLException {
         return createConnection(
-                connectionProperties.getProperty(Environment.URL),
-                connectionProperties.getProperty(Environment.USER),
-                connectionProperties.getProperty(Environment.PASS)
+            connectionProperties.getProperty(Environment.URL),
+            connectionProperties.getProperty(Environment.USER),
+            connectionProperties.getProperty(Environment.PASS)
         );
     }
 
@@ -310,8 +310,8 @@ public class Daos {
                                               String user,
                                               String password) throws SQLException {
         Connection connection = DriverManager.getConnection(jdbcUrl,
-                user,
-                password);
+            user,
+            password);
         connection.setAutoCommit(false);
         return connection;
     }
@@ -349,6 +349,7 @@ public class Daos {
         String jdbcUrl = JDBC_URL_PREFIX_HSQLDB_FILE + directory + "/" + dbName;
         return jdbcUrl;
     }
+
     public static String getDbms(String jdbcUrl) {
         Preconditions.checkNotNull(jdbcUrl);
         Preconditions.checkArgument(jdbcUrl.startsWith(JDBC_URL_PREFIX));
@@ -371,8 +372,7 @@ public class Daos {
         try {
             String jdbcUrl = conn.getMetaData().getURL();
             return isHsqlDatabase(jdbcUrl);
-        }
-        catch(SQLException e) {
+        } catch (SQLException e) {
             throw new SumarisTechnicalException(e);
         }
     }
@@ -393,12 +393,38 @@ public class Daos {
         try {
             String jdbcUrl = conn.getMetaData().getURL();
             return isOracleDatabase(jdbcUrl);
-        }
-        catch(SQLException e) {
+        } catch (SQLException e) {
             throw new SumarisTechnicalException(e);
         }
     }
 
+    public static boolean isOracleDatabase(DataSource dataSource) {
+        Connection conn = DataSourceUtils.getConnection(dataSource);
+        try {
+            return isOracleDatabase(conn);
+        } finally {
+            DataSourceUtils.releaseConnection(conn, dataSource);
+        }
+    }
+
+    public static Version getOracleVersion(DataSource dataSource) {
+        if (isOracleDatabase(dataSource)) {
+            Connection conn = DataSourceUtils.getConnection(dataSource);
+            try {
+                Object result = sqlUnique(conn, "SELECT VALUE FROM NLS_DATABASE_PARAMETERS WHERE PARAMETER = 'NLS_RDBMS_VERSION'");
+                if (result instanceof String version) {
+                    while (net.sumaris.core.util.StringUtils.countMatches(version, ".") > 3) {
+                        version = net.sumaris.core.util.StringUtils.removeLastToken(version, ".");
+                    }
+                    return Versions.valueOf(version);
+                }
+
+            } finally {
+                DataSourceUtils.releaseConnection(conn, dataSource);
+            }
+        }
+        throw new SumarisTechnicalException("The datasource is not Oracle");
+    }
 
     /**
      * <p>isPgsqlDatabase.</p>
@@ -416,8 +442,7 @@ public class Daos {
         try {
             String jdbcUrl = conn.getMetaData().getURL();
             return isPostgresqlDatabase(jdbcUrl);
-        }
-        catch(SQLException e) {
+        } catch (SQLException e) {
             throw new SumarisTechnicalException(e);
         }
     }
@@ -444,8 +469,7 @@ public class Daos {
         try {
             String jdbcUrl = conn.getMetaData().getURL();
             return isFileDatabase(jdbcUrl);
-        }
-        catch(SQLException e) {
+        } catch (SQLException e) {
             throw new SumarisTechnicalException(e);
         }
     }
@@ -519,9 +543,7 @@ public class Daos {
             }
             sql = String.format(sql, enableIntegrityConstraints ? "TRUE" : "FALSE");
             sqlUpdate(connection, sql);
-        }
-
-        else if (isPostgresqlDatabase(jdbcUrl)){
+        } else if (isPostgresqlDatabase(jdbcUrl)) {
             PostgresqlStatements.setIntegrityConstraints(connection, enableIntegrityConstraints);
         }
         /*else if (isOracleDatabase(jdbcUrl)) {
@@ -531,7 +553,7 @@ public class Daos {
         // else: not supported operation
         else {
             throw new SumarisTechnicalException(String.format(
-                    "Could not enable/disable integrity constraints on database: %s. Not implemented for this DBMS.", jdbcUrl));
+                "Could not enable/disable integrity constraints on database: %s. Not implemented for this DBMS.", jdbcUrl));
         }
 
     }
@@ -546,10 +568,10 @@ public class Daos {
      * @return a boolean.
      */
     public static boolean isValidConnectionProperties(
-            String jdbcDriver,
-            String jdbcUrl,
-            String user,
-            String password) {
+        String jdbcDriver,
+        String jdbcUrl,
+        String user,
+        String password) {
         try {
             Class<?> driverClass = Class.forName(jdbcDriver);
             DriverManager.registerDriver((Driver) driverClass.getConstructor().newInstance());
@@ -561,9 +583,9 @@ public class Daos {
         Connection connection = null;
         try {
             connection = createConnection(
-                    jdbcUrl,
-                    user,
-                    password);
+                jdbcUrl,
+                user,
+                password);
             return true;
         } catch (SQLException e) {
             log.error("Could not connect to database: " + e.getMessage().trim());
@@ -581,10 +603,10 @@ public class Daos {
      */
     public static boolean isValidConnectionProperties(Properties connectionProperties) {
         return isValidConnectionProperties(
-                connectionProperties.getProperty(Environment.DRIVER),
-                connectionProperties.getProperty(Environment.URL),
-                connectionProperties.getProperty(Environment.USER),
-                connectionProperties.getProperty(Environment.PASS));
+            connectionProperties.getProperty(Environment.DRIVER),
+            connectionProperties.getProperty(Environment.URL),
+            connectionProperties.getProperty(Environment.USER),
+            connectionProperties.getProperty(Environment.PASS));
     }
 
     private static final MathContext MATH_CONTEXT_4_DIGIT = new MathContext(4);
@@ -764,7 +786,7 @@ public class Daos {
     /**
      * Round a double value with specific number of decimals
      *
-     * @param value to round or null
+     * @param value     to round or null
      * @param nbDecimal number of decimals
      * @return the rounded number or null
      */
@@ -1087,8 +1109,8 @@ public class Daos {
                 throw new DataRetrievalFailureException("Executed query return no row: " + sql);
             }
             Object result = timestamp
-                    ? rs.getTimestamp(1)
-                    : rs.getObject(1);
+                ? rs.getTimestamp(1)
+                : rs.getObject(1);
             if (rs.next()) {
                 throw new DataRetrievalFailureException("Executed query has more than one row: " + sql);
             }
@@ -1248,14 +1270,14 @@ public class Daos {
             Object bindingValue = bindingMap.get(bindingName);
             if (bindingValue == null && !bindingMap.containsKey(bindingName)) {
                 log.error(t("sumaris.persistence.bindingQuery.error.log",
-                        bindingName,
-                        sql));
+                    bindingName,
+                    sql));
                 throw new DataAccessResourceFailureException(t("sumaris.persistence.bindingQuery.error",
-                        sql));
+                    sql));
             }
             orderedBindingValues.add(bindingValue);
             sb.append(sql.substring(offset, paramMatcher.start()))
-                    .append("?");
+                .append("?");
             offset = paramMatcher.end();
 
             if (debugParams != null) debugParams.append(", ").append(bindingValue);
@@ -1445,7 +1467,7 @@ public class Daos {
         // Try to find a db directory
         for (File subDirOrFile : subFilesAndDirs) {
             if (subDirOrFile.isDirectory()
-                    && subDirOrFile.getName().equalsIgnoreCase(DB_DIRECTORY)) {
+                && subDirOrFile.getName().equalsIgnoreCase(DB_DIRECTORY)) {
                 dbDirectory = subDirOrFile;
                 break;
             }
@@ -1458,11 +1480,11 @@ public class Daos {
         String dbName = SumarisConfiguration.getInstance().getDbName();
         for (File dbFile : dbFiles) {
             if (dbFile.isFile()
-                    && dbFile.getName().equalsIgnoreCase(dbName + ".script")) {
+                && dbFile.getName().equalsIgnoreCase(dbName + ".script")) {
                 hasScriptFile = true;
             }
             if (dbFile.isFile()
-                    && dbFile.getName().equalsIgnoreCase(dbName + ".properties")) {
+                && dbFile.getName().equalsIgnoreCase(dbName + ".properties")) {
                 hasPropertiesFile = true;
             }
         }
@@ -1578,12 +1600,12 @@ public class Daos {
     }
 
     public static Timestamp toTimestampFromJdbcResult(Object source) throws SQLException {
-        if (source instanceof Timestamp) return (Timestamp)source;
+        if (source instanceof Timestamp) return (Timestamp) source;
 
         if (source instanceof Date) {
             return new Timestamp(((Date) source).getTime());
         } else if (source instanceof OffsetDateTime) {
-            return  new Timestamp(((OffsetDateTime) source)
+            return new Timestamp(((OffsetDateTime) source)
                 .atZoneSimilarLocal(ZoneOffset.UTC)
                 .toInstant().toEpochMilli());
         }
@@ -1599,11 +1621,9 @@ public class Daos {
         }
         if (source instanceof Timestamp) {
             return new Date(((Timestamp) source).getTime());
-        }
-        else if (source instanceof java.sql.Date) {
+        } else if (source instanceof java.sql.Date) {
             return new Date(((java.sql.Date) source).getTime());
-        }
-        else if (source instanceof Date) {
+        } else if (source instanceof Date) {
             return new Date(((Date) source).getTime());
         }
 
@@ -1628,10 +1648,10 @@ public class Daos {
             int offset = timezone.getOffset(System.currentTimeMillis());
 
             StringBuffer sql = new StringBuffer()
-                    .append("SET TIME ZONE INTERVAL '")
-                    .append(offset < 0 ? "-" : "+")
-                    .append(new SimpleDateFormat("hh:mm").format(new Date(Math.abs(offset))))
-                    .append("' HOUR TO MINUTE;");
+                .append("SET TIME ZONE INTERVAL '")
+                .append(offset < 0 ? "-" : "+")
+                .append(new SimpleDateFormat("hh:mm").format(new Date(Math.abs(offset))))
+                .append("' HOUR TO MINUTE;");
             PreparedStatement ps = connection.prepareStatement(sql.toString());
             ps.execute();
             ps.close();
@@ -1646,8 +1666,8 @@ public class Daos {
             Timestamp sourceUpdateDtNoMillisecond = Dates.resetMillisecond(source.getUpdateDate());
             if (!Objects.equals(sourceUpdateDtNoMillisecond, serverUpdateDtNoMillisecond)) {
                 throw new BadUpdateDateException(I18n.t("sumaris.persistence.error.badUpdateDate",
-                        getTableName(entity), source.getId(), serverUpdateDtNoMillisecond,
-                        sourceUpdateDtNoMillisecond));
+                    getTableName(entity), source.getId(), serverUpdateDtNoMillisecond,
+                    sourceUpdateDtNoMillisecond));
             }
         }
     }
@@ -1658,7 +1678,7 @@ public class Daos {
     }
 
     public static String getTableName(String entityName) {
-        String firstLetterLowercase = entityName.substring(0,1).toLowerCase() + entityName.substring(1);
+        String firstLetterLowercase = entityName.substring(0, 1).toLowerCase() + entityName.substring(1);
         return I18n.t("sumaris.persistence.table." + firstLetterLowercase);
     }
 
@@ -1731,18 +1751,19 @@ public class Daos {
                 T pageModel = processPageFn.apply(page);
                 page.setOffset(page.getOffset() + pageSize);
                 hasNext = hasNextFn.apply(pageModel)
-                        && (maxLimit == -1 || page.getOffset() < maxLimit);
+                          && (maxLimit == -1 || page.getOffset() < maxLimit);
                 return pageModel;
             }
         };
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
-                iterator,
-                Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
+            iterator,
+            Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
     }
 
 
     /**
      * Fill a property, as an entity
+     *
      * @param propertyClass
      * @param propertyName
      * @param entityId
@@ -1764,6 +1785,7 @@ public class Daos {
 
     /**
      * Fill many properties, by a class and an entity id
+     *
      * @param target
      * @param copySpec should be an array of triple: [String propertyName, Class propertyClass, Integer entityId]
      */
@@ -1773,18 +1795,17 @@ public class Daos {
         Preconditions.checkNotNull(target);
         Preconditions.checkNotNull(copySpec);
         Preconditions.checkArgument(copySpec.length > 0 && copySpec.length % 3 == 0,
-                "Invalid 'copySpec' argument. Expect [propertyName, Class, entityId]");
+            "Invalid 'copySpec' argument. Expect [propertyName, Class, entityId]");
 
         int offset = 0;
-        while(offset < copySpec.length -1) {
+        while (offset < copySpec.length - 1) {
             try {
                 String propertyName = (String) copySpec[offset];
-                Class<? extends Serializable> propertyClazz = (Class<? extends Serializable>) copySpec[offset+1];
-                Integer entityId = (Integer) copySpec[offset+2];
+                Class<? extends Serializable> propertyClazz = (Class<? extends Serializable>) copySpec[offset + 1];
+                Integer entityId = (Integer) copySpec[offset + 2];
 
                 setEntityProperty(em, target, propertyName, propertyClazz, entityId);
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
                 throw new IllegalArgumentException("Error while reading arguments at index: " + offset);
             }
             offset += 3;
@@ -1820,7 +1841,7 @@ public class Daos {
             throw new IllegalArgumentException(String.format("Invalid join [%s] : expected a Join class but found type [%s]", attributePath, from.getJavaType()));
         }
 
-        return (Join<S, T>)from;
+        return (Join<S, T>) from;
     }
 
     public static <X> Path<X> composePath(Path<?> root, String attributePath) {
@@ -1888,18 +1909,19 @@ public class Daos {
             throw new IllegalArgumentException(String.format("Invalid join list [%s] : expected a ListJoin class but found type [%s]", attributePath, from.getJavaType()));
         }
 
-        return (ListJoin<S, T>)from;
+        return (ListJoin<S, T>) from;
     }
 
     public static <T, X> Root<X> getRoot(CriteriaQuery<T> query, Class<X> entityClass) {
         return Beans.getStream(query.getRoots())
             .filter(root -> root.getJavaType() == entityClass)
-            .findFirst().map(root -> (Root<X>)root)
+            .findFirst().map(root -> (Root<X>) root)
             .orElseGet(() -> query.from(entityClass));
     }
 
     /**
      * Return the datatype (e.g. 'hsqldb', 'oracle', 'postgresql') from a jdbc URL
+     *
      * @param jdbcUrl
      * @return
      */
@@ -1920,7 +1942,7 @@ public class Daos {
             case postgresql:
                 return String.format("F_HASH_CODE(%s)", expr);
             default:
-                    throw new SumarisTechnicalException("Daos.getSelectHashCodeString() not implemented for DBMS: " + databaseType.name());
+                throw new SumarisTechnicalException("Daos.getSelectHashCodeString() not implemented for DBMS: " + databaseType.name());
         }
     }
 

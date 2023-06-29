@@ -28,7 +28,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.util.Arrays;
 
 @EntityEnum(entity = AcquisitionLevel.class,
-    joinAttributes = AcquisitionLevel.Fields.LABEL)
+    resolveAttributes = AcquisitionLevel.Fields.LABEL)
 public enum AcquisitionLevelEnum {
 
     TRIP(1, "TRIP"),

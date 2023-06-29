@@ -106,12 +106,6 @@ public class Operation implements IDataEntity<Integer>,
     @ToString.Exclude
     private Trip trip;
 
-    @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
-    @JoinColumn(name = "operation_fk", unique = true)
-    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
-    @ToString.Exclude
-    private Operation parentOperation;
-
     @Column(name = "start_date_time", nullable = false)
     private Date startDateTime;
 
@@ -141,33 +135,32 @@ public class Operation implements IDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private PhysicalGear physicalGear;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = VesselPosition.Fields.OPERATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPosition.class, mappedBy = VesselPosition.Fields.OPERATION, cascade = CascadeType.REMOVE)
     private List<VesselPosition> positions = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.OPERATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.OPERATION, cascade = CascadeType.REMOVE)
     private List<VesselUseMeasurement> vesselUseMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = GearUseMeasurement.Fields.OPERATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = GearUseMeasurement.Fields.OPERATION, cascade = CascadeType.REMOVE)
     private List<GearUseMeasurement> gearUseMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.Fields.OPERATION)
-    @Cascade({org.hibernate.annotations.CascadeType.DELETE})
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sample.class, mappedBy = Sample.Fields.OPERATION, cascade = CascadeType.REMOVE)
     private List<Sample> samples = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.Fields.OPERATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Batch.class, mappedBy = Batch.Fields.OPERATION, cascade = CascadeType.REMOVE)
     private List<Batch> batches;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.OPERATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.OPERATION, cascade = CascadeType.REMOVE)
     private List<Product> products = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.OPERATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.OPERATION, cascade = CascadeType.REMOVE)
     private List<FishingArea> fishingAreas = new ArrayList<>();
+
+
+    @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class, cascade = CascadeType.DETACH)
+    @JoinColumn(name = "operation_fk", unique = true)
+    @ToString.Exclude
+    private Operation parentOperation;
 
     @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class, mappedBy = Fields.PARENT_OPERATION)
     private Operation childOperation;

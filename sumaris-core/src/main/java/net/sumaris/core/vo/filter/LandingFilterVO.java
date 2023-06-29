@@ -51,6 +51,7 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     }
 
     private String programLabel;
+    private String[] strategyLabels;
     private Date startDate;
     private Date endDate;
     private Integer vesselId;
@@ -70,4 +71,8 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     // Quality
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
+
+    // Sample
+    private String[] sampleLabels;
+    private String[] sampleTagIds;
 }

@@ -84,7 +84,7 @@
     <!-- SAMPLE -->
     <select alias="SPECIES_CODE" type="text">COALESCE(TN.LABEL, TG.LABEL)</select>
     <select alias="SPECIES_NAME" type="text">COALESCE(TN.NAME, TG.NAME)</select>
-    <select alias="SAMPLE_DATE" type="text">T.SAMPLE_DATE</select>
+    <select alias="SAMPLE_DATE" type="text">TO_CHAR(T.SAMPLE_DATE, 'YYYY-DD-MM HH24:MI:SS')</select>
     <select alias="INDIVIDUAL_COUNT" type="number">COALESCE(T.INDIVIDUAL_COUNT, 1)</select>
     <select alias="SAMPLE_COMMENTS" type="text">MAX(T.SAMPLE_COMMENTS)</select>
     <select alias="MONITORING_COMMENTS" type="text">MAX(T.MONITORING_COMMENTS)</select>
@@ -94,9 +94,13 @@
     <from join="true">LEFT OUTER JOIN TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = T.REFERENCE_TAXON_FK AND TN.IS_REFERENT=true</from>
     <from join="true">LEFT OUTER JOIN TAXON_GROUP TG ON TG.ID = T.TAXON_GROUP_FK</from>
 
-    <groupby>
+    <groupby dbms="hsqldb,pgsql">
       SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, S.STATION_NUMBER,
       SPECIES_CODE, SPECIES_NAME, SAMPLE_ID, T.SAMPLE_DATE, T.INDIVIDUAL_COUNT, T.MONITORING_ID
+    </groupby>
+    <groupby dbms="oracle">
+      SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, TRIP_CODE, S.STATION_NUMBER,
+      TN.LABEL, TG.LABEL, TN.NAME, TG.NAME, T.ID, T.SAMPLE_DATE, T.INDIVIDUAL_COUNT, T.MONITORING_ID
     </groupby>
 
     <orderby direction="ASC">SAMPLE_ID,T.MONITORING_ID</orderby>

@@ -27,7 +27,7 @@
 
   <!-- reinsert last RDB fields, but after SEX -->
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
-  <select alias="NUMBER_AT_LENGTH" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
+  <select alias="NUMBER_AT_LENGTH" type="number" group="agg">SUM(B.INDIVIDUAL_COUNT)</select>
   <select alias="IS_DEAD" type="text"><![CDATA[(
     SELECT
       CASE SM.NUMERICAL_VALUE WHEN 0 THEN UPPER('N') WHEN 1 THEN UPPER('Y') ELSE null END

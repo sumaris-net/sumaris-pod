@@ -37,6 +37,6 @@ public interface ErrorCodes  {
     int DATA_LOCKED = 520;
     int BAD_UPDATE_DATE = 521;
     int DENY_DELETION = 522;
-    int NOT_UNIQUE = 523;
+    int DATA_NOT_UNIQUE = 523;
 
 }

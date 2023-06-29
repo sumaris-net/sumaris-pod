@@ -70,7 +70,6 @@ public class PmfmStrategy implements IEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pmfm_fk", nullable=false)
-    
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -94,12 +93,10 @@ public class PmfmStrategy implements IEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "strategy_fk", nullable = false)
-    
     private Strategy strategy;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
-    
     private AcquisitionLevel acquisitionLevel;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)

@@ -22,13 +22,16 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.text.ParseException;
 import java.util.List;
 
+@Slf4j
 public class LandingServiceReadTest extends AbstractServiceTest{
 
     @ClassRule
@@ -68,15 +72,61 @@ public class LandingServiceReadTest extends AbstractServiceTest{
 
         LandingFilterVO filter = LandingFilterVO.builder()
                 .programLabel("ADAP-CONTROLE")
-                .startDate(Dates.parseDate("01/03/2018", "DD/MM/YYYY"))
-                .startDate(Dates.parseDate("01/04/2018", "DD/MM/YYYY"))
+                .startDate(Dates.parseDateStrictly("01/03/2018", "dd/MM/yyyy"))
+                .endDate(Dates.parseDateStrictly("01/04/2018", "dd/MM/yyyy"))
                 .locationId(30) // Auction Douarnenez
                 .build();
 
+        List<LandingVO> vos = service.findAll(filter, Page.builder().size(100).build(), LandingFetchOptions.MINIMAL);
+        Assert.assertNotNull(vos);
+        Assert.assertTrue(vos.size() > 0);
+    }
+
+
+    @Test
+    public void findAllByStrategyLabels() {
+
+        // Get a existing strategy label (from a tag id)
+        String tagId = fixtures.getSampleTagId(0);
+        String[] tagIdParts = tagId.split("-", 2);
+        Assume.assumeTrue(tagIdParts.length == 2);
+        String strategyLabel = tagIdParts[0];
+
+        log.debug("Search landing by strategy label");
+
+        LandingFilterVO filter = LandingFilterVO.builder()
+            .strategyLabels(new String[]{strategyLabel})
+            .build();
 
         List<LandingVO> vos = service.findAll(filter, Page.builder().size(100).build(), null);
         Assert.assertNotNull(vos);
-        Assert.assertTrue(vos.size() > 0);
+        Assert.assertEquals(3, vos.size());
+    }
+
+    @Test
+    public void findAllBySampleLabels() {
+
+        String sampleLabel = fixtures.getSampleLabel(0);
+        LandingFilterVO filter = LandingFilterVO.builder()
+            .sampleLabels(new String[]{sampleLabel})
+            .build();
+
+        List<LandingVO> vos = service.findAll(filter, Page.builder().size(100).build(), null);
+        Assert.assertNotNull(vos);
+        Assert.assertEquals(1, vos.size());
+    }
+
+    @Test
+    public void findAllBySampleTagIds() {
+
+        String tagId = fixtures.getSampleTagId(0);
+        LandingFilterVO filter = LandingFilterVO.builder()
+            .sampleTagIds(new String[]{tagId})
+            .build();
+
+        List<LandingVO> vos = service.findAll(filter, Page.builder().size(100).build(), null);
+        Assert.assertNotNull(vos);
+        Assert.assertEquals(1, vos.size());
     }
 
     /* -- Protected -- */

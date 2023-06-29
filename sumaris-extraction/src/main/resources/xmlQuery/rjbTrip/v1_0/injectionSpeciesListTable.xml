@@ -29,5 +29,4 @@
   <!-- re insert existing LENGTH_CODE, after new columns -->
   <select alias="LENGTH_CODE" type="text">SL.LENGTH_CODE</select>
 
-  <groupby>LENGTH_CODE</groupby>
 </query>

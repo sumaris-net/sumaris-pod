@@ -339,6 +339,16 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public Map<Integer, String> getLandingMeasurementsMap(int landingId, List<Integer> pmfmIds) {
+        return getMeasurementsMapByParentId(LandingMeasurement.class,
+            LandingMeasurement.Fields.LANDING,
+            landingId,
+            null,
+            pmfmIds
+        );
+    }
+
+    @Override
     public List<MeasurementVO> getLandingMeasurements(int landingId) {
         return getMeasurementsByParentId(LandingMeasurement.class,
                 MeasurementVO.class,
@@ -364,6 +374,16 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             SurveyMeasurement.Fields.LANDING,
             landingId,
             null
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
+        return getMeasurementsMapByParentId(SurveyMeasurement.class,
+            SurveyMeasurement.Fields.LANDING,
+            landingId,
+            null,
+            pmfmIds
         );
     }
 
@@ -1000,9 +1020,17 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     protected <T extends IMeasurementEntity> Map<Integer, String> getMeasurementsMapByParentId(Class<T> entityClass,
                                                                                                String parentPropertyName,
                                                                                                int parentId,
-                                                                                               String sortByPropertyName) {
+                                                                                               @Nullable String sortByPropertyName) {
+        return getMeasurementsMapByParentId(entityClass, parentPropertyName, parentId, sortByPropertyName, null);
+    }
+
+    protected <T extends IMeasurementEntity> Map<Integer, String> getMeasurementsMapByParentId(Class<T> entityClass,
+                                                                                               String parentPropertyName,
+                                                                                               int parentId,
+                                                                                               @Nullable String sortByPropertyName,
+                                                                                               @Nullable List<Integer> pmfmIds) {
         TypedQuery<T> query = getMeasurementsByParentIdQuery(entityClass, parentPropertyName,
-                parentId, sortByPropertyName);
+                parentId, sortByPropertyName, pmfmIds);
         return toMeasurementsMap(query.getResultList());
     }
 

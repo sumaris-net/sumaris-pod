@@ -22,8 +22,9 @@
 
 package net.sumaris.core.model.technical.history;
 
-import lombok.*;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
@@ -34,7 +35,6 @@ import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -42,9 +42,8 @@ import java.util.Date;
 public class ProcessingFrequency implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "EXTRACTION_PRODUCT_FREQ_SEQ")
-    @SequenceGenerator(name = "EXTRACTION_PRODUCT_FREQ_SEQ", sequenceName="EXTRACTION_PRODUCT_FREQ_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROCESSING_FREQUENCY_SEQ")
+    @SequenceGenerator(name = "PROCESSING_FREQUENCY_SEQ", sequenceName="PROCESSING_FREQUENCY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 

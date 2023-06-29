@@ -31,7 +31,6 @@ import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.DenormalizedBatch;
-import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -254,7 +253,7 @@ public class DenormalizedBatchRepositoryImpl
             });
 
         if (CollectionUtils.isNotEmpty(existingSvIds)) {
-            sortingValueRepository.deleteAllById(existingSvIds);
+            sortingValueRepository.deleteAllByIdInBatch(existingSvIds);
         }
     }
 
@@ -281,16 +280,18 @@ public class DenormalizedBatchRepositoryImpl
         sources.forEach(b -> b.setOperationId(operationId));
 
         // Get existing ids
-        Set<Integer> existingIds = getRepository().getAllIdByOperationId(operationId);
+        Set<Integer> existingIdsToRemove = getRepository().getAllIdByOperationId(operationId);
 
         // Save
-        sources.forEach(b -> {
-            save(b);
-            existingIds.remove(b.getId());
+        sources.forEach(source -> {
+            save(source);
+            existingIdsToRemove.remove(source.getId());
         });
 
         // Delete remaining objects
-        existingIds.forEach(this::deleteById);
+        if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
+            existingIdsToRemove.forEach(this::deleteById);
+        }
 
         return sources;
     }
@@ -302,16 +303,18 @@ public class DenormalizedBatchRepositoryImpl
         sources.forEach(b -> b.setSaleId(saleId));
 
         // Get existing fishing areas
-        Set<Integer> existingIds = getRepository().getAllIdBySaleId(saleId);
+        Set<Integer> existingIdsToRemove = getRepository().getAllIdBySaleId(saleId);
 
         // Save
         sources.forEach(b -> {
             save(b);
-            existingIds.remove(b.getId());
+            existingIdsToRemove.remove(b.getId());
         });
 
         // Delete remaining objects
-        existingIds.forEach(this::deleteById);
+        if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
+            deleteAllById(existingIdsToRemove);
+        }
 
         return sources;
     }

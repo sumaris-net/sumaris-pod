@@ -32,6 +32,7 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.i18n.I18n;
 import org.reflections.Reflections;
@@ -39,7 +40,6 @@ import org.reflections.Reflections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * Helper class for enumerations
@@ -79,7 +79,8 @@ public final class EntityEnums {
             // Get annotation detail
             final EntityEnum annotation = enumClass.getAnnotation(EntityEnum.class);
             final String entityClassName = annotation.entity().getSimpleName();
-            final String[] joinAttributes = annotation.joinAttributes();
+            final String[] configAttributes = annotation.configAttributes();
+            final String[] resolveAttributes = annotation.resolveAttributes();
 
             // Compute a option key (e.g. 'sumaris.enumeration.MyEntity.MY_ENUM_VALUE.id')
             String configPrefixTemp = StringUtils.defaultIfBlank(annotation.configPrefix(), "");
@@ -89,14 +90,17 @@ public final class EntityEnums {
             }
             final String configPrefix = configPrefixTemp;
 
-            Stream.of(enumClass.getEnumConstants()).forEach(enumValue -> Stream.of(joinAttributes)
-                .forEach(joinAttribute -> {
-                    Object defaultJoinValue = Beans.getProperty(enumValue, joinAttribute);
-                    String key = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute);
+            final String[] attributes = ArrayUtils.isNotEmpty(configAttributes) ? configAttributes : resolveAttributes;
+
+            for (Object enumValue : enumClass.getEnumConstants()) {
+                for (String attribute : attributes) {
+                    Object defaultJoinValue = Beans.getProperty(enumValue, attribute);
+                    String key = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), attribute);
                     Class type = defaultJoinValue != null ? defaultJoinValue.getClass() : String.class;
-                    String description = DESCRIPTION_PROPERTY_PREFIX + StringUtils.doting(entityClassName, enumValue.toString(), joinAttribute, "description");
+                    String description = DESCRIPTION_PROPERTY_PREFIX + StringUtils.doting(entityClassName, enumValue.toString(), attribute, "description");
                     options.add(new ConfigOption(key, type, description, String.valueOf(defaultJoinValue), false, false));
-                }));
+                }
+            }
         });
 
         return options.toArray(new ConfigOptionDef[options.size()]);

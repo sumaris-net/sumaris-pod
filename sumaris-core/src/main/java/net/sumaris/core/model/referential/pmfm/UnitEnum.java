@@ -22,13 +22,12 @@
 
 package net.sumaris.core.model.referential.pmfm;
 
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = Unit.class, joinAttributes = {Unit.Fields.LABEL})
+@EntityEnum(entity = Unit.class, configAttributes = {Unit.Fields.ID}, resolveAttributes = {Unit.Fields.LABEL})
 public enum UnitEnum implements Serializable {
 
     NONE(0, "None"),

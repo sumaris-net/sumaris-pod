@@ -28,7 +28,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = ParameterGroup.class, joinAttributes = {ParameterGroup.Fields.LABEL, IEntity.Fields.ID})
+@EntityEnum(entity = ParameterGroup.class, resolveAttributes = {ParameterGroup.Fields.LABEL, IEntity.Fields.ID})
 public enum ParameterGroupEnum implements Serializable {
 
     UNKNOWN(0, "UNK"),

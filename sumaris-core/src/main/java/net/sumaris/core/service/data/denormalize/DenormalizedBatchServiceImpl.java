@@ -251,13 +251,13 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
         }
 
         // Denormalize batches
-        List<DenormalizedBatchVO> batches = denormalize(catchBatch, options);
+        List<DenormalizedBatchVO> denormalizedBatches = denormalize(catchBatch, options);
 
         // Save denormalized batches
-        batches = denormalizedBatchRepository.saveAllByOperationId(operationId, batches);
+        denormalizedBatches = denormalizedBatchRepository.saveAllByOperationId(operationId, denormalizedBatches);
 
         log.debug("Batches denormalization of operation {id: {}} [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
-        return batches;
+        return denormalizedBatches;
     }
 
     @Override

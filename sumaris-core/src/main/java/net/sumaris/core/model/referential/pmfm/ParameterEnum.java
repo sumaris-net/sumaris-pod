@@ -29,7 +29,7 @@ import net.sumaris.core.model.annotation.IEntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = Parameter.class, joinAttributes = {ParameterGroup.Fields.LABEL, IEntity.Fields.ID})
+@EntityEnum(entity = Parameter.class, resolveAttributes = {ParameterGroup.Fields.LABEL, IEntity.Fields.ID})
 public enum ParameterEnum implements Serializable, IEntityEnum {
 
     HULL_MATERIAL(420, "HULL_MATERIAL"),

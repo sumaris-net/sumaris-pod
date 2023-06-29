@@ -22,46 +22,85 @@
 
 <query type="select">
 
-  <select alias="SUBSTRATE_TYPE" type="text"> <![CDATA[
-  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
-      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
-    WHERE
-      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&substrateTypePmfmId)]]></select>
+  <select alias="SUBSTRATE_TYPE" type="text" group="agg"><![CDATA[
+    MAX(CASE VUM.PMFM_FK WHEN &substrateTypePmfmId THEN QV.LABEL ELSE NULL END)
+  ]]></select>
 
-  <select alias="BOTTOM_TEMP_C" type="number">(SELECT SM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;bottomTempPmfmId)</select>
+  <select alias="BOTTOM_TEMP_C" type="number" group="agg"><![CDATA[
+    MAX(CASE VUM.PMFM_FK WHEN &bottomTempPmfmId THEN VUM.NUMERICAL_VALUE ELSE NULL END)
+  ]]></select>
 
-  <select alias="SEA_STATE" type="text"><![CDATA[
-  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
-      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
-    WHERE
-      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&seaStatePmfmId)]]></select>
+  <select alias="SEA_STATE" type="text" group="agg"><![CDATA[
+    MAX(CASE VUM.PMFM_FK WHEN &seaStatePmfmId THEN QV.LABEL ELSE NULL END)
+  ]]></select>
 
-  <select alias="SURVIVAL_SAMPLING_TYPE" type="text"><![CDATA[
-  (SELECT QV.LABEL FROM VESSEL_USE_MEASUREMENT VUM
-      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=VUM.QUALITATIVE_VALUE_FK
-    WHERE
-      VUM.OPERATION_FK=O.ID and VUM.PMFM_FK=&survivalSamplingTypePmfmId)]]></select>
+  <select alias="SURVIVAL_SAMPLING_TYPE" type="text" group="agg"><![CDATA[
+    MAX(CASE VUM.PMFM_FK WHEN &survivalSamplingTypePmfmId THEN QV.LABEL ELSE NULL END)
+  ]]></select>
 
   <!-- catch batch-->
-  <select alias="ON_DECK_DATE_TIME" type="date" dbms="hsqldb">(SELECT TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')) FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;onDeckDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
-  <select alias="ON_DECK_DATE_TIME" type="date" dbms="oracle,pgsql">(SELECT TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;onDeckDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
-  <select alias="SORTING_START_DATE_TIME" type="date" dbms="hsqldb">(SELECT TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')) FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
-  <select alias="SORTING_START_DATE_TIME" type="date" dbms="oracle,pgsql">(SELECT TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
-  <select alias="SORTING_END_DATE_TIME" type="date" dbms="hsqldb">(SELECT TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')) FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingEndDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
-  <select alias="SORTING_END_DATE_TIME" type="date" dbms="oracle,pgsql">(SELECT TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS') FROM SORTING_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;sortingEndDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24)</select>
+  <select alias="ON_DECK_DATE_TIME" type="date" dbms="hsqldb" group="agg"><![CDATA[
+    MAX(
+      CASE WHEN SM.PMFM_FK=&onDeckDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24
+        THEN TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''))
+        ELSE NULL
+      END
+    )
+  ]]></select>
+  <select alias="ON_DECK_DATE_TIME" type="date" dbms="oracle,pgsql" group="agg"><![CDATA[
+    MAX(
+      CASE WHEN SM.PMFM_FK=&onDeckDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24
+        THEN TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS')
+        ELSE NULL
+      END
+    )
+  ]]></select>
+  <select alias="SORTING_START_DATE_TIME" type="date" dbms="hsqldb" group="agg"><![CDATA[
+    MAX(
+      CASE WHEN SM.PMFM_FK=&sortingDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24
+        THEN TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''))
+        ELSE NULL
+      END
+    )
+    ]]></select>
+  <select alias="SORTING_START_DATE_TIME" type="date" dbms="oracle,pgsql" group="agg"><![CDATA[
+    MAX(
+      CASE WHEN SM.PMFM_FK=&sortingDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24
+        THEN TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS')
+        ELSE NULL
+      END
+    )
+  ]]></select>
+  <select alias="SORTING_END_DATE_TIME" type="date" dbms="hsqldb" group="agg"><![CDATA[
+    MAX(
+      CASE WHEN SM.PMFM_FK=&sortingEndDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24
+        THEN TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''))
+        ELSE NULL
+      END
+    )
+  ]]></select>
+  <select alias="SORTING_END_DATE_TIME" type="date" dbms="oracle,pgsql" group="agg"><![CDATA[
+    MAX(
+      CASE WHEN SM.PMFM_FK=&sortingEndDateTimePmfmId AND LENGTH(SM.ALPHANUMERICAL_VALUE)=24
+        THEN TO_TIMESTAMP(REPLACE(REPLACE(SM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS')
+        ELSE NULL
+      END
+    )
+  ]]></select>
 
-  <select alias="LANDING_WEIGHT" type="number">(SELECT SM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B SM WHERE SM.BATCH_FK=B.ID and SM.PMFM_FK=&amp;landingWeightPmfmId)</select>
-  <select alias="SAND_STONES_WEIGHT_RANGE" type="text"><![CDATA[
-  (SELECT QV.NAME FROM SORTING_MEASUREMENT_B SM
-      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
-    WHERE
-      SM.BATCH_FK=B.ID and SM.PMFM_FK=&sandStonesWeightRangePmfmId)]]></select>
-  <select alias="BENTHOS_WEIGHT_RANGE" type="text"><![CDATA[
-  (SELECT QV.NAME FROM SORTING_MEASUREMENT_B SM
-      INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
-    WHERE
-      SM.BATCH_FK=B.ID and SM.PMFM_FK=&benthosWeightRangePmfmId)]]></select>
-
+  <select alias="LANDING_WEIGHT" type="number" group="agg"><![CDATA[
+    MAX(CASE QM.PMFM_FK WHEN &landingWeightPmfmId THEN QM.NUMERICAL_VALUE ELSE NULL END)
+  ]]></select>
+  <select alias="SAND_STONES_WEIGHT_RANGE" type="text" group="agg"><![CDATA[
+    MAX(CASE SM.PMFM_FK WHEN &sandStonesWeightRangePmfmId THEN SMQV.NAME ELSE NULL END)
+  ]]></select>
+  <select alias="BENTHOS_WEIGHT_RANGE" type="text" group="agg"><![CDATA[
+    MAX(CASE SM.PMFM_FK WHEN &benthosWeightRangePmfmId THEN SMQV.NAME ELSE NULL END)
+  ]]></select>
 
   <from join="true">LEFT OUTER JOIN BATCH B on B.OPERATION_FK=O.ID AND B.PARENT_BATCH_FK IS NULL</from>
+  <from join="true">LEFT OUTER JOIN QUANTIFICATION_MEASUREMENT_B QM on QM.BATCH_FK=B.ID</from>
+  <from join="true">LEFT OUTER JOIN SORTING_MEASUREMENT_B SM on SM.BATCH_FK=B.ID</from>
+  <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE SMQV on SMQV.ID=SM.QUALITATIVE_VALUE_FK</from>
+
 </query>

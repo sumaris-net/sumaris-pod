@@ -97,11 +97,14 @@
 
     <!-- Hidden field (use min trip/station as identifier) -->
     <select alias="VESSEL_IDENTIFIERS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(T.VESSEL_IDENTIFIER)</select>
-    <select alias="VESSEL_IDENTIFIERS" dbms="oracle" type="hidden">LISTAGG(T.VESSEL_IDENTIFIER, ',')</select>
+    <select alias="VESSEL_IDENTIFIERS" dbms="oracle" type="hidden" group="oracle11">LISTAGG(T.VESSEL_IDENTIFIER, ',')</select>
+    <select alias="VESSEL_IDENTIFIERS" dbms="oracle" type="hidden" group="oracle12">LISTAGG(T.VESSEL_IDENTIFIER, ',') WITHIN GROUP (ORDER BY T.VESSEL_IDENTIFIER)</select>
     <select alias="TRIP_CODES" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.TRIP_CODE)</select>
-    <select alias="TRIP_CODES" dbms="oracle" type="hidden">LISTAGG(S.TRIP_CODE, ',')</select>
+    <select alias="TRIP_CODES" dbms="oracle" type="hidden" group="oracle11">LISTAGG(S.TRIP_CODE, ',')</select>
+    <select alias="TRIP_CODES" dbms="oracle" type="hidden" group="oracle12">LISTAGG(S.TRIP_CODE, ',') WITHIN GROUP (ORDER BY S.TRIP_CODE)</select>
     <select alias="STATION_NUMBERS" dbms="hsqldb,pgsql" type="hidden">ARRAY_AGG(S.STATION_NUMBER)</select>
-    <select alias="STATION_NUMBERS" dbms="oracle" type="hidden">LISTAGG(TO_CHAR(TRIP_CODE) || '|' || TO_CHAR(STATION_NUMBER), ',')</select>
+    <select alias="STATION_NUMBERS" dbms="oracle" type="hidden" group="oracle11">LISTAGG(TO_CHAR(TRIP_CODE) || '|' || TO_CHAR(STATION_NUMBER), ',')</select>
+    <select alias="STATION_NUMBERS" dbms="oracle" type="hidden" group="oracle12">LISTAGG(TO_CHAR(TRIP_CODE) || '|' || TO_CHAR(STATION_NUMBER), ',')  WITHIN GROUP (ORDER BY TRIP_CODE,STATION_NUMBER)</select>
 
     <from alias="S">&amp;rawStationTableName</from>
     <from join="true">INNER JOIN TRIP_SUMMARY T on T.TRIP_CODE = S.TRIP_CODE</from>
@@ -120,7 +123,7 @@
     <groupby>
       S.SAMPLING_TYPE, S.LANDING_COUNTRY, S.VESSEL_FLAG_COUNTRY, S.YEAR, S.PROJECT,
       S.CATCH_REGISTRATION, S.SPECIES_REGISTRATION,
-      VESSEL_LENGTH_CLASS
+      T.VESSEL_LENGTH_CLASS
     </groupby>
     <groupby group="quarter">QUARTER</groupby>
     <groupby group="month">MONTH</groupby>
@@ -138,7 +141,6 @@
     <orderby group="area">S.AREA</orderby>
     <orderby group="rect">S.STATISTICAL_RECTANGLE</orderby>
     <orderby group="square">SQUARE</orderby>
-<!--    <orderby direction="ASC">SAMPLING_TYPE, LANDING_COUNTRY, VESSEL_FLAG_COUNTRY, YEAR, PROJECT, VESSEL_LENGTH, DATE, SQUARE, GEAR_TYPE</orderby>-->
 
   </query>
 
