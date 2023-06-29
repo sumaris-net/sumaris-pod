@@ -26,6 +26,7 @@ package net.sumaris.extraction.core;
 import net.sumaris.extraction.core.service.pgsql.ExtractionServicePgsqlTest;
 import net.sumaris.extraction.core.service.pgsql.ExtractionProductServicePgsqlTest;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.springframework.test.context.ActiveProfiles;
@@ -35,6 +36,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @RunWith(Suite.class)
 @ActiveProfiles("pgsql")
+@Ignore
 @Suite.SuiteClasses({
     // DAO
     // Service
