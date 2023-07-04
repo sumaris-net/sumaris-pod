@@ -1,0 +1,36 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-2.3.5.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
+    <property name="sqlCheck.open.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1676958334000-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL in ('sumaris.report.enable')
+                    AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'APASE')</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update PROGRAM_PROPERTY set LABEL='sumaris.trip.report.enable', update_date=current_timestamp where LABEL = 'sumaris.report.enable' AND PROGRAM_FK = (SELECT ID FROM PROGRAM WHERE LABEL = 'APASE');
+            update PROGRAM set update_date=current_timestamp where LABEL = 'APASE';
+            commit;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

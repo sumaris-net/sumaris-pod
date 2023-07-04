@@ -495,7 +495,7 @@ public class Liquibase implements ResourceLoaderAware {
         try {
             // Get resources from classpath
             String pathPrefix = changeLogPath.substring(0, index);
-            Resource[] resources = resolver.getResources(pathPrefix + "/**/db-changelog-*.xml"); // WARNING: '**/' is mandatory, for multi-dbms (e.g. sumaris-core-server)
+            Resource[] resources = resolver.getResources(pathPrefix + "/db-changelog-*.xml"); // WARNING: '**/' is mandatory, for multi-dbms (e.g. sumaris-core-server)
             if (ArrayUtils.isNotEmpty(resources)) {
                 for (Resource resource : resources) {
                     String filename = resource.getFilename();

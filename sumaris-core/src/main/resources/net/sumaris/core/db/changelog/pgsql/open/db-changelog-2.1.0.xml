@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-2.1.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
+    <property name="sqlCheck.open.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Fix bad OPERATION.START_DATE_TIME on some child operations -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0"><![CDATA[
+                        select count(*)
+                        from operation o
+                        where o.operation_fk is not null
+                        and o.start_date_time <> (select p.start_date_time from operation p where p.id=o.operation_fk)
+                    ]]></sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            update operation o
+            set
+                start_date_time = (select p.start_date_time from operation p where p.id=o.operation_fk),
+                update_date = current_timestamp
+            where
+                o.operation_fk is not null
+              and start_date_time <> (select p.start_date_time from operation p where p.id=o.operation_fk);
+            commit;
+            ]]></sql>
+    </changeSet>
+
+    <!-- Fix bad OPERATION.FISHING_START_DATE_TIME on some child operations -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1678209977662-402" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0"><![CDATA[
+                        select count(*)
+                        from operation o
+                        where o.operation_fk is not null
+                        and o.fishing_start_date_time <> (select p.fishing_start_date_time from operation p where p.id=o.operation_fk)
+                    ]]></sqlCheck>
+                </not>
+        </and>
+        </preConditions>
+        <sql endDelimiter=";"><![CDATA[
+            update operation o
+            set
+                fishing_start_date_time = (select p.fishing_start_date_time from operation p where p.id=o.operation_fk)
+                update_date = current_timestamp
+            where
+                o.operation_fk is not null
+              and fishing_start_date_time <> (select p.fishing_start_date_time from operation p where p.id=o.operation_fk);
+            commit;
+        ]]></sql>
+    </changeSet>
+
+</databaseChangeLog>

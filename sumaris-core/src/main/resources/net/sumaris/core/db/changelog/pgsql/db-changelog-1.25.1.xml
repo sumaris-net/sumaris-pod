@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-1.25.1.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<!-- Remove unused column EXTRACTION_PRODUCT_VALUE.PARENT_FK -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-001">
+		<preConditions onFail="MARK_RAN">
+			<columnExists tableName="extraction_product_value" columnName="parent_fk"/>
+		</preConditions>
+		<dropColumn tableName="extraction_product_value" columnName="parent_fk"/>
+	</changeSet>
+
+	<!-- Rename program options -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-002" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.metier.filter'</sqlCheck></not>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update PROGRAM_PROPERTY set LABEL='sumaris.trip.operation.metier.filter' where LABEL='sumaris.trip.metier.filter';
+			update PROGRAM set update_date=current_timestamp where ID IN (SELECT PROGRAM_FK FROM PROGRAM_PROPERTY WHERE LABEL='sumaris.trip.operation.metier.filter');
+			commit;
+		</sql>
+	</changeSet>
+
+	<!-- update SYSTEM_VERSION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229077029-200" runOnChange="true">
+		<delete tableName="SYSTEM_VERSION">
+			<where>LABEL='1.25.1'</where>
+		</delete>
+		<insert tableName="SYSTEM_VERSION">
+			<column name="ID" valueComputed="nextval('system_version_seq')"/>
+			<column name="LABEL">1.25.1</column>
+			<column name="DESCRIPTION">
+				- EXTRACTION_PRODUCT_VALUE: Remove unused column PARENT_FK;
+			</column>
+			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
+			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+			<column name="COMMENTS"/>
+		</insert>
+	</changeSet>
+</databaseChangeLog>
