@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/all/db-changelog-1.11.0.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<!-- Insert hourly frequency -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-301" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">select count(*) from PROCESSING_FREQUENCY where label='HOURLY'</sqlCheck>
+			</and>
+		</preConditions>
+		<insert tableName="PROCESSING_FREQUENCY">
+			<column name="ID" valueNumeric="5"/>
+			<column name="LABEL">HOURLY</column>
+			<column name="NAME">Hourly</column>
+			<column name="DESCRIPTION">Avoid any updates</column>
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
+			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
+			<column name="RANK_ORDER" valueNumeric="2"/>
+			<column name="STATUS_FK" valueNumeric="1"/>
+		</insert>
+	</changeSet>
+
+	<!-- Change frequency rank order -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-302" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="2">select count(*) from PROCESSING_FREQUENCY where RANK_ORDER=2</sqlCheck>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update PROCESSING_FREQUENCY set RANK_ORDER=3 WHERE LABEL='DAILY';
+			update PROCESSING_FREQUENCY set RANK_ORDER=4 WHERE LABEL='WEEKLY';
+			update PROCESSING_FREQUENCY set RANK_ORDER=5 WHERE LABEL='MONTHLY';
+			commit;
+		</sql>
+	</changeSet>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-303">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">select count(*) from parameter_group</sqlCheck>
+			</and>
+		</preConditions>
+		<insert tableName="parameter_group">
+			<column name="id" valueNumeric="0"/>
+			<column name="status_fk" valueNumeric="1"/>
+			<column name="creation_date" valueComputed="current_timestamp"/>
+			<column name="update_date" valueComputed="current_timestamp"/>
+			<column name="label">UNK</column>
+			<column name="name">Unknown</column>
+			<column name="description">Groupe par défaut (=sans classification)</column>
+		</insert>
+		<insert tableName="parameter_group">
+			<column name="id" valueNumeric="1"/>
+			<column name="status_fk" valueNumeric="1"/>
+			<column name="creation_date" valueComputed="current_timestamp"/>
+			<column name="update_date" valueComputed="current_timestamp"/>
+			<column name="label">SURVEY</column>
+			<column name="name"><![CDATA[Caratéristiques d'enquêtes]]></column>
+			<column name="description"><![CDATA[Permet de grouper les paramètres qui sont relatifs aux tableaux "Caratéristiques d'enquête"]]></column>
+		</insert>
+	</changeSet>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-304" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<not><sqlCheck expectedResult="0">select count(*) from parameter where parameter_group_fk is null</sqlCheck></not>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update parameter set parameter_group_fk = 0 where parameter_group_fk is null;
+			commit;
+		</sql>
+	</changeSet>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1631698876505-305" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">select count(*) from parameter where parameter_group_fk is null</sqlCheck>
+			</and>
+		</preConditions>
+		<addNotNullConstraint tableName="parameter" columnName="parameter_group_fk"/>
+	</changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-refresh.xml">
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1557825240100-1" runOnChange="true" runAlways="true">
+    <sqlFile relativeToChangelogFile="true" path="db-create-procedures.sql" endDelimiter="//"
+             splitStatements="true"
+             stripComments="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1557825240100-2" runOnChange="true" runAlways="true">
+    <sql>analyse</sql>
+  </changeSet>
+
+</databaseChangeLog>

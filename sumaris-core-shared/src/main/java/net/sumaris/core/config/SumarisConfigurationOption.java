@@ -397,7 +397,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     LIQUIBASE_CHANGE_LOG_PATH(
         "spring.liquibase.change-log",
         n("sumaris.config.option.liquibase.changelog.path.description"),
-        "classpath:net/sumaris/core/db/changelog/db-changelog-master.xml",
+        "classpath:net/sumaris/core/db/changelog/${spring.sql.init.platform}/db-changelog-master.xml",
         String.class,
         false),
 

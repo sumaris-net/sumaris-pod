@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/all/db-changelog-1.25.0.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<!-- Insert Method CALCULATED_WEIGHT_LENGTH  -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-302" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">SELECT count(*) FROM method where label='CALCULATED_WEIGHT_LENGTH'</sqlCheck>
+			</and>
+		</preConditions>
+		<insert tableName="method">
+			<column name="ID" valueNumeric="47"/>
+			<column name="LABEL">CALCULATED_WEIGHT_LENGTH</column>
+			<column name="NAME">Calculated by Length-Weight Relation (WLR)</column>
+			<column name="IS_CALCULATED" valueBoolean="true"/>
+			<column name="IS_ESTIMATED" valueBoolean="false"/>
+			<column name="STATUS_FK" valueNumeric="1"/>
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
+			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
+		</insert>
+	</changeSet>
+
+	<!-- Insert Method CALCULATED_WEIGHT_LENGTH_SUM  -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-303" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">SELECT count(*) FROM method where label='CALCULATED_WEIGHT_LENGTH_SUM'</sqlCheck>
+			</and>
+		</preConditions>
+		<insert tableName="method">
+			<column name="ID" valueNumeric="283"/>
+			<column name="LABEL">CALCULATED_WEIGHT_LENGTH_SUM</column>
+			<column name="NAME">Sum of children batches WLR weights</column>
+			<column name="IS_CALCULATED" valueBoolean="true"/>
+			<column name="IS_ESTIMATED" valueBoolean="false"/>
+			<column name="STATUS_FK" valueNumeric="1"/>
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
+			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
+		</insert>
+	</changeSet>
+
+	<!-- Insert PMFM BATCH_CALCULATED_WEIGHT_LENGTH  -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-304" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">SELECT count(*) FROM pmfm where label='BATCH_CALCULATED_WEIGHT_LENGTH'</sqlCheck>
+			</and>
+		</preConditions>
+		<insert tableName="PMFM">
+			<column name="ID" valueNumeric="122"/>
+			<column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='WEIGHT')"/>
+			<column name="LABEL">BATCH_CALCULATED_WEIGHT_LENGTH</column>
+			<column name="METHOD_FK" valueComputed="(SELECT ID FROM method where label='CALCULATED_WEIGHT_LENGTH')"/>
+			<column name="MATRIX_FK" valueNumeric="1"/>
+			<column name="UNIT_FK" valueNumeric="3"/>
+			<column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="6"/>
+			<column name="STATUS_FK" valueNumeric="1"/>
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
+			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
+		</insert>
+	</changeSet>
+
+	<!-- Insert PMFM BATCH_CALCULATED_WEIGHT_LENGTH_SUM  -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-305" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="0">SELECT count(*) FROM pmfm where label='BATCH_CALCULATED_WEIGHT_LENGTH_SUM'</sqlCheck>
+			</and>
+		</preConditions>
+		<insert tableName="PMFM">
+			<column name="ID" valueNumeric="123"/>
+			<column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='WEIGHT')"/>
+			<column name="LABEL">BATCH_CALCULATED_WEIGHT_LENGTH_SUM</column>
+			<column name="METHOD_FK" valueComputed="(SELECT ID FROM method where label='CALCULATED_WEIGHT_LENGTH_SUM')"/>
+			<column name="MATRIX_FK" valueNumeric="1"/>
+			<column name="UNIT_FK" valueNumeric="3"/>
+			<column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="6"/>
+			<column name="STATUS_FK" valueNumeric="1"/>
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
+			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
+		</insert>
+	</changeSet>
+
+	<!-- Rename PMFM IS_SAMPLING  -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-306" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="1">SELECT count(*) FROM pmfm where label='IS_SAMPLING'</sqlCheck>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update PMFM set LABEL='HAS_INDIVIDUAL_MEASURES' where label='IS_SAMPLING';
+			commit;
+		</sql>
+	</changeSet>
+
+	<!-- Rename parameter IS_SAMPLING  -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229076029-307" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<and>
+				<sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+				<sqlCheck expectedResult="1">SELECT count(*) FROM parameter where label='IS_SAMPLING'</sqlCheck>
+			</and>
+		</preConditions>
+		<sql endDelimiter=";">
+			update parameter set LABEL='HAS_INDIVIDUAL_MEASURES' where label='IS_SAMPLING';
+			update parameter set NAME='Mesures individuelles ?' where label='Mesure ?';
+			commit;
+		</sql>
+	</changeSet>
+
+</databaseChangeLog>

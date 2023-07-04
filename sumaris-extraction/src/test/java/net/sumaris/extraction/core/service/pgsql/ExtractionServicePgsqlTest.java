@@ -24,9 +24,14 @@ package net.sumaris.extraction.core.service.pgsql;
 
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
+import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;
+import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.File;
@@ -41,6 +46,51 @@ public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
+
+    @Test
+    public void executePmfmPIFIL() throws IOException {
+        // Validate some trips
+        String programLabel = "PIFIL";
+        validateTrips(programLabel);
+
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(programLabel);
+        filter.setExcludeInvalidStation(false);
+
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel());
+
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, PmfmTripSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // ST.csv
+        {
+
+            File survivalTestFile = new File(root, PmfmTripSpecification.ST_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(survivalTestFile) > 1);
+        }
+
+        // RL.csv
+        {
+            File releaseFile = new File(root, PmfmTripSpecification.RL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
+        }
+
+    }
 
     /* -- protected methods -- */
 

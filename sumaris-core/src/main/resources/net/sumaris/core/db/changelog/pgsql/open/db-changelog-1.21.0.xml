@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-1.21.0.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
+    <property name="sqlCheck.open.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Add LOCATION_LEVEL for GSA Sub division  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698878000-300" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM LOCATION_LEVEL where LABEL='GFCM_SUB_DIVISION' or ID=142</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="LOCATION_LEVEL">
+            <column name="ID" valueNumeric="142"/>
+            <column name="LABEL">GFCM_SUB_DIVISION</column>
+            <column name="NAME">Sous division GSA CGPM/GFCM</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="LOCATION_CLASSIFICATION_FK" valueComputed="(select id from LOCATION_CLASSIFICATION WHERE LABEL='SEA')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Move GSA sub division into the good level  -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698878000-301" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <not><sqlCheck expectedResult="0">SELECT COUNT(*) FROM LOCATION where LABEL LIKE 'GSA%' AND LOCATION_LEVEL_FK != 142</sqlCheck></not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update location set location_level_fk=142 where LABEL LIKE 'GSA%' AND LOCATION_LEVEL_FK != 142;
+            commit;
+        </sql>
+    </changeSet>
+
+    <!-- Add config property to fix geometry SRID (to WGS86=4326) -->
+    <changeSet author="benoit.lavenier@e-is.pro" id="1631698878000-302">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">SELECT COUNT(*) FROM SOFTWARE_PROPERTY where label='sumaris.geometry.srid' and software_fk = (select ID from software where label='SUMARiS')</sqlCheck>
+        </preConditions>
+        <insert tableName="SOFTWARE_PROPERTY">
+            <column name="ID" valueComputed="nextval('software_property_seq')"/>
+            <column name="LABEL">sumaris.geometry.srid</column>
+            <column name="NAME">4326</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="SOFTWARE_FK" valueComputed="(select ID from software where label='SUMARiS')"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

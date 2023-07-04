@@ -28,13 +28,12 @@
     </select>
 
   <!-- date -->
-  <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%,agg" dbms="hsqldb" type="text">
+  <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%" dbms="hsqldb" type="text">
       MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
         TO_CHAR(TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM')
       ELSE NULL END)
-
   </select>
-  <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%,agg" dbms="oracle,pgsql" type="text">
+  <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%" dbms="oracle,pgsql" type="text">
       MAX(CASE VUM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
           TO_CHAR(TO_TIMESTAMP(REPLACE(REPLACE(VUM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', ''), 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-DD-MM')
       ELSE NULL END)

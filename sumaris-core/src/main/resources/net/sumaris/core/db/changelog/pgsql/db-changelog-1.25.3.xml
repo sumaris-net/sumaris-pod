@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+	logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-1.25.3.xml">
+
+	<property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+	<property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
+	<!-- Rename a program option -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229078000-004" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="1"><![CDATA[
+				SELECT count(*)
+				FROM information_schema.columns
+				WHERE table_schema='public' and table_name = 'extraction_product_column'
+					and column_name = 'column_name' and character_maximum_length <> 100
+				]]></sqlCheck>
+		</preConditions>
+		<modifyDataType tableName="extraction_product_column" columnName="column_name" newDataType="VARCHAR(100)"/>
+	</changeSet>
+
+	<!-- update SYSTEM_VERSION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1648229078000-200" runOnChange="true">
+		<delete tableName="SYSTEM_VERSION">
+			<where>LABEL='1.25.3'</where>
+		</delete>
+		<insert tableName="SYSTEM_VERSION">
+			<column name="ID" valueComputed="nextval('system_version_seq')"/>
+			<column name="LABEL">1.25.3</column>
+			<column name="DESCRIPTION">
+				- EXTRACTION_PRODUCT_COLUMN: Resize COLUMN_NAME to VARCHAR(100);
+			</column>
+			<column name="CREATION_DATE" valueComputed="current_timestamp"/>
+			<column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+			<column name="COMMENTS"/>
+		</insert>
+	</changeSet>
+</databaseChangeLog>
