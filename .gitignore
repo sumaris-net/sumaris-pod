@@ -19,6 +19,7 @@ buildNumber.properties
 .local/
 .jpb/
 .mvn/
+.mvn/jvm.config
 
 # SUMARiS specific ignore path
 sumaris.log.file_IS_UNDEFINED
