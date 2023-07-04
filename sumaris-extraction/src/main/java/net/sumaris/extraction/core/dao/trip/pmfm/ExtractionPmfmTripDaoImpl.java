@@ -173,7 +173,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 );
         }
 
-        computeAndBindGroupBy(xmlQuery, GROUP_BY_PARAM_NAME);
+        // Bind group by columns
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
