@@ -32,6 +32,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.ObservedLocationMeasurement;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
@@ -171,7 +172,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	public ObservedLocationVO control(ObservedLocationVO observedLocation) {
 		Preconditions.checkNotNull(observedLocation);
 		Preconditions.checkNotNull(observedLocation.getId());
-		Preconditions.checkArgument(observedLocation.getControlDate() == null);
+		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
 		return observedLocationRepository.control(observedLocation);
 	}
@@ -198,6 +199,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 					.programLabel(subProgramLabel)
 					.startDate(observedLocation.getStartDateTime())
 					.endDate(observedLocation.getEndDateTime())
+					.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
 					.build(), Page.builder().offset(0).size(1000).build(),
 					DataFetchOptions.MINIMAL)
 				.forEach(this::validate);
@@ -207,10 +209,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		else {
 			landingService.findAll(LandingFilterVO.builder()
 							.observedLocationId(observedLocation.getId())
+							.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
 							.build(),
 							Page.builder().offset(0).size(1000).build(),
 							LandingFetchOptions.MINIMAL)
-					.forEach(l -> landingService.validate(l));
+					.forEach(landingService::validate);
 		}
 
 		return observedLocation;
@@ -223,7 +226,39 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		return observedLocationRepository.unValidate(observedLocation);
+		String programLabel = observedLocation.getProgram().getLabel();
+
+		observedLocation = observedLocationRepository.unValidate(observedLocation);
+
+		// Get if observedLocation has a meta program
+		String subProgramLabel = programService.getPropertyValueByProgramLabel(
+				programLabel,
+				ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+
+		// Unvalidate sub observed locations
+		if (StringUtils.isNoneBlank(subProgramLabel)) {
+			findAll(ObservedLocationFilterVO.builder()
+							.programLabel(subProgramLabel)
+							.startDate(observedLocation.getStartDateTime())
+							.endDate(observedLocation.getEndDateTime())
+							.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
+							.build(), Page.builder().offset(0).size(1000).build(),
+					DataFetchOptions.MINIMAL)
+					.forEach(this::unvalidate);
+		}
+
+		// Unvalidate children landings
+		else {
+			landingService.findAll(LandingFilterVO.builder()
+									.observedLocationId(observedLocation.getId())
+									.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
+									.build(),
+							Page.builder().offset(0).size(1000).build(),
+							LandingFetchOptions.MINIMAL)
+					.forEach(l -> landingService.unvalidate(l));
+		}
+
+		return observedLocation;
 	}
 
 	@Override

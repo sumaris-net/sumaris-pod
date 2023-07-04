@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.VesselPositionDao;
 import net.sumaris.core.dao.data.operation.OperationRepository;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -172,6 +171,12 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     public OperationVO control(OperationVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getId());
+
+        // TODO: enable this, after testing!
+        //Preconditions.checkArgument(source.getValidationDate() == null);
+
         return operationRepository.control(source);
     }
 
