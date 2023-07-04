@@ -18,6 +18,7 @@ buildNumber.properties
 /*.log
 .local/
 .jpb/
+.mvn/
 
 # SUMARiS specific ignore path
 sumaris.log.file_IS_UNDEFINED
