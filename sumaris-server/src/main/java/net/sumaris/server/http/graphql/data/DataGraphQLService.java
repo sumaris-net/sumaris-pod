@@ -602,8 +602,11 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "validateObservedLocation", description = "Validate an observed location")
     @IsSupervisor
-    public ObservedLocationVO validateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment ResolutionEnvironment env) {
-        final ObservedLocationVO result = observedLocationService.validate(observedLocation);
+    public ObservedLocationVO validateObservedLocation(
+            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+            @GraphQLArgument(name = "options") ObservedLocationValidateOptions options,
+            @GraphQLEnvironment ResolutionEnvironment env) {
+        final ObservedLocationVO result = observedLocationService.validate(observedLocation, options);
 
         // Add additional properties if needed
         fillObservedLocationFields(result, GraphQLUtils.fields(env));
@@ -613,8 +616,11 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "unvalidateObservedLocation", description = "Unvalidate an observed location")
     @IsSupervisor
-    public ObservedLocationVO unvalidateObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment ResolutionEnvironment env) {
-        final ObservedLocationVO result = observedLocationService.unvalidate(observedLocation);
+    public ObservedLocationVO unvalidateObservedLocation(
+            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+            @GraphQLArgument(name = "options") ObservedLocationValidateOptions options,
+            @GraphQLEnvironment ResolutionEnvironment env) {
+        final ObservedLocationVO result = observedLocationService.unvalidate(observedLocation, options);
 
         // Add additional properties if needed
         fillObservedLocationFields(result, GraphQLUtils.fields(env));

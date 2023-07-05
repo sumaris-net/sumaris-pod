@@ -178,84 +178,91 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO validate(ObservedLocationVO observedLocation) {
+	public ObservedLocationVO validate(ObservedLocationVO observedLocation, ObservedLocationValidateOptions validateOptions) {
 		Preconditions.checkNotNull(observedLocation);
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		String programLabel = observedLocation.getProgram().getLabel();
+		ObservedLocationValidateOptions option = ObservedLocationValidateOptions.defaultIfEmpty(validateOptions);
 
 		observedLocation = observedLocationRepository.validate(observedLocation);
 
-		// Get if observedLocation has a meta program
-		String subProgramLabel = programService.getPropertyValueByProgramLabel(
-				programLabel,
-				ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+		if (validateOptions.getWithChildren()) {
+			// Get if observedLocation has a meta program
+			String programLabel = observedLocation.getProgram().getLabel();
+			String subProgramLabel = programService.getPropertyValueByProgramLabel(
+					programLabel,
+					ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
 
-		// Validate sub observed locations
-		if (StringUtils.isNoneBlank(subProgramLabel)) {
-			findAll(ObservedLocationFilterVO.builder()
-					.programLabel(subProgramLabel)
-					.startDate(observedLocation.getStartDateTime())
-					.endDate(observedLocation.getEndDateTime())
-					.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
-					.build(), Page.builder().offset(0).size(1000).build(),
-					DataFetchOptions.MINIMAL)
-				.forEach(this::validate);
-		}
+			// Validate sub observed locations
+			if (StringUtils.isNoneBlank(subProgramLabel)) {
+				findAll(ObservedLocationFilterVO.builder()
+								.programLabel(subProgramLabel)
+								.startDate(observedLocation.getStartDateTime())
+								.endDate(observedLocation.getEndDateTime())
+								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
+								.build(), Page.builder().offset(0).size(1000).build(),
+						DataFetchOptions.MINIMAL)
+						.forEach((i) -> this.validate(i, option));
+			}
 
-		// Validate children landings
-		else {
-			landingService.findAll(LandingFilterVO.builder()
-							.observedLocationId(observedLocation.getId())
-							.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
-							.build(),
-							Page.builder().offset(0).size(1000).build(),
-							LandingFetchOptions.MINIMAL)
-					.forEach(landingService::validate);
+			// Validate children landings
+			else {
+				landingService.findAll(LandingFilterVO.builder()
+										.observedLocationId(observedLocation.getId())
+										.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
+										.build(),
+								Page.builder().offset(0).size(1000).build(),
+								LandingFetchOptions.MINIMAL)
+						.forEach(landingService::validate);
+			}
 		}
 
 		return observedLocation;
 	}
 
 	@Override
-	public ObservedLocationVO unvalidate(ObservedLocationVO observedLocation) {
+	public ObservedLocationVO unvalidate(ObservedLocationVO observedLocation, ObservedLocationValidateOptions validateOptions) {
 		Preconditions.checkNotNull(observedLocation);
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		String programLabel = observedLocation.getProgram().getLabel();
+		ObservedLocationValidateOptions option = ObservedLocationValidateOptions.defaultIfEmpty(validateOptions);
 
 		observedLocation = observedLocationRepository.unValidate(observedLocation);
 
-		// Get if observedLocation has a meta program
-		String subProgramLabel = programService.getPropertyValueByProgramLabel(
-				programLabel,
-				ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+		if (validateOptions.getWithChildren()) {
+			String programLabel = observedLocation.getProgram().getLabel();
 
-		// Unvalidate sub observed locations
-		if (StringUtils.isNoneBlank(subProgramLabel)) {
-			findAll(ObservedLocationFilterVO.builder()
-							.programLabel(subProgramLabel)
-							.startDate(observedLocation.getStartDateTime())
-							.endDate(observedLocation.getEndDateTime())
-							.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
-							.build(), Page.builder().offset(0).size(1000).build(),
-					DataFetchOptions.MINIMAL)
-					.forEach(this::unvalidate);
-		}
+			// Get if observedLocation has a meta program
+			String subProgramLabel = programService.getPropertyValueByProgramLabel(
+					programLabel,
+					ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
 
-		// Unvalidate children landings
-		else {
-			landingService.findAll(LandingFilterVO.builder()
-									.observedLocationId(observedLocation.getId())
-									.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
-									.build(),
-							Page.builder().offset(0).size(1000).build(),
-							LandingFetchOptions.MINIMAL)
-					.forEach(l -> landingService.unvalidate(l));
+			// Unvalidate sub observed locations
+			if (StringUtils.isNoneBlank(subProgramLabel)) {
+				findAll(ObservedLocationFilterVO.builder()
+								.programLabel(subProgramLabel)
+								.startDate(observedLocation.getStartDateTime())
+								.endDate(observedLocation.getEndDateTime())
+								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
+								.build(), Page.builder().offset(0).size(1000).build(),
+						DataFetchOptions.MINIMAL)
+						.forEach((i) -> this.unvalidate(i, option));
+			}
+
+			// Unvalidate children landings
+			else {
+				landingService.findAll(LandingFilterVO.builder()
+										.observedLocationId(observedLocation.getId())
+										.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
+										.build(),
+								Page.builder().offset(0).size(1000).build(),
+								LandingFetchOptions.MINIMAL)
+						.forEach(l -> landingService.unvalidate(l));
+			}
 		}
 
 		return observedLocation;

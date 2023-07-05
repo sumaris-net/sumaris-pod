@@ -28,6 +28,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
+import net.sumaris.core.vo.data.ObservedLocationValidateOptions;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,9 +69,9 @@ public interface ObservedLocationService {
 
     ObservedLocationVO control(ObservedLocationVO data);
 
-	ObservedLocationVO validate(ObservedLocationVO data);
+	ObservedLocationVO validate(ObservedLocationVO data, ObservedLocationValidateOptions options);
 
-	ObservedLocationVO unvalidate(ObservedLocationVO data);
+	ObservedLocationVO unvalidate(ObservedLocationVO data, ObservedLocationValidateOptions options);
 
 	ObservedLocationVO qualify(ObservedLocationVO data);
 }
