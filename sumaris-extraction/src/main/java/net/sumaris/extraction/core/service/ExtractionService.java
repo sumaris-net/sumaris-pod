@@ -111,17 +111,6 @@ public interface ExtractionService {
                                             Page page,
                                             @Nullable CacheTTL ttl);
 
-    File executeAndDumpTrips(LiveExtractionTypeEnum format, ExtractionTripFilterVO filter);
-
-    File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter);
-
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
-    File executeAndDumpVessels(LiveExtractionTypeEnum format, VesselFilterVO filter);
-
-    ExtractionResultVO executeAndReadStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter, Page page);
-
-    File executeAndDump(IExtractionType type, ExtractionFilterVO filter, AggregationStrataVO strata) throws IOException;
-
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
     void executeAll(ProcessingFrequencyEnum frequency);
