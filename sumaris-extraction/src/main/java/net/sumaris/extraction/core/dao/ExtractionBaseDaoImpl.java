@@ -645,23 +645,23 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
         // Get groupBy columns
         String groupByColumns = xmlQuery.streamSelectElements(e -> {
+            boolean disabled = false;
                 // Exclude column with different dbms
                 String dbms = e.getAttributeValue(AbstractXMLQuery.ATTR_DBMS);
                 if (StringUtils.isNotBlank(dbms) && !dbms.contains(this.databaseType.name())) {
-                    return false;
+                    disabled = true;
                 }
-
 
                 // Exclude column with group 'agg'
                 boolean isAgg = xmlQuery.hasGroup(e, "agg");
                 if (isAgg) {
                     // Remove the agg group, to avoid the element to be disabled
                     xmlQuery.removeGroup(e, "agg");
-                    return false;
+                    disabled = true;
                 }
 
                 // Exclude disabled columns (by group)
-                return !xmlQuery.isDisabled(e);
+                return !disabled && !xmlQuery.isDisabled(e);
             })
             .map(e -> {
                 // Exclude pmfm columns
