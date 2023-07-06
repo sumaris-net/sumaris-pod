@@ -485,7 +485,12 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getId());
         Preconditions.checkArgument(trip.getControlDate() == null);
 
-        return tripRepository.control(trip);
+        TripVO result = tripRepository.control(trip);
+
+        // Publish event
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
+
+        return result;
     }
 
     @Override
@@ -495,7 +500,12 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getControlDate());
         Preconditions.checkArgument(trip.getValidationDate() == null);
 
-        return tripRepository.validate(trip);
+        TripVO result = tripRepository.validate(trip);
+
+        // Publish event
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
+
+        return result;
     }
 
     @Override
@@ -505,7 +515,12 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getControlDate());
         Preconditions.checkNotNull(trip.getValidationDate());
 
-        return tripRepository.unValidate(trip);
+        TripVO result = tripRepository.unValidate(trip);
+
+        // Publish event
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
+
+        return result;
     }
 
     @Override
@@ -516,7 +531,12 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getValidationDate());
         Preconditions.checkNotNull(trip.getQualityFlagId());
 
-        return tripRepository.qualify(trip);
+        TripVO result = tripRepository.qualify(trip);
+
+        // Publish event
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
+
+        return result;
     }
 
 

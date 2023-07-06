@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
@@ -47,20 +48,18 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("observedLocationService")
+@RequiredArgsConstructor
 @Slf4j
 public class ObservedLocationServiceImpl implements ObservedLocationService {
 
-	@Autowired
-	protected ObservedLocationRepository observedLocationRepository;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+	protected final ObservedLocationRepository observedLocationRepository;
 
-	@Autowired
-	protected LandingService landingService;
+	protected final MeasurementDao measurementDao;
 
-	@Autowired
-	private ApplicationEventPublisher publisher;
+	protected final LandingService landingService;
+
+	private final ApplicationEventPublisher publisher;
 
 	@Override
 	public List<ObservedLocationVO> getAll(int offset, int size) {
@@ -165,7 +164,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkArgument(observedLocation.getControlDate() == null);
 
-		return observedLocationRepository.control(observedLocation);
+		ObservedLocationVO result = observedLocationRepository.control(observedLocation);
+
+		// Publish event
+		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), result));
+
+		return result;
 	}
 
 	@Override
@@ -175,7 +179,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		return observedLocationRepository.validate(observedLocation);
+		ObservedLocationVO result = observedLocationRepository.validate(observedLocation);
+
+		// Publish event
+		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), result));
+
+		return result;
 	}
 
 	@Override
@@ -185,7 +194,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		return observedLocationRepository.unValidate(observedLocation);
+		ObservedLocationVO result = observedLocationRepository.unValidate(observedLocation);
+
+		// Publish event
+		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), result));
+
+		return result;
 	}
 
 	@Override
@@ -195,7 +209,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		return observedLocationRepository.qualify(observedLocation);
+		ObservedLocationVO result = observedLocationRepository.qualify(observedLocation);
+
+		// Publish event
+		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), result));
+
+		return result;
 	}
 
 	/* -- protected methods -- */
