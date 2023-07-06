@@ -591,8 +591,11 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "controlObservedLocation", description = "Control an observed location")
     @IsUser
-    public ObservedLocationVO controlObservedLocation(@GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation, @GraphQLEnvironment ResolutionEnvironment env) {
-        final ObservedLocationVO result = observedLocationService.control(observedLocation);
+    public ObservedLocationVO controlObservedLocation(
+            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+            @GraphQLArgument(name = "options") ObservedLocationControlOptions options,
+            @GraphQLEnvironment ResolutionEnvironment env) {
+        final ObservedLocationVO result = observedLocationService.control(observedLocation, options);
 
         // Add additional properties if needed
         fillObservedLocationFields(result, GraphQLUtils.fields(env));

@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
@@ -143,11 +144,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public List<ObservedLocationVO> save(List<ObservedLocationVO> observedLocations, ObservedLocationSaveOptions saveOptions) {
+	public List<ObservedLocationVO> save(List<ObservedLocationVO> observedLocations, ObservedLocationSaveOptions options) {
 		Preconditions.checkNotNull(observedLocations);
 
 		return observedLocations.stream()
-				.map(t -> save(t, saveOptions))
+				.map(t -> save(t, options))
 				.collect(Collectors.toList());
 	}
 
@@ -169,22 +170,55 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO control(ObservedLocationVO observedLocation) {
-		Preconditions.checkNotNull(observedLocation);
+	public ObservedLocationVO control(@NonNull ObservedLocationVO observedLocation, ObservedLocationControlOptions options) {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		return observedLocationRepository.control(observedLocation);
+		ObservedLocationControlOptions controlOptions = ObservedLocationControlOptions.defaultIfEmpty(options);
+
+		observedLocation = observedLocationRepository.control(observedLocation);
+
+		if (controlOptions.getWithChildren()) {
+			// Get if observedLocation has a meta program
+			String programLabel = observedLocation.getProgram().getLabel();
+			String subProgramLabel = programService.getPropertyValueByProgramLabel(
+					programLabel,
+					ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+
+			// Control sub observed locations
+			if (StringUtils.isNoneBlank(subProgramLabel)) {
+				findAll(ObservedLocationFilterVO.builder()
+								.programLabel(subProgramLabel)
+								.startDate(observedLocation.getStartDateTime())
+								.endDate(observedLocation.getEndDateTime())
+								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
+								.build(), Page.builder().offset(0).size(1000).build(),
+						DataFetchOptions.MINIMAL)
+						.forEach((i) -> this.control(i, controlOptions));
+			}
+
+			// Control children landings
+			else {
+				landingService.findAll(LandingFilterVO.builder()
+										.observedLocationId(observedLocation.getId())
+										.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
+										.build(),
+								Page.builder().offset(0).size(1000).build(),
+								LandingFetchOptions.MINIMAL)
+						.forEach(landingService::control);
+			}
+		}
+
+		return observedLocation;
 	}
 
 	@Override
-	public ObservedLocationVO validate(ObservedLocationVO observedLocation, ObservedLocationValidateOptions validateOptions) {
-		Preconditions.checkNotNull(observedLocation);
+	public ObservedLocationVO validate(@NonNull ObservedLocationVO observedLocation, ObservedLocationValidateOptions options) {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		ObservedLocationValidateOptions option = ObservedLocationValidateOptions.defaultIfEmpty(validateOptions);
+		ObservedLocationValidateOptions validateOptions = ObservedLocationValidateOptions.defaultIfEmpty(options);
 
 		observedLocation = observedLocationRepository.validate(observedLocation);
 
@@ -204,7 +238,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
 								.build(), Page.builder().offset(0).size(1000).build(),
 						DataFetchOptions.MINIMAL)
-						.forEach((i) -> this.validate(i, option));
+						.forEach((i) -> this.validate(i, validateOptions));
 			}
 
 			// Validate children landings
@@ -223,13 +257,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO unvalidate(ObservedLocationVO observedLocation, ObservedLocationValidateOptions validateOptions) {
-		Preconditions.checkNotNull(observedLocation);
+	public ObservedLocationVO unvalidate(@NonNull ObservedLocationVO observedLocation, ObservedLocationValidateOptions options) {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		ObservedLocationValidateOptions option = ObservedLocationValidateOptions.defaultIfEmpty(validateOptions);
+		ObservedLocationValidateOptions validateOptions = ObservedLocationValidateOptions.defaultIfEmpty(options);
 
 		observedLocation = observedLocationRepository.unValidate(observedLocation);
 
@@ -250,7 +283,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
 								.build(), Page.builder().offset(0).size(1000).build(),
 						DataFetchOptions.MINIMAL)
-						.forEach((i) -> this.unvalidate(i, option));
+						.forEach((i) -> this.unvalidate(i, validateOptions));
 			}
 
 			// Unvalidate children landings
