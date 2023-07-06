@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -48,6 +49,9 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
     @Autowired
     private ProgramService service;
+
+    @Value("${spring.cache.enabled:false}")
+    private boolean enableCache;
 
     @Test
     public void getById() {
@@ -187,9 +191,20 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
         // Validator user
         {
             int personId = fixtures.getPersonIdValidator();
+            long start = System.currentTimeMillis();
             List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            long firstDuration = System.currentTimeMillis() - start;
+
             Assert.assertEquals(1, CollectionUtils.size(privileges));
             Assert.assertTrue(privileges.contains(ProgramPrivilegeEnum.VALIDATOR));
+
+            // Test cache (if enable in properties)
+            if (enableCache) {
+                start = System.currentTimeMillis();
+                service.getAllPrivilegesByUserId(programId, personId);
+                long secondDuration = System.currentTimeMillis() - start;
+                Assert.assertTrue(secondDuration < firstDuration);
+            }
         }
 
     }
