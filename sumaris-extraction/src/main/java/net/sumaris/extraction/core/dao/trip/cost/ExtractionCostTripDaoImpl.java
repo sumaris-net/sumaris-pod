@@ -55,7 +55,7 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
     }
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?,?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.COST);
     }
 

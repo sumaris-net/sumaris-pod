@@ -61,7 +61,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
         this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format
     }
 
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.APASE);
     }
 

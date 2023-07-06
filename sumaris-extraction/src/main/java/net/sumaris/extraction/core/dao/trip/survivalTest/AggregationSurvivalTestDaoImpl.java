@@ -64,7 +64,7 @@ public class AggregationSurvivalTestDaoImpl<C extends AggregationSurvivalTestCon
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?,?>> getManagedTypes() {
         return ImmutableSet.of(AggExtractionTypeEnum.AGG_SURVIVAL_TEST);
     }
 

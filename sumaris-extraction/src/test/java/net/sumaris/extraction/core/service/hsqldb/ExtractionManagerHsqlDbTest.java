@@ -22,27 +22,14 @@
 
 package net.sumaris.extraction.core.service.hsqldb;
 
-import net.sumaris.core.service.data.TripService;
-import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.ExtractionServiceTest;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
-import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import org.junit.Assert;
-import org.junit.Assume;
+import net.sumaris.extraction.core.service.ExtractionManagerTest;
 import org.junit.ClassRule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
-public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
+public class ExtractionManagerHsqlDbTest extends ExtractionManagerTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

@@ -33,7 +33,6 @@
         MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN
         TO_CHAR(TIMESTAMP(REPLACE(REPLACE(PGM.ALPHANUMERICAL_VALUE, 'T', ' '), 'Z', '')), 'YYYY-DD-MM HH24:MI:SS')
         ELSE NULL END)
-
     </select>
     <select alias="&amp;pmfmlabel%pmfmalias%" group="date%pmfmalias%,agg" dbms="oracle,pgsql" type="text">
         MAX(CASE PGM.PMFM_FK WHEN &amp;pmfmId%pmfmalias% THEN

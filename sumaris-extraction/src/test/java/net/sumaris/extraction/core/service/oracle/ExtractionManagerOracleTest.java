@@ -23,15 +23,13 @@
 package net.sumaris.extraction.core.service.oracle;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.ExtractionProductService;
-import net.sumaris.extraction.core.service.ExtractionServiceTest;
+import net.sumaris.extraction.core.service.ExtractionManagerTest;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
@@ -43,16 +41,15 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 
 /**
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-@Ignore("Use only Ifremer Oracle database")
+//@Ignore("Use only Ifremer Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
-public class ExtractionServiceOracleTest extends ExtractionServiceTest {
+public class ExtractionManagerOracleTest extends ExtractionManagerTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle");

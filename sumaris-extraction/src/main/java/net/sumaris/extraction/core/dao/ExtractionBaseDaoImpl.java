@@ -270,7 +270,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
     protected long queryCount(String query) {
-        if (log.isDebugEnabled()) log.debug("aggregate: " + query);
+        if (log.isDebugEnabled()) log.debug("count: " + query);
         Query nativeQuery = createNativeQuery(query);
         Object result = nativeQuery.getSingleResult();
         if (result == null)

@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.dao;
+package net.sumaris.extraction.core.service;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -36,6 +36,7 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.*;
+import net.sumaris.extraction.core.dao.AggregationDao;
 import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.extraction.core.vo.*;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -53,9 +54,9 @@ import java.util.stream.Collectors;
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-@Component("aggregationDaoDispatcher")
+@Component("aggregationDispatcher")
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
-public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
+public class AggregationDispatchImpl implements AggregationDispatcher {
 
     private final ConfigurableApplicationContext context;
 
@@ -63,7 +64,7 @@ public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
 
     private final Map<IExtractionType, AggregationDao<?,?,?>> daoByType = Maps.newHashMap();
 
-    public AggregationDaoDispatchImpl(ConfigurableApplicationContext context, ExtractionProductRepository extractionProductRepository) {
+    public AggregationDispatchImpl(ConfigurableApplicationContext context, ExtractionProductRepository extractionProductRepository) {
         this.context = context;
         this.extractionProductRepository = extractionProductRepository;
     }
@@ -72,9 +73,8 @@ public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
     protected void registerDelegates() {
         // Register daos
         context.getBeansOfType(AggregationDao.class).values()
-            .forEach(dao -> {
-                Set<IExtractionType> types = dao.getManagedTypes();
-                types.forEach(type -> {
+            .forEach(dao -> ((Set<IExtractionType<?, ?>>)dao.getManagedTypes())
+                .forEach(type -> {
                         // Check if unique, by format
                         if (daoByType.containsKey(type)) {
                             throw new BeanInitializationException(
@@ -86,8 +86,7 @@ public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
                         }
                         // Register the dao
                         daoByType.put(type, dao);
-                    });
-                }
+                    })
             );
     }
 
@@ -194,8 +193,8 @@ public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
     }
 
     @Override
-    public void clean(AggregationContextVO context) {
-        log.info("Cleaning aggregation #{}", context.getId());
+    public void clean(@NonNull AggregationContextVO context) {
+        if (context.getId() != null) log.info("Cleaning aggregation #{}", context.getId());
         getDao(context).clean(context);
     }
 
@@ -254,7 +253,7 @@ public class AggregationDaoDispatchImpl implements AggregationDaoDispatcher {
     }
 
     protected <C extends AggregationContextVO, F extends ExtractionFilterVO, S extends AggregationStrataVO>
-    AggregationDao<C, F, S> getDao(@NonNull IExtractionType type) {
+    AggregationDao<C, F, S> getDao(IExtractionType type) {
         try {
             IExtractionType daoType = daoByType.containsKey(type) ? type : ExtractionTypes.findOneMatch(daoByType.keySet(), type);
             return (AggregationDao<C, F, S>) daoByType.get(daoType);

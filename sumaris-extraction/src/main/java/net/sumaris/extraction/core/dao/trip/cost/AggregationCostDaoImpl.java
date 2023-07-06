@@ -54,7 +54,7 @@ public class AggregationCostDaoImpl<
     implements AggCostSpecification {
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?,?>> getManagedTypes() {
         return ImmutableSet.of(AggExtractionTypeEnum.AGG_COST);
     }
 

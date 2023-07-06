@@ -55,7 +55,7 @@ public class AggregationFree1DaoImpl<
 
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?,?>> getManagedTypes() {
         return ImmutableSet.of(AggExtractionTypeEnum.AGG_FREE);
     }
 
