@@ -86,6 +86,8 @@ public interface ExtractionService {
 
     File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter);
 
+    File executeAndDumpVessels(LiveExtractionTypeEnum format, VesselFilterVO filter);
+
     ExtractionResultVO executeAndReadStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter, Page page);
 
     ExtractionResultVO read(IExtractionType type,
