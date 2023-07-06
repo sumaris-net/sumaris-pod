@@ -23,7 +23,6 @@
 package net.sumaris.extraction.core;
 
 import com.google.common.base.Preconditions;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 
 /**
  * Fixtures for the local db.
@@ -65,7 +64,7 @@ public class DatabaseFixtures {
 		}
 	}
 
-	public String getProgramLabelForPmfmExtraction(int index) {
+	public String getProgramLabelForExtraction(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:

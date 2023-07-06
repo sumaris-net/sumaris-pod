@@ -59,6 +59,7 @@ import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.*;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.AggregationDao;
@@ -68,8 +69,10 @@ import net.sumaris.extraction.core.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
+import net.sumaris.extraction.core.dao.vessel.ExtractionVesselDao;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.util.ExtractionProducts;
 import net.sumaris.extraction.core.util.ExtractionTypes;
@@ -117,6 +120,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     private final ExtractionTripDao extractionRdbTripDao;
     private final ExtractionStrategyDao extractionStrategyDao;
+    private final ExtractionVesselDao extractionVesselDao;
     private final ExtractionCsvDao extractionCsvDao;
 
     private final ExtractionProductService productService;
@@ -341,6 +345,13 @@ public class ExtractionServiceImpl implements ExtractionService {
     public File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO strategyFilter) {
         String strategySheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : StratSpecification.ST_SHEET_NAME;
         ExtractionFilterVO filter = extractionStrategyDao.toExtractionFilterVO(strategyFilter, strategySheetName);
+        return executeAndDump(format, filter, null);
+    }
+
+    @Override
+    public File executeAndDumpVessels(LiveExtractionTypeEnum format, VesselFilterVO vesselFilter) {
+        String vesselSheetName = ArrayUtils.isNotEmpty(format.getSheetNames()) ? format.getSheetNames()[0] : VesselSpecification.VE_SHEET_NAME;
+        ExtractionFilterVO filter = extractionVesselDao.toExtractionFilterVO(vesselFilter, vesselSheetName);
         return executeAndDump(format, filter, null);
     }
 

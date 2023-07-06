@@ -28,6 +28,7 @@ import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -84,50 +85,34 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 @GraphQLApi
+@RequiredArgsConstructor
 @Slf4j
 public class ProgramGraphQLService {
 
     static final Integer MIN_WATCH_INTERVAL_IN_SECONDS = 30;
 
-    @Autowired
-    private SumarisServerConfiguration configuration;
+    private final SumarisServerConfiguration configuration;
 
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
 
-    @Autowired
-    private StrategyService strategyService;
+    private final StrategyService strategyService;
 
-    @Autowired
-    private ReferentialService referentialService;
+    private final ReferentialService referentialService;
 
-    @Autowired
-    private PmfmService pmfmService;
+    private final PmfmService pmfmService;
 
-    @Autowired
-    private TaxonNameService taxonNameService;
+    private final TaxonNameService taxonNameService;
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
 
-    @Autowired
-    private EntityWatchService entityWatchService;
+    private final EntityWatchService entityWatchService;
 
-    @Autowired
-    private DataAccessControlService dataAccessControlService;
-
-    @Autowired
-    public ProgramGraphQLService() {
-        super();
-    }
-
+    private final DataAccessControlService dataAccessControlService;
 
     /* -- Program / Strategy-- */
 
     @GraphQLQuery(name = "program", description = "Get a program")
-    @Transactional(readOnly = true)
     public ProgramVO getProgram(
         @GraphQLArgument(name = "label") String label,
         @GraphQLArgument(name = "id") Integer id,
@@ -167,7 +152,6 @@ public class ProgramGraphQLService {
     }
 
     @GraphQLQuery(name = "strategy", description = "Get a strategy")
-    @Transactional(readOnly = true)
     public StrategyVO getStrategy(@GraphQLNonNull @GraphQLArgument(name = "id") @NonNull Integer id,
                                   @GraphQLEnvironment ResolutionEnvironment env) {
 
@@ -229,6 +213,7 @@ public class ProgramGraphQLService {
     }
 
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
+    @Transactional(readOnly = true)
     public List<StrategyVO> getStrategiesByProgram(@GraphQLContext ProgramVO program,
                                                    @GraphQLArgument(name = "filter") StrategyFilterVO filter,
                                                    @GraphQLEnvironment ResolutionEnvironment env) {
@@ -401,8 +386,6 @@ public class ProgramGraphQLService {
     }
 
     /* -- Subscriptions -- */
-
-
 
     @GraphQLSubscription(name = "updateProgram", description = "Subscribe to changes on a program")
     @IsUser

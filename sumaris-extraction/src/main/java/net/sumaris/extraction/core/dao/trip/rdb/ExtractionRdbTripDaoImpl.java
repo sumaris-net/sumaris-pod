@@ -671,19 +671,19 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .map(AcquisitionLevelEnum::getId)
             .toList();
 
-        String cacheKey = acquisitionLevelIds.toString();
+        String cacheKey = programLabels.toString() + acquisitionLevelIds;
 
         // Already loaded: use the cached values
         if (pmfms.containsKey(cacheKey)) return pmfms.get(cacheKey);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
+        if (log.isTraceEnabled()) {
+            log.trace("Loading PMFM for programs {} and acquisitionLevels {} ...",
                 programLabels,
-                cacheKey
+                acquisitionLevels
             );
         }
 
-        // Load pmfm columns
+        // Load denormalized pmfm
         List<DenormalizedPmfmStrategyVO> result = strategyService.findDenormalizedPmfmsByFilter(
                 PmfmStrategyFilterVO.builder()
                     .programLabels(programLabels.toArray(new String[0]))
@@ -715,15 +715,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .map(AcquisitionLevelEnum::getId)
             .toList();
 
-        String cacheKey = acquisitionLevelIds.toString();
+        String cacheKey = programLabels.toString() + acquisitionLevelIds.toString();
 
         // Already loaded: use the cached values
         if (pmfmColumns.containsKey(cacheKey)) return pmfmColumns.get(cacheKey);
 
         if (log.isDebugEnabled()) {
-            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
+            log.debug("Loading PMFM columns for programs {} and acquisitionLevels: {} ...",
                 programLabels,
-                cacheKey
+                acquisitionLevels
             );
         }
 

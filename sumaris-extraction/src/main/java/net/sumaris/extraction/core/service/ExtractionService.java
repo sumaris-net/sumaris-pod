@@ -30,6 +30,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
@@ -85,6 +86,8 @@ public interface ExtractionService {
 
     File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter);
 
+    File executeAndDumpVessels(LiveExtractionTypeEnum format, VesselFilterVO filter);
+
     ExtractionResultVO executeAndReadStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter, Page page);
 
     ExtractionResultVO read(IExtractionType type,
@@ -107,7 +110,6 @@ public interface ExtractionService {
                                             @Nullable AggregationStrataVO strata,
                                             Page page,
                                             @Nullable CacheTTL ttl);
-
 
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
