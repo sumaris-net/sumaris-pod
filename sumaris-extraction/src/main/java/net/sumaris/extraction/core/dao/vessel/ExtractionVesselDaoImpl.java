@@ -32,7 +32,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
@@ -43,7 +43,6 @@ import net.sumaris.extraction.core.specification.administration.StratSpecificati
 import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
-import net.sumaris.extraction.core.vo.administration.ExtractionStrategyContextVO;
 import net.sumaris.extraction.core.vo.vessel.ExtractionVesselContextVO;
 import net.sumaris.xml.query.XMLQuery;
 import org.apache.commons.collections4.CollectionUtils;
@@ -182,26 +181,28 @@ public class ExtractionVesselDaoImpl<C extends ExtractionVesselContextVO, F exte
     }
 
     protected long createVesselTable(C context) {
+        String tableName = context.getVesselTableName();
         XMLQuery xmlQuery = createVesselQuery(context);
 
         // execute insertion
-        long count = execute(context, xmlQuery);
+        execute(context, xmlQuery);
+        long count = countFrom(tableName);
 
         // Clean row using generic filter
         if (count > 0) {
-            count -= cleanRow(context.getVesselTableName(), context.getFilter(), context.getVesselSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getVesselSheetName());
         }
 
         // Add result table to context
         if (count > 0) {
-            context.addTableName(context.getVesselTableName(),
+            context.addTableName(tableName,
                 context.getVesselSheetName(),
                 xmlQuery.getHiddenColumnNames(),
                 xmlQuery.hasDistinctOption());
             log.debug(String.format("Vessel table: %s rows inserted", count));
         }
         else {
-            context.addRawTableName(context.getVesselTableName());
+            context.addRawTableName(tableName);
         }
         return count;
     }
@@ -235,6 +236,9 @@ public class ExtractionVesselDaoImpl<C extends ExtractionVesselContextVO, F exte
         // Base port location filter
         xmlQuery.setGroup("basePortLocationIdsFilter", CollectionUtils.isNotEmpty(context.getBasePortLocationIds()));
         xmlQuery.bind("basePortLocationIds", Daos.getSqlInNumbers(context.getBasePortLocationIds()));
+
+        // Other bind
+        xmlQuery.bind("countryLocationLevelId", LocationLevelEnum.COUNTRY.getId().toString());
 
         // Generated group by
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
