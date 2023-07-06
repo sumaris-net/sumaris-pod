@@ -105,7 +105,7 @@ public class ExtractionVesselDaoImpl<C extends ExtractionVesselContextVO, F exte
     }
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.VESSEL);
     }
 
