@@ -24,10 +24,8 @@ package net.sumaris.core.service.data;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
-import net.sumaris.core.vo.data.TripVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -58,7 +56,7 @@ public class ObservedLocationServiceQualityTest extends AbstractServiceTest {
         }
         Assert.assertNull(obs.getControlDate());
 
-        obs = service.control(obs);
+        obs = service.control(obs, null);
 
         Assert.assertNotNull(obs.getControlDate());
     }
@@ -72,7 +70,7 @@ public class ObservedLocationServiceQualityTest extends AbstractServiceTest {
         trip.setControlDate(new Date());
         Assert.assertNull(trip.getValidationDate());
 
-        trip = service.validate(trip);
+        trip = service.validate(trip, null);
 
         Assert.assertNotNull(trip.getValidationDate());
     }
@@ -86,7 +84,7 @@ public class ObservedLocationServiceQualityTest extends AbstractServiceTest {
         trip.setControlDate(new Date());
         trip.setValidationDate(new Date());
 
-        trip = service.unvalidate(trip);
+        trip = service.unvalidate(trip, null);
 
         Assert.assertNull(trip.getValidationDate());
     }

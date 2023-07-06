@@ -124,13 +124,8 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
-	public List<String> getAllPrivilegesByUserId(int id, Integer personId) {
-		// TODO Replace mock to program Privileges Enum
-		return List.of(
-				ProgramPrivilegeEnum.MANAGER.name(),
-				ProgramPrivilegeEnum.OBSERVER.name()
-		);
-//		return programRepository.getAllPrivilegesByUserId(id, personId);
+	public List<ProgramPrivilegeEnum> getAllPrivilegesByUserId(int programId, int personId) {
+		return programRepository.getAllPrivilegeIdsByUserId(programId, personId);
 	}
 
 	@Override

@@ -237,18 +237,53 @@ public class DatabaseFixtures {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:
-				return 1;
+				return 1; // B. Lavenier
 			case 1:
-				return 2;
+				return getPersonIdObserver();
 			case 2:
-				return 3; // User without any data in the test DB
+				return getPersonIdManager();
+			case 3:
+				return getPersonIdInactive();
+			case 4:
+				return getPersonIdAdmin();
 			default:
 				return 1;
 		}
 	}
+	public Integer getPersonIdInactive() {
+		return 4; // Inactive user
+	}
 
 	public Integer getPersonIdNoData() {
-		return getPersonId(4); // Inactive user
+		return 4; // No data user (and no program privilege)
+	}
+
+	public Integer getPersonIdNoPrivilege() {
+		return 6; // Guest user
+	}
+
+	public Integer getPersonIdObserver() {
+		return 2; // Observer
+	}
+
+	public Integer getPersonIdManager() {
+		return 3; // Manager
+	}
+
+	public Integer getPersonIdAdmin() {
+		return 5; // Admin
+	}
+
+
+	public Integer getPersonIdViewer() {
+		return 7; // Viewer
+	}
+
+	public Integer getPersonIdValidator() {
+		return 8; // Validator
+	}
+	public Integer getPersonIdQualifier() {
+		return 9; // Qualifier
 	}
 
 	public Integer getMetierIdForOTB(int index) {

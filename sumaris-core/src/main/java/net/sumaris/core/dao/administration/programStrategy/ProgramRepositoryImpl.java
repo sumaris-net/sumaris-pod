@@ -446,6 +446,17 @@ public class ProgramRepositoryImpl
     }
 
     @Override
+    public List<ProgramPrivilegeEnum> getAllPrivilegeIdsByUserId(int programId, int personId) {
+        return getEntityManager().createNamedQuery("ProgramPerson.privilegeIds", Number.class)
+            .setParameter("programId", programId)
+            .setParameter("personId", personId)
+            .setParameter("privilegeId", null)
+            .getResultStream()
+            .map(id -> ProgramPrivilegeEnum.valueOf(id.intValue()))
+            .toList();
+    }
+
+    @Override
     public List<ProgramDepartmentVO> getDepartmentsById(int id) {
         return getDepartments(getReference(Program.class, id));
     }

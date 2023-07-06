@@ -44,7 +44,7 @@ import java.util.Date;
 import java.util.List;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class PersonServiceTest extends AbstractServiceTest{
+public class PersonServiceTest extends AbstractServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -78,7 +78,7 @@ public class PersonServiceTest extends AbstractServiceTest{
         // Find by status (inactive person)
         filter = new PersonFilterVO();
         filter.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()});
-        assertFindResult(filter, 5);
+        assertFindResult(filter, 8);
 
         // Find by email
         filter = new PersonFilterVO();
@@ -168,8 +168,6 @@ public class PersonServiceTest extends AbstractServiceTest{
     }
 
     @Test
-    @Ignore
-    // FIXME: find a user without data and right on program
     public void z_delete() {
 
         long userProfileCountBefore = CollectionUtils.size(referentialService.findByFilter(UserProfile.class.getSimpleName(), null, 0, 1000));
@@ -193,7 +191,7 @@ public class PersonServiceTest extends AbstractServiceTest{
 
         PersonVO person = service.getByPubkey(fixtures.getAdminPubkey());
         Assert.assertNotNull(person);
-        Assert.assertEquals(5, person.getId().intValue());
+        Assert.assertEquals(fixtures.getPersonIdAdmin(), person.getId());
 
         try {
             service.getByPubkey("____");

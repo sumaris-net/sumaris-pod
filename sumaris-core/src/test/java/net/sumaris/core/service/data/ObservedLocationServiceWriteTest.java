@@ -101,13 +101,13 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
         ObservedLocationVO observedLocation = service.get(11);
         Assume.assumeNotNull(observedLocation);
         if (observedLocation.getControlDate() == null) {
-            observedLocation = service.control(observedLocation);
+            observedLocation = service.control(observedLocation, null);
             controlLandingsByObservedLocationId(observedLocation.getId());
         }
 
         Assume.assumeNotNull(observedLocation.getControlDate());
         Assume.assumeTrue(observedLocation.getValidationDate() == null);
-        ObservedLocationVO result = service.validate(observedLocation);
+        ObservedLocationVO result = service.validate(observedLocation, null);
         Assume.assumeNotNull(result.getValidationDate());
 
         // Sub landings must be controlled before validation
@@ -129,7 +129,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
         ObservedLocationVO observedLocation = service.get(14/*SIH-OBSDEB-META*/);
         Assume.assumeNotNull(observedLocation);
         if (observedLocation.getControlDate() == null) {
-            observedLocation = service.control(observedLocation);
+            observedLocation = service.control(observedLocation, null);
         }
 
         Assume.assumeNotNull(observedLocation.getControlDate());
@@ -149,12 +149,12 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
         // children observed location must be controlled before validation
         service.findAll(childrenFilter, Page.builder().build(), DataFetchOptions.MINIMAL)
                 .forEach(ol -> {
-                    if (ol.getControlDate() == null) service.control(ol);
+                    if (ol.getControlDate() == null) service.control(ol, null);
                     controlLandingsByObservedLocationId(ol.getId());
                 });
 
         // Validate the meta observed location
-        ObservedLocationVO result = service.validate(observedLocation);
+        ObservedLocationVO result = service.validate(observedLocation, null);
         Assert.assertNotNull(result.getValidationDate());
 
         // All subObservedLocation also must be validated
@@ -202,7 +202,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
                         Page.builder().offset(0).size(1000).build(),
                         LandingFetchOptions.MINIMAL)
                 .forEach(l -> {
-                    if (l.getControlDate() == null) landingService.control(l);
+                    if (l.getControlDate() == null) landingService.control(l, null);
                 });
     }
 }

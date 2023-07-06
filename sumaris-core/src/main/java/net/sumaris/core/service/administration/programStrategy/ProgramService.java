@@ -109,5 +109,5 @@ public interface ProgramService {
 	boolean hasAcquisitionLevelByLabel(String label, AcquisitionLevelEnum acquisitionLevel);
 
 	@Transactional(readOnly = true)
-	List<String> getAllPrivilegesByUserId(int id, Integer personId);
+	List<ProgramPrivilegeEnum> getAllPrivilegesByUserId(int programId, int personId);
 }

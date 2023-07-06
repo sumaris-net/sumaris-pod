@@ -45,7 +45,6 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -65,8 +64,6 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	protected final MeasurementDao measurementDao;
 
 	protected final ProgramService programService;
-
-	protected final LandingService landingService;
 
 	protected final LandingService landingService;
 
@@ -210,7 +207,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		}
 
 		// Publish event
-		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
+		publisher.publishEvent(new EntityUpdateEvent(observedLocation.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
 
 		return observedLocation;
 	}
@@ -257,7 +254,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		}
 
 		// Publish event
-		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
+		publisher.publishEvent(new EntityUpdateEvent(observedLocation.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
 
 		return observedLocation;
 	}
@@ -306,7 +303,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 
 		// Publish event
-		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
+		publisher.publishEvent(new EntityUpdateEvent(observedLocation.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
 
 		return observedLocation;
 	}
@@ -321,7 +318,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		observedLocation = observedLocationRepository.qualify(observedLocation);
 
 		// Publish event
-		publisher.publishEvent(new EntityUpdateEvent(result.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
+		publisher.publishEvent(new EntityUpdateEvent(observedLocation.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
 
 		return observedLocation;
 	}

@@ -59,6 +59,7 @@ public interface ProgramRepository
     @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, key="#p0", unless="#result==null")
     List<Integer> getProgramIdsByUserId(@Param("id") int id);
 
+
 //    @Query(value = "select distinct pp from Program p inner join p.persons p2p inner join p2p.privilege pp where p.id=:id and p2p.person.id=:personId")
 //    List<ReferentialVO> getAllPrivilegesByUserId(@Param("id") int id, @Param("personId") int personId);
 }
