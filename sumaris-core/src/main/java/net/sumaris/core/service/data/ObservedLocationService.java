@@ -65,11 +65,11 @@ public interface ObservedLocationService {
 
 	void delete(List<Integer> ids);
 
-    ObservedLocationVO control(ObservedLocationVO data, @Nullable ObservedLocationControlOptions options);
+    ObservedLocationVO control(ObservedLocationVO data, @Nullable DataControlOptions options);
 
-	ObservedLocationVO validate(ObservedLocationVO data, @Nullable ObservedLocationValidateOptions options);
+	ObservedLocationVO validate(ObservedLocationVO data, @Nullable DataValidateOptions options);
 
-	ObservedLocationVO unvalidate(ObservedLocationVO data, @Nullable ObservedLocationValidateOptions options);
+	ObservedLocationVO unvalidate(ObservedLocationVO data, @Nullable DataValidateOptions options);
 
 	ObservedLocationVO qualify(ObservedLocationVO data);
 }

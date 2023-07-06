@@ -593,7 +593,7 @@ public class DataGraphQLService {
     @IsUser
     public ObservedLocationVO controlObservedLocation(
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
-            @GraphQLArgument(name = "options") ObservedLocationControlOptions options,
+            @GraphQLArgument(name = "options") DataControlOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.control(observedLocation, options);
 
@@ -607,7 +607,7 @@ public class DataGraphQLService {
     @IsSupervisor
     public ObservedLocationVO validateObservedLocation(
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
-            @GraphQLArgument(name = "options") ObservedLocationValidateOptions options,
+            @GraphQLArgument(name = "options") DataValidateOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.validate(observedLocation, options);
 
@@ -621,7 +621,7 @@ public class DataGraphQLService {
     @IsSupervisor
     public ObservedLocationVO unvalidateObservedLocation(
             @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
-            @GraphQLArgument(name = "options") ObservedLocationValidateOptions options,
+            @GraphQLArgument(name = "options") DataValidateOptions options,
             @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.unvalidate(observedLocation, options);
 
@@ -1115,7 +1115,7 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "controlLanding", description = "Control a landing")
     @IsUser
     public LandingVO controlLanding(@GraphQLNonNull @GraphQLArgument(name = "landing") LandingVO landing, @GraphQLEnvironment ResolutionEnvironment env) {
-        final LandingVO result = landingService.control(landing);
+        final LandingVO result = landingService.control(landing, DataControlOptions.builder().build());
 
         // Add additional properties if needed
         fillLandingFields(result, GraphQLUtils.fields(env));

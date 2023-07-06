@@ -170,11 +170,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO control(@NonNull ObservedLocationVO observedLocation, ObservedLocationControlOptions options) {
+	public ObservedLocationVO control(@NonNull ObservedLocationVO observedLocation, DataControlOptions options) {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		ObservedLocationControlOptions controlOptions = ObservedLocationControlOptions.defaultIfEmpty(options);
+		DataControlOptions controlOptions = DataControlOptions.defaultIfEmpty(options);
 
 		observedLocation = observedLocationRepository.control(observedLocation);
 
@@ -205,7 +205,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 										.build(),
 								Page.builder().offset(0).size(1000).build(),
 								LandingFetchOptions.MINIMAL)
-						.forEach(landingService::control);
+						.forEach((i) -> landingService.control(i, controlOptions));
 			}
 		}
 
@@ -213,12 +213,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO validate(@NonNull ObservedLocationVO observedLocation, ObservedLocationValidateOptions options) {
+	public ObservedLocationVO validate(@NonNull ObservedLocationVO observedLocation, DataValidateOptions options) {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkArgument(observedLocation.getValidationDate() == null);
 
-		ObservedLocationValidateOptions validateOptions = ObservedLocationValidateOptions.defaultIfEmpty(options);
+		DataValidateOptions validateOptions = DataValidateOptions.defaultIfEmpty(options);
 
 		observedLocation = observedLocationRepository.validate(observedLocation);
 
@@ -249,7 +249,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 										.build(),
 								Page.builder().offset(0).size(1000).build(),
 								LandingFetchOptions.MINIMAL)
-						.forEach(landingService::validate);
+						.forEach((i) -> landingService.validate(i, validateOptions));
 			}
 		}
 
@@ -257,12 +257,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO unvalidate(@NonNull ObservedLocationVO observedLocation, ObservedLocationValidateOptions options) {
+	public ObservedLocationVO unvalidate(@NonNull ObservedLocationVO observedLocation, DataValidateOptions options) {
 		Preconditions.checkNotNull(observedLocation.getId());
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		ObservedLocationValidateOptions validateOptions = ObservedLocationValidateOptions.defaultIfEmpty(options);
+		DataValidateOptions validateOptions = DataValidateOptions.defaultIfEmpty(options);
 
 		observedLocation = observedLocationRepository.unValidate(observedLocation);
 
@@ -294,7 +294,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 										.build(),
 								Page.builder().offset(0).size(1000).build(),
 								LandingFetchOptions.MINIMAL)
-						.forEach(l -> landingService.unvalidate(l));
+						.forEach(l -> landingService.unvalidate(l, validateOptions));
 			}
 		}
 

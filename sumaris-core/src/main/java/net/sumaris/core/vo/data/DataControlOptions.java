@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ObservedLocationValidateOptions {
+public class DataControlOptions implements IControlOptions {
 
-    public static ObservedLocationValidateOptions DEFAULT = ObservedLocationValidateOptions.builder().build();
+    public static DataControlOptions DEFAULT = DataControlOptions.builder().build();
 
-    public static ObservedLocationValidateOptions defaultIfEmpty(ObservedLocationValidateOptions options) {
+    public static DataControlOptions defaultIfEmpty(DataControlOptions options) {
         return options != null ? options : DEFAULT;
     }
 
