@@ -27,6 +27,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
+import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.annotation.Nullable;
@@ -40,6 +41,9 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
 
     // Administration
     STRAT (StratSpecification.FORMAT, StratSpecification.SHEET_NAMES, StratSpecification.VERSION_1_0),
+
+    // VESSEL
+    VESSEL (VesselSpecification.FORMAT, VesselSpecification.SHEET_NAMES, VesselSpecification.VERSION_1_0),
 
     // Trip
     RDB (RdbSpecification.FORMAT, RdbSpecification.SHEET_NAMES, RdbSpecification.VERSION_1_3),

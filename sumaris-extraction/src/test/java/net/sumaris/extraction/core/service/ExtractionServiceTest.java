@@ -32,16 +32,17 @@ import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.service.data.TripService;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
+import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.*;
@@ -280,7 +281,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     @Test
     public void executePmfmADAP() throws IOException {
         // Validate some trips
-        String programLabel = fixtures.getProgramLabelForPmfmExtraction(1);
+        String programLabel = fixtures.getProgramLabelForExtraction(1);
         validateTrips(programLabel);
 
         ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
@@ -329,7 +330,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     @Test
     public void executeRjbADAP() throws IOException {
         // Validate some trips
-        String programLabel = fixtures.getProgramLabelForPmfmExtraction(1);
+        String programLabel = fixtures.getProgramLabelForExtraction(1);
         validateTrips(programLabel);
 
         ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
@@ -426,6 +427,24 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
             assertHasColumn(speciesLengthFile, RdbSpecification.COLUMN_LENGTH_CLASS);
             assertHasColumn(speciesLengthFile, RdbSpecification.COLUMN_NUMBER_AT_LENGTH);
+        }
+    }
+
+    @Test
+    public void executeVessel() throws IOException {
+        VesselFilterVO filter = VesselFilterVO.builder()
+            .programLabel(getProgramLabelForVessel())
+            .build();
+
+        // Test the VESSEL format
+        File outputFile = service.executeAndDumpVessels(LiveExtractionTypeEnum.VESSEL, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.VESSEL.getLabel());
+
+        // VE.csv
+        {
+            File vesselFile = new File(root, VesselSpecification.VE_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(vesselFile) > 1);
         }
     }
 
@@ -771,7 +790,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
                     .sheetName(PmfmTripSpecification.TR_SHEET_NAME)
                     .name(PmfmTripSpecification.COLUMN_PROJECT)
                     .operator("=")
-                    .value(fixtures.getProgramLabelForPmfmExtraction(0))
+                    .value(fixtures.getProgramLabelForExtraction(0))
                     .build();
 
                 ExtractionFilterCriterionVO yearCriterion = ExtractionFilterCriterionVO.builder()
@@ -922,5 +941,9 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             if (trip.getControlDate() == null) tripService.control(trip);
             if (trip.getValidationDate() == null) tripService.validate(trip);
         });
+    }
+
+    protected String getProgramLabelForVessel() {
+        return fixtures.getProgramLabelForExtraction(0);
     }
 }

@@ -46,6 +46,9 @@ public class VesselFilterVO implements IRootDataFilter {
     private Integer[] programIds;
 
     private Integer vesselId;
+
+    private Integer[] excludedIds;
+    private Integer[] includedIds;
     private Integer vesselFeaturesId;
 
     private Integer vesselTypeId;
@@ -108,5 +111,18 @@ public class VesselFilterVO implements IRootDataFilter {
         VesselFilterVO target = new VesselFilterVO();
         Beans.copyProperties(this, target);
         return target;
+    }
+
+    public String toString(String separator) {
+        separator = (separator == null) ? ", " : separator;
+        StringBuilder sb = new StringBuilder();
+        if (this.getProgramLabel() != null) sb.append(separator).append("Program (label): ").append(this.getProgramLabel());
+        if (this.getStartDate() != null) sb.append(separator).append("Start date: ").append(this.getStartDate());
+        if (this.getEndDate() != null) sb.append(separator).append("End date: ").append(this.getEndDate());
+        if (this.getRegistrationLocationId() != null) sb.append(separator).append("Registration location (id): ").append(this.getRegistrationLocationId());
+        if (this.getBasePortLocationId() != null) sb.append(separator).append("Base port location (id): ").append(this.getBasePortLocationId());
+        if (this.getRecorderPersonId() != null) sb.append(separator).append("Recorder person (id): ").append(this.getRecorderPersonId());
+        if (this.getRecorderDepartmentId() != null) sb.append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId());
+        return sb.toString();
     }
 }
