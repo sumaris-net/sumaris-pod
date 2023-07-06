@@ -24,11 +24,14 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.vo.data.DataControlOptions;
+import net.sumaris.core.vo.data.DataValidateOptions;
 import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -64,9 +67,9 @@ public interface LandingService {
 
 	void delete(List<Integer> ids);
 
-    LandingVO control(LandingVO data);
+    LandingVO control(LandingVO data, @Nullable DataControlOptions options);
 
-	LandingVO validate(LandingVO data);
+	LandingVO validate(LandingVO data, @Nullable DataValidateOptions options);
 
-	LandingVO unvalidate(LandingVO data);
+	LandingVO unvalidate(LandingVO data, @Nullable DataValidateOptions options);
 }

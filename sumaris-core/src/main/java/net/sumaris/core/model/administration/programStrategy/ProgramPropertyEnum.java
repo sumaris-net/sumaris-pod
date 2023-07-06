@@ -50,6 +50,7 @@ public enum ProgramPropertyEnum implements Serializable {
 
     TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE("sumaris.trip.extraction.batch.denormalization.enable", Boolean.class, Boolean.FALSE.toString()),
 
+    OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM("sumaris.observedLocation.aggregatedLandings.program", String.class, "")
     ;
 
     private String key;

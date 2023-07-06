@@ -128,6 +128,7 @@ public class ProgramRepositoryImpl
         setLockForUpdate(true);
         setPublishEvent(true);
         conversionService.addConverter(Program.class, ProgramVO.class, this::toVO);
+        conversionService.addConverter(ProgramPrivilege.class, ReferentialVO.class, this.referentialDao::toVO);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})

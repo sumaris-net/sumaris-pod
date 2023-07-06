@@ -34,6 +34,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.gear.GearClassification;
@@ -76,10 +77,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -210,6 +208,13 @@ public class ProgramGraphQLService {
                     .build(), 0, locationClassificationIds.length);
         }
         return program.getLocationClassifications();
+    }
+
+    @GraphQLQuery(name = "privileges", description = "Get current user program's privileges")
+    public List<String> getProgramUserPrivileges(@GraphQLContext ProgramVO program) {
+        return authService.getAuthenticatedUser()
+                .map(user -> programService.getAllPrivilegesByUserId(program.getId(), user.getId()))
+                .orElseGet(ArrayList::new);
     }
 
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
