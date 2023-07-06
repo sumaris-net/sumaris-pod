@@ -23,7 +23,6 @@
 package net.sumaris.extraction.server.graphql;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLNonNull;
@@ -55,7 +54,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -102,8 +100,14 @@ public class ExtractionGraphQLService {
         }
         // Live extraction
         else {
-            return extractionService.executeAndRead(checkedType, filter, strata, page,
-                CacheTTL.fromString(cacheDuration));
+            try {
+                ExtractionResultVO result = extractionService.executeAndRead(checkedType, filter, strata, page,
+                    CacheTTL.fromString(cacheDuration));
+                return result;
+            } catch (Throwable t) {
+                log.error(t.getMessage(), t);
+                throw t;
+            }
         }
     }
 

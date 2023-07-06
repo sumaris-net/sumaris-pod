@@ -52,8 +52,8 @@ public class ExtractionRjbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         implements RjbTripSpecification {
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
-        return ImmutableSet.of(LiveExtractionTypeEnum.RJB_TRIP);
+    public Set<IExtractionType<?,?>> getManagedTypes() {
+        return ImmutableSet.<IExtractionType<?,?>>of(LiveExtractionTypeEnum.RJB_TRIP);
     }
 
     @Override

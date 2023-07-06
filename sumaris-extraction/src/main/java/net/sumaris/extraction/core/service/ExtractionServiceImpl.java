@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,11 +62,8 @@ import net.sumaris.core.util.*;
 import net.sumaris.core.vo.technical.extraction.*;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.AggregationDao;
-import net.sumaris.extraction.core.dao.AggregationDaoDispatcher;
 import net.sumaris.extraction.core.dao.ExtractionDao;
-import net.sumaris.extraction.core.dao.ExtractionDaoDispatcher;
 import net.sumaris.extraction.core.dao.administration.ExtractionStrategyDao;
-import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.technical.csv.ExtractionCsvDao;
 import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
@@ -89,6 +87,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -99,7 +98,7 @@ import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -112,6 +111,7 @@ import java.util.stream.Stream;
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
 public class ExtractionServiceImpl implements ExtractionService {
 
+    protected final Optional<TaskExecutor> taskExecutor;
     private final ExtractionConfiguration configuration;
     private final DataSource dataSource;
 
@@ -129,9 +129,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     private final ObjectMapper objectMapper;
     private final Optional<CacheManager> cacheManager;
 
-    private final ExtractionDaoDispatcher extractionDaoDispatcher;
+    private final ExtractionDispatcher extractionDispatcher;
 
-    private final AggregationDaoDispatcher aggregationDaoDispatcher;
+    private final AggregationDispatcher aggregationDispatcher;
 
     private final ExtractionTypeService extractionTypeService;
 
@@ -147,8 +147,8 @@ public class ExtractionServiceImpl implements ExtractionService {
         enableCache = configuration.enableCache() && this.cacheManager.isPresent();
 
         // Register enum extraction types
-        this.extractionTypeService.registerLiveTypes(extractionDaoDispatcher.getManagedTypes());
-        this.extractionTypeService.registerLiveTypes(aggregationDaoDispatcher.getManagedTypes());
+        this.extractionTypeService.registerLiveTypes(extractionDispatcher.getManagedTypes());
+        this.extractionTypeService.registerLiveTypes(aggregationDispatcher.getManagedTypes());
 
         // Update technical tables (if option changed)
         if (this.enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
@@ -294,7 +294,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
             // Aggregation
             if (ExtractionTypes.isAggregation(source)) {
-                return aggregationDaoDispatcher.execute(source, parent, filter, strata);
+                return aggregationDispatcher.execute(source, parent, filter, strata);
             }
             else if (ExtractionTypes.isProduct(parent)) {
                 // TODO: merge filter, to add it to existing ?
@@ -308,7 +308,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             .format(source.getFormat())
             .version(source.getVersion())
             .build());
-        return extractionDaoDispatcher.execute(type, filter);
+        return extractionDispatcher.execute(type, filter);
     }
 
     @Override
@@ -316,7 +316,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Execute extraction
         ExtractionContextVO context = execute(type, filter, strata);
-        Daos.commitIfHsqldbOrPgsql(dataSource);
 
         // Make sure context has the valid type (need for file name)
         context.setType(type);
@@ -326,6 +325,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             return dumpTablesToFile(context, filter);
         }
         finally {
+            // Sync clean (not need to async, because user can wait)
             clean(context);
         }
     }
@@ -543,12 +543,12 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public AggregationTechResultVO readByTech(IExtractionType type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata, String sort, SortDirection direction) {
-        return aggregationDaoDispatcher.readByTech(type, filter, strata, sort, direction);
+        return aggregationDispatcher.readByTech(type, filter, strata, sort, direction);
     }
 
     @Override
     public MinMaxVO getTechMinMax(IExtractionType type, @Nullable ExtractionFilterVO filter, @Nullable AggregationStrataVO strata) {
-        return aggregationDaoDispatcher.getTechMinMax(type, filter, strata);
+        return aggregationDispatcher.getTechMinMax(type, filter, strata);
     }
 
     @Override
@@ -598,35 +598,46 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Get all products tables
         Set<String> productTableNames = Beans.getStream(extractionTableRepository.findAllDistinctTableName())
-            .map(String::toUpperCase)
+            .map(String::toLowerCase)
             .collect(Collectors.toSet());
 
-        // Read all tables (EXT_*)
+        // Drop all tables (EXT_*)
         {
-            Set<String> extTableNames = databaseMetadata.findTableNamesByPrefix(ExtractionDao.TABLE_NAME_PREFIX);
             ExtractionContextVO context = new ExtractionContextVO();
+            context.setId(null);
             context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
-            extTableNames.stream()
+            // Get table names
+            databaseMetadata.findTableNamesByPrefix(ExtractionDao.TABLE_NAME_PREFIX)
+                .stream()
                 // Exclude table used in products
-                .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
+                .filter(tableName -> !productTableNames.contains(tableName.toLowerCase()))
+                // TODO keep only old extraction (extraction id as a time, then filter)
+                //.filter()
+                // Add it to context
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());
             // Apply drop
-            extractionRdbTripDao.clean(context);
+            extractionDispatcher.clean(context);
         }
 
-        // Read all tables (AGG_*)
+        // Drop all tables (AGG_*)
         {
-            Set<String> aggTableNames = databaseMetadata.findTableNamesByPrefix(AggregationDao.TABLE_NAME_PREFIX);
-            ExtractionContextVO context = new ExtractionContextVO();
-            context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
-            aggTableNames.stream()
+            AggregationContextVO context = new AggregationContextVO();
+            context.setId(null);
+            context.setTableNamePrefix(AggregationDao.TABLE_NAME_PREFIX);
+            // Get table names
+            databaseMetadata.findTableNamesByPrefix(AggregationDao.TABLE_NAME_PREFIX)
+                .stream()
                 // Exclude table used in products
-                .filter(tableName -> !productTableNames.contains(tableName.toUpperCase()))
+                .filter(tableName -> !productTableNames.contains(tableName.toLowerCase()))
+                // TODO keep only old extraction (extraction id as a time, then filter)
+                //.filter()
+                // Add it to context
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());
+
             // Apply drop
-            extractionRdbTripDao.clean(context);
+            aggregationDispatcher.clean(context);
         }
 
         if (count == 0) {
@@ -697,10 +708,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             // Execute extraction into temp tables
             context = execute(type, filter, strata);
 
-            // Force commit
-            Daos.commitIfHsqldbOrPgsql(dataSource);
             Map<String, ExtractionResultVO> result = Maps.newHashMap();
-
             for (String sheetName: filter.getSheetNames()) {
 
                 // Result has not the expected sheetname: skip
@@ -726,10 +734,8 @@ public class ExtractionServiceImpl implements ExtractionService {
             return result;
         }
         finally {
-            // Clean created tables
-            if (context != null) {
-                asyncClean(context);
-            }
+            // Clean tables
+            asyncClean(context);
         }
     }
     protected <R extends ExtractionResultVO> R executeAndRead(@NonNull IExtractionType type,
@@ -754,9 +760,6 @@ public class ExtractionServiceImpl implements ExtractionService {
                 return (R)createEmptyResult();
             }
 
-            // Force commit
-            Daos.commitIfHsqldbOrPgsql(dataSource);
-
             // Create a read filter, with sheetname only, because filter already applied by execute()
             ExtractionFilterVO readFilter = ExtractionFilterVO.builder()
                 .sheetName(filter.getSheetName())
@@ -769,10 +772,8 @@ public class ExtractionServiceImpl implements ExtractionService {
             return (R)createEmptyResult();
         }
         finally {
-            // Clean created tables
-            if (context != null) {
-                asyncClean(context);
-            }
+            // Clean tables
+            asyncClean(context);
         }
     }
 
@@ -827,11 +828,11 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Use aggregation dao
         if (ExtractionTypes.isAggregation(type)) {
-            return aggregationDaoDispatcher.read(type, filter, strata, page);
+            return aggregationDispatcher.read(type, filter, strata, page);
         }
         // Or simple extraction dao
         else {
-            return extractionDaoDispatcher.read(type, filter, page);
+            return extractionDispatcher.read(type, filter, page);
         }
     }
 
@@ -912,21 +913,27 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected void clean(ExtractionContextVO context) {
         try {
-            asyncClean(context).get();
+            if (context != null) {
+                if (ExtractionTypes.isAggregation(context)) {
+                    aggregationDispatcher.clean((AggregationContextVO) context);
+                } else {
+                    extractionDispatcher.clean(context);
+                }
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            // Continue (tables will be clean later - by dropTemporaryTables())
         }
     }
 
-    protected CompletableFuture<Void> asyncClean(ExtractionContextVO context) {
-        if (context != null) {
-            if (ExtractionTypes.isAggregation(context)) {
-                aggregationDaoDispatcher.clean((AggregationContextVO) context);
-            } else {
-                extractionDaoDispatcher.clean(context);
-            }
+    protected void asyncClean(ExtractionContextVO context) {
+        if (taskExecutor.isPresent()) {
+            Schedulers.from(taskExecutor.get())
+                .scheduleDirect(() -> this.clean(context), 1, TimeUnit.SECONDS);
         }
-        return CompletableFuture.completedFuture(null);
+        else {
+            clean(context);
+        }
     }
 
     protected ExtractionProductVO toProductVO(ExtractionContextVO source) {

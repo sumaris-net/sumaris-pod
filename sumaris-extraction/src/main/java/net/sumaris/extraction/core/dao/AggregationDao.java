@@ -43,7 +43,7 @@ public interface AggregationDao<
 
     String TABLE_NAME_PREFIX = "AGG_";
 
-    Set<IExtractionType> getManagedTypes();
+    Set<IExtractionType<?, ?>> getManagedTypes();
 
     <R extends C> R aggregate(IExtractionTypeWithTablesVO source,
                               @Nullable F filter,

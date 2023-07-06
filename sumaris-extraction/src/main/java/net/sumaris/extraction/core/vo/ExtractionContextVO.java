@@ -169,6 +169,10 @@ public class ExtractionContextVO implements IExtractionTypeWithTablesVO {
         return sheetNameByTableNames.containsValue(sheetName);
     }
 
+    public boolean isEmpty() {
+        return sheetNameByTableNames.isEmpty();
+    }
+
     public boolean hasRawTable(String rawTableName) {
         Preconditions.checkNotNull(rawTableName);
         return rawTableNames.contains(rawTableName);

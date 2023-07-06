@@ -54,7 +54,7 @@ public class AggregationRjbTripDaoImpl<
     implements AggSurvivalTestSpecification {
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?,?>> getManagedTypes() {
         return ImmutableSet.of(AggExtractionTypeEnum.AGG_RJB_TRIP);
     }
 

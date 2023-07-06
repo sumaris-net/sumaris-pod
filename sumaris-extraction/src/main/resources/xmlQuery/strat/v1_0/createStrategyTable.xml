@@ -38,7 +38,7 @@
 
     <select alias="LOCATION_CODES" dbms="hsqldb" type="text">GROUP_CONCAT(distinct L.LABEL SEPARATOR ',')</select>
     <select alias="LOCATION_CODES" dbms="oracle" type="text">LISTAGG(L.LABEL, ',') WITHIN GROUP (ORDER BY L.LABEL)</select>
-    <select alias="LOCATION_CODES" group="pgsql" type="text">STRING_AGG(distinct L.LABEL, ',')</select>
+    <select alias="LOCATION_CODES" dbms="pgsql" type="text">STRING_AGG(distinct L.LABEL, ',')</select>
 
     <!-- hidden columns -->
     <select alias="PROGRAM_ID" type="hidden">P.ID</select>
@@ -66,7 +66,7 @@
     <where operator="AND" group="endDateFilter"><![CDATA[APP.START_DATE <= &endDate]]></where>
 
     <where operator="AND" group="locationIdsFilter">
-      <in field="S.LABEL"><![CDATA[&locationIds]]></in>
+      <in field="L.ID"><![CDATA[&locationIds]]></in>
     </where>
 
     <groupby>

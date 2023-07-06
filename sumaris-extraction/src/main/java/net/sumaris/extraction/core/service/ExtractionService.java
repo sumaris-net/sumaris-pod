@@ -22,7 +22,6 @@ package net.sumaris.extraction.core.service;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.NonNull;
@@ -38,7 +37,7 @@ import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import org.springframework.transaction.annotation.Propagation;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -46,45 +45,47 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
+ * The extraction manager.
  * @author peck7 on 17/12/2018.
  */
-@Transactional
+@Service
+// Do NOT implements @Transactional (transaction is managed by Dispatcher classes)
 public interface ExtractionService {
-
-    int EXECUTION_TIMEOUT = 10000000;
 
     @Transactional(timeout = -1)
     IExtractionType getByExample(IExtractionType source);
     @Transactional(timeout = -1)
     IExtractionType getByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions);
 
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     ExtractionContextVO execute(IExtractionType format, ExtractionFilterVO filter, AggregationStrataVO strata);
 
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     ExtractionProductVO executeAndSave(IExtractionType format,
                                        ExtractionFilterVO filter,
                                        @Nullable AggregationStrataVO strata);
 
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     ExtractionProductVO executeAndSave(int id);
 
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     ExtractionResultVO executeAndRead(IExtractionType type,
                                       @Nullable ExtractionFilterVO filter,
                                       @Nullable AggregationStrataVO strata,
                                       Page page,
                                       @Nullable CacheTTL ttl);
 
-    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
     Map<String, ExtractionResultVO> executeAndReadMany(IExtractionType type,
                                           @NonNull ExtractionFilterVO filter,
                                           @Nullable AggregationStrataVO strata,
                                           Page page,
                                           @Nullable CacheTTL ttl);
+
+    File executeAndDump(IExtractionType type, ExtractionFilterVO filter, AggregationStrataVO strata) throws IOException;
+
+    File executeAndDumpTrips(LiveExtractionTypeEnum format, ExtractionTripFilterVO filter);
+
+    File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter);
+
+    ExtractionResultVO executeAndReadStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter, Page page);
 
     ExtractionResultVO read(IExtractionType type,
                             @Nullable ExtractionFilterVO filter,
@@ -107,27 +108,17 @@ public interface ExtractionService {
                                             Page page,
                                             @Nullable CacheTTL ttl);
 
-    File executeAndDumpTrips(LiveExtractionTypeEnum format, ExtractionTripFilterVO filter);
-
-    File executeAndDumpStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter);
-
-    ExtractionResultVO executeAndReadStrategies(LiveExtractionTypeEnum format, ExtractionStrategyFilterVO filter, Page page);
-
-    @Transactional(rollbackFor = IOException.class, timeout = 10000000)
-    File executeAndDump(IExtractionType type, ExtractionFilterVO filter, AggregationStrataVO strata) throws IOException;
 
     File dumpTablesToFile(ExtractionContextVO context, @Nullable ExtractionFilterVO filter);
 
     void executeAll(ProcessingFrequencyEnum frequency);
 
-    @Transactional(readOnly = true)
     AggregationTechResultVO readByTech(IExtractionType type,
                                        @Nullable ExtractionFilterVO filter,
                                        @Nullable AggregationStrataVO strata,
                                        String sort,
                                        SortDirection direction);
 
-    @Transactional(readOnly = true)
     MinMaxVO getTechMinMax(IExtractionType type,
                            @Nullable ExtractionFilterVO filter,
                            @Nullable AggregationStrataVO strata);

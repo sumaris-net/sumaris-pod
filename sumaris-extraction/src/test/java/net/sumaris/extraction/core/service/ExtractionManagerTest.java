@@ -32,7 +32,6 @@ import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.model.technical.extraction.rdb.ProductRdbStation;
 import net.sumaris.core.service.data.TripService;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
@@ -60,7 +59,7 @@ import java.util.List;
  */
 @Slf4j
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class ExtractionServiceTest extends AbstractServiceTest {
+public abstract class ExtractionManagerTest extends AbstractServiceTest {
 
     @Autowired
     protected ExtractionService service;

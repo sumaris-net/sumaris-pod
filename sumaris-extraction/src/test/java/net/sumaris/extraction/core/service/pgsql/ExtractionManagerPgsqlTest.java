@@ -23,14 +23,12 @@
 package net.sumaris.extraction.core.service.pgsql;
 
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.ExtractionServiceTest;
-import net.sumaris.extraction.core.specification.data.trip.AggSurvivalTestSpecification;
+import net.sumaris.extraction.core.service.ExtractionManagerTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -41,8 +39,8 @@ import java.io.IOException;
  * @author peck7 on 17/12/2018.
  */
 @ActiveProfiles("pgsql")
-@Ignore
-public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
+//@Ignore
+public class ExtractionManagerPgsqlTest extends ExtractionManagerTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
@@ -93,6 +91,11 @@ public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
     }
 
     /* -- protected methods -- */
+
+    //@Override
+    protected String getProgramLabelForVessel() {
+        return "PIFIL"; // Open database
+    }
 
     protected void assertHasColumn(File file, String columnName) throws IOException {
         //String headerName = StringUtils.underscoreToChangeCase(columnName);

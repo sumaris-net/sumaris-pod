@@ -65,8 +65,8 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
     }
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
-        return ImmutableSet.of(LiveExtractionTypeEnum.FREE2);
+    public Set<IExtractionType<?,?>> getManagedTypes() {
+        return ImmutableSet.<IExtractionType<?,?>>of(LiveExtractionTypeEnum.FREE2);
     }
 
     @Override
