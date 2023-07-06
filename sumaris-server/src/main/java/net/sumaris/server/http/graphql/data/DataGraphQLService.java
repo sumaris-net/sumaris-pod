@@ -339,9 +339,7 @@ public class DataGraphQLService {
                                         @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
-
         Set<String> fields = GraphQLUtils.fields(env);
-
         return entityWatchService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
                 .toFlowable(BackpressureStrategy.LATEST)
                 .map(t -> fillTripFields(t, fields));
