@@ -78,10 +78,12 @@
 
     <select alias="STATISTICAL_RECTANGLE" type="text" dbms="hsqldb,pgsql" group="agg">
       MAX(
-        CASE WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
-          F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
-        CASE WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;rectangleLocationLevelIds) THEN
-          L_AREA.LABEL
+        CASE
+          WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
+            F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
+          WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;rectangleLocationLevelIds) THEN
+            L_AREA.LABEL
+          ELSE NULL
         END
       )
     </select>

@@ -29,6 +29,7 @@ import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -39,7 +40,7 @@ import java.io.IOException;
  * @author peck7 on 17/12/2018.
  */
 @ActiveProfiles("pgsql")
-//@Ignore
+@Ignore("Use only a Pgsql database")
 public class ExtractionManagerPgsqlTest extends ExtractionManagerTest {
 
     @ClassRule

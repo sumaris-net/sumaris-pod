@@ -33,7 +33,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 
 @ActiveProfiles("pgsql")
-@Ignore
+@Ignore("Use only a Pgsql database")
 public class ExtractionProductServicePgsqlTest extends ExtractionProductServiceTest {
 
     @ClassRule

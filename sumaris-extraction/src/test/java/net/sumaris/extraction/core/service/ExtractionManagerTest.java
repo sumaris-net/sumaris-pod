@@ -439,13 +439,7 @@ public abstract class ExtractionManagerTest extends AbstractServiceTest {
         // Test the VESSEL format
         File outputFile = service.executeAndDumpVessels(LiveExtractionTypeEnum.VESSEL, filter);
         Assert.assertTrue(outputFile.exists());
-        File root = unpack(outputFile, LiveExtractionTypeEnum.VESSEL.getLabel());
-
-        // VE.csv
-        {
-            File vesselFile = new File(root, VesselSpecification.VE_SHEET_NAME + ".csv");
-            Assert.assertTrue(countLineInCsvFile(vesselFile) > 1);
-        }
+        Assert.assertTrue(countLineInCsvFile(outputFile) > 1);
     }
 
     @Test
