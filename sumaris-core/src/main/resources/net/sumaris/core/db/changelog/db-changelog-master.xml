@@ -29,7 +29,7 @@
 
   <property name="dbms" value="hsqldb" dbms="hsqldb"/>
   <property name="dbms" value="oracle" dbms="oracle"/>
-  <property name="dbms" value="postgresql" dbms="postgresql"/>
+  <property name="dbms" value="pgsql" dbms="postgresql"/>
 
   <!-- Processing updates -->
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-master.xml"/>
