@@ -23,28 +23,17 @@
 package net.sumaris.extraction.server.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.extraction.server.http.ExtractionRestController;
-import net.sumaris.extraction.server.http.ExtractionRestPaths;
-import net.sumaris.server.http.filter.CORSFilters;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.SchedulingConfigurer;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @Configuration
 @ConditionalOnBean({ExtractionAutoConfiguration.class})

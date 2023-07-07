@@ -40,7 +40,6 @@ import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**

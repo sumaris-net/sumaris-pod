@@ -23,13 +23,13 @@ package net.sumaris.core.service.data;
  */
 
 
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
-import net.sumaris.core.vo.data.ObservedLocationVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -41,9 +41,8 @@ import java.util.List;
 @Transactional
 public interface ObservedLocationService {
 
-
 	@Transactional(readOnly = true)
-	List<ObservedLocationVO> getAll(int offset, int size);
+	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size);
@@ -58,19 +57,19 @@ public interface ObservedLocationService {
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id);
 
-	ObservedLocationVO save(ObservedLocationVO data, ObservedLocationSaveOptions saveOptions);
+	ObservedLocationVO save(ObservedLocationVO data, @Nullable ObservedLocationSaveOptions options);
 
-	List<ObservedLocationVO> save(List<ObservedLocationVO> data, ObservedLocationSaveOptions saveOptions);
+	List<ObservedLocationVO> save(List<ObservedLocationVO> data, @Nullable ObservedLocationSaveOptions options);
 
 	void delete(int id);
 
 	void delete(List<Integer> ids);
 
-    ObservedLocationVO control(ObservedLocationVO data);
+    ObservedLocationVO control(ObservedLocationVO data, @Nullable DataControlOptions options);
 
-	ObservedLocationVO validate(ObservedLocationVO data);
+	ObservedLocationVO validate(ObservedLocationVO data, @Nullable DataValidateOptions options);
 
-	ObservedLocationVO unvalidate(ObservedLocationVO data);
+	ObservedLocationVO unvalidate(ObservedLocationVO data, @Nullable DataValidateOptions options);
 
 	ObservedLocationVO qualify(ObservedLocationVO data);
 }

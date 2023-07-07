@@ -95,17 +95,17 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
             this.enableAdagioOptimization = enableAdagioOptimization;
 
             if (this.enableAdagioOptimization) {
-                log.info("Enabled Extraction format {}, using optimization for schema '{}'", StratSpecification.FORMAT, this.adagioSchema);
+                log.info("Enabled extraction format {}, using optimization for schema '{}'", StratSpecification.FORMAT, this.adagioSchema);
             }
             else {
-                log.info("Enabled Extraction format {} (without schema optimization)", StratSpecification.FORMAT);
+                log.info("Enabled extraction format {} (without schema optimization)", StratSpecification.FORMAT);
             }
 
         }
     }
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?,?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.STRAT);
     }
 
@@ -191,7 +191,7 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
     protected long createStrategyTable(C context) {
         XMLQuery xmlQuery = createStrategyQuery(context);
 
-        // aggregate insertion
+        // execute insertion
         execute(context, xmlQuery);
         long count = countFrom(context.getStrategyTableName());
 
@@ -231,7 +231,6 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         xmlQuery.bind("labels", Daos.getSqlInEscapedStrings(context.getStrategyLabels()));
 
         // Date filters
-        xmlQuery.setGroup("dateFilter", context.getStartDate() != null || context.getEndDate() != null);
         xmlQuery.setGroup("startDateFilter", context.getStartDate() != null);
         xmlQuery.bind("startDate", Daos.getSqlToDate(Dates.resetTime(context.getStartDate())));
         xmlQuery.setGroup("endDateFilter", context.getEndDate() != null);
@@ -240,10 +239,6 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         // Location Filter
         xmlQuery.setGroup("locationIdsFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
         xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
-
-        xmlQuery.setGroup("oracle", this.databaseType == DatabaseType.oracle);
-        xmlQuery.setGroup("hsqldb", this.databaseType == DatabaseType.hsqldb);
-        xmlQuery.setGroup("pgsql", this.databaseType == DatabaseType.postgresql);
 
         return xmlQuery;
     }

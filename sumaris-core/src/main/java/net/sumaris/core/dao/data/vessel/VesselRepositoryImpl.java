@@ -141,6 +141,8 @@ public class VesselRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             // by ID
             .and(id(filter.getVesselId(), Integer.class))
+            .and(includedIds(filter.getIncludedIds()))
+            .and(excludedIds(filter.getExcludedIds()))
             .and(vesselFeaturesId(filter.getVesselFeaturesId()))
             // by locations
             .and(registrationLocationId(filter.getRegistrationLocationId()))

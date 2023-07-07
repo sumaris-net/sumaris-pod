@@ -53,8 +53,8 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
-        return ImmutableSet.of(LiveExtractionTypeEnum.SURVIVAL_TEST);
+    public Set<IExtractionType<?,?>> getManagedTypes() {
+        return ImmutableSet.<IExtractionType<?,?>>of(LiveExtractionTypeEnum.SURVIVAL_TEST);
     }
 
     @Override

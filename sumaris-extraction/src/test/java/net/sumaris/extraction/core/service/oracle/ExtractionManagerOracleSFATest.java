@@ -22,17 +22,13 @@
 
 package net.sumaris.extraction.core.service.oracle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.AbstractServiceTest;
-import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionService;
-import net.sumaris.extraction.core.service.ExtractionServiceTest;
+import net.sumaris.extraction.core.service.ExtractionManagerTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
@@ -48,10 +44,10 @@ import java.io.IOException;
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-@Ignore("Use only SFA Oracle database")
+//@Ignore("Use only SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle-sfa.properties")
-public class ExtractionServiceOracleSFATest extends AbstractServiceTest {
+public class ExtractionManagerOracleSFATest extends ExtractionManagerTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle-sfa");
@@ -170,9 +166,9 @@ public class ExtractionServiceOracleSFATest extends AbstractServiceTest {
 
     /* -- protected methods -- */
 
-//    protected void assertHasColumn(File file, String columnName) throws IOException {
-//        //String headerName = StringUtils.underscoreToChangeCase(columnName);
-//        Assert.assertTrue(String.format("Missing header '%s' in file: %s", columnName, file.getPath()),
-//            hasHeaderInCsvFile(file, columnName));
-//    }
+    //@Override
+    protected String getProgramLabelForVessel() {
+        return "LOGBOOK-SEA-CUCUMBER";
+    }
+
 }

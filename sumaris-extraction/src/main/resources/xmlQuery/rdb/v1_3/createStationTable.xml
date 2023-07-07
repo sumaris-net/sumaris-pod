@@ -80,13 +80,22 @@
       MAX(
         CASE WHEN P_END.LATITUDE IS NOT NULL AND P_END.LONGITUDE IS NOT NULL THEN
           F_TO_RECTANGLE(P_END.LATITUDE, P_END.LONGITUDE)
-        ELSE
+        CASE WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;rectangleLocationLevelIds) THEN
           L_AREA.LABEL
         END
       )
     </select>
+
     <!-- TODO adapt the function 'F_TO_RECTANGLE' for Oracle, or use spatial query  -->
-    <select alias="STATISTICAL_RECTANGLE" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
+    <select alias="STATISTICAL_RECTANGLE" type="text" dbms="oracle" group="agg">
+      MAX(
+        CASE WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;rectangleLocationLevelIds) THEN
+          L_AREA.LABEL
+        ELSE
+          CAST(null as VARCHAR2(40))
+        END
+      )
+    </select>
 
     <!-- TODO: use SIH sub polygon
     <select alias="SUB_POLYGON" type="text">F_TO_SQUARE(P_END.LATITUDE, P_END.LONGITUDE, 10)</select>-->
@@ -124,6 +133,7 @@
 
     <!-- need to link other tables -->
     <select alias="STATION_ID" type="hidden">O.ID</select>
+    <select alias="FA_ID" type="number">FA.ID</select>
 
     <from alias="T">&amp;tripTableName</from>
     <from join="true">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>

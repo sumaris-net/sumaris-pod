@@ -23,13 +23,15 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -74,10 +76,12 @@ public interface StrategyService {
 	@Transactional(readOnly = true)
 	List<StrategyVO> findByProgram(int programId, StrategyFetchOptions fetchOptions);
 
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+	@Cacheable(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER)
 	List<PmfmStrategyVO> findPmfmsByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions);
 
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+	@Cacheable(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER)
 	List<DenormalizedPmfmStrategyVO> findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)

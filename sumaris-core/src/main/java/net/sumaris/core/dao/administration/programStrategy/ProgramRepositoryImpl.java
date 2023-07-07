@@ -128,6 +128,7 @@ public class ProgramRepositoryImpl
         setLockForUpdate(true);
         setPublishEvent(true);
         conversionService.addConverter(Program.class, ProgramVO.class, this::toVO);
+        conversionService.addConverter(ProgramPrivilege.class, ReferentialVO.class, this.referentialDao::toVO);
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -273,7 +274,8 @@ public class ProgramRepositoryImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
     })
     public void clearCache() {
         log.debug("Cleaning Program's cache...");
@@ -285,7 +287,8 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
         },
         put = {
             @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = " #source.id != null"),
@@ -358,7 +361,8 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
         }
     )
     public void deleteById(Integer id) {
@@ -442,6 +446,18 @@ public class ProgramRepositoryImpl
             .setParameter("departmentId", departmentId)
             .setParameter("privilegeId", privilege.getId())
             .getSingleResult() > 0;
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID)
+    public List<ProgramPrivilegeEnum> getAllPrivilegeIdsByUserId(int programId, int personId) {
+        return getEntityManager().createNamedQuery("ProgramPerson.privilegeIds", Number.class)
+            .setParameter("programId", programId)
+            .setParameter("personId", personId)
+            .setParameter("privilegeId", null)
+            .getResultStream()
+            .map(id -> ProgramPrivilegeEnum.valueOf(id.intValue()))
+            .toList();
     }
 
     @Override

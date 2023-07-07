@@ -36,6 +36,7 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.Param;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -97,6 +98,8 @@ public interface ProgramSpecifications {
     boolean hasUserPrivilege(int programId, int personId, ProgramPrivilegeEnum privilege);
 
     boolean hasDepartmentPrivilege(int programId, int departmentId, ProgramPrivilegeEnum privilege);
+
+    List<ProgramPrivilegeEnum> getAllPrivilegeIdsByUserId(int programId, int personId);
 
     List<ProgramDepartmentVO> getDepartmentsById(int id);
 

@@ -26,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -73,4 +75,15 @@ public class ProgramRepositoryReadTest extends AbstractDaoTest{
 
     }
 
+//    @Test
+//    public void getAllPrivilegesByUserId() {
+//        ProgramVO program = repository.getByLabel("SIH-OBSBIO");
+//        assertNotNull(program);
+//
+//        List<ReferentialVO> privileges = repository.getAllPrivilegesByUserId(
+//                program.getId(),
+//                fixtures.getPersonId(1));
+//        assertNotNull(privileges);
+//        assertTrue(privileges.size() > 0);
+//    }
 }

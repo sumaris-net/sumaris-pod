@@ -74,7 +74,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         this.enableRecordTypeColumn = false;
     }
 
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.PMFM_TRIP);
     }
 

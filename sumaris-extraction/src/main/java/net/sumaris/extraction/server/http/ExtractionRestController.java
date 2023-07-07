@@ -52,7 +52,6 @@ import net.sumaris.extraction.server.util.QueryParamUtils;
 import net.sumaris.server.http.MediaTypes;
 import net.sumaris.server.security.IFileController;
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.core.io.InputStreamResource;

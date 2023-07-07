@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<queries name="extractionCreateStrategyTable">
+
+  <query type="create" temp="false" table="&amp;vesselTableName" option="DISTINCT">
+
+    <with alias="VESSEL_TEMP">
+      <subquery>
+        <select alias="PROJECT" type="text">P.LABEL</select>
+        <select alias="VESSEL_IDENTIFIER" type="number">V.ID</select>
+        <select alias="VESSEL_FLAG_COUNTRY" type="text">COUNTRY.LABEL</select>
+        <select alias="START_DATE" type="text"><![CDATA[
+          CASE
+            WHEN VRP.START_DATE < VF.START_DATE AND VF.START_DATE IS NOT NULL THEN VF.START_DATE
+            ELSE VRP.START_DATE
+          END
+        ]]></select>
+        <select alias="END_DATE" type="text"><![CDATA[
+          CASE
+            WHEN VRP.END_DATE IS NULL OR (VRP.END_DATE > VF.END_DATE AND VF.END_DATE IS NOT NULL) THEN VF.END_DATE
+            ELSE VRP.END_DATE
+          END
+        ]]></select>
+        <select alias="INTERNATIONAL_REGISTRATION_CODE" type="text">VRP.INT_REGISTRATION_CODE</select>
+        <select alias="REGISTRATION_CODE" type="text">VRP.REGISTRATION_CODE</select>
+        <select alias="HARBOUR_LABEL" type="text">HARBOUR.LABEL</select>
+        <select alias="HARBOUR_NAME" type="text">HARBOUR.NAME</select>
+        <select alias="VESSEL_NAME" type="text">VF.NAME</select>
+        <select alias="VESSEL_LENGTH" type="number">CAST(VF.LENGTH_OVER_ALL AS FLOAT) / 100</select>
+        <select alias="VESSEL_POWER" type="number">VF.ADMINISTRATIVE_POWER</select>
+        <select alias="VESSEL_TYPE_LABEL" type="number">VT.LABEL</select>
+        <select alias="VESSEL_TYPE_NAME" type="number">VT.NAME</select>
+        <select alias="GROSS_TONNAGE_UMS" type="number">CAST(VF.GROSS_TONNAGE_GT AS FLOAT) / 100</select>
+        <select alias="CONSTRUCTION_YEAR" type="number">VF.CONSTRUCTION_YEAR</select>
+        <select alias="IRCS" type="text">VF.IRCS</select>
+        <select alias="AUXILIARY_POWER" type="number">VF.AUXILIARY_POWER</select>
+        <select alias="HULL_MATERIAL" type="text">QV_HULL.NAME</select>
+
+<!--        <select alias="ORDER_BY_DATE" type="hidden" group="agg">MAX(VRP.START_DATE, VF.START_DATE)</select>-->
+<!--        <select alias="PROJECTS" dbms="hsqldb,pgsql" type="hidden" group="agg">ARRAY_AGG(P.LABEL)</select>-->
+<!--        <select alias="PROJECTS" dbms="oracle" type="hidden" group="agg,oracle11">LISTAGG(P.LABEL, ',')</select>-->
+<!--        <select alias="PROJECTS" dbms="oracle" type="hidden" group="agg,oracle12">LISTAGG(P.LABEL, ',') WITHIN GROUP (ORDER BY P.LABEL)</select>-->
+
+        <!-- hidden columns -->
+
+        <from alias="P">PROGRAM</from>
+        <from alias="V">VESSEL</from>
+        <from join="true">INNER JOIN VESSEL_TYPE VT ON VT.ID = V.VESSEL_TYPE_FK</from>
+        <from join="true">INNER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VRP.VESSEL_FK = V.ID</from>
+        <from join="true">LEFT OUTER JOIN LOCATION_HIERARCHY LH_COUNTRY ON LH_COUNTRY.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK</from>
+        <from join="true">LEFT OUTER JOIN LOCATION COUNTRY ON COUNTRY.ID = LH_COUNTRY.PARENT_LOCATION_FK AND COUNTRY.LOCATION_LEVEL_FK = &amp;countryLocationLevelId</from>
+        <from join="true">LEFT OUTER JOIN VESSEL_FEATURES VF ON VF.VESSEL_FK = V.ID AND NOT(COALESCE(VF.END_DATE, VRP.START_DATE) &lt; VRP.START_DATE OR VF.START_DATE &gt; COALESCE(VRP.END_DATE, VF.START_DATE))</from>
+        <from join="true">LEFT OUTER JOIN LOCATION HARBOUR ON HARBOUR.ID = VF.BASE_PORT_LOCATION_FK</from>
+        <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV_HULL ON QV_HULL.ID = VF.HULL_MATERIAL_QV_FK</from>
+
+        <where>1=1</where>
+        <where operator="AND" group="programLabelsFilter">
+          <in field="P.LABEL"><![CDATA[&programLabels]]></in>
+        </where>
+        <where operator="AND" group="withDataFilter">
+          (
+          EXISTS(SELECT * FROM TRIP T WHERE T.PROGRAM_FK=P.ID AND T.VESSEL_FK=V.ID)
+          OR EXISTS(SELECT * FROM LANDING T WHERE T.PROGRAM_FK=P.ID AND T.VESSEL_FK=V.ID)
+          )
+        </where>
+
+        <where operator="AND" group="idsFilter">
+          <in field="V.ID"><![CDATA[&ids]]></in>
+        </where>
+
+        <where operator="AND" group="statusIdsFilter">
+          <in field="V.STATUS_FK"><![CDATA[&statusIds]]></in>
+        </where>
+
+        <where operator="AND" group="startDateFilter"><![CDATA[VRP.END_DATE >= &startDate]]></where>
+        <where operator="AND" group="endDateFilter"><![CDATA[VRP.START_DATE <= &endDate]]></where>
+
+        <where operator="AND" group="registrationLocationIdsFilter">
+          <in field="COUNTRY.ID"><![CDATA[&registrationLocationIds]]></in>
+        </where>
+        <where operator="AND" group="basePortLocationIdsFilter">
+          <in field="HARBOUR.ID"><![CDATA[&basePortLocationIds]]></in>
+        </where>
+
+        <orderby direction="ASC">V.ID</orderby>
+        <orderby direction="ASC">VRP.START_DATE</orderby>
+      </subquery>
+    </with>
+
+    <!-- PK -->
+    <select alias="RECORD_TYPE" type="text" group="recordType">UPPER('VE')</select>
+    <select alias="PROJECT" type="text">V.PROJECT</select>
+    <select alias="VESSEL_IDENTIFIER" type="number">V.VESSEL_IDENTIFIER</select>
+    <select alias="VESSEL_TYPE" type="text">V.VESSEL_TYPE_NAME</select>
+    <select alias="VESSEL_FLAG_COUNTRY" type="text">V.VESSEL_FLAG_COUNTRY</select>
+    <select alias="START_DATE" type="text" group="agg">TO_CHAR(MIN(V.START_DATE), 'DD/MM/YYYY')</select>
+    <select alias="END_DATE" type="text" group="agg">TO_CHAR(MIN(V.END_DATE), 'DD/MM/YYYY')</select>
+    <select alias="INTERNATIONAL_REGISTRATION_CODE" type="text">V.INTERNATIONAL_REGISTRATION_CODE</select>
+    <select alias="REGISTRATION_CODE" type="text">V.REGISTRATION_CODE</select>
+    <select alias="HARBOUR_LABEL" type="text">V.HARBOUR_LABEL</select>
+    <select alias="HARBOUR_NAME" type="text">V.HARBOUR_NAME</select>
+    <select alias="VESSEL_NAME" type="text">V.VESSEL_NAME</select>
+    <select alias="VESSEL_LENGTH" type="number">V.VESSEL_LENGTH</select>
+    <select alias="VESSEL_POWER" type="number">V.VESSEL_POWER</select>
+    <select alias="GROSS_TONNAGE_UMS" type="number">V.GROSS_TONNAGE_UMS</select>
+    <select alias="CONSTRUCTION_YEAR" type="number">V.CONSTRUCTION_YEAR</select>
+    <select alias="IRCS" type="text">V.IRCS</select>
+    <select alias="AUXILIARY_POWER" type="number">V.AUXILIARY_POWER</select>
+    <select alias="HULL_MATERIAL" type="text">V.HULL_MATERIAL</select>
+
+    <select alias="ORDER_DATE" type="hidden" group="agg">MIN(V.START_DATE)</select>
+
+    <from alias="V">VESSEL_TEMP</from>
+    <groupby>&amp;groupByColumns</groupby>
+
+    <orderby direction="ASC">V.VESSEL_IDENTIFIER</orderby>
+    <orderby direction="ASC">MIN(V.START_DATE)</orderby>
+
+  </query>
+
+</queries>

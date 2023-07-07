@@ -32,6 +32,9 @@ public enum ProgramPropertyEnum implements Serializable {
     TRIP_OPERATION_ALLOW_PARENT("sumaris.trip.operation.allowParent", Boolean.class, Boolean.FALSE.toString()),
     TRIP_OPERATION_ENABLE_SAMPLE("sumaris.trip.operation.sample.enable", Boolean.class, Boolean.FALSE.toString()),
 
+    TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS("sumaris.trip.operation.fishingArea.locationLevel.ids",
+            String.class, null),
+
     TRIP_BATCH_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.taxonName.enable", Boolean.class, Boolean.TRUE.toString()),
 
     TRIP_BATCH_TAXON_GROUP_ENABLE("sumaris.trip.operation.batch.taxonGroup.enable", Boolean.class, Boolean.TRUE.toString()),
@@ -50,6 +53,7 @@ public enum ProgramPropertyEnum implements Serializable {
 
     TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE("sumaris.trip.extraction.batch.denormalization.enable", Boolean.class, Boolean.FALSE.toString()),
 
+    OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM("sumaris.observedLocation.aggregatedLandings.program", String.class, "")
     ;
 
     private String key;

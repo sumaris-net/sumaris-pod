@@ -40,7 +40,7 @@ public interface ExtractionDao<
     String TABLE_NAME_PREFIX = "EXT_";
     String SEQUENCE_NAME_SUFFIX = "_SEQ";
 
-    Set<IExtractionType> getManagedTypes();
+    Set<IExtractionType<?, ?>> getManagedTypes();
 
     <R extends C> R execute(F filter);
 

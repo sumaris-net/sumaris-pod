@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.dao;
+package net.sumaris.extraction.core.service;
 
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
@@ -28,14 +28,11 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
 import net.sumaris.extraction.core.vo.*;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -45,19 +42,37 @@ import java.util.Set;
  * @since 0.12.0
  */
 
-public interface ExtractionDaoDispatcher {
+public interface AggregationDispatcher {
+
+    int EXECUTION_TIMEOUT = 10000000;
 
     Set<IExtractionType> getManagedTypes();
 
-    ExtractionContextVO execute(@NonNull IExtractionType source,
-                                @Nullable ExtractionFilterVO filter);
+    @Transactional(timeout = EXECUTION_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
+    AggregationContextVO execute(@NonNull IExtractionType type,
+                                 @NonNull IExtractionType source,
+                                 @Nullable ExtractionFilterVO filter,
+                                 AggregationStrataVO strata);
 
-    @Transactional(readOnly = true, noRollbackFor = DataNotFoundException.class)
-    ExtractionResultVO read(IExtractionType type,
+    @Transactional(noRollbackFor = DataNotFoundException.class)
+    AggregationResultVO read(IExtractionType type,
                              @Nullable ExtractionFilterVO filter,
+                             @Nullable AggregationStrataVO strata,
                              Page page);
 
-    @Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRES_NEW)
-    void clean(ExtractionContextVO context);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void clean(AggregationContextVO context);
+
+    @Transactional(readOnly = true)
+    AggregationTechResultVO readByTech(IExtractionType type,
+                                       @Nullable ExtractionFilterVO filter,
+                                       @Nullable AggregationStrataVO strata,
+                                       String sort,
+                                       SortDirection direction);
+
+    @Transactional(readOnly = true)
+    MinMaxVO getTechMinMax(IExtractionType type,
+                           @Nullable ExtractionFilterVO filter,
+                           @Nullable AggregationStrataVO strata);
 
 }

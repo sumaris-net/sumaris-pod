@@ -25,12 +25,16 @@ package net.sumaris.core.service.data;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.ObservedLocationSaveOptions;
-import net.sumaris.core.vo.data.ObservedLocationVO;
+import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.filter.LandingFilterVO;
+import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -39,6 +43,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
@@ -48,6 +53,12 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
     @Autowired
     private ObservedLocationService service;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private LandingService landingService;
 
     @Test
     public void save() {
@@ -85,6 +96,72 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
 
         service.delete(savedVO.getId());
     }
+    @Test
+    public void validate() {
+        ObservedLocationVO observedLocation = service.get(11);
+        Assume.assumeNotNull(observedLocation);
+        if (observedLocation.getControlDate() == null) {
+            observedLocation = service.control(observedLocation, null);
+            controlLandingsByObservedLocationId(observedLocation.getId());
+        }
+
+        Assume.assumeNotNull(observedLocation.getControlDate());
+        Assume.assumeTrue(observedLocation.getValidationDate() == null);
+        ObservedLocationVO result = service.validate(observedLocation, null);
+        Assume.assumeNotNull(result.getValidationDate());
+
+        // Sub landings must be controlled before validation
+        {
+            List<LandingVO> landings = landingService.findAll(LandingFilterVO.builder()
+                            .observedLocationId(observedLocation.getId())
+                            .build(),
+                    Page.builder().offset(0).size(1000).build(),
+                    LandingFetchOptions.MINIMAL);
+            Assert.assertTrue(landings.size() > 0);
+            landings.forEach(l -> {
+                Assert.assertNotNull(l.getValidationDate());
+            });
+        }
+    }
+
+    @Test
+    public void validateMeta() {
+        ObservedLocationVO observedLocation = service.get(14/*SIH-OBSDEB-META*/);
+        Assume.assumeNotNull(observedLocation);
+        if (observedLocation.getControlDate() == null) {
+            observedLocation = service.control(observedLocation, null);
+        }
+
+        Assume.assumeNotNull(observedLocation.getControlDate());
+        Assume.assumeTrue(observedLocation.getValidationDate() == null);
+
+        // Get the programLabel for children
+        String subProgramLabel = programService.getPropertyValueByProgramLabel(observedLocation.getProgram().getLabel(),
+                ProgramPropertyEnum.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+        Assume.assumeNotNull(subProgramLabel);
+
+        ObservedLocationFilterVO childrenFilter = ObservedLocationFilterVO.builder()
+                .programLabel(subProgramLabel)
+                .startDate(observedLocation.getStartDateTime())
+                .endDate(observedLocation.getEndDateTime())
+                .build();
+
+        // children observed location must be controlled before validation
+        service.findAll(childrenFilter, Page.builder().build(), DataFetchOptions.MINIMAL)
+                .forEach(ol -> {
+                    if (ol.getControlDate() == null) service.control(ol, null);
+                    controlLandingsByObservedLocationId(ol.getId());
+                });
+
+        // Validate the meta observed location
+        ObservedLocationVO result = service.validate(observedLocation, null);
+        Assert.assertNotNull(result.getValidationDate());
+
+        // All subObservedLocation also must be validated
+        service.findAll(childrenFilter, Page.builder().build(), DataFetchOptions.MINIMAL)
+                .forEach(ol -> Assert.assertNotNull(ol.getValidationDate()));
+    }
+
 
     /* -- Protected -- */
 
@@ -116,5 +193,16 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
         vo.setMeasurementValues(measurementValues);
 
         return vo;
+    }
+
+    protected void controlLandingsByObservedLocationId(int observedLocationId) {
+        landingService.findAll(LandingFilterVO.builder()
+                                .observedLocationId(observedLocationId)
+                                .build(),
+                        Page.builder().offset(0).size(1000).build(),
+                        LandingFetchOptions.MINIMAL)
+                .forEach(l -> {
+                    if (l.getControlDate() == null) landingService.control(l, null);
+                });
     }
 }

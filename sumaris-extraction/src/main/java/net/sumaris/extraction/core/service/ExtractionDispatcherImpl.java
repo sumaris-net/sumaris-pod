@@ -20,26 +20,18 @@
  * #L%
  */
 
-package net.sumaris.extraction.core.dao;
+package net.sumaris.extraction.core.service;
 
 import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.event.config.ConfigurationEvent;
-import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.service.referential.LocationService;
-import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.IExtractionTypeWithTablesVO;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.dao.ExtractionDao;
 import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -48,7 +40,6 @@ import net.sumaris.extraction.core.vo.ExtractionResultVO;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -59,16 +50,16 @@ import java.util.Set;
  * @author blavenie
  */
 @Slf4j
-@Component("extractionDaoDispatcher")
+@Component("extractionDispatcher")
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
-public class ExtractionDaoDispatcherImpl implements ExtractionDaoDispatcher {
+public class ExtractionDispatcherImpl implements ExtractionDispatcher {
 
     private final ApplicationContext applicationContext;
 
     private Map<IExtractionType, ExtractionDao<? extends ExtractionContextVO, ? extends ExtractionFilterVO>>
         daoByType = Maps.newHashMap();
 
-    public ExtractionDaoDispatcherImpl(ApplicationContext applicationContext
+    public ExtractionDispatcherImpl(ApplicationContext applicationContext
     ) {
         this.applicationContext = applicationContext;
     }
@@ -132,8 +123,8 @@ public class ExtractionDaoDispatcherImpl implements ExtractionDaoDispatcher {
     }
 
     @Override
-    public void clean(ExtractionContextVO context) {
-        log.info("Cleaning extraction #{}", context.getId());
+    public void clean(@NonNull ExtractionContextVO context) {
+        if (context.getId() != null) log.info("Cleaning extraction #{}", context.getId());
         getDao(context).clean(context);
     }
 

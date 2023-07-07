@@ -95,8 +95,8 @@ public class AggregationRdbTripDaoImpl<
     protected ExtractionTripDao<?, ?> extractionRdbTripDao;
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
-        return ImmutableSet.of(AggExtractionTypeEnum.AGG_RDB);
+    public Set<IExtractionType<?,?>> getManagedTypes() {
+        return ImmutableSet.<IExtractionType<?,?>>of(AggExtractionTypeEnum.AGG_RDB);
     }
 
     @Override

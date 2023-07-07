@@ -115,7 +115,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected boolean enableRecordTypeColumn = true;
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
+    public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
     }
 
@@ -369,6 +369,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         XMLQuery xmlQuery = createXMLQuery(context, "createStationTable");
         xmlQuery.bind("tripTableName", context.getTripTableName());
         xmlQuery.bind("stationTableName", context.getStationTableName());
+
+        // Bind location level ids
+        xmlQuery.bind("rectangleLocationLevelIds", Daos.getSqlInNumbers(getRectangleLocationLevelIds(context)));
 
         // Bind some PMFM ids
         xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
@@ -655,6 +658,24 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .build();
     }
 
+    protected Set<Integer> getRectangleLocationLevelIds(C context) {
+        Set<String> programLabels = getTripProgramLabels(context);
+        Splitter splitter = Splitter.on(",").trimResults();
+
+        return programLabels.stream().flatMap(programLabel -> {
+            String strValue = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
+            if (StringUtils.isBlank(strValue)) {
+                // Default values
+                return Stream.of(
+                    LocationLevelEnum.RECTANGLE_ICES.getId(),
+                    LocationLevelEnum.RECTANGLE_GFCM.getId()
+                );
+            }
+            return splitter.splitToStream(strValue).map(Integer::parseInt);
+        }).collect(Collectors.toSet());
+
+    }
+
     /**
      * Fill the context's pmfm infos
      * @param context
@@ -671,19 +692,19 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .map(AcquisitionLevelEnum::getId)
             .toList();
 
-        String cacheKey = acquisitionLevelIds.toString();
+        String cacheKey = programLabels.toString() + acquisitionLevelIds;
 
         // Already loaded: use the cached values
         if (pmfms.containsKey(cacheKey)) return pmfms.get(cacheKey);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
+        if (log.isTraceEnabled()) {
+            log.trace("Loading PMFM for programs {} and acquisitionLevels {} ...",
                 programLabels,
-                cacheKey
+                acquisitionLevels
             );
         }
 
-        // Load pmfm columns
+        // Load denormalized pmfm
         List<DenormalizedPmfmStrategyVO> result = strategyService.findDenormalizedPmfmsByFilter(
                 PmfmStrategyFilterVO.builder()
                     .programLabels(programLabels.toArray(new String[0]))
@@ -715,15 +736,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .map(AcquisitionLevelEnum::getId)
             .toList();
 
-        String cacheKey = acquisitionLevelIds.toString();
+        String cacheKey = programLabels.toString() + acquisitionLevelIds.toString();
 
         // Already loaded: use the cached values
         if (pmfmColumns.containsKey(cacheKey)) return pmfmColumns.get(cacheKey);
 
         if (log.isDebugEnabled()) {
-            log.debug("Loading PMFM for {program: {}, acquisitionLevel: {}} ...",
+            log.debug("Loading PMFM columns for programs {} and acquisitionLevels: {} ...",
                 programLabels,
-                cacheKey
+                acquisitionLevels
             );
         }
 

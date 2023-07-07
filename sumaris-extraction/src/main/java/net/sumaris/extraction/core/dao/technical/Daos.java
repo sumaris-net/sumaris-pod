@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -126,9 +127,17 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
 
 
     public static void commitIfHsqldbOrPgsql(DataSource dataSource) {
+        commitIf(dataSource, conn -> isHsqlDatabase(conn) || isPostgresqlDatabase(conn));
+    }
+
+    public static void commitIfHsqldb(DataSource dataSource) {
+        commitIf(dataSource, conn -> isHsqlDatabase(conn));
+    }
+
+    public static void commitIf(DataSource dataSource, Function<Connection, Boolean> test) {
         Connection conn = DataSourceUtils.getConnection(dataSource);
         try {
-            if ((isHsqlDatabase(conn) || isPostgresqlDatabase(conn)) && DataSourceUtils.isConnectionTransactional(conn, dataSource)) {
+            if (test.apply(conn) && DataSourceUtils.isConnectionTransactional(conn, dataSource)) {
                 try {
                     conn.commit();
                 } catch (SQLException e) {

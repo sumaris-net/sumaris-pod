@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.dao.technical.cache.Caches;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -85,6 +86,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
         String PROGRAM_BY_LABEL_AND_OPTIONS = "net.sumaris.core.dao.administration.programStrategy.programByLabelAndOptions";
         String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
+
+        String PROGRAM_PRIVILEGES_BY_PERSON_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegesByPersonId";
 
         // Program privilege
         String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
@@ -183,6 +186,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createHeapCache(cacheManager, Names.PROGRAM_BY_ID, Integer.class, ProgramVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL, String.class, ProgramVO.class, 100);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL_AND_OPTIONS, SimpleKey.class, ProgramVO.class, 100);
+            Caches.createEternalCollectionHeapCache(cacheManager, Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, ProgramPrivilegeEnum.class, 500);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
             Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
 

@@ -49,8 +49,8 @@ public class ExtractionFree1TripDaoImpl<C extends ExtractionRdbTripContextVO, F 
         implements Free1Specification {
 
     @Override
-    public Set<IExtractionType> getManagedTypes() {
-        return ImmutableSet.of(LiveExtractionTypeEnum.FREE1);
+    public Set<IExtractionType<?,?>> getManagedTypes() {
+        return ImmutableSet.<IExtractionType<?,?>>of(LiveExtractionTypeEnum.FREE1);
     }
 
     @Override

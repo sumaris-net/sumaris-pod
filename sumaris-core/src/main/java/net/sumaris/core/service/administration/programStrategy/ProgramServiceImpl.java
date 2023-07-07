@@ -27,31 +27,22 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.dao.administration.programStrategy.AcquisitionLevelRepository;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service("programService")
 @RequiredArgsConstructor
@@ -130,6 +121,11 @@ public class ProgramServiceImpl implements ProgramService {
 	public boolean hasAcquisitionLevelByLabel(String label, AcquisitionLevelEnum acquisitionLevel) {
 		ProgramVO program = getByLabel(label);
 		return hasAcquisitionLevelById(program.getId(), acquisitionLevel);
+	}
+
+	@Override
+	public List<ProgramPrivilegeEnum> getAllPrivilegesByUserId(int programId, int personId) {
+		return programRepository.getAllPrivilegeIdsByUserId(programId, personId);
 	}
 
 	@Override

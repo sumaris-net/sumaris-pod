@@ -36,11 +36,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.model.data.IMeasurementEntity;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.LandingMeasurement;
-import net.sumaris.core.model.data.SurveyMeasurement;
-import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
@@ -48,9 +44,9 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -59,6 +55,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -268,32 +265,73 @@ public class LandingServiceImpl implements LandingService {
     }
 
     @Override
-    public LandingVO control(LandingVO landing) {
-        Preconditions.checkNotNull(landing);
+    public LandingVO control(@NonNull LandingVO landing, DataControlOptions options) {
         Preconditions.checkNotNull(landing.getId());
-        Preconditions.checkArgument(landing.getControlDate() == null);
+        Preconditions.checkArgument(landing.getValidationDate() == null);
 
-        return landingRepository.control(landing);
+        landing = landingRepository.control(landing);
+
+        // Also control Trip
+        if (landing.getTripId() != null && options.getWithChildren()) {
+            tripService.findAll(TripFilterVO.builder()
+                                    .tripId(landing.getTripId())
+                                    .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
+                                    .build(),
+                            Page.builder().offset(0).size(1000).build(),
+                            TripFetchOptions.MINIMAL)
+                    .forEach(tripService::control);
+        }
+
+        return landing;
     }
 
     @Override
-    public LandingVO validate(LandingVO landing) {
-        Preconditions.checkNotNull(landing);
+    public LandingVO validate(@NonNull LandingVO landing, DataValidateOptions options) {
         Preconditions.checkNotNull(landing.getId());
         Preconditions.checkNotNull(landing.getControlDate());
         Preconditions.checkArgument(landing.getValidationDate() == null);
 
-        return landingRepository.validate(landing);
+        options = DataValidateOptions.defaultIfEmpty(options);
+
+        landing = landingRepository.validate(landing);
+
+        // Also validate trip
+        if (landing.getTripId() != null && options.getWithChildren()) {
+            tripService.findAll(TripFilterVO.builder()
+                                    .tripId(landing.getTripId())
+                                    .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
+                                    .build(),
+                            Page.builder().offset(0).size(1000).build(),
+                            TripFetchOptions.MINIMAL)
+                    .forEach(tripService::validate);
+        }
+
+        return landing;
     }
 
     @Override
-    public LandingVO unvalidate(LandingVO landing) {
-        Preconditions.checkNotNull(landing);
+    public LandingVO unvalidate(@NonNull LandingVO landing, DataValidateOptions options) {
         Preconditions.checkNotNull(landing.getId());
         Preconditions.checkNotNull(landing.getControlDate());
         Preconditions.checkNotNull(landing.getValidationDate());
 
-        return landingRepository.unValidate(landing);
+        landing = landingRepository.unValidate(landing);
+
+        options = DataValidateOptions.defaultIfEmpty(options);
+
+        // Also unvalidate trip
+        if (landing.getTripId() != null && options.getWithChildren()) {
+            tripService.findAll(TripFilterVO.builder()
+                                    .tripId(landing.getTripId())
+                                    .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
+                                    .build(),
+                            Page.builder().offset(0).size(1000).build(),
+                            TripFetchOptions.MINIMAL)
+                    .forEach(tripService::unvalidate);
+        }
+
+
+        return landing;
     }
 
     /* -- protected methods -- */

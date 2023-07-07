@@ -25,16 +25,20 @@ package net.sumaris.core.service.administration;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -45,6 +49,9 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
     @Autowired
     private ProgramService service;
+
+    @Value("${spring.cache.enabled:false}")
+    private boolean enableCache;
 
     @Test
     public void getById() {
@@ -129,6 +136,77 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
 
         Assert.assertNotNull(acquisitionLevels);
         Assert.assertTrue(acquisitionLevels.size() > 0);
+    }
+
+    @Test
+    public void getAllPrivilegesByUserId() {
+        int programId = fixtures.getDefaultProgram().getId();
+
+        // No privilege user
+        {
+            int personId = fixtures.getPersonIdNoPrivilege();
+            List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            Assert.assertTrue(CollectionUtils.isEmpty(privileges));
+        }
+
+        // Observer user => OBSERVER privilege
+        {
+            int personId = fixtures.getPersonIdObserver();
+            List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(privileges));
+            Assert.assertTrue(privileges.contains(ProgramPrivilegeEnum.OBSERVER));
+        }
+
+        // Supervisor user => MANAGER privilege
+        {
+            int personId = fixtures.getPersonIdManager();
+            List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(privileges));
+            Assert.assertTrue(privileges.contains(ProgramPrivilegeEnum.MANAGER));
+        }
+
+        // Admin user => no privileges (but = ALL privileges)
+        {
+            int personId = fixtures.getPersonIdAdmin();
+            List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            Assert.assertTrue(CollectionUtils.isEmpty(privileges));
+        }
+
+        // Qualifier user
+        {
+            int personId = fixtures.getPersonIdQualifier();
+            List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            Assert.assertEquals(1, CollectionUtils.size(privileges));
+            Assert.assertTrue(privileges.contains(ProgramPrivilegeEnum.QUALIFIER));
+        }
+
+        // Viewer user
+        {
+            int personId = fixtures.getPersonIdViewer();
+            List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            Assert.assertEquals(1, CollectionUtils.size(privileges));
+            Assert.assertTrue(privileges.contains(ProgramPrivilegeEnum.VIEWER));
+        }
+
+        // Validator user
+        {
+            int personId = fixtures.getPersonIdValidator();
+            long start = System.currentTimeMillis();
+            List<ProgramPrivilegeEnum> privileges = service.getAllPrivilegesByUserId(programId, personId);
+            long firstDuration = System.currentTimeMillis() - start;
+
+            Assert.assertEquals(1, CollectionUtils.size(privileges));
+            Assert.assertTrue(privileges.contains(ProgramPrivilegeEnum.VALIDATOR));
+
+            // Test cache (if enable in properties)
+            if (enableCache) {
+                start = System.currentTimeMillis();
+                service.getAllPrivilegesByUserId(programId, personId);
+                long secondDuration = System.currentTimeMillis() - start;
+                Assert.assertTrue(secondDuration < firstDuration);
+            }
+        }
+
     }
 
 }
