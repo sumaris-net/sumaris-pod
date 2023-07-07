@@ -272,7 +272,6 @@ public class DataGraphQLService {
             }
         }
         // Make sure user can write
-        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
         dataAccessControlService.checkCanWrite(trip);
 
         // Save

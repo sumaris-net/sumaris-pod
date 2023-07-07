@@ -93,9 +93,10 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public boolean canReadAll() {
-        return (StringUtils.isNotBlank(accessNotSelfExtractionMinRole)
-                && securityContext.hasAuthority(accessNotSelfExtractionMinRole))
-                || securityContext.isAdmin();
+        // If user is admin: OK
+        return securityContext.isAdmin()
+            // If user has min role to see all
+            || (StringUtils.isNotBlank(accessNotSelfExtractionMinRole) && securityContext.hasAuthority(accessNotSelfExtractionMinRole));
     }
 
     @Override
@@ -176,6 +177,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
     public ExtractionTypeFilterVO sanitizeFilter(ExtractionTypeFilterVO filter) {
         ExtractionTypeFilterVO result = filter != null ? filter : new ExtractionTypeFilterVO();
 
+        // If can read all type (e.g. user is admin)
         if (canReadAll()) return result;
 
         return getAuthenticatedUser()
