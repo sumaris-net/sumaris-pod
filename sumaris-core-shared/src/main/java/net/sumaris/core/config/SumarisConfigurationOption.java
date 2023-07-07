@@ -674,7 +674,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.class,
         false),
 
-
     DB_ADAGIO_SCHEMA(
             "sumaris.persistence.adagio.schema",
             n("sumaris.config.option.persistence.adagio.schema.description"),

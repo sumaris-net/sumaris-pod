@@ -1027,7 +1027,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.VESSEL_REGISTRATION_CODE_SEARCH_AS_PREFIX.getKey());
     }
 
-
     /**
      * <p>find the ActiveMQ broker URL.</p>
      *
