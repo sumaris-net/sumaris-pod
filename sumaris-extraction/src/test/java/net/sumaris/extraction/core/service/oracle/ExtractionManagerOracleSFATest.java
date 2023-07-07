@@ -44,7 +44,7 @@ import java.io.IOException;
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-//@Ignore("Use only SFA Oracle database")
+@Ignore("Use only SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle-sfa.properties")
 public class ExtractionManagerOracleSFATest extends ExtractionManagerTest {
