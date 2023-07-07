@@ -370,6 +370,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("tripTableName", context.getTripTableName());
         xmlQuery.bind("stationTableName", context.getStationTableName());
 
+        // Bind location level ids
+        xmlQuery.bind("rectangleLocationLevelIds", Daos.getSqlInNumbers(getRectangleLocationLevelIds(context)));
+
         // Bind some PMFM ids
         xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
         xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
@@ -653,6 +656,24 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 PmfmEnum.SELECTIVITY_DEVICE_APASE.getId()
             )
             .build();
+    }
+
+    protected Set<Integer> getRectangleLocationLevelIds(C context) {
+        Set<String> programLabels = getTripProgramLabels(context);
+        Splitter splitter = Splitter.on(",").trimResults();
+
+        return programLabels.stream().flatMap(programLabel -> {
+            String strValue = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
+            if (StringUtils.isBlank(strValue)) {
+                // Default values
+                return Stream.of(
+                    LocationLevelEnum.RECTANGLE_ICES.getId(),
+                    LocationLevelEnum.RECTANGLE_GFCM.getId()
+                );
+            }
+            return splitter.splitToStream(strValue).map(Integer::parseInt);
+        }).collect(Collectors.toSet());
+
     }
 
     /**
