@@ -42,17 +42,11 @@
             ELSE VRP.END_DATE
           END
         ]]></select>
-
-<!--        <select alias="REGISTRATION_START_DATE" type="text">VRP.START_DATE</select>-->
-<!--        <select alias="REGISTRATION_END_DATE" type="text">COALESCE(VRP.END_DATE, TO_DATE('01-01-2100', 'DD-MM-YYYY'))</select>-->
-
         <select alias="INTERNATIONAL_REGISTRATION_CODE" type="text">VRP.INT_REGISTRATION_CODE</select>
         <select alias="REGISTRATION_CODE" type="text">VRP.REGISTRATION_CODE</select>
         <select alias="HARBOUR_LABEL" type="text">HARBOUR.LABEL</select>
         <select alias="HARBOUR_NAME" type="text">HARBOUR.NAME</select>
-<!--        <select alias="FEATURES_START_DATE" type="text">VF.START_DATE</select>-->
-<!--        <select alias="FEATURES_END_DATE" type="text">COALESCE(VF.END_DATE, TO_DATE('01-01-2100', 'DD-MM-YYYY'))</select>-->
-        <select alias="NAME" type="text">VF.NAME</select>
+        <select alias="VESSEL_NAME" type="text">VF.NAME</select>
         <select alias="VESSEL_LENGTH" type="number">CAST(VF.LENGTH_OVER_ALL AS FLOAT) / 100</select>
         <select alias="VESSEL_POWER" type="number">VF.ADMINISTRATIVE_POWER</select>
         <select alias="VESSEL_TYPE_LABEL" type="number">VT.LABEL</select>
@@ -120,17 +114,13 @@
     <select alias="VESSEL_IDENTIFIER" type="number">V.VESSEL_IDENTIFIER</select>
     <select alias="VESSEL_TYPE" type="text">V.VESSEL_TYPE_NAME</select>
     <select alias="VESSEL_FLAG_COUNTRY" type="text">V.VESSEL_FLAG_COUNTRY</select>
-
     <select alias="START_DATE" type="text" group="agg">TO_CHAR(MIN(V.START_DATE), 'DD/MM/YYYY')</select>
     <select alias="END_DATE" type="text" group="agg">TO_CHAR(MIN(V.END_DATE), 'DD/MM/YYYY')</select>
-
     <select alias="INTERNATIONAL_REGISTRATION_CODE" type="text">V.INTERNATIONAL_REGISTRATION_CODE</select>
     <select alias="REGISTRATION_CODE" type="text">V.REGISTRATION_CODE</select>
     <select alias="HARBOUR_LABEL" type="text">V.HARBOUR_LABEL</select>
     <select alias="HARBOUR_NAME" type="text">V.HARBOUR_NAME</select>
-<!--    <select alias="FEATURES_START_DATE" type="text">TO_CHAR(VF.START_DATE, 'DD/MM/YYYY') </select>-->
-<!--    <select alias="FEATURES_END_DATE" type="text">TO_CHAR(V.END_DATE, 'DD/MM/YYYY') </select>-->
-    <select alias="NAME" type="text">V.NAME</select>
+    <select alias="VESSEL_NAME" type="text">V.VESSEL_NAME</select>
     <select alias="VESSEL_LENGTH" type="number">V.VESSEL_LENGTH</select>
     <select alias="VESSEL_POWER" type="number">V.VESSEL_POWER</select>
     <select alias="GROSS_TONNAGE_UMS" type="number">V.GROSS_TONNAGE_UMS</select>
