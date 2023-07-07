@@ -42,7 +42,6 @@ import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
-import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.*;
@@ -887,6 +886,8 @@ public abstract class ExtractionManagerTest extends AbstractServiceTest {
         TripVO trip = tripService.get(tripId);
         Assume.assumeNotNull(trip);
 
+        if (!canWriteData()) return trip;
+
         // Control
         if (trip.getControlDate() == null) {
             trip = tripService.control(trip);
@@ -926,6 +927,8 @@ public abstract class ExtractionManagerTest extends AbstractServiceTest {
 
 
     protected void validateTrips(String programLabel) {
+        if (!canWriteData()) return;
+
         // Validate some trips
         List<TripVO> trips =
             tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
@@ -935,6 +938,11 @@ public abstract class ExtractionManagerTest extends AbstractServiceTest {
             if (trip.getControlDate() == null) tripService.control(trip);
             if (trip.getValidationDate() == null) tripService.validate(trip);
         });
+    }
+
+
+    protected boolean canWriteData() {
+        return true;
     }
 
     protected String getProgramLabelForVessel() {

@@ -35,6 +35,7 @@ public interface ApaseSpecification extends RdbSpecification {
     String CT_SHEET_NAME = "CT"; // Catch
 
 
+    String COLUMN_GEAR_IDENTIFIER = "gear_identifier";
     String COLUMN_SUB_GEAR_IDENTIFIER = "sub_gear_identifier";
     String COLUMN_SUB_GEAR_POSITION = "sub_gear_position";
 

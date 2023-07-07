@@ -24,15 +24,14 @@
 
   <!-- rename INDIVIDUAL_SEX by SEX-->
   <select alias="SEX" type="text">B.SEX</select>
-  <select alias="SUB_GEAR_POSITION" type="text">SL.SUB_GEAR_POSITION</select>
-  <select alias="SUB_GEAR_IDENTIFIER" type="number">SL.SUB_GEAR_IDENTIFIER</select>
 
   <!-- reinsert last RDB fields, but after SEX -->
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>
   <select alias="NUMBER_AT_LENGTH" type="number" group="pmfms,agg">SUM(B.INDIVIDUAL_COUNT) / COUNT(DISTINCT SM.ID)</select>
 
+  <select alias="SUB_GEAR_POSITION" type="text">SL.SUB_GEAR_POSITION</select>
+  <select alias="SUB_GEAR_IDENTIFIER" type="number">SL.SUB_GEAR_IDENTIFIER</select>
   <select alias="ELEVATED_NUMBER_AT_LENGTH" type="number" group="agg">SUM(DENORMALIZED_B.ELEVATE_INDIVIDUAL_COUNT)</select>
-
   <select alias="MEASURE_TYPE" type="text">B.PARAMETER_LABEL</select>
   <select alias="MEASURE_TYPE_NAME" type="text">B.PARAMETER_NAME</select>
 
