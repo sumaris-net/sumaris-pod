@@ -135,7 +135,6 @@
 
     <!-- need to link other tables -->
     <select alias="STATION_ID" type="hidden">O.ID</select>
-    <select alias="FA_ID" type="number">FA.ID</select>
 
     <from alias="T">&amp;tripTableName</from>
     <from join="true">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>
