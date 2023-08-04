@@ -1,0 +1,206 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-2.5.6.xml">
+
+    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- add NSP qualitative value for CONTROL_CORRECTIVE_ACTION parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-100" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM qualitative_value WHERE LABEL = 'NSP' AND PARAMETER_FK = (SELECT ID FROM PARAMETER WHERE LABEL='CONTROL_CORRECTIVE_ACTION')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">NSP</column>
+            <column name="NAME">Ne sait pas</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='CONTROL_CORRECTIVE_ACTION')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add NSP qualitative value for PRODUCT_DESTINATION parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-200" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM qualitative_value WHERE LABEL = 'NSP' AND PARAMETER_FK = (SELECT ID FROM PARAMETER WHERE LABEL='PRODUCT_DESTINATION')</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">NSP</column>
+            <column name="NAME">Ne sait pas</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='PRODUCT_DESTINATION')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- set 2 acquisition number on PMFM_STRATEGY of CONTROL_DIAGNOSTIC for ADAP-CONTROLE V1 -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-300" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY AS pmfm_s
+                    INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                    INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                    INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'CONTROL_DIAGNOSTIC'
+                    WHERE pmfm_s.STRATEGY_FK = strat.ID
+                    AND pmfm_s.PMFM_FK = pmfm.ID;
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <update tableName="PMFM_STRATEGY">
+            <column name="ACQUISITION_NUMBER" value="2"/>
+            <where>
+                ID = (
+                    SELECT ID FROM PMFM_STRATEGY AS pmfm_s
+                    INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                    INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                    INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'CONTROL_DIAGNOSTIC'
+                    WHERE PMFM_STRATEGY.STRATEGY_FK = strat.ID
+                    AND pmfm_s.PMFM_FK = pmfm.ID
+                );
+            </where>
+        </update>
+    </changeSet>
+
+    <!--
+        on PMFM_STRATEGY of CONTROL_CORRECTIVE_ACTION for ADAP-CONTROLE V1
+        - upgrade rank order to 18
+        - set default value with the new NSP quality value
+    -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-400" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY AS pmfm_s
+                    INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                    INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                    INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'CONTROL_CORRECTIVE_ACTION'
+                    WHERE pmfm_s.STRATEGY_FK = strat.ID
+                    AND pmfm_s.PMFM_FK = pmfm.ID;
+                </sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PARAMETER P
+                    INNER JOIN QUALITATIVE_VALUE QV on QV.PARAMETER_FK=P.ID
+                    WHERE P.LABEL='CONTROL_CORRECTIVE_ACTION' AND QV.LABEL='NSP';
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <update tableName="PMFM_STRATEGY">
+            <column name="RANK_ORDER" value="18"/>
+            <column name="DEFAULT_VALUE" valueComputed="(SELECT QV.ID FROM PARAMETER P INNER JOIN QUALITATIVE_VALUE QV on QV.PARAMETER_FK=P.ID WHERE P.LABEL='CONTROL_CORRECTIVE_ACTION' AND QV.LABEL='NSP')"/>
+            <where>
+                ID = (
+                SELECT ID FROM PMFM_STRATEGY AS pmfm_s
+                INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'CONTROL_CORRECTIVE_ACTION'
+                WHERE PMFM_STRATEGY.STRATEGY_FK = strat.ID
+                AND pmfm_s.PMFM_FK = pmfm.ID
+                );
+            </where>
+        </update>
+    </changeSet>
+
+    <!--
+         on PMFM_STRATEGY of PRODUCT_DESTINATION for ADAP-CONTROLE V1
+         - upgrade rank order to 19
+         - set default value with the new NSP quality value
+     -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-500" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY AS pmfm_s
+                    INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                    INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                    INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'PRODUCT_DESTINATION'
+                    WHERE pmfm_s.STRATEGY_FK = strat.ID
+                    AND pmfm_s.PMFM_FK = pmfm.ID;
+                </sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PARAMETER P
+                    INNER JOIN QUALITATIVE_VALUE QV on QV.PARAMETER_FK=P.ID
+                    WHERE P.LABEL='PRODUCT_DESTINATION' AND QV.LABEL='NSP';
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <update tableName="PMFM_STRATEGY">
+            <column name="RANK_ORDER" value="19"/>
+            <column name="DEFAULT_VALUE" valueComputed="(SELECT QV.ID FROM PARAMETER P INNER JOIN QUALITATIVE_VALUE QV on QV.PARAMETER_FK=P.ID WHERE P.LABEL='PRODUCT_DESTINATION' AND QV.LABEL='NSP')"/>
+            <where>
+                ID = (
+                SELECT ID FROM PMFM_STRATEGY AS pmfm_s
+                INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'PRODUCT_DESTINATION'
+                WHERE PMFM_STRATEGY.STRATEGY_FK = strat.ID
+                AND pmfm_s.PMFM_FK = pmfm.ID
+                );
+            </where>
+        </update>
+    </changeSet>
+
+    <!--
+     on PMFM_STRATEGY of COMPLIANT_PRODUCT for ADAP-CONTROLE V1
+     - downgrade rank order to 17
+     - remove the default value
+     -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-600" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY AS pmfm_s
+                    INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                    INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                    INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'COMPLIANT_PRODUCT'
+                    WHERE pmfm_s.STRATEGY_FK = strat.ID
+                    AND pmfm_s.PMFM_FK = pmfm.ID;
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <update tableName="PMFM_STRATEGY">
+            <column name="RANK_ORDER" value="17"/>
+            <column name="DEFAULT_VALUE" value="NULL"/>
+            <where>
+                ID = (
+                SELECT ID FROM PMFM_STRATEGY AS pmfm_s
+                INNER JOIN PROGRAM AS prog ON prog.LABEL = 'ADAP-CONTROLE'
+                INNER JOIN STRATEGY AS strat ON strat.PROGRAM_FK = prog.ID AND strat.LABEL = 'V1'
+                INNER JOIN PMFM AS pmfm ON pmfm.LABEL = 'COMPLIANT_PRODUCT'
+                WHERE PMFM_STRATEGY.STRATEGY_FK = strat.ID
+                AND pmfm_s.PMFM_FK = pmfm.ID
+                );
+            </where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>
