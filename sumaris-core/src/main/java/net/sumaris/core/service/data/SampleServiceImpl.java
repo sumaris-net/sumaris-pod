@@ -65,6 +65,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SampleServiceImpl implements SampleService {
 
+	public static final String FAKE_NULL_TAG_ID = "NULL";
+
 	protected final SampleRepository sampleRepository;
 
 	protected final Optional<SampleAdagioRepository> sampleAdagioRepository;
@@ -316,10 +318,13 @@ public class SampleServiceImpl implements SampleService {
 	 * @param samples
 	 */
 	private void checkSamplesUniqueTagInList(List<SampleVO> samples) {
-		Set<String> duplicatedTagIds = Beans.<String, SampleVO>splitByNotUniqueProperty(samples, SampleVO.GetterFields.TAG_ID)
+		// /!\ Use a default value, because sample's TAG_ID can be null
+		Set<String> duplicatedTagIds = Beans.splitByNotUniqueProperty(samples, SampleVO.GetterFields.TAG_ID, FAKE_NULL_TAG_ID)
 				.asMap().entrySet().stream()
 				// Filter more than one sample for the same tag id
-				.filter(e -> e.getValue().size() > 1)
+				.filter(e -> e.getValue().size() > 1
+					// And exclude null value
+					&& !FAKE_NULL_TAG_ID.equals(e.getKey()))
 				.map(Map.Entry::getKey)
 				.collect(Collectors.toSet());
 
