@@ -202,16 +202,16 @@
     <compilerPluginVersion>3.10.1</compilerPluginVersion>
     <resourcesPluginVersion>3.3.0</resourcesPluginVersion>
     <jarPluginVersion>3.2.0</jarPluginVersion>
-    <sitePluginVersion>3.9.1</sitePluginVersion>
+    <sitePluginVersion>3.10.0</sitePluginVersion>
     <changesPluginVersion>2.12.1</changesPluginVersion>
     <changelogPluginVersion>2.3</changelogPluginVersion>
     <projectInfoReportsPluginVersion>3.1.2</projectInfoReportsPluginVersion>
     <jrxPluginVersion>3.0.0</jrxPluginVersion>
     <surefirePluginVersion>2.21.0</surefirePluginVersion>
     <surefireReportPluginVersion>2.20.1</surefireReportPluginVersion>
-    <markdownPluginVersion>1.9</markdownPluginVersion>
-    <enforcerPluginVersion>1.4.1</enforcerPluginVersion>
-    <sourcePluginVersion>3.0.1</sourcePluginVersion>
+    <markdownPluginVersion>1.11.1</markdownPluginVersion>
+    <enforcerPluginVersion>3.1.0</enforcerPluginVersion>
+    <sourcePluginVersion>3.2.1</sourcePluginVersion>
     <releasePluginVersion>2.5.3</releasePluginVersion>
     <jaxbApiVersion>2.3.1</jaxbApiVersion>
     <jaxbSiteVersion>2.3.0</jaxbSiteVersion>
@@ -1140,7 +1140,7 @@
 
         <plugin>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
+          <version>3.0.0</version>
         </plugin>
 
         <plugin>
@@ -1188,7 +1188,6 @@
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
               <arg>--enable-preview</arg>
-              <!--<arg>-AgeneratedSourcesDirectory=${project.build.outputDirectory}</arg>-->
             </compilerArgs>
             <annotationProcessorPaths>
               <path>
@@ -1196,11 +1195,6 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
               </path>
-              <!--<path>
-                <groupId>net.sumaris</groupId>
-                <artifactId>sumaris-xml-query</artifactId>
-                <version>2.1.1-SNAPSHOT</version>
-              </path>-->
             </annotationProcessorPaths>
           </configuration>
         </plugin>
@@ -1369,6 +1363,11 @@
               <groupId>org.apache.felix</groupId>
               <artifactId>maven-bundle-plugin</artifactId>
               <version>4.2.1</version>
+            </dependency>
+            <dependency>
+              <groupId>org.apache.maven.doxia</groupId>
+              <artifactId>doxia-module-markdown</artifactId>
+              <version>${markdownPluginVersion}</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -1829,7 +1828,7 @@
           <plugin>
             <groupId>se.natusoft.tools.doc.markdowndoc</groupId>
             <artifactId>markdowndoc-maven-plugin</artifactId>
-            <version>3.0.0</version>
+            <version>3.1.0</version>
             <executions>
               <execution>
                 <id>generate-docs-fr</id>
