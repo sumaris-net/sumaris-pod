@@ -1321,18 +1321,11 @@
               <version>${groovy.version}</version>
               <scope>runtime</scope>
             </dependency>
-            <!-- SLF4J API -->
             <dependency>
               <groupId>org.slf4j</groupId>
               <artifactId>slf4j-api</artifactId>
               <version>2.0.5</version>
             </dependency>
-            <!-- SLF4J binding for Maven
-            <dependency>
-              <groupId>org.slf4j</groupId>
-              <artifactId>slf4j-jdk14</artifactId>
-              <version>1.5.6 1.7.30</version>
-            </dependency>-->
           </dependencies>
           <configuration>
             <properties>
@@ -1868,59 +1861,14 @@
                   <goal>execute</goal>
                 </goals>
                 <configuration>
+                  <properties>
+                    <property>
+                      <name>project.build.directory</name>
+                      <value>${project.build.directory}</value>
+                    </property>
+                  </properties>
                   <scripts>
-                    <script><![CDATA[
-                  import net.coobird.thumbnailator.Thumbnails
-                  import net.coobird.thumbnailator.resizers.configurations.ScalingMode
-                  import org.slf4j.Logger
-                  import org.slf4j.LoggerFactory
-
-                  // Logger initialization
-                  Logger logger = LoggerFactory.getLogger(this.class)
-
-                  // Input parameters
-                  def tempDirectory = '${project.build.directory}/site/temp'
-                  def maxWidth = 980
-
-                  logger.info("Resizing the following image files:")
-                  def hasError = false
-
-
-                  // Parcourir les fichiers PNG du répertoire temporaire
-                  new File(tempDirectory).eachFileMatch(~/.*\.png/) { file ->
-                      println "\t" + file.getAbsolutePath()
-
-                      try {
-                          // Get dimensions of the original image
-                          def originalImage = Thumbnails.of(file).scale(1).asBufferedImage()
-                          def originalWidth = originalImage.getWidth()
-                          def originalHeight = originalImage.getHeight()
-
-                          // Check if resizing is needed
-                          if (originalWidth > maxWidth) {
-                              def newHeight = ((maxWidth / originalWidth) * originalHeight).round() as int
-
-                              // Resize the image
-                              Thumbnails.of(file)
-                                  .scalingMode(ScalingMode.HIGH_QUALITY)
-                                  .size(maxWidth, newHeight)
-                                  .outputQuality(1.0)
-                                  .keepAspectRatio(true)
-                                  .toFile(file)
-                          }
-                      } catch (Exception e) {
-                          println "Error processing image: " + file.getAbsolutePath() + ". Reason: " + e.message
-                          hasError = true
-                      }
-                  }
-
-                  if (hasError) {
-                      throw new RuntimeException("Errors occurred while processing the images.")
-                  }
-                  else {
-                  throw new RuntimeException("Errors occurred while processing the images.")
-                  }
-                ]]></script>
+                    <script>file:///${project.basedir}/src/site/groovyScripts/resize-temp-images.groovy</script>
                   </scripts>
                 </configuration>
               </execution>
