@@ -217,7 +217,7 @@ public class Beans {
     }
 
     /**
-     * <p>splitByProperty.</p>
+     * <p>splitByNotUniqueProperty.</p>
      *
      * @param list         a {@link Iterable} object.
      * @param propertyName a {@link String} object.
@@ -232,7 +232,7 @@ public class Beans {
     }
 
     /**
-     * <p>splitByProperty.</p>
+     * <p>splitByNotUniqueProperty.</p>
      *
      * @param list         a {@link Iterable} object.
      * @param propertyName a {@link String} object.
