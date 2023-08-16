@@ -1,7 +1,4 @@
-
-
-
-# Installation (App)
+# Installation
 
 The **SUMARiS App** is a [client software](https://en.wikipedia.org/wiki/Client_(computing)) connecting to any [SUMARiS Pod](./pod.md):
 

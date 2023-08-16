@@ -133,8 +133,8 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
   - Ajouter les annotations @Service, @RequiredArgsConstructor @GraphQLApi et @ConditionalOnWebApplication
   - Déclarer le service de l'entité correspondante via l'annotation @Resource
   - Pour chaque méthode déclarée dans l'interface `Service`, déclarer une méthode identifique (même nom et paramètres) en y ajoutant :
-    - Une annotation `@GraphQLQuery(name = "<methodName>", description = "<methodDescription>")` en remplacant "<methodName>" par le nom de la fonction, et et "<methodDescription>" par sa documentation.  
-    - Une annotation `@GraphQLArgument(name = "<parameterName>")` pour chaque paramètre de la méthode, en remplaçant "<parameterName>" par son nom.
+    - Une annotation `@GraphQLQuery(name = "&lt;methodName>", description = "&lt;methodDescription>")` en remplaçant "&lt;methodName>" par le nom de la fonction, et "&lt;methodDescription>" par sa documentation.  
+    - Une annotation `@GraphQLArgument(name = "&lt;parameterName>")` pour chaque paramètre de la méthode, en remplaçant "&lt;parameterName>" par son nom.
   - Ignorer la génération des imports.
 
 ## Gestion des mise à jour BDD
