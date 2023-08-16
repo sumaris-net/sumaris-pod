@@ -1,0 +1,25 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+        logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.5.3.xml">
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="maxime@indelog.fr" id="1691497523-100" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='2.5.3'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">2.5.3</column>
+            <column name="DESCRIPTION">
+                - Add qualitatives value NSP for CONTROL_CORRECTIVE_ACTION parameter
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="COMMENTS">
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
