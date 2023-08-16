@@ -264,9 +264,14 @@
         <artifactId>gmavenplus-plugin</artifactId>
         <dependencies>
           <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>${reflections.version}</version>
+          </dependency>
+          <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${servlet-api.version}</version>
           </dependency>
           <dependency>
             <groupId>org.dom4j</groupId>
@@ -286,13 +291,23 @@
                 <script><![CDATA[
                   import org.reflections.*;
                   import org.reflections.util.*;
+                  import org.slf4j.Logger
+                  import org.slf4j.LoggerFactory
+
+                  // Parameters
+                  def outputFile = "${escapedOutputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml"
+
+                  // Logger initialization
+                  Logger logger = LoggerFactory.getLogger(this.class)
+                  logger.info("Collecting classes into {} from 3 packages: {}, {}, {}",
+                    outputFile,
+                    "${hibernate.entities.package}", "${hibernate.entities.package}.referential", "${hibernate.vo.package}")
 
                   ConfigurationBuilder builder = new ConfigurationBuilder();
                   builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}"));
                   builder.addUrls(ClasspathHelper.forPackage("${hibernate.entities.package}.referential"));
                   builder.addUrls(ClasspathHelper.forPackage("${hibernate.vo.package}"));
-                  new org.reflections.Reflections(builder)
-                      .save("${escapedOutputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")
+                  new Reflections(builder).save(outputFile)
                 ]]></script>
               </scripts>
             </configuration>

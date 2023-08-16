@@ -136,6 +136,7 @@
     <rxjava3.version>3.1.5</rxjava3.version>
     <activemq.version>5.17.3</activemq.version>
     <jakarta-jms.version>2.0.3</jakarta-jms.version>
+    <groovy.version>4.0.6</groovy.version>
 
     <jnr-ffi.version>2.2.2</jnr-ffi.version>
     <kalium.version>0.8.2</kalium.version>
@@ -149,6 +150,9 @@
     <reactor.version>3.5.0</reactor.version>
     <kotlin.version>1.3.70</kotlin.version>
     <unboundid-ldapsdk.version>4.0.14</unboundid-ldapsdk.version>
+    <dom4j.version>2.1.3</dom4j.version>
+    <servlet-api.version>4.0.1</servlet-api.version>
+    <thumbnailator.version>0.4.20</thumbnailator.version>
 
     <!-- database version management -->
     <liquibase.version>4.12.0</liquibase.version>
@@ -171,6 +175,10 @@
     <nuitonI18nVersion>4.1</nuitonI18nVersion>
     <nuitonEugeneVersion>3.0-alpha-10</nuitonEugeneVersion>
     <topiaVersion>3.3.1</topiaVersion>
+    <jaxbApiVersion>2.3.1</jaxbApiVersion>
+    <jaxbSiteVersion>2.3.0</jaxbSiteVersion>
+    <activationVersion>1.1.1</activationVersion>
+    <gmavenPlusVersion>3.0.0</gmavenPlusVersion>
 
     <!-- Unit test -->
     <junit.version>4.13.1</junit.version>
@@ -209,21 +217,19 @@
     <jrxPluginVersion>3.0.0</jrxPluginVersion>
     <surefirePluginVersion>2.21.0</surefirePluginVersion>
     <surefireReportPluginVersion>2.20.1</surefireReportPluginVersion>
-    <markdownPluginVersion>1.11.1</markdownPluginVersion>
     <enforcerPluginVersion>3.1.0</enforcerPluginVersion>
     <sourcePluginVersion>3.2.1</sourcePluginVersion>
     <releasePluginVersion>2.5.3</releasePluginVersion>
-    <jaxbApiVersion>2.3.1</jaxbApiVersion>
-    <jaxbSiteVersion>2.3.0</jaxbSiteVersion>
-    <activationVersion>1.1.1</activationVersion>
-    <dom4j.version>2.1.3</dom4j.version>
+    <deployPluginVersion>3.0.0</deployPluginVersion>
+    <doxiaModuleMarkdownVersion>1.12.0</doxiaModuleMarkdownVersion>
 
-    <!-- codehaus mojo plugins -->
+    <!-- codehaus mojo or other plugins -->
     <licensePluginVersion>1.13</licensePluginVersion>
     <execPluginVersion>1.6.0</execPluginVersion>
     <wagonPluginVersion>1.0</wagonPluginVersion>
     <versionsPluginVersion>2.3</versionsPluginVersion>
     <findbugsPluginVersion>3.0.5</findbugsPluginVersion>
+    <markdowndocPluginVersion>3.1.0_17</markdowndocPluginVersion>
 
     <!-- web site -->
     <locales>en,fr</locales>
@@ -340,7 +346,7 @@
       <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
-        <version>4.0.1</version>
+        <version>${servlet-api.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.mail</groupId>
@@ -357,6 +363,11 @@
         <groupId>net.sf.opencsv</groupId>
         <artifactId>opencsv</artifactId>
         <version>${opencsv.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.coobird</groupId>
+        <artifactId>thumbnailator</artifactId>
+        <version>${thumbnailator.version}</version>
       </dependency>
 
       <!-- Spring boot -->
@@ -1140,7 +1151,7 @@
 
         <plugin>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>${deployPluginVersion}</version>
         </plugin>
 
         <plugin>
@@ -1302,21 +1313,33 @@
         <plugin>
           <groupId>org.codehaus.gmavenplus</groupId>
           <artifactId>gmavenplus-plugin</artifactId>
-          <version>1.13.1</version>
+          <version>${gmavenPlusVersion}</version>
           <dependencies>
             <dependency>
-              <groupId>org.reflections</groupId>
-              <artifactId>reflections</artifactId>
-              <version>${reflections.version}</version>
-            </dependency>
-            <dependency>
-              <groupId>org.codehaus.groovy</groupId>
-              <artifactId>groovy-all</artifactId>
-              <version>3.0.10</version>
-              <type>pom</type>
+              <groupId>org.apache.groovy</groupId>
+              <artifactId>groovy</artifactId>
+              <version>${groovy.version}</version>
               <scope>runtime</scope>
             </dependency>
+            <!-- SLF4J API -->
+            <dependency>
+              <groupId>org.slf4j</groupId>
+              <artifactId>slf4j-api</artifactId>
+              <version>2.0.5</version>
+            </dependency>
+            <!-- SLF4J binding for Maven
+            <dependency>
+              <groupId>org.slf4j</groupId>
+              <artifactId>slf4j-jdk14</artifactId>
+              <version>1.5.6 1.7.30</version>
+            </dependency>-->
           </dependencies>
+          <configuration>
+            <properties>
+              <log>DEBUG</log>
+              <ant>false</ant>
+            </properties>
+          </configuration>
         </plugin>
 
         <!-- plugin site -->
@@ -1362,12 +1385,12 @@
             <dependency>
               <groupId>org.apache.felix</groupId>
               <artifactId>maven-bundle-plugin</artifactId>
-              <version>4.2.1</version>
+              <version>5.1.8</version>
             </dependency>
             <dependency>
               <groupId>org.apache.maven.doxia</groupId>
               <artifactId>doxia-module-markdown</artifactId>
-              <version>${markdownPluginVersion}</version>
+              <version>${doxiaModuleMarkdownVersion}</version>
             </dependency>
           </dependencies>
         </plugin>
@@ -1736,6 +1759,7 @@
             <executions>
               <execution>
                 <id>update-file-header</id>
+                <phase>process-resources</phase>
                 <goals>
                   <goal>update-file-header</goal>
                 </goals>
@@ -1754,7 +1778,6 @@
                     <exclude>**/site/**/*.*</exclude>
                   </excludes>
                 </configuration>
-                <phase>process-resources</phase>
               </execution>
             </executions>
           </plugin>
@@ -1813,6 +1836,7 @@
                           </fileset>
                         </copy>
 
+                        <!-- Fix path to use the temp directory -->
                         <replaceregexp match="\]\(./" replace="](${project.build.directory}/site/temp/" flags="g" byline="false" >
                           <fileset dir="${project.build.directory}/site/temp">
                             <include name="**/*.md"/>
@@ -1825,10 +1849,88 @@
               </execution>
             </executions>
           </plugin>
+
+          <plugin>
+            <groupId>org.codehaus.gmavenplus</groupId>
+            <artifactId>gmavenplus-plugin</artifactId>
+            <dependencies>
+              <dependency>
+                <groupId>net.coobird</groupId>
+                <artifactId>thumbnailator</artifactId>
+                <version>${thumbnailator.version}</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>resize-doc-images</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <scripts>
+                    <script><![CDATA[
+                  import net.coobird.thumbnailator.Thumbnails
+                  import net.coobird.thumbnailator.resizers.configurations.ScalingMode
+                  import org.slf4j.Logger
+                  import org.slf4j.LoggerFactory
+
+                  // Logger initialization
+                  Logger logger = LoggerFactory.getLogger(this.class)
+
+                  // Input parameters
+                  def tempDirectory = '${project.build.directory}/site/temp'
+                  def maxWidth = 980
+
+                  logger.info("Resizing the following image files:")
+                  def hasError = false
+
+
+                  // Parcourir les fichiers PNG du répertoire temporaire
+                  new File(tempDirectory).eachFileMatch(~/.*\.png/) { file ->
+                      println "\t" + file.getAbsolutePath()
+
+                      try {
+                          // Get dimensions of the original image
+                          def originalImage = Thumbnails.of(file).scale(1).asBufferedImage()
+                          def originalWidth = originalImage.getWidth()
+                          def originalHeight = originalImage.getHeight()
+
+                          // Check if resizing is needed
+                          if (originalWidth > maxWidth) {
+                              def newHeight = ((maxWidth / originalWidth) * originalHeight).round() as int
+
+                              // Resize the image
+                              Thumbnails.of(file)
+                                  .scalingMode(ScalingMode.HIGH_QUALITY)
+                                  .size(maxWidth, newHeight)
+                                  .outputQuality(1.0)
+                                  .keepAspectRatio(true)
+                                  .toFile(file)
+                          }
+                      } catch (Exception e) {
+                          println "Error processing image: " + file.getAbsolutePath() + ". Reason: " + e.message
+                          hasError = true
+                      }
+                  }
+
+                  if (hasError) {
+                      throw new RuntimeException("Errors occurred while processing the images.")
+                  }
+                  else {
+                  throw new RuntimeException("Errors occurred while processing the images.")
+                  }
+                ]]></script>
+                  </scripts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
           <plugin>
             <groupId>se.natusoft.tools.doc.markdowndoc</groupId>
             <artifactId>markdowndoc-maven-plugin</artifactId>
-            <version>3.1.0</version>
+            <version>${markdowndocPluginVersion}</version>
             <executions>
               <execution>
                 <id>generate-docs-fr</id>
