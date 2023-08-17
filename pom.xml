@@ -155,8 +155,8 @@
     <thumbnailator.version>0.4.20</thumbnailator.version>
 
     <!-- database version management -->
-    <liquibase.version>4.23.0</liquibase.version>
-    <liquibase-hibernate.version>4.23.0</liquibase-hibernate.version>
+    <liquibase.version>4.23.1</liquibase.version>
+    <liquibase-hibernate.version>4.22.0</liquibase-hibernate.version>
     <liquibase-slf4j.version>4.0.0</liquibase-slf4j.version>
 
     <!-- rdf -->
@@ -167,7 +167,7 @@
 
     <!-- unit test -->
     <jmock.version>2.12.0</jmock.version>
-    <dbunit.version>2.7.2</dbunit.version>
+    <dbunit.version>2.7.3</dbunit.version>
 
     <nuitonConfigVersion>3.5</nuitonConfigVersion>
     <nuitonVersionVersion>1.0-rc-2</nuitonVersionVersion>
