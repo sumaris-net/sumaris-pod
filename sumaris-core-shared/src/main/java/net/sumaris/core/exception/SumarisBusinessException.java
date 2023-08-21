@@ -25,6 +25,10 @@ package net.sumaris.core.exception;
  */
 
 
+import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
+
 /**
  * <p>SumarisBusinessException class.</p>
  */
@@ -67,5 +71,11 @@ public abstract class SumarisBusinessException extends RuntimeException {
 
 	public int getCode() {
 		return this.code;
+	}
+
+	public Map<String, Object> toSpecification(){
+		return ImmutableMap
+				.of("code", getCode(),
+					"message", getMessage());
 	}
 }

@@ -25,7 +25,10 @@ package net.sumaris.core.exception;
  */
 
 
+import com.google.common.collect.ImmutableMap;
 import net.sumaris.shared.exception.ErrorCodes;
+
+import java.util.Map;
 
 /**
  * Technical exception
@@ -103,12 +106,17 @@ public class SumarisTechnicalException extends RuntimeException {
 		this.code = code;
 	}
 
-
 	/**
 	 * Get the error code
 	 * @return
 	 */
 	public int getCode() {
 		return this.code;
+	}
+
+	public Map<String, Object> toSpecification() {
+		return ImmutableMap
+				.of("code", getCode(),
+						"message", getMessage());
 	}
 }

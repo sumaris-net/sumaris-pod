@@ -332,7 +332,7 @@ public class SampleServiceImpl implements SampleService {
 			// Get suffix only
 			List<String> duplicatedTagIdSuffixes = Beans.transformCollection(duplicatedTagIds, this::getTagIdSuffix);
 
-			throw new NotUniqueException(String.format("Duplicated tag_id (in list): %s", String.join(",", duplicatedTagIdSuffixes)));
+			throw new NotUniqueException("Duplicated tag_id (in list)", duplicatedTagIdSuffixes);
 		}
 	}
 
@@ -371,7 +371,7 @@ public class SampleServiceImpl implements SampleService {
 				// Get suffix only
 				List<String> duplicatedTagIdSuffixes = Beans.transformCollection(duplicatedTagIds, this::getTagIdSuffix);
 
-				throw new NotUniqueException(String.format("Duplicated tag_id (in program): %s", String.join(",", duplicatedTagIdSuffixes)));
+				throw new NotUniqueException("Duplicated tag_id (in program)", duplicatedTagIdSuffixes);
 			}
 		}
 	}

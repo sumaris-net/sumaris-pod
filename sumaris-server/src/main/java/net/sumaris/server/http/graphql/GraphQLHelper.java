@@ -22,6 +22,7 @@
 
 package net.sumaris.server.http.graphql;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -50,6 +51,8 @@ import java.util.Map;
 
 @Slf4j
 public class GraphQLHelper extends GraphQLUtils {
+
+    protected final static ObjectMapper jacksonMapper = new ObjectMapper();
 
     private GraphQLHelper() {
         // helper class
@@ -138,34 +141,10 @@ public class GraphQLHelper extends GraphQLUtils {
     }
 
     public static GraphQLError tryCreateGraphQLError(final Throwable error) {
-        Throwable cause = getSqlExceptionOrRootCause(error);
-        // Sumaris exceptions
-        if (cause instanceof SumarisBusinessException) {
-            SumarisBusinessException exception = (SumarisBusinessException) cause;
-            return new AbortExecutionException(toJsonErrorString(exception.getCode(), error.getMessage()));
-        }
-        else if (cause instanceof SumarisTechnicalException) {
-            SumarisTechnicalException exception = (SumarisTechnicalException) cause;
-            return new AbortExecutionException(toJsonErrorString(exception.getCode(), error.getMessage()));
-        }
+        String jsonString = toJsonErrorString(error);
+        if (jsonString == null) return null;
 
-        // SQL exceptions
-        else if (cause instanceof java.sql.SQLException) {
-            return new AbortExecutionException(toJsonErrorString(ErrorCodes.INTERNAL_ERROR, error.getMessage()));
-        }
-
-        // Spring exceptions
-        else if (cause instanceof DataRetrievalFailureException) {
-            DataRetrievalFailureException exception = (DataRetrievalFailureException) cause;
-            return new AbortExecutionException(toJsonErrorString(ErrorCodes.NOT_FOUND, exception.getMessage()));
-        }
-
-        // Spring Security exceptions
-        else if (cause instanceof AccessDeniedException) {
-            return new AbortExecutionException(toJsonErrorString(ErrorCodes.UNAUTHORIZED, cause.getMessage()));
-        }
-
-        return null;
+        return new AbortExecutionException(jsonString);
     }
 
 
@@ -179,10 +158,51 @@ public class GraphQLHelper extends GraphQLUtils {
         return t;
     }
 
+
+    public static String toJsonErrorString(final Throwable error) {
+        Throwable cause = getSqlExceptionOrRootCause(error);
+
+        // Sumaris exceptions
+        if (cause instanceof SumarisBusinessException) {
+            SumarisBusinessException exception = (SumarisBusinessException) cause;
+            return toJsonErrorString(exception.toSpecification());
+        }
+        else if (cause instanceof SumarisTechnicalException) {
+            SumarisTechnicalException exception = (SumarisTechnicalException) cause;
+            return toJsonErrorString(exception.toSpecification());
+        }
+
+        // SQL exceptions
+        else if (cause instanceof java.sql.SQLException) {
+            return toJsonErrorString(ErrorCodes.INTERNAL_ERROR, error.getMessage());
+        }
+
+        // Spring exceptions
+        else if (cause instanceof DataRetrievalFailureException) {
+            DataRetrievalFailureException exception = (DataRetrievalFailureException) cause;
+            return toJsonErrorString(ErrorCodes.NOT_FOUND, exception.getMessage());
+        }
+
+        // Spring Security exceptions
+        else if (cause instanceof AccessDeniedException) {
+            return toJsonErrorString(ErrorCodes.UNAUTHORIZED, cause.getMessage());
+        }
+
+        return null;
+    }
+
+    public static String toJsonErrorString(Map<String, Object> error){
+        try {
+            return jacksonMapper.writeValueAsString(error);
+        }
+        catch(JsonProcessingException e) {
+            log.error("Failed to serialize map to JSON: " + e.getMessage(), e);
+            return toJsonErrorString((Integer)error.get("code"), (String)error.get("message"));
+        }
+    }
     public static String toJsonErrorString(int code, String message) {
         return ErrorHelper.toJsonErrorString(code, message);
     }
-
 
     public static void logDeprecatedUse(AuthService authService, String functionName, String appVersion) {
         String userId = authService.getAuthenticatedUserId().map(Object::toString)

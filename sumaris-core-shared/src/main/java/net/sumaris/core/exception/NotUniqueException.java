@@ -23,7 +23,11 @@ package net.sumaris.core.exception;
  */
 
 
+import com.google.common.collect.ImmutableMap;
 import net.sumaris.shared.exception.ErrorCodes;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author benoit.lavenier@e-is.pro
@@ -32,23 +36,27 @@ public class NotUniqueException extends SumarisBusinessException {
 
     public static final int ERROR_CODE = ErrorCodes.DATA_NOT_UNIQUE;
 
+    private List<String> duplicatedValues;
+
     /**
-     * <p>Constructor for NotUniqueException.</p>
+     * <p>Constructor for DeleteForbiddenException.</p>
      *
      * @param message a {@link String} object.
      */
-    public NotUniqueException(String message) {
+    public NotUniqueException(String message, List<String> duplicatedValues) {
         super(ERROR_CODE, message);
+        this.duplicatedValues = duplicatedValues;
     }
 
     /**
-     * <p>Constructor for NotUniqueException.</p>
+     * <p>Constructor for DeleteForbiddenException.</p>
      *
      * @param message a {@link String} object.
      * @param cause a {@link Throwable} object.
      */
-    public NotUniqueException(String message, Throwable cause) {
+    public NotUniqueException(String message, List<String> duplicatedValues, Throwable cause) {
         super(ERROR_CODE, message, cause);
+        this.duplicatedValues = duplicatedValues;
     }
 
     /**
@@ -58,5 +66,22 @@ public class NotUniqueException extends SumarisBusinessException {
      */
     public NotUniqueException(Throwable cause) {
         super(ERROR_CODE, cause);
+    }
+
+    public List<String> getDuplicatedValues() {
+        return duplicatedValues;
+    }
+
+    @Override
+    public String getMessage() {
+        return super.getMessage() + (duplicatedValues != null ? " : " + duplicatedValues.toString() : "");
+    }
+
+    @Override
+    public Map<String, Object> toSpecification() {
+        return ImmutableMap
+                .of("code", getCode(),
+                    "message", getMessage(),
+                    "duplicatedValues", getDuplicatedValues());
     }
 }
