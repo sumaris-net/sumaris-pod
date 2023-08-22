@@ -351,11 +351,12 @@ public class Liquibase implements ResourceLoaderAware {
      * @throws LiquibaseException if any.
      */
     protected liquibase.Liquibase createLiquibase(Connection c) throws LiquibaseException {
-        String adjustedChangeLog = getChangeLog();
-        // If Spring started, no changes
+        // Remove 'classpath:' prefix
+        String adjustedChangeLog = adjustNoClasspath(getChangeLog());
+
+        // If Spring not started: remove 'files:' prefixes
         if (this.resourceLoader == null) {
-            // Remove 'classpath:' and 'files:' prefixes
-            adjustedChangeLog = adjustNoFilePrefix(adjustNoClasspath(adjustedChangeLog));
+            adjustedChangeLog = adjustNoFilePrefix(adjustedChangeLog);
         }
 
         liquibase.Liquibase liquibase = new liquibase.Liquibase(adjustedChangeLog, createResourceAccessor(), createDatabase(c));
