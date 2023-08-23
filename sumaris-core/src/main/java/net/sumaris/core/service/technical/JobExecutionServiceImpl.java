@@ -31,6 +31,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.event.job.JobEndEvent;
 import net.sumaris.core.event.job.JobProgressionEvent;
 import net.sumaris.core.event.job.JobProgressionVO;
@@ -40,6 +41,7 @@ import net.sumaris.core.jms.JmsConfiguration;
 import net.sumaris.core.jms.JmsJobEventProducer;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
+import net.sumaris.core.model.referential.ProcessingTypeEnum;
 import net.sumaris.core.model.social.EventLevelEnum;
 import net.sumaris.core.model.social.EventTypeEnum;
 import net.sumaris.core.model.social.SystemRecipientEnum;
@@ -70,10 +72,7 @@ import javax.annotation.PostConstruct;
 import javax.jms.Message;
 import java.beans.PropertyChangeListener;
 import java.sql.Timestamp;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -262,13 +261,20 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
     }
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.HOURS, initialDelay = 1)
+    @Scheduled(cron = "${sumaris.job.service.clean.hourly.cron:0 0 * * * ?}")
     public void cleanJobs() {
+
         // Get pending or running jobs started 24 hours ago
         Timestamp startedBefore = new Timestamp(Dates.addDays(new Date(), -1).getTime());
+        String[] knownProcessingTypes = Arrays.stream(ProcessingTypeEnum.values())
+            .filter(type -> type.getId() >= 0 && !ProcessingTypeEnum.UNKNOWN.equals(type))
+            .map(ProcessingTypeEnum::getLabel)
+            .toArray(String[]::new);
+
         List<JobVO> oldPendingJobs = jobService.findAll(
             JobFilterVO.builder()
                 .status(new JobStatusEnum[]{JobStatusEnum.PENDING, JobStatusEnum.RUNNING})
+                .types(knownProcessingTypes)
                 .startedBefore(startedBefore)
                 .build()
         );
@@ -276,12 +282,22 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             if (runningJobsById.containsKey(job.getId())) {
                 // Cancel by Future
                 runningJobsById.get(job.getId()).cancel(job.getStatus().equals(JobStatusEnum.RUNNING));
-            } else {
-                // Just update the job
-                job.setEndDate(new Date());
-                job.setStatus(JobStatusEnum.CANCELLED);
-                job.setLog(I18n.t("sumaris.server.job.cancel.message", SystemRecipientEnum.SYSTEM));
-                jobService.save(job);
+            }
+            else {
+                // Make sure this kind of job is callable by the pod
+                ProcessingTypeEnum processingType = ProcessingTypeEnum.byLabelOrEmpty(job.getType())
+                    .orElse(ProcessingTypeEnum.UNKNOWN);
+                if (!ProcessingTypeEnum.UNKNOWN.equals(processingType)) {
+
+                    String cancelMessage = I18n.t("sumaris.server.job.cancel.message", SystemRecipientEnum.SYSTEM);
+                    log.info("Job#{} - {}", job.getId(), cancelMessage);
+
+                    // Just update the job end date, in the history table
+                    job.setEndDate(new Date());
+                    job.setStatus(JobStatusEnum.CANCELLED);
+                    job.setLog(cancelMessage);
+                    jobService.save(job);
+                }
             }
 
         });

@@ -27,6 +27,7 @@ import net.sumaris.core.model.annotation.EntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Optional;
 
 @EntityEnum(entity = ProcessingType.class, resolveAttributes = {IItemReferentialEntity.Fields.LABEL})
 public enum ProcessingTypeEnum implements Serializable {
@@ -37,20 +38,26 @@ public enum ProcessingTypeEnum implements Serializable {
 
     SYS_P_FILL_LOCATION_HIERARCHY(49, "SYS_P_FILL_LOCATION_HIERARCHY"), // ID Harmonie
     SYS_P_FILL_TAXON_GROUP_HIERARCHY(50, "SYS_P_FILL_TAXON_GROUP_HIERARCHY"), // ID Harmonie
+
+    UNKNOWN(-1, "UNKNOWN")
     ;
 
-    public static ProcessingTypeEnum valueOf(final int id) {
+    public static Optional<ProcessingTypeEnum> byId(final int id) {
         return Arrays.stream(values())
             .filter(enumValue -> enumValue.id == id)
-            .findFirst()
-            .orElse(null);
+            .findFirst();
     }
 
-    public static ProcessingTypeEnum byLabel(@NonNull final String label) {
+    public static Optional<ProcessingTypeEnum> byLabel(@NonNull final String label) {
         return Arrays.stream(values())
             .filter(level -> label.equals(level.label))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown ProcessingTypeEnum: " + label));
+            .findFirst();
+    }
+
+    public static Optional<ProcessingTypeEnum> byLabelOrEmpty(@NonNull final String label) {
+        return Arrays.stream(values())
+            .filter(level -> label.equals(level.label))
+            .findFirst();
     }
 
     private Integer id;

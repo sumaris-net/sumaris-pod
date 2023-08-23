@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.JobRepository;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -42,7 +41,6 @@ import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -186,7 +184,8 @@ public class JobServiceImpl implements JobService {
                 .map(referentialDao::save)
                 // Update the enum id
                 .map(vo -> {
-                    ProcessingTypeEnum.byLabel(vo.getLabel()).setId(vo.getId());
+                    ProcessingTypeEnum.byLabel(vo.getLabel())
+                        .ifPresent(entityEnum -> entityEnum.setId(vo.getId()));
                     return vo.getLabel();
                 })
                 .collect(Collectors.toList());

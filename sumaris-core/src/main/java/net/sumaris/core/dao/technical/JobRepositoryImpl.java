@@ -29,6 +29,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingStatusEnum;
 import net.sumaris.core.model.referential.ProcessingType;
@@ -47,8 +48,6 @@ import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author peck7 on 21/08/2020.
@@ -107,19 +106,20 @@ public class JobRepositoryImpl
         target.setIssuer(source.getDataTransfertAddress());
 
         // Status
-        ProcessingStatusEnum sourceStatus = ProcessingStatusEnum.valueOf(source.getProcessingStatus().getId());
-        JobStatusEnum targetStatus = JobStatusEnum.byProcessingStatus(sourceStatus);
+        ProcessingStatusEnum statusEnum = ProcessingStatusEnum.valueOf(source.getProcessingStatus().getId());
+        JobStatusEnum targetStatus = JobStatusEnum.byProcessingStatus(statusEnum);
         target.setStatus(targetStatus);
 
-        // Type
-        ProcessingTypeEnum sourceType = ProcessingTypeEnum.valueOf(source.getProcessingType().getId());
-        target.setType(Optional.ofNullable(sourceType).map(ProcessingTypeEnum::getLabel).orElse("UNKNOWN"));
+        // Type - we map only well known types (and replace others with UNKNOWN label)
+        ProcessingTypeEnum typeEnum = ProcessingTypeEnum.byId(source.getProcessingType().getId())
+            .orElse(ProcessingTypeEnum.UNKNOWN);
+        target.setType(typeEnum.getLabel());
 
         // Start date
         target.setStartDate(Dates.min(source.getUpdateDate(), source.getProcessingDate()));
 
         // End date
-        if (ProcessingStatusEnum.isFinished(sourceStatus)) {
+        if (ProcessingStatusEnum.isFinished(statusEnum)) {
             target.setEndDate(Dates.max(source.getUpdateDate(), source.getProcessingDate()));
         }
         else {
@@ -173,8 +173,19 @@ public class JobRepositoryImpl
         target.setDataTransfertAddress(source.getIssuer());
 
         // Type
-        ProcessingTypeEnum targetType = ProcessingTypeEnum.valueOf(source.getType());
-        target.setProcessingType(getReference(ProcessingType.class, targetType.getId()));
+        Integer processingTypeId = ProcessingTypeEnum.byLabel(source.getType())
+            .map(ProcessingTypeEnum::getId)
+            .filter(id -> id >= 0) // Skip if unresolved
+            .orElseGet(() -> {
+                if (target.getProcessingType() != null && target.getProcessingType().getId() >= 0) {
+                    return target.getProcessingType().getId(); // Keep existing
+                }
+                return ProcessingTypeEnum.UNKNOWN.getId();
+            });
+        if (processingTypeId <= 0) {
+            throw new DataNotFoundException("Unknown ProcessingType with label: " + source.getType());
+        }
+        target.setProcessingType(getReference(ProcessingType.class, processingTypeId));
 
         // Status
         ProcessingStatusEnum targetStatus = source.getStatus().getProcessingStatus();
