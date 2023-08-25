@@ -60,7 +60,7 @@ import java.util.List;
  */
 @Slf4j
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class ExtractionManagerTest extends AbstractServiceTest {
+public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
     protected ExtractionService service;

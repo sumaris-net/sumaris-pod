@@ -32,11 +32,19 @@
     <select alias="YEAR" type="number">T.YEAR</select>
     <select alias="PROJECT" type="text">T.PROJECT</select>
     <select alias="TRIP_CODE" type="number">T.TRIP_CODE</select>
-    <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql">ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME)</select>
+    <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="!operationIdsFilter">ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME)</select>
+    <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="agg,operationIdsFilter"><![CDATA[
+      (SELECT COUNT(*)
+        FROM operation O2
+        WHERE O2.TRIP_FK = T.TRIP_CODE
+        AND O2.START_DATE_TIME <= O.START_DATE_TIME
+        AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
+      )
+    ]]></select>
     <select alias="STATION_NUMBER" type="number" dbms="hsqldb" group="agg"><![CDATA[
       (SELECT COUNT(*)
         FROM operation O2
-        WHERE O2.TRIP_FK = O.TRIP_FK
+        WHERE O2.TRIP_FK = T.TRIP_CODE
         AND O2.START_DATE_TIME <= O.START_DATE_TIME
         AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
       )
@@ -154,13 +162,19 @@
     <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_END ON P_END.OPERATION_FK = O.ID and P_END.DATE_TIME=COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME)</from>
 
     <where>1=1</where>
+
     <where operator="AND" group="excludeOperationGroup">
       NOT (O.START_DATE_TIME=T.DEPARTURE_DATE_TIME AND O.END_DATE_TIME=T.RETURN_DATE_TIME)
     </where>
 
-    <groupby>&amp;groupByColumns</groupby>
-    <groupby dbms="hsqldb">STATION_NUMBER</groupby>
+    <where operator="AND" group="operationIdsFilter">
+      O.ID IN (&amp;operationIds)
+    </where>
 
+    <groupby>&amp;groupByColumns</groupby>
+
+    <groupby dbms="pgsql,oracle" group="operationIdsFilter">O.START_DATE_TIME, T.DEPARTURE_DATE_TIME, T.RETURN_DATE_TIME</groupby>
+    <groupby dbms="hsqldb">STATION_NUMBER</groupby>
   </query>
 
 </queries>

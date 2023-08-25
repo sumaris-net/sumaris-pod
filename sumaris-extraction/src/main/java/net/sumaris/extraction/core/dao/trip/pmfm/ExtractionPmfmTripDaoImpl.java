@@ -72,6 +72,12 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         super();
         // Hide RECORD_TYPE columns
         this.enableRecordTypeColumn = false;
+
+        // -- for DEV only
+        if (!this.production && !enableCleanup) {
+            // add the RW_SL into the visible sheet
+            LiveExtractionTypeEnum.PMFM_TRIP.setSheetNames(PmfmTripSpecification.SHEET_NAMES_DEBUG);
+        }
     }
 
     public Set<IExtractionType<?, ?>> getManagedTypes() {

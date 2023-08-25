@@ -87,4 +87,10 @@ public class ExtractionTripContextVO extends AggregationContextVO {
         if (ArrayUtils.isNotEmpty(tripFilter.getIncludedIds())) return ImmutableList.copyOf(tripFilter.getIncludedIds());
         return null;
     }
+
+    public List<Integer> getOperationIds() {
+        if (tripFilter == null) return null;
+        if (tripFilter.getOperationIds() != null) return ImmutableList.copyOf(tripFilter.getOperationIds());
+        return null;
+    }
 }

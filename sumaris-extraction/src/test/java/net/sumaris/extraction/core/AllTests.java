@@ -24,7 +24,7 @@ package net.sumaris.extraction.core;
 
 import net.sumaris.extraction.core.dao.technical.DaosTest;
 import net.sumaris.extraction.core.service.ExtractionTypeServiceReadTest;
-import net.sumaris.extraction.core.service.hsqldb.ExtractionManagerHsqlDbTest;
+import net.sumaris.extraction.core.service.hsqldb.ExtractionServiceHsqlDbTest;
 import net.sumaris.extraction.core.service.hsqldb.ExtractionProductServiceHsqlDbTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -40,7 +40,7 @@ import org.junit.runners.Suite;
     // Service
     ExtractionTypeServiceReadTest.class,
     ExtractionProductServiceHsqlDbTest.class,
-    ExtractionManagerHsqlDbTest.class
+    ExtractionServiceHsqlDbTest.class
 })
 public class AllTests {
 

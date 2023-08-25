@@ -131,9 +131,8 @@ public class ExtractionSurvivalTestDaoImpl<C extends ExtractionSurvivalTestConte
         xmlQuery.bind("sortingDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_START_DATE_TIME.getId()));
         xmlQuery.bind("sortingEndDateTimePmfmId", String.valueOf(PmfmEnum.SORTING_END_DATE_TIME.getId()));
 
-        // Compute groupBy (exclude columns with the 'agg' group)
-        Set<String> groupByColumns = xmlQuery.getColumnNames(e -> !xmlQuery.hasGroup(e, "agg"));
-        xmlQuery.bind("groupByColumns", String.join(",", groupByColumns));
+        // Bind group by columns
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }

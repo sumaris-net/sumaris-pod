@@ -129,6 +129,14 @@
     <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_START ON P_START.OPERATION_FK = O.ID and P_START.DATE_TIME=COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME)</from>
     <from join="true">LEFT OUTER JOIN VESSEL_POSITION P_END ON P_END.OPERATION_FK = O.ID and P_END.DATE_TIME=COALESCE(O.FISHING_END_DATE_TIME, O.END_DATE_TIME)</from>
 
+    <where>1=1</where>
+    <where operator="AND" group="excludeOperationGroup">
+      NOT (O.START_DATE_TIME=T.DEPARTURE_DATE_TIME AND O.END_DATE_TIME=T.RETURN_DATE_TIME)
+    </where>
+    <where operator="AND" group="operationIdsFilter">
+      O.ID IN (&amp;operationIds)
+    </where>
+
     <orderby direction="ASC">O.ID</orderby>
 
   </query>

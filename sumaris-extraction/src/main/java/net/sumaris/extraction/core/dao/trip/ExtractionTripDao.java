@@ -24,7 +24,9 @@ package net.sumaris.extraction.core.dao.trip;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.dao.ExtractionDao;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
@@ -32,9 +34,6 @@ import net.sumaris.extraction.core.vo.ExtractionFilterCriterionVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -76,9 +75,11 @@ public interface ExtractionTripDao<
 
             // Parse EQUALS
             source.getCriteria().stream()
-                    .filter(criterion ->
-                        (criterion.hasValue() || criterion.hasValues())
-                        && ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator()))
+                    .filter(criterion -> (criterion.hasValue() || criterion.hasValues())
+                        && (ExtractionFilterOperatorEnum.EQUALS.getSymbol().equals(criterion.getOperator())
+                            || ExtractionFilterOperatorEnum.IN.getSymbol().equals(criterion.getOperator())
+                        )
+                    )
                     .forEach(criterion -> {
                         String columnName = criterion.getName().toLowerCase();
                         // Single value
@@ -109,6 +110,15 @@ public interface ExtractionTripDao<
                                         // Skip
                                     }
                                     break;
+
+                                case RdbSpecification.COLUMN_STATION_ID:
+                                    try {
+                                        int operationId = Integer.parseInt(criterion.getValue().trim());
+                                        target.setOperationIds(new Integer[]{operationId});
+                                    } catch (NumberFormatException e) {
+                                        // Skip
+                                    }
+                                    break;
                             }
                         }
                         // Read many values
@@ -118,9 +128,22 @@ public interface ExtractionTripDao<
                                     try {
                                         Integer[] tripIds = Arrays.stream(criterion.getValues())
                                             .map(String::trim)
+                                            .filter(StringUtils::isNotEmpty)
                                             .map(Integer::parseInt)
                                             .toArray(Integer[]::new);
                                         target.setIncludedIds(tripIds);
+                                    } catch (NumberFormatException e) {
+                                        // Skip
+                                    }
+                                    break;
+                                case RdbSpecification.COLUMN_STATION_ID:
+                                    try {
+                                        Integer[] operationIds = Arrays.stream(criterion.getValues())
+                                            .map(String::trim)
+                                            .filter(StringUtils::isNotEmpty)
+                                            .map(Integer::parseInt)
+                                            .toArray(Integer[]::new);
+                                        target.setOperationIds(operationIds);
                                     } catch (NumberFormatException e) {
                                         // Skip
                                     }
@@ -238,6 +261,19 @@ public interface ExtractionTripDao<
                     .operator(ExtractionFilterOperatorEnum.NOT_IN.getSymbol())
                     .value(Joiner.on(',').join(source.getExcludedIds()))
                     .build());
+        }
+
+        // Operation ids
+        if (ArrayUtils.isNotEmpty(source.getOperationIds())) {
+            String[] operationIds = Arrays.stream(source.getOperationIds())
+                .map(Object::toString)
+                .toArray(String[]::new);
+            criteria.add(ExtractionFilterCriterionVO.builder()
+                .sheetName(RdbSpecification.HH_SHEET_NAME)
+                .name(RdbSpecification.COLUMN_STATION_ID)
+                .operator(ExtractionFilterOperatorEnum.IN.getSymbol())
+                .values(operationIds)
+                .build());
         }
 
         return target;

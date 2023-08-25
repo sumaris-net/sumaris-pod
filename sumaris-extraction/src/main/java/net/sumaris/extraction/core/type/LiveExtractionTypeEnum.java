@@ -94,6 +94,10 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
         return sheetNames;
     }
 
+    public void setSheetNames(String[] sheetNames) {
+        this.sheetNames = sheetNames;
+    }
+
     @Override
     public Boolean getIsSpatial() {
         return false;

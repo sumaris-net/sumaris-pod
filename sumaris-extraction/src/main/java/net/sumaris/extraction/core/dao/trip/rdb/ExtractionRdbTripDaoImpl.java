@@ -150,14 +150,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             log.info("Starting extraction #{} (trips)... {}", context.getId(), filterInfo);
         }
 
-
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
 
         // -- Execute the extraction --
 
         try {
-            // If only CL expected: skip station/species aggregation
+            // If only CL expected: skip station/species extraction
             boolean hasSomeRow = false;
             if (!RdbSpecification.CL_SHEET_NAME.equals(sheetName)) {
                 // Trip
@@ -307,27 +306,44 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("endDate", Daos.getSqlToDate(context.getEndDate()));
 
         // Program filter
-        xmlQuery.setGroup("programFilter", CollectionUtils.isNotEmpty(context.getProgramLabels()));
-        xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        {
+            List<String> programLabels = context.getProgramLabels();
+            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
+            xmlQuery.setGroup("programFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        }
 
         // Location Filter
-        xmlQuery.setGroup("locationFilter", CollectionUtils.isNotEmpty(context.getLocationIds()));
-        xmlQuery.bind("locationIds", Daos.getSqlInNumbers(context.getLocationIds()));
+        {
+            List<Integer> locationIds = context.getLocationIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(locationIds);
+            xmlQuery.setGroup("locationFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("locationIds", Daos.getSqlInNumbers(locationIds));
+        }
 
         // Recorder Department filter
-        List<Integer> recorderDepartmentIds = context.getRecorderDepartmentIds();
-        xmlQuery.setGroup("departmentFilter", CollectionUtils.isNotEmpty(recorderDepartmentIds));
-        xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(recorderDepartmentIds));
+        {
+            List<Integer> recorderDepartmentIds = context.getRecorderDepartmentIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(recorderDepartmentIds);
+            xmlQuery.setGroup("departmentFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("recDepIds", Daos.getSqlInNumbers(recorderDepartmentIds));
+        }
 
         // Vessel filter
-        List<Integer> vesselIds = context.getVesselIds();
-        xmlQuery.setGroup("vesselFilter", CollectionUtils.isNotEmpty(vesselIds));
-        xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(vesselIds));
+        {
+            List<Integer> vesselIds = context.getVesselIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(vesselIds);
+            xmlQuery.setGroup("vesselFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(vesselIds));
+        }
 
         // Trip filter
-        List tripIds = context.getTripIds();
-        xmlQuery.setGroup("tripFilter", CollectionUtils.isNotEmpty(tripIds));
-        xmlQuery.bind("tripIds", Daos.getSqlInNumbers(tripIds));
+        {
+            List tripIds = context.getTripIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(tripIds);
+            xmlQuery.setGroup("tripFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("tripIds", Daos.getSqlInNumbers(tripIds));
+        }
 
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
@@ -339,7 +355,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         XMLQuery xmlQuery = createStationQuery(context);
 
-        // aggregate insertion
+        // execute insertion
         execute(context, xmlQuery);
         long count = countFrom(context.getStationTableName());
 
@@ -382,6 +398,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("nationalTaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.NATIONAL.getId()));
         xmlQuery.bind("ueLevel5TaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.DCF_METIER_LVL_5.getId()));
 
+        // ENable some columns, using groups
         xmlQuery.setGroup("gearType", true);
         xmlQuery.setGroup("date", true);
         xmlQuery.setGroup("time", true);
@@ -390,6 +407,15 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
+
+        // Operation filter
+        {
+            List operationIds = context.getOperationIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(operationIds);
+            xmlQuery.setGroup("operationIdsFilter", enableFilter);
+            xmlQuery.setGroup("!operationIdsFilter", !enableFilter);
+            if (enableFilter) xmlQuery.bind("operationIds", Daos.getSqlInNumbers(operationIds));
+        }
 
         // Compute groupBy
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
@@ -452,12 +478,14 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        //if (this.production) {
+        if (this.enableCleanup) {
             // Add as a raw table (to be able to clean it later)
             context.addRawTableName(tableName);
-        //}
-        // DEBUG
-        //else context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        }
+        // Keep raw table (for DEBUG only)
+        else {
+            context.addTableName(tableName, RdbSpecification.SL_RAW_SHEET_NAME, rawXmlQuery.getHiddenColumnNames(), rawXmlQuery.hasDistinctOption());
+        }
 
         return count;
     }

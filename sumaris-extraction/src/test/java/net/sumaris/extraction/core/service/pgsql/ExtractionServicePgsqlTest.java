@@ -23,7 +23,7 @@
 package net.sumaris.extraction.core.service.pgsql;
 
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.ExtractionManagerTest;
+import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -42,7 +42,7 @@ import java.io.IOException;
  */
 @ActiveProfiles("pgsql")
 @Ignore("Use only a Pgsql database")
-public class ExtractionManagerPgsqlTest extends ExtractionManagerTest {
+public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");

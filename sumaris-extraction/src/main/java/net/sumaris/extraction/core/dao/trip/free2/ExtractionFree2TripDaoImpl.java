@@ -41,6 +41,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -202,18 +203,22 @@ public class ExtractionFree2TripDaoImpl<C extends ExtractionFree2ContextVO, F ex
         xmlQuery.bind("seaStatePmfmId", String.valueOf(PmfmEnum.SEA_STATE.getId()));
         xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
         xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
-
         xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
-
         xmlQuery.bind("effortPmfmIds", Daos.getSqlInNumbers(
             PmfmEnum.HEADLINE_CUMULATIVE_LENGTH.getId(),
             PmfmEnum.BEAM_CUMULATIVE_LENGTH.getId(),
             PmfmEnum.NET_LENGTH.getId()));
-
         xmlQuery.bind("gearSpeedPmfmIds", String.valueOf(PmfmEnum.GEAR_SPEED.getId()));
-
         xmlQuery.bind("selectionDevicePmfmIds", Daos.getSqlInNumbers(getSelectivityDevicePmfmIds()));
         xmlQuery.bind("acousticDeterrentDevicePmfmId", String.valueOf(PmfmEnum.ACOUSTIC_DETERRENT_DEVICE.getId()));
+
+        // Operation filter
+        {
+            List operationIds = context.getOperationIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(operationIds);
+            xmlQuery.setGroup("operationIdsFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("operationIds", Daos.getSqlInNumbers(operationIds));
+        }
 
         return xmlQuery;
     }
