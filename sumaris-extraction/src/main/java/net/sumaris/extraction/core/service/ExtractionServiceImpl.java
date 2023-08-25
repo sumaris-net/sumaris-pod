@@ -97,7 +97,6 @@ import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.cache.Cache;
 import javax.cache.CacheManager;
-import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -116,7 +115,6 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     protected final Optional<TaskExecutor> taskExecutor;
     private final ExtractionConfiguration configuration;
-    private final DataSource dataSource;
 
     private final ExtractionTripDao extractionRdbTripDao;
     private final ExtractionStrategyDao extractionStrategyDao;
@@ -139,6 +137,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     private final ExtractionTypeService extractionTypeService;
 
+    private boolean enableCleanup = true;
     private boolean enableCache = false;
     private boolean enableProduct = false;
     private boolean enableTechnicalTablesUpdate = false;
@@ -147,6 +146,10 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @PostConstruct
     protected void init() {
+        enableCleanup = configuration.enableExtractionCleanup();
+        if (!enableCleanup && configuration.isProduction()) {
+            log.warn("/!\\ Extraction cleanup has been disabled! This is not recommended in production mode");
+        }
         enableProduct = configuration.enableExtractionProduct();
         enableCache = configuration.enableCache() && this.cacheManager.isPresent();
 
@@ -923,6 +926,8 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected void clean(ExtractionContextVO context) {
+        if (!enableCleanup) return; // Skip (for DEV only)
+
         try {
             if (context != null) {
                 if (ExtractionTypes.isAggregation(context)) {
@@ -938,6 +943,8 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected void asyncClean(ExtractionContextVO context) {
+        if (!enableCleanup) return; // Skip (for DEV only)
+
         if (taskExecutor.isPresent()) {
             Schedulers.from(taskExecutor.get())
                 .scheduleDirect(() -> this.clean(context), 1, TimeUnit.SECONDS);

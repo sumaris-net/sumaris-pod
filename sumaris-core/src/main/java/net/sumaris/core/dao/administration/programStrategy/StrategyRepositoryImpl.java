@@ -25,7 +25,6 @@ package net.sumaris.core.dao.administration.programStrategy;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
@@ -637,7 +636,7 @@ public class StrategyRepositoryImpl
                 .filter(s -> isNew || !Objects.equals(s.getId(), source.getId()))
                 .count();
         if (count > 0) {
-            throw new NotUniqueException(String.format("Strategy label '%s' already exists", source.getLabel()));
+            throw new NotUniqueException("Strategy label already exists", List.of(source.getLabel()));
         }
     }
 

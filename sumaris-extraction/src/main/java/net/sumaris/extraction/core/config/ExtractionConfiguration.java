@@ -181,4 +181,7 @@ public class ExtractionConfiguration {
         applicationConfig.addAlias("--frequency", "--option", ExtractionConfigurationOption.EXTRACTION_CLI_FREQUENCY.getKey());
     }
 
+    public boolean enableExtractionCleanup() {
+        return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_CLEANUP_ENABLE.getKey());
+    }
 }

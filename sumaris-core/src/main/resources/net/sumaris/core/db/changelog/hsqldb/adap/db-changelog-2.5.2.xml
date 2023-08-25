@@ -1,0 +1,754 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-2.5.2.xml">
+
+    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+    <property name="sqlSelect.adap.id.qv.withQv.NSP" value="SELECT QUALITATIVE_VALUE.ID FROM QUALITATIVE_VALUE INNER JOIN PARAMETER ON QUALITATIVE_VALUE.PARAMETER_FK = PARAMETER.ID WHERE QUALITATIVE_VALUE.LABEL='NSP'"/>
+    <property name="sqlSelect.adap.count.parameter.withQv.NSP" value="SELECT COUNT(*) FROM PARAMETER INNER JOIN QUALITATIVE_VALUE ON PARAMETER.ID = QUALITATIVE_VALUE.PARAMETER_FK WHERE QUALITATIVE_VALUE.LABEL = 'NSP'"/>
+    <property name="sqlSelect.adap.count.qv.withParameter.SIZE_UNLI_CAT" value="SELECT COUNT(*)  FROM QUALITATIVE_VALUE INNER JOIN PARAMETER ON QUALITATIVE_VALUE.PARAMETER_FK = PARAMETER.ID WHERE PARAMETER.LABEL='SIZE_UNLI_CAT'"/>
+    <property name="sqlSelect.adap.count.qv.withParameter.PRODUCT_QUALITY" value="SELECT COUNT(*) FROM QUALITATIVE_VALUE INNER JOIN PARAMETER ON QUALITATIVE_VALUE.PARAMETER_FK = PARAMETER.ID WHERE PARAMETER.LABEL='PRODUCT_QUALITY'"/>
+    <property name="sqlSelect.adap.count.qv.withPmfm.AUCTION_DENSITY_CATEGORY" value="SELECT COUNT(*) FROM PMFM2QUALITATIVE_VALUE INNER JOIN PMFM ON PMFM2QUALITATIVE_VALUE.PMFM_FK = PMFM.ID INNER JOIN QUALITATIVE_VALUE ON PMFM2QUALITATIVE_VALUE.QUALITATIVE_VALUE_FK = QUALITATIVE_VALUE.ID INNER JOIN PARAMETER ON PMFM.PARAMETER_FK = PARAMETER.ID and QUALITATIVE_VALUE.PARAMETER_FK = PARAMETER.ID WHERE PMFM.LABEL = 'AUCTION_DENSITY_CATEGORY'"/>
+    <property name="sqlSelect.adap.id.qv.withPmfm.AUCTION_DENSITY_CATEGORY" value="SELECT QUALITATIVE_VALUE.ID FROM PMFM INNER JOIN PARAMETER ON PMFM.PARAMETER_FK = PARAMETER.ID INNER JOIN QUALITATIVE_VALUE ON PARAMETER.ID = QUALITATIVE_VALUE.PARAMETER_FK WHERE PMFM.LABEL = 'AUCTION_DENSITY_CATEGORY'"/>
+    <property name="sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT" value="SELECT COUNT(*) FROM PMFM2QUALITATIVE_VALUE INNER JOIN PMFM ON PMFM2QUALITATIVE_VALUE.PMFM_FK = PMFM.ID INNER JOIN QUALITATIVE_VALUE ON PMFM2QUALITATIVE_VALUE.QUALITATIVE_VALUE_FK = QUALITATIVE_VALUE.ID INNER JOIN PARAMETER ON PMFM.PARAMETER_FK = PARAMETER.ID and QUALITATIVE_VALUE.PARAMETER_FK = PARAMETER.ID WHERE PMFM.LABEL = 'AUCTION_SIZE_CAT'"/>
+    <property name="sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT" value="SELECT QUALITATIVE_VALUE.ID FROM PMFM INNER JOIN PARAMETER ON PMFM.PARAMETER_FK = PARAMETER.ID INNER JOIN QUALITATIVE_VALUE ON PARAMETER.ID = QUALITATIVE_VALUE.PARAMETER_FK WHERE PMFM.LABEL = 'AUCTION_SIZE_CAT'"/>
+    <property name="sqlSelct.adap.id.pfmfStrategy" value="SELECT PMFM_STRATEGY.ID FROM PMFM INNER JOIN PMFM_STRATEGY ON PMFM_STRATEGY.PMFM_FK = PMFM.ID INNER JOIN STRATEGY ON PMFM_STRATEGY.STRATEGY_FK = STRATEGY.ID INNER JOIN PROGRAM ON STRATEGY.PROGRAM_FK = PROGRAM.ID WHERE PROGRAM.LABEL = 'ADAP-CONTROLE' AND STRATEGY.LABEL = 'V1'"/>
+    <property name="sqlSelct.adap.count.pfmfStrategy" value="SELECT COUNT(*) FROM PMFM INNER JOIN PMFM_STRATEGY ON PMFM_STRATEGY.PMFM_FK = PMFM.ID INNER JOIN STRATEGY ON PMFM_STRATEGY.STRATEGY_FK = STRATEGY.ID INNER JOIN PROGRAM ON STRATEGY.PROGRAM_FK = PROGRAM.ID WHERE PROGRAM.LABEL = 'ADAP-CONTROLE' AND STRATEGY.LABEL = 'V1'"/>
+    <property name="sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.ANE" value="SELECT COUNT(*) FROM PMFM INNER JOIN PMFM_STRATEGY ON PMFM_STRATEGY.PMFM_FK = PMFM.ID INNER JOIN STRATEGY ON PMFM_STRATEGY.STRATEGY_FK = STRATEGY.ID INNER JOIN PROGRAM ON STRATEGY.PROGRAM_FK = PROGRAM.ID INNER JOIN PMFM_STRATEGY2TAXON_GROUP ON PMFM_STRATEGY.ID = PMFM_STRATEGY2TAXON_GROUP.PMFM_STRATEGY_FK INNER JOIN TAXON_GROUP ON PMFM_STRATEGY2TAXON_GROUP.TAXON_GROUP_FK = TAXON_GROUP.ID WHERE PROGRAM.LABEL = 'ADAP-CONTROLE' AND STRATEGY.LABEL = 'V1' AND TAXON_GROUP.LABEL = 'ANE'"/>
+    <property name="sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.PIL" value="SELECT COUNT(*) FROM PMFM INNER JOIN PMFM_STRATEGY ON PMFM_STRATEGY.PMFM_FK = PMFM.ID INNER JOIN STRATEGY ON PMFM_STRATEGY.STRATEGY_FK = STRATEGY.ID INNER JOIN PROGRAM ON STRATEGY.PROGRAM_FK = PROGRAM.ID INNER JOIN PMFM_STRATEGY2TAXON_GROUP ON PMFM_STRATEGY.ID = PMFM_STRATEGY2TAXON_GROUP.PMFM_STRATEGY_FK INNER JOIN TAXON_GROUP ON PMFM_STRATEGY2TAXON_GROUP.TAXON_GROUP_FK = TAXON_GROUP.ID WHERE PROGRAM.LABEL = 'ADAP-CONTROLE' AND STRATEGY.LABEL = 'V1' AND TAXON_GROUP.LABEL = 'PIL'"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- New units -->
+
+    <!-- add unit ind/kg (Number of individus per kg) -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-010" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM UNIT WHERE LABEL='ind/kg'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="UNIT">
+            <column name="ID" valueNumeric="37"/>
+            <column name="LABEL">ind/kg</column>
+            <column name="NAME">Nombre d'individus par kilogram</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- New parameter -->
+
+    <!-- add parameter INDIVIDUALS_DENSITY_PER_KG -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-110" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM parameter WHERE LABEL = 'INDIVIDUALS_DENSITY_PER_KG'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="parameter">
+            <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_SEQ"/>
+            <column name="LABEL">INDIVIDUALS_DENSITY_PER_KG</column>
+            <column name="NAME">Densité d'individus (ind/kg)</column>
+            <column name="IS_BOOLEAN" valueNumeric="0"/>
+            <column name="IS_QUALITATIVE" valueNumeric="0"/>
+            <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="PARAMETER_GROUP_FK" valueComputed="(SELECT ID FROM PARAMETER_GROUP WHERE LABEL='SPECIES')"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add parameter PRODUCT_QUALITY -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-120" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM parameter WHERE LABEL = 'PRODUCT_QUALITY'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="parameter">
+            <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_SEQ"/>
+            <column name="LABEL">PRODUCT_QUALITY</column>
+            <column name="NAME">Qualité du produit</column>
+            <column name="IS_BOOLEAN" valueNumeric="0"/>
+            <column name="IS_QUALITATIVE" valueNumeric="1"/>
+            <column name="IS_ALPHANUMERIC" valueNumeric="0"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="PARAMETER_GROUP_FK" valueComputed="(SELECT ID FROM PARAMETER_GROUP WHERE LABEL='SPECIES')"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- New QV -->
+
+    <!-- add NSP qualitative value for CONTROL_CORRECTIVE_ACTION parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-210" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.parameter.withQv.NSP} AND PARAMETER.LABEL = 'CONTROL_CORRECTIVE_ACTION'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">NSP</column>
+            <column name="NAME">Ne sait pas</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='CONTROL_CORRECTIVE_ACTION')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add NSP qualitative value for PRODUCT_DESTINATION parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-220" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.parameter.withQv.NSP} AND PARAMETER.LABEL = 'PRODUCT_DESTINATION'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">NSP</column>
+            <column name="NAME">Ne sait pas</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='PRODUCT_DESTINATION')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add 10/20 qv value for SIZE_UNLI_CAT parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-230" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withParameter.SIZE_UNLI_CAT} AND QUALITATIVE_VALUE.LABEL='10/20'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">10/20</column>
+            <column name="NAME">10/20</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SIZE_UNLI_CAT')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add 20/30 qv value for SIZE_UNLI_CAT parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-231" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withParameter.SIZE_UNLI_CAT} AND QUALITATIVE_VALUE.LABEL='20/30'</sqlCheck>
+
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">20/30</column>
+            <column name="NAME">20/30</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SIZE_UNLI_CAT')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add 30/40 qv value for SIZE_UNLI_CAT parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-232" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withParameter.SIZE_UNLI_CAT} AND QUALITATIVE_VALUE.LABEL='30/40'</sqlCheck>
+
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">30/40</column>
+            <column name="NAME">30/40</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SIZE_UNLI_CAT')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add satisfying qv value for PRODUCT_QUALITY parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-240" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withParameter.PRODUCT_QUALITY} AND QUALITATIVE_VALUE.LABEL='SAT'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">SAT</column>
+            <column name="NAME">Satisfaisante</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='PRODUCT_QUALITY')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add not satisfying qv value for PRODUCT_QUALITY parameter -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-241" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withParameter.PRODUCT_QUALITY} AND QUALITATIVE_VALUE.LABEL='NSAT'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="qualitative_value">
+            <column name="ID" valueComputed="NEXT VALUE FOR QUALITATIVE_VALUE_SEQ"/>
+            <column name="LABEL">NSAT</column>
+            <column name="NAME">Non satisfaisante</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='PRODUCT_QUALITY')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- New pmfm -->
+
+    <!-- add INDIVIDUALS_DENSITY_PER_KG pmfm -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-310" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM WHERE LABEL = 'INDIVIDUALS_DENSITY_PER_KG'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm">
+            <column name="ID" valueNumeric="NEXT VALUE FOR PMFM_SEQ"/>
+            <column name="LABEL">INDIVIDUALS_DENSITY_PER_KG</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='INDIVIDUALS_DENSITY_PER_KG')"/>
+            <column name="MIN_VALUE" valueNumeric="0"/>
+            <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="3"/>
+            <column name="MATRIX_FK" valueComputed="(SELECT ID FROM MATRIX WHERE LABEL = 'PRODUCT')"/>
+            <column name="METHOD_FK" valueComputed="(SELECT ID FROM METHOD WHERE LABEL = 'CALCULATED')"/>
+            <column name="UNIT_FK" valueComputed="(SELECT ID FROM UNIT WHERE LABEL = 'ind/kg')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add AUCTION_DENSITY_CATEGORY pmfm -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-320" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM WHERE LABEL = 'AUCTION_DENSITY_CATEGORY'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm">
+            <column name="ID" valueNumeric="NEXT VALUE FOR PMFM_SEQ"/>
+            <column name="LABEL">AUCTION_DENSITY_CATEGORY</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='SIZE_UNLI_CAT')"/>
+            <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="3"/>
+            <column name="MATRIX_FK" valueComputed="(SELECT ID FROM MATRIX WHERE LABEL = 'PRODUCT')"/>
+            <column name="UNIT_FK" valueComputed="(SELECT ID FROM UNIT WHERE LABEL = 'None')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- add PRODUCT_QUALITY pmfm -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-330" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PMFM WHERE LABEL = 'PRODUCT_QUALITY'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm">
+            <column name="ID" valueNumeric="NEXT VALUE FOR PMFM_SEQ"/>
+            <column name="LABEL">PRODUCT_QUALITY</column>
+            <column name="PARAMETER_FK" valueComputed="(SELECT ID FROM PARAMETER WHERE LABEL='PRODUCT_QUALITY')"/>
+            <column name="MAXIMUM_NUMBER_DECIMALS" valueNumeric="3"/>
+            <column name="MATRIX_FK" valueComputed="(SELECT ID FROM MATRIX WHERE LABEL = 'PRODUCT')"/>
+            <column name="UNIT_FK" valueComputed="(SELECT ID FROM UNIT WHERE LABEL = 'None')"/>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
+    <!-- New pmfm to qualitative value -->
+
+    <!-- Link qv 10/20 to pmfm AUCTION_DENSITY_CATEGORY -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-410" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_DENSITY_CATEGORY} AND QUALITATIVE_VALUE.LABEL = '10/20'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_DENSITY_CATEGORY')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_DENSITY_CATEGORY} AND QUALITATIVE_VALUE.LABEL = '10/20')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 20/30 to pmfm AUCTION_DENSITY_CATEGORY -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-411" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_DENSITY_CATEGORY} AND QUALITATIVE_VALUE.LABEL = '20/30'</sqlCheck>
+
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_DENSITY_CATEGORY')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_DENSITY_CATEGORY} AND QUALITATIVE_VALUE.LABEL = '20/30')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 30/40 to pmfm AUCTION_DENSITY_CATEGORY -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-412" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_DENSITY_CATEGORY} AND QUALITATIVE_VALUE.LABEL = '30/40'</sqlCheck>
+
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_DENSITY_CATEGORY')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_DENSITY_CATEGORY} AND QUALITATIVE_VALUE.LABEL = '30/40')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv NA to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-420" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = 'NA'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = 'NA')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 1 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-421" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '1'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '1')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 2 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-422" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '2'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '2')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 3 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-423" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '3'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '3')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 4 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-424" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '4'</sqlCheck>
+
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '4')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 10 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-425" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '10'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '10')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 11 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-426" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '11'</sqlCheck>
+
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '11')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 20 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-427" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '20'</sqlCheck>
+
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '20')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv 40 to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-428" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '40'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = '40')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv P to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-429" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = 'P'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = 'P')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link qv G to pmfm AUCTION_SIZE_CAT -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-430" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = 'G'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm2qualitative_value">
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_SIZE_CAT')"/>
+            <column name="QUALITATIVE_VALUE_FK" valueComputed="(${sqlSelect.adap.id.qv.withPmfm.AUCTION_SIZE_CAT} AND QUALITATIVE_VALUE.LABEL = 'G')"/>
+        </insert>
+    </changeSet>
+
+    <!-- New pmfm strategy -->
+
+    <!-- Add strategy for pmfm INDIVIDUALS_DENSITY_PER_KG -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-510" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelct.adap.count.pfmfStrategy} AND  PMFM.LABEL = 'INDIVIDUALS_DENSITY_PER_KG'</sqlCheck>
+            </and>
+        </preConditions>
+       <insert tableName="PMFM_STRATEGY">
+           <column name="ID" valueComputed="NEXT VALUE FOR PMFM_STRATEGY_SEQ"/>
+           <column name="STRATEGY_FK" valueComputed="(SELECT ID FROM STRATEGY INNER JOIN PROGRAM ON PROGRAM.ID = STRATEGY.PROGRAM_FK WHERE PROGRAM.LABEL = 'ADAP-CONTROLE')"/>
+           <column name="ACQUISITION_LEVEL_FK" valueComputed="(SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SAMPLE')"/>
+           <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'INDIVIDUALS_DENSITY_PER_KG')"/>
+           <column name="RANK_ORDER" valueNumeric="100"/>
+           <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+           <column name="IS_MANDATORY" valueNumeric="1"/>
+       </insert>
+    </changeSet>
+
+    <!-- Add strategy for pmfm AUCTION_DENSITY_CATEGORY -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-520" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelct.adap.count.pfmfStrategy} AND  PMFM.LABEL = 'AUCTION_DENSITY_CATEGORY'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PMFM_STRATEGY_SEQ"/>
+            <column name="STRATEGY_FK" valueComputed="(SELECT ID FROM STRATEGY INNER JOIN PROGRAM ON PROGRAM.ID = STRATEGY.PROGRAM_FK WHERE PROGRAM.LABEL = 'ADAP-CONTROLE')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueComputed="(SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SAMPLE')"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'AUCTION_DENSITY_CATEGORY')"/>
+            <column name="RANK_ORDER" valueNumeric="21"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+    </changeSet>
+
+    <!-- Add strategy for pmfm PRODUCT_QUALITY -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-530" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelct.adap.count.pfmfStrategy} AND  PMFM.LABEL = 'PRODUCT_QUALITY'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY">
+            <column name="ID" valueComputed="NEXT VALUE FOR PMFM_STRATEGY_SEQ"/>
+            <column name="STRATEGY_FK" valueComputed="(SELECT ID FROM STRATEGY INNER JOIN PROGRAM ON PROGRAM.ID = STRATEGY.PROGRAM_FK WHERE PROGRAM.LABEL = 'ADAP-CONTROLE')"/>
+            <column name="ACQUISITION_LEVEL_FK" valueComputed="(SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SAMPLE')"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'PRODUCT_QUALITY')"/>
+            <column name="RANK_ORDER" valueNumeric="151"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+        </insert>
+    </changeSet>
+
+    <!-- New pmfm strategy to taxon group -->
+
+    <!-- Link STRATEGY for PMFM SAMPLE_INDIV_COUNT to TAXON_GROUP PIL -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-610" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.PIL} AND PMFM.LABEL = 'SAMPLE_INDIV_COUNT'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'SAMPLE_INDIV_COUNT')"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE LABEL = 'PIL')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link STRATEGY for PMFM INDIVIDUALS_DENSITY_PER_KG to TAXON_GROUP PIL -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-611" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.PIL} AND PMFM.LABEL = 'INDIVIDUALS_DENSITY_PER_KG'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'INDIVIDUALS_DENSITY_PER_KG')"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE LABEL = 'PIL')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link STRATEGY for PMFM AUCTION_DENSITY_CATEGORY to TAXON_GROUP PIL -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-612" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.PIL} AND PMFM.LABEL = 'AUCTION_DENSITY_CATEGORY'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'AUCTION_DENSITY_CATEGORY')"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE LABEL = 'PIL')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link STRATEGY for PMFM SAMPLE_INDIV_COUNT to TAXON_GROUP ANE -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-620" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.ANE} AND PMFM.LABEL = 'SAMPLE_INDIV_COUNT'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <!-- TODO WARN DUPLICATE PMFM STRATEGY -->
+            <column name="PMFM_STRATEGY_FK" valueComputed="(${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'SAMPLE_INDIV_COUNT')"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE LABEL = 'ANE')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link STRATEGY for PMFM INDIVIDUALS_DENSITY_PER_KG to TAXON_GROUP ANE -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-621" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.ANE} AND PMFM.LABEL = 'INDIVIDUALS_DENSITY_PER_KG'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'INDIVIDUALS_DENSITY_PER_KG')"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE LABEL = 'ANE')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Link STRATEGY for PMFM AUCTION_DENSITY_CATEGORY to TAXON_GROUP ANE -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-622" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.ANE} AND PMFM.LABEL = 'AUCTION_DENSITY_CATEGORY'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="PMFM_STRATEGY2TAXON_GROUP">
+            <column name="PMFM_STRATEGY_FK" valueComputed="(${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'AUCTION_DENSITY_CATEGORY')"/>
+            <column name="TAXON_GROUP_FK" valueComputed="(SELECT ID FROM TAXON_GROUP WHERE LABEL = 'ANE')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Update pmfm strategy -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-700" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="3">${sqlSelct.adap.count.pfmfStrategy} AND RANK_ORDER &gt; 20</sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE PMFM_STRATEGY set RANK_ORDER=10 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'CONTROL_TYPE');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=10 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'CONTROLLED_SPECIES');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=20 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'QUALITY_ANOMALY');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=90 where ID IN (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=110 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'AUCTION_SIZE_CAT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=120 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'OUT_OF_SIZE_WEIGHT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=140 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'OUT_OF_SIZE_PCT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=150 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'VIVACITY');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=160, ACQUISITION_NUMBER=2 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'CONTROL_DIAGNOSTIC');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=171, DEFAULT_VALUE=(${sqlSelect.adap.id.qv.withQv.NSP} AND PARAMETER.LABEL='CONTROL_CORRECTIVE_ACTION')
+                                 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'CONTROL_CORRECTIVE_ACTION');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=172, DEFAULT_VALUE=(${sqlSelect.adap.id.qv.withQv.NSP} AND PARAMETER.LABEL='PRODUCT_DESTINATION')
+                                 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'PRODUCT_DESTINATION');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=170, DEFAULT_VALUE=NULL where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'COMPLIANT_PRODUCT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=130 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'BOX_NUMBER');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=121 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'OUT_OF_SIZE_INDIV_COUNT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=22 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'SAMPLE_INDIV_COUNT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=91 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'AUCTION_SIZE_CAT_SCE');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=40 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'PARASITIZED_INDIV_COUNT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=50 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'PARASITIZED_PCT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=60 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'DIRTY_INDIV_COUNT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=70 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'DIRTY_PCT');
+            UPDATE PMFM_STRATEGY set RANK_ORDER=80 where ID = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'GENERAL_STATE_PCT');
+        </sql>
+    </changeSet>
+
+    <!-- Remove PMFM VIVACITY to the strategy for TAXON_GROUP PIL -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-710" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.PIL} AND PMFM.LABEL = 'VIVACITY'</sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'VIVACITY')
+                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP WHERE LABEL = 'PIL')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Remove PMFM VIVACITY to the strategy for TAXON_GROUP ANE -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-720" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.ANE} AND PMFM.LABEL = 'VIVACITY'</sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'VIVACITY')
+                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP WHERE LABEL = 'ANE')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Remove PMFM AUCTION_SIZE_CAT to the strategy for TAXON_GROUP PIL -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-730" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.PIL} AND PMFM.LABEL = 'AUCTION_SIZE_CAT'</sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'AUCTION_SIZE_CAT')
+                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP WHERE LABEL = 'PIL')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Remove PMFM AUCTION_SIZE_CAT to the strategy for TAXON_GROUP ANE -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-740" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">${sqlSelect.adap.count.pmfmStrategy2taxonGroup.withTaxonGoup.ANE} AND PMFM.LABEL = 'AUCTION_SIZE_CAT'</sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (${sqlSelct.adap.id.pfmfStrategy} AND PMFM.LABEL = 'AUCTION_SIZE_CAT')
+                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP WHERE LABEL = 'ANE')
+            </where>
+        </delete>
+    </changeSet>
+
+</databaseChangeLog>

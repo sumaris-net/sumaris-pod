@@ -121,7 +121,17 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.extraction.rdb.commercialSizeCategoryScale.default.description"),
         "EU", // Default value of the RDB format
         String.class,
-        false)
+        false),
+
+    /**
+     * /!\ Should NOT be disabled in production (only for DEBUG purpose)
+     */
+    EXTRACTION_CLEANUP_ENABLE(
+        "sumaris.extraction.cleanup.enabled",
+        n("sumaris.config.option.sumaris.extraction.clean.enabled.description"),
+        Boolean.TRUE.toString(),
+        Boolean.class,
+        false),
     ;
 
     /** Configuration key. */

@@ -22,10 +22,12 @@ package net.sumaris.extraction.core.vo.trip;
  * #L%
  */
 
+import com.google.common.base.Joiner;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -54,6 +56,7 @@ public class ExtractionTripFilterVO extends TripFilterVO {
         if (this.getLocationId() != null) sb.append(separator).append("Location (id): ").append(this.getLocationId());
         if (this.getVesselId() != null) sb.append(separator).append("Vessel (id): ").append(this.getVesselId());
         if (this.getTripId() != null) sb.append(separator).append("Trip (id): ").append(this.getTripId());
+        if (ArrayUtils.isNotEmpty(this.getOperationIds())) sb.append(separator).append("Operation (id): ").append(Joiner.on(",").join(this.getOperationIds()));
         if (this.getRecorderDepartmentId() != null) sb.append(separator).append("Recorder department (id): ").append(this.getRecorderDepartmentId());
         sb.append(separator).append("Exclude invalid operation: ").append(this.isExcludeInvalidStation());
         return sb.toString();

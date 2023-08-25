@@ -192,7 +192,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         if (isCurrentSoftware) {
             ready = false;
 
-
             // Restore defaults
             configuration.restoreDefaults();
 

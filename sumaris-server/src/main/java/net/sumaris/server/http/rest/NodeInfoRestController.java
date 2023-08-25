@@ -22,24 +22,27 @@
 
 package net.sumaris.server.http.rest;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.SoftwareVO;
+import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.util.node.NodeSummaryVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequiredArgsConstructor
 @Slf4j
 public class NodeInfoRestController {
 
-    @Autowired
-    private SumarisServerConfiguration configuration;
+    private final SumarisServerConfiguration configuration;
 
-    @Autowired
-    private ConfigurationService configurationService;
+    private final ConfigurationService configurationService;
 
     @ResponseBody
     @GetMapping(value = RestPaths.NODE_INFO_PATH,
@@ -47,12 +50,18 @@ public class NodeInfoRestController {
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_JSON_UTF8_VALUE
         })
+    @Cacheable(cacheNames = ServerCacheConfiguration.Names.NODE_INFO)
     public NodeSummaryVO getNodeSummary() {
         NodeSummaryVO result = new NodeSummaryVO();
 
         // Set software info
         result.setSoftwareName("sumaris-pod");
-        result.setSoftwareVersion(configuration.getVersionAsString());
+
+        String version = configuration.getVersionAsString();
+        if (StringUtils.isBlank(version)) {
+            version = "0.0.1"; // Should never occur
+        }
+        result.setSoftwareVersion(version);
 
         // Set node info
         SoftwareVO software = configurationService.getCurrentSoftware();

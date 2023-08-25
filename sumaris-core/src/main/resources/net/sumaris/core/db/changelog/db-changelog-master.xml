@@ -20,16 +20,15 @@
   ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
   ~ #L%
   -->
-
 <databaseChangeLog
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
         logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/db-changelog-master.xml">
 
   <property name="dbms" value="hsqldb" dbms="hsqldb"/>
   <property name="dbms" value="oracle" dbms="oracle"/>
-  <property name="dbms" value="postgresql" dbms="postgresql"/>
+  <property name="dbms" value="pgsql" dbms="postgresql"/>
 
   <!-- Processing updates -->
   <include relativeToChangelogFile="true" file="${dbms}/db-changelog-master.xml"/>

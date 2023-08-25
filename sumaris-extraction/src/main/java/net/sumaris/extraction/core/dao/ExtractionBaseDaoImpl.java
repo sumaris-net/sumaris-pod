@@ -114,12 +114,15 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     protected boolean production;
 
+    protected boolean enableCleanup;
+
     @PostConstruct
     public void init() {
+        this.production = configuration.isProduction();
+        this.enableCleanup = configuration.enableExtractionCleanup();
         this.databaseType = Daos.getDatabaseType(configuration.getJdbcURL());
         this.dropTableQuery = getDialect().getDropTableString("%s");
         this.hibernateQueryTimeout = Math.max(1, Math.round(configuration.getExtractionQueryTimeout() / 1000));
-        this.production = configuration.isProduction();
     }
 
     protected Dialect getDialect() {

@@ -132,12 +132,12 @@ Here are the generation constraints for a class and UML modeling:
   - Declare the corresponding entity service using the @Resource annotation
   - For each method declared in the `Service` interface, declare an identical method (same name and parameters) by adding:
     - For a read function: 
-      - A `@GraphQLQuery(name = "<methodName>", description = "<methodDescription>")` annotation, replacing "<methodName>" with the function name, and "<methodDescription>" with its documentation.
+      - A `@GraphQLQuery(name = "&lt;methodName>", description = "&lt;methodDescription>")` annotation, replacing "&lt;methodName>" with the function name, and "&lt;methodDescription>" with its documentation.
       - A `@Transactional(readOnly = true)` annotation.
     - For a write function (with a prefix 'save' or 'delete'): 
-      - A `@GraphQLMutation(name = "<methodName>", description = "<methodDescription>")` annotation, replacing "<methodName>" with the function name, and "<methodDescription>" with its documentation.
+      - A `@GraphQLMutation(name = "&lt;methodName>", description = "&lt;methodDescription>")` annotation, replacing "&lt;methodName>" with the function name, and "&lt;methodDescription>" with its documentation.
       - A `@Transactional` annotation.
-    - A `@GraphQLArgument(name = "<parameterName>")` annotation for each method parameter, replacing "<parameterName>" with its name.
+    - A `@GraphQLArgument(name = "&lt;parameterName>")` annotation for each method parameter, replacing "&lt;parameterName>" with its name.
   - Ignore the generation of imports.
 
 ## Database update management
@@ -164,7 +164,7 @@ Here are the generation constraints for a TypeScript class:
     - `ID` as the default type `number`
     - `AO` as the default type `EntityAsObjectOptions`
     - `FO` as the default type `any`
-  - Extend the class Entity<T, ID>
+  - Extend the class Entity&lt;T, ID>
     - The attributes id and updateDate are present in the parent class `Entity` and do not need to be added to the derived class.
   - Add a static method: `static fromObject(source: any, options?: any) => MyClass`
   - Add a constructor
@@ -186,7 +186,7 @@ Here are the generation constraints for a TypeScript class:
         // List all the class attributes here, copied from the `source` parameter.
         this.myAttribute = source.myAttribute;
         // Dates should use the `Moment` class and be copied in `fromObject()` using the static method `fromDateISOString`, for example:
-        this.myDate = fromDateISOString(source.<myDate>)
+        this.myDate = fromDateISOString(source.&lt;myDate>)
         // Related entities should be copied via their static function `Entity1.fromObject(entity1, opts)`, for example:
         this.myEntity = Entity1.fromObject(source.myEntity);
     }

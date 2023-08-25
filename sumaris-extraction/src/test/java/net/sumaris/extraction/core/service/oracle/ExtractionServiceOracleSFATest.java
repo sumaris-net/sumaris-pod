@@ -27,8 +27,7 @@ import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.service.ExtractionService;
-import net.sumaris.extraction.core.service.ExtractionManagerTest;
+import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
@@ -47,16 +46,13 @@ import java.io.IOException;
 @Ignore("Use only SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle-sfa.properties")
-public class ExtractionManagerOracleSFATest extends ExtractionManagerTest {
+public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle-sfa");
 
     @Autowired
     protected ExtractionConfiguration extractionConfiguration;
-
-    @Autowired
-    protected ExtractionService service;
 
     @Autowired
     protected ConfigurationService configurationService;
@@ -161,6 +157,49 @@ public class ExtractionManagerOracleSFATest extends ExtractionManagerTest {
             Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
 
             assertHasColumn(speciesLengthFile, "sex");
+        }
+    }
+
+    /* -- SPECIAL case -- */
+
+    @Test
+    public void executeLogbookSeaCucumber_issue456() throws IOException {
+
+        String programLabel = "LOGBOOK-SEA-CUCUMBER";
+
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(programLabel);
+        filter.setExcludeInvalidStation(false);
+        filter.setTripId(284875);
+        filter.setOperationIds(new Integer[]{327730}); // An operation with some batches
+
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.PMFM_TRIP, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.PMFM_TRIP.getLabel() + "_SFA");
+
+        // TR.csv
+        {
+            File tripFile = new File(root, PmfmTripSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, PmfmTripSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, PmfmTripSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+        }
+
+        // HL.csv => empty or not exists
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(!Files.exists(speciesLengthFile.toPath()) || countLineInCsvFile(speciesLengthFile) == 0);
         }
     }
 

@@ -23,8 +23,9 @@
 package net.sumaris.extraction.core.service.pgsql;
 
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.ExtractionManagerTest;
+import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
+import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.junit.Assert;
@@ -41,17 +42,14 @@ import java.io.IOException;
  */
 @ActiveProfiles("pgsql")
 @Ignore("Use only a Pgsql database")
-public class ExtractionManagerPgsqlTest extends ExtractionManagerTest {
+public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("pgsql");
 
     @Test
     public void executePmfmPIFIL() throws IOException {
-        // Validate some trips
         String programLabel = "PIFIL";
-        validateTrips(programLabel);
-
         ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
         filter.setProgramLabel(programLabel);
         filter.setExcludeInvalidStation(false);
@@ -91,7 +89,60 @@ public class ExtractionManagerPgsqlTest extends ExtractionManagerTest {
 
     }
 
+    @Test
+    public void executeApase() throws IOException {
+        String programLabel = "PIFIL";
+        ExtractionTripFilterVO filter = new ExtractionTripFilterVO();
+        filter.setProgramLabel(programLabel);
+
+        // DEBUG
+        //filter.setSheetName(RdbSpecification.SL_SHEET_NAME);
+        //filter.setPreview(true);
+
+        // Test the RDB format
+        File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.APASE, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.APASE.getLabel());
+
+        // TR.csv
+        {
+            File tripFile = new File(root, RdbSpecification.TR_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(tripFile) > 1);
+        }
+
+        // HH.csv
+        {
+            File stationFile = new File(root, RdbSpecification.HH_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(stationFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(stationFile, RdbSpecification.COLUMN_FISHING_TIME);
+        }
+
+        // SL.csv
+        {
+            File speciesListFile = new File(root, RdbSpecification.SL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesListFile) > 1);
+
+            // Make sure this column exists (column with a 'dbms' attribute)
+            assertHasColumn(speciesListFile, RdbSpecification.COLUMN_WEIGHT);
+        }
+
+        // HL.csv
+        {
+            File speciesLengthFile = new File(root, RdbSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
+
+            assertHasColumn(speciesLengthFile, RdbSpecification.COLUMN_LENGTH_CLASS);
+            assertHasColumn(speciesLengthFile, RdbSpecification.COLUMN_NUMBER_AT_LENGTH);
+        }
+    }
+
     /* -- protected methods -- */
+
+    protected boolean canWriteData() {
+        return false;
+    }
 
     //@Override
     protected String getProgramLabelForVessel() {
