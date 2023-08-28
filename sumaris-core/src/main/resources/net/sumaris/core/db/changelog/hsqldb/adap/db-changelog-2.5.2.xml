@@ -56,7 +56,7 @@
     <!-- New Parameter Group -->
 
     <!-- add parameter_group SPECIES -->
-    <changeSet author="maxime@indelog.fr" id="1691050940-100" runOnChange="true" runAlways="true">
+    <changeSet author="maxime@indelog.fr" id="1691050940-100" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
