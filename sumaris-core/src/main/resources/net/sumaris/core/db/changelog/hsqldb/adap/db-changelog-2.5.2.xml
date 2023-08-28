@@ -53,6 +53,27 @@
         </insert>
     </changeSet>
 
+    <!-- New Parameter Group -->
+
+    <!-- add parameter_group SPECIES -->
+    <changeSet author="maxime@indelog.fr" id="1691050940-100" runOnChange="true" runAlways="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">SELECT COUNT(*) FROM PARAMETER_GROUP WHERE LABEL='SPECIES'</sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="parameter_group">
+            <column name="ID" valueComputed="NEXT VALUE FOR PARAMETER_GROUP_SEQ"/>
+            <column name="LABEL">SPECIES</column>
+            <column name="NAME">produit/lot/individu/Capture</column>
+            <column name="DESCRIPTION">Permet de grouper les paramètres qui sont relatifs aux mesures sur espèces</column>
+            <column name="STATUS_FK" valueNumeric="1"/>
+            <column name="CREATION_DATE" valueComputed="sysdate" />
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+        </insert>
+    </changeSet>
+
     <!-- New parameter -->
 
     <!-- add parameter INDIVIDUALS_DENSITY_PER_KG -->
