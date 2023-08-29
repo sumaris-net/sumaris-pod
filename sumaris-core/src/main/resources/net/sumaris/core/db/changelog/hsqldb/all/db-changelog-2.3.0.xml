@@ -8,7 +8,7 @@
     <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
     <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-    <changeSet author="maxime@indelog.fr" id="1676958320000-301" runOnChange="true">
+    <changeSet author="maxime.demarest@e-is.pro" id="1676958320000-301" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
@@ -25,7 +25,7 @@
         </insert>
     </changeSet>
 
-    <changeSet author="maxime@indelog.fr" id="1676958320000-302" runOnChange="true">
+    <changeSet author="maxime.demarest@e-is.pro" id="1676958320000-302" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
@@ -42,7 +42,7 @@
         </insert>
     </changeSet>
 
-    <changeSet author="maxime@indelog.fr" id="1676958320000-303" runOnChange="true">
+    <changeSet author="maxime.demarest@e-is.pro" id="1676958320000-303" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
                 <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
