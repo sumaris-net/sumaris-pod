@@ -29,7 +29,7 @@ public interface IFileController {
 
     String PUBLIC_DIRECTORY = "public";
 
-    public static enum HandleExistingTargetFile {
+    enum HandleExistingTargetFile {
         THROW,
         REPLACE,
         INCREMENT_NAME,
@@ -37,7 +37,7 @@ public interface IFileController {
 
     String registerFile(File sourceFile, boolean moveSourceFile) throws IOException;
 
-    String registerPulbicFile(File sourceFile, boolean moveSourceFile) throws IOException;
+    String registerPublicFile(File sourceFile, boolean moveSourceFile) throws IOException;
 
     File getUserUploadFile(String filename);
 }

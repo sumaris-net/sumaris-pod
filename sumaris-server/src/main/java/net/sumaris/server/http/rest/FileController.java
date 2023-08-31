@@ -176,7 +176,7 @@ public class FileController implements IFileController {
                 targetFile.getFileName().toString());
     }
 
-    public String registerPulbicFile(File sourceFile, boolean moveSourceFile) throws IOException {
+    public String registerPublicFile(File sourceFile, boolean moveSourceFile) throws IOException {
         String downloadSubDir = PUBLIC_DIRECTORY;
         Path targetDir = downloadDirectory.resolve(downloadSubDir);
 
@@ -244,7 +244,7 @@ public class FileController implements IFileController {
 
     protected String asSecuredPath(String path) {
         Preconditions.checkNotNull(path);
-        Preconditions.checkArgument(path.trim().length() > 0);
+        Preconditions.checkArgument(!path.trim().isEmpty());
         // Avoid '../' in the filename
         return path.trim().replaceAll("[.][.]/?", "");
     }

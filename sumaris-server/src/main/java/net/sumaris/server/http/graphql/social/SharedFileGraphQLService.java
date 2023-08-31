@@ -28,7 +28,9 @@ import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLMutation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
@@ -36,6 +38,7 @@ import net.sumaris.server.http.rest.RestPaths;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
+import org.nuiton.i18n.I18n;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +52,7 @@ import java.io.IOException;
 @Slf4j
 public class SharedFileGraphQLService {
 
-//    private final ISecurityContext<PersonVO> securityContext;
+    private final ISecurityContext<PersonVO> securityContext;
     private final SumarisServerConfiguration configuration;
     private final IFileController fileController;
 
@@ -58,16 +61,16 @@ public class SharedFileGraphQLService {
     public String shareFile(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
-//        if (!securityContext.isUser()) throw new UnauthorizedException();
+        if (!securityContext.isUser()) throw new UnauthorizedException();
 
         File sourceFile = fileController.getUserUploadFile(fileName);
         if (!sourceFile.exists() || !sourceFile.isFile()) {
-            throw new SumarisTechnicalException("File not found, or invalid");
+            throw new DataNotFoundException(I18n.t("File not found, or invalid"));
         }
 
         File targetFile;
         try {
-            targetFile = new File(fileController.registerPulbicFile(sourceFile, true));
+            targetFile = new File(fileController.registerPublicFile(sourceFile, true));
         } catch (IOException ioe) {
             throw new SumarisTechnicalException("Could not create the directory where the downloaded files will be stored.", ioe);
         }
