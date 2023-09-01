@@ -24,11 +24,20 @@ package net.sumaris.server.security;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
 public interface IFileController {
 
+    String PUBLIC_DIRECTORY = "public";
+
+    enum HandleExistingTargetFile {
+        THROW,
+        REPLACE,
+        INCREMENT_NAME,
+    }
+
     String registerFile(File sourceFile, boolean moveSourceFile) throws IOException;
+
+    String registerPublicFile(File sourceFile, boolean moveSourceFile) throws IOException;
 
     File getUserUploadFile(String filename);
 }
