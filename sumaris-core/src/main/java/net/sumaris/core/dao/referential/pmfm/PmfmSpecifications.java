@@ -24,15 +24,12 @@ package net.sumaris.core.dao.referential.pmfm;
 
 import net.sumaris.core.dao.referential.IEntityWithStatusSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.pmfm.*;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -68,7 +65,7 @@ public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Inte
                             cb.equal(root.get(Pmfm.Fields.METHOD).get(Method.Fields.ID), methodParam)
                     ),
                     cb.or(
-                        cb.isNull(methodParam),
+                        cb.isNull(unitParam),
                         cb.equal(root.get(Pmfm.Fields.UNIT).get(Method.Fields.ID), unitParam)
                     )
             );
@@ -82,6 +79,8 @@ public interface PmfmSpecifications extends IEntityWithStatusSpecifications<Inte
 
 
     List<Integer> findIdsByParts(PmfmPartsVO parts);
+
+    Stream<Pmfm> streamAllByParts(PmfmPartsVO parts);
 
     boolean hasLabelPrefix(int pmfmId, String... labelPrefixes);
 
