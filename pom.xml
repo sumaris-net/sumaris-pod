@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>2.5.3</version>
+  <version>2.6.0</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -1790,6 +1790,38 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.2.0</version>
+            <executions>
+              <execution>
+                <id>date-en</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>timestamp-property</goal>
+                </goals>
+                <configuration>
+                  <name>current.date.en</name>
+                  <pattern>MM/dd/yyyy</pattern>
+                  <timeZone>GMT</timeZone>
+                </configuration>
+              </execution>
+              <execution>
+                <id>date-fr</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>timestamp-property</goal>
+                </goals>
+                <configuration>
+                  <name>current.date.fr</name>
+                  <pattern>dd/MM/yyyy</pattern>
+                  <timeZone>Europe/Paris</timeZone>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>
               <!-- copy doc images -->
@@ -1903,7 +1935,7 @@
                   </generatorOptions>
                   <pdfGeneratorOptions>
                     <mss>
-                      ${project.build.directory}/site/css/pdf-generator-style.mss
+                      ${project.basedir}/src/site/resources/css/pdf-generator-style.mss
                     </mss>
                     <generateTOC>
                       true
@@ -1912,22 +1944,25 @@
                       true
                     </generateSectionNumbers>
                     <resultFile>
-                      ${project.build.directory}/site/doc/user-manual/sumaris-doc_fr.pdf
+                      ${project.build.directory}/site/doc/user-manual/sumaris-user_manual-fr.pdf
                     </resultFile>
                     <title>
-                      Guide de démarrage rapide pour le logiciel web de saisie SUMARiS
+                      Manuel utilisateur du logiciel SUMARiS
                     </title>
                     <author>
                       Auteur : E-IS
                     </author>
+                    <copyright>
+                      Licence : Creative Commons Attribution-ShareAlike 4.0 (CC-by-SA)
+                    </copyright>
                     <generateTitlePage>
                       true
                     </generateTitlePage>
                     <titlePageImage>
-                      ${project.build.directory}/site/images/sumaris-doc_screen_fr-v0.1.png:110:400
+                      ${project.basedir}/src/site/resources/images/sumaris-doc_screen-fr-v0.2.png:110:400
                     </titlePageImage>
                     <version>
-                      Version : ${project.version}
+                      Version : ${project.version} - ${current.date.fr}
                     </version>
                   </pdfGeneratorOptions>
                 </configuration>
@@ -1956,7 +1991,7 @@
                   </generatorOptions>
                   <pdfGeneratorOptions>
                     <mss>
-                      ${project.build.directory}/site/css/pdf-generator-style.mss
+                      ${project.basedir}/src/site/resources/css/pdf-generator-style.mss
                     </mss>
                     <generateTOC>
                       true
@@ -1965,22 +2000,25 @@
                       true
                     </generateSectionNumbers>
                     <resultFile>
-                      ${project.build.directory}/site/doc/user-manual/sumaris-doc_en.pdf
+                      ${project.build.directory}/site/doc/user-manual/sumaris-user_manual-en.pdf
                     </resultFile>
                     <title>
-                      Quick Start user's guide for SUMARiS web entry software
+                      User manual for SUMARiS software
                     </title>
+                    <copyright>
+                      License: Creative Commons Attribution-ShareAlike 4.0 (CC-by-SA)
+                    </copyright>
                     <author>
-                     Author : E-IS
+                     Author: E-IS
                     </author>
                     <generateTitlePage>
                       true
                     </generateTitlePage>
                     <titlePageImage>
-                      ${project.build.directory}/site/images/sumaris-doc_screen-v0.1.png:110:400
+                      ${project.basedir}/src/site/resources/images/sumaris-doc_screen-en-v0.2.png:110:400
                     </titlePageImage>
                     <version>
-                      Version : ${project.version}
+                      Version: ${project.version} - ${current.date.en}
                     </version>
                   </pdfGeneratorOptions>
                 </configuration>

@@ -29,6 +29,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
@@ -38,6 +39,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
+import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -50,10 +52,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class DenormalizedPmfmStrategyRepositoryImpl
-    extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, DenormalizedPmfmStrategyVO>
+        extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, DenormalizedPmfmStrategyVO>
         implements DenormalizedPmfmStrategyRepository {
 
     @Autowired
@@ -74,8 +77,7 @@ public class DenormalizedPmfmStrategyRepositoryImpl
                 Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
         )
                 .stream()
-                .filter(entity -> entity.getPmfm() != null)
-                .map(entity -> toVO(entity, fetchOptions))
+                .flatMap(entity -> toVOs(entity, fetchOptions))
                 //.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
                 .collect(Collectors.toList());
     }
@@ -157,14 +159,13 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         // Qualitative values (from Pmfm if any, or from Parameter)
         if (type == PmfmValueType.QUALITATIVE_VALUE) {
             Collection<QualitativeValue> qualitativeValues = CollectionUtils.isNotEmpty(pmfm.getQualitativeValues()) ?
-                pmfm.getQualitativeValues() : parameter.getQualitativeValues();
+                    pmfm.getQualitativeValues() : parameter.getQualitativeValues();
             if (CollectionUtils.isNotEmpty(qualitativeValues)) {
                 target.setQualitativeValues(qualitativeValues
-                    .stream()
-                    .map(referentialDao::toVO)
-                    .collect(Collectors.toList()));
-            }
-            else {
+                        .stream()
+                        .map(referentialDao::toVO)
+                        .collect(Collectors.toList()));
+            } else {
                 log.warn("Missing qualitative values, in PMFM #{}", pmfm.getId());
             }
         }
@@ -177,10 +178,10 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         // Gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
             List<String> gears = source.getGears()
-                .stream()
-                .map(Gear::getLabel)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                    .stream()
+                    .map(Gear::getLabel)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             target.setGears(gears);
 
             target.setGearIds(Beans.collectIds(source.getGears()));
@@ -199,4 +200,20 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         return target;
     }
 
+    public Stream<DenormalizedPmfmStrategyVO> toVOs(PmfmStrategy source, PmfmStrategyFetchOptions fetchOptions) {
+        if (source.getPmfm() != null) {
+            return Stream.of(toVO(source, source.getPmfm(), fetchOptions));
+        }
+
+        // Resolve pmfms by [parameter, matrix, fraction, method]
+        PmfmPartsVO filter = PmfmPartsVO.builder()
+                .parameterId(source.getParameter() != null ? source.getParameter().getId() : null)
+                .matrixId(source.getMatrix() != null ? source.getMatrix().getId() : null)
+                .fractionId(source.getFraction() != null ? source.getFraction().getId() : null)
+                .methodId(source.getMethod() != null ? source.getMethod().getId() : null)
+                .statusId(StatusEnum.ENABLE.getId())
+                .build();
+        return pmfmRepository.streamAllByParts(filter)
+                .map(pmfm -> toVO(source, pmfm, fetchOptions));
+    }
 }

@@ -88,6 +88,7 @@ public class StrategyRepositoryImpl
 
     private final DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository;
 
+
     private final TaxonNameRepository taxonNameRepository;
 
     private final LocationRepository locationRepository;
@@ -96,7 +97,8 @@ public class StrategyRepositoryImpl
 
     protected final ProgramPrivilegeRepository programPrivilegeRepository;
 
-    public StrategyRepositoryImpl(EntityManager entityManager, ReferentialDao referentialDao, PmfmStrategyRepository pmfmStrategyRepository, DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository, TaxonNameRepository taxonNameRepository, LocationRepository locationRepository, DepartmentRepository departmentRepository, ProgramPrivilegeRepository programPrivilegeRepository) {
+    public StrategyRepositoryImpl(EntityManager entityManager, ReferentialDao referentialDao, PmfmStrategyRepository pmfmStrategyRepository,
+                                  DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository, TaxonNameRepository taxonNameRepository, LocationRepository locationRepository, DepartmentRepository departmentRepository, ProgramPrivilegeRepository programPrivilegeRepository) {
         super(Strategy.class, StrategyVO.class, entityManager);
         this.referentialDao = referentialDao;
         this.pmfmStrategyRepository = pmfmStrategyRepository;
@@ -909,14 +911,14 @@ public class StrategyRepositoryImpl
         if (CollectionUtils.isEmpty(source.getPmfms())) return null;
 
         // Applied inheritance:
-        return source.getPmfms().stream()
-                // FIXME #301 Get only pmfms with pmfmStrategy.pmfm not null (CB)
-                .filter(pmfmStrategy -> pmfmStrategy.getPmfm() != null)
-                .map(pmfmStrategy -> denormalizedPmfmStrategyRepository.toVO(pmfmStrategy, pmfmStrategy.getPmfm(), fetchOptions))
+        List<PmfmStrategy> pmfms = source.getPmfms();
+        List<DenormalizedPmfmStrategyVO> result = source.getPmfms().stream()
+                .flatMap(entity -> denormalizedPmfmStrategyRepository.toVOs(entity, fetchOptions))
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
                 .collect(Collectors.toList());
+        return result;
     }
 
     protected void toDepartmentEntity(@NonNull StrategyDepartmentVO source,

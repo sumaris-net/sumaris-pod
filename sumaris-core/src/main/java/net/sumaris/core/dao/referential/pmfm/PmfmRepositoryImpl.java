@@ -52,6 +52,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 19/08/2020.
@@ -133,6 +134,11 @@ public class PmfmRepositoryImpl
                 .and(inStatusIds(parts.getStatusId())))
             .map(Pmfm::getId)
             .collect(Collectors.toList());
+    }
+
+    public Stream<Pmfm> streamAllByParts(@NonNull PmfmPartsVO parts) {
+        return streamAll(BindableSpecification.where(hasPmfmPart(parts))
+                .and(inStatusIds(parts.getStatusId())));
     }
 
     @Override
