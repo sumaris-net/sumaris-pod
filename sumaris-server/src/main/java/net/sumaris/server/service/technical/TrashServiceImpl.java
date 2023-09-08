@@ -155,7 +155,7 @@ public class TrashServiceImpl implements TrashService, EntityEventService.Listen
     @Override
     public <V> V getById(String entityName, Serializable id, Class<? extends V> clazz) {
         return findById(entityName, id, clazz)
-                .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.trash.notfound")));
+                .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.trash.notFound")));
     }
 
     @Override
