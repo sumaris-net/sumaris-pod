@@ -65,7 +65,7 @@ public class SharedFileGraphQLService {
 
         File sourceFile = fileController.getUserUploadFile(fileName);
         if (!sourceFile.exists() || !sourceFile.isFile()) {
-            throw new DataNotFoundException(I18n.t("File not found, or invalid"));
+            throw new DataNotFoundException(I18n.t("sumaris.server.error.file.notFound"));
         }
 
         File targetFile;

@@ -77,10 +77,7 @@ public class DenormalizedPmfmStrategyRepositoryImpl
                 Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
         )
                 .stream()
-                //.filter(entity -> entity.getPmfm() != null)
                 .flatMap(entity -> toVOs(entity, fetchOptions))
-
-                //.map(entity -> toVO(entity, fetchOptions))
                 //.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
                 .collect(Collectors.toList());
     }
