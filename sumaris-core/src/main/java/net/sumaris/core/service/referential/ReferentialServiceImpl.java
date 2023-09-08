@@ -142,7 +142,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(entityName);
 		Preconditions.checkNotNull(label);
 		return referentialDao.findByUniqueLabel(entityName, label)
-			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.entity.notfoundByLabel", entityName, label)));
+			.orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.entity.notFoundByLabel", entityName, label)));
 	}
 
 	@Override
