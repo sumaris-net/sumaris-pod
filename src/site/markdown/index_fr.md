@@ -39,7 +39,7 @@ Les outils SUMARiS comprennent :
 
 ## Documentation technique
 
-- [Guide du développeur](developer_guide.md) ([EN](developer_guide.md) | [FR](developer_guide_fr.md)) ;;
+- [Guide du développeur](developer_guide.md) ([EN](developer_guide.md) | [FR](doc/developer_guide_fr.md)) ;;
 - [Documentation de la base de données](db.md) ;
 
 ## Installation

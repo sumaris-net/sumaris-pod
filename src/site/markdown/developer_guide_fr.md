@@ -1,4 +1,4 @@
-# Guide du développeur
+# Noyau > Guide du développeur
 
 ## Entités Java JPA
 
@@ -188,4 +188,4 @@ Voici les contraintes de génération d'une classe typescript :
         this.myEntity = Entite1.fromObject(source.myEntity); 
     }
   ```
-  - Ignorer la génération des imports.
+  - Ignorer la génération des imports (pour les IA uniquement).
