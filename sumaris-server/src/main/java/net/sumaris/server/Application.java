@@ -165,6 +165,8 @@ public class Application extends SpringBootServletInitializer {
     protected static void initActiveMQ(SumarisConfiguration config) {
         // Init active MQ data directory
         System.setProperty("org.apache.activemq.default.directory.prefix", config.getDataDirectory().getPath() + File.separator);
+        // Config active MQ trusted packages
+        System.setProperty("org.apache.activemq.SERIALIZABLE_PACKAGES", "net.sumaris");
     }
 
     protected static void initCache(SumarisConfiguration config) {

@@ -1,0 +1,98 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/pgsql/db-changelog-2.7.0.xml">
+
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-1">
+    <preConditions>
+      <not><sequenceExists sequenceName="SCIENTIFIC_CRUISE_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="SCIENTIFIC_CRUISE_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-2">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="scientific_cruise"/></not>
+    </preConditions>
+    <createTable tableName="scientific_cruise">
+      <column name="id" type="integer">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="scientific_cruise_pk"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="reference" type="VARCHAR(255)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="departure_date_time" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="return_date_time" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="timestamp"/>
+      <column name="manager_person_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="program_fk" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="integer">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_person_fk" type="integer"/>
+      <column name="vessel_fk" type="integer">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-3" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_recorder_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-4" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_program_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-5" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="manager_person_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_manager_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-6" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_recorder_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-7" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_vessel_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel" validate="true"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-8">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="trip" columnName="scientific_cruise_fk"/></not>
+    </preConditions>
+    <addColumn tableName="trip">
+      <column name="scientific_cruise_fk" type="INT"/>
+    </addColumn>
+    <addForeignKeyConstraint baseColumnNames="scientific_cruise_fk" baseTableName="trip" constraintName="FK5k0if2anmpxvdjrxp0qh5sgai" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="scientific_cruise" validate="true"/>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='2.7.0'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="nextval('system_version_seq')"/>
+      <column name="LABEL">2.7.0</column>
+      <column name="DESCRIPTION">
+        - Add SCIENTIFIC_CRUISE table;
+      </column>
+      <column name="CREATION_DATE" valueComputed="current_timestamp"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Add SCIENTIFIC_CRUISE table;
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

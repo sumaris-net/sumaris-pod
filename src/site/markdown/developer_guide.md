@@ -1,4 +1,4 @@
-# Developer Guide
+# Core > Developer Guide
 
 ## Java JPA Entities
 

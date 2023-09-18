@@ -40,6 +40,7 @@ import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -291,7 +292,7 @@ public class PmfmRepositoryImpl
     public boolean hasMatrixId(int pmfmId, int... matrixIds) {
         return Optional.of(getById(pmfmId))
             .map(Pmfm::getMatrix)
-            .map(matrix -> Arrays.binarySearch(matrixIds, matrix.getId()) != -1)
+            .map(matrix -> ArrayUtils.contains(matrixIds, matrix.getId()))
             .orElse(false);
     }
 
@@ -301,7 +302,7 @@ public class PmfmRepositoryImpl
         return Optional.of(getById(pmfmId))
             .map(Pmfm::getParameter)
             .map(Parameter::getParameterGroup)
-            .map(parameterGroup -> Arrays.binarySearch(parameterGroupIds, parameterGroup.getId()) != -1)
+            .map(parameterGroup ->  ArrayUtils.contains(parameterGroupIds, parameterGroup.getId()))
             .orElse(false);
     }
 

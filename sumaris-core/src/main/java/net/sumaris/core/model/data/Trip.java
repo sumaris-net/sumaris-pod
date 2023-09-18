@@ -29,6 +29,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.data.cruise.ScientificCruise;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -66,7 +67,6 @@ public class Trip implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")
     @SequenceGenerator(name = "TRIP_SEQ", sequenceName="TRIP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -113,7 +113,6 @@ public class Trip implements IRootDataEntity<Integer>,
     private Vessel vessel;
 
     @Column(name = "departure_date_time", nullable = false)
-    
     private Date departureDateTime;
 
     @Column(name = "return_date_time", nullable = false)
@@ -163,6 +162,10 @@ public class Trip implements IRootDataEntity<Integer>,
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Set<Person> observers = Sets.newHashSet();
+
+    @ManyToOne(fetch = FetchType.EAGER, targetEntity = ScientificCruise.class)
+    @JoinColumn(name = "scientific_cruise_fk")
+    private ScientificCruise scientificCruise;
 
     public int hashCode() {
         return Objects.hash(id, vessel, program, departureDateTime);
