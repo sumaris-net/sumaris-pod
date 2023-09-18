@@ -9,8 +9,8 @@
     <changeSet author="benoit.lavenier@e-is.pro" id="1676958335000-001" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <and>
-                <sequenceExists sequenceName="EXTRACTION_PRODUCT_FREQ_SEQ"></sequenceExists>
-                <not><sequenceExists sequenceName="PROCESSING_FREQUENCY_SEQ"></sequenceExists></not>
+                <sequenceExists sequenceName="EXTRACTION_PRODUCT_FREQ_SEQ"/>
+                <not><sequenceExists sequenceName="PROCESSING_FREQUENCY_SEQ"/></not>
             </and>
         </preConditions>
         <sql>

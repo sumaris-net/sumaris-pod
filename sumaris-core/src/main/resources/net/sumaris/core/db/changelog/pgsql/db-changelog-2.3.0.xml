@@ -5,7 +5,7 @@
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
                    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/db-changelog-2.3.0.xml">
 
-  <changeSet id="1676958320000-001" author="benoit.lavenier@e-is.pro">
+  <changeSet id="1676958320000-001" author="benoit.lavenier@e-is.pro" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="device_position"/>
@@ -13,7 +13,7 @@
     </preConditions>
     <createTable tableName="device_position">
       <column name="id" type="integer">
-        <constraints primaryKey="true" nullable="false"/>
+        <constraints nullable="false" primaryKey="true" primaryKeyName="device_position_pk"/>
       </column>
       <column name="date_time" type="timestamp">
         <constraints nullable="false"/>

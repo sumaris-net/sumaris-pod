@@ -104,6 +104,9 @@
     <SOFTWARE_PROPERTY ID="116" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.sample.uniqueTag" NAME="true"/>
     <SOFTWARE_PROPERTY ID="117" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.data.program.ids" NAME="40"/>
     <SOFTWARE_PROPERTY ID="118" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-05-16" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="119" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-05-16" LABEL="sumaris.persistence.adagio.optimization" NAME="false"/><!-- true in production -->
+    <SOFTWARE_PROPERTY ID="120" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-05-16" LABEL="sumaris.persistence.adagio.schema" NAME="SIH2_ADAGIO_DBA"/>
+
 
 
     <!-- ****** OPEN (ACOST, PIFIL, HOMARD, ...) properties ****** -->

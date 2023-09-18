@@ -30,63 +30,55 @@
     <select alias="STRATEGY" type="text">ST.STRATEGY</select>
 
     <!-- other fields -->
-    <select alias="START_DATE" type="date">APP.START_DATE</select>
-    <select alias="END_DATE" type="date">APP.END_DATE</select>
+    <select alias="START_DATE" type="date">AP.START_DATE</select>
+    <select alias="END_DATE" type="date">AP.END_DATE</select>
 
-    <select alias="EXPECTED_EFFORT" type="number">APP.ACQUISITION_NUMBER</select>
-    <select alias="REALIZED_EFFORT" type="number">count(distinct SM.ID)</select>
+    <select alias="EXPECTED_EFFORT" type="number">AP.ACQUISITION_NUMBER</select>
+    <select alias="REALIZED_EFFORT" type="number">count(distinct SM.ID)</select> <!-- count sample with a TAG_ID -->
 
-    <!--<select alias="SAMPLE_COUNT" type="number">count(distinct S.ID)</select>-->
     <select alias="LANDING_COUNT" type="number">count(distinct L.ID)</select>
+    <select alias="SCIENTIFIC_CRUISE_COUNT" type="number">count(distinct SC.ID)</select>
 
     <!-- hidden columns -->
     <select alias="PROGRAM_ID" type="hidden">ST.PROGRAM_ID</select>
     <select alias="STRATEGY_ID" type="hidden">ST.STRATEGY_ID</select>
 
     <from alias="ST">&amp;strategyTableName</from>
-    <from join="true">LEFT OUTER JOIN APPLIED_STRATEGY APS ON APS.STRATEGY_FK = ST.STRATEGY_ID</from>
-    <from join="true">LEFT OUTER JOIN APPLIED_PERIOD APP ON APP.APPLIED_STRATEGY_FK = APS.ID</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_STRATEGY S ON S.STRATEGY_FK = ST.STRATEGY_ID</from>
+    <from join="true">LEFT OUTER JOIN APPLIED_PERIOD AP ON AP.APPLIED_STRATEGY_FK = S.ID</from>
 
-    <!-- landing strategy link -->
-    <from join="true" group="!adagio">
-      LEFT OUTER JOIN LANDING L ON L.PROGRAM_FK = ST.PROGRAM_ID
-        AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
-        AND L.LANDING_DATE_TIME &lt; APP.END_DATE + INTERVAL '1' DAY
-        AND EXISTS (
-          SELECT 1 FROM LANDING_MEASUREMENT LM
-          WHERE LM.LANDING_FK = L.ID
-            AND LM.PMFM_FK = &amp;strategyLabelPmfmId
-            AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
-        )
+    <!-- default implementation -->
+    <from join="true" group="!adagio">LEFT OUTER JOIN SAMPLE SA ON SA.PROGRAM_FK = ST.PROGRAM_ID
+      AND SA.SAMPLE_DATE BETWEEN AP.START_DATE AND (AP.END_DATE + INTERVAL '1' DAY)
     </from>
 
-    <!-- landing sample link -->
-    <from join="true" group="!adagio">LEFT OUTER JOIN TRIP FT ON FT.ID = L.TRIP_FK</from>
-    <from join="true" group="!adagio">LEFT OUTER JOIN OPERATION O ON O.TRIP_FK = FT.ID</from>
-    <from join="true" group="!adagio">LEFT OUTER JOIN SAMPLE S ON S.OPERATION_FK = O.ID</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN OPERATION O ON O.ID = SA.OPERATION_FK</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN TRIP FT ON FT.ID = O.TRIP_FK</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN SCIENTIFIC_CRUISE SC ON SC.ID = FT.SCIENTIFIC_CRUISE_FK</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN LANDING L ON L.TRIP_FK = FT.ID</from>
 
     <!-- Use optimization for ADAGIO (fix IMAGINE issue) -->
-    <from join="true" group="adagio">
-      LEFT OUTER JOIN &amp;adagioSchema.LANDING L ON L.PROGRAM_FK = ST.PROJECT
-        AND L.LANDING_DATE_TIME &gt;= APP.START_DATE
-        AND L.LANDING_DATE_TIME &lt; APP.END_DATE + INTERVAL '1' DAY
-        AND EXISTS (
-          SELECT 1 FROM &amp;adagioSchema.LANDING_MEASUREMENT LM
-          WHERE LM.LANDING_FK = L.ID
-          AND LM.PMFM_FK = &amp;strategyLabelPmfmId
-          AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
-        )
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.SAMPLE SA ON SA.PROGRAM_FK = ST.PROJECT
+        AND SA.SAMPLE_DATE BETWEEN AP.START_DATE AND (AP.END_DATE + INTERVAL '1' DAY)
     </from>
-    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.FISHING_TRIP FT ON FT.ID = L.FISHING_TRIP_FK</from>
-    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.OPERATION O ON O.FISHING_TRIP_FK = FT.ID</from>
-    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.SAMPLE S ON S.FISHING_OPERATION_FK = O.ID</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.OPERATION O ON O.ID = SA.FISHING_OPERATION_FK</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.FISHING_TRIP FT ON FT.ID = O.FISHING_TRIP_FK</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.SCIENTIFIC_CRUISE SC ON SC.ID = FT.SCIENTIFIC_CRUISE_FK</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.LANDING L ON L.FISHING_TRIP_FK = FT.ID</from>
 
-    <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = S.ID AND SM.PMFM_FK = &amp;tagIdPmfmId</from>
+    <from join="true">LEFT OUTER JOIN SAMPLE_MEASUREMENT SM ON SM.SAMPLE_FK = SA.ID AND SM.PMFM_FK = &amp;tagIdPmfmId
+      AND SM.ALPHANUMERICAL_VALUE LIKE (ST.STRATEGY || '%')
+    </from>
+    <from join="true">LEFT OUTER JOIN LANDING_MEASUREMENT LM ON LM.LANDING_FK = L.ID AND LM.PMFM_FK = &amp;strategyLabelPmfmId
+      AND LM.ALPHANUMERICAL_VALUE = ST.STRATEGY
+    </from>
+
+    <where>1=1</where>
 
     <groupby>
       ST.PROJECT, ST.STRATEGY,
-      APP.START_DATE, APP.END_DATE, APP.ACQUISITION_NUMBER,
-      ST.PROGRAM_ID, ST.STRATEGY_ID
+      ST.PROGRAM_ID, ST.STRATEGY_ID,
+      AP.START_DATE, AP.END_DATE, AP.ACQUISITION_NUMBER
     </groupby>
 
   </query>

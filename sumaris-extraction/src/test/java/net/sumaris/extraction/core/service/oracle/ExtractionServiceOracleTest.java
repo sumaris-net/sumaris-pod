@@ -46,7 +46,7 @@ import java.io.IOException;
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-@Ignore("Use only Ifremer Oracle database")
+//@Ignore("Use only Ifremer Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
 public class ExtractionServiceOracleTest extends ExtractionServiceTest {
@@ -72,8 +72,8 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
     public void executeStrat() throws IOException {
 
         ExtractionStrategyFilterVO filter = new ExtractionStrategyFilterVO();
-        filter.setProgramLabel("SIH-OBSBIO");
-        filter.setStrategyLabels(ImmutableList.of("22SOLESOL004"));
+        filter.setProgramLabel("SIH-PARAM-BIO");
+        //filter.setStrategyLabels(ImmutableList.of("22CHITCOR001"));
 
         File root = this.executeStrat(filter);
 
