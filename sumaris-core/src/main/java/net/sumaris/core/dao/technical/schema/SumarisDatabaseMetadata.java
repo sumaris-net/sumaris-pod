@@ -191,11 +191,16 @@ public class SumarisDatabaseMetadata {
 			conn = DataSourceUtils.getConnection(dataSource);
 			DatabaseMetaData jdbcMeta = conn.getMetaData();
 
+			// Special case for postgresql: to prefix as lowercase
+			if (tablePrefix != null && Daos.isPostgresqlDatabase(conn)) {
+				tablePrefix = tablePrefix.toLowerCase();
+			}
+
 			ResultSet rs = jdbcMeta.getTables(catalog, schema, Daos.getEscapedForLike(tablePrefix) /*escape undescrore*/ + "%", null);
 			Set<String> result = Sets.newHashSet();
 			while (rs.next()) {
 				String tableName = rs.getString("TABLE_NAME");
-				if (tableName.toUpperCase().startsWith(tablePrefix.toUpperCase())) {
+				if (tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
 					result.add(rs.getString("TABLE_NAME"));
 				}
 				// JDBC meta return a bad tableName (e.g. because '_' special character) => ignore
