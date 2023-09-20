@@ -25,13 +25,10 @@ package net.sumaris.core.dao.referential;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.referential.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.*;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,9 +54,9 @@ public interface IEntityWithJoinSpecifications<ID extends Serializable, E extend
         String paramName = joinPropertyPath.replaceAll("\\.", "_")  + "Values";
 
         return BindableSpecification.where((root, query, cb) -> {
-            Join<?,?> join = Daos.composeJoin(root, joinPropertyPath, JoinType.INNER);
+            Expression path = Daos.composePath(root, joinPropertyPath, JoinType.INNER);
             ParameterExpression<Collection> parameter = cb.parameter(Collection.class, paramName);
-            return cb.in(join.get(IEntity.Fields.ID)).value(parameter);
+            return cb.in(path).value(parameter);
         }).addBind(paramName, Arrays.asList(values));
     }
 }
