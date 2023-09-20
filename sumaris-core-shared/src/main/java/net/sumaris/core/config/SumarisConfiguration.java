@@ -280,7 +280,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // Populate defaults from providers
         final Properties defaults = new Properties();
-        providers.forEach(provider -> Arrays.stream(provider.getOptions())
+        providers
+            .stream()
+            .filter(provider -> !(provider instanceof SumarisConfigurationEntityEnumProvider))
+            .forEach(provider -> Arrays.stream(provider.getOptions())
             .filter(configOptionDef -> configOptionDef.getDefaultValue() != null)
             .forEach(configOptionDef -> defaults.setProperty(configOptionDef.getKey(), configOptionDef.getDefaultValue())));
 
