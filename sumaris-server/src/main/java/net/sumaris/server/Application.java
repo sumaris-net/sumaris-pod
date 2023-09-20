@@ -114,6 +114,8 @@ public class Application extends SpringBootServletInitializer {
         // Init cache
         initCache(config);
 
+        // Init liquibase
+        initLiquibase(config);
     }
 
     /* -- Internal method -- */
@@ -172,6 +174,20 @@ public class Application extends SpringBootServletInitializer {
     protected static void initCache(SumarisConfiguration config) {
         // Init EHCache directory (see 'ehcache.xml' file)
         System.setProperty(SumarisConfigurationOption.CACHE_DIRECTORY.getKey(), config.getCacheDirectory().getPath() + File.separator);
+    }
+
+    protected static void initLiquibase(SumarisConfiguration config) {
+
+        // Force path to adagio changelog
+        if (config.enableAdagioOptimization() && config.isLiquibaseEnabled() &&
+            StringUtils.equals(
+                config.getLiquibaseChangeLogPath(),
+                SumarisConfigurationOption.LIQUIBASE_CHANGE_LOG_PATH.getDefaultValue())) {
+
+            String changeLogPath= "classpath:net/sumaris/core/db/changelog/oracle/adagio/db-changelog-master.xml";
+            log.info("Using Liquibase changelog path: {{}}", changeLogPath);
+            config.getApplicationConfig().setOption(SumarisConfigurationOption.LIQUIBASE_CHANGE_LOG_PATH.getKey(), changeLogPath);
+        }
     }
 
     /**

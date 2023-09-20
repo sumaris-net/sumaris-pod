@@ -47,7 +47,6 @@ public class Software implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SOFTWARE_SEQ")
     @SequenceGenerator(name = "SOFTWARE_SEQ", sequenceName="SOFTWARE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
