@@ -90,6 +90,35 @@ public interface TripSpecifications extends RootDataSpecifications<Trip>,
         }).addBind(OBSERVED_LOCATION_ID_PARAM, observedLocationId);
     }
 
+    default Specification<Trip> hasObservedLocation(Boolean hasObservedLocation) {
+        if (hasObservedLocation == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            if (hasObservedLocation) {
+                query.distinct(true);
+                ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.INNER);
+                return cb.isNotNull(landingJoin.get(Landing.Fields.OBSERVED_LOCATION));
+            }
+            else {
+                ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.LEFT);
+                return cb.isNull(landingJoin.get(Landing.Fields.OBSERVED_LOCATION));
+            }
+        });
+    }
+
+    default Specification<Trip> hasScientificCruise(Boolean hasScientificCruise) {
+        if (hasScientificCruise == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            if (hasScientificCruise) {
+                Join<Trip, ScientificCruise> cruiseJoin = Daos.composeJoin(root, Trip.Fields.SCIENTIFIC_CRUISE, JoinType.INNER);
+                return cb.isNotNull(cruiseJoin);
+            }
+            else {
+                Join<Trip, ScientificCruise> cruiseJoin = Daos.composeJoin(root, Trip.Fields.SCIENTIFIC_CRUISE, JoinType.LEFT);
+                return cb.isNull(cruiseJoin);
+            }
+        });
+    }
+
     default Specification<Trip> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {

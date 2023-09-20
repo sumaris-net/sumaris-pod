@@ -59,6 +59,8 @@ public interface XMLQuery {
 
     Set<String> getColumnNames(Predicate<Element> filter);
 
+    boolean hasColumnName(String columnName);
+
     Stream<Element> streamSelectElements(Predicate<Element> filter);
 
     String getAlias(Element element);

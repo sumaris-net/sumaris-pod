@@ -177,6 +177,14 @@ public class DataGraphQLService {
 
         filter = fillRootDataFilter(filter, TripFilterVO.class);
 
+        // Exclude trip with observed location
+        if (filter.getHasObservedLocation() == null) {
+            filter.setHasObservedLocation(false);
+        }
+        if (filter.getHasScientificCruise() == null) {
+            filter.setHasScientificCruise(false);
+        }
+
         // Set default sort
         // Remove default sortBy - fix IMAGINE issue (see app LandingService.fixLandingDates())
         //sort = sort != null ? sort : TripVO.Fields.DEPARTURE_DATE_TIME;

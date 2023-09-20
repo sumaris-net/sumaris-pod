@@ -500,8 +500,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        if (this.enableCleanup && !this.production) {
-            // Add as a raw table (to be able to clean it later)
+        // Add as a raw table (to be able to clean it later)
+        if (this.production || this.enableCleanup) {
             context.addRawTableName(tableName);
         }
         // Keep raw table (for DEBUG only)

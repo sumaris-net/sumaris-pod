@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
@@ -62,32 +63,25 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("landingService")
+@RequiredArgsConstructor
 @Slf4j
 public class LandingServiceImpl implements LandingService {
 
-    @Autowired
-    protected LandingRepository landingRepository;
+    protected final LandingRepository landingRepository;
 
-    @Autowired
-    protected TripService tripService;
+    protected final TripService tripService;
 
-    @Autowired
-    protected VesselService vesselService;
+    protected final VesselService vesselService;
 
-    @Autowired
-    protected MeasurementDao measurementDao;
+    protected final MeasurementDao measurementDao;
 
-    @Autowired
-    protected SampleService sampleService;
+    protected final SampleService sampleService;
 
-    @Autowired
-    protected OperationGroupService operationGroupService;
+    protected final OperationGroupService operationGroupService;
 
-    @Autowired
-    protected PmfmService pmfmService;
+    protected final PmfmService pmfmService;
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
 
     private boolean enableTrash = false;
 
