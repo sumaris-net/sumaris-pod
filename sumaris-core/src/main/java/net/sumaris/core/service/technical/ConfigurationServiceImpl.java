@@ -45,6 +45,7 @@ import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.service.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -66,6 +67,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -215,14 +217,18 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Transactional(propagation = Propagation.REQUIRED)
     public void beforeDeleteSoftware(EntityDeleteEvent event) {
         Preconditions.checkNotNull(event.getId());
-        SoftwareVO currentSoftware = event.getData() != null ? (SoftwareVO)event.getData() : getCurrentSoftware();
+        Serializable currentSoftwareId = getCurrentSoftware().getId();
+        Serializable deletedSoftwareId = null;
+        if (event.getData() != null && event.getData() instanceof IReferentialVO<?>) {
+            deletedSoftwareId = ((IReferentialVO) event.getData()).getId();
+        }
 
         // Test if same as the current software
-        boolean isCurrent = (currentSoftware != null && currentSoftware.getId().equals(event.getId()));
+        boolean isCurrent = deletedSoftwareId != null && deletedSoftwareId.equals(currentSoftwareId);
 
         // Avoid deletion of current software
         if (isCurrent) {
-            throw new DenyDeletionException("Cannot delete the current software", ImmutableList.of(String.valueOf(currentSoftware.getId())));
+            throw new DenyDeletionException("Cannot delete the current software", ImmutableList.of(String.valueOf(currentSoftwareId)));
         }
     }
 
@@ -314,7 +320,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         ApplicationConfig appConfig = configuration.getApplicationConfig();
 
-        boolean debug = log.isDebugEnabled();
         log.info("Updating model enumerations...");
         AtomicInteger counter = new AtomicInteger(0);
         AtomicInteger successCounter = new AtomicInteger(0);
@@ -366,7 +371,16 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                     if (enableConfigOverride) {
                         boolean hasConfigOption = appConfig.hasOption(configOptionKey);
                         if (hasConfigOption) {
-                            joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
+                            if (joinValue != null) {
+                                joinValue = appConfig.getOption(joinValue.getClass(), configOptionKey);
+                            }
+                            else {
+                                joinValue = appConfig.getOption(configOptionKey);
+                            }
+                        }
+                        // Nothing in the config option, and not a resolve attribute => skip
+                        else if (!ArrayUtils.contains(resolveAttributes, attribute)) {
+                            return null;
                         }
                     }
 
