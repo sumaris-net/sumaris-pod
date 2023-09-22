@@ -52,7 +52,7 @@ public final class EntityEnums {
     public static final String MODEL_PACKAGE_NAME = "net.sumaris.core.model";
     public static final String DESCRIPTION_PROPERTY_PREFIX = "sumaris.config.option.enumeration.";
 
-    private EntityEnums(){
+    private EntityEnums() {
         // Helper class
     }
 
@@ -94,11 +94,11 @@ public final class EntityEnums {
 
             for (Object enumValue : enumClass.getEnumConstants()) {
                 for (String attribute : attributes) {
-                    Object defaultJoinValue = Beans.getProperty(enumValue, attribute);
+                    Object defaultValue = Beans.getProperty(enumValue, attribute);
                     String key = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), attribute);
-                    Class type = defaultJoinValue != null ? defaultJoinValue.getClass() : String.class;
+                    Class type = defaultValue != null ? defaultValue.getClass() : String.class;
                     String description = DESCRIPTION_PROPERTY_PREFIX + StringUtils.doting(entityClassName, enumValue.toString(), attribute, "description");
-                    options.add(new ConfigOption(key, type, description, String.valueOf(defaultJoinValue), false, false));
+                    options.add(new ConfigOption(key, type, description, String.valueOf(defaultValue), false, false));
                 }
             }
         });

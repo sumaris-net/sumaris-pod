@@ -195,7 +195,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             ready = false;
 
             // Restore defaults
-            configuration.restoreDefaults();
+            configuration.restoreDefaults(true);
 
             // Update the config, from the software properties
             applySoftwareProperties();
@@ -341,10 +341,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
             // Compute a option key (e.g. 'sumaris.enumeration.MyEntity.MY_ENUM_VALUE.id')
             String tempConfigPrefix = StringUtils.defaultIfBlank(annotation.configPrefix(), "");
-            if (tempConfigPrefix.lastIndexOf(".") != tempConfigPrefix.length() - 1) {
-                // Add trailing point
-                tempConfigPrefix += ".";
-            }
+
+            // Add trailing point
+            if (tempConfigPrefix.lastIndexOf(".") != tempConfigPrefix.length() - 1) tempConfigPrefix += ".";
+
             final String configPrefix = tempConfigPrefix;
 
             final String queryPattern = String.format("from %s where %s = ?1",
@@ -380,6 +380,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         }
                         // Nothing in the config option, and not a resolve attribute => skip
                         else if (!ArrayUtils.contains(resolveAttributes, attribute)) {
+                            configKeysBuilder.append(", '").append(configOptionKey).append("'");
                             return null;
                         }
                     }

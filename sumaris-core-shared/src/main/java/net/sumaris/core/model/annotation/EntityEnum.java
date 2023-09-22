@@ -32,9 +32,11 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EntityEnum  {
+    String DEFAULT_PREFIX = "sumaris.enumeration.";
+
     Class<? extends IEntity> entity();
 
-    String configPrefix() default "sumaris.enumeration.";
+    String configPrefix() default DEFAULT_PREFIX;
     String[] resolveAttributes() default {IEntity.Fields.ID, "label"};
 
     String[] configAttributes() default {};
