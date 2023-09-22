@@ -25,6 +25,7 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Daos;
@@ -96,14 +97,13 @@ public class ReferentialDaoImpl
     }
 
     @Override
-    public List<ReferentialVO> findByFilter(final String entityName,
+    public List<ReferentialVO> findByFilter(@NonNull final String entityName,
                                             IReferentialFilter filter,
                                             int offset,
                                             int size,
                                             String sortAttribute,
                                             SortDirection sortDirection,
                                             ReferentialFetchOptions fetchOptions) {
-        Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
         // Get entity class from entityName
         Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
@@ -112,6 +112,22 @@ public class ReferentialDaoImpl
             .map(s -> toVO(entityName, s, fetchOptions))
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> findLabelsByFilter(@NonNull String entityName, IReferentialFilter filter) {
+
+        // Get entity class from entityName
+        Class<IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<String> query = builder.createQuery(String.class);
+        Root<? extends IReferentialEntity> root = query.from(entityClass);
+        query.select(root.get(IItemReferentialEntity.Fields.LABEL)).distinct(true);
+
+        addSorting(query, builder, root, IItemReferentialEntity.Fields.LABEL, SortDirection.ASC);
+
+        return createFilteredQuery(builder, entityClass, query, root, filter)
+            .getResultList();
     }
 
     @Override
@@ -584,6 +600,25 @@ public class ReferentialDaoImpl
         return createFilteredQuery(builder, entityClass, query, entityRoot, filter );
     }
 
+    protected  <R, T> TypedQuery<R> createFindQuery(Class<R> resultClass,
+                                                    Class<T> entityClass,
+                                                    IReferentialFilter filter,
+                                                    String sortAttribute,
+                                                    SortDirection sortDirection) {
+
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<R> query = builder.createQuery(resultClass);
+        Root<T> entityRoot = query.from(entityClass);
+        if (resultClass == entityClass) {
+            query.select((Root<R>)entityRoot);
+        }
+        query.distinct(true);
+
+        addSorting(query, builder, entityRoot, sortAttribute, sortDirection);
+
+        return createFilteredQuery(builder, entityClass, query, entityRoot, filter );
+    }
+
     /**
      * Add a orderBy on query
      *
@@ -620,12 +655,20 @@ public class ReferentialDaoImpl
         return createFilteredQuery(builder, entityClass, query, root, filter);
     }
 
-    protected <R, T> TypedQuery<R> createFilteredQuery(CriteriaBuilder builder,
+//    protected <T> TypedQuery<T> createFilteredQuery(CriteriaBuilder builder,
+//                                                       Class<T> entityClass,
+//                                                       CriteriaQuery<T> query,
+//                                                       Root<T> root,
+//                                                       IReferentialFilter filter
+//    ) {
+//     return createFilteredQuery(builder, entityClass, entityClass, query, root, filter)   ;
+//    }
+
+    protected <R,T> TypedQuery<R> createFilteredQuery(CriteriaBuilder builder,
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
-                                                       Root<T> root,
+                                                       Root<? extends T> root,
                                                        IReferentialFilter filter
-                                                       //QueryVisitor<R, T> queryVisitor
     ) {
         Integer[] levelIds = filter.getLevelIds();
         String[] levelLabels = filter.getLevelLabels();
