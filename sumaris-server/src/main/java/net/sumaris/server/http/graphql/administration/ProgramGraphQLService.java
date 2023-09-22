@@ -276,6 +276,7 @@ public class ProgramGraphQLService {
             PmfmStrategyFetchOptions.builder()
                 .uniqueByPmfmId(true)
                 .withCompleteName(fields.contains(DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME))
+                .withGears(fields.contains(DenormalizedPmfmStrategyVO.Fields.GEARS))
                 .build());
     }
 
@@ -595,6 +596,7 @@ public class ProgramGraphQLService {
             .pmfmsFetchOptions(
                 PmfmStrategyFetchOptions.builder()
                     .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
+                    .withGears(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.GEARS)))
                     .build()
             )
 

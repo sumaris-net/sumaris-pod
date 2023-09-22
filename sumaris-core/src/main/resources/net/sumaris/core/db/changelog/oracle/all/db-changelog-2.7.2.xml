@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+  logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/oracle/all/db-changelog-2.7.2.xml">
+
+  <!-- Rename some enumeration options -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-300" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sqlCheck expectedResult="0">select count(*) from SOFTWARE_PROPERTY where label in (
+          'sumaris.enumeration.LocationLevel.ICES_RECTANGLE.id',
+          'sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id',
+          'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
+          'sumaris.enumeration.LocationLevel.ICES_SUB_DIVISION.id',
+          'sumaris.enumeration.LocationLevel.RECTANGLE_CGPM_GFCM.id',
+          'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id',
+          'sumaris.enumeration.LocationLevel.GFCM_SUB_AREA.id',
+          'sumaris.enumeration.LocationLevel.GFCM_DIVISION.id',
+          'sumaris.enumeration.LocationLevel.GFCM_SUB_DIVISION.id'
+          )</sqlCheck>
+      </not>
+    </preConditions>
+    <sql endDelimiter=";">
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.SUB_AREA_ICES.id' where label='sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id';
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.DIVISION_ICES.id' where label='sumaris.enumeration.LocationLevel.ICES_DIVISION.id';
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.SUB_DIVISION_ICES.id' where label='sumaris.enumeration.LocationLevel.ICES_SUB_DIVISION.id';
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.RECTANGLE_ICES.id' where label='sumaris.enumeration.LocationLevel.ICES_RECTANGLE.id';
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.SUB_AREA_GFCM.id' where label='sumaris.enumeration.LocationLevel.GFCM_SUB_AREA.id';
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.DIVISION_GFCM.id' where label='sumaris.enumeration.LocationLevel.GFCM_DIVISION.id';
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.SUB_DIVISION_GFCM.id' where label='sumaris.enumeration.LocationLevel.GFCM_SUB_DIVISION.id';
+      update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.RECTANGLE_GFCM.id' where label IN ('sumaris.enumeration.LocationLevel.RECTANGLE_CGPM_GFCM.id', 'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id');
+      commit;
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

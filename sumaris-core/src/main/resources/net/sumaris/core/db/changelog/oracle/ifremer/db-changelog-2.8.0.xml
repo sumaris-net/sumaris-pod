@@ -25,11 +25,27 @@
   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
-  logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/oracle/adagio/db-changelog-2.8.0.xml">
+  logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/oracle/ifremer/db-changelog-2.8.0.xml">
+
+  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+  <property name="sqlCheck.ifremer.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'CAM-CGFS'"/>
+  <property name="sqlCheck.ifremer.expectedResult" value="1"/>
+
+  <preConditions onFail="WARN" onFailMessage="Database instance is not a Ifremer ADAGIO database instance! Do not include this changelog file in the master file">
+    <or>
+      <!-- Test if database is empty -->
+      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+      <!-- OR if expected production database -->
+      <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+    </or>
+  </preConditions>
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-1-0">
     <preConditions onFail="MARK_RAN">
-      <not><columnExists tableName="user_event" columnName="source"/></not>
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <not><columnExists tableName="user_event" columnName="source"/></not>
+      </and>
     </preConditions>
     <addColumn tableName="user_event">
       <column name="source" type="VARCHAR2(50)"></column>
@@ -38,9 +54,12 @@
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-1-1" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <not>
-        <columnExists tableName="user_event" columnName="event_level"/>
-      </not>
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <not>
+          <columnExists tableName="user_event" columnName="event_level"/>
+        </not>
+      </and>
     </preConditions>
     <addColumn tableName="user_event">
       <column name="event_level" type="VARCHAR2(30)">
@@ -52,11 +71,15 @@
     </sql>
     <addNotNullConstraint tableName="user_event" columnName="event_level"/>
   </changeSet>
+
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-1-2">
     <preConditions onFail="MARK_RAN">
-      <not>
-        <columnExists tableName="user_event" columnName="read_date"/>
-      </not>
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <not>
+          <columnExists tableName="user_event" columnName="read_date"/>
+        </not>
+      </and>
     </preConditions>
     <addColumn tableName="user_event">
       <column name="read_date" type="DATE"/>
@@ -65,7 +88,10 @@
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-2">
     <preConditions onFail="MARK_RAN">
-      <sqlCheck expectedResult="0">select count(*) from SOFTWARE where label='OBSMER'</sqlCheck>
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">select count(*) from SOFTWARE where label='OBSMER'</sqlCheck>
+      </and>
     </preConditions>
     <!-- Add OBSMER software -->
     <insert tableName="SOFTWARE">
@@ -80,11 +106,11 @@
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-3" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <not><sqlCheck expectedResult="3">select count(*) from SOFTWARE_PROPERTY where SOFTWARE_FK IN (SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')</sqlCheck></not>
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">select count(*) from SOFTWARE_PROPERTY where SOFTWARE_FK IN (SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')</sqlCheck>
+      </and>
     </preConditions>
-    <sql endDelimiter=";">
-      delete from SOFTWARE_PROPERTY where SOFTWARE_FK in (SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER');
-    </sql>
     <insert tableName="SOFTWARE_PROPERTY">
       <column name="ID" valueComputed="software_property_seq.nextval"/>
       <column name="LABEL">sumaris.persistence.adagio.optimization</column>

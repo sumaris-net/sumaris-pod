@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -43,8 +44,10 @@ import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptio
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -65,13 +68,19 @@ public class PmfmStrategyRepositoryImpl
         implements PmfmStrategyRepository {
 
     private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
+    private final Map<Integer, String> acquisitionLevelLabelById = Maps.newConcurrentMap();
 
-    @Autowired
-    private ReferentialDao referentialDao;
 
-    @Autowired
-    PmfmStrategyRepositoryImpl(EntityManager entityManager) {
+    private final ReferentialDao referentialDao;
+    private final PmfmRepository pmfmRepository;
+
+
+    PmfmStrategyRepositoryImpl(EntityManager entityManager,
+                               ReferentialDao referentialDao,
+                               PmfmRepository pmfmRepository) {
         super(PmfmStrategy.class, PmfmStrategyVO.class, entityManager);
+        this.referentialDao = referentialDao;
+        this.pmfmRepository = pmfmRepository;
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -105,6 +114,7 @@ public class PmfmStrategyRepositoryImpl
     @Override
     public PmfmStrategyVO toVO(PmfmStrategy source, Pmfm pmfm, PmfmStrategyFetchOptions fetchOptions) {
         if (source == null) return null;
+        fetchOptions = PmfmStrategyFetchOptions.nullToDefault(fetchOptions);
 
         PmfmStrategyVO target = new PmfmStrategyVO();
 
@@ -115,38 +125,37 @@ public class PmfmStrategyRepositoryImpl
 
         // Pmfm
         if (pmfm != null) {
-            target.setPmfmId(pmfm.getId());
-        }
 
-        // Parameter, Matrix, Fraction, Method Ids
-        if (source.getParameter() != null) {
-            target.setParameterId(source.getParameter().getId());
-        }
-        if (source.getMatrix() != null) {
-            target.setMatrixId(source.getMatrix().getId());
-        }
-        if (source.getFraction() != null) {
-            target.setFractionId(source.getFraction().getId());
-        }
-        if (source.getMethod() != null) {
-            target.setMethodId(source.getMethod().getId());
+            PmfmVO targetPmfm = pmfmRepository.get(pmfm.getId());
+
+            target.setPmfmId(targetPmfm.getId());
+            target.setPmfm(targetPmfm);
+
+            // Parameter, Matrix, Fraction, Method Ids
+            target.setParameterId(targetPmfm.getParameterId());
+            target.setMatrixId(targetPmfm.getMatrixId());
+            target.setFractionId(targetPmfm.getFractionId());
+            target.setMethodId(targetPmfm.getMethodId());
         }
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
-            target.setAcquisitionLevel(source.getAcquisitionLevel().getLabel());
+            target.setAcquisitionLevel(getAcquisitionLevelLabelById(source.getAcquisitionLevel().getId()));
         }
 
         // Gears
         if (CollectionUtils.isNotEmpty(source.getGears())) {
-            List<String> gears = source.getGears()
-                .stream()
-                .map(Gear::getLabel)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-            target.setGears(gears);
+            List<Integer> gearIds = Beans.collectIds(source.getGears());
+            target.setGearIds(gearIds);
 
-            target.setGearIds(Beans.collectIds(source.getGears()));
+            // Fetch gear's labels
+            if (fetchOptions.isWithGears()) {
+                List<String> gears = referentialDao.findLabelsByFilter(Gear.class.getSimpleName(),
+                    ReferentialFilterVO.builder()
+                    .includedIds(gearIds.toArray(new Integer[0]))
+                    .build());
+                target.setGears(gears);
+            }
         }
 
         // Taxon groups
@@ -302,6 +311,18 @@ public class PmfmStrategyRepositoryImpl
 
     /* -- protected methods -- */
 
+
+    private void loadAcquisitionLevels() {
+        acquisitionLevelIdByLabel.clear();
+        acquisitionLevelLabelById.clear();
+
+        // Fill acquisition levels map
+        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null, null);
+        items.forEach(item -> {
+            acquisitionLevelIdByLabel.put(item.getLabel(), item.getId());
+            acquisitionLevelLabelById.put(item.getId(), item.getLabel());
+        });
+    }
     private int getAcquisitionLevelIdByLabel(String label) {
         Integer acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
         if (acquisitionLevelId == null) {
@@ -321,12 +342,23 @@ public class PmfmStrategyRepositoryImpl
         return acquisitionLevelId;
     }
 
-    private void loadAcquisitionLevels() {
-        acquisitionLevelIdByLabel.clear();
+    private String getAcquisitionLevelLabelById(int id) {
+        String label = acquisitionLevelLabelById.get(id);
+        if (label == null) {
 
-        // Fill acquisition levels map
-        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null, null);
-        items.forEach(item -> acquisitionLevelIdByLabel.put(item.getLabel(), item.getId()));
+            // Try to reload
+            synchronized (this) {
+                loadAcquisitionLevels();
+            }
+
+            // Retry to find it
+            label = acquisitionLevelLabelById.get(id);
+            if (label == null) {
+                throw new DataIntegrityViolationException("Unknown acquisition level's id=" + id);
+            }
+        }
+
+        return label;
     }
 
 }

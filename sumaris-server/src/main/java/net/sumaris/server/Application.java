@@ -184,7 +184,7 @@ public class Application extends SpringBootServletInitializer {
                 config.getLiquibaseChangeLogPath(),
                 SumarisConfigurationOption.LIQUIBASE_CHANGE_LOG_PATH.getDefaultValue())) {
 
-            String changeLogPath= "classpath:net/sumaris/core/db/changelog/oracle/adagio/db-changelog-master.xml";
+            String changeLogPath = "classpath:net/sumaris/core/db/changelog/oracle/ifremer/db-changelog-master.xml";
             log.info("Using Liquibase changelog path: {{}}", changeLogPath);
             config.getApplicationConfig().setOption(SumarisConfigurationOption.LIQUIBASE_CHANGE_LOG_PATH.getKey(), changeLogPath);
         }
