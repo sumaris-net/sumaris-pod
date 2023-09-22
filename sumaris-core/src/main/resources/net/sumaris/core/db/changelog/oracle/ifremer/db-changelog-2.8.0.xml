@@ -86,4 +86,58 @@
     </addColumn>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-403">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">select count(*) from SOFTWARE where label='OBSMER'</sqlCheck>
+      </and>
+    </preConditions>
+    <!-- Add OBSMER software -->
+    <insert tableName="SOFTWARE">
+      <column name="ID" valueComputed="SOFTWARE_SEQ.nextval"/>
+      <column name="LABEL" value="OBSMER"/>
+      <column name="NAME" value="Observation des capture en mer"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="UPDATE_DATE" valueComputed="systimestamp"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-3" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">select count(*) from SOFTWARE_PROPERTY where SOFTWARE_FK IN (SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="software_property_seq.nextval"/>
+      <column name="LABEL">sumaris.persistence.adagio.optimization</column>
+      <column name="NAME">true</column>
+      <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="systimestamp"/>
+      <column name="UPDATE_DATE" valueComputed="systimestamp"/>
+    </insert>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="software_property_seq.nextval"/>
+      <column name="LABEL">sumaris.persistence.adagio.schema</column>
+      <column name="NAME">SIH2_ADAGIO_DBA</column>
+      <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="systimestamp"/>
+      <column name="UPDATE_DATE" valueComputed="systimestamp"/>
+    </insert>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="software_property_seq.nextval"/>
+      <column name="LABEL">sumaris.trip.enable</column>
+      <column name="NAME">true</column>
+      <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="systimestamp"/>
+      <column name="UPDATE_DATE" valueComputed="systimestamp"/>
+    </insert>
+  </changeSet>
+
 </databaseChangeLog>

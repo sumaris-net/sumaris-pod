@@ -132,7 +132,6 @@ public class PmfmStrategyRepositoryImpl
             if (fetchOptions.isWithPmfms()) {
                 PmfmVO targetPmfm = pmfmRepository.get(pmfm.getId());
                 target.setPmfm(targetPmfm);
-
             }
         }
         else {
