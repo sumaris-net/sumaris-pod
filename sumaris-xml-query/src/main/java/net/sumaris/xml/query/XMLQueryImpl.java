@@ -31,7 +31,6 @@ import lombok.NonNull;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.xml.query.utils.ElementFilter;
 import net.sumaris.xml.query.utils.XPaths;
@@ -42,17 +41,17 @@ import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Text;
-import org.jdom2.filter.Filter;
 import org.jdom2.filter.Filters;
 import org.jdom2.output.Format;
 import org.jdom2.util.IteratorIterable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
