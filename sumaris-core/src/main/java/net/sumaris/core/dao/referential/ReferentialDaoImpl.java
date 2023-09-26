@@ -655,15 +655,6 @@ public class ReferentialDaoImpl
         return createFilteredQuery(builder, entityClass, query, root, filter);
     }
 
-//    protected <T> TypedQuery<T> createFilteredQuery(CriteriaBuilder builder,
-//                                                       Class<T> entityClass,
-//                                                       CriteriaQuery<T> query,
-//                                                       Root<T> root,
-//                                                       IReferentialFilter filter
-//    ) {
-//     return createFilteredQuery(builder, entityClass, entityClass, query, root, filter)   ;
-//    }
-
     protected <R,T> TypedQuery<R> createFilteredQuery(CriteriaBuilder builder,
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
