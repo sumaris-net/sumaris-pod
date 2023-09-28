@@ -30,6 +30,11 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.Date;
 import java.util.List;
@@ -37,14 +42,29 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
+@Document(indexName = VesselSnapshotVO.INDEX)
 public class VesselSnapshotVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>, IRootDataVO<Integer> {
 
+    public static final String INDEX = "vessel_snapshot";
+
+    @Id
+    @Field(type = FieldType.Integer)
     private Integer id;
+
+    @Field(type = FieldType.Text)
     private String name;
+
+    @Field(type = FieldType.Text)
     private String exteriorMarking;
+
+    @Field(type = FieldType.Text)
     private String registrationCode;
+
+    @Field(type = FieldType.Text)
     private String intRegistrationCode;
+
+    @Field(type = FieldType.Integer)
     private Integer administrativePower;
     private Double lengthOverAll;
     private Double grossTonnageGrt;
@@ -53,14 +73,28 @@ public class VesselSnapshotVO implements IDataVO<Integer>,
     private LocationVO registrationLocation;
     private String comments;
 
+
+    @Field(type=FieldType.Date, format = DateFormat.basic_date_time_no_millis)
     private Date startDate;
+
+    @Field(type=FieldType.Date, format = DateFormat.basic_date_time_no_millis)
     private Date endDate;
 
+    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
     private Date creationDate;
+
+    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
     private Date updateDate;
+
+    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
     private Date controlDate;
+
+    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
     private Date validationDate;
+
+    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
     private Date qualificationDate;
+
     private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;

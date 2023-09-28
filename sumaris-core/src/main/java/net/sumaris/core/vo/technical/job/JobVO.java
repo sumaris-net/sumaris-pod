@@ -44,6 +44,8 @@ public class JobVO implements
     IValueObject<Integer>,
     IUpdateDateEntity<Integer, Date>, Comparable<JobVO> {
 
+    public static String SYSTEM_ISSUER = "SYSTEM";
+
     @EqualsAndHashCode.Include
     @ToString.Include
     private Integer id;

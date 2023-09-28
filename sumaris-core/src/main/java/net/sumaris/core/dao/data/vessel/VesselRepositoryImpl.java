@@ -159,9 +159,10 @@ public class VesselRepositoryImpl
             .and(statusIds(filter.getStatusIds()))
             // by type
             .and(vesselTypeId(filter.getVesselTypeId()))
-            // By period or single date
+            // Dates
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
+            .and(newerThan(filter.getMinUpdateDate()))
             // By text
             .and(searchText(filter.getSearchAttributes(), filter.getSearchText()))
             // Quality

@@ -22,7 +22,9 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -30,7 +32,6 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Formula;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -39,20 +40,26 @@ import java.util.List;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_features")
+@NamedEntityGraph(
+    name = VesselFeatures.GRAPH_SNAPSHOT,
+    attributeNodes = {
+        @NamedAttributeNode(VesselFeatures.Fields.VESSEL)
+    }
+)
 public class VesselFeatures implements IDataEntity<Integer>,
         IWithRecorderPersonEntity<Integer, Person>,
         IWithRecorderDepartmentEntity<Integer, Department>,
         IWithVesselEntity<Integer, Vessel>{
 
+    public static final String GRAPH_SNAPSHOT = "VesselFeatures.snapshot";
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_FEATURES_SEQ")
     @SequenceGenerator(name = "VESSEL_FEATURES_SEQ", sequenceName="VESSEL_FEATURES_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -104,9 +111,10 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @Column(name = "end_date")
     private Date endDate;
 
+    @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "exterior_marking")
+    @Column(name = "exterior_marking", length = 100)
     private String exteriorMarking;
 
     @Column(name = "length_over_all")
@@ -168,4 +176,5 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselPhysicalMeasurement.class, mappedBy = VesselPhysicalMeasurement.Fields.VESSEL_FEATURES)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselPhysicalMeasurement> measurements = new ArrayList<>();
+
 }

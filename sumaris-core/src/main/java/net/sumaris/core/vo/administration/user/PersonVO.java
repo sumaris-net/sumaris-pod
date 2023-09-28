@@ -28,6 +28,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
 
+import javax.persistence.Id;
 import java.util.Date;
 import java.util.List;
 
@@ -36,8 +37,10 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PersonVO implements IUpdateDateEntity<Integer, Date>, IValueObject<Integer> {
 
+    @Id
     @EqualsAndHashCode.Include
     private Integer id;
+
     private Date updateDate;
     private Date creationDate;
 

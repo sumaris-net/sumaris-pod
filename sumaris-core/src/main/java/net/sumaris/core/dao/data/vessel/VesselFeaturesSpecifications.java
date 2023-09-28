@@ -67,6 +67,10 @@ public interface VesselFeaturesSpecifications<
     String SEARCH_TEXT_PREFIX_PARAM = "searchTextPrefix";
     String SEARCH_TEXT_ANY_PARAM = "searchTextAny";
 
+    String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
+
+    String VRP_PATH = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
+
     boolean enableRegistrationCodeSearchAsPrefix();
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
@@ -245,19 +249,30 @@ public interface VesselFeaturesSpecifications<
             .vesselId(vesselId)
             .startDate(date)
             .build();
-        Page lastVesselPage = Page.builder().size(1).sortBy(VesselFeatures.Fields.START_DATE).sortDirection(SortDirection.DESC).build();
-        List<V> result = findAll(filter, lastVesselPage, fetchOptions);
+        List<V> result = findAll((F)filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
 
         // No result for this date:
         // => retry without date (should return the last features and period)
-        if (date != null && result.isEmpty()) {
+        if (result.isEmpty() && date != null) {
             filter.setDate(null);
-            result = findAll(filter, lastVesselPage, fetchOptions);
+            result = findAll(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
         }
         if (result.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(result.get(0));
+    }
+
+    default Specification<VesselFeatures> newerThan(Date minUpdateDate) {
+        if (minUpdateDate == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            Join<?, Vessel> vesselJoin = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL);
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, MIN_UPDATE_DATE_PARAM);
+            return cb.or(
+                cb.greaterThan(root.get(VesselFeatures.Fields.UPDATE_DATE), updateDateParam),
+                cb.greaterThan(vesselJoin.get(Vessel.Fields.UPDATE_DATE), updateDateParam)
+            );
+        }).addBind(MIN_UPDATE_DATE_PARAM, minUpdateDate);
     }
 
     DatabaseType getDatabaseType();

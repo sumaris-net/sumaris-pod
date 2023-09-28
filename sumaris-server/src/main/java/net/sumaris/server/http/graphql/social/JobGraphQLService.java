@@ -176,7 +176,7 @@ public class JobGraphQLService {
             }
         }
 
-        String message = I18n.t("sumaris.server.job.cancel.message", String.format("%s %s", user.getLastName(), user.getFirstName()));
+        String message = I18n.t("sumaris.job.cancel.message", String.format("%s %s", user.getLastName(), user.getFirstName()));
 
         return this.jobExecutionService.cancel(job, message);
     }

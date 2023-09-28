@@ -30,6 +30,7 @@ import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
@@ -58,7 +59,7 @@ public class LandingServiceReadOracleTest extends AbstractServiceTest {
     private LandingService service;
 
     @Autowired
-    private VesselService vesselService;
+    private VesselSnapshotService vesselSnapshotService;
 
     @Test
     public void findAllSortByVesselRegistrationCode() {
@@ -96,7 +97,7 @@ public class LandingServiceReadOracleTest extends AbstractServiceTest {
         // Add vessel if need
         beans.forEach(bean -> {
             if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
+                bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
             }
         });
     }

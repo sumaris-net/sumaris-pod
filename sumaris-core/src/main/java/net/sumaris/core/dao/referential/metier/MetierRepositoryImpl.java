@@ -50,6 +50,7 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class MetierRepositoryImpl
@@ -92,35 +93,34 @@ public class MetierRepositoryImpl
         // Create the query
         TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, sort);
 
-        return query
-            .setFirstResult(offset)
-            .setMaxResults(size)
-            .getResultStream()
-            .map(source -> {
-                MetierVO target = this.toVO(source);
+        try (Stream<Metier> stream = query.setFirstResult((int)offset).setMaxResults(size).getResultStream()) {
+            return stream
+                .map(source -> {
+                    MetierVO target = this.toVO(source);
 
-                if (enableSearchOnJoin) {
-                    // Copy join search to label/name
-                    Object joinSource = Beans.getProperty(source, searchJoinProperty);
-                    if (joinSource instanceof IItemReferentialEntity) {
-                        target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.LABEL));
-                        target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.NAME));
+                    if (enableSearchOnJoin) {
+                        // Copy join search to label/name
+                        Object joinSource = Beans.getProperty(source, searchJoinProperty);
+                        if (joinSource instanceof IItemReferentialEntity) {
+                            target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.LABEL));
+                            target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.NAME));
+                        }
+
+                        if (joinSource instanceof TaxonGroup) {
+                            TaxonGroup tg = (TaxonGroup) joinSource;
+                            target.getTaxonGroup().setLevelId(tg.getTaxonGroupType().getId());
+                        }
+
+                        // Override the entityName, to make sure client cache will NOT mixed Metier and Metier+searchJoin
+                        target.setEntityName(target.getEntityName() + searchJoinClass);
+
                     }
-
-                    if (joinSource instanceof TaxonGroup) {
-                        TaxonGroup tg = (TaxonGroup)joinSource;
-                        target.getTaxonGroup().setLevelId(tg.getTaxonGroupType().getId());
-                    }
-
-                    // Override the entityName, to make sure client cache will NOT mixed Metier and Metier+searchJoin
-                    target.setEntityName(target.getEntityName() + searchJoinClass);
-
-                }
-                return target;
-            })
-            // If join search: sort using a comparator (sort was skipped in query)
-            .sorted(sortingOutsideQuery ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
-            .collect(Collectors.toList());
+                    return target;
+                })
+                // If join search: sort using a comparator (sort was skipped in query)
+                .sorted(sortingOutsideQuery ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
+                .collect(Collectors.toList());
+        }
     }
 
 

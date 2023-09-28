@@ -23,6 +23,7 @@ package net.sumaris.core.service.technical;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -31,7 +32,6 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.event.job.JobEndEvent;
 import net.sumaris.core.event.job.JobProgressionEvent;
 import net.sumaris.core.event.job.JobProgressionVO;
@@ -53,8 +53,8 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
-import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.IJobResultVO;
+import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,7 +63,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -105,10 +104,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                                    ApplicationEventPublisher publisher) {
         this.jobService = jobService;
         this.userEventService = userEventService;
-        this.objectMapper = objectMapper;
         this.securityContext = securityContext.orElse(null);
         this.publisher = publisher;
         this.taskExecutor = taskExecutor.orElse(null);
+
+        // Use a cloned object mapper, to skip attributes with null value
+        this.objectMapper = objectMapper.copy();
+        this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @PostConstruct
@@ -289,7 +291,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                     .orElse(ProcessingTypeEnum.UNKNOWN);
                 if (!ProcessingTypeEnum.UNKNOWN.equals(processingType)) {
 
-                    String cancelMessage = I18n.t("sumaris.server.job.cancel.message", SystemRecipientEnum.SYSTEM);
+                    String cancelMessage = I18n.t("sumaris.job.cancel.message", SystemRecipientEnum.SYSTEM);
                     log.info("Job#{} - {}", job.getId(), cancelMessage);
 
                     // Just update the job end date, in the history table
@@ -463,7 +465,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
 
         int jobId = progression.getId();
-        log.debug("Receiving job progression event for job {}", progression);
+        if (log.isDebugEnabled()) {
+            try {
+                log.debug("Receiving job progression event for job {}", this.objectMapper.writeValueAsString(progression));
+            } catch (JsonProcessingException e) {
+                // Silent
+            }
+        }
 
         // Notify listeners
         List<Consumer<JobProgressionVO>> listeners = getProgressionListeners(jobId);

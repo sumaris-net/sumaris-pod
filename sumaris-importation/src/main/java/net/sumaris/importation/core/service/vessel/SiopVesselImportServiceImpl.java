@@ -445,7 +445,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		} catch (Exception e) {
 			// Result is kept in context
 			result = context.getResult();
-			result.setMessage(t("sumaris.import.vessel.error.detail", ExceptionUtils.getStackTrace(e)));
+			result.setMessage(t("sumaris.job.error.detail", ExceptionUtils.getStackTrace(e)));
 
 			// Set failed status
 			result.setStatus(JobStatusEnum.FATAL);

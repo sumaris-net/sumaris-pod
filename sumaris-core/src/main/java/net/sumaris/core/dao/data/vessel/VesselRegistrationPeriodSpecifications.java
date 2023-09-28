@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data.vessel;
  */
 
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -62,7 +63,7 @@ public interface VesselRegistrationPeriodSpecifications {
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(cb.coalesce(root.get(VesselRegistrationPeriod.Fields.END_DATE), Daos.DEFAULT_END_DATE_TIME), startDate),
+                        cb.lessThan(Daos.nvlEndDate(root, cb, VesselRegistrationPeriod.Fields.END_DATE, getDatabaseType()), startDate),
                         cb.greaterThan(root.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                     )
                 );
@@ -70,10 +71,7 @@ public interface VesselRegistrationPeriodSpecifications {
 
             // Start date only
             else if (startDate != null) {
-                return cb.or(
-                        cb.isNull(root.get(VesselRegistrationPeriod.Fields.END_DATE)),
-                        cb.not(cb.lessThan(root.get(VesselRegistrationPeriod.Fields.END_DATE), startDate))
-                    );
+                return cb.greaterThanOrEqualTo(Daos.nvlEndDate(root, cb, VesselRegistrationPeriod.Fields.END_DATE, getDatabaseType()), startDate);
             }
 
             // End date only
@@ -90,4 +88,6 @@ public interface VesselRegistrationPeriodSpecifications {
     Optional<VesselRegistrationPeriod> getByVesselIdAndDate(int vesselId, Date date);
 
     Page<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Pageable pageable);
+
+    DatabaseType getDatabaseType();
 }

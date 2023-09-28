@@ -137,7 +137,7 @@ public abstract class AggregationBaseDaoImpl<
 
         // Execute the query
         int columnCount = columnNamesWithFunction.size();
-        List<String[]> rows = query(sql, r -> this.toTableRowVO(r, columnCount), page.getOffset(), page.getSize());
+        List<String[]> rows = query(sql, r -> this.toTableRowVO(r, columnCount), (int)page.getOffset(), page.getSize());
         result.setRows(rows);
 
         return result;

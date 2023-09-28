@@ -24,8 +24,8 @@ package net.sumaris.core.vo.referential;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.ITreeNodeEntity;
 
+import javax.persistence.Id;
 import java.util.Date;
 import java.util.Map;
 
@@ -38,6 +38,7 @@ import java.util.Map;
 public class ReferentialVO implements IReferentialVO<Integer>,
     IReferentialWithLevelVO<Integer> {
 
+    @Id
     @EqualsAndHashCode.Include
     private Integer id;
     private String label;
@@ -60,6 +61,7 @@ public class ReferentialVO implements IReferentialVO<Integer>,
 
     // Metadata
     //@EqualsAndHashCode.Exclude
+    @Id
     private String entityName;
 
     private Map<String, Object> properties;

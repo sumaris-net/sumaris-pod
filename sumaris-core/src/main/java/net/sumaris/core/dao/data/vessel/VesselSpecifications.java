@@ -52,6 +52,9 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
     String SEARCH_TEXT_PREFIX_PARAM = "searchTextPrefix";
     String SEARCH_TEXT_ANY_PARAM = "searchTextAny";
 
+    String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
+
+
     boolean enableRegistrationCodeSearchAsPrefix();
 
     default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<Vessel> root) {
@@ -153,6 +156,19 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
                 vrpDatesPredicate
             );
         };
+    }
+
+    default Specification<Vessel> newerThan(Date minUpdateDate) {
+        if (minUpdateDate == null ) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            Join<Vessel, VesselFeatures> vf = Daos.composeJoin(root, Vessel.Fields.VESSEL_FEATURES);
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, MIN_UPDATE_DATE_PARAM);
+
+            return cb.or(
+                cb.greaterThan(root.get(Vessel.Fields.UPDATE_DATE), updateDateParam),
+                cb.greaterThan(vf.get(VesselFeatures.Fields.UPDATE_DATE), updateDateParam)
+            );
+        }).addBind(MIN_UPDATE_DATE_PARAM, minUpdateDate);
     }
 
     default Specification<Vessel> vesselFeaturesId(Integer vesselFeatureId) {

@@ -48,7 +48,7 @@ import java.util.*;
 public interface ProgramSpecifications {
 
     String PROPERTY_LABEL_PARAM = "propertyLabel";
-    String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
+    String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
     String ACQUISITION_LEVELS_PARAM = "acquisitionLevels";
 
     default Specification<Program> hasProperty(String propertyLabel) {
@@ -60,13 +60,13 @@ public interface ProgramSpecifications {
         .addBind(PROPERTY_LABEL_PARAM, propertyLabel);
     }
 
-    default Specification<Program> newerThan(Date updateDate) {
-        if (updateDate == null) return null;
+    default Specification<Program> newerThan(Date minUpdateDate) {
+        if (minUpdateDate == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, MIN_UPDATE_DATE_PARAM);
             return cb.greaterThan(root.get(Program.Fields.UPDATE_DATE), updateDateParam);
         })
-        .addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
+        .addBind(MIN_UPDATE_DATE_PARAM, minUpdateDate);
     }
 
     default Specification<Program> hasAcquisitionLevelLabels(String... acquisitionLevels) {

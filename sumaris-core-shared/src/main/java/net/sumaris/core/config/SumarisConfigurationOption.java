@@ -662,14 +662,14 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
 
     VESSEL_REGISTRATION_CODE_NATURAL_ORDER(
         "sumaris.persistence.vessel.registrationCode.naturalOrder.enable",
-        n("sumaris.config.option.persistence.vessel.registrationCode.naturalOrder.enabled.description"),
+        n("sumaris.config.option.persistence.vessel.registrationCode.naturalOrder.enable.description"),
         Boolean.FALSE.toString(),
         Boolean.class,
         false),
 
     VESSEL_REGISTRATION_CODE_SEARCH_AS_PREFIX(
         "sumaris.persistence.vessel.registrationCode.searchAsPrefix",
-        n("sumaris.config.option.persistence.vessel.registrationCode.search.prefix.description"),
+        n("sumaris.config.option.persistence.vessel.registrationCode.searchAsPrefix.description"),
         Boolean.TRUE.toString(),
         Boolean.class,
         false),
@@ -694,6 +694,30 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "false",
             Boolean.class,
             false),
+
+    ELASTICSEARCH_URIS(
+        "spring.elasticsearch.uris",
+        n("sumaris.config.option.spring.elasticsearch.uris.description"),
+        "http://localhost:9200",
+        String.class,
+        false
+    ),
+
+    ELASTICSEARCH_ENABLED(
+        "spring.data.elasticsearch.repositories.enabled",
+        n("sumaris.config.option.spring.data.elasticsearch.repositories.enabled.description"),
+        Boolean.TRUE.toString(),
+        Boolean.class,
+        false
+    ),
+
+    ELASTICSEARCH_VESSEL_SNAPSHOT_ENABLED(
+        "sumaris.elasticsearch.vessel.snapshot.enabled",
+        n("sumaris.config.option.elasticsearch.vessel.snapshot.enabled.description"),
+        "${spring.data.elasticsearch.repositories.enabled}",
+        Boolean.class,
+        false),
+
     ;
 
     /**
