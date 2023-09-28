@@ -24,7 +24,6 @@ package net.sumaris.core.dao.data.vessel;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
@@ -35,6 +34,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
@@ -42,6 +42,8 @@ import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.lang3.ArrayUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
@@ -49,7 +51,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
+import javax.annotation.Nullable;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
@@ -188,6 +191,7 @@ public class VesselSnapshotRepositoryImpl
             // Dates
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate()))
+            .and(newerThan(filter.getMinUpdateDate()))
             // Text
             .and(searchText(toEntityProperties(filter.getSearchAttributes()), filter.getSearchText()));
     }
@@ -195,8 +199,13 @@ public class VesselSnapshotRepositoryImpl
     @Override
     public void toVO(VesselFeatures source, VesselSnapshotVO target, VesselFetchOptions fetchOptions, boolean copyIfNull) {
 
-        VesselRegistrationPeriod registrationPeriod = vesselRegistrationPeriodRepository.getByVesselIdAndDate(source.getVessel().getId(),
-            source.getStartDate()).orElse(null);
+        // Fetch vessel registration period, at the startDate
+        VesselRegistrationPeriod registrationPeriod = null;
+        if ((fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod())) {
+            registrationPeriod = vesselRegistrationPeriodRepository.getByVesselIdAndDate(
+                source.getVessel().getId(),
+                source.getStartDate()).orElse(null);
+        }
 
         this.toVO(source, source.getVessel(), registrationPeriod,
             target, fetchOptions, copyIfNull);
@@ -242,9 +251,10 @@ public class VesselSnapshotRepositoryImpl
     }
 
     protected void toVO(VesselFeatures features,
-                     Vessel vessel,
-                     VesselRegistrationPeriod registrationPeriod,
-                     VesselSnapshotVO target, VesselFetchOptions fetchOptions, boolean copyIfNull) {
+                        Vessel vessel,
+                        VesselRegistrationPeriod registrationPeriod,
+                        VesselSnapshotVO target,
+                        VesselFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(features, target, fetchOptions, copyIfNull);
 
         // Convert from cm to m
@@ -286,12 +296,16 @@ public class VesselSnapshotRepositoryImpl
             } else if (copyIfNull) {
                 target.setVesselType(null);
             }
+
+            // Update date
+            target.setUpdateDate(Dates.max(features.getUpdateDate(), vessel.getUpdateDate()));
         }
         else if (copyIfNull) {
             target.setId(null);
             target.setVesselStatusId(null);
             target.setQualityFlagId(null);
             target.setVesselType(null);
+            target.setUpdateDate(features.getUpdateDate());
         }
 
         // Registration period
@@ -315,11 +329,23 @@ public class VesselSnapshotRepositoryImpl
         }
     }
 
-    protected void configureQuery(TypedQuery<?> query, @Nullable VesselFetchOptions fetchOptions) {
-        // Set hints
-        if (enableAdagioOptimization) {
-            query.setHint("org.hibernate.comment", String.format("+ INDEX(%s.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)", adagioSchema));
+    @Override
+    protected void configureQuery(TypedQuery<VesselFeatures> query,
+                                  @Nullable VesselFetchOptions fetchOptions) {
+        super.configureQuery(query, fetchOptions);
+
+        // Prepare load graph
+        EntityManager em = getEntityManager();
+        EntityGraph<?> entityGraph = em.getEntityGraph(VesselFeatures.GRAPH_SNAPSHOT);
+
+        if (fetchOptions != null) {
+            if (fetchOptions.isWithBasePortLocation())
+                entityGraph.addSubgraph(VesselFeatures.Fields.BASE_PORT_LOCATION);
+            if (fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(VesselFeatures.Fields.RECORDER_PERSON);
+            if (fetchOptions.isWithRecorderDepartment())
+                entityGraph.addSubgraph(VesselFeatures.Fields.RECORDER_DEPARTMENT);
         }
 
+        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
 }

@@ -25,7 +25,6 @@ package net.sumaris.core.dao.data.vessel;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
@@ -42,8 +41,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.Date;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Slf4j
 public class VesselRegistrationPeriodRepositoryImpl
@@ -79,18 +80,18 @@ public class VesselRegistrationPeriodRepositoryImpl
     @Override
     public Optional<VesselRegistrationPeriod> getByVesselIdAndDate(int vesselId, Date date) {
 
-        Pageable pageable = Pageables.create(0, 1,
-            VesselRegistrationPeriod.Fields.START_DATE,
-            SortDirection.DESC);
         Specification<VesselRegistrationPeriod> specification = vesselId(vesselId).and(atDate(date));
-        Optional<VesselRegistrationPeriod> result = findAll(specification, pageable).get().findFirst();
+        TypedQuery<VesselRegistrationPeriod> query = getQuery(specification, 0, 1, VesselRegistrationPeriod.Fields.START_DATE, SortDirection.DESC, VesselRegistrationPeriod.class);
+        try (Stream<VesselRegistrationPeriod> stream = query.getResultStream()) {
+            Optional<VesselRegistrationPeriod> result = stream.findFirst();
 
-        // Nothing found: retry without a date, if not already the case
-        if (!result.isPresent() && date != null) {
-            return getByVesselIdAndDate(vesselId, null);
+            // Nothing found: retry without a date, if not already the case
+            if (result.isEmpty() && date != null) {
+                return getByVesselIdAndDate(vesselId, null);
+            }
+
+            return result;
         }
-
-        return result;
     }
 
     @Override

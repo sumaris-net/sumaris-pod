@@ -48,6 +48,7 @@ import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 21/08/2020.
@@ -71,9 +72,9 @@ public class JobRepositoryImpl
 
     @Override
     public List<JobVO> findAll(JobFilterVO filter) {
-        return super.streamAll(toSpecification(filter))
-            .map(this::toVO)
-            .toList();
+        try (Stream<ProcessingHistory> stream = super.streamAll(toSpecification(filter))) {
+            return stream.map(this::toVO).toList();
+        }
     }
 
     @Override
@@ -189,7 +190,7 @@ public class JobRepositoryImpl
 
         // Status
         ProcessingStatusEnum targetStatus = source.getStatus().getProcessingStatus();
-        if (targetStatus == null) {
+        if (targetStatus == null || targetStatus.getId() == -1 /*not resolved*/) {
             targetStatus = ProcessingStatusEnum.WAITING_EXECUTION;
         }
         target.setProcessingStatus(getReference(ProcessingStatus.class, targetStatus.getId()));

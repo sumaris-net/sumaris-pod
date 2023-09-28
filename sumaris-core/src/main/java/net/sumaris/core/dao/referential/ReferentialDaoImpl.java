@@ -80,11 +80,11 @@ public class ReferentialDaoImpl
     implements ReferentialDao {
 
     protected  <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
-                                                                   IReferentialFilter filter,
-                                                                   int offset,
-                                                                   int size,
-                                                                   String sortAttribute,
-                                                                   SortDirection sortDirection) {
+                                                                       IReferentialFilter filter,
+                                                                       int offset,
+                                                                       int size,
+                                                                       String sortAttribute,
+                                                                       SortDirection sortDirection) {
         Preconditions.checkNotNull(entityClass, "Missing 'entityClass' argument");
         Preconditions.checkNotNull(filter, "Missing 'filter' argument");
 

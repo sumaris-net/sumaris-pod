@@ -236,7 +236,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         return resultStream.map(rowMapper).toList();
     }
 
-    protected <R> List<R> query(String query, Function<Object[], R> rowMapper, long offset, int size) {
+    protected <R> List<R> query(String query, Function<Object[], R> rowMapper, int offset, int size) {
         Query nativeQuery = createNativeQuery(query)
             .setFirstResult((int) offset)
             .setMaxResults(size);
@@ -425,7 +425,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
                                   Page page) {
         String sql = table.getSelectQuery(distinct, columnNames, whereClause, page.getSortBy(), page.getSortDirection());
         int columnCount = columnNames.size();
-        return query(sql, r -> toTableRowVO(r, columnCount), page.getOffset(), page.getSize());
+        return query(sql, r -> toTableRowVO(r, columnCount), (int)page.getOffset(), page.getSize());
     }
 
     protected List<String[]> toTableRowsVO(List<Object[]> rows, final int resultLength) {

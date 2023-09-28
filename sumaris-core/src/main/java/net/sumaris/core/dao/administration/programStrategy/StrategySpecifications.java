@@ -58,19 +58,18 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
     String PARAMETER_IDS = "parameterIds";
 
     String ACQUISITION_LEVEL_LABELS = "acquisitionLevelLabels";
-    String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
+    String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
 
     default Specification<Strategy> hasProgramIds(Integer... programIds) {
         return inLevelIds(Strategy.class, programIds);
     }
 
-    default Specification<Strategy> newerThan(Date updateDate) {
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+    default Specification<Strategy> newerThan(Date minUpdateDate) {
+        if (minUpdateDate == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, MIN_UPDATE_DATE_PARAM);
             return cb.greaterThan(root.get(Strategy.Fields.UPDATE_DATE), updateDateParam);
-        });
-        specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
-        return specification;
+        }).addBind(MIN_UPDATE_DATE_PARAM, minUpdateDate);
     }
 
     default Specification<Strategy> betweenDate(Date startDate, Date endDate) {

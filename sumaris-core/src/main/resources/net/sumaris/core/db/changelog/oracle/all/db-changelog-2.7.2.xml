@@ -27,22 +27,28 @@
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/oracle/all/db-changelog-2.7.2.xml">
 
+  <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+  <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+
   <!-- Rename some enumeration options -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-300" runOnChange="true">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259150-300" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <not>
-        <sqlCheck expectedResult="0">select count(*) from SOFTWARE_PROPERTY where label in (
-          'sumaris.enumeration.LocationLevel.ICES_RECTANGLE.id',
-          'sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id',
-          'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
-          'sumaris.enumeration.LocationLevel.ICES_SUB_DIVISION.id',
-          'sumaris.enumeration.LocationLevel.RECTANGLE_CGPM_GFCM.id',
-          'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id',
-          'sumaris.enumeration.LocationLevel.GFCM_SUB_AREA.id',
-          'sumaris.enumeration.LocationLevel.GFCM_DIVISION.id',
-          'sumaris.enumeration.LocationLevel.GFCM_SUB_DIVISION.id'
-          )</sqlCheck>
-      </not>
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <not>
+          <sqlCheck expectedResult="0">select count(*) from SOFTWARE_PROPERTY where label in (
+            'sumaris.enumeration.LocationLevel.ICES_RECTANGLE.id',
+            'sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id',
+            'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
+            'sumaris.enumeration.LocationLevel.ICES_SUB_DIVISION.id',
+            'sumaris.enumeration.LocationLevel.RECTANGLE_CGPM_GFCM.id',
+            'sumaris.enumeration.LocationLevel.GFCM_RECTANGLE.id',
+            'sumaris.enumeration.LocationLevel.GFCM_SUB_AREA.id',
+            'sumaris.enumeration.LocationLevel.GFCM_DIVISION.id',
+            'sumaris.enumeration.LocationLevel.GFCM_SUB_DIVISION.id'
+            )</sqlCheck>
+        </not>
+      </and>
     </preConditions>
     <sql endDelimiter=";">
       update SOFTWARE_PROPERTY set label='sumaris.enumeration.LocationLevel.SUB_AREA_ICES.id' where label='sumaris.enumeration.LocationLevel.ICES_SUB_AREA.id';

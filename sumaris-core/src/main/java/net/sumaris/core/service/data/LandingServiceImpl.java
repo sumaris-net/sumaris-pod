@@ -39,7 +39,7 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
-import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
@@ -71,7 +71,7 @@ public class LandingServiceImpl implements LandingService {
 
     protected final TripService tripService;
 
-    protected final VesselService vesselService;
+    protected final VesselSnapshotService vesselSnapshotService;
 
     protected final MeasurementDao measurementDao;
 
@@ -114,7 +114,7 @@ public class LandingServiceImpl implements LandingService {
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
 
-            target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
 
             Integer mainUndefinedOperationGroupId = null;
             if (target.getTripId() != null && fetchOptions.isWithTrip()) {

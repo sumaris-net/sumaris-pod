@@ -103,7 +103,8 @@ public class ObservedLocationRepositoryImpl
     }
 
     @Override
-    protected void configureQuery(TypedQuery<ObservedLocation> query, @Nullable DataFetchOptions fetchOptions) {
+    protected void configureQuery(TypedQuery<ObservedLocation> query,
+                                  @Nullable DataFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
         // Prepare load graph

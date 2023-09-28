@@ -34,7 +34,7 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
@@ -75,7 +75,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     private final OperationGroupRepository operationGroupRepository;
     private final MeasurementDao measurementDao;
     private final MetierRepository metierRepository;
-    private final VesselService vesselService;
+    private final VesselSnapshotService vesselSnapshotService;
     private final ProgramRepository programRepository;
     private final TimeZone dbTimeZone;
     private final boolean enableVesselActivityDateCheck;
@@ -87,7 +87,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                                         OperationGroupRepository operationGroupRepository,
                                         MeasurementDao measurementDao,
                                         MetierRepository metierRepository,
-                                        VesselService vesselService,
+                                        VesselSnapshotService vesselSnapshotService,
                                         ProgramRepository programRepository) {
         this.landingService = landingService;
         this.tripService = tripService;
@@ -95,7 +95,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         this.operationGroupRepository = operationGroupRepository;
         this.measurementDao = measurementDao;
         this.metierRepository = metierRepository;
-        this.vesselService = vesselService;
+        this.vesselSnapshotService = vesselSnapshotService;
         this.programRepository = programRepository;
         this.dbTimeZone = configuration.getDbTimezone();
         this.enableVesselActivityDateCheck = this.dbTimeZone.equals(configuration.getTimezone());
@@ -230,7 +230,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         aggregatedLandings.parallelStream()
             .forEach(aggregatedLanding -> {
                 aggregatedLanding.setObservedLocationId(filter.getObservedLocationId());
-                aggregatedLanding.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(aggregatedLanding.getVesselSnapshot().getId(), null));
+                aggregatedLanding.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(aggregatedLanding.getVesselSnapshot().getId(), null));
             });
 
         // Collect aggregated landings by date

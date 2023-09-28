@@ -29,7 +29,7 @@
 
   <!-- Processing updates -->
   <include relativeToChangelogFile="true" file="../all/db-changelog-2.7.2.xml"/>
-
+  <include relativeToChangelogFile="true" file="../all/db-changelog-2.8.0.xml"/>
   <include relativeToChangelogFile="true" file="db-changelog-2.8.0.xml"/>
 
 </databaseChangeLog>

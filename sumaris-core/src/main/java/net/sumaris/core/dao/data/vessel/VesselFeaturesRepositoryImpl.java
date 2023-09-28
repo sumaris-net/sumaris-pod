@@ -40,6 +40,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
@@ -127,6 +128,9 @@ public class VesselFeaturesRepositoryImpl
         // Recorder department
         DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
         target.setRecorderDepartment(recorderDepartment);
+
+        // Update date
+        target.setUpdateDate(Dates.max(source.getUpdateDate(), source.getVessel().getUpdateDate()));
     }
 
     @Override

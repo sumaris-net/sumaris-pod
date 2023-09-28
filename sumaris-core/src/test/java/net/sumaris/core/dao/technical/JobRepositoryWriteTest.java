@@ -66,7 +66,7 @@ public class JobRepositoryWriteTest extends AbstractDaoTest{
         source.setName("Test job");
         source.setStatus(JobStatusEnum.PENDING);
         source.setType(JobTypeEnum.SIOP_VESSELS_IMPORTATION.name());
-        source.setIssuer("SYSTEM");
+        source.setIssuer(JobVO.SYSTEM_ISSUER);
 
         // Save
         JobVO target = repository.save(source);

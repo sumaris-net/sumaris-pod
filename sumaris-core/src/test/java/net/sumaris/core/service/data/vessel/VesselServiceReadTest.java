@@ -30,7 +30,6 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
@@ -63,6 +62,9 @@ public class VesselServiceReadTest extends AbstractServiceTest{
     @Autowired
     private VesselService service;
 
+    @Autowired
+    private VesselSnapshotService vesselSnapshotService;
+
     @Test
     public void countAll() {
 
@@ -81,10 +83,9 @@ public class VesselServiceReadTest extends AbstractServiceTest{
             filter.setEndDate(Dates.fromISODateTimeString("2025-01-01T00:00:00.000Z"));
 
             long now = System.currentTimeMillis();
-            Long count = service.countByFilter(filter);
-            Assert.assertNotNull(count);
+            long count = service.countByFilter(filter);
             log.info("[start/end dates] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
-            Assert.assertEquals(1, count.intValue());
+            Assert.assertEquals(1L, count);
 
             // Reset filter dates
             filter.setStartDate(null);
@@ -95,18 +96,16 @@ public class VesselServiceReadTest extends AbstractServiceTest{
             // Valid date (today)
             filter.setDate(new Date());
             long now = System.currentTimeMillis();
-            Long count = service.countByFilter(filter);
-            Assert.assertNotNull(count);
+            long count = service.countByFilter(filter);
             log.info("[startDate only] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
-            Assert.assertEquals(1, count.intValue());
+            Assert.assertEquals(1L, count);
 
             // Invalid date ( > year 2100 - see NVL condition in vessel query specification)
             filter.setDate(Dates.fromISODateTimeString("1980-01-01T00:00:00.000Z"));
             now = System.currentTimeMillis();
             count = service.countByFilter(filter);
-            Assert.assertNotNull(count);
             log.info("[startDate only] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
-            Assert.assertEquals(0, count.intValue());
+            Assert.assertEquals(0L, count);
         }
     }
 
@@ -162,7 +161,7 @@ public class VesselServiceReadTest extends AbstractServiceTest{
             .sortDirection(SortDirection.ASC)
             .build();
 
-        List<VesselSnapshotVO> result = service.findAllSnapshots(filter, page, VesselFetchOptions.DEFAULT);
+        List<VesselSnapshotVO> result = vesselSnapshotService.findAll(filter, page, VesselFetchOptions.DEFAULT);
         Assert.assertNotNull(result);
         Assert.assertFalse(result.isEmpty());
 

@@ -43,6 +43,10 @@ public class Pageables  {
         return create(offset, size, (Sort.Direction)null, null);
     }
 
+    public static Pageable create(int offset, int size) {
+        return create((long)offset, size, (Sort.Direction)null, null);
+    }
+
     /**
      * @deprecated
      * @param offset
@@ -56,6 +60,14 @@ public class Pageables  {
         return create(offset, size,
                 sortDirection,
                 sortAttribute);
+    }
+
+    public static Pageable create(Integer offset, Integer size, SortDirection sortDirection, String... sortAttributes) {
+        Sort.Direction direction = Optional.ofNullable(sortDirection)
+            .map(SortDirection::name)
+            .map(Sort.Direction::fromString)
+            .orElse(Sort.Direction.ASC);
+        return create(offset == null ? null : offset.longValue(), size, direction, sortAttributes);
     }
 
     public static Pageable create(Long offset, Integer size, SortDirection sortDirection, String... sortAttributes) {

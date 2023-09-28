@@ -24,12 +24,12 @@ package net.sumaris.core.service.data.vessel;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
-import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
@@ -39,7 +39,6 @@ import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -50,36 +49,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Service("vesselService2")
+@Service("vesselService")
+@RequiredArgsConstructor
 @Slf4j
 public class VesselServiceImpl implements VesselService {
 
-	@Autowired
-	protected VesselRepository vesselRepository;
+	protected final VesselRepository vesselRepository;
 
-	@Autowired
-	protected VesselSnapshotRepository vesselSnapshotRepository;
+	protected final VesselFeaturesRepository vesselFeaturesRepository;
 
-	@Autowired
-	protected VesselFeaturesRepository vesselFeaturesRepository;
+	protected final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
 
-	@Autowired
-	protected VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
-
-	@Autowired
-	protected MeasurementDao measurementDao;
-
-	@Override
-	public List<VesselSnapshotVO> findAllSnapshots(@NonNull VesselFilterVO filter,
-												   net.sumaris.core.dao.technical.Page page,
-												   VesselFetchOptions fetchOptions) {
-		return vesselSnapshotRepository.findAll(filter, page, fetchOptions);
-	}
-
-	@Override
-	public Long countSnapshotsByFilter(@NonNull VesselFilterVO filter) {
-		return vesselSnapshotRepository.count(filter);
-	}
+	protected final MeasurementDao measurementDao;
 
 	@Override
 	public List<VesselVO> findAll(@NonNull VesselFilterVO filter,
@@ -99,24 +80,13 @@ public class VesselServiceImpl implements VesselService {
 	}
 
 	@Override
-	public Long countByFilter(@NonNull VesselFilterVO filter) {
+	public long countByFilter(@NonNull VesselFilterVO filter) {
 		return vesselRepository.count(filter);
 	}
 
 	@Override
 	public VesselVO get(int id) {
 		return vesselRepository.get(id);
-	}
-
-	@Override
-	public VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date) {
-		return vesselSnapshotRepository.getByVesselIdAndDate(vesselId, date, VesselFetchOptions.DEFAULT)
-			.orElseGet(() -> {
-				VesselSnapshotVO unknownVessel = new VesselSnapshotVO();
-				unknownVessel.setId(vesselId);
-				unknownVessel.setName("Unknown vessel " + vesselId); // TODO remove string
-				return unknownVessel;
-			});
 	}
 
 	@Override
@@ -262,4 +232,5 @@ public class VesselServiceImpl implements VesselService {
 
 		measurement.setEntityName(VesselPhysicalMeasurement.class.getSimpleName());
 	}
+
 }

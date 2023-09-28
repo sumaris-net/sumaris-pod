@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 19/11/2019.
@@ -114,7 +115,9 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             TypedQuery<VesselSnapshotResult> q = getEntityManager().createQuery(query)
                 .setFirstResult(offset)
                 .setMaxResults(size);
-            return toVesselSnapshotVOs(q.getResultList());
+            try (Stream<VesselSnapshotResult> stream = q.getResultStream()) {
+                return stream.map(this::toVesselSnapshotVO).toList();
+            }
         }
 
         List<Integer> statusIds = CollectionUtils.isEmpty(filter.getStatusIds())
@@ -210,8 +213,11 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
             .setParameter(statusIdsParam, statusIds)
             .setFirstResult(offset)
             .setMaxResults(size);
-        List<VesselSnapshotResult> result = q.getResultList();
-        return toVesselSnapshotVOs(result);
+        try (Stream<VesselSnapshotResult> stream = q.getResultStream()) {
+            return stream.map(this::toVesselSnapshotVO)
+                .filter(Objects::nonNull)
+                .toList();
+        }
     }
 
     private List<VesselSnapshotVO> toVesselSnapshotVOs(List<VesselSnapshotResult> source) {
@@ -252,7 +258,7 @@ public class VesselSnapshotDaoImpl extends HibernateDaoSupport implements Vessel
         ReferentialVO vesselType = referentialDao.toVO(features.getVessel().getVesselType());
         target.setVesselType(vesselType);
 
-        // base port location
+        // Base port location
         LocationVO basePortLocation = locationRepository.toVO(features.getBasePortLocation());
         target.setBasePortLocation(basePortLocation);
 

@@ -74,6 +74,8 @@ public class VesselFilterVO implements IRootDataFilter {
     private Integer[] qualityFlagIds; // not used
     private DataQualityStatusEnum[] dataQualityStatus; // not used
 
+    private Date minUpdateDate;
+
     public void setDate(Date date) {
         this.startDate = date;
         this.endDate = date;

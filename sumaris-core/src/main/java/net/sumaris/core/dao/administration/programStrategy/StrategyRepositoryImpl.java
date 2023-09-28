@@ -73,6 +73,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -234,13 +235,12 @@ public class StrategyRepositoryImpl
         // Sort by label
         query.orderBy(builder.asc(root.get(Gear.Fields.LABEL)));
 
-        return getEntityManager()
-                .createQuery(query)
-                .setParameter(strategyIdParam, strategyId)
-                .getResultStream()
-                .map(referentialDao::toVO)
-                .collect(Collectors.toList());
-
+        try (Stream<Gear> stream = getEntityManager()
+            .createQuery(query)
+            .setParameter(strategyIdParam, strategyId)
+            .getResultStream()) {
+            return stream.map(referentialDao::toVO).toList();
+        }
     }
 
     @Override
@@ -376,11 +376,11 @@ public class StrategyRepositoryImpl
 
     @Override
     public List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions) {
-        return findAll(
-                BindableSpecification.where(hasProgramIds(programId))
-                        .and(newerThan(updateDate))).stream()
-                .map(entity -> toVO(entity, fetchOptions))
-                .collect(Collectors.toList());
+        try (Stream<Strategy> stream =  streamAll(
+            BindableSpecification.where(hasProgramIds(programId))
+                .and(newerThan(updateDate)))) {
+            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+        }
     }
 
     @Override
@@ -666,7 +666,9 @@ public class StrategyRepositoryImpl
                 .and(hasLocationIds(filter.getLocationIds()))
                 .and(hasParameterIds(filter.getParameterIds()))
                 .and(hasPeriods(filter.getPeriods()))
-                .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()));
+                .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()))
+                .and(newerThan(filter.getMinUpdateDate()))
+            ;
     }
 
     @Override
