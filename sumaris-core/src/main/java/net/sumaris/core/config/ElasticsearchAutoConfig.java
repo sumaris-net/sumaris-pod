@@ -5,8 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.converter.BigDecimalConverter;
+import net.sumaris.core.util.converter.DateToLongConverter;
+import net.sumaris.core.util.converter.IntegerToDateConverter;
+import net.sumaris.core.util.converter.LongToDateConverter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.client.Node;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.RestHighLevelClientBuilder;
@@ -27,13 +31,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @Order(1)
 @RequiredArgsConstructor
-@EnableElasticsearchRepositories(basePackages = "net.sumaris.core.dao.technical.optimization")
 @EnableConfigurationProperties({ElasticsearchProperties.class})
+@ConditionalOnProperty(name = "spring.elasticsearch.enabled", havingValue = "true")
+@EnableElasticsearchRepositories(basePackages = "net.sumaris.core.dao.technical.elasticsearch")
 @Slf4j
-@ConditionalOnProperty(value = "spring.data.elasticsearch.repositories.enabled", havingValue = "true", matchIfMissing = true)
 public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
 
   private final ElasticsearchProperties properties;
@@ -45,8 +49,9 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
 
   @Bean
   public RestHighLevelClient restHighLevelClient(RestClient restClient) {
+    log.info("Starting Elastisearch client on {}", restClient.getNodes().stream().map(Node::getHost).toList());
     RestHighLevelClient client = new RestHighLevelClientBuilder(restClient)
-        .setApiCompatibilityMode(true)
+        //.setApiCompatibilityMode(true)
         .build();
     return client;
   }
@@ -72,18 +77,21 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
 
     // Default configuration (use localhost)
     return ClientConfiguration
-            .builder()
-            .connectedToLocalhost()
-            .build();
+        .builder()
+        .connectedToLocalhost()
+        .build();
   }
 
   @Bean
   @Override
   public ElasticsearchCustomConversions elasticsearchCustomConversions() {
     return new ElasticsearchCustomConversions(
-            Arrays.asList(
-                    new BigDecimalConverter()
-                  ));
+        Arrays.asList(
+            new BigDecimalConverter(),
+            new LongToDateConverter(),
+            new DateToLongConverter(),
+            new IntegerToDateConverter()
+        ));
   }
 
   private String[] getNodes(ElasticsearchProperties properties) {

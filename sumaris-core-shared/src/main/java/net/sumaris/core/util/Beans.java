@@ -201,6 +201,12 @@ public class Beans {
         }
     }
 
+    public static <T> boolean equals(Collection<T> a, Collection<T> b) {
+        return CollectionUtils.size(a) == CollectionUtils.size(b)
+            && (a == null || CollectionUtils.isEqualCollection(a, b));
+    }
+
+
     /**
      * <p>splitByProperty.</p>
      *
@@ -473,6 +479,7 @@ public class Beans {
         copyProperties(source, target, excludedPropertyNames);
         return target;
     }
+
 
     public static Map<Class<?>, Map<Class<?>, String[]>> cacheCopyPropertiesIgnored = Maps.newConcurrentMap();
 

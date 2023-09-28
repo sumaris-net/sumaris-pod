@@ -25,11 +25,13 @@ package net.sumaris.core.util;
  */
 
 import com.google.common.base.Preconditions;
+import com.sun.istack.NotNull;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.util.DateUtil;
 
+import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -580,5 +582,19 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         return (d1 == null || d2 == null)
                 ? (d1 != null ? d1 : d2)
                 : (d1.getTime() <= d2.getTime() ? d1 : d2);
+    }
+
+    public static boolean isNullOrBetween(@Nullable Date date, @NonNull Date startDate, @Nullable Date endDate) {
+        return date == null || isBetween(date, startDate, endDate);
+    }
+
+    public static boolean isBetween(@NonNull Date date, @NonNull Date startDate, @Nullable Date endDate) {
+        // False if endDate < date
+        if (endDate != null && endDate.getTime() < date.getTime()) return false;
+
+        // False if endDate < date
+        if (startDate.getTime() > date.getTime()) return false;
+
+        return true;
     }
 }

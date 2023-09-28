@@ -20,21 +20,22 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.optimization.vessel;
+package net.sumaris.core.dao.technical.elasticsearch;
 
-import net.sumaris.core.vo.data.VesselSnapshotVO;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.annotations.Query;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.repository.CrudRepository;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-import java.util.List;
+public class ElasticsearchUtils {
 
-public interface VesselSnapshotElasticsearchRepository
-    extends CrudRepository<VesselSnapshotVO, Integer>, VesselSnapshotElasticsearchSpecifications {
+    protected ElasticsearchUtils() {
+        // Helper class
+    }
 
-    //@Query("{\"aggs\" : { \"max_update_date\" : { \"max\" : { \"field\" : \"updateDate\" } } }}")
-    //SearchHits<VesselSnapshotVO> findMaxUpdateDate(Pageable pageable);
-
+    public static String getEscapedSearchText(String searchText) {
+        searchText = StringUtils.trimToNull(searchText);
+        if (searchText == null) return null;
+        return searchText.replaceAll("[*]+", "*") // group many '*' chars
+            .replaceAll("^[*]", "") // Remove start wildcard (not need)
+            .replaceAll("[*]$", "") // Remove end wildcard (not need)
+            ;
+    }
 }

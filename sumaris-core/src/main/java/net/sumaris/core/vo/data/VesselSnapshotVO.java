@@ -22,88 +22,92 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.DateFormat;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.*;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-@Data
+@Getter
+@Setter
 @FieldNameConstants
-@Document(indexName = VesselSnapshotVO.INDEX)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Document(indexName = VesselSnapshotVO.INDEX, createIndex = false)
+@Setting(settingPath = "settings/whitespace-analyzer.json")
 public class VesselSnapshotVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>, IRootDataVO<Integer> {
 
     public static final String INDEX = "vessel_snapshot";
 
     @Id
-    @Field(type = FieldType.Integer)
     private Integer id;
 
-    @Field(type = FieldType.Text)
+    @EqualsAndHashCode.Include
+    private Integer vesselId; // Copy of original id, need by ElasticSearch indexation
+
+    @Field(type = FieldType.Text, fielddata = true)
     private String name;
-
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, fielddata = true, analyzer = "whitespace_analyzer")
     private String exteriorMarking;
-
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, fielddata = true, analyzer = "whitespace_analyzer")
     private String registrationCode;
-
-    @Field(type = FieldType.Text)
+    @Field(type = FieldType.Text, fielddata = true, analyzer = "whitespace_analyzer")
     private String intRegistrationCode;
-
-    @Field(type = FieldType.Integer)
     private Integer administrativePower;
     private Double lengthOverAll;
     private Double grossTonnageGrt;
     private Double grossTonnageGt;
+    @Field(type = FieldType.Nested)
     private LocationVO basePortLocation;
+    @Field(type = FieldType.Nested)
     private LocationVO registrationLocation;
+    @Field(type = FieldType.Text, index = false)
     private String comments;
 
-
-    @Field(type=FieldType.Date, format = DateFormat.basic_date_time_no_millis)
+    @EqualsAndHashCode.Include
+    @Field(type = FieldType.Long)
     private Date startDate;
-
-    @Field(type=FieldType.Date, format = DateFormat.basic_date_time_no_millis)
+    @Field(type = FieldType.Long)
     private Date endDate;
-
-    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
+    @Field(type = FieldType.Long)
     private Date creationDate;
-
-    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
+    @Field(type = FieldType.Long)
     private Date updateDate;
 
-    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
+    @Field(type = FieldType.Long, index = false)
     private Date controlDate;
-
-    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
+    @Field(type = FieldType.Long, index = false)
     private Date validationDate;
 
-    @Field(type=FieldType.Date, format = DateFormat.basic_date_time)
+    @Field(type = FieldType.Long, index = false)
     private Date qualificationDate;
-
+    @Field(type = FieldType.Text, index = false)
     private String qualificationComments;
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
+
+    @Field(type = FieldType.Nested)
     private ProgramVO program;
 
     private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
 
+    @Field(type = FieldType.Nested)
     private ReferentialVO vesselType;
     private Integer vesselStatusId;
 

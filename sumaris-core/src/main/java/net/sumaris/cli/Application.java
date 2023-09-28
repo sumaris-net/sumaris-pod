@@ -37,6 +37,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JndiConnectionFactoryAutoConfiguration;
@@ -69,7 +70,8 @@ import java.util.Arrays;
 		FreeMarkerAutoConfiguration.class,
 		JndiConnectionFactoryAutoConfiguration.class,
 		JmsAutoConfiguration.class,
-		ActiveMQAutoConfiguration.class
+		ActiveMQAutoConfiguration.class,
+		ElasticsearchRestClientAutoConfiguration.class
 	},
 	scanBasePackages = {
 		"net.sumaris.core"

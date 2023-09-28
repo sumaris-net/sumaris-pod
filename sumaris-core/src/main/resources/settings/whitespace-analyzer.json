@@ -1,0 +1,10 @@
+{
+  "analysis": {
+    "analyzer": {
+      "whitespace_analyzer": {
+        "type": "custom",
+        "tokenizer": "whitespace"
+      }
+    }
+  }
+}

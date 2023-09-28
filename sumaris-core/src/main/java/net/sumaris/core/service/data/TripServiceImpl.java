@@ -122,7 +122,9 @@ public class TripServiceImpl implements TripService {
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
 
-            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDepartureDateTime())));
+            if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+                target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDepartureDateTime())));
+            }
 
             DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
 

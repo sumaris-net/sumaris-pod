@@ -486,15 +486,15 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected Stream<E> streamAll(@Nullable Specification<E> spec, Sort sort) {
-        return this.getQuery(spec, sort).getResultStream();
+        return streamQuery(this.getQuery(spec, sort));
     }
 
     protected Stream<E> streamAll(@Nullable Specification<E> spec) {
-        return this.getQuery(spec, Sort.unsorted()).getResultStream();
+        return streamAll(spec, Sort.unsorted());
     }
 
     protected <T> Stream<T> streamQuery(TypedQuery<T> query) {
-        return query.getResultList().stream();
+        return query.getResultStream();
     }
 
     protected TypedQuery<E> getQuery(@Nullable Specification<E> spec,
@@ -646,6 +646,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             query.orderBy(orders);
         }
     }
+
     /**
      * Add a orderBy on query
      *
@@ -660,8 +661,9 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     protected void addSorting(CriteriaQuery<?> query,
                               Root<E> from,
                               CriteriaBuilder cb,
-                              String sortAttribute,
-                              SortDirection sortDirection) {
+
+                                              String sortAttribute,
+                                              SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
             query.orderBy(toOrders(query, from, cb, sortAttribute, sortDirection));

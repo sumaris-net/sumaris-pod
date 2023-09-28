@@ -126,9 +126,10 @@ public class TripRepositoryImpl
             }
         }
 
-        // Parent link
-        // TODO scientificCruise
-
+        // Scientific cruise
+        if (source.getScientificCruise() != null) {
+            target.setScientificCruiseId(source.getScientificCruise().getId());
+        }
     }
 
     @Override

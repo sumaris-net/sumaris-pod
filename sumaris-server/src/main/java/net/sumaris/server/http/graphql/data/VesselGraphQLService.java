@@ -58,9 +58,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @GraphQLApi
@@ -187,11 +185,9 @@ public class VesselGraphQLService {
 
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
-        return vesselService.getFeaturesByVesselId(vesselId,
-            Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
-            //offset, size, sort, SortDirection.fromString(direction),
-            getFeaturesFetchOptions(GraphQLUtils.fields(env)))
-            .getContent();
+        return vesselService.findFeaturesByVesselId(vesselId,
+            Page.create(offset, size, sort, SortDirection.fromString(direction)),
+            getFeaturesFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
@@ -205,11 +201,7 @@ public class VesselGraphQLService {
                                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
-        return vesselService.getRegistrationPeriodsByVesselId(vesselId,
-            Pageables.create(offset, size, sort, SortDirection.fromString(direction))
-            //offset, size, sort, SortDirection.fromString(direction)
-            )
-            .getContent();
+        return vesselService.findRegistrationPeriodsByVesselId(vesselId, Page.create(offset, size, sort, SortDirection.fromString(direction)));
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
@@ -249,12 +241,9 @@ public class VesselGraphQLService {
         // Add vessel if need
         VesselSnapshotVO result = bean.getVesselSnapshot();
 
-        // No ID: cannot fetch
-        if (result == null || result.getId() == null) return;
-
         // Fetch (if need)
-        if (result.getName() == null && hasVesselFeaturesField(fields)) {
-            result = vesselSnapshotService.getByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime()));
+        if (result == null && bean.getVesselId() != null && hasVesselFeaturesField(fields)) {
+            result = vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime()));
             bean.setVesselSnapshot(result);
         }
     }
@@ -262,9 +251,9 @@ public class VesselGraphQLService {
     public <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans, Set<String> fields) {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
-            beans.forEach(bean -> {
-                if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                    bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
+            beans.parallelStream().forEach(bean -> {
+                if (bean.getVesselId() != null && bean.getVesselSnapshot() == null) {
+                    bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime())));
                 }
             });
         }

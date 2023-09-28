@@ -25,11 +25,9 @@ package net.sumaris.core.vo.technical.job;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
-import net.sumaris.core.model.technical.job.JobTypeEnum;
 
 import java.util.Date;
 
@@ -44,7 +42,7 @@ public class JobVO implements
     IValueObject<Integer>,
     IUpdateDateEntity<Integer, Date>, Comparable<JobVO> {
 
-    public static String SYSTEM_ISSUER = "SYSTEM";
+    public static final String SYSTEM_ISSUER = "SYSTEM";
 
     @EqualsAndHashCode.Include
     @ToString.Include

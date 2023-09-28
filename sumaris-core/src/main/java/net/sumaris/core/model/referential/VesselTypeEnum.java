@@ -28,12 +28,12 @@ import net.sumaris.core.model.annotation.EntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = VesselType.class)
+@EntityEnum(entity = VesselType.class, configAttributes = {VesselType.Fields.ID}, resolveAttributes = {VesselType.Fields.ID, VesselType.Fields.LABEL})
 public enum VesselTypeEnum implements Serializable {
 
     UNKNOWN(0, "UNK"),
     FISHING_VESSEL(1, "FISHING_VESSEL"),
-    SCIENTIFIC_RESEARCH_VESSEL(8, "SCIENTIFIC")
+    SCIENTIFIC_RESEARCH_VESSEL(8, "SCIENTIFIC") // Id adagio
     ;
 
     public static VesselTypeEnum valueOf(final int id) {

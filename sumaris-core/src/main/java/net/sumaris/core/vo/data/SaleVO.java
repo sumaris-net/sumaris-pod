@@ -56,9 +56,11 @@ public class SaleVO implements IRootDataVO<Integer>,
     private Integer qualityFlagId;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
-
     private ProgramVO program;
+
+    private Integer vesselId;
     private VesselSnapshotVO vesselSnapshot;
+
     private Date startDateTime;
     private Date endDateTime;
     private LocationVO saleLocation;

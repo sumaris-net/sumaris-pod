@@ -1989,17 +1989,17 @@ public class Daos {
         }
     }
 
-    public static Expression<Date> nvlEndDate(Path<?> root, CriteriaBuilder cb,
-                                              String endDateFieldName,
+    public static Expression<Date> nvlEndDate(Expression<Date> endDateFieldPath,
+                                              CriteriaBuilder cb,
                                               DatabaseType databaseType) {
 
         if (databaseType == DatabaseType.oracle) {
             // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
             return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
-                root.get(endDateFieldName)
+                endDateFieldPath
             );
         }
-        return cb.coalesce(root.get(endDateFieldName), Daos.DEFAULT_END_DATE_TIME);
+        return cb.coalesce(endDateFieldPath, Daos.DEFAULT_END_DATE_TIME);
     }
 
     public static Expression<String> naturalSort(CriteriaBuilder cb, Expression<?> path) {

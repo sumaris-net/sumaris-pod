@@ -24,7 +24,6 @@ package net.sumaris.core.service.data.vessel;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.Entities;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -96,16 +95,17 @@ public class VesselServiceWriteTest extends AbstractServiceTest {
         Assert.assertEquals(vessel1FeaturesId, savedVessel1.getVesselFeatures().getId());
         Assert.assertNotEquals(vessel2FeaturesId, savedVessel2.getVesselFeatures().getId());
         Integer savedVessel2FeaturesId2 = savedVessel2.getVesselFeatures().getId();
+        Assert.assertNotNull(savedVessel2FeaturesId2);
         Assert.assertEquals("Navire 1", savedVessel1.getVesselFeatures().getName());
         Assert.assertEquals("new name", savedVessel2.getVesselFeatures().getName());
 
         // read features history, and check all changes OK
         {
-            Page<VesselFeaturesVO> vessel1FeaturesPage = service.getFeaturesByVesselId(vesselId, Pageables.create(0, 10, "id", SortDirection.ASC),
+            List<VesselFeaturesVO> vessel1FeaturesPage = service.findFeaturesByVesselId(vesselId, net.sumaris.core.dao.technical.Page.create(0, 10, "id", SortDirection.ASC),
                 DataFetchOptions.MINIMAL);
             Assert.assertNotNull(vessel1FeaturesPage);
             Assert.assertFalse(vessel1FeaturesPage.isEmpty());
-            VesselFeaturesVO[] savedVesselFeatures = vessel1FeaturesPage.get().toArray(VesselFeaturesVO[]::new);
+            VesselFeaturesVO[] savedVesselFeatures = vessel1FeaturesPage.toArray(VesselFeaturesVO[]::new);
 
             VesselFeaturesVO savedFeatures1 = Arrays.stream(savedVesselFeatures)
                 .filter(vf -> Objects.equals(vf.getId(), vessel1FeaturesId))

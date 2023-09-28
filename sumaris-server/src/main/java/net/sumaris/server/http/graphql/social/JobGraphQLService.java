@@ -30,12 +30,18 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.job.JobProgressionVO;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.model.referential.ProcessingTypeEnum;
 import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
+import net.sumaris.core.model.technical.job.JobTypeEnum;
+import net.sumaris.core.service.data.vessel.VesselSnapshotJob;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
@@ -43,9 +49,11 @@ import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.security.AuthService;
+import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.security.ISecurityContext;
 import net.sumaris.server.service.technical.EntityWatchService;
+import org.apache.commons.collections4.MapUtils;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -53,9 +61,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @GraphQLApi
@@ -72,6 +78,8 @@ public class JobGraphQLService {
     private final EntityWatchService entityWatchService;
 
     private final AuthService authService;
+
+    private final VesselSnapshotJob vesselSnapshotJob;
 
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
     @IsUser
@@ -179,5 +187,44 @@ public class JobGraphQLService {
         String message = I18n.t("sumaris.job.cancel.message", String.format("%s %s", user.getLastName(), user.getFirstName()));
 
         return this.jobExecutionService.cancel(job, message);
+    }
+
+    @GraphQLQuery(name = "jobTypes", description = "Get all job types")
+    @IsAdmin
+    public String[] getAllJobTypes() {
+        return Arrays.stream(ProcessingTypeEnum.values())
+            .filter(type -> type.getId() >= 0 && !ProcessingTypeEnum.UNKNOWN.equals(type))
+            .map(ProcessingTypeEnum::getLabel)
+            .toArray(String[]::new);
+    }
+
+    @GraphQLMutation(name = "runJob", description = "Run a job")
+    @IsAdmin
+    public JobVO runJob(
+        @GraphQLNonNull @GraphQLArgument(name = "type") final String type,
+        @GraphQLArgument(name = "issuer", description = "job issuer", defaultValue = JobVO.SYSTEM_ISSUER) String issuer,
+        @GraphQLArgument(name = "params", description = "job parameters", defaultValue = GraphQLArgument.NULL) final Map<String, Object> params
+    ) {
+        JobTypeEnum jobType = JobTypeEnum.valueOf(type);
+
+        // Job issuer
+        String userPubkey = this.authService.getAuthenticatedUser()
+            .map(PersonVO::getPubkey)
+            .orElseThrow(UnauthorizedException::new);
+        if (StringUtils.isBlank(issuer)) {
+            issuer = userPubkey;
+        }
+        else if (!issuer.equals(userPubkey) && !issuer.equals(JobVO.SYSTEM_ISSUER)) {
+            throw new IllegalArgumentException(String.format("Invalid job issuer: '%s'", issuer));
+        }
+
+        // Vessel snapshot indexation
+        if (jobType == JobTypeEnum.VESSEL_SNAPSHOTS_INDEXATION) {
+            String dateStr = MapUtils.getString(params, "minUpdateDate", null);
+            Date minUpdateDate = StringUtils.isNotBlank(dateStr) ? Dates.fromISODateTimeString(dateStr) : null;
+            return vesselSnapshotJob.indexVesselSnapshots(issuer, minUpdateDate);
+        }
+
+        throw new SumarisTechnicalException("Unknown job type: " + type);
     }
 }

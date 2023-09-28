@@ -27,14 +27,18 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.elasticsearch.ElasticsearchResource;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
@@ -55,6 +59,9 @@ public class VesselServiceReadTest extends AbstractServiceTest{
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
+
+    @ClassRule
+    public static final ElasticsearchResource nodeResource = new ElasticsearchResource();
 
     @Autowired
     protected DatabaseFixtures fixtures;
@@ -111,68 +118,77 @@ public class VesselServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findAll() {
+        VesselFilterVO filter;
+        Page page;
+        String searchAttribute;
 
-        VesselFilterVO filter = VesselFilterVO.builder()
-            .programLabel(ProgramEnum.SIH.getLabel())
-            .build();
+        // Search on registration code
+        {
+            searchAttribute = StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+            filter = createFilterBuilder(searchAttribute)
+                .searchText("851751")
+                .build();
+            page = createPage(searchAttribute);
 
-        filter.setStatusIds(ImmutableList.of(StatusEnum.ENABLE.getId()));
+            List<VesselVO> result = service.findAll(filter, page, VesselFetchOptions.DEFAULT);
+            Assert.assertNotNull(result);
+            Assert.assertFalse(result.isEmpty());
+            AssertVessel.assertAllValid(result);
+            AssertVessel.assertUniqueIds(result);
+        }
 
-        filter.setSearchAttributes(new String[]{
-            Vessel.Fields.VESSEL_REGISTRATION_PERIODS + "." + VesselRegistrationPeriod.Fields.REGISTRATION_CODE
-        });
-        filter.setSearchText("FRA000851751");
+        // Search on international registration code
+        {
+            searchAttribute = StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+            filter = createFilterBuilder(searchAttribute)
+                .searchText("FRA000851*")
+                .build();
+            page = createPage(searchAttribute);
 
-        net.sumaris.core.dao.technical.Page page = net.sumaris.core.dao.technical.Page.builder()
-            .offset(0).size(10)
-            .sortBy(StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE))
-            .sortDirection(SortDirection.ASC)
-            .build();
+            List<VesselVO> result = service.findAll(filter, page, VesselFetchOptions.DEFAULT);
+            Assert.assertNotNull(result);
+            Assert.assertFalse(result.isEmpty());
+            AssertVessel.assertAllValid(result);
+            AssertVessel.assertUniqueIds(result);
+        }
 
-        List<VesselVO> result = service.findAll(filter, page, VesselFetchOptions.DEFAULT);
-        Assert.assertNotNull(result);
-        Assert.assertFalse(result.isEmpty());
+        // Search on name
+        {
+            searchAttribute = StringUtils.doting(Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME);
+            filter = createFilterBuilder(searchAttribute)
+                .searchText("nav")
+                .build();
+            page = createPage(searchAttribute);
 
-        AssertVessel.assertAllValid(result);
-
-        // Check no duplication
-        AssertVessel.assertUniqueIds(result);
+            List<VesselVO> result = service.findAll(filter, page, VesselFetchOptions.DEFAULT);
+            Assert.assertNotNull(result);
+            Assert.assertFalse(result.isEmpty());
+            AssertVessel.assertAllValid(result);
+            AssertVessel.assertUniqueIds(result);
+        }
     }
 
 
     @Test
     public void findSnapshotByFilter() {
 
-        VesselFilterVO filter = VesselFilterVO.builder()
-            .programLabel(ProgramEnum.SIH.getLabel())
-            .build();
+        VesselFilterVO filter;
+        Page page;
 
-        filter.setStatusIds(ImmutableList.of(StatusEnum.ENABLE.getId()));
-        filter.setDate(new Date());
+        {
 
-        filter.setSearchAttributes(new String[]{
-            VesselRegistrationPeriod.Fields.REGISTRATION_CODE
-        });
-        filter.setSearchText("FRA000851*");
+            filter = createFilterBuilder()
+                .searchAttributes(new String[]{VesselRegistrationPeriod.Fields.REGISTRATION_CODE})
+                .searchText("FRA000851*")
+                .build();
+            filter.setDate(new Date());
+            page = createPage(VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
 
-        net.sumaris.core.dao.technical.Page page = net.sumaris.core.dao.technical.Page.builder()
-            .offset(0).size(10)
-            .sortBy(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-            .sortDirection(SortDirection.ASC)
-            .build();
-
-        List<VesselSnapshotVO> result = vesselSnapshotService.findAll(filter, page, VesselFetchOptions.DEFAULT);
-        Assert.assertNotNull(result);
-        Assert.assertFalse(result.isEmpty());
-
-        // Check no duplicate
-        final Set<Integer> ids = Sets.newHashSet();
-        for (VesselSnapshotVO vessel: result) {
-
-            AssertVessel.assertValid(vessel);
-
-            Assert.assertFalse("Duplicated vessel id=" + vessel.getId(), ids.contains(vessel.getId()));
-            ids.add(vessel.getId());
+            List<VesselSnapshotVO> result = vesselSnapshotService.findAll(filter, page, VesselFetchOptions.DEFAULT);
+            Assert.assertNotNull(result);
+            Assert.assertFalse(result.isEmpty());
+            AssertVessel.assertAllValid(result);
+            AssertVessel.assertNoDuplicate(result);
         }
     }
 
@@ -186,5 +202,20 @@ public class VesselServiceReadTest extends AbstractServiceTest{
 
     /* -- protected -- */
 
+    private VesselFilterVO.VesselFilterVOBuilder createFilterBuilder(String... searchAttributes) {
+        Date now = new Date();
+        return VesselFilterVO.builder()
+            .programLabel(ProgramEnum.SIH.getLabel())
+            .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+            .searchAttributes(searchAttributes)
+            .startDate(now)
+            .endDate(now)
+            ;
+    }
+
+
+    private Page createPage(String sortBy) {
+        return Page.create(0, 100, sortBy, SortDirection.ASC);
+    }
 
 }

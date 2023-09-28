@@ -36,6 +36,7 @@ import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
@@ -64,7 +65,8 @@ import java.io.IOException;
         LiquibaseAutoConfiguration.class,
         FreeMarkerAutoConfiguration.class,
         JsonbAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class
+        SecurityFilterAutoConfiguration.class,
+        ElasticsearchRestClientAutoConfiguration.class
     }
 )
 @EnableWebSocket

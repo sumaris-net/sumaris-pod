@@ -20,18 +20,18 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.optimization.vessel;
+package net.sumaris.core.util.elasticsearch;
 
-import co.elastic.clients.elasticsearch.snapshot.Repository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import lombok.NonNull;
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
-import java.util.Date;
-import java.util.Optional;
+public class ElasticsearchTestUtils {
 
 
-public interface VesselSnapshotElasticsearchSpecifications {
+	public static ElasticsearchContainer createContainer(@NonNull String version) {
+		ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:" + version);
+		elasticsearchContainer.addExposedPorts(9200, 9300);
+		return elasticsearchContainer;
+	}
 
-    Optional<Date> findMaxUpdateDate();
 }

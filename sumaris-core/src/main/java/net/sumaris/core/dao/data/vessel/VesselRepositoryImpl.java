@@ -112,7 +112,8 @@ public class VesselRepositoryImpl
         Root<Vessel> root = criteriaQuery.from(Vessel.class);
         Join<Vessel, VesselFeatures> featuresJoin = root.join(Vessel.Fields.VESSEL_FEATURES, JoinType.LEFT);
 
-        boolean fetchRegistrationPeriod = filter.getStartDate() != null || filter.getEndDate() != null;
+        boolean fetchRegistrationPeriod = (fetchOptions != null && fetchOptions.isWithVesselRegistrationPeriod())
+            || (filter.getStartDate() != null || filter.getEndDate() != null);
         if (fetchRegistrationPeriod) {
             Join<Vessel, VesselRegistrationPeriod> vrpJoin = root.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
             criteriaQuery.multiselect(root, featuresJoin, vrpJoin);
@@ -159,6 +160,7 @@ public class VesselRepositoryImpl
             .and(statusIds(filter.getStatusIds()))
             // by type
             .and(vesselTypeId(filter.getVesselTypeId()))
+            .and(vesselTypeIds(filter.getVesselTypeIds()))
             // Dates
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
@@ -189,7 +191,7 @@ public class VesselRepositoryImpl
 
         // Vessel features
         if (fetchOptions == null || fetchOptions.isWithVesselFeatures()) {
-            VesselFeaturesVO features = vesselFeaturesRepository.getLastByVesselId(source.getId(), DataFetchOptions.MINIMAL).orElse(null);
+            VesselFeaturesVO features = vesselFeaturesRepository.findByVesselId(source.getId(), DataFetchOptions.MINIMAL).orElse(null);
             if (copyIfNull || features != null) {
                 target.setVesselFeatures(features);
             }

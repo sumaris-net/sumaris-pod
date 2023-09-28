@@ -45,6 +45,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -79,8 +80,11 @@ public class JobRepositoryImpl
 
     @Override
     public List<JobVO> findAll(JobFilterVO filter, net.sumaris.core.dao.technical.Page page) {
-        return this.findAll(filter, page != null ? page.asPageable(): Pageable.unpaged())
-            .getContent();
+        TypedQuery<ProcessingHistory> query = getQuery(toSpecification(filter), page, ProcessingHistory.class);
+
+        try (Stream<ProcessingHistory> stream = streamQuery(query)) {
+            return stream.map(this::toVO).toList();
+        }
     }
 
     @Override

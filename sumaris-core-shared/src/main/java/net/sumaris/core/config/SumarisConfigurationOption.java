@@ -241,6 +241,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     // -- DATA CONSTANTS --------------------------------------------------//
     // ------------------------------------------------------------------------//
 
+    DATA_VESSEL_TYPE_IDS(
+        "sumaris.data.vessel.type.ids",
+        n("sumaris.config.option.data.vessel.type.ids.description"),
+        null, // "${sumaris.enumeration.VesselType.FISHING_VESSEL.id}",
+        String.class,
+        false),
     DATA_IMAGES_ENABLE("sumaris.data.images.enable",
         n("sumaris.config.option.data.images.enable.description"),
         Boolean.FALSE.toString(),
@@ -704,9 +710,9 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     ),
 
     ELASTICSEARCH_ENABLED(
-        "spring.data.elasticsearch.repositories.enabled",
-        n("sumaris.config.option.spring.data.elasticsearch.repositories.enabled.description"),
-        Boolean.TRUE.toString(),
+        "spring.elasticsearch.enabled",
+        n("sumaris.config.option.spring.elasticsearch.enabled.description"),
+        Boolean.FALSE.toString(),
         Boolean.class,
         false
     ),
@@ -714,10 +720,9 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     ELASTICSEARCH_VESSEL_SNAPSHOT_ENABLED(
         "sumaris.elasticsearch.vessel.snapshot.enabled",
         n("sumaris.config.option.elasticsearch.vessel.snapshot.enabled.description"),
-        "${spring.data.elasticsearch.repositories.enabled}",
+        "${spring.elasticsearch.enabled}",
         Boolean.class,
         false),
-
     ;
 
     /**

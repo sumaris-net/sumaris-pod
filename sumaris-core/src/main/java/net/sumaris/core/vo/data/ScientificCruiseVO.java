@@ -24,15 +24,16 @@ package net.sumaris.core.vo.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Date;
 import java.util.List;
@@ -41,54 +42,44 @@ import java.util.Set;
 
 @Data
 @FieldNameConstants
-public class LandingVO implements IRootDataVO<Integer>,
-        IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>,
-        IWithObserversEntity<Integer, PersonVO>,
-        IWithMeasurementValues{
+public class ScientificCruiseVO implements
+    IRootDataVO<Integer>,
+    IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
+    private String name;
+    private String reference;
+    private Date departureDateTime;
+    private Date returnDateTime;
+    private PersonVO managerPerson;
     private String comments;
-    private Date creationDate;
-    private Date updateDate;
-    private Date controlDate;
-    private Date validationDate;
-    private Integer qualityFlagId;
-    private Date qualificationDate;
-    private String qualificationComments;
-    private DepartmentVO recorderDepartment;
-    private PersonVO recorderPerson;
+    private ProgramVO program;
 
     private Integer vesselId;
     private VesselSnapshotVO vesselSnapshot;
 
-    private Date dateTime;
-    private LocationVO location;
-    private Integer rankOrder;
+    private Date creationDate;
+    private Date updateDate;
+    private Date controlDate;
+    private Date validationDate;
+    private Date qualificationDate;
+    private String qualificationComments;
+    private Integer qualityFlagId;
+    private DepartmentVO recorderDepartment;
+    private PersonVO recorderPerson;
 
-    private Set<PersonVO> observers;
-    private List<SampleVO> samples;
-    private Integer samplesCount;
-
-    // Not used in the App
-    // and the association 'Landing.expectedSales' has been comment out (see issue sumaris-pod #24)
-    //private List<ExpectedSaleVO> expectedSales;
-
-    private ProgramVO program;
-
-    private List<MeasurementVO> measurements;
-    private Map<Integer, String> measurementValues;
-
-    @ToString.Exclude
-    private ObservedLocationVO observedLocation;
-    private Integer observedLocationId;
-
-    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TripVO trip;
     private Integer tripId;
 
     @Override
     @JsonIgnore
     public Date getVesselDateTime() {
-        return dateTime;
+        return departureDateTime;
+    }
+
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
 }
