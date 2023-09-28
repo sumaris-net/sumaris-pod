@@ -50,7 +50,6 @@ import java.util.concurrent.Future;
 @Transactional
 public interface VesselSnapshotService {
 
-
 	@Transactional(readOnly = true)
 	List<VesselSnapshotVO> findAll(VesselFilterVO filter,
 								   net.sumaris.core.dao.technical.Page page,
@@ -68,15 +67,18 @@ public interface VesselSnapshotService {
 
 	@Transactional(readOnly = true)
 	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE)
-	VesselSnapshotVO getByIdAndDate(int vesselId, Date date);
+	VesselSnapshotVO getByIdAndDate(int vesselId, @Nullable Date date);
 
 	@Transactional(readOnly = true)
 	Optional<Date> getMaxIndexedUpdateDate();
 
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	UpdateVesselSnapshotsResultVO indexVesselSnapshots(VesselFilterVO filter);
 
+	boolean isIndexing();
+
 	@Async("jobTaskExecutor")
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	Future<UpdateVesselSnapshotsResultVO> asyncIndexVesselSnapshots(VesselFilterVO filter,
 																	@Nullable IProgressionModel progressionModel);
 }

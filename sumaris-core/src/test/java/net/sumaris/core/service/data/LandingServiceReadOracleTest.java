@@ -96,8 +96,8 @@ public class LandingServiceReadOracleTest extends AbstractServiceTest {
     protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans) {
         // Add vessel if need
         beans.forEach(bean -> {
-            if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
+            if (bean.getVesselSnapshot() == null && bean.getVesselId() != null && bean.getVesselSnapshot().getName() == null) {
+                bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime())));
             }
         });
     }

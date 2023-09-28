@@ -24,6 +24,7 @@ package net.sumaris.core.service.data.vessel;
 
 
 import net.sumaris.core.config.CacheConfiguration;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
@@ -31,8 +32,6 @@ import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -82,10 +81,10 @@ public interface VesselService {
 	void delete(List<Integer> ids);
 
 	@Transactional(readOnly = true)
-	Page<VesselFeaturesVO> getFeaturesByVesselId(int vesselId, Pageable pageable, DataFetchOptions fetchOptions);
+	List<VesselFeaturesVO> findFeaturesByVesselId(int vesselId, Page page, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	Page<VesselRegistrationPeriodVO> getRegistrationPeriodsByVesselId(int vesselId, Pageable pageable);
+	List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page);
 
 	@CacheEvict(cacheNames = {
 		CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE,

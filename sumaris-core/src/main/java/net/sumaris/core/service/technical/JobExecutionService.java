@@ -44,4 +44,6 @@ public interface JobExecutionService {
     Observable<JobProgressionVO> watchJobProgression(int id);
 
     JobVO cancel(JobVO job, String message);
+
+    <T> T readConfiguration(JobVO job, Class<T> configurationClass);
 }

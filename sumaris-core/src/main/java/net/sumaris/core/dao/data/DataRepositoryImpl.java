@@ -60,6 +60,7 @@ import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 30/03/2020.
@@ -116,16 +117,16 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
     }
 
     @Override
-    public List<V> findAll(@Nullable F filter, @Nullable net.sumaris.core.dao.technical.Page page, O fetchOptions) {
+    public List<V> findAll(@Nullable F filter, @Nullable net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions) {
         Specification<E> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
         TypedQuery<E> query = getQuery(spec, page, getDomainClass());
 
         // Add hints
         configureQuery(query, fetchOptions);
 
-        return streamQuery(query)
-            .map(entity -> toVO(entity, fetchOptions))
-            .collect(Collectors.toList());
+        try (Stream<E> stream = streamQuery(query)) {
+            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+        }
     }
 
     @Override
@@ -136,9 +137,9 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         // Add hints
         configureQuery(query, fetchOptions);
 
-        return streamQuery(query)
-            .map(entity -> toVO(entity, fetchOptions))
-            .collect(Collectors.toList());
+        try (Stream<E> stream = streamQuery(query)) {
+            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+        }
     }
 
     @Override
@@ -311,9 +312,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
         // Vessel
         if (source instanceof IWithVesselEntity && target instanceof IWithVesselSnapshotEntity) {
-            VesselSnapshotVO vesselSnapshot = new VesselSnapshotVO();
-            vesselSnapshot.setId(((IWithVesselEntity<Integer, Vessel>) source).getVessel().getId());
-            ((IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>) target).setVesselSnapshot(vesselSnapshot);
+            Integer vesselId = ((IWithVesselEntity<Integer, Vessel>) source).getVessel().getId();
+            ((IWithVesselSnapshotEntity<?, ?>) target).setVesselId(vesselId);
         }
 
         // Observers

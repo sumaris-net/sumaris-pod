@@ -79,9 +79,7 @@ import java.util.function.Function;
 import static org.nuiton.i18n.I18n.t;
 
 @Component
-@ConditionalOnProperty(name = "sumaris.job.service.enabled",
-    havingValue = "true",
-    matchIfMissing = true)
+@ConditionalOnProperty(name = "sumaris.job.service.enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class JobExecutionServiceImpl implements JobExecutionService {
 
@@ -146,7 +144,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 Object configuration = configurationLoader.call();
                 // Store configuration into the job (as json)
                 if (configuration != null) {
-                    job.setConfiguration(objectMapper.writeValueAsString(configuration));
+                    job.setConfiguration(writeValueAsString(configuration));
                 }
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
@@ -245,12 +243,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
             // Store result as report
             if (result != null) {
-                try {
-                    // Serialize result in job report (as json)
-                    job.setReport(objectMapper.writeValueAsString(result));
-                } catch (JsonProcessingException e) {
-                    throw new SumarisTechnicalException(e);
-                }
+                // Serialize result in job report (as json)
+                job.setReport(writeValueAsString(result));
             }
 
             return new AsyncResult(result);
@@ -466,11 +460,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
         int jobId = progression.getId();
         if (log.isDebugEnabled()) {
-            try {
-                log.debug("Receiving job progression event for job {}", this.objectMapper.writeValueAsString(progression));
-            } catch (JsonProcessingException e) {
-                // Silent
-            }
+            log.debug("Receiving job progression event for job {}", this.writeValueAsString(progression));
         }
 
         // Notify listeners
@@ -486,7 +476,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         Preconditions.checkNotNull(job.getIssuer());
 
         // Prepare content
-        String content = toJsonString(job);
+        String content = writeValueAsString(job);
 
         // Build events
         UserEventVO userEvent = UserEventVO.builder()
@@ -531,7 +521,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
     }
 
-    private String toJsonString(Object object) {
+    public String writeValueAsString(Object object) {
         String content = null;
         if (object != null) {
             if (object instanceof String) {
@@ -545,5 +535,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             }
         }
         return content;
+    }
+
+    @Override
+    public <T> T readConfiguration(@NonNull JobVO job, @NonNull Class<T> configurationClass) {
+        if (StringUtils.isBlank(job.getConfiguration())) return null;
+        String configuration = job.getConfiguration();
+        if (configurationClass.isAssignableFrom(String.class)) {
+            return (T)configuration;
+        } else {
+            try {
+                return objectMapper.readValue(configuration, configurationClass);
+            } catch (JsonProcessingException e) {
+                log.error(String.format("Can't parse JSON: %s", configuration), e);
+                return null;
+            }
+        }
     }
 }

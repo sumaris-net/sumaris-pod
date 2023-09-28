@@ -153,7 +153,6 @@
     <spqr.version>0.12.2</spqr.version>
     <reactor.version>3.5.0</reactor.version>
     <kotlin.version>1.3.70</kotlin.version>
-    <unboundid-ldapsdk.version>4.0.14</unboundid-ldapsdk.version>
     <dom4j.version>2.1.3</dom4j.version>
     <servlet-api.version>4.0.1</servlet-api.version>
     <thumbnailator.version>0.4.20</thumbnailator.version>
@@ -173,6 +172,8 @@
     <!-- unit test -->
     <jmock.version>2.12.0</jmock.version>
     <dbunit.version>2.7.3</dbunit.version>
+    <testcontainers.version>1.17.6</testcontainers.version>
+    <unboundid-ldapsdk.version>4.0.14</unboundid-ldapsdk.version>
 
     <nuitonConfigVersion>3.5</nuitonConfigVersion>
     <nuitonVersionVersion>1.0-rc-2</nuitonVersionVersion>
@@ -1141,6 +1142,12 @@
         <groupId>com.unboundid</groupId>
         <artifactId>unboundid-ldapsdk</artifactId>
         <version>${unboundid-ldapsdk.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>elasticsearch</artifactId>
+        <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>

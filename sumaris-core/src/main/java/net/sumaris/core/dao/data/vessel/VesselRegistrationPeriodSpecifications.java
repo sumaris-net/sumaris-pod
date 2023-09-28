@@ -24,17 +24,17 @@ package net.sumaris.core.dao.data.vessel;
 
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 public interface VesselRegistrationPeriodSpecifications {
@@ -63,7 +63,7 @@ public interface VesselRegistrationPeriodSpecifications {
             if (startDate != null && endDate != null) {
                 return cb.not(
                     cb.or(
-                        cb.lessThan(Daos.nvlEndDate(root, cb, VesselRegistrationPeriod.Fields.END_DATE, getDatabaseType()), startDate),
+                        cb.lessThan(Daos.nvlEndDate(root.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDate),
                         cb.greaterThan(root.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
                     )
                 );
@@ -71,7 +71,7 @@ public interface VesselRegistrationPeriodSpecifications {
 
             // Start date only
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(Daos.nvlEndDate(root, cb, VesselRegistrationPeriod.Fields.END_DATE, getDatabaseType()), startDate);
+                return cb.greaterThanOrEqualTo(Daos.nvlEndDate(root.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDate);
             }
 
             // End date only
@@ -87,7 +87,7 @@ public interface VesselRegistrationPeriodSpecifications {
 
     Optional<VesselRegistrationPeriod> getByVesselIdAndDate(int vesselId, Date date);
 
-    Page<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Pageable pageable);
+    List<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Page page);
 
     DatabaseType getDatabaseType();
 }

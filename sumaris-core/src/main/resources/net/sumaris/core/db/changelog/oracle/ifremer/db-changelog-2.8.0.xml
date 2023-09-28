@@ -112,7 +112,7 @@
       </and>
     </preConditions>
     <insert tableName="SOFTWARE_PROPERTY">
-      <column name="ID" valueComputed="software_property_seq.nextval"/>
+      <column name="ID" valueComputed="SOFTWARE_PROPERTY_SEQ.nextval"/>
       <column name="LABEL">sumaris.persistence.adagio.optimization</column>
       <column name="NAME">true</column>
       <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
@@ -121,7 +121,7 @@
       <column name="UPDATE_DATE" valueComputed="systimestamp"/>
     </insert>
     <insert tableName="SOFTWARE_PROPERTY">
-      <column name="ID" valueComputed="software_property_seq.nextval"/>
+      <column name="ID" valueComputed="SOFTWARE_PROPERTY_SEQ.nextval"/>
       <column name="LABEL">sumaris.persistence.adagio.schema</column>
       <column name="NAME">SIH2_ADAGIO_DBA</column>
       <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
@@ -130,7 +130,7 @@
       <column name="UPDATE_DATE" valueComputed="systimestamp"/>
     </insert>
     <insert tableName="SOFTWARE_PROPERTY">
-      <column name="ID" valueComputed="software_property_seq.nextval"/>
+      <column name="ID" valueComputed="SOFTWARE_PROPERTY_SEQ.nextval"/>
       <column name="LABEL">sumaris.trip.enable</column>
       <column name="NAME">true</column>
       <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
@@ -140,4 +140,62 @@
     </insert>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-405" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <columnExists tableName="USER_EVENT" columnName="CONTENT"/>
+      </and>
+    </preConditions>
+    <addColumn tableName="USER_EVENT">
+      <column name="CONTENT_CLOB" type="CLOB"/>
+    </addColumn>
+    <sql endDelimiter=";">
+      update user_event set CONTENT_CLOB = content where CONTENT_CLOB is NULL;
+      commit;
+    </sql>
+    <dropColumn tableName="USER_EVENT" columnName="CONTENT"/>
+    <renameColumn tableName="USER_EVENT" oldColumnName="CONTENT_CLOB" newColumnName="CONTENT"/>
+  </changeSet>
+
+  <!-- enumeration vessel type -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-406" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">
+          SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.enumeration.VesselType.FISHING_VESSEL.id' AND SOFTWARE_FK IN (SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')
+        </sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="SOFTWARE_PROPERTY_SEQ.nextval"/>
+      <column name="LABEL" value="sumaris.enumeration.VesselType.FISHING_VESSEL.id"/>
+      <column name="NAME" value="1"/>
+      <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+    </insert>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259350-407" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">
+          SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.enumeration.VesselType.SCIENTIFIC_RESEARCH_VESSEL.id' AND SOFTWARE_FK IN (SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')
+        </sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="SOFTWARE_PROPERTY_SEQ.nextval"/>
+      <column name="LABEL" value="sumaris.enumeration.VesselType.SCIENTIFIC_RESEARCH_VESSEL.id"/>
+      <column name="NAME" value="8"/>
+      <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+    </insert>
+  </changeSet>
 </databaseChangeLog>

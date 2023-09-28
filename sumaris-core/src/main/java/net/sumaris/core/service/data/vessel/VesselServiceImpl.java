@@ -30,6 +30,7 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
@@ -39,8 +40,6 @@ import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -90,16 +89,16 @@ public class VesselServiceImpl implements VesselService {
 	}
 
 	@Override
-	public Page<VesselFeaturesVO> getFeaturesByVesselId(int vesselId, Pageable pageable, DataFetchOptions fetchOptions) {
+	public List<VesselFeaturesVO> findFeaturesByVesselId(int vesselId, Page page, DataFetchOptions fetchOptions) {
 		return vesselFeaturesRepository
-			.findAll(VesselFilterVO.builder().vesselId(vesselId).build(), pageable, fetchOptions);
+			.findAll(VesselFilterVO.builder().vesselId(vesselId).build(), page, fetchOptions);
 	}
 
 	@Override
-	public Page<VesselRegistrationPeriodVO> getRegistrationPeriodsByVesselId(int vesselId, Pageable pageable) {
+	public List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page) {
 		return vesselRegistrationPeriodRepository.findAll(
 			VesselFilterVO.builder().vesselId(vesselId).build(),
-			pageable);
+			page);
 	}
 
 	@Override

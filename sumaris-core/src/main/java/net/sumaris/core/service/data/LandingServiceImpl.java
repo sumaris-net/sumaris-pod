@@ -114,7 +114,9 @@ public class LandingServiceImpl implements LandingService {
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
 
-            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
+            if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+                target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDateTime())));
+            }
 
             Integer mainUndefinedOperationGroupId = null;
             if (target.getTripId() != null && fetchOptions.isWithTrip()) {

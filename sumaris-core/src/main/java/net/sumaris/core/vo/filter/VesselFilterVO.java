@@ -52,6 +52,7 @@ public class VesselFilterVO implements IRootDataFilter {
     private Integer vesselFeaturesId;
 
     private Integer vesselTypeId;
+    private Integer[] vesselTypeIds;
 
     private String[] searchAttributes;
     private String searchText;

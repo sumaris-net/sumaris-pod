@@ -24,7 +24,6 @@ package net.sumaris.core.vo.data.vessel;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.vo.technical.job.IJobResultVO;
 
@@ -34,8 +33,12 @@ import java.util.Date;
 @Builder
 public class UpdateVesselSnapshotsResultVO implements IJobResultVO {
 
+    private long inserts;
+    private long updates;
+    private long deletes;
     private Integer errors;
-    private long vesselCount;
+
+    private long vessels;
 
     private String message;
 
