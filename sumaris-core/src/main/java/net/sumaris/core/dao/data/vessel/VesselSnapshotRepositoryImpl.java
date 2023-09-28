@@ -51,7 +51,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
+import javax.annotation.Nullable;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
@@ -178,6 +179,7 @@ public class VesselSnapshotRepositoryImpl
             // Dates
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
+            .and(newerThan(filter.getMinUpdateDate()))
             .and(newerThan(filter.getMinUpdateDate()))
             // Text
             .and(searchText(toEntityProperties(filter.getSearchAttributes()), filter.getSearchText()));
@@ -371,5 +373,6 @@ public class VesselSnapshotRepositoryImpl
             query.setHint("org.hibernate.comment", String.format("+ INDEX(%s.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)", adagioSchema));
         }
 
+        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
 }

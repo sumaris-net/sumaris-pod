@@ -90,4 +90,6 @@ public interface VesselRegistrationPeriodSpecifications {
     List<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Page page);
 
     DatabaseType getDatabaseType();
+
+    DatabaseType getDatabaseType();
 }

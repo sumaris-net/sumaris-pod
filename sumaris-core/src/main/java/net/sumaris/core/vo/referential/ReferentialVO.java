@@ -38,6 +38,7 @@ import java.util.Map;
 public class ReferentialVO implements IReferentialVO<Integer>,
     IReferentialWithLevelVO<Integer> {
 
+    @Id
     @EqualsAndHashCode.Include
     private Integer id;
     private String label;
@@ -59,6 +60,7 @@ public class ReferentialVO implements IReferentialVO<Integer>,
 
     // Metadata
     //@EqualsAndHashCode.Exclude
+    @Id
     private String entityName;
 
     private Map<String, Object> properties;
