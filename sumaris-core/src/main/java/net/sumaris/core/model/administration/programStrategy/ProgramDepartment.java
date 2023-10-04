@@ -67,15 +67,15 @@ public class ProgramDepartment implements IUpdateDateEntity<Integer, Date> {
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "location_fk")
     private Location location;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "program_privilege_fk", nullable = false)
     private ProgramPrivilege privilege;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "department_fk", nullable = false)
     private Department department;
 

@@ -70,4 +70,6 @@ public class ProgramVO implements IReferentialVO<Integer>{
     private List<String> acquisitionLevelLabels;
     private List<ReferentialVO> acquisitionLevels;
 
+    // readonly
+    private String[] privileges;
 }

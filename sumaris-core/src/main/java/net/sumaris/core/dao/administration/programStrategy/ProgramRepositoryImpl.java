@@ -588,11 +588,11 @@ public class ProgramRepositoryImpl
                 target.setProgramId(source.getId());
 
                 if (item.getLocation() != null) {
-                    target.setLocation(locationRepository.get(item.getLocation().getId()));
+                    target.setLocation(locationRepository.toVO(item.getLocation()));
                 }
 
-                target.setDepartment(departmentRepository.get(item.getDepartment().getId()));
-                target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
+                target.setDepartment(departmentRepository.toVO(item.getDepartment()));
+                target.setPrivilege(referentialDao.toVO(item.getPrivilege()));
 
                 return target;
             })
