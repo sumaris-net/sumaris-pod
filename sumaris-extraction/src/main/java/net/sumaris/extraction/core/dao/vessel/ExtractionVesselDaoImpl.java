@@ -94,10 +94,10 @@ public class ExtractionVesselDaoImpl<C extends ExtractionVesselContextVO, F exte
             this.enableAdagioOptimization = enableAdagioOptimization;
 
             if (this.enableAdagioOptimization) {
-                log.info("Enabled extraction format {}, using optimization for schema '{}'", StratSpecification.FORMAT, this.adagioSchema);
+                log.info("Enabled vessel indexation {}, using optimization for schema '{}'", StratSpecification.FORMAT, this.adagioSchema);
             }
             else {
-                log.info("Enabled extraction format {} (without schema optimization)", StratSpecification.FORMAT);
+                log.info("Enabled vessel indexation {} (without schema optimization)", StratSpecification.FORMAT);
             }
 
         }
