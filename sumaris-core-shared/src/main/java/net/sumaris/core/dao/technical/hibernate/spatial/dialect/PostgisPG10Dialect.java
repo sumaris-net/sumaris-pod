@@ -23,15 +23,19 @@
 package net.sumaris.core.dao.technical.hibernate.spatial.dialect;
 
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
+import net.sumaris.core.dao.technical.hibernate.types.IntegerArrayUserType;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
-import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.Type;
+
+import java.sql.Types;
 
 public class PostgisPG10Dialect extends org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect {
 
     public PostgisPG10Dialect() {
         super();
+
+        // Register new array type
+        registerHibernateType(Types.ARRAY, IntegerArrayUserType.class.getName());
 
         // Register additional functions
         for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
@@ -42,7 +46,6 @@ public class PostgisPG10Dialect extends org.hibernate.spatial.dialect.postgis.Po
             else {
                 registerFunction(function.name(), function.asRegisterFunction());
             }
-
         }
     }
 }

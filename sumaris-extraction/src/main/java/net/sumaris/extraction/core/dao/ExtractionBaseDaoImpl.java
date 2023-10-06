@@ -22,6 +22,7 @@
 
 package net.sumaris.extraction.core.dao;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
@@ -434,8 +435,14 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         String[] result = new String[columnCount];
         if (columnCount <= 0) columnCount = row.length;
         for (int i = 0; i < columnCount; i++) {
-            if (row[i] != null) {
-                result[i] = row[i].toString();
+            Object cellValue = row[i];
+            if (cellValue != null) {
+                if (cellValue instanceof Integer[]) {
+                    result[i] = Joiner.on(",").join((Integer[])cellValue);
+                }
+                else {
+                    result[i] = cellValue.toString();
+                }
             } else {
                 result[i] = null;
             }
