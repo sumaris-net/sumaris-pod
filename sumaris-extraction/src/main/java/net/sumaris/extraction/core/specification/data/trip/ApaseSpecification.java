@@ -44,7 +44,17 @@ public interface ApaseSpecification extends RdbSpecification {
         FG_SHEET_NAME,
         HH_SHEET_NAME,
         CT_SHEET_NAME,
-        //SL_RAW_SHEET_NAME,
+        SL_SHEET_NAME,
+        HL_SHEET_NAME
+    };
+
+    // For DEBUG only
+    String[] SHEET_NAMES_DEBUG = {
+        TR_SHEET_NAME,
+        FG_SHEET_NAME,
+        HH_SHEET_NAME,
+        CT_SHEET_NAME,
+        SL_RAW_SHEET_NAME,
         SL_SHEET_NAME,
         HL_SHEET_NAME
     };

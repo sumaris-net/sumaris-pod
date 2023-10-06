@@ -23,7 +23,6 @@ package net.sumaris.extraction.core.dao.trip.apase;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
@@ -39,7 +38,6 @@ import net.sumaris.xml.query.XMLQuery;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -59,6 +57,12 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     public ExtractionApaseDaoImpl() {
         super();
         this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format
+
+        // -- for DEV only
+        // set RAW_SL as a visible sheet
+        if (!this.enableCleanup && !this.production) {
+            LiveExtractionTypeEnum.APASE.setSheetNames(ApaseSpecification.SHEET_NAMES_DEBUG);
+        }
     }
 
     public Set<IExtractionType<?, ?>> getManagedTypes() {
@@ -68,11 +72,22 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
 
     @Override
     public <R extends C> R execute(F filter) {
+        // Optimization: set the minimal sheet name, for the super.execute()
+        String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
+        if (ApaseSpecification.FG_SHEET_NAME.equals(sheetName)) {
+            filter.setSheetName(ApaseSpecification.TR_SHEET_NAME);
+        }
+        else if (ApaseSpecification.CT_SHEET_NAME.equals(sheetName)) {
+            filter.setSheetName(ApaseSpecification.HH_SHEET_NAME);
+        }
+
         R context = super.execute(filter);
+
+        // Restore original sheet name
+        filter.setSheetName(sheetName);
 
         try {
             // Stop here, if sheet already filled
-            String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
             if (sheetName != null && context.hasSheet(sheetName)) return context;
 
             // Physical gear

@@ -47,10 +47,7 @@ public interface PmfmTripSpecification extends RdbSpecification {
     String[] SHEET_NAMES_DEBUG = {
         TR_SHEET_NAME,
         HH_SHEET_NAME,
-
-        // For DEBUG
         SL_RAW_SHEET_NAME,
-
         SL_SHEET_NAME,
         HL_SHEET_NAME,
         ST_SHEET_NAME,
