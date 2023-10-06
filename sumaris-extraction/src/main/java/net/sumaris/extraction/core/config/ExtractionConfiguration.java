@@ -165,6 +165,10 @@ public class ExtractionConfiguration {
         return getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_COMMERCIAL_SIZE_CATEGORY_SCALE_DEFAULT.getKey());
     }
 
+    public List<Integer> getExtractionSpeciesLengthPmfmIds() {
+        return delegate.getConfigurationOptionAsNumbers(ExtractionConfigurationOption.EXTRACTION_SPECIES_LENGTH_PMFM_IDS.getKey());
+    }
+
     public char getCsvSeparator() {
         return delegate.getCsvSeparator();
     }

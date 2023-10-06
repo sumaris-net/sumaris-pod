@@ -122,6 +122,12 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
         "EU", // Default value of the RDB format
         String.class,
         false),
+    EXTRACTION_SPECIES_LENGTH_PMFM_IDS(
+        "sumaris.extraction.rdb.speciesLength.pmfm.ids",
+        n("sumaris.config.option.extraction.rdb.speciesLength.pmfm.ids.description"),
+        null,
+        String.class,
+        false),
 
     /**
      * /!\ Should NOT be disabled in production (only for DEBUG purpose)

@@ -643,13 +643,26 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return 0;
     }
 
-    protected Set<Integer> getSpeciesLengthPmfmIds() {
+    protected Collection<Integer> getSpeciesLengthPmfmIds() {
+        List<Integer> configList = configuration.getExtractionSpeciesLengthPmfmIds();
+        if (CollectionUtils.isNotEmpty(configList)) {
+            return configList;
+        }
+
+        // Default list
         return ImmutableSet.of(
             PmfmEnum.LENGTH_TOTAL_CM.getId(),
+            PmfmEnum.LENGTH_TOTAL_MM.getId(),
             PmfmEnum.LENGTH_CARAPACE_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
             PmfmEnum.LENGTH_MANTLE_CM.getId(),
-            PmfmEnum.SEGMENT_LENGTH_MM.getId()
+            PmfmEnum.SEGMENT_LENGTH_MM.getId(),
+            PmfmEnum.HEIGHT_MM.getId(),
+            PmfmEnum.LENGTH_LM_FORK_CM.getId(),
+            PmfmEnum.LENGTH_FORK_CM.getId(),
+            PmfmEnum.LENGTH_PRE_SUPRA_CAUDAL_CM.getId(),
+            PmfmEnum.DOM_HALF_CM.getId(),
+            PmfmEnum.WIDTH_CARAPACE_MM.getId()
         );
     }
 
