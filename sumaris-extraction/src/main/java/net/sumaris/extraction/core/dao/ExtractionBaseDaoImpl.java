@@ -389,19 +389,14 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         }
     }
 
-    protected String formatTableName(String tableName, long time) {
-        String finalTableName = String.format(tableName, time);
-        if (this.databaseType != null) {
-            switch (this.databaseType) {
-                case hsqldb:
-                case oracle:
-                    break;
-                case postgresql:
-                    // IMPORTANT: PostgreSQL is always in lowercase. This is required to get metadata with the exact (final) name
-                    finalTableName = finalTableName.toLowerCase();
-                    break;
-            }
+    protected String formatTableName(String tableName, int id) {
+        String finalTableName = String.format(tableName, id);
+
+        // IMPORTANT: PostgreSQL is always in lowercase. This is required to get metadata with the exact (final) name
+        if (databaseType == DatabaseType.postgresql) {
+            return finalTableName.toLowerCase();
         }
+
         return finalTableName;
     }
 
