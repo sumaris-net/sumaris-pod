@@ -290,7 +290,7 @@ public class DenormalizedBatchRepositoryImpl
 
         // Delete remaining objects
         if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
-            existingIdsToRemove.forEach(this::deleteById);
+            deleteAllById(existingIdsToRemove);
         }
 
         return sources;
@@ -317,6 +317,15 @@ public class DenormalizedBatchRepositoryImpl
         }
 
         return sources;
+    }
+
+    @Override
+    public void deleteAllById(Iterable<? extends Integer> ids) {
+
+        // Use query, instead of default JPA implements
+        // => Avoid an error when the denormalized_batch to remove not exists
+        sortingValueRepository.deleteAllByBatchId(ids);
+        getRepository().deleteAllById(ids);
     }
 
     public DenormalizedBatch toEntity(DenormalizedBatchVO source) {

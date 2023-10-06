@@ -23,17 +23,18 @@
 package net.sumaris.core.dao.data.batch;
 
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
-import net.sumaris.core.model.data.DenormalizedBatch;
 import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchSortingValueVO;
-import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-
-import java.util.Set;
+import org.springframework.data.repository.query.Param;
 
 public interface DenormalizedBatchSortingValueRepository
         extends SumarisJpaRepository<DenormalizedBatchSortingValue, Integer, DenormalizedBatchSortingValueVO>,
     DenormalizedBatchSortingValueSpecifications<DenormalizedBatchSortingValue, DenormalizedBatchSortingValueVO> {
 
 
+    @Modifying
+    @Query("delete from DenormalizedBatchSortingValue sv where sv.batch.id in (:batchIds)")
+    void deleteAllByBatchId(@Param("batchIds") Iterable<? extends Integer> batchIds);
 }
