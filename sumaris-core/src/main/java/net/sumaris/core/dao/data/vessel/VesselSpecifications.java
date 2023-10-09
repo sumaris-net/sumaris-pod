@@ -156,15 +156,15 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, REGISTRATION_LOCATION_ID_PARAM);
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
 
-            Join<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.INNER);
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoinList(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.INNER);
 
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK
                 cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION),
-                    Daos.composePath(vrp, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)),
+                    vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)),
 
                 // AND LH.PARENT_LOCATION_FK = :registrationLocationId
-                cb.equal(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)), param)
+                cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION).get(Location.Fields.ID), param)
             );
         }).addBind(REGISTRATION_LOCATION_ID_PARAM, registrationLocationId);
     }
@@ -176,13 +176,15 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, BASE_PORT_LOCATION_ID);
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
 
+            ListJoin<Vessel, VesselFeatures> vf = Daos.composeJoinList(root, Vessel.Fields.VESSEL_FEATURES, JoinType.INNER);
+
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VF.BASE_PORT_LOCATION_FK
                 cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION),
-                    Daos.composePath(root, StringUtils.doting(Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.BASE_PORT_LOCATION))),
+                    vf.get(VesselFeatures.Fields.BASE_PORT_LOCATION)),
 
                 // and LH.PARENT_LOCATION_FK = :basePortLocationId
-                cb.equal(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)), param)
+                cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION).get(Location.Fields.ID), param)
             );
         }).addBind(BASE_PORT_LOCATION_ID, basePortLocationId);
     }
