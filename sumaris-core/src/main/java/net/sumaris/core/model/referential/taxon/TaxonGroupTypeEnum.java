@@ -22,12 +22,14 @@ package net.sumaris.core.model.referential.taxon;
  * #L%
  */
 
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = TaxonGroupType.class)
+@EntityEnum(entity = TaxonGroupType.class, configAttributes = {IEntity.Fields.ID}, resolveAttributes = {IItemReferentialEntity.Fields.LABEL})
 public enum TaxonGroupTypeEnum implements Serializable {
 
     FAO(2, "FAO"),
