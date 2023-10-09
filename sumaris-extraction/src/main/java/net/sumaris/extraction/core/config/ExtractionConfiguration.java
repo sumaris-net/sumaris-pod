@@ -158,6 +158,10 @@ public class ExtractionConfiguration {
         return getApplicationConfig().getOptionAsInt(ExtractionConfigurationOption.EXTRACTION_QUERY_TIMEOUT.getKey());
     }
 
+    public List<Integer> getExtractionAreaLocationLevelIds() {
+        return delegate.getConfigurationOptionAsNumbers(ExtractionConfigurationOption.EXTRACTION_AREA_LOCATION_LEVEL_IDS.getKey());
+    }
+
     public String getExtractionDefaultLandingCategory() {
         return getApplicationConfig().getOption(ExtractionConfigurationOption.EXTRACTION_LANDING_CATEGORY_DEFAULT.getKey());
     }

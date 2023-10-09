@@ -81,8 +81,24 @@
     <select alias="POS_END_LON" type="number" dbms="hsqldb,pgsql" group="agg">MAX(P_END.LONGITUDE)</select>
     <select alias="POS_END_LON" type="number" dbms="oracle" group="agg">MAX(CAST(P_END.LONGITUDE AS NUMBER(38, 7)))</select>
 
-    <select alias="AREA" type="text" dbms="hsqldb,pgsql">null</select><!-- TODO get it by LOCATION_HIERARCHY -->
-    <select alias="AREA" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
+    <select alias="AREA" type="text" dbms="hsqldb,pgsql" group="agg">
+      MAX(
+        CASE
+          WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;areaLocationLevelIds) THEN
+            L_AREA.LABEL
+          ELSE NULL
+        END
+      )
+    </select>
+    <select alias="AREA" type="text" dbms="oracle" group="agg">
+      MAX(
+        CASE WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;areaLocationLevelIds) THEN
+        L_AREA.LABEL
+        ELSE
+          CAST(null as VARCHAR2(10))
+        END
+      )
+    </select>
 
     <select alias="STATISTICAL_RECTANGLE" type="text" dbms="hsqldb,pgsql" group="agg">
       MAX(

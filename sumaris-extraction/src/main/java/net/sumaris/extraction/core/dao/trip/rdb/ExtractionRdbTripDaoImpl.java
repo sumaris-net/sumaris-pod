@@ -96,6 +96,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.CA_SHEET_NAME + "_%s";
 
 
+    protected Splitter splitter = Splitter.on(",").trimResults();
+
     @Autowired
     protected StrategyService strategyService;
 
@@ -387,6 +389,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("stationTableName", context.getStationTableName());
 
         // Bind location level ids
+        xmlQuery.bind("areaLocationLevelIds", Daos.getSqlInNumbers(getAreaLocationLevelIds(context)));
         xmlQuery.bind("rectangleLocationLevelIds", Daos.getSqlInNumbers(getRectangleLocationLevelIds(context)));
 
         // Bind some PMFM ids
@@ -478,7 +481,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        if (this.enableCleanup) {
+        if (this.enableCleanup && !this.production) {
             // Add as a raw table (to be able to clean it later)
             context.addRawTableName(tableName);
         }
@@ -699,9 +702,32 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .build();
     }
 
+    protected Collection<Integer> getAreaLocationLevelIds(C context) {
+        List<Integer> configList = configuration.getExtractionAreaLocationLevelIds();
+        if (CollectionUtils.isNotEmpty(configList)) {
+            return configList;
+        }
+
+        Set<String> programLabels = getTripProgramLabels(context);
+
+        return programLabels.stream().flatMap(programLabel -> {
+            String strValue = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS);
+            if (StringUtils.isBlank(strValue)) {
+                // Default values
+                return Stream.of(
+                    // Sous-Division CIEM (cf issue #416)
+                    LocationLevelEnum.SUB_DIVISION_ICES.getId(),
+                    // Sous-division GFCM - à valider
+                    LocationLevelEnum.SUB_DIVISION_GFCM.getId()
+                );
+            }
+            return splitter.splitToStream(strValue).map(Integer::parseInt);
+        }).collect(Collectors.toSet());
+
+    }
+
     protected Set<Integer> getRectangleLocationLevelIds(C context) {
         Set<String> programLabels = getTripProgramLabels(context);
-        Splitter splitter = Splitter.on(",").trimResults();
 
         return programLabels.stream().flatMap(programLabel -> {
             String strValue = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
@@ -920,8 +946,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             result = getTripProgramLabels(context).stream()
                 .flatMap(programLabel -> {
                     String values = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-                    if (StringUtils.isBlank(values)) return Stream.empty();
-                    return Splitter.on(",").splitToStream(values);
+                    if (StringUtils.isBlank(values)) {
+                        // No default value
+                        return Stream.empty();
+                    }
+                    return splitter.splitToStream(values);
                 }).collect(Collectors.toSet());
 
             // Fill cache

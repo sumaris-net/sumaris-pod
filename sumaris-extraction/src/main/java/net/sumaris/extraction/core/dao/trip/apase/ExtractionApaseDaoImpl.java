@@ -57,6 +57,11 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     public ExtractionApaseDaoImpl() {
         super();
         this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format
+    }
+
+    @Override
+    public void init() {
+        super.init();
 
         // -- for DEV only
         // set RAW_SL as a visible sheet

@@ -110,6 +110,13 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             Boolean.class,
             false),
 
+    EXTRACTION_AREA_LOCATION_LEVEL_IDS(
+        "sumaris.extraction.rdb.area.locationLevel.ids",
+        n("sumaris.config.option.extraction.rdb.area.locationLevel.ids.description"),
+        null,
+        String.class,
+        false),
+
     EXTRACTION_LANDING_CATEGORY_DEFAULT(
         "sumaris.extraction.rdb.landingCategory.default",
         n("sumaris.config.option.extraction.rdb.landingCategory.default.description"),

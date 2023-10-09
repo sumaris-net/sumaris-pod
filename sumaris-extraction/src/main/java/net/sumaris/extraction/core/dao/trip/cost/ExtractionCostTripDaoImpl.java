@@ -26,13 +26,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.xml.query.XMLQuery;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.specification.data.trip.CostSpecification;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
+import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.trip.rdb.ExtractionRdbTripContextVO;
+import net.sumaris.xml.query.XMLQuery;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -50,8 +49,18 @@ public class ExtractionCostTripDaoImpl<C extends ExtractionRdbTripContextVO, F e
 
     public ExtractionCostTripDaoImpl() {
         super();
-
         this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format - Issue #416
+    }
+
+    @Override
+    public void init() {
+        super.init();
+
+        // -- for DEV only
+        // set RAW_SL as a visible sheet
+        if (!this.enableCleanup && !this.production) {
+            LiveExtractionTypeEnum.COST.setSheetNames(CostSpecification.SHEET_NAMES_DEBUG);
+        }
     }
 
     @Override
