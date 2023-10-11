@@ -220,7 +220,151 @@
         <delete tableName="pmfm_strategy2taxon_group">
             <where>
                 PMFM_STRATEGY_FK = (SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PS.DEFAULT_VALUE = 1.5)
-                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP AS PARENT ON TAXON_GROUP.PARENT_TAXON_GROUP_FK = PARENT.ID WHERE LABEL = 'ANE' AND PARENT.LABEL = 'ANX')
+                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'ANE')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Remove OUT_OF_SIZE_PCT from strategy for PIL -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-008" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY2TAXON_GROUP
+                    WHERE PMFM_STRATEGY_FK = (
+                    SELECT PS.ID
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND PMFM.LABEL = 'OUT_OF_SIZE_PCT'
+                    )
+                    AND  TAXON_GROUP_FK = (
+                    SELECT ID FROM TAXON_GROUP
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND LABEL = 'PIL'
+                    );
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PMFM.LABEL = 'OUT_OF_SIZE_PCT')
+                AND  TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'PIL')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Remove OUT_OF_SIZE_WEIGHT from strategy for PIL -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-009" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY2TAXON_GROUP
+                    WHERE PMFM_STRATEGY_FK = (
+                    SELECT PS.ID
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND PMFM.LABEL = 'OUT_OF_SIZE_WEIGHT'
+                    )
+                    AND  TAXON_GROUP_FK = (
+                    SELECT ID FROM TAXON_GROUP
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND LABEL = 'PIL'
+                    );
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PMFM.LABEL = 'OUT_OF_SIZE_WEIGHT')
+                AND  TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'PIL')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Remove OUT_OF_SIZE_PCT from strategy for ANE -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-010" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY2TAXON_GROUP
+                    WHERE PMFM_STRATEGY_FK = (
+                    SELECT PS.ID
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND PMFM.LABEL = 'OUT_OF_SIZE_PCT'
+                    )
+                    AND  TAXON_GROUP_FK = (
+                    SELECT ID FROM TAXON_GROUP
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND LABEL = 'ANE'
+                    );
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PMFM.LABEL = 'OUT_OF_SIZE_PCT')
+                AND  TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'ANE')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Remove OUT_OF_SIZE_WEIGHT from strategy for ANE -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-011" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PMFM_STRATEGY2TAXON_GROUP
+                    WHERE PMFM_STRATEGY_FK = (
+                    SELECT PS.ID
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND PMFM.LABEL = 'OUT_OF_SIZE_WEIGHT'
+                    )
+                    AND  TAXON_GROUP_FK = (
+                    SELECT ID FROM TAXON_GROUP
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND LABEL = 'ANE'
+                    );
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PMFM.LABEL = 'OUT_OF_SIZE_WEIGHT')
+                AND  TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'ANE')
             </where>
         </delete>
     </changeSet>
