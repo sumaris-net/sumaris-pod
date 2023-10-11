@@ -11,7 +11,6 @@
     <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
     <property name="sqlCheck.adap.expectedResult" value="1"/>
 
-
     <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
         <or>
             <!-- Test if database is empty -->
@@ -44,8 +43,9 @@
                     SELECT COUNT(*) FROM PROGRAM AS P
                     INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
                     INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
                     INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
-                    WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND  PMFM.LABEL = 'QUALITY_ANOMALY' AND IS_MANDATORY = false
+                    WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND ACQUISITION_LEVEL.LABEL = 'LANDING' AND PMFM.LABEL = 'QUALITY_ANOMALY' AND IS_MANDATORY = true
                 </sqlCheck>
             </and>
         </preConditions>
@@ -54,10 +54,175 @@
                 SELECT PS.ID FROM PROGRAM AS P
                                       INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
                                       INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                                      INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
                                       INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
-                WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND  PMFM.LABEL = 'QUALITY_ANOMALY' AND IS_MANDATORY = false
+                                      INNER JOIN PARAMETER ON PMFM.PARAMETER_FK = PARAMETER.ID
+                WHERE P.LABEL = 'ADAP-CONTROLE'
+                  AND S.LABEL = 'V1' AND ACQUISITION_LEVEL.LABEL = 'LANDING'
+                  AND PMFM.LABEL = 'QUALITY_ANOMALY'
+                  AND PS.IS_MANDATORY = true;
             );
         </sql>
+    </changeSet>
+
+    <!-- Create new PMFM Strategy for SAMPLE_MEASURED_WEIGHT with default value 1 -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-003" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT count(*)
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND PS.DEFAULT_VALUE = 1;
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm_strategy">
+            <column name="ID" valueComputed="NEXT VALUE FOR PMFM_STRATEGY_SEQ"/>
+            <column name="ACQUISITION_NUMBER" valueNumeric="1"/>
+            <column name="DEFAULT_VALUE" valueNumeric="1"/>
+            <column name="IS_MANDATORY" valueNumeric="1"/>
+            <column name="RANK_ORDER" valueNumeric="90"/>
+            <column name="ACQUISITION_LEVEL_FK" valueComputed="(SELECT ID FROM ACQUISITION_LEVEL WHERE LABEL = 'SAMPLE')"/>
+            <column name="PMFM_FK" valueComputed="(SELECT ID FROM PMFM WHERE LABEL = 'SAMPLE_MEASURED_WEIGHT')"/>
+            <column name="STRATEGY_FK" valueComputed="(SELECT ID FROM STRATEGY INNER JOIN PROGRAM ON PROGRAM.ID = STRATEGY.PROGRAM_FK WHERE PROGRAM.LABEL = 'ADAP-CONTROLE' AND STRATEGY.LABEL = 'V1')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Add new PMFM Strategy for SAMPLE_MEASURED_WEIGHT with default value 1 on TAXON_GROUP PIL -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-004" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*)
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    INNER JOIN PMFM_STRATEGY2TAXON_GROUP ON PS.ID = PMFM_STRATEGY2TAXON_GROUP.PMFM_STRATEGY_FK
+                    INNER JOIN TAXON_GROUP ON PMFM_STRATEGY2TAXON_GROUP.TAXON_GROUP_FK = TAXON_GROUP.ID
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND TAXON_GROUP.LABEL = 'PIL'
+                    AND TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND PS.DEFAULT_VALUE = 1;
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm_strategy2taxon_group">
+            <column name="pmfm_strategy_fk" valueComputed="(SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PS.DEFAULT_VALUE = 1)"/>
+            <column name="taxon_group_fk" valueComputed="(SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'PIL')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Detete old PMFM Strategy for SAMPLE_MEASURED_WEIGHT with default value 1.5 on TAXON_GROUP PIL -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-005" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*)
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    INNER JOIN PMFM_STRATEGY2TAXON_GROUP ON PS.ID = PMFM_STRATEGY2TAXON_GROUP.PMFM_STRATEGY_FK
+                    INNER JOIN TAXON_GROUP ON PMFM_STRATEGY2TAXON_GROUP.TAXON_GROUP_FK = TAXON_GROUP.ID
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND TAXON_GROUP.LABEL = 'PIL'
+                    AND TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND PS.DEFAULT_VALUE = 1.5;
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PS.DEFAULT_VALUE = 1.5)
+                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'PIL')
+            </where>
+        </delete>
+    </changeSet>
+
+    <!-- Add new PMFM Strategy for SAMPLE_MEASURED_WEIGHT with default value 1 on TAXON_GROUP ANE -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-006" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="0">
+                    SELECT COUNT(*)
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    INNER JOIN PMFM_STRATEGY2TAXON_GROUP ON PS.ID = PMFM_STRATEGY2TAXON_GROUP.PMFM_STRATEGY_FK
+                    INNER JOIN TAXON_GROUP ON PMFM_STRATEGY2TAXON_GROUP.TAXON_GROUP_FK = TAXON_GROUP.ID
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND TAXON_GROUP.LABEL = 'ANE'
+                    AND TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND PS.DEFAULT_VALUE = 1;
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <insert tableName="pmfm_strategy2taxon_group">
+            <column name="pmfm_strategy_fk" valueComputed="(SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PS.DEFAULT_VALUE = 1)"/>
+            <column name="taxon_group_fk" valueComputed="(SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID WHERE TAXON_GROUP_TYPE.LABEL = 'FAO' AND LABEL = 'ANE')"/>
+        </insert>
+    </changeSet>
+
+    <!-- Detete old PMFM Strategy for SAMPLE_MEASURED_WEIGHT with default value 1.5 on TAXON_GROUP ANE -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-007" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*)
+                    FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID
+                    INNER JOIN PMFM_STRATEGY2TAXON_GROUP ON PS.ID = PMFM_STRATEGY2TAXON_GROUP.PMFM_STRATEGY_FK
+                    INNER JOIN TAXON_GROUP ON PMFM_STRATEGY2TAXON_GROUP.TAXON_GROUP_FK = TAXON_GROUP.ID
+                    INNER JOIN TAXON_GROUP_TYPE ON TAXON_GROUP.TAXON_GROUP_TYPE_FK = TAXON_GROUP_TYPE.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE'
+                    AND S.LABEL = 'V1'
+                    AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT'
+                    AND ACQUISITION_LEVEL.LABEL = 'SAMPLE'
+                    AND TAXON_GROUP.LABEL = 'ANE'
+                    AND TAXON_GROUP_TYPE.LABEL = 'FAO'
+                    AND PS.DEFAULT_VALUE = 1.5;
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <delete tableName="pmfm_strategy2taxon_group">
+            <where>
+                PMFM_STRATEGY_FK = (SELECT PS.ID FROM PROGRAM AS P INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID INNER JOIN ACQUISITION_LEVEL ON PS.ACQUISITION_LEVEL_FK = ACQUISITION_LEVEL.ID WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND PMFM.LABEL = 'SAMPLE_MEASURED_WEIGHT' AND ACQUISITION_LEVEL.LABEL = 'SAMPLE' AND PS.DEFAULT_VALUE = 1.5)
+                AND TAXON_GROUP_FK = (SELECT ID FROM TAXON_GROUP INNER JOIN TAXON_GROUP AS PARENT ON TAXON_GROUP.PARENT_TAXON_GROUP_FK = PARENT.ID WHERE LABEL = 'ANE' AND PARENT.LABEL = 'ANX')
+            </where>
+        </delete>
     </changeSet>
 
 </databaseChangeLog>

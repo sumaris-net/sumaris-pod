@@ -14,8 +14,7 @@
             <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
             <column name="LABEL">2.7.2</column>
             <column name="DESCRIPTION">
-                - Rename name of QUALITY_ANOMALY parameter from "Anomalie" to "Étiquette de synthèse"
-                - Set PMFM_STRATEGY for PMFM QUALITY_ANOMALY optional on ADAP-CONTROLE V1
+                - Minor changes on ADAP-CONTROL Strategy
             </column>
             <column name="CREATION_DATE" valueComputed="sysdate"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
