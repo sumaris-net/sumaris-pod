@@ -1,0 +1,63 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/adap/db-changelog-2.7.2.xml">
+
+    <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
+    <property name="sqlCheck.not_empty.expectedResult" value="1"/>
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+    <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <!-- Change label for parameter QUALITY_ANOMALY -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-001" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">SELECT COUNT(*) FROM PARAMETER WHERE LABEL = 'QUALITY_ANOMALY' AND name = 'Anomalie';</sqlCheck>
+            </and>
+        </preConditions>
+        <update  tableName="parameter">
+            <column name="name" value="Étiquette de synthèse"/>
+            <where>LABEL = 'QUALITY_ANOMALY' AND name = 'Anomalie'</where>
+        </update>
+    </changeSet>
+
+    <!-- Set PMFM_STRATEGY for PMFM QUALITY_ANOMALY optional -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1696950207-002" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+                <sqlCheck expectedResult="1">
+                    SELECT COUNT(*) FROM PROGRAM AS P
+                    INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                    INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                    INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                    WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND  PMFM.LABEL = 'QUALITY_ANOMALY' AND IS_MANDATORY = false
+                </sqlCheck>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE PMFM_STRATEGY SET IS_MANDATORY = false WHERE ID = (
+                SELECT PS.ID FROM PROGRAM AS P
+                                      INNER JOIN STRATEGY AS S ON P.ID = S.PROGRAM_FK
+                                      INNER JOIN PMFM_STRATEGY AS PS ON S.ID = PS.STRATEGY_FK
+                                      INNER JOIN PMFM  ON PS.PMFM_FK = PMFM.ID
+                WHERE P.LABEL = 'ADAP-CONTROLE' AND S.LABEL = 'V1' AND  PMFM.LABEL = 'QUALITY_ANOMALY' AND IS_MANDATORY = false
+            );
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
