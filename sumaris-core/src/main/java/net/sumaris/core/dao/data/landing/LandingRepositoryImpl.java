@@ -22,25 +22,28 @@ package net.sumaris.core.dao.data.landing;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.ObservedLocation;
-import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
@@ -49,9 +52,8 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import javax.persistence.criteria.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -60,8 +62,7 @@ public class LandingRepositoryImpl
     implements LandingSpecifications {
 
     private final LocationRepository locationRepository;
-    private boolean isOracleDatabase;
-    private boolean enableVesselRegistrationNaturalOrder;
+    private boolean enableVesselRegistrationNaturalOrder = false;
 
     protected boolean enableAdagioOptimization = false;
 
@@ -80,7 +81,6 @@ public class LandingRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        this.isOracleDatabase = event.getConfiguration().isOracleDatabase();
         this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
         this.enableAdagioOptimization = event.getConfiguration().enableAdagioOptimization();
     }
@@ -100,76 +100,17 @@ public class LandingRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasTripId(filter.getTripId()))
+            .and(hasObserverPersonIds(filter))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(inLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(hasStrategyLabels(filter.getStrategyLabels()))
             .and(hasSampleLabels(filter.getSampleLabels(), this.enableAdagioOptimization))
-            .and(hasSampleTagIds(filter.getSampleTagIds(), this.enableAdagioOptimization))
-            ;
-    }
-
-    @Override
-    public List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, LandingFetchOptions fetchOptions) {
-
-        // Following natural sort works only for Oracle
-        boolean sortByVesselRegistrationCode = Landing.Fields.VESSEL.equalsIgnoreCase(page.getSortBy());
-
-        StringBuilder queryBuilder = new StringBuilder();
-
-        queryBuilder.append("select l from Landing l ");
-
-        if (sortByVesselRegistrationCode) {
-            // add joins
-            queryBuilder.append("inner join l.vessel v ")
-                .append("left outer join v.vesselRegistrationPeriods vrp ");;
-        }
-
-        // single filter
-        queryBuilder.append("where l.observedLocation.id = :observedLocationId ");
-
-        // Sort by vessel registration code
-        if (sortByVesselRegistrationCode) {
-            // Oracle + natural order
-            if (isOracleDatabase && enableVesselRegistrationNaturalOrder) {
-                queryBuilder.append(
-                    String.format(
-                        "order by regexp_substr(vrp.registrationCode, '[^0-9]*') %1$s, to_number(regexp_substr(vrp.registrationCode, '[0-9]+')) %1$s nulls first",
-                        page.getSortDirection()
-                    )
-                );
-            }
-            // Sort by vessel registration code
-            else {
-                queryBuilder.append(String.format("order by vrp.registrationCode %s", page.getSortDirection()));
-            }
-
-        } else {
-            // other sort
-            queryBuilder.append(
-              String.format(
-                  "order by l.%s %s",
-                  page.getSortBy(),
-                  page.getSortDirection()
-              )
-            );
-        }
-
-
-        // Create the JPA query
-        TypedQuery<Landing> query = getEntityManager().createQuery(queryBuilder.toString(), Landing.class);
-        query.setParameter("observedLocationId", observedLocationId);
-        query.setFirstResult((int)page.getOffset());
-        query.setMaxResults(page.getSize());
-
-        configureQuery(query, fetchOptions);
-
-        return streamQuery(query)
-            .map(landing -> toVO(landing, fetchOptions))
-            .collect(Collectors.toList());
+            .and(hasSampleTagIds(filter.getSampleTagIds(), this.enableAdagioOptimization));
     }
 
     @Override
@@ -257,6 +198,61 @@ public class LandingRepositoryImpl
             target.setRankOrder(getNextRankOrder(target));
         }
 
+    }
+
+    /* -- internal functions -- */
+
+    @Override
+    protected String toEntityProperty(@NonNull String property) {
+        if (Landing.Fields.VESSEL.equalsIgnoreCase(property) || property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
+            return StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+        }
+        if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+            return StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+        }
+        if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+            return StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING);
+        }
+        if (property.endsWith(VesselFeatures.Fields.NAME)) {
+            return StringUtils.doting(Landing.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME);
+        }
+        return super.toEntityProperty(property);
+    }
+
+    @Override
+    protected <T> List<Expression<?>> toSortExpressions(CriteriaQuery<T> query, Root<?> root, CriteriaBuilder cb, String property) {
+
+        Expression<?> expression = null;
+
+        // Add left join on vessel registration period (VRP)
+        if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+            || property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
+            expression = vrp.get(property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                ? VesselRegistrationPeriod.Fields.REGISTRATION_CODE
+                : VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+            // Natural sort
+            if (enableVesselRegistrationNaturalOrder) {
+                expression = Daos.naturalSort(cb, expression);
+            };
+        }
+
+        // Add left join on vessel features (VF)
+        if (property.endsWith(VesselFeatures.Fields.NAME)
+            || property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+            ListJoin<Vessel, VesselFeatures> vf = composeVfJoin(root, cb);
+            expression = vf.get(property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)
+                ? VesselFeatures.Fields.EXTERIOR_MARKING
+                : VesselFeatures.Fields.NAME);
+
+            // Natural sort on exterior marking
+            if (enableVesselRegistrationNaturalOrder && property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+                expression = Daos.naturalSort(cb, expression);
+            };
+        }
+
+        return (expression != null) ? ImmutableList.of(expression) : super.toSortExpressions(query, root, cb, property);
     }
 
     /**

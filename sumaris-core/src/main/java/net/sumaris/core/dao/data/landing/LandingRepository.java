@@ -32,6 +32,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface LandingRepository extends
@@ -39,6 +40,9 @@ public interface LandingRepository extends
     LandingSpecifications {
 
     Optional<Landing> findFirstByTripId(Integer tripId);
+
+    @Query("select distinct l.id from Landing l where l.observedLocation.id = (:observedLocationId)")
+    List<Integer> findAllIdsByObservedLocationId(@Param("observedLocationId") int observedLocationId);
 
     @Modifying
     @Query("delete from Landing l where l.id in (:ids)")

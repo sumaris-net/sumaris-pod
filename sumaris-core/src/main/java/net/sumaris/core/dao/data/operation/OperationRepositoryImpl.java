@@ -330,7 +330,7 @@ public class OperationRepositoryImpl
             .and(inGearIds(filter.getGearIds()))
             .and(inPhysicalGearIds(filter.getPhysicalGearIds()))
             .and(inTaxonGroupLabels(filter.getTaxonGroupLabels()))
-            .and(hasQualityFlagIds(filter.getQualityFlagIds()))
+            .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(needBatchDenormalization(filter.getNeedBatchDenormalization()))
             ;

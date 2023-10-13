@@ -24,12 +24,10 @@ package net.sumaris.core.dao.data.vessel;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -43,7 +41,6 @@ import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
@@ -52,12 +49,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 
-import javax.annotation.PostConstruct;
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,6 +66,10 @@ public class VesselSnapshotRepositoryImpl
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
     private boolean enableRegistrationCodeSearchAsPrefix = false;
+
+    protected boolean enableAdagioOptimization = false;
+
+    protected String adagioSchema = null;
 
     @Autowired
     public VesselSnapshotRepositoryImpl(EntityManager entityManager,
@@ -85,6 +85,8 @@ public class VesselSnapshotRepositoryImpl
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
         enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
+        adagioSchema = event.getConfiguration().getAdagioSchema();
+        enableAdagioOptimization = event.getConfiguration().enableAdagioOptimization() && StringUtils.isNotBlank(adagioSchema);
     }
 
     @Override
@@ -101,8 +103,8 @@ public class VesselSnapshotRepositoryImpl
         CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
 
         Root<VesselFeatures> root = criteriaQuery.from(VesselFeatures.class);
-        Join<?, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
-        Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
+        Join<VesselFeatures, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(vessel);
 
         criteriaQuery.multiselect(root, vessel, vrp)
             .distinct(true);
@@ -113,25 +115,15 @@ public class VesselSnapshotRepositoryImpl
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
-        if (sort.isSorted()) {
-            // Fix sort property, from VO to entity
-            sort = Sort.by(sort.stream()
-                .map(order -> Sort.Order
-                    .by(toEntityPropertyName(order.getProperty()))
-                    .with(order.getDirection()))
-                .collect(Collectors.toList()));
-
-            criteriaQuery.orderBy(QueryUtils.toOrders(sort, root, builder));
-        }
+        addSorting(criteriaQuery, root, builder, pageable);
 
         TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
 
         // Bind parameters
         applyBindings(query, spec);
 
-        // Set hints
-        query.setHint("org.hibernate.comment", "+ INDEX(SIH2_ADAGIO_DBA.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)");
+        // Configure (set hints)
+        configureQuery(query, fetchOptions);
 
         return readPage(query, pageable, () -> count(spec))
             .map(tuple -> toVO(tuple, fetchOptions, true));
@@ -147,8 +139,8 @@ public class VesselSnapshotRepositoryImpl
         CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
 
         Root<VesselFeatures> root = criteriaQuery.from(VesselFeatures.class);
-        Join<?, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
-        Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
+        Join<VesselFeatures, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(vessel);
 
         criteriaQuery.multiselect(root, vessel, vrp)
             .distinct(true);
@@ -159,8 +151,7 @@ public class VesselSnapshotRepositoryImpl
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        String sortBy = toEntityPropertyName(page.getSortBy());
-        addSorting(criteriaQuery, builder, root, sortBy, page.getSortDirection());
+        addSorting(criteriaQuery, root, builder, page.getSortBy(), page.getSortDirection());
 
         TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
 
@@ -170,7 +161,9 @@ public class VesselSnapshotRepositoryImpl
         // Set Limit
         query.setFirstResult((int)page.getOffset());
         query.setMaxResults(page.getSize());
-        query.setHint("org.hibernate.comment", "+ INDEX(SIH2_ADAGIO_DBA.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)");
+
+        // Configure (set hints)
+        configureQuery(query, fetchOptions);
 
         return streamQuery(query)
             .map(tuple -> toVO(tuple, fetchOptions, true))
@@ -193,7 +186,7 @@ public class VesselSnapshotRepositoryImpl
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate()))
             // Text
-            .and(searchText(toEntityPropertyNames(filter.getSearchAttributes()), filter.getSearchText()));
+            .and(searchText(toEntityProperties(filter.getSearchAttributes()), filter.getSearchText()));
     }
 
     @Override
@@ -216,28 +209,21 @@ public class VesselSnapshotRepositoryImpl
         super.onAfterSaveEntity(vo, savedEntity, isNew);
     }
 
-    protected String[] toEntityPropertyNames(String[] voPropertyNames) {
-        if (ArrayUtils.isNotEmpty(voPropertyNames)) {
-            return Arrays.stream(voPropertyNames)
-                .map(this::toEntityPropertyName)
-                .toArray(String[]::new);
-        }
 
-        return voPropertyNames;
-    }
 
-    protected String toEntityPropertyName(@NonNull String voPropertyName) {
-        String fixedPropertyName = switch (voPropertyName) {
+    @Override
+    protected String toEntityProperty(@NonNull String property) {
+        String fixedPropertyName = switch (property) {
             case VesselRegistrationPeriod.Fields.REGISTRATION_CODE, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE ->
-                StringUtils.doting(VRP_PATH, voPropertyName);
-            default -> voPropertyName;
+                StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, property);
+            default -> property;
         };
-        if (!voPropertyName.equals(fixedPropertyName)) {
-            log.debug("Map property 'VesselSnapshotVO.{}' -> 'VesselFeatures.{}'", voPropertyName, fixedPropertyName);
+        if (!property.equals(fixedPropertyName)) {
+            log.debug("Map property 'VesselSnapshotVO.{}' -> 'VesselRegistrationPeriod.{}'", property, fixedPropertyName);
             return fixedPropertyName;
         }
 
-        return voPropertyName;
+        return property;
     }
 
     protected VesselSnapshotVO toVO(Tuple source, VesselFetchOptions fetchOptions, boolean copyIfNull) {
@@ -324,5 +310,13 @@ public class VesselSnapshotRepositoryImpl
                 target.setRegistrationLocation(null);
             }
         }
+    }
+
+    protected void configureQuery(TypedQuery<?> query, @Nullable VesselFetchOptions fetchOptions) {
+        // Set hints
+        if (enableAdagioOptimization) {
+            query.setHint("org.hibernate.comment", String.format("+ INDEX(%s.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)", adagioSchema));
+        }
+
     }
 }

@@ -37,11 +37,17 @@ import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -55,10 +61,6 @@ public abstract class RootDataRepositoryImpl<
         >
         extends DataRepositoryImpl<E, V, F, O>
         implements RootDataRepository<E, V, F, O> {
-
-
-    @Autowired
-    private PersonRepository personRepository;
 
     @Autowired
     private ProgramRepository programRepository;

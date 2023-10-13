@@ -120,7 +120,7 @@ public class VesselRepositoryImpl
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        addSorting(criteriaQuery, builder, root, page.getSortBy(), page.getSortDirection());
+        addSorting(criteriaQuery, root, builder, page.getSortBy(), page.getSortDirection());
 
         TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
 

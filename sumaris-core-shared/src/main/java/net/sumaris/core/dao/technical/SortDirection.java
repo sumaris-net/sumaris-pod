@@ -42,4 +42,8 @@ public enum SortDirection {
         return sort == null ? Optional.empty() : sort.stream().findFirst()
                 .map(o -> o.isAscending() ? ASC : DESC);
     }
+
+    public static Sort.Direction toJpaDirection(SortDirection direction)  {
+        return SortDirection.DESC.equals(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+    }
 }

@@ -39,12 +39,18 @@ public class PostgisPG10Dialect extends org.hibernate.spatial.dialect.postgis.Po
 
         // Register additional functions
         for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
-            if (function != AdditionalSQLFunctions.nvl_end_date) {
-                // Register 'nvl' to use 'coalesce' function
-                registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
-            }
-            else {
-                registerFunction(function.name(), function.asRegisterFunction());
+            switch (function) {
+                case nvl_end_date -> {
+                    // Register 'nvl' to use 'coalesce' function
+                    registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
+                }
+                case regexp_substr -> {
+                    // Register 'regexp_substr' to use 'regexp_match' function
+                    registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.STRING, "regexp_match(?1, ?2)"));
+                }
+                default -> {
+                    registerFunction(function.name(), function.asRegisterFunction());
+                }
             }
         }
     }

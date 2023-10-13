@@ -97,24 +97,19 @@ public class LandingServiceImpl implements LandingService {
     }
 
     @Override
-    public List<LandingVO> findAll(LandingFilterVO filter, Page page, LandingFetchOptions fetchOptions) {
+    public List<LandingVO> findAll(@Nullable LandingFilterVO filter, @Nullable Page page, LandingFetchOptions fetchOptions) {
 
         filter = LandingFilterVO.nullToEmpty(filter);
 
-        if (page != null) {
+        // Use specific query to get landings by observed location (use only observedLocationId)
+//        if (page != null
+//            && filter.getObservedLocationId() != null
+//            && Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
+//
+//            return landingRepository.findAllByObservedLocationId(filter.getObservedLocationId(), page, fetchOptions);
+//        }
 
-            // Use specific query to get landings by observed location (consider only observedLocationId is the only filter attribute)
-            if (filter.getObservedLocationId() != null
-                && Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
-                return landingRepository.findAllByObservedLocationId(filter.getObservedLocationId(), page, fetchOptions);
-            }
-
-            return landingRepository.findAll(filter, page, fetchOptions);
-
-        } else {
-
-            return landingRepository.findAll(filter, fetchOptions);
-        }
+        return landingRepository.findAll(filter, page, fetchOptions);
 
     }
 
@@ -221,9 +216,8 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public void deleteAllByObservedLocationId(int observedLocationId) {
-        // TODO BLA: use a specific query, that only fetch IDs ?
-        landingRepository.findAllByObservedLocationId(observedLocationId)
-                .forEach(l -> this.delete(l.getId()));
+        landingRepository.findAllIdsByObservedLocationId(observedLocationId)
+                .forEach(this::delete);
     }
 
     @Override

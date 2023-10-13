@@ -22,21 +22,26 @@ package net.sumaris.core.dao.data.trip;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -44,6 +49,8 @@ import javax.annotation.Nullable;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -54,6 +61,8 @@ public class TripRepositoryImpl
     private final LocationRepository locationRepository;
     private final LandingRepository landingRepository;
 
+    private boolean enableVesselRegistrationNaturalOrder = false;
+
     @Autowired
     public TripRepositoryImpl(EntityManager entityManager,
                               LocationRepository locationRepository,
@@ -63,6 +72,11 @@ public class TripRepositoryImpl
         this.locationRepository = locationRepository;
         this.landingRepository = landingRepository;
         conversionService.addConverter(Trip.class, TripVO.class, this::toVO);
+    }
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
     }
 
     @Override
@@ -77,7 +91,7 @@ public class TripRepositoryImpl
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
-            .and(hasQualityFlagIds(filter.getQualityFlagIds()))
+            .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(withOperationIds(filter.getOperationIds()))
             ;
@@ -133,6 +147,61 @@ public class TripRepositoryImpl
                 target.setReturnLocation(getReference(Location.class, source.getReturnLocation().getId()));
             }
         }
+    }
+
+    /* -- protected functions -- */
+
+    @Override
+    protected String toEntityProperty(@NonNull String property) {
+        if (Trip.Fields.VESSEL.equalsIgnoreCase(property) || property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
+            return StringUtils.doting(Trip.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+        }
+        if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+            return StringUtils.doting(Trip.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+        }
+        if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+            return StringUtils.doting(Trip.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING);
+        }
+        if (property.endsWith(VesselFeatures.Fields.NAME)) {
+            return StringUtils.doting(Trip.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME);
+        }
+        return super.toEntityProperty(property);
+    }
+
+    @Override
+    protected <T> List<Expression<?>> toSortExpressions(CriteriaQuery<T> query, Root<?> root, CriteriaBuilder cb, String property) {
+
+        Expression<?> expression = null;
+
+        // Add left join on vessel registration period (VRP)
+        if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+            || property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
+            expression = vrp.get(property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                ? VesselRegistrationPeriod.Fields.REGISTRATION_CODE
+                : VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+            // Natural sort
+            if (enableVesselRegistrationNaturalOrder) {
+                expression = Daos.naturalSort(cb, expression);
+            };
+        }
+
+        // Add left join on vessel features (VF)
+        if (property.endsWith(VesselFeatures.Fields.NAME)
+            || property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+            ListJoin<Vessel, VesselFeatures> vf = composeVfJoin(root, cb);
+            expression = vf.get(property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)
+                ? VesselFeatures.Fields.EXTERIOR_MARKING
+                : VesselFeatures.Fields.NAME);
+
+            // Natural sort on exterior marking
+            if (enableVesselRegistrationNaturalOrder && property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+                expression = Daos.naturalSort(cb, expression);
+            };
+        }
+
+        return (expression != null) ? ImmutableList.of(expression) : super.toSortExpressions(query, root, cb, property);
     }
 
     @Override

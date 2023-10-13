@@ -67,9 +67,16 @@ public interface VesselFeaturesSpecifications<
     String SEARCH_TEXT_PREFIX_PARAM = "searchTextPrefix";
     String SEARCH_TEXT_ANY_PARAM = "searchTextAny";
 
-    String VRP_PATH = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
-
     boolean enableRegistrationCodeSearchAsPrefix();
+
+    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<VesselFeatures> root) {
+        Join<VesselFeatures, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
+        return composeVrpJoin(vessel);
+    }
+
+    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Join<VesselFeatures, Vessel> vessel) {
+        return Daos.composeJoinList(vessel, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+    }
 
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
@@ -131,7 +138,7 @@ public interface VesselFeaturesSpecifications<
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
 
-            Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root);
 
             // Start + end date
             if (startDate != null && endDate != null) {
@@ -160,11 +167,12 @@ public interface VesselFeaturesSpecifications<
 
     default Specification<VesselFeatures> registrationLocation(Integer registrationLocationId) {
         if (registrationLocationId == null) return null;
-        return BindableSpecification.where((root, query, cb) -> {
+        return BindableSpecification.<VesselFeatures>where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, REGISTRATION_LOCATION_ID_PARAM);
 
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
-            Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
+
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root);
 
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK
@@ -202,7 +210,7 @@ public interface VesselFeaturesSpecifications<
         final String[] attributes = searchAttributes != null ? searchAttributes : new String[] {
             // Label
             VesselFeatures.Fields.EXTERIOR_MARKING,
-            StringUtils.doting(VRP_PATH, VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
+            StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
             // Name
             VesselFeatures.Fields.NAME
         };

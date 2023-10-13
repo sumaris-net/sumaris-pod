@@ -23,8 +23,10 @@ package net.sumaris.core.dao.technical.jpa;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.querydsl.jpa.impl.JPAQuery;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
@@ -44,6 +46,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.LockOptions;
@@ -58,7 +61,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -69,7 +71,6 @@ import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -512,7 +513,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        addSorting(criteriaQuery, builder, root, sortBy, sortDirection);
+        addSorting(criteriaQuery, root, builder, sortBy, sortDirection);
 
         TypedQuery<S> query = getEntityManager().createQuery(criteriaQuery);
 
@@ -619,19 +620,25 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * Add a orderBy on query
      *
      * @param query         the query
-     * @param builder       criteria builder
-     * @param root          the root of the query
+     * @param from          the root of the query
+     * @param cb            criteria builder
      * @param pageable      page spec
      * @param <T>           type of query
      * @return the query itself
      */
     protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                              CriteriaBuilder builder,
-                                              Root<?> root,
+                                              Root<?> from,
+                                              CriteriaBuilder cb,
                                               Pageable pageable) {
         Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
         if (sort.isSorted()) {
-            query.orderBy(QueryUtils.toOrders(sort, root, builder));
+            List<javax.persistence.criteria.Order> orders = new ArrayList<>();
+
+            for (org.springframework.data.domain.Sort.Order order : sort) {
+                orders.addAll(toOrders(query, from, cb, order.getProperty(), order.getDirection()));
+            }
+
+            query.orderBy(orders);
         }
         return query;
     }
@@ -639,25 +646,74 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * Add a orderBy on query
      *
      * @param query         the query
-     * @param builder       criteria builder
-     * @param root          the root of the query
+     * @param cb       criteria builder
+     * @param from          the root of the query
      * @param sortAttribute the sort attribute (can be a nested attribute)
      * @param sortDirection the direction
      * @param <T>           type of query
      * @return the query itself
      */
     protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                              CriteriaBuilder builder,
-                                              Root<?> root, String sortAttribute, SortDirection sortDirection) {
+                                              Root<?> from,
+                                              CriteriaBuilder cb,
+                                              String sortAttribute,
+                                              SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
-            Expression<?> sortExpression = Daos.composePath(root, sortAttribute);
-            query.orderBy(SortDirection.DESC.equals(sortDirection) ?
-                builder.desc(sortExpression) :
-                builder.asc(sortExpression)
-            );
+            query.orderBy(toOrders(query, from, cb, sortAttribute, sortDirection));
         }
         return query;
+    }
+
+    protected <T> List<Order> toOrders(CriteriaQuery<T> query,
+                                Root<?> from,
+                                CriteriaBuilder cb,
+                                String property,
+                                SortDirection direction) {
+        return toOrders(query, from, cb, property, SortDirection.toJpaDirection(direction));
+    }
+
+    protected <T> List<Order> toOrders(CriteriaQuery<T> query,
+                                Root<?> from,
+                                CriteriaBuilder cb,
+                                String property,
+                                Sort.Direction direction) {
+        String entityProperty = toEntityProperty(property);
+        if (log.isDebugEnabled() && !property.equals(entityProperty)) {
+            log.debug("Fix sort attribute {} -> {}", property, entityProperty);
+        }
+        return toSortExpressions(query, from, cb, entityProperty)
+            .stream()
+            .map(sortExpression -> direction.isDescending() ?
+                cb.desc(sortExpression) :
+                cb.asc(sortExpression))
+            .toList();
+    }
+
+    protected <T> List<Expression<?>> toSortExpressions(CriteriaQuery<T> query,
+                                                        Root<?> from,
+                                                        CriteriaBuilder cb,
+                                                        String property) {
+        return ImmutableList.of(Daos.composePath(from, property));
+    }
+
+    /**
+     * Allow to map a VO property into JPA entity property. Useful for sortBy
+     * @param property A property to map into an entity's property
+     * @return
+     */
+    protected String toEntityProperty(@NonNull String property) {
+        return property;
+    }
+
+    protected String[] toEntityProperties(String[] values) {
+        if (ArrayUtils.isNotEmpty(values)) {
+            return Arrays.stream(values)
+                .map(this::toEntityProperty)
+                .toArray(String[]::new);
+        }
+
+        return values;
     }
 
     protected <ID extends Serializable, CV extends IValueObject<ID>, CT extends IEntity<ID>, PT extends IUpdateDateEntity<?, Date>>

@@ -31,6 +31,7 @@ import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -83,7 +84,9 @@ public class SampleRepositoryImpl
     @Autowired
     private ImageAttachmentRepository imageAttachmentRepository;
 
-    private boolean enableHashOptimization;
+    private boolean enableHashOptimization = false;;
+
+    private boolean enableImageAttachments = false;
 
     @Autowired
     public SampleRepositoryImpl(EntityManager entityManager) {
@@ -94,8 +97,9 @@ public class SampleRepositoryImpl
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady() {
-        this.enableHashOptimization = getConfig().enableSampleHashOptimization();
+    public void onConfigurationReady(ConfigurationEvent event) {
+        this.enableHashOptimization = event.getConfiguration().enableSampleHashOptimization();
+        this.enableImageAttachments = event.getConfiguration().enableDataImages();
     }
 
     @Override
@@ -167,7 +171,7 @@ public class SampleRepositoryImpl
         }
 
         // Fetch images
-        if (fetchOptions != null && fetchOptions.isWithImages() && sampleId != null) {
+        if (this.enableImageAttachments && fetchOptions != null && fetchOptions.isWithImages() && sampleId != null) {
             List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
                     .objectId(sampleId)
                     .objectTypeId(ObjectTypeEnum.SAMPLE.getId())

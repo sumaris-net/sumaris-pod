@@ -126,7 +126,7 @@ public final class EntityEnums {
     }
 
     public static String name(IEntityEnum enumeration) {
-        return Beans.getProperty((Object)enumeration, "name").toString();
+        return ((Enum<?>)enumeration).name();
     }
 
     public static boolean isUnresolved(IEntityEnum enumeration) {

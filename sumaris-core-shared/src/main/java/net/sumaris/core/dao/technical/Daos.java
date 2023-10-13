@@ -45,7 +45,10 @@ import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.function.SQLFunction;
+import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.type.Type;
 import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.Versions;
@@ -1892,14 +1895,17 @@ public class Daos {
 
         for (int i = 0; i < attributes.length; i++) {
             String attribute = attributes[i];
+            boolean last = i == attributes.length - 1;
             try {
                 // copy into a final var
                 final From<?, ?> finalForm = from;
                 // find a join (find it from existing joins of from)
                 from = from.getJoins().stream()
-                    .filter(j -> j.getAttribute().getName().equals(attribute) && (j instanceof ListJoin))
+                    .filter(j -> j.getAttribute().getName().equals(attribute) && (!last || j instanceof ListJoin))
                     .findFirst()
-                    .orElseGet(() -> finalForm.joinList(attribute, joinType));
+                    .orElseGet(() -> last
+                        ? finalForm.joinList(attribute, joinType)
+                        : finalForm.join(attribute, joinType));
             } catch (IllegalArgumentException ignored) {
                 throw new IllegalArgumentException(String.format("the join or attribute [%s] from [%s] doesn't exists", attribute, from.getJavaType()));
             }
@@ -1967,5 +1973,42 @@ public class Daos {
             );
         }
         return cb.coalesce(root.get(endDateFieldName), Daos.DEFAULT_END_DATE_TIME);
+    }
+
+    public static Expression<String> naturalSort(CriteriaBuilder cb, Expression<?> path) {
+        return naturalSort(cb, path, 20);
+    }
+    public static Expression<String> naturalSort(CriteriaBuilder cb, Expression<?> path, int padLength) {
+
+        // Extraire le prefix de la chaîne, s'il est non numérique
+        Expression<String> nonNumericPrefix = cb.function(
+            AdditionalSQLFunctions.regexp_substr.name(),
+            String.class,
+            path,
+            cb.literal("^[^0-9]*")
+        );
+
+        // Extraire le suffix de la chaine, s'il est numérique et éventuellement suivie d'autres caractères
+        Expression<String> numericSuffix = cb.function(
+            AdditionalSQLFunctions.regexp_substr.name(),
+            String.class,
+            path,
+            cb.literal("[0-9]+\\D*")
+        );
+
+        // Ajouter des zéros devant le suffixe pour qu'il ait une longueur fixe
+        Expression<String> paddedSuffix = cb.function(
+            AdditionalSQLFunctions.lpad.name(),
+            String.class,
+            numericSuffix,
+            cb.literal(String.valueOf(padLength)),
+            cb.literal("0")
+        );
+
+        // Concaténer les deux parties pour obtenir une chaîne qui sera triée dans l'ordre naturel
+        return cb.concat(
+            nonNumericPrefix,
+            paddedSuffix
+        );
     }
 }
