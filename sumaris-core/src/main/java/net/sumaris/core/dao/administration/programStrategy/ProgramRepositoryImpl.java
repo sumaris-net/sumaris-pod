@@ -67,6 +67,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Sort;
@@ -100,6 +101,7 @@ public class ProgramRepositoryImpl
     protected final ProgramPrivilegeRepository programPrivilegeRepository;
 
     protected final AcquisitionLevelRepository acquisitionLevelRepository;
+
 
     public Logger getLogger() {
         return log;
@@ -262,7 +264,7 @@ public class ProgramRepositoryImpl
         // AcquisitionLevels
         if (fetchOptions != null && fetchOptions.isWithAcquisitionLevels()) {
             if (target.getId() != null) {
-                target.setAcquisitionLevels(getAcquisitionLevelsByProgramId(target.getId()));
+                target.setAcquisitionLevels(getAcquisitionLevelsById(target.getId()));
             } else {
                 target.setAcquisitionLevels(null);
             }
@@ -275,31 +277,11 @@ public class ProgramRepositoryImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, allEntries = true)
     })
     public void clearCache() {
         log.debug("Cleaning Program's cache...");
-    }
-
-    @Override
-    @Caching(
-        evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
-        },
-        put = {
-            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = " #source.id != null"),
-            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null")
-        }
-    )
-    public ProgramVO save(ProgramVO source) {
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getLabel(), "Missing 'label'");
-        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
-        return super.save(source);
     }
 
     @Override
@@ -358,11 +340,34 @@ public class ProgramRepositoryImpl
     @Override
     @Caching(
         evict = {
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#source.id", condition = "#source.id != null")
+        },
+        put = {
+            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = " #source.id != null"),
+            @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null")
+        }
+    )
+    public ProgramVO save(ProgramVO source) {
+        Preconditions.checkNotNull(source);
+        Preconditions.checkNotNull(source.getLabel(), "Missing 'label'");
+        Preconditions.checkNotNull(source.getName(), "Missing 'name'");
+        return super.save(source);
+    }
+
+    @Override
+    @Caching(
+        evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#id", condition = "#id != null")
         }
     )
     public void deleteById(Integer id) {
@@ -622,7 +627,8 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    public List<ReferentialVO> getAcquisitionLevelsByProgramId(int programId) {
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID)
+    public List<ReferentialVO> getAcquisitionLevelsById(int programId) {
         return acquisitionLevelRepository.getDistinctAcquisitionLevelsByProgramId(programId)
             .stream()
             .map(acquisitionLevelRepository::toVO)
@@ -701,34 +707,4 @@ public class ProgramRepositoryImpl
         }
     }
 
-    @Override
-    public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
-        String value = findVOById(id)
-            .map(program -> program.getProperties().get(property.getKey()))
-            .orElse(property.getDefaultValue());
-
-        // If boolean: true = TRUE
-        if (property.getType() == Boolean.class) {
-            return expectedValue.equalsIgnoreCase(value);
-        }
-
-        return expectedValue.equals(value);
-    }
-
-    @Override
-    public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
-        String value = findByLabel(label)
-            .map(program -> program.getProperties().get(property.getKey()))
-            .orElse(property.getDefaultValue());
-
-        return expectedValue.equals(value);
-    }
-
-
-    @Override
-    public String getPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property) {
-        return findByLabel(label)
-            .map(program -> program.getProperties().get(property.getKey()))
-            .orElse(property.getDefaultValue());
-    }
 }

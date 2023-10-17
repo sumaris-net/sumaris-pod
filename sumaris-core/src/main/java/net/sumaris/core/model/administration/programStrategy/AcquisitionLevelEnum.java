@@ -24,12 +24,14 @@ package net.sumaris.core.model.administration.programStrategy;
 
 import lombok.NonNull;
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.IEntityEnum;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 @EntityEnum(entity = AcquisitionLevel.class,
     resolveAttributes = AcquisitionLevel.Fields.LABEL)
-public enum AcquisitionLevelEnum {
+public enum AcquisitionLevelEnum implements IEntityEnum, Serializable {
 
     TRIP(1, "TRIP"),
     OPERATION(3, "OPERATION"),

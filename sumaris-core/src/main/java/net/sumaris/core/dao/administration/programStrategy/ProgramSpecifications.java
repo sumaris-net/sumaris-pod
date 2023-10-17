@@ -22,7 +22,6 @@ package net.sumaris.core.dao.administration.programStrategy;
  * #L%
  */
 
-import lombok.NonNull;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
@@ -36,7 +35,6 @@ import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.Param;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
@@ -109,14 +107,10 @@ public interface ProgramSpecifications {
 
     List<ProgramPersonVO> savePersonsByProgramId(int programId, List<ProgramPersonVO> sources);
 
-    List<ReferentialVO> getAcquisitionLevelsByProgramId(int programId);
+    List<ReferentialVO> getAcquisitionLevelsById(int programId);
 
     void clearCache();
 
     Logger getLogger();
 
-    boolean hasPropertyValueByProgramId(Integer id, ProgramPropertyEnum property, String expectedValue);
-    boolean hasPropertyValueByProgramLabel(String label, ProgramPropertyEnum property, String expectedValue);
-
-    String getPropertyValueByProgramLabel(String label, ProgramPropertyEnum property);
 }

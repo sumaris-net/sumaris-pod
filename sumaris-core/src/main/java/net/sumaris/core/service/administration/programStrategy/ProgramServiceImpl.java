@@ -33,6 +33,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
@@ -107,14 +108,15 @@ public class ProgramServiceImpl implements ProgramService {
 
 	@Override
 	public List<ReferentialVO> getAcquisitionLevelsById(int id) {
-		return programRepository.getAcquisitionLevelsByProgramId(id);
+		return programRepository.getAcquisitionLevelsById(id);
 	}
 
 	@Override
 	public boolean hasAcquisitionLevelById(int id, @NonNull AcquisitionLevelEnum acquisitionLevel) {
-		Preconditions.checkNotNull(acquisitionLevel.getLabel());
-		return Beans.getStream(this.getAcquisitionLevelsById(id))
-			.anyMatch(item -> item.getLabel().equalsIgnoreCase(item.getLabel()));
+		if (EntityEnums.isUnresolved(acquisitionLevel)) return false;
+		final int expectedId = acquisitionLevel.getId();
+		return Beans.getStream(programRepository.getAcquisitionLevelsById(id))
+			.anyMatch(item -> expectedId == item.getId());
 	}
 
 	@Override
@@ -177,19 +179,40 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
-	public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
-		return programRepository.hasPropertyValueByProgramLabel(label, property, expectedValue);
+	public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
+		String value = getPropertyValueByProgramLabel(label, property);
+		// If boolean: true = TRUE
+		if (property.getType() == Boolean.class) {
+			return expectedValue.equalsIgnoreCase(value);
+		}
+
+		return expectedValue.equals(value);
 	}
 
-	@Override
-	public String getPropertyValueByProgramLabel(String label, ProgramPropertyEnum property) {
-		return programRepository.getPropertyValueByProgramLabel(label, property);
-	}
 
 	@Override
 	public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue){
-		return programRepository.hasPropertyValueByProgramId(id, property, expectedValue);
+		String value = getPropertyValueByProgramId(id, property);
+		// If boolean: true = TRUE
+		if (property.getType() == Boolean.class) {
+			return expectedValue.equalsIgnoreCase(value);
+		}
+
+		return expectedValue.equals(value);
 	}
 
+	@Override
+	public String getPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property) {
+		return programRepository.findByLabel(label)
+			.map(program -> program.getProperties().get(property.getKey()))
+			.orElse(property.getDefaultValue());
+	}
+
+	@Override
+	public String getPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property) {
+		return programRepository.findVOById(id)
+			.map(program -> program.getProperties().get(property.getKey()))
+			.orElse(property.getDefaultValue());
+	}
 }
 

@@ -116,7 +116,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     protected boolean production;
 
-    protected boolean enableCleanup;
+    protected boolean enableCleanup = true;
 
     @PostConstruct
     public void init() {
