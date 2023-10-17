@@ -22,22 +22,17 @@
 
 package net.sumaris.extraction.core.service.oracle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.service.data.TripService;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.service.AbstractServiceTest;
-import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionService;
-import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import net.sumaris.extraction.core.vo.vessel.ExtractionVesselFilterVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -233,9 +228,8 @@ public class ExtractionServiceOracleSFATest extends AbstractServiceTest {
 
     /* -- protected methods -- */
 
-    //@Override
     protected String getProgramLabelForVessel() {
-        return "LocalVessel-MCS-SFA";
+        return ProgramEnum.SIH.getLabel();
     }
 
 }

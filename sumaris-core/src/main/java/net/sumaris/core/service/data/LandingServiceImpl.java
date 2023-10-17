@@ -266,7 +266,7 @@ public class LandingServiceImpl implements LandingService {
         landing = landingRepository.control(landing);
 
         // Also control Trip
-        if (landing.getTripId() != null && options.getWithChildren()) {
+        if (landing.getTripId() != null && options != null && options.getWithChildren()) {
             tripService.findAll(TripFilterVO.builder()
                                     .tripId(landing.getTripId())
                                     .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})

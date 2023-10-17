@@ -26,9 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.referential.VesselType;
+import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -58,8 +62,12 @@ public class VesselDaoImplReadTest extends AbstractDaoTest {
     @Test
     public void findByFilter() {
 
-        List<VesselVO> result = dao.findByFilter(null, 0, 10,
-            StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeaturesVO.Fields.EXTERIOR_MARKING),
+        VesselFilterVO filter = VesselFilterVO.builder()
+            .searchText("CN851")
+            .vesselTypeId(VesselTypeEnum.FISHING_VESSEL.getId())
+            .build();
+        List<VesselVO> result = dao.findByFilter(filter, 0, 10,
+            StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING),
             SortDirection.ASC);
 
         Assert.assertNotNull(result);
@@ -87,6 +95,6 @@ public class VesselDaoImplReadTest extends AbstractDaoTest {
         Long count = dao.countByFilter(null);
 
         Assert.assertNotNull(count);
-        Assert.assertEquals(2L, count.longValue());
+        Assert.assertEquals(4L, count.longValue());
     }
 }

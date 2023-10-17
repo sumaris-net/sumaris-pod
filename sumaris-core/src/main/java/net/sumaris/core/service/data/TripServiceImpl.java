@@ -234,7 +234,7 @@ public class TripServiceImpl implements TripService {
     }
 
     @Override
-    public TripVO save(final TripVO source, TripSaveOptions options) {
+    public TripVO save(final TripVO source, @Nullable TripSaveOptions options) {
         checkCanSave(source);
 
         // Create a options clone (to be able to edit it)

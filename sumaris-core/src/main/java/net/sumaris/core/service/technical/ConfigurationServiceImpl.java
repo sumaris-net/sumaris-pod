@@ -56,6 +56,7 @@ import org.nuiton.config.ApplicationConfigProvider;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -465,7 +466,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         try {
             // Emit to Spring event bus
             publisher.publishEvent(event);
-        } catch (Throwable t) {
+        } catch (BeanCreationNotAllowedException t) {
+            // Silent
+        }  catch (Throwable t) {
             log.error("Error after publishing configuration ready event: " + t.getMessage(), t);
         }
 

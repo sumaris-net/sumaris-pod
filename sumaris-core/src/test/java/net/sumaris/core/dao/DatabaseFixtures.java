@@ -68,6 +68,8 @@ public class DatabaseFixtures {
 		return switch (index) {
 			case 0 -> 1;
 			case 1 -> 2;
+			case 2 -> 3;
+			case 3 -> 4;
 			default -> 1;
 		};
 	}

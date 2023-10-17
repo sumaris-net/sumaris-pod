@@ -97,6 +97,11 @@ public class LandingRepositoryImpl
 
     @Override
     public Specification<Landing> toSpecification(LandingFilterVO filter, LandingFetchOptions fetchOptions) {
+        if (filter.getObservedLocationId() != null && Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
+            return BindableSpecification
+                .where(hasObservedLocationId(filter.getObservedLocationId()));
+        }
+
         return super.toSpecification(filter, fetchOptions)
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasTripId(filter.getTripId()))

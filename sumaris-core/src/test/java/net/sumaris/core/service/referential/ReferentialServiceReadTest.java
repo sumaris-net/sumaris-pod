@@ -162,7 +162,7 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         // count all
         Long count = service.count(Gear.class.getSimpleName());
         Assert.assertNotNull(count);
-        Assert.assertEquals(94, count.longValue());
+        Assert.assertEquals(95, count.longValue());
 
         // count by level
         count = service.countByLevelId(Gear.class.getSimpleName(), 1);
@@ -176,26 +176,24 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         Assert.assertEquals(4, count.longValue());
         count = service.countByLevelId(Location.class.getSimpleName(), 1, 2);
         Assert.assertNotNull(count);
-        Assert.assertEquals(19, count.longValue());
+        Assert.assertEquals(20, count.longValue());
         count = service.countByLevelId(Location.class.getSimpleName(), 1, 2, 3);
         Assert.assertNotNull(count);
-        Assert.assertEquals(22, count.longValue());
+        Assert.assertEquals(23, count.longValue());
 
         // count by filter
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelId(1).build());
         Assert.assertNotNull(count);
-        Assert.assertEquals(58, count.longValue());
+        Assert.assertEquals(60, count.longValue());
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().levelIds(new Integer[]{1,2}).build());
         Assert.assertNotNull(count);
-        Assert.assertEquals(19, count.longValue());
+        Assert.assertEquals(20, count.longValue());
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().label("FR").build());
         Assert.assertNotNull(count);
         Assert.assertEquals(0, count.longValue());
         count = service.countByFilter(Location.class.getSimpleName(), ReferentialFilterVO.builder().searchText("FR").build());
         Assert.assertNotNull(count);
-        Assert.assertEquals(13, count.longValue());
-
-
+        Assert.assertEquals(14, count.longValue());
     }
 
     @Test

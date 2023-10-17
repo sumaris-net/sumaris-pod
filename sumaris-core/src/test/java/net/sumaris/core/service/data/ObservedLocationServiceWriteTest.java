@@ -100,17 +100,23 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
     public void validate() {
         ObservedLocationVO observedLocation = service.get(11);
         Assume.assumeNotNull(observedLocation);
+
+        // Make sure to control observed location and landings
         if (observedLocation.getControlDate() == null) {
-            observedLocation = service.control(observedLocation, null);
-            controlLandingsByObservedLocationId(observedLocation.getId());
+            observedLocation = service.control(observedLocation,null);
         }
+        controlLandingsByObservedLocationId(observedLocation.getId());
 
         Assume.assumeNotNull(observedLocation.getControlDate());
         Assume.assumeTrue(observedLocation.getValidationDate() == null);
-        ObservedLocationVO result = service.validate(observedLocation, null);
+
+        // Validate (with children)
+        ObservedLocationVO result = service.validate(observedLocation, DataValidateOptions.builder()
+            .withChildren(true)
+            .build());
         Assume.assumeNotNull(result.getValidationDate());
 
-        // Sub landings must be controlled before validation
+        // Sub landings should have been validated
         {
             List<LandingVO> landings = landingService.findAll(LandingFilterVO.builder()
                             .observedLocationId(observedLocation.getId())
@@ -118,9 +124,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
                     Page.builder().offset(0).size(1000).build(),
                     LandingFetchOptions.MINIMAL);
             Assert.assertTrue(landings.size() > 0);
-            landings.forEach(l -> {
-                Assert.assertNotNull(l.getValidationDate());
-            });
+            landings.forEach(l -> Assert.assertNotNull(l.getValidationDate()));
         }
     }
 

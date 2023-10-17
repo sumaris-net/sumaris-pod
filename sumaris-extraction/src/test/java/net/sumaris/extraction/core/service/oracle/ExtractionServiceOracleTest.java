@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.extraction.core.DatabaseResource;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -53,6 +54,9 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle");
+
+    @Autowired
+    protected ExtractionService service;
 
     @Autowired
     protected ConfigurationService configurationService;
@@ -90,8 +94,8 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
 
         ExtractionStrategyFilterVO filter = new ExtractionStrategyFilterVO();
         filter.setSheetName(StratSpecification.SM_SHEET_NAME);
-        filter.setProgramLabel("SIH-OBSBIO");
-        filter.setStrategyLabels(ImmutableList.of("22SOLESOL004"));
+        filter.setProgramLabel("SIH-PARAM-BIO");
+        //filter.setStrategyLabels(ImmutableList.of("22SOLESOL004"));
 
         ExtractionResultVO result = service.executeAndReadStrategies(LiveExtractionTypeEnum.STRAT, filter,
                 Page.builder()

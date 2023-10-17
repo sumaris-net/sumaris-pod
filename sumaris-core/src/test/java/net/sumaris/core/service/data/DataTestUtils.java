@@ -24,16 +24,20 @@ package net.sumaris.core.service.data;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
+import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -42,6 +46,62 @@ import java.util.Calendar;
 import java.util.List;
 
 public class DataTestUtils {
+
+    public static TripVO createTrip(DatabaseFixtures fixtures,
+                                    PmfmService pmfmService) {
+        TripVO vo = new TripVO();
+
+        vo.setProgram(fixtures.getDefaultProgram());
+
+        // Vessel
+        VesselSnapshotVO vessel = new VesselSnapshotVO();
+        vessel.setId(fixtures.getVesselId(0));
+        vo.setVesselSnapshot(vessel);
+
+        // Set dates
+        Calendar date = Calendar.getInstance();
+        date.add(Calendar.HOUR, -12);
+        vo.setDepartureDateTime(date.getTime());
+
+        date.add(Calendar.DAY_OF_YEAR, 15);
+        vo.setReturnDateTime(date.getTime());
+
+        // Locations
+        LocationVO departureLocation = new LocationVO();
+        departureLocation.setId(fixtures.getLocationPortId(0));
+        vo.setDepartureLocation(departureLocation);
+
+        LocationVO returnLocation = new LocationVO();
+        returnLocation.setId(fixtures.getLocationPortId(0));
+        vo.setReturnLocation(returnLocation);
+
+        // Recorder
+        DepartmentVO recorderDepartment = new DepartmentVO();
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
+        vo.setRecorderDepartment(recorderDepartment);
+
+        // Gear
+        ReferentialVO gear = new ReferentialVO();
+        gear.setEntityName(PhysicalGear.class.getSimpleName());
+        gear.setId(fixtures.getGearId(0));
+
+        // Physical gear
+        PhysicalGearVO physicalGear = new PhysicalGearVO();
+        physicalGear.setGear(gear);
+        physicalGear.setRankOrder(1);
+        physicalGear.setRecorderDepartment(vo.getRecorderDepartment());
+        physicalGear.setProgram(vo.getProgram());
+        vo.setGears(List.of(physicalGear));
+
+        // Observers
+        PersonVO observer1 = new PersonVO();
+        observer1.setId(fixtures.getPersonId(0));
+        PersonVO observer2 = new PersonVO();
+        observer2.setId(fixtures.getPersonId(1));
+        vo.setObservers(ImmutableSet.of(observer1, observer2));
+
+        return vo;
+    }
 
     public static OperationVO createOperation(DatabaseFixtures fixtures,
                                               PmfmService pmfmService,

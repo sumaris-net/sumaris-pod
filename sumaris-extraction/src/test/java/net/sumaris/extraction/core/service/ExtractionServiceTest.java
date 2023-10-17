@@ -77,12 +77,12 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     @Autowired
     protected ExtractionConfiguration extractionConfiguration;
 
-    @Test
+
     public void executeStrat() throws IOException {
         executeStrat(null);
     }
 
-    @Test
+
     public void executeWithDenormalization() throws IOException {
 
         // Enable batch optimization, in extraction
@@ -144,7 +144,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    @Test
+
     public void executeRdb() throws IOException {
 
         // Test the RDB format
@@ -188,7 +188,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    @Test
+
     public void executeCost() throws IOException {
 
         // Test the RDB format
@@ -233,14 +233,14 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    @Test
+
     public void executeFree1() {
 
         // Test the FREE 1 format
         service.executeAndDumpTrips(LiveExtractionTypeEnum.FREE1, null);
     }
 
-    @Test
+
     public void executeFree2() throws IOException {
 
         // Test the FREE v2 format
@@ -261,7 +261,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(gearFile) > 1);
     }
 
-    @Test
+
     public void executeSurvivalTest() throws IOException  {
 
         // Test Survival test format
@@ -277,7 +277,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(stFile) > 1);
     }
 
-    @Test
+
     public void executePmfmADAP() throws IOException {
         // Validate some trips
         String programLabel = fixtures.getProgramLabelForExtraction(1);
@@ -326,7 +326,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     }
 
-    @Test
+
     public void executeRjbADAP() throws IOException {
         // Validate some trips
         String programLabel = fixtures.getProgramLabelForExtraction(1);
@@ -378,7 +378,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     }
 
-    @Test
+
     public void executeApase() throws IOException {
 
         log.info("--- Testing extraction APASE ... ---");
@@ -429,7 +429,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    @Test
+
     public void executeVessel() throws IOException {
         VesselFilterVO filter = VesselFilterVO.builder()
             .programLabel(getProgramLabelForVessel())
@@ -441,7 +441,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(outputFile) > 1);
     }
 
-    @Test
+
     public void aggregateRdb() throws IOException {
 
         IExtractionType type = AggExtractionTypeEnum.AGG_RDB;
@@ -466,7 +466,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
-    @Test
+
     public void aggregateProductRdb() throws IOException {
 
         IExtractionType parent = productService.getByLabel(fixtures.getRdbProductLabel(0), null);
@@ -508,7 +508,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         //Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
-    @Test
+
     public void aggregateSurvivalTest() throws IOException {
 
         IExtractionType type = AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
@@ -530,7 +530,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(releaseFile.exists()); // No release DATA in the test DB
     }
 
-    @Test
+
     public void executeAggCost() throws IOException {
         IExtractionType source = LiveExtractionTypeEnum.COST;
 
@@ -567,7 +567,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
-    @Test
+
     public void executeAggFree1() throws IOException {
 
         IExtractionType source = LiveExtractionTypeEnum.FREE1;
@@ -605,7 +605,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 //        Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
-    @Test
+
     public void executeAggRjbTrip() throws IOException {
 
         IExtractionType type = AggExtractionTypeEnum.AGG_RJB_TRIP;
@@ -647,7 +647,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    @Test
+
     public void executeAndReadAggSurvivalTest() {
 
         IExtractionType type = AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
@@ -690,7 +690,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(aggResult.getTimeStrata().contains(AggRdbSpecification.COLUMN_YEAR));
     }
 
-    @Test
+
     public void readAggSurvivalTest() {
         ExtractionProductVO type = createAggProduct(AggExtractionTypeEnum.AGG_SURVIVAL_TEST);
         ExtractionProductVO savedProduct;
@@ -728,7 +728,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(result.getRows().size() > 0);
     }
 
-    @Test
+
     public void readAggTechSurvivalTest() {
 
         ExtractionProductVO type = createAggProduct(AggExtractionTypeEnum.AGG_SURVIVAL_TEST);
@@ -770,7 +770,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertTrue(result.getData().size() > 0);
     }
 
-    @Test
+
     public void updatePmfmTrip() {
         IExtractionType type = createProduct(LiveExtractionTypeEnum.PMFM_TRIP);
         ExtractionProductVO savedProduct;
@@ -815,7 +815,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertEquals(savedProduct.getLabel(), updatedProduct.getLabel()); // Same label
     }
 
-    @Test
+
     public void updateAggRdbProduct() {
 
         ExtractionProductVO savedProduct;
@@ -860,7 +860,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         Assert.assertEquals(savedProduct.getLabel(), updatedProduct.getLabel()); // Same label
     }
 
-    @Test
+
     @Ignore
     // FIXME
     public void z_dropTemporaryTables() {

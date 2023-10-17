@@ -57,6 +57,7 @@ import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -180,6 +181,12 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public E getById(ID id) {
+        return super.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Unable to load entity " + getDomainClass().getName() + " with identifier '" + id + "': not found in database."));
     }
 
     @Override

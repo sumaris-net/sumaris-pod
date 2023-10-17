@@ -32,6 +32,7 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -70,9 +71,9 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 
 	void fillTripsLandingLinks(List<TripVO> targets);
 
-	TripVO save(TripVO trip, TripSaveOptions saveOptions);
+	TripVO save(TripVO trip, @Nullable TripSaveOptions saveOptions);
 
-	List<TripVO> save(List<TripVO> trips, TripSaveOptions saveOptions);
+	List<TripVO> save(List<TripVO> trips, @Nullable TripSaveOptions saveOptions);
 
 
 	@Async

@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.sample;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
@@ -84,13 +85,16 @@ public class SampleRepositoryImpl
     @Autowired
     private ImageAttachmentRepository imageAttachmentRepository;
 
-    private boolean enableHashOptimization = false;;
+    private boolean enableHashOptimization;;
 
-    private boolean enableImageAttachments = false;
+    private boolean enableImageAttachments;
 
     @Autowired
-    public SampleRepositoryImpl(EntityManager entityManager) {
+    public SampleRepositoryImpl(EntityManager entityManager, SumarisConfiguration configuration) {
         super(Sample.class, SampleVO.class, entityManager);
+
+        this.enableHashOptimization = configuration.enableSampleHashOptimization();
+        this.enableImageAttachments = configuration.enableDataImages();
 
         // FIXME: Client app: update entity from the save() result
         setCheckUpdateDate(false); // for default save()

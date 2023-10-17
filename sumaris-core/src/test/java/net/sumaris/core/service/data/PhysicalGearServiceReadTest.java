@@ -83,20 +83,20 @@ public class PhysicalGearServiceReadTest extends AbstractServiceTest{
             .excludeChildGear(true)
             .excludeTripId(60) // FIXME Exclude PIFIL data, because error (program id=60 not found ??)
             .build(),
-            3);
+            4);
 
         assertFindAll(PhysicalGearFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-03", "yyyy-MM-dd"))
             .excludeChildGear(true)
             .excludeTripId(60) // FIXME Exclude PIFIL data, because error (program id=60 not found ??)
             .build(),
-            3);
+            4);
 
         assertFindAll(PhysicalGearFilterVO.builder()
             .startDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
             .excludeChildGear(true)
             .build(),
-            4);
+            5);
 
         assertFindAll(PhysicalGearFilterVO.builder()
             .endDate(Dates.parseDate("2018-03-04", "yyyy-MM-dd"))
@@ -144,7 +144,7 @@ public class PhysicalGearServiceReadTest extends AbstractServiceTest{
         assertFindAll(PhysicalGearFilterVO.builder()
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED})
                 .build(),
-            9);
+            10);
     }
 
     private void assertFindAll(PhysicalGearFilterVO filter, int expectedSize) {
