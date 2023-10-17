@@ -1703,9 +1703,8 @@ public class DataGraphQLService {
 
         // Replace programLabel by ID
         if (StringUtils.isNotBlank(filter.getProgramLabel()) && ArrayUtils.isEmpty(filter.getProgramIds())) {
-            filter.setProgramIds(new Integer[]{
-                this.programService.getIdByLabel(filter.getProgramLabel())
-            });
+            Integer programId = this.programService.getIdByLabel(filter.getProgramLabel());
+            filter.setProgramIds(new Integer[]{programId});
             filter.setProgramLabel(null);
         }
 
