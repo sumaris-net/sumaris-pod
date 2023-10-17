@@ -24,4 +24,5 @@ package net.sumaris.core.model.annotation;
 
 public interface IEntityEnum {
 
+    String name();
 }

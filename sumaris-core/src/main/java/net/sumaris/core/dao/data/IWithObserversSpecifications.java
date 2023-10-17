@@ -49,16 +49,16 @@ public interface IWithObserversSpecifications<E extends IWithObserversEntity<Int
         return hasObserverPersonIds(IWithObserversEntity.Fields.OBSERVERS, observerPersonIds);
     }
 
-    default Specification<E> hasObserverPersonIds(String observersPath, Integer... observerPersonIds) {
+    default Specification<E> hasObserverPersonIds(String observersPropertyPath, Integer... observerPersonIds) {
         if (ArrayUtils.isEmpty(observerPersonIds)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
 
             // Avoid duplicated entries (because of join)
-            query.distinct(true);
+            if (ArrayUtils.getLength(observerPersonIds) > 1) query.distinct(true);
 
             ParameterExpression<Collection> parameter = cb.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
-            return cb.in(Daos.composeJoin(root, observersPath, JoinType.INNER).get(IEntity.Fields.ID))
+            return cb.in(Daos.composeJoin(root, observersPropertyPath).get(IEntity.Fields.ID))
                 .value(parameter);
         }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }

@@ -22,19 +22,19 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.location.Location;
@@ -49,8 +49,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.*;
+import java.util.List;
 
 @Slf4j
 public class VesselFeaturesRepositoryImpl
@@ -60,6 +61,7 @@ public class VesselFeaturesRepositoryImpl
     private final ReferentialDao referentialDao;
     private final LocationRepository locationRepository;
     private boolean enableRegistrationCodeSearchAsPrefix;
+    private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
     public VesselFeaturesRepositoryImpl(EntityManager entityManager,
@@ -73,7 +75,8 @@ public class VesselFeaturesRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
+        this.enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
+        this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
     }
 
     @Override
@@ -181,6 +184,34 @@ public class VesselFeaturesRepositoryImpl
                 target.setVessel(getReference(Vessel.class, source.getVessel().getId()));
             }
         }
+    }
+
+    @Override
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<VesselFeatures> root, CriteriaBuilder cb, String property) {
+
+        Expression<?> expression = null;
+
+        if (enableVesselRegistrationNaturalOrder) {
+            // Add left join on vessel registration period (VRP)
+            if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                || property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+
+                ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
+                expression = vrp.get(property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                    ? VesselRegistrationPeriod.Fields.REGISTRATION_CODE
+                    : VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+
+                expression = Daos.naturalSort(cb, expression);
+            }
+
+            // Add left join on vessel features (VF)
+            // Natural sort on exterior marking
+            if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+                expression = Daos.naturalSort(cb, expression);
+            }
+        }
+
+        return (expression != null) ? ImmutableList.of(expression) : super.toSortExpressions(query, root, cb, property);
     }
 
     @Override

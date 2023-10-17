@@ -24,13 +24,13 @@ package net.sumaris.core.dao.data.vessel;
 
 import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
-import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -42,8 +42,6 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -52,12 +50,14 @@ import java.util.*;
 
 @NoRepositoryBean
 public interface VesselFeaturesSpecifications<
-    E extends IDataEntity<Integer>,
+    E extends VesselFeatures,
     V extends IDataVO<Integer>,
     F extends VesselFilterVO,
     O extends IFetchOptions
     >
-    extends DataSpecifications<Integer, VesselFeatures>, DataRepository<E, V, F, O> {
+    extends DataSpecifications<Integer, VesselFeatures>,
+    DataRepository<E, V, F, O>,
+    IWithVesselSpecifications<VesselFeatures> {
 
     String VESSEL_ID_PARAM = "vesselId";
     String VESSEL_TYPE_ID_PARAM = "vesselTypeId";
@@ -69,13 +69,9 @@ public interface VesselFeaturesSpecifications<
 
     boolean enableRegistrationCodeSearchAsPrefix();
 
-    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<VesselFeatures> root) {
-        Join<VesselFeatures, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
-        return composeVrpJoin(vessel);
-    }
-
-    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Join<VesselFeatures, Vessel> vessel) {
-        return Daos.composeJoinList(vessel, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
+        Join<T, Vessel> vessel = composeVesselJoin(root);
+        return composeVrpJoin(vessel, cb, null /*VRP should be filtered by filter's dates*/);
     }
 
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
@@ -84,7 +80,7 @@ public interface VesselFeaturesSpecifications<
             ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
             return cb.equal(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID), param);
         })
-            .addBind(VESSEL_ID_PARAM, vesselId);
+        .addBind(VESSEL_ID_PARAM, vesselId);
     }
 
     default Specification<VesselFeatures> vesselTypeId(Integer vesselTypeId) {
@@ -138,7 +134,7 @@ public interface VesselFeaturesSpecifications<
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
 
-            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root);
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
 
             // Start + end date
             if (startDate != null && endDate != null) {
@@ -172,7 +168,7 @@ public interface VesselFeaturesSpecifications<
 
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
 
-            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root);
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
 
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK
@@ -245,23 +241,23 @@ public interface VesselFeaturesSpecifications<
     }
 
     default Optional<V> getByVesselIdAndDate(int vesselId, Date date, O fetchOptions) {
-        VesselFilterVO filter = VesselFilterVO.builder()
+        F filter = (F)VesselFilterVO.builder()
             .vesselId(vesselId)
             .startDate(date)
             .build();
-        Pageable lastVesselPage = Pageables.create(0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC);
-        Page<V> result = findAll((F)filter, lastVesselPage, fetchOptions);
+        Page lastVesselPage = Page.builder().size(1).sortBy(VesselFeatures.Fields.START_DATE).sortDirection(SortDirection.DESC).build();
+        List<V> result = findAll(filter, lastVesselPage, fetchOptions);
 
         // No result for this date:
         // => retry without date (should return the last features and period)
         if (date != null && result.isEmpty()) {
             filter.setDate(null);
-            result = findAll((F)filter, lastVesselPage, fetchOptions);
+            result = findAll(filter, lastVesselPage, fetchOptions);
         }
         if (result.isEmpty()) {
             return Optional.empty();
         }
-        return result.get().findFirst();
+        return Optional.of(result.get(0));
     }
 
     DatabaseType getDatabaseType();

@@ -99,23 +99,23 @@ public class VesselSnapshotRepositoryImpl
                                           @NonNull Pageable pageable,
                                           @NonNull VesselFetchOptions fetchOptions) {
 
-        CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
+        CriteriaBuilder cb = this.getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Tuple> criteriaQuery = cb.createTupleQuery();
 
         Root<VesselFeatures> root = criteriaQuery.from(VesselFeatures.class);
         Join<VesselFeatures, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
-        ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(vessel);
+        ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
 
         criteriaQuery.multiselect(root, vessel, vrp)
             .distinct(true);
 
         // Apply specification
         Specification<VesselFeatures> spec = toSpecification(filter, fetchOptions);
-        Predicate predicate = spec.toPredicate(root, criteriaQuery, builder);
+        Predicate predicate = spec.toPredicate(root, criteriaQuery, cb);
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        addSorting(criteriaQuery, root, builder, pageable);
+        addSorting(criteriaQuery, root, cb, pageable);
 
         TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
 
@@ -135,23 +135,23 @@ public class VesselSnapshotRepositoryImpl
                                           @NonNull net.sumaris.core.dao.technical.Page page,
                                           @NonNull VesselFetchOptions fetchOptions) {
 
-        CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<Tuple> criteriaQuery = builder.createTupleQuery();
+        CriteriaBuilder cb = this.getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<Tuple> criteriaQuery = cb.createTupleQuery();
 
         Root<VesselFeatures> root = criteriaQuery.from(VesselFeatures.class);
         Join<VesselFeatures, Vessel> vessel = Daos.composeJoin(root, VesselFeatures.Fields.VESSEL, JoinType.INNER);
-        ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(vessel);
+        ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(vessel, cb, null);
 
         criteriaQuery.multiselect(root, vessel, vrp)
             .distinct(true);
 
         // Apply specification
         Specification<VesselFeatures> spec = toSpecification(filter, fetchOptions);
-        Predicate predicate = spec.toPredicate(root, criteriaQuery, builder);
+        Predicate predicate = spec.toPredicate(root, criteriaQuery, cb);
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        addSorting(criteriaQuery, root, builder, page.getSortBy(), page.getSortDirection());
+        addSorting(criteriaQuery, root, cb, page.getSortBy(), page.getSortDirection());
 
         TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
 
@@ -292,7 +292,7 @@ public class VesselSnapshotRepositoryImpl
         }
 
         // Registration period
-        if (fetchOptions.isWithVesselRegistrationPeriod()) {
+        if (fetchOptions != null && fetchOptions.isWithVesselRegistrationPeriod()) {
             if (registrationPeriod != null) {
                 // Registration code
                 target.setRegistrationCode(registrationPeriod.getRegistrationCode());

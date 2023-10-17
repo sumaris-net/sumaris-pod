@@ -113,7 +113,7 @@ public final class EntityEnums {
     public static void checkResolved(String i18nMessageKey, @NonNull IEntityEnum... enumerations) {
         List<String> invalidEnumerationNames = Beans.getStream(enumerations)
             .filter(EntityEnums::isUnresolved)
-            .map(EntityEnums::name)
+            .map(IEntityEnum::name)
             .toList();
 
         if (CollectionUtils.isNotEmpty(invalidEnumerationNames)) {
@@ -126,7 +126,7 @@ public final class EntityEnums {
     }
 
     public static String name(IEntityEnum enumeration) {
-        return ((Enum<?>)enumeration).name();
+        return enumeration.name();
     }
 
     public static boolean isUnresolved(IEntityEnum enumeration) {
@@ -136,6 +136,10 @@ public final class EntityEnums {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static boolean isUnresolvedId(Integer id) {
+        return id == null || id == UNRESOLVED_ENUMERATION_ID;
     }
 
     @Data

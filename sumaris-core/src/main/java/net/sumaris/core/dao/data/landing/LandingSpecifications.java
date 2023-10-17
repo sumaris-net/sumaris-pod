@@ -28,7 +28,7 @@ import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.util.StringUtils;
@@ -39,7 +39,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 public interface LandingSpecifications extends RootDataSpecifications<Landing>,
     IWithVesselSpecifications<Landing>,
@@ -147,15 +150,13 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing>,
 
         // Check if pmfm STRATEGY_LABEL has been resolved
         final Integer strategyLabelPmfmId = PmfmEnum.STRATEGY_LABEL.getId();
-        if (strategyLabelPmfmId == null || strategyLabelPmfmId.intValue() == -1) {
-            return null;
-        }
+        if (EntityEnums.isUnresolvedId(strategyLabelPmfmId)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, STRATEGY_LABELS);
 
             // Add distinct, because of left join
-            query.distinct(true);
+            if (ArrayUtils.getLength(strategyLabels) > 1) query.distinct(true);
 
             // Search by Trip -> Operation -> Sample
             ListJoin<Sample, LandingMeasurement> landingMeasurements = Daos.composeJoinList(root, Landing.Fields.LANDING_MEASUREMENTS, JoinType.LEFT);
@@ -171,7 +172,7 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing>,
         if (ArrayUtils.isEmpty(sampleLabels)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<String> param = cb.parameter(String.class, SAMPLE_LABELS);
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, SAMPLE_LABELS);
 
                 // Add distinct, because of left join
                 query.distinct(true);
@@ -209,15 +210,13 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing>,
 
         // Check if pmfm TAG_ID has been resolved
         final Integer tagIdPmfmId = PmfmEnum.TAG_ID.getId();
-        if (tagIdPmfmId == null || tagIdPmfmId == -1) {
-            return null;
-        }
+        if (EntityEnums.isUnresolvedId(tagIdPmfmId)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, SAMPLE_TAG_IDS);
 
             // Add distinct, because of left join
-            query.distinct(true);
+            if (ArrayUtils.getLength(sampleTagIds) > 1) query.distinct(true);
 
             // Search by Trip -> Operation -> Sample
             Join<Landing, Trip> trip = Daos.composeJoin(root, Landing.Fields.TRIP, JoinType.LEFT);

@@ -26,7 +26,7 @@ import net.sumaris.core.model.IEntity;
 
 import java.io.Serializable;
 
-public interface IWithVesselEntity<ID extends Serializable, V extends IEntity<Integer>> extends IEntity<ID> {
+public interface IWithVesselEntity<ID extends Serializable, V extends IDataEntity<Integer>> extends IEntity<ID> {
 
     interface Fields extends IEntity.Fields {
         String VESSEL = "vessel";

@@ -169,7 +169,7 @@ public class TripRepositoryImpl
     }
 
     @Override
-    protected <T> List<Expression<?>> toSortExpressions(CriteriaQuery<T> query, Root<?> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<Trip> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 
@@ -184,7 +184,7 @@ public class TripRepositoryImpl
             // Natural sort
             if (enableVesselRegistrationNaturalOrder) {
                 expression = Daos.naturalSort(cb, expression);
-            };
+            }
         }
 
         // Add left join on vessel features (VF)

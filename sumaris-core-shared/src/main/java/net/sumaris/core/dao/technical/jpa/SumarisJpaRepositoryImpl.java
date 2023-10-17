@@ -487,13 +487,13 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return this.getQuery(spec, Sort.unsorted()).getResultStream();
     }
 
-    protected <S> Stream<S> streamQuery(TypedQuery<S> query) {
+    protected <T> Stream<T> streamQuery(TypedQuery<T> query) {
         return query.getResultList().stream();
     }
 
-    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
-                                                   @Nullable net.sumaris.core.dao.technical.Page page,
-                                                   Class<S> domainClass) {
+    protected TypedQuery<E> getQuery(@Nullable Specification<E> spec,
+                                    @Nullable net.sumaris.core.dao.technical.Page page,
+                                    Class<E> domainClass) {
         if (page == null) {
             return getQuery(spec, domainClass, Pageable.unpaged());
         }
@@ -501,13 +501,13 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return getQuery(spec, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), domainClass);
     }
 
-    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
-                                                   int offset, int size,
-                                                   String sortBy, SortDirection sortDirection,
-                                                   Class<S> domainClass) {
+    protected TypedQuery<E> getQuery(@Nullable Specification<E> spec,
+                                   int offset, int size,
+                                   String sortBy, SortDirection sortDirection,
+                                   Class<E> domainClass) {
         CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<S> criteriaQuery = builder.createQuery(domainClass);
-        Root<S> root = criteriaQuery.from(domainClass);
+        CriteriaQuery<E> criteriaQuery = builder.createQuery(domainClass);
+        Root<E> root = criteriaQuery.from(domainClass);
 
         Predicate predicate = spec != null ? spec.toPredicate(root, criteriaQuery, builder) : null;
         if (predicate != null) criteriaQuery.where(predicate);
@@ -515,7 +515,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         // Add sorting
         addSorting(criteriaQuery, root, builder, sortBy, sortDirection);
 
-        TypedQuery<S> query = getEntityManager().createQuery(criteriaQuery);
+        TypedQuery<E> query = getEntityManager().createQuery(criteriaQuery);
 
         // Bind parameters
         applyBindings(query, spec);
@@ -623,13 +623,12 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param from          the root of the query
      * @param cb            criteria builder
      * @param pageable      page spec
-     * @param <T>           type of query
      * @return the query itself
      */
-    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                              Root<?> from,
-                                              CriteriaBuilder cb,
-                                              Pageable pageable) {
+    protected void addSorting(CriteriaQuery<?> query,
+                                          Root<E> from,
+                                          CriteriaBuilder cb,
+                                          Pageable pageable) {
         Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
         if (sort.isSorted()) {
             List<javax.persistence.criteria.Order> orders = new ArrayList<>();
@@ -640,7 +639,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
             query.orderBy(orders);
         }
-        return query;
     }
     /**
      * Add a orderBy on query
@@ -653,31 +651,30 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param <T>           type of query
      * @return the query itself
      */
-    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                              Root<?> from,
-                                              CriteriaBuilder cb,
-                                              String sortAttribute,
-                                              SortDirection sortDirection) {
+    protected void addSorting(CriteriaQuery<?> query,
+                              Root<E> from,
+                              CriteriaBuilder cb,
+                              String sortAttribute,
+                              SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
             query.orderBy(toOrders(query, from, cb, sortAttribute, sortDirection));
         }
-        return query;
     }
 
-    protected <T> List<Order> toOrders(CriteriaQuery<T> query,
-                                Root<?> from,
-                                CriteriaBuilder cb,
-                                String property,
-                                SortDirection direction) {
+    protected List<Order> toOrders(CriteriaQuery<?> query,
+                                   Root<E> from,
+                                   CriteriaBuilder cb,
+                                   String property,
+                                   SortDirection direction) {
         return toOrders(query, from, cb, property, SortDirection.toJpaDirection(direction));
     }
 
-    protected <T> List<Order> toOrders(CriteriaQuery<T> query,
-                                Root<?> from,
-                                CriteriaBuilder cb,
-                                String property,
-                                Sort.Direction direction) {
+    protected List<Order> toOrders(CriteriaQuery<?> query,
+                                   Root<E> from,
+                                   CriteriaBuilder cb,
+                                   String property,
+                                   Sort.Direction direction) {
         String entityProperty = toEntityProperty(property);
         if (log.isDebugEnabled() && !property.equals(entityProperty)) {
             log.debug("Fix sort attribute {} -> {}", property, entityProperty);
@@ -690,10 +687,10 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             .toList();
     }
 
-    protected <T> List<Expression<?>> toSortExpressions(CriteriaQuery<T> query,
-                                                        Root<?> from,
-                                                        CriteriaBuilder cb,
-                                                        String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query,
+                                                    Root<E> from,
+                                                    CriteriaBuilder cb,
+                                                    String property) {
         return ImmutableList.of(Daos.composePath(from, property));
     }
 

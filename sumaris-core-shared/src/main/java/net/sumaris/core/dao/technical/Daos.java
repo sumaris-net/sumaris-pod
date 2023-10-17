@@ -1985,30 +1985,41 @@ public class Daos {
             AdditionalSQLFunctions.regexp_substr.name(),
             String.class,
             path,
-            cb.literal("^[^0-9]*")
+            cb.literal("^\\D*")
         );
 
-        // Extraire le suffix de la chaine, s'il est numérique et éventuellement suivie d'autres caractères
-        Expression<String> numericSuffix = cb.function(
+        // Extraire le suffix de la chaine, s'il est numérique
+        Expression<String> numericPart = cb.function(
             AdditionalSQLFunctions.regexp_substr.name(),
             String.class,
             path,
-            cb.literal("[0-9]+\\D*")
+            cb.literal("\\d+")
         );
 
         // Ajouter des zéros devant le suffixe pour qu'il ait une longueur fixe
         Expression<String> paddedSuffix = cb.function(
             AdditionalSQLFunctions.lpad.name(),
             String.class,
-            numericSuffix,
-            cb.literal(String.valueOf(padLength)),
+            numericPart,
+            cb.literal(padLength),
             cb.literal("0")
+        );
+
+        // Extraire le suffix
+        Expression<String> aphaSuffix = cb.function(
+            AdditionalSQLFunctions.regexp_substr.name(),
+            String.class,
+            path,
+            cb.literal("\\D*$")
         );
 
         // Concaténer les deux parties pour obtenir une chaîne qui sera triée dans l'ordre naturel
         return cb.concat(
-            nonNumericPrefix,
-            paddedSuffix
+            cb.concat(
+                nonNumericPrefix,
+                paddedSuffix
+            ),
+            aphaSuffix
         );
     }
 }
