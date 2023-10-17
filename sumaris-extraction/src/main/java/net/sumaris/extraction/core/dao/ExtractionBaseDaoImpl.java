@@ -108,6 +108,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     protected ResourceLoader resourceLoader;
 
     protected DatabaseType databaseType = null;
+    protected Version databaseVersion = null;
 
     protected String dropTableQuery;
 
@@ -122,6 +123,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         this.production = configuration.isProduction();
         this.enableCleanup = configuration.enableExtractionCleanup();
         this.databaseType = Daos.getDatabaseType(configuration.getJdbcURL());
+        this.databaseVersion = Daos.getDatabaseVersion(getDataSource());
         this.dropTableQuery = getDialect().getDropTableString("%s");
         this.hibernateQueryTimeout = Math.max(1, Math.round(configuration.getExtractionQueryTimeout() / 1000));
     }
@@ -735,9 +737,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
         xmlQuery.setGroup("injectionPoint", false);
 
-        if (databaseType == DatabaseType.oracle) {
-            Version version = Daos.getOracleVersion(getDataSource());
-            boolean isOracle12 = version.afterOrEquals(Versions.valueOf("12"));
+        if (databaseType == DatabaseType.oracle && databaseVersion != null) {
+            boolean isOracle12 = databaseVersion.afterOrEquals(Versions.valueOf("12"));
             xmlQuery.setGroup("oracle11", !isOracle12);
             xmlQuery.setGroup("oracle12", isOracle12);
         }

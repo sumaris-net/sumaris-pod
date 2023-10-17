@@ -59,7 +59,6 @@ import java.util.List;
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
  */
 @Slf4j
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     @Autowired
@@ -861,8 +860,6 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     }
 
 
-    @Ignore
-    // FIXME
     public void z_dropTemporaryTables() {
         int count = service.dropTemporaryTables();
         Assert.assertEquals("No temporary extraction tables should be found, in a test DB", 0, count);

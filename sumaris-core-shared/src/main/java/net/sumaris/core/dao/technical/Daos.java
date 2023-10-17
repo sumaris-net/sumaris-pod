@@ -45,10 +45,7 @@ import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.type.Type;
 import org.nuiton.i18n.I18n;
 import org.nuiton.version.Version;
 import org.nuiton.version.Versions;
@@ -410,23 +407,53 @@ public class Daos {
         }
     }
 
-    public static Version getOracleVersion(DataSource dataSource) {
-        if (isOracleDatabase(dataSource)) {
-            Connection conn = DataSourceUtils.getConnection(dataSource);
-            try {
+    public static Version getDatabaseVersion(DataSource dataSource) {
+        Connection conn = DataSourceUtils.getConnection(dataSource);
+        try  {
+            String jdbcUrl = conn.getMetaData().getURL();
+
+            // Oracle
+            if (isOracleDatabase(jdbcUrl)) {
                 Object result = sqlUnique(conn, "SELECT VALUE FROM NLS_DATABASE_PARAMETERS WHERE PARAMETER = 'NLS_RDBMS_VERSION'");
+
                 if (result instanceof String version) {
                     while (net.sumaris.core.util.StringUtils.countMatches(version, ".") > 3) {
                         version = net.sumaris.core.util.StringUtils.removeLastToken(version, ".");
                     }
                     return Versions.valueOf(version);
                 }
-
-            } finally {
-                DataSourceUtils.releaseConnection(conn, dataSource);
             }
+
+            // PostgreSQL
+            else if (isPostgresqlDatabase(jdbcUrl)) {
+                Object result = sqlUnique(conn, "SELECT version()");
+
+                if (result instanceof String version) {
+                    // On extrait la version principale de la chaîne, par exemple '13.2' de 'PostgreSQL 13.2, compiled by ...'
+                    String regex = "\\d+\\.\\d+";
+                    Matcher matcher = Pattern.compile(regex).matcher(version);
+                    if (matcher.find()) {
+                        return Versions.valueOf(matcher.group());
+                    }
+                }
+            }
+
+            // HSQLDB
+            else if (isHsqlDatabase(jdbcUrl)) {
+                Object result = sqlUnique(conn, "CALL DATABASE_VERSION()");
+
+                if (result instanceof String version) {
+                    return Versions.valueOf(version);
+                }
+            }
+
+            throw new SumarisTechnicalException("getDatabaseVersion() is not implemented for this database");
+
+        } catch (SQLException e) {
+            throw new SumarisTechnicalException(e);
+        } finally {
+            DataSourceUtils.releaseConnection(conn, dataSource);
         }
-        throw new SumarisTechnicalException("The datasource is not Oracle");
     }
 
     /**
