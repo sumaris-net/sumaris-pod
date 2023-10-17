@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data.vessel;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
@@ -45,11 +46,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
@@ -65,28 +65,31 @@ public class VesselSnapshotRepositoryImpl
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
-    private boolean enableRegistrationCodeSearchAsPrefix = false;
+    private final SumarisConfiguration configuration;
 
-    protected boolean enableAdagioOptimization = false;
-
-    protected String adagioSchema = null;
+    protected boolean enableRegistrationCodeSearchAsPrefix;
+    protected boolean enableAdagioOptimization;
+    protected String adagioSchema;
 
     @Autowired
     public VesselSnapshotRepositoryImpl(EntityManager entityManager,
                                         VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository,
                                         LocationRepository locationRepository,
-                                        ReferentialDao referentialDao) {
+                                        ReferentialDao referentialDao,
+                                        SumarisConfiguration configuration) {
         super(VesselFeatures.class, VesselSnapshotVO.class, entityManager);
         this.vesselRegistrationPeriodRepository = vesselRegistrationPeriodRepository;
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
+        this.configuration = configuration;
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
-        adagioSchema = event.getConfiguration().getAdagioSchema();
-        enableAdagioOptimization = event.getConfiguration().enableAdagioOptimization() && StringUtils.isNotBlank(adagioSchema);
+    public void onConfigurationReady() {
+        this.enableRegistrationCodeSearchAsPrefix = configuration.enableVesselRegistrationCodeSearchAsPrefix();
+        this.adagioSchema = configuration.getAdagioSchema();
+        this.enableAdagioOptimization = configuration.enableAdagioOptimization() && StringUtils.isNotBlank(adagioSchema);
     }
 
     @Override

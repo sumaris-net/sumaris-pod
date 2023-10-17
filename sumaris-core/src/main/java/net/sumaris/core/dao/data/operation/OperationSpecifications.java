@@ -57,7 +57,6 @@ public interface OperationSpecifications
     String GEAR_IDS_PARAMETER = "gearIds";
     String PHYSICAL_GEAR_IDS_PARAMETER = "physicalGearIds";
     String TAXON_GROUP_LABELS_PARAM = "targetSpecieIds";
-    String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
     default Specification<Operation> excludeOperationGroup() {
         return BindableSpecification.where((root, query, cb) -> {

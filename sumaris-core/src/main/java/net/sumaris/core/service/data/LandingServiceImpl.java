@@ -98,18 +98,8 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public List<LandingVO> findAll(@Nullable LandingFilterVO filter, @Nullable Page page, LandingFetchOptions fetchOptions) {
-
-        filter = LandingFilterVO.nullToEmpty(filter);
-
-        // Use specific query to get landings by observed location (use only observedLocationId)
-//        if (page != null
-//            && filter.getObservedLocationId() != null
-//            && Beans.beanIsEmpty(filter, LandingFilterVO.Fields.OBSERVED_LOCATION_ID)) {
-//
-//            return landingRepository.findAllByObservedLocationId(filter.getObservedLocationId(), page, fetchOptions);
-//        }
-
-        return landingRepository.findAll(filter, page, fetchOptions);
+       filter = LandingFilterVO.nullToEmpty(filter);
+       return landingRepository.findAll(filter, page, fetchOptions);
 
     }
 

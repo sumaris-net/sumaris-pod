@@ -60,7 +60,6 @@ import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
-import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -75,6 +74,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.PersistenceException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -126,8 +126,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected boolean enableAdagioOptimization = false;
     protected String adagioSchema = null;
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady() {
         // Read some config options
         this.adagioSchema = this.configuration.getAdagioSchema();
         this.enableAdagioOptimization = StringUtils.isNotBlank(this.adagioSchema)

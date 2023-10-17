@@ -22,21 +22,16 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import lombok.NonNull;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 
-import javax.persistence.criteria.*;
-import java.io.Serializable;
+import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author peck7 on 28/08/2020.

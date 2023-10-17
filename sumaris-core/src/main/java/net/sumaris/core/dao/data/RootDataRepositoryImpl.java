@@ -25,29 +25,20 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
-import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")

@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data.vessel;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -52,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
@@ -68,15 +70,16 @@ public class VesselRepositoryImpl
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final ReferentialDao referentialDao;
     private final ProgramRepository programRepository;
-    private boolean enableRegistrationCodeSearchAsPrefix = false;
-    private boolean enableVesselRegistrationNaturalOrder = false;
+    private boolean enableRegistrationCodeSearchAsPrefix;
+    private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
     public VesselRepositoryImpl(EntityManager entityManager,
                                 VesselFeaturesRepository vesselFeaturesRepository,
                                 VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository,
                                 ReferentialDao referentialDao,
-                                ProgramRepository programRepository) {
+                                ProgramRepository programRepository,
+                                SumarisConfiguration configuration) {
         super(Vessel.class, VesselVO.class, entityManager);
         setCheckUpdateDate(true);
         setLockForUpdate(true);
@@ -87,10 +90,11 @@ public class VesselRepositoryImpl
         this.programRepository = programRepository;
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
-        this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
+    public void onConfigurationReady() {
+        this.enableRegistrationCodeSearchAsPrefix = configuration.enableVesselRegistrationCodeSearchAsPrefix();
+        this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
     }
 
     @Override

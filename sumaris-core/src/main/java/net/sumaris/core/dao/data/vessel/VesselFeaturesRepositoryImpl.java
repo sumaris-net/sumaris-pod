@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data.vessel;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -49,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import java.util.List;
@@ -72,11 +74,11 @@ public class VesselFeaturesRepositoryImpl
         this.locationRepository = locationRepository;
     }
 
-
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableRegistrationCodeSearchAsPrefix = event.getConfiguration().enableVesselRegistrationCodeSearchAsPrefix();
-        this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
+    public void onConfigurationReady() {
+        this.enableRegistrationCodeSearchAsPrefix = configuration.enableVesselRegistrationCodeSearchAsPrefix();
+        this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
     }
 
     @Override

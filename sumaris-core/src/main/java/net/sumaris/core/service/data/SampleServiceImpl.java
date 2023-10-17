@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleAdagioRepository;
@@ -57,6 +58,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,13 +79,16 @@ public class SampleServiceImpl implements SampleService {
 
 	protected final ImageAttachmentRepository imageAttachmentRepository;
 
-	protected boolean enableSampleUniqueTag = false;
-	protected boolean enableAdagioOptimization = false;
+	protected final SumarisConfiguration configuration;
 
+	protected boolean enableSampleUniqueTag;
+	protected boolean enableAdagioOptimization;
+
+	@PostConstruct
 	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-	public void onConfigurationReady(ConfigurationEvent event) {
-		this.enableSampleUniqueTag = event.getConfiguration().enableSampleUniqueTag();
-		this.enableAdagioOptimization = event.getConfiguration().enableAdagioOptimization();
+	public void onConfigurationReady() {
+		this.enableSampleUniqueTag = configuration.enableSampleUniqueTag();
+		this.enableAdagioOptimization = configuration.enableAdagioOptimization();
 	}
 
 	@Override

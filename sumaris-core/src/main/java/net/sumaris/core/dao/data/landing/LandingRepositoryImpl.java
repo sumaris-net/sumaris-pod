@@ -25,11 +25,9 @@ package net.sumaris.core.dao.data.landing;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -49,11 +47,14 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -62,9 +63,8 @@ public class LandingRepositoryImpl
     implements LandingSpecifications {
 
     private final LocationRepository locationRepository;
-    private boolean enableVesselRegistrationNaturalOrder = false;
-
-    protected boolean enableAdagioOptimization = false;
+    protected boolean enableVesselRegistrationNaturalOrder;
+    protected boolean enableAdagioOptimization;
 
     public LandingRepositoryImpl(EntityManager entityManager,
                                  LocationRepository locationRepository,
@@ -79,10 +79,11 @@ public class LandingRepositoryImpl
         conversionService.addConverter(Landing.class, LandingVO.class, this::toVO);
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
-        this.enableAdagioOptimization = event.getConfiguration().enableAdagioOptimization();
+    public void onConfigurationReady() {
+        this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
+        this.enableAdagioOptimization = configuration.enableAdagioOptimization();
     }
 
     @Override

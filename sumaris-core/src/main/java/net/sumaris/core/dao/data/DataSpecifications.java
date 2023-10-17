@@ -28,7 +28,6 @@ import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IWithDataQualityEntity;
-import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import org.apache.commons.lang3.ArrayUtils;
@@ -50,6 +49,7 @@ public interface DataSpecifications<ID extends Serializable,
 
     String RECORDER_DEPARTMENT_ID_PARAM = "recorderDepartmentId";
     String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
+
     default Specification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
         if (recorderDepartmentId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {

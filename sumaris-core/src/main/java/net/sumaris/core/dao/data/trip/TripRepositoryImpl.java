@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.trip;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
@@ -46,6 +47,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -61,12 +63,13 @@ public class TripRepositoryImpl
     private final LocationRepository locationRepository;
     private final LandingRepository landingRepository;
 
-    private boolean enableVesselRegistrationNaturalOrder = false;
+    private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
     public TripRepositoryImpl(EntityManager entityManager,
                               LocationRepository locationRepository,
                               LandingRepository landingRepository,
+                              SumarisConfiguration configuration,
                               GenericConversionService conversionService) {
         super(Trip.class, TripVO.class, entityManager);
         this.locationRepository = locationRepository;
@@ -74,9 +77,10 @@ public class TripRepositoryImpl
         conversionService.addConverter(Trip.class, TripVO.class, this::toVO);
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableVesselRegistrationNaturalOrder = event.getConfiguration().enableVesselRegistrationCodeNaturalOrder();
+    public void onConfigurationReady() {
+        this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
     }
 
     @Override

@@ -23,16 +23,16 @@ package net.sumaris.core.service.administration.programStrategy;
  */
 
 
-import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
-import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;

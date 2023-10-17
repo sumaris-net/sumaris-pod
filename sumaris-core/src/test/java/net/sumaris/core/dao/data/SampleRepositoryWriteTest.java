@@ -22,16 +22,12 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
-import net.sumaris.core.service.technical.ConfigurationService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.OperationVO;

@@ -114,9 +114,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
                 // Release table
                 createReleaseTable(context);
             }
-            else {
-                //context.getSheetNames();
-            }
 
             return context;
         }
