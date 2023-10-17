@@ -27,7 +27,11 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
@@ -56,6 +60,7 @@ import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
+import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
@@ -67,6 +72,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceException;
@@ -109,6 +115,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     @Autowired
     protected DenormalizedBatchService denormalizedBatchService;
+
     @Autowired
     protected DenormalizedOperationService denormalizedOperationService;
 
@@ -116,10 +123,24 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected boolean enableRecordTypeColumn = true;
 
+    protected boolean enableAdagioOptimization = false;
+    protected String adagioSchema = null;
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        // Read some config options
+        this.adagioSchema = this.configuration.getAdagioSchema();
+        this.enableAdagioOptimization = StringUtils.isNotBlank(this.adagioSchema)
+            && this.configuration.enableAdagioOptimization()
+            && this.databaseType == DatabaseType.oracle;
+    }
+
     @Override
     public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
     }
+
+
 
     @Override
     public <R extends C> R execute(F filter) {
@@ -411,6 +432,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
 
+        // Adagio optimisation
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        if (this.enableAdagioOptimization) xmlQuery.bind("adagioSchema", this.adagioSchema);
+
         // Operation filter
         {
             List operationIds = context.getOperationIds();
@@ -436,30 +462,22 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             // Get all operation ids
             String sql = String.format("SELECT distinct CAST(%s AS INT) from %s where %s='%s'",
                     RdbSpecification.COLUMN_STATION_ID, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
-            Number[] operationIds = query(sql, Number.class).toArray(Number[]::new);
+            Integer[] operationIds = queryToStream(sql, Number.class)
+                .mapToInt(Number::intValue)
+                .boxed()
+                .toArray(Integer[]::new);
 
+            // Execute batch denormalization
             DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
             // DEBUG
             //options.setEnableRtpWeight(false);
             //if (!this.production) options.setForce(true);
 
-            int pageSize = 500;
-            long pageCount = Math.round((double)(operationIds.length / pageSize) + 0.5); // Get page count
-            for (int page = 0; page < pageCount; page++) {
-                int from = page * pageSize;
-                int to = Math.min(operationIds.length, from + pageSize);
-                Integer[] pageOperationIds = Arrays.stream(Arrays.copyOfRange(operationIds, from, to))
-                    .mapToInt(Number::intValue)
-                    .mapToObj(Integer::valueOf)
-                    .toArray(Integer[]::new);
-
-                denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
-                    .programLabel(programLabel)
-                    .includedIds(pageOperationIds)
-                    .hasNoChildOperation(true)
-                    .needBatchDenormalization(!options.isForce())
-                    .build(), options);
-            }
+            denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
+                .programLabel(programLabel)
+                .includedIds(operationIds)
+                .needBatchDenormalization(!options.isForce())
+                .build(), options);
         });
     }
 
@@ -529,8 +547,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("hasLandingOrDiscardPmfm", true);
         xmlQuery.setGroup("!hasLandingOrDiscardPmfm", false);
 
-        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+        // Adagio optimisation
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        if (this.enableAdagioOptimization) xmlQuery.bind("adagioSchema", this.adagioSchema);
 
+        // Compute groupBy
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }

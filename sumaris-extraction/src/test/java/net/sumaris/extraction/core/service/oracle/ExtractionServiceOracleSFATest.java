@@ -22,15 +22,22 @@
 
 package net.sumaris.extraction.core.service.oracle;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.service.AbstractServiceTest;
+import net.sumaris.extraction.core.service.ExtractionProductService;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
+import net.sumaris.extraction.core.vo.vessel.ExtractionVesselFilterVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -46,13 +53,12 @@ import java.io.IOException;
 @Ignore("Use only SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle-sfa.properties")
-public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
-
+public class ExtractionServiceOracleSFATest extends AbstractServiceTest {
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle-sfa");
 
     @Autowired
-    protected ExtractionConfiguration extractionConfiguration;
+    protected ExtractionService service;
 
     @Autowired
     protected ConfigurationService configurationService;
@@ -203,11 +209,33 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
         }
     }
 
+
+    @Test
+    public void executeVessel() throws IOException {
+
+        String programLabel = getProgramLabelForVessel();
+
+        VesselFilterVO filter = new VesselFilterVO();
+        filter.setProgramLabel(programLabel);
+
+
+        // Test the Vessel format
+        File outputFile = service.executeAndDumpVessels(LiveExtractionTypeEnum.VESSEL, filter);
+        Assert.assertTrue(outputFile.exists());
+        File root = unpack(outputFile, LiveExtractionTypeEnum.VESSEL.getLabel() + "_SFA");
+
+        // HL.csv => empty or not exists
+        {
+            File speciesLengthFile = new File(root, PmfmTripSpecification.HL_SHEET_NAME + ".csv");
+            Assert.assertTrue(!Files.exists(speciesLengthFile.toPath()) || countLineInCsvFile(speciesLengthFile) == 0);
+        }
+    }
+
     /* -- protected methods -- */
 
     //@Override
     protected String getProgramLabelForVessel() {
-        return "LOGBOOK-SEA-CUCUMBER";
+        return "LocalVessel-MCS-SFA";
     }
 
 }

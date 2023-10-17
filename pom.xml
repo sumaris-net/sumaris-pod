@@ -121,8 +121,8 @@
     <cglib.version>3.3.0</cglib.version>
     <ehcache.version>3.8.1</ehcache.version>
     <lombok.version>1.18.24</lombok.version>
-    <xmlquery.version>3.4</xmlquery.version>
-    <jdom2.version>2.0.6</jdom2.version>
+    <xmlquery.version>3.6</xmlquery.version>
+    <jdom2.version>2.0.6.1</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
     <spring.version>5.3.24</spring.version>
     <spring-web.version>5.3.24</spring-web.version>
@@ -181,7 +181,7 @@
     <gmavenPlusVersion>3.0.0</gmavenPlusVersion>
 
     <!-- Unit test -->
-    <junit.version>4.13.1</junit.version>
+    <junit.version>4.13.2</junit.version>
     <jetty.version>9.0.4.v20130625</jetty.version>
 
     <!--license-maven-plugin config -->
@@ -215,7 +215,7 @@
     <changelogPluginVersion>2.3</changelogPluginVersion>
     <projectInfoReportsPluginVersion>3.1.2</projectInfoReportsPluginVersion>
     <jrxPluginVersion>3.0.0</jrxPluginVersion>
-    <surefirePluginVersion>2.21.0</surefirePluginVersion>
+    <surefirePluginVersion>2.22.2</surefirePluginVersion>
     <surefireReportPluginVersion>2.20.1</surefireReportPluginVersion>
     <enforcerPluginVersion>3.1.0</enforcerPluginVersion>
     <sourcePluginVersion>3.2.1</sourcePluginVersion>
@@ -277,7 +277,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.4</version>
+        <version>3.7</version>
       </dependency>
       <dependency>
         <groupId>commons-codec</groupId>
@@ -302,7 +302,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-collections4</artifactId>
-        <version>4.2</version>
+        <version>4.4</version>
       </dependency>
       <dependency>
         <groupId>commons-beanutils</groupId>

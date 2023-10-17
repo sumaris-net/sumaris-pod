@@ -231,7 +231,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper) {
         Query nativeQuery = createNativeQuery(query);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
-        return resultStream.map(rowMapper).collect(Collectors.toList());
+        return resultStream.map(rowMapper).toList();
     }
 
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper, long offset, int size) {
@@ -239,7 +239,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
             .setFirstResult((int) offset)
             .setMaxResults(size);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
-        return resultStream.map(rowMapper).collect(Collectors.toList());
+        return resultStream.map(rowMapper).toList();
     }
 
 

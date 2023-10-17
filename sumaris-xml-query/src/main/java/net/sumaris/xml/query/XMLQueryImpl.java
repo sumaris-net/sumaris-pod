@@ -60,8 +60,6 @@ public class XMLQueryImpl implements XMLQuery {
 
     private DatabaseType dbms;
     private AbstractSingleXMLQuery delegate;
-
-    private Set<String> deactivatedGroups = null;
     private String groupByParamName = null;
 
     public XMLQueryImpl(@NonNull String dbmsName) {
@@ -90,6 +88,11 @@ public class XMLQueryImpl implements XMLQuery {
             default:
                 throw new IllegalArgumentException("Not XMLQuery instance found for database type: " + dbms.name());
         }
+    }
+
+    @Override
+    public boolean isDisabled(Element e) {
+        return delegate.isDisabled(e);
     }
 
     /**
@@ -210,20 +213,14 @@ public class XMLQueryImpl implements XMLQuery {
     }
 
     @Override
-    public void removeGroup(final Element element, String groupName) {
-        String attrValue = getAttributeValue(element, "group", false);
-        if (StringUtils.isBlank(attrValue)) return;
-        String newAttrValue = Arrays.stream(attrValue.split(","))
-            .filter(g -> !groupName.equals(g))
-            .collect(Collectors.joining(","));
-        if (StringUtils.isBlank(newAttrValue)) {
-            element.removeAttribute("group");
-        }
-        else {
-            element.setAttribute("group", newAttrValue);
-        }
+    public void setGroup(String groupName, boolean active) {
+        delegate.setGroup(groupName, active);
     }
 
+    @Override
+    public void removeGroup(final Element element, String groupName) {
+        delegate.removeGroup(element, groupName);
+    }
     @Override
     public Set<String> extractGroups() {
         Set<String> groups = new HashSet<>();
@@ -232,7 +229,8 @@ public class XMLQueryImpl implements XMLQuery {
         for (Element groupElement : groupElements) {
             String groupName = groupElement.getAttributeValue("group");
             if (groupName != null && !groupName.isEmpty()) {
-                groups.add(groupName);
+                StringTokenizer tokenizer = new StringTokenizer(groupName, ",");
+                while (tokenizer.hasMoreTokens()) groups.add(tokenizer.nextToken());
             }
         }
 
@@ -533,22 +531,6 @@ public class XMLQueryImpl implements XMLQuery {
     }
 
     @Override
-    public void setGroup(String groupName, boolean active) {
-        if (deactivatedGroups == null) {
-            deactivatedGroups = new HashSet<>();
-        }
-        // Activer le groupe
-        if (active) {
-            deactivatedGroups.remove(groupName);
-        }
-        // Ignorer le groupe
-        else {
-            deactivatedGroups.add(groupName);
-        }
-        delegate.setGroup(groupName, active);
-    }
-
-    @Override
     public void setDbms(String dbms) {
         delegate.setDbms(dbms);
     }
@@ -632,15 +614,4 @@ public class XMLQueryImpl implements XMLQuery {
         return groupByParamName;
     }
 
-    public boolean isDisabled(Element element) {
-        String groupName = getAttributeValue(element, "group", false);
-        if (StringUtils.isBlank(groupName)) return false;
-
-        boolean disabled = true;
-        StringTokenizer tokenizer = new StringTokenizer(groupName, ",");
-        while (disabled && tokenizer.hasMoreTokens()) {
-            disabled = deactivatedGroups.contains(tokenizer.nextToken());
-        }
-        return disabled;
-    }
 }

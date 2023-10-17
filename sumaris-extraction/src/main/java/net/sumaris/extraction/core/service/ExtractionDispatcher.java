@@ -44,7 +44,7 @@ import java.util.Set;
 
 public interface ExtractionDispatcher {
 
-    int EXECUTION_TIMEOUT = 10000000;
+    int EXECUTION_TIMEOUT = 43200; // 12hours (max extraction timeout, in seconds)
 
     Set<IExtractionType> getManagedTypes();
 

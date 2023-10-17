@@ -90,11 +90,20 @@
     <select alias="PARAMETER_ID" type="number" dbms="oracle">CAST(NULL AS INT)</select>
 
     <from alias="S">&amp;stationTableName</from>
-    <from join="true">INNER JOIN BATCH CATCH_B ON CATCH_B.OPERATION_FK = S.STATION_ID AND CATCH_B.PARENT_BATCH_FK IS NULL</from>
-    <from join="true">INNER JOIN BATCH SPECIE_B ON SPECIE_B.PARENT_BATCH_FK  = CATCH_B.ID</from>
-    <from join="true">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.TAXON_GROUP_FK</from>
-    <from join="true">LEFT OUTER JOIN BATCH SORTING_B ON SORTING_B.PARENT_BATCH_FK = SPECIE_B.ID</from>
-    <from join="true">LEFT OUTER JOIN BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SORTING_B.ID AND SAMPLING_B.LABEL LIKE UPPER('SORTING_BATCH#%')</from>
+
+    <!-- Legacy DB joins -->
+    <from join="true" group="!adagio">INNER JOIN BATCH CATCH_B ON CATCH_B.OPERATION_FK = S.STATION_ID AND CATCH_B.PARENT_BATCH_FK IS NULL</from>
+    <from join="true" group="!adagio">INNER JOIN BATCH SPECIE_B ON SPECIE_B.PARENT_BATCH_FK  = CATCH_B.ID</from>
+    <from join="true" group="!adagio">INNER JOIN TAXON_GROUP TG ON TG.ID = SPECIE_B.TAXON_GROUP_FK</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN BATCH SORTING_B ON SORTING_B.PARENT_BATCH_FK = SPECIE_B.ID</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SORTING_B.ID AND SAMPLING_B.LABEL LIKE UPPER('SORTING_BATCH#%')</from>
+
+    <!-- Adagio DB joins (skip SUMARiS VIEW) -->
+    <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.BATCH CATCH_B ON CATCH_B.ID = S.CATCH_BATCH_ID AND CATCH_B.PARENT_BATCH_FK IS NULL</from>
+    <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.BATCH SPECIE_B ON SPECIE_B.PARENT_BATCH_FK  = CATCH_B.ID</from>
+    <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.TAXON_GROUP TG ON TG.ID = SPECIE_B.TAXON_GROUP_FK</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.BATCH SORTING_B ON SORTING_B.PARENT_BATCH_FK = SPECIE_B.ID</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.BATCH SAMPLING_B ON SAMPLING_B.PARENT_BATCH_FK = SORTING_B.ID AND SAMPLING_B.LABEL LIKE UPPER('SORTING_BATCH#%')</from>
 
     <where>1=1</where>
     <!-- 'OR IS NULL' is needed for postgresql -->
