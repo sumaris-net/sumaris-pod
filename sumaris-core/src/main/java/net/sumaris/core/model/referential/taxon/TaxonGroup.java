@@ -59,6 +59,8 @@ import java.util.List;
 public class TaxonGroup implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer>,
     ITreeNodeEntity<Integer, TaxonGroup> {
 
+    public static final String ENTITY_NAME = "TaxonGroup";
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TAXON_GROUP_SEQ")
     @SequenceGenerator(name = "TAXON_GROUP_SEQ", sequenceName="TAXON_GROUP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)

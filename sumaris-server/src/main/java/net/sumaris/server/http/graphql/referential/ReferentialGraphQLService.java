@@ -92,23 +92,12 @@ public class ReferentialGraphQLService {
         return referentialService.getAllTypes();
     }
 
-    @GraphQLQuery(name = "referential", description = "Search in referentials")
+    @GraphQLQuery(name = "referential", description = "Load one referential, by entityName and id")
     @Transactional(readOnly = true)
     public ReferentialVO loadReferential(
         @GraphQLArgument(name = "entityName") String entityName,
         @GraphQLArgument(name = "id") Integer id,
         @GraphQLEnvironment() ResolutionEnvironment env) {
-
-
-        Set<String> fields = GraphQLUtils.fields(env);
-        ReferentialFetchOptions fetchOptions = ReferentialFetchOptions.builder()
-            .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
-            .build();
-
-        // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
-        if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
-            return metierRepository.get(id, fetchOptions);
-        }
 
         // Check can access to the program
         if (Program.class.getSimpleName().equalsIgnoreCase(entityName)) {
@@ -117,7 +106,11 @@ public class ReferentialGraphQLService {
             if (ArrayUtils.isEmpty(authorizedProgramIds)) throw new UnauthorizedException();
         }
 
-        return referentialService.get(entityName, id, fetchOptions);
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        return referentialService.get(entityName, id, ReferentialFetchOptions.builder()
+            .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
+            .build());
     }
 
     @GraphQLQuery(name = "referentials", description = "Search in referentials")

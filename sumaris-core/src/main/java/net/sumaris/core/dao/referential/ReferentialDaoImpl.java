@@ -35,7 +35,10 @@ import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.*;
+import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.Method;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -44,6 +47,7 @@ import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
@@ -488,6 +492,10 @@ public class ReferentialDaoImpl
         return type;
     }
 
+    protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, T source) {
+        return toVO(entityName, source, null);
+    }
+
     protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, T source,
                                                                 @Nullable ReferentialFetchOptions fetchOptions) {
         Preconditions.checkNotNull(entityName);
@@ -890,31 +898,58 @@ public class ReferentialDaoImpl
     }
 
     protected void copyProperties(final ReferentialVO source, IReferentialEntity target, boolean copyIfNull) {
-        if (MapUtils.isNotEmpty(source.getProperties())) {
-            source.getProperties().entrySet().forEach(entry -> {
-                try {
-                    Object value = entry.getValue();
-                    if (value != null || copyIfNull) {
-                        Beans.setProperty(target, entry.getKey(), value);
+        copyProperties(source.getProperties(), target, copyIfNull, true);
+    }
+
+    protected <K,V, T extends IReferentialEntity> void copyProperties(java.util.Map<K,V> properties, T target, boolean copyIfNull, boolean failIfError) {
+        if (MapUtils.isEmpty(properties)) return;
+        properties.forEach((K key, V value) -> {
+            try {
+                if (value != null || copyIfNull) {
+
+                    // Resolve entity reference
+                    if (value instanceof LinkedHashMap<?,?> mapValue
+                        && mapValue.containsKey(ReferentialVO.Fields.ENTITY_NAME)
+                        && mapValue.containsKey(ReferentialVO.Fields.ID)) {
+                        String entityName = mapValue.get(ReferentialVO.Fields.ENTITY_NAME).toString();
+                        int entityId = Integer.parseInt(mapValue.get(ReferentialVO.Fields.ID).toString());
+                        // Sub entity
+                        Class<? extends IReferentialEntity<?>> entityClass = ReferentialEntities.getEntityClass(entityName);
+                        IReferentialEntity<?> reference = find(entityClass, entityId);
+                        Beans.setProperty(target, key.toString(), reference);
                     }
-                } catch (Exception e) {
+                    else {
+                        Beans.setProperty(target, key.toString(), value);
+                    }
+                }
+            } catch (Exception e) {
+                if (failIfError) {
                     throw new SumarisTechnicalException(String.format("Cannot set %s.%s using value: %s",
                         target.getClass().getSimpleName(),
-                        entry.getKey(),
-                        entry.getValue()));
+                        key,
+                        value), e);
                 }
-            });
-        }
+                else {
+                    // Continue
+                }
+            }
+        });
     }
 
     protected void copyProperties(final IReferentialEntity source, ReferentialVO target) {
 
         // TODO use EntitiesUtils
         switch (source.getClass().getSimpleName()) {
-            case "Method" -> {
+            case Method.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.of(
                     Method.Fields.IS_CALCULATED, ((Method)source).getIsCalculated(),
                     Method.Fields.IS_ESTIMATED, ((Method)source).getIsEstimated()
+                ));
+            }
+            case Metier.ENTITY_NAME -> {
+                target.setProperties(ImmutableMap.of(
+                    Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier)source).getTaxonGroup()),
+                    Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear())
                 ));
             }
         }

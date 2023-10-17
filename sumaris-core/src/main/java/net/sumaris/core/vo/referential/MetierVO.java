@@ -22,10 +22,16 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
+import com.google.common.collect.ImmutableMap;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.util.StringUtils;
+import org.apache.commons.collections4.MapUtils;
+
+import java.util.Map;
 
 @Data
 @FieldNameConstants
@@ -36,6 +42,35 @@ public class MetierVO extends ReferentialVO {
     private TaxonGroupVO taxonGroup;
 
     public MetierVO() {
-        this.setEntityName(Metier.class.getSimpleName());
+        this.setEntityName(Metier.ENTITY_NAME);
     }
+
+//    @Override
+//    public Map<String, Object> getProperties() {
+//        Map<String, Object> properties = super.getProperties();
+//        TaxonGroupVO taxonGroup = getTaxonGroup();
+//        if (taxonGroup != null) {
+//            return ImmutableMap.of(
+//                StringUtils.doting(MetierVO.Fields.TAXON_GROUP, TaxonGroup.Fields.ID), taxonGroup.getId(),
+//                StringUtils.doting(MetierVO.Fields.TAXON_GROUP, TaxonGroup.Fields.LABEL), taxonGroup.getLabel()
+//            );
+//        }
+//
+//        return null;
+//    }
+//
+//    @Override
+//    public void setProperties(Map<String, Object> properties) {
+//        if (MapUtils.isEmpty(properties)) return;
+//
+//        Object taxonGroupId = properties.get(StringUtils.doting(MetierVO.Fields.TAXON_GROUP, TaxonGroup.Fields.ID));
+//        Object taxonGroupLabel = properties.get(StringUtils.doting(MetierVO.Fields.TAXON_GROUP, TaxonGroup.Fields.LABEL));
+//        if (taxonGroupId != null) {
+//            TaxonGroupVO taxonGroup = new TaxonGroupVO();
+//            taxonGroup.setId(Integer.parseInt(taxonGroupId.toString()));
+//            taxonGroup.setLabel(taxonGroupLabel != null ? taxonGroupLabel.toString() : null);
+//            setProperties(ImmutableMap.of(MetierVO.Fields.TAXON_GROUP, taxonGroup));
+//            setTaxonGroup(taxonGroup);
+//        }
+//    }
 }
