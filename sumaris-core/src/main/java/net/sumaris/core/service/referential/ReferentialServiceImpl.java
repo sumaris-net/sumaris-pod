@@ -97,8 +97,18 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
+	public ReferentialVO get(String entityName, int id, ReferentialFetchOptions fetchOptions) {
+		return referentialDao.get(entityName, id, fetchOptions);
+	}
+
+	@Override
 	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id) {
 		return referentialDao.get(entityClass, id);
+	}
+
+	@Override
+	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id, ReferentialFetchOptions fetchOptions) {
+		return referentialDao.get(entityClass, id, fetchOptions);
 	}
 
 	@Override

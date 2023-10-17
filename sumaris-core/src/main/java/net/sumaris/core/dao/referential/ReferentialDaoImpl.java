@@ -55,6 +55,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.NoResultException;
@@ -169,8 +170,19 @@ public class ReferentialDaoImpl
     }
 
     @Override
+    public ReferentialVO get(String entityName, int id, ReferentialFetchOptions fetchOptions) {
+        Class<? extends IReferentialEntity> entityClass = ReferentialEntities.getEntityClass(entityName);
+        return get(entityClass, id, fetchOptions);
+    }
+
+    @Override
     public ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id) {
-        return toVO(getById(entityClass, id));
+        return this.get(entityClass, id, null);
+    }
+
+    @Override
+    public ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id, ReferentialFetchOptions fetchOptions) {
+        return toVO(entityClass.getSimpleName(), getById(entityClass, id), fetchOptions);
     }
 
     @Override
@@ -477,7 +489,7 @@ public class ReferentialDaoImpl
     }
 
     protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, T source,
-                                                                ReferentialFetchOptions fetchOptions) {
+                                                                @Nullable ReferentialFetchOptions fetchOptions) {
         Preconditions.checkNotNull(entityName);
         Preconditions.checkNotNull(source);
 
