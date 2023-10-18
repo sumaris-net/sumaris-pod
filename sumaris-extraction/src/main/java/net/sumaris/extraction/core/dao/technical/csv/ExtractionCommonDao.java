@@ -22,6 +22,8 @@ package net.sumaris.extraction.core.dao.technical.csv;
  * #L%
  */
 
+import net.sumaris.extraction.core.vo.ExtractionContextVO;
+
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +34,7 @@ import java.util.Set;
  * @author Ludovic Pecquot <ludovic.pecquot>
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
-public interface ExtractionCsvDao {
+public interface ExtractionCommonDao {
 
     /**
      * Constant <code>UTF8_BOM=0xFEFF</code>
@@ -56,4 +58,5 @@ public interface ExtractionCsvDao {
                         @Nullable Map<String, String> decimalFormats,
                         @Nullable Set<String> excludeColumnNames) throws IOException;
 
+    void clean(ExtractionContextVO context);
 }

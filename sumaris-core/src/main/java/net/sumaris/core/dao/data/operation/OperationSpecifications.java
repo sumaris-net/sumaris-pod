@@ -28,7 +28,6 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.StringUtils;
@@ -50,8 +49,6 @@ public interface OperationSpecifications
 
     String TRIP_ID_PARAM = "tripId";
     String VESSEL_ID_PARAM = "vesselId";
-    String INCLUDED_IDS_PARAMETER = "includedIds";
-    String EXCLUDED_IDS_PARAMETER = "excludedIds";
     String PROGRAM_LABEL_PARAM = "programLabel";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
@@ -60,7 +57,6 @@ public interface OperationSpecifications
     String GEAR_IDS_PARAMETER = "gearIds";
     String PHYSICAL_GEAR_IDS_PARAMETER = "physicalGearIds";
     String TAXON_GROUP_LABELS_PARAM = "targetSpecieIds";
-    String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
     default Specification<Operation> excludeOperationGroup() {
         return BindableSpecification.where((root, query, cb) -> {
@@ -206,15 +202,6 @@ public interface OperationSpecifications
             .addBind(START_DATE_PARAM_IS_NULL, startDate == null ? Boolean.TRUE : Boolean.FALSE)
             .addBind(END_DATE_PARAM, endDate)
             .addBind(END_DATE_PARAM_IS_NULL, endDate == null ? Boolean.TRUE : Boolean.FALSE);
-    }
-
-    default Specification<Operation> hasQualityFlagIds(Integer[] qualityFlagIds) {
-        if (ArrayUtils.isEmpty(qualityFlagIds)) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<Collection> param = cb.parameter(Collection.class, QUALITY_FLAG_ID_PARAM);
-                return cb.in(root.get(Operation.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
-            })
-            .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
     }
 
     default Specification<Operation> needBatchDenormalization(Boolean needBatchDenormalization) {

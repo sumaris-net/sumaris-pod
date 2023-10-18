@@ -33,6 +33,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +43,7 @@ import java.io.IOException;
  */
 @ActiveProfiles("pgsql")
 @Ignore("Use only a Pgsql database")
+@TestPropertySource(locations = "classpath:application-pgsql.properties")
 public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
 
     @ClassRule

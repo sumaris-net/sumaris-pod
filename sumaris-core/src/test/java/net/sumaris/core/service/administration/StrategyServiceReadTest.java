@@ -79,7 +79,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         Assert.assertNotNull(appliedStrategy.getLocation());
         List<AppliedPeriodVO> appliedPeriods = appliedStrategy.getAppliedPeriods();
         Assert.assertNotNull(appliedPeriods);
-        Assert.assertEquals(3, appliedPeriods.size());
+        Assert.assertEquals(4, appliedPeriods.size());
         AppliedPeriodVO appliedPeriod = appliedPeriods.get(0);
         Assert.assertNotNull(appliedPeriod.getStartDate());
     }

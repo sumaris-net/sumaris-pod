@@ -22,36 +22,17 @@ package net.sumaris.extraction.core.service.hsqldb;
  * #L%
  */
 
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnFetchOptions;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
-import net.sumaris.extraction.core.service.AbstractServiceTest;
-import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionProductServiceTest;
-import net.sumaris.extraction.core.specification.data.trip.RdbSpecification;
-import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
-import net.sumaris.extraction.core.util.ExtractionProducts;
-import org.apache.commons.lang3.ArrayUtils;
-import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author benoit.lavenier@e-is.pro
  */
+@ActiveProfiles("hsqldb")
+@TestPropertySource(locations = "classpath:application-hsqldb.properties")
 public class ExtractionProductServiceHsqlDbTest extends ExtractionProductServiceTest {
 
     @ClassRule

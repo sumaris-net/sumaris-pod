@@ -262,7 +262,7 @@ public class ProgramRepositoryImpl
         // AcquisitionLevels
         if (fetchOptions != null && fetchOptions.isWithAcquisitionLevels()) {
             if (target.getId() != null) {
-                target.setAcquisitionLevels(getAcquisitionLevelsByProgramId(target.getId()));
+                target.setAcquisitionLevels(getAcquisitionLevelsById(target.getId()));
             } else {
                 target.setAcquisitionLevels(null);
             }
@@ -275,7 +275,8 @@ public class ProgramRepositoryImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, allEntries = true)
     })
     public void clearCache() {
         log.debug("Cleaning Program's cache...");
@@ -288,7 +289,8 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#source.id", condition = "#source.id != null")
         },
         put = {
             @CachePut(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = " #source.id != null"),
@@ -362,7 +364,8 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#id", condition = "#id != null")
         }
     )
     public void deleteById(Integer id) {
@@ -588,11 +591,11 @@ public class ProgramRepositoryImpl
                 target.setProgramId(source.getId());
 
                 if (item.getLocation() != null) {
-                    target.setLocation(locationRepository.get(item.getLocation().getId()));
+                    target.setLocation(locationRepository.toVO(item.getLocation()));
                 }
 
-                target.setDepartment(departmentRepository.get(item.getDepartment().getId()));
-                target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
+                target.setDepartment(departmentRepository.toVO(item.getDepartment()));
+                target.setPrivilege(referentialDao.toVO(item.getPrivilege()));
 
                 return target;
             })
@@ -622,7 +625,8 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    public List<ReferentialVO> getAcquisitionLevelsByProgramId(int programId) {
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID)
+    public List<ReferentialVO> getAcquisitionLevelsById(int programId) {
         return acquisitionLevelRepository.getDistinctAcquisitionLevelsByProgramId(programId)
             .stream()
             .map(acquisitionLevelRepository::toVO)
@@ -701,34 +705,4 @@ public class ProgramRepositoryImpl
         }
     }
 
-    @Override
-    public boolean hasPropertyValueByProgramId(@NonNull Integer id, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
-        String value = findVOById(id)
-            .map(program -> program.getProperties().get(property.getKey()))
-            .orElse(property.getDefaultValue());
-
-        // If boolean: true = TRUE
-        if (property.getType() == Boolean.class) {
-            return expectedValue.equalsIgnoreCase(value);
-        }
-
-        return expectedValue.equals(value);
-    }
-
-    @Override
-    public boolean hasPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property, @NonNull String expectedValue) {
-        String value = findByLabel(label)
-            .map(program -> program.getProperties().get(property.getKey()))
-            .orElse(property.getDefaultValue());
-
-        return expectedValue.equals(value);
-    }
-
-
-    @Override
-    public String getPropertyValueByProgramLabel(@NonNull String label, @NonNull ProgramPropertyEnum property) {
-        return findByLabel(label)
-            .map(program -> program.getProperties().get(property.getKey()))
-            .orElse(property.getDefaultValue());
-    }
 }

@@ -54,6 +54,22 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
 
     boolean enableRegistrationCodeSearchAsPrefix();
 
+    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<Vessel> root) {
+        return composeVrpJoin(root, JoinType.LEFT);
+    }
+
+    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<Vessel> root, JoinType joinType) {
+        return Daos.composeJoinList(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, joinType);
+    }
+
+    default ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<Vessel> root) {
+        return composeVfJoin(root, JoinType.LEFT);
+    }
+
+    default ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<Vessel> root, JoinType joinType) {
+        return Daos.composeJoinList(root, Vessel.Fields.VESSEL_FEATURES, joinType);
+    }
+
     default Specification<Vessel> vesselTypeId(Integer vesselTypeId) {
         if (vesselTypeId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
@@ -76,7 +92,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
     default Specification<Vessel> betweenFeaturesDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
-            Join<Vessel, VesselFeatures> features = Daos.composeJoin(root, Vessel.Fields.VESSEL_FEATURES);
+            ListJoin<Vessel, VesselFeatures> features = composeVfJoin(root);
 
             // Start + end date
             if (startDate != null && endDate != null) {
@@ -103,8 +119,7 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
     default Specification<Vessel> betweenRegistrationDate(Date startDate, Date endDate, final boolean onlyWithRegistration) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {
-            Join<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS,
-                onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
+            Join<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
 
             // Start + end date
             Predicate vrpDatesPredicate;
@@ -143,9 +158,10 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
     default Specification<Vessel> vesselFeaturesId(Integer vesselFeatureId) {
         if (vesselFeatureId == null) return null;
 
-        return BindableSpecification.where((root, query, cb) -> {
+        return BindableSpecification.<Vessel>where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_FEATURES_ID_PARAM);
-            return cb.equal(Daos.composePath(root, StringUtils.doting(Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.ID)), param);
+            ListJoin<Vessel, VesselFeatures> vf = composeVfJoin(root);
+            return cb.equal(vf.get(VesselFeatures.Fields.ID), param);
         })
             .addBind(VESSEL_FEATURES_ID_PARAM, vesselFeatureId);
     }
@@ -156,15 +172,15 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, REGISTRATION_LOCATION_ID_PARAM);
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
 
-            Join<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.INNER);
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoinList(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.INNER);
 
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK
                 cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION),
-                    Daos.composePath(vrp, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)),
+                    vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)),
 
                 // AND LH.PARENT_LOCATION_FK = :registrationLocationId
-                cb.equal(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)), param)
+                cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION).get(Location.Fields.ID), param)
             );
         }).addBind(REGISTRATION_LOCATION_ID_PARAM, registrationLocationId);
     }
@@ -172,17 +188,19 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
 
     default Specification<Vessel> basePortLocationId(Integer basePortLocationId) {
         if (basePortLocationId == null) return null;
-        return BindableSpecification.where((root, query, cb) -> {
+        return BindableSpecification.<Vessel>where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, BASE_PORT_LOCATION_ID);
             Root<LocationHierarchy> lh = query.from(LocationHierarchy.class);
+
+            ListJoin<Vessel, VesselFeatures> vf = composeVfJoin(root, JoinType.INNER);
 
             return cb.and(
                 // LH.CHILD_LOCATION_FK = VF.BASE_PORT_LOCATION_FK
                 cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION),
-                    Daos.composePath(root, StringUtils.doting(Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.BASE_PORT_LOCATION))),
+                    vf.get(VesselFeatures.Fields.BASE_PORT_LOCATION)),
 
                 // and LH.PARENT_LOCATION_FK = :basePortLocationId
-                cb.equal(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)), param)
+                cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION).get(Location.Fields.ID), param)
             );
         }).addBind(BASE_PORT_LOCATION_ID, basePortLocationId);
     }

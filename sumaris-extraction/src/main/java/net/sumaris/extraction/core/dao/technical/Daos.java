@@ -83,6 +83,16 @@ public class Daos extends net.sumaris.core.dao.technical.Daos {
     }
 
     /**
+     * Prepare a valid column name, by cleaning the given value (e.g. remove special characters)
+     *
+     * @param value a {@link String} object.
+     * @return a usable column name
+     */
+    public static String sqlColumnName(String value) {
+        return value.replaceAll("[^a-zA-Z0-9_]+", "_");
+    }
+
+    /**
      * Concat integers with ',' character, without parenthesis
      *
      * @param numbers a {@link Collection} object of numbers (Integer, Double, ...).

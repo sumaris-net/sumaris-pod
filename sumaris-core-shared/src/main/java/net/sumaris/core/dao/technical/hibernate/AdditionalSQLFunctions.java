@@ -36,12 +36,15 @@ public enum AdditionalSQLFunctions {
     lpad("lpad", StandardBasicTypes.STRING),
 
     // nvl (need by VesselRepository and Vessel entity)
-    nvl_end_date("nvl", new SQLFunctionTemplate(StandardBasicTypes.DATE, "nvl(?1, date'2100-01-01')"));
+    nvl_end_date("nvl", new SQLFunctionTemplate(StandardBasicTypes.DATE, "nvl(?1, date'2100-01-01')")),
+
+    regexp_substr("regexp_substr", new SQLFunctionTemplate(StandardBasicTypes.STRING, "regexp_substr(?1, ?2)")),
+    ;
 
     private SQLFunction function;
 
-    AdditionalSQLFunctions(String sqlName, Type type) {
-        this.function = new StandardSQLFunction(sqlName, type);
+    AdditionalSQLFunctions(String sqlName, Type returnType) {
+        this.function = new StandardSQLFunction(sqlName, returnType);
     }
 
     AdditionalSQLFunctions(String sqlName) {

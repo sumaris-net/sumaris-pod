@@ -407,23 +407,53 @@ public class Daos {
         }
     }
 
-    public static Version getOracleVersion(DataSource dataSource) {
-        if (isOracleDatabase(dataSource)) {
-            Connection conn = DataSourceUtils.getConnection(dataSource);
-            try {
+    public static Version getDatabaseVersion(DataSource dataSource) {
+        Connection conn = DataSourceUtils.getConnection(dataSource);
+        try  {
+            String jdbcUrl = conn.getMetaData().getURL();
+
+            // Oracle
+            if (isOracleDatabase(jdbcUrl)) {
                 Object result = sqlUnique(conn, "SELECT VALUE FROM NLS_DATABASE_PARAMETERS WHERE PARAMETER = 'NLS_RDBMS_VERSION'");
+
                 if (result instanceof String version) {
                     while (net.sumaris.core.util.StringUtils.countMatches(version, ".") > 3) {
                         version = net.sumaris.core.util.StringUtils.removeLastToken(version, ".");
                     }
                     return Versions.valueOf(version);
                 }
-
-            } finally {
-                DataSourceUtils.releaseConnection(conn, dataSource);
             }
+
+            // PostgreSQL
+            else if (isPostgresqlDatabase(jdbcUrl)) {
+                Object result = sqlUnique(conn, "SELECT version()");
+
+                if (result instanceof String version) {
+                    // On extrait la version principale de la chaîne, par exemple '13.2' de 'PostgreSQL 13.2, compiled by ...'
+                    String regex = "\\d+\\.\\d+";
+                    Matcher matcher = Pattern.compile(regex).matcher(version);
+                    if (matcher.find()) {
+                        return Versions.valueOf(matcher.group());
+                    }
+                }
+            }
+
+            // HSQLDB
+            else if (isHsqlDatabase(jdbcUrl)) {
+                Object result = sqlUnique(conn, "CALL DATABASE_VERSION()");
+
+                if (result instanceof String version) {
+                    return Versions.valueOf(version);
+                }
+            }
+
+            throw new SumarisTechnicalException("getDatabaseVersion() is not implemented for this database");
+
+        } catch (SQLException e) {
+            throw new SumarisTechnicalException(e);
+        } finally {
+            DataSourceUtils.releaseConnection(conn, dataSource);
         }
-        throw new SumarisTechnicalException("The datasource is not Oracle");
     }
 
     /**
@@ -1892,14 +1922,17 @@ public class Daos {
 
         for (int i = 0; i < attributes.length; i++) {
             String attribute = attributes[i];
+            boolean last = i == attributes.length - 1;
             try {
                 // copy into a final var
                 final From<?, ?> finalForm = from;
                 // find a join (find it from existing joins of from)
                 from = from.getJoins().stream()
-                    .filter(j -> j.getAttribute().getName().equals(attribute) && (j instanceof ListJoin))
+                    .filter(j -> j.getAttribute().getName().equals(attribute) && (!last || j instanceof ListJoin))
                     .findFirst()
-                    .orElseGet(() -> finalForm.joinList(attribute, joinType));
+                    .orElseGet(() -> last
+                        ? finalForm.joinList(attribute, joinType)
+                        : finalForm.join(attribute, joinType));
             } catch (IllegalArgumentException ignored) {
                 throw new IllegalArgumentException(String.format("the join or attribute [%s] from [%s] doesn't exists", attribute, from.getJavaType()));
             }
@@ -1967,5 +2000,53 @@ public class Daos {
             );
         }
         return cb.coalesce(root.get(endDateFieldName), Daos.DEFAULT_END_DATE_TIME);
+    }
+
+    public static Expression<String> naturalSort(CriteriaBuilder cb, Expression<?> path) {
+        return naturalSort(cb, path, 20);
+    }
+    public static Expression<String> naturalSort(CriteriaBuilder cb, Expression<?> path, int padLength) {
+
+        // Extraire le prefix de la chaîne, s'il est non numérique
+        Expression<String> nonNumericPrefix = cb.function(
+            AdditionalSQLFunctions.regexp_substr.name(),
+            String.class,
+            path,
+            cb.literal("^\\D*")
+        );
+
+        // Extraire le suffix de la chaine, s'il est numérique
+        Expression<String> numericPart = cb.function(
+            AdditionalSQLFunctions.regexp_substr.name(),
+            String.class,
+            path,
+            cb.literal("\\d+")
+        );
+
+        // Ajouter des zéros devant le suffixe pour qu'il ait une longueur fixe
+        Expression<String> paddedSuffix = cb.function(
+            AdditionalSQLFunctions.lpad.name(),
+            String.class,
+            numericPart,
+            cb.literal(padLength),
+            cb.literal("0")
+        );
+
+        // Extraire le suffix
+        Expression<String> aphaSuffix = cb.function(
+            AdditionalSQLFunctions.regexp_substr.name(),
+            String.class,
+            path,
+            cb.literal("\\D*$")
+        );
+
+        // Concaténer les deux parties pour obtenir une chaîne qui sera triée dans l'ordre naturel
+        return cb.concat(
+            cb.concat(
+                nonNumericPrefix,
+                paddedSuffix
+            ),
+            aphaSuffix
+        );
     }
 }

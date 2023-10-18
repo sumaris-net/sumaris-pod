@@ -110,6 +110,13 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
             Boolean.class,
             false),
 
+    EXTRACTION_AREA_LOCATION_LEVEL_IDS(
+        "sumaris.extraction.rdb.area.locationLevel.ids",
+        n("sumaris.config.option.extraction.rdb.area.locationLevel.ids.description"),
+        null,
+        String.class,
+        false),
+
     EXTRACTION_LANDING_CATEGORY_DEFAULT(
         "sumaris.extraction.rdb.landingCategory.default",
         n("sumaris.config.option.extraction.rdb.landingCategory.default.description"),
@@ -120,6 +127,12 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
         "sumaris.extraction.rdb.commercialSizeCategoryScale.default",
         n("sumaris.config.option.extraction.rdb.commercialSizeCategoryScale.default.description"),
         "EU", // Default value of the RDB format
+        String.class,
+        false),
+    EXTRACTION_SPECIES_LENGTH_PMFM_IDS(
+        "sumaris.extraction.rdb.speciesLength.pmfm.ids",
+        n("sumaris.config.option.extraction.rdb.speciesLength.pmfm.ids.description"),
+        null,
         String.class,
         false),
 

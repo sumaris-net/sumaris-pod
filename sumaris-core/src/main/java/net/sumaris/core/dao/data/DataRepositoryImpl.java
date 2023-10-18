@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
@@ -81,6 +82,9 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
     @Autowired
     protected DepartmentRepository departmentRepository;
+
+    @Autowired
+    protected SumarisConfiguration configuration;
 
     protected DataRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);

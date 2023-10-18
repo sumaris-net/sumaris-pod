@@ -28,7 +28,9 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
-import net.sumaris.core.vo.administration.programStrategy.*;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.ProgramSaveOptions;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,6 +100,9 @@ public interface ProgramService {
 
 	@Transactional(readOnly = true)
 	String getPropertyValueByProgramLabel(String label, ProgramPropertyEnum property);
+
+	@Transactional(readOnly = true)
+	String getPropertyValueByProgramId(Integer id, ProgramPropertyEnum property);
 
 	@Transactional(readOnly = true)
 	List<ReferentialVO> getAcquisitionLevelsById(int id);

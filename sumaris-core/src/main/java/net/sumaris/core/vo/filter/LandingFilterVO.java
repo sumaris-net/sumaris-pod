@@ -60,6 +60,7 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
 
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
+    private Integer[] observerPersonIds;
 
     private Integer[] excludeVesselIds;
 

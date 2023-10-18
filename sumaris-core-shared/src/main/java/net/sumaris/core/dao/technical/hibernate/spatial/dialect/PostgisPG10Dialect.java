@@ -23,26 +23,35 @@
 package net.sumaris.core.dao.technical.hibernate.spatial.dialect;
 
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
+import net.sumaris.core.dao.technical.hibernate.types.IntegerArrayUserType;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
-import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.Type;
+
+import java.sql.Types;
 
 public class PostgisPG10Dialect extends org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect {
 
     public PostgisPG10Dialect() {
         super();
 
+        // Register new array type
+        registerHibernateType(Types.ARRAY, IntegerArrayUserType.class.getName());
+
         // Register additional functions
         for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
-            if (function != AdditionalSQLFunctions.nvl_end_date) {
-                // Register 'nvl' to use 'coalesce' function
-                registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
+            switch (function) {
+                case nvl_end_date -> {
+                    // Register 'nvl' to use 'coalesce' function
+                    registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
+                }
+                case regexp_substr -> {
+                    // Register 'regexp_substr' to use 'regexp_match' function
+                    registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.STRING, "regexp_match(?1, ?2)"));
+                }
+                default -> {
+                    registerFunction(function.name(), function.asRegisterFunction());
+                }
             }
-            else {
-                registerFunction(function.name(), function.asRegisterFunction());
-            }
-
         }
     }
 }

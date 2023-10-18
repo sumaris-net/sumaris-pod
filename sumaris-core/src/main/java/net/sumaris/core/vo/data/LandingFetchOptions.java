@@ -48,6 +48,7 @@ public class LandingFetchOptions implements IDataFetchOptions {
         .withTrip(true)
         .withTripSales(true)
         .withTripExpectedSales(true)
+        .sampleFetchOptions(SampleFetchOptions.FULL_GRAPH)
         .build();
 
     @Builder.Default

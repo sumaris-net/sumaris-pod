@@ -132,7 +132,9 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             DataFetchOptions.copy(defaultFetchOption));
 
         ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
-        observedLocations.parallelStream().forEach(observedLocation -> {
+        observedLocations
+//            .parallelStream() // Warning: Can cause concurrent exceptions on landingsByBateByVessel.computeIfAbsent
+            .forEach(observedLocation -> {
 
             List<LandingVO> landings = getLandings(observedLocation.getId());
 

@@ -73,13 +73,21 @@ public interface RdbSpecification {
     String[] SHEET_NAMES = {
             TR_SHEET_NAME,
             HH_SHEET_NAME,
-
-            // -- For DEBUG only
-            //"SL_RAW",
-
             SL_SHEET_NAME,
             HL_SHEET_NAME,
             // CA_SHEET_NAME
             CL_SHEET_NAME
+    };
+
+
+    // For DEBUG only
+    String[] SHEET_NAMES_DEBUG = {
+        TR_SHEET_NAME,
+        HH_SHEET_NAME,
+        SL_RAW_SHEET_NAME,
+        SL_SHEET_NAME,
+        HL_SHEET_NAME,
+        // CA_SHEET_NAME
+        CL_SHEET_NAME
     };
 }

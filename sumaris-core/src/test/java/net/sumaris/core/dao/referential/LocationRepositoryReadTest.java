@@ -101,7 +101,7 @@ public class LocationRepositoryReadTest extends AbstractDaoTest {
         // All countries by level
         assertFilterResult(LocationFilterVO.builder().levelId(1).build(), 4);
         // All countries and port by level
-        assertFilterResult(LocationFilterVO.builder().levelIds(new Integer[]{1,2}).build(), 19);
+        assertFilterResult(LocationFilterVO.builder().levelIds(new Integer[]{1,2}).build(), 20);
     }
 
     private void assertFilterResult(LocationFilterVO filter, int expectedSize) {

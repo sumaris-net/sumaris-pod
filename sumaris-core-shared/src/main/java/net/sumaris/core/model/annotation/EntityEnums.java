@@ -52,7 +52,7 @@ public final class EntityEnums {
     public static final String MODEL_PACKAGE_NAME = "net.sumaris.core.model";
     public static final String DESCRIPTION_PROPERTY_PREFIX = "sumaris.config.option.enumeration.";
 
-    private EntityEnums(){
+    private EntityEnums() {
         // Helper class
     }
 
@@ -94,11 +94,11 @@ public final class EntityEnums {
 
             for (Object enumValue : enumClass.getEnumConstants()) {
                 for (String attribute : attributes) {
-                    Object defaultJoinValue = Beans.getProperty(enumValue, attribute);
+                    Object defaultValue = Beans.getProperty(enumValue, attribute);
                     String key = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), attribute);
-                    Class type = defaultJoinValue != null ? defaultJoinValue.getClass() : String.class;
+                    Class type = defaultValue != null ? defaultValue.getClass() : String.class;
                     String description = DESCRIPTION_PROPERTY_PREFIX + StringUtils.doting(entityClassName, enumValue.toString(), attribute, "description");
-                    options.add(new ConfigOption(key, type, description, String.valueOf(defaultJoinValue), false, false));
+                    options.add(new ConfigOption(key, type, description, String.valueOf(defaultValue), false, false));
                 }
             }
         });
@@ -113,7 +113,7 @@ public final class EntityEnums {
     public static void checkResolved(String i18nMessageKey, @NonNull IEntityEnum... enumerations) {
         List<String> invalidEnumerationNames = Beans.getStream(enumerations)
             .filter(EntityEnums::isUnresolved)
-            .map(EntityEnums::name)
+            .map(IEntityEnum::name)
             .toList();
 
         if (CollectionUtils.isNotEmpty(invalidEnumerationNames)) {
@@ -126,7 +126,7 @@ public final class EntityEnums {
     }
 
     public static String name(IEntityEnum enumeration) {
-        return Beans.getProperty((Object)enumeration, "name").toString();
+        return enumeration.name();
     }
 
     public static boolean isUnresolved(IEntityEnum enumeration) {
@@ -136,6 +136,10 @@ public final class EntityEnums {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static boolean isUnresolvedId(Integer id) {
+        return id == null || id == UNRESOLVED_ENUMERATION_ID;
     }
 
     @Data

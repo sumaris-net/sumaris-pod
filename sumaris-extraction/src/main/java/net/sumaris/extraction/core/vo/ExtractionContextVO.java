@@ -78,7 +78,11 @@ public class ExtractionContextVO implements IExtractionTypeWithTablesVO {
 
     public ExtractionContextVO() {
         // Generate a unique, positive i
-        this.id = Math.abs(UUID.randomUUID().hashCode());
+        this(Math.abs(UUID.randomUUID().hashCode()));
+    }
+
+    public ExtractionContextVO(Integer id) {
+        this.id = id;
     }
 
     protected ExtractionContextVO(ExtractionContextVO source) {

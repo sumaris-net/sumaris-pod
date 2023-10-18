@@ -33,10 +33,11 @@ public enum ProcessingFrequencyEnum implements Serializable {
 
     NEVER(0, "NEVER"),
     MANUALLY(1, "MANUALLY"),
-    HOURLY(5, "HOURLY"),
     DAILY(2, "DAILY"),
     WEEKLY(3, "WEEKLY"),
-    MONTHLY(4, "MONTHLY");
+    MONTHLY(4, "MONTHLY"),
+    HOURLY(5, "HOURLY")
+    ;
 
     public static ProcessingFrequencyEnum valueOf(final int id) {
         return Arrays.stream(values())

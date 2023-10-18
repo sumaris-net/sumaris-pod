@@ -30,7 +30,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -67,6 +66,5 @@ public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
             return cb.in(root.get(E.Fields.PROGRAM).get(IItemReferentialEntity.Fields.ID)).value(param);
         }).addBind(PROGRAM_IDS_PARAM, Arrays.asList(programIds));
     }
-
 
 }

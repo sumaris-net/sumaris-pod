@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.annotation.EntityEnum;
 import net.sumaris.core.util.env.ConfigurableEnvironments;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -398,8 +399,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return defaults;
     }
 
-    public void restoreDefaults() {
+    public void restoreDefaults(boolean skipEnumeration) {
         defaults.forEach((key, value) -> {
+            // Skip if enumeration (e.g avoid to apply the overridden enumeration)
+            if (skipEnumeration && key.toString().startsWith(EntityEnum.DEFAULT_PREFIX)) return;
+
             applicationConfig.setOption(key.toString(), value.toString());
         });
     }

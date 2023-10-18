@@ -22,15 +22,18 @@ package net.sumaris.core.dao.data.landing;
  * #L%
  */
 
+import net.sumaris.core.dao.data.IWithObserversSpecifications;
+import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
-import net.sumaris.core.vo.data.LandingFetchOptions;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.filter.LandingFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -41,19 +44,31 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-public interface LandingSpecifications extends RootDataSpecifications<Landing> {
+public interface LandingSpecifications extends RootDataSpecifications<Landing>,
+    IWithVesselSpecifications<Landing>,
+    IWithObserversSpecifications<Landing> {
 
     String OBSERVED_LOCATION_ID_PARAM = "observedLocationId";
     String TRIP_ID_PARAM = "tripId";
     String TRIP_IDS_PARAM = "tripIds";
     String LOCATION_ID_PARAM = "locationId";
     String LOCATION_IDS_PARAM = "locationIds";
-    String VESSEL_ID_PARAM = "vesselId";
     String EXCLUDE_VESSEL_IDS_PARAM = "excludeVesselIds";
 
     String STRATEGY_LABELS = "strategyLabels";
     String SAMPLE_LABELS = "sampleLabels";
     String SAMPLE_TAG_IDS = "sampleTagIds";
+
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
+        Join<T, Vessel> vessel = composeVesselJoin(root);
+        return composeVrpJoin(vessel, cb, root.get(Landing.Fields.DATE_TIME));
+    }
+
+
+    default <T> ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<T> root, CriteriaBuilder cb) {
+        Join<T, Vessel> vessel = composeVesselJoin(root);
+        return composeVfJoin(vessel, cb, root.get(Landing.Fields.DATE_TIME));
+    }
 
     default Specification<Landing> hasObservedLocationId(Integer observedLocationId) {
         if (observedLocationId == null) return null;
@@ -95,13 +110,6 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
         }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
     }
 
-    default Specification<Landing> hasVesselId(Integer vesselId) {
-        if (vesselId == null) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
-            return cb.equal(root.get(Landing.Fields.VESSEL).get(IEntity.Fields.ID), param);
-        }).addBind(VESSEL_ID_PARAM, vesselId);
-    }
 
     default Specification<Landing> hasExcludeVesselIds(Integer... excludeVesselIds) {
         if (ArrayUtils.isEmpty(excludeVesselIds)) return null;
@@ -142,15 +150,13 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
 
         // Check if pmfm STRATEGY_LABEL has been resolved
         final Integer strategyLabelPmfmId = PmfmEnum.STRATEGY_LABEL.getId();
-        if (strategyLabelPmfmId == null || strategyLabelPmfmId.intValue() == -1) {
-            return null;
-        }
+        if (EntityEnums.isUnresolvedId(strategyLabelPmfmId)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, STRATEGY_LABELS);
 
             // Add distinct, because of left join
-            query.distinct(true);
+            if (ArrayUtils.getLength(strategyLabels) > 1) query.distinct(true);
 
             // Search by Trip -> Operation -> Sample
             ListJoin<Sample, LandingMeasurement> landingMeasurements = Daos.composeJoinList(root, Landing.Fields.LANDING_MEASUREMENTS, JoinType.LEFT);
@@ -166,7 +172,7 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
         if (ArrayUtils.isEmpty(sampleLabels)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<String> param = cb.parameter(String.class, SAMPLE_LABELS);
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, SAMPLE_LABELS);
 
                 // Add distinct, because of left join
                 query.distinct(true);
@@ -204,15 +210,13 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
 
         // Check if pmfm TAG_ID has been resolved
         final Integer tagIdPmfmId = PmfmEnum.TAG_ID.getId();
-        if (tagIdPmfmId == null || tagIdPmfmId.intValue() == -1) {
-            return null;
-        }
+        if (EntityEnums.isUnresolvedId(tagIdPmfmId)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, SAMPLE_TAG_IDS);
 
             // Add distinct, because of left join
-            query.distinct(true);
+            if (ArrayUtils.getLength(sampleTagIds) > 1) query.distinct(true);
 
             // Search by Trip -> Operation -> Sample
             Join<Landing, Trip> trip = Daos.composeJoin(root, Landing.Fields.TRIP, JoinType.LEFT);
@@ -246,11 +250,25 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing> {
         .addBind(SAMPLE_TAG_IDS, Arrays.asList(sampleTagIds));
     }
 
-    List<LandingVO> findAllByObservedLocationId(int observedLocationId, Page page, LandingFetchOptions fetchOptions);
+    default Specification<Landing> hasObserverPersonIds(LandingFilterVO filter) {
+        if (ArrayUtils.isEmpty(filter.getObserverPersonIds())) return null;
+
+        // Trip's observers
+        if (filter.getTripId() != null) {
+            return hasObserverPersonIds(StringUtils.doting(Landing.Fields.TRIP, Trip.Fields.OBSERVERS), filter.getObserverPersonIds());
+        }
+        // Observed location's observers
+        if (filter.getObservedLocationId() != null) {
+            return hasObserverPersonIds(StringUtils.doting(Landing.Fields.OBSERVED_LOCATION, ObservedLocation.Fields.OBSERVERS), filter.getObserverPersonIds());
+        }
+        // Landing's observers
+        return hasObserverPersonIds(Landing.Fields.OBSERVERS, filter.getObserverPersonIds());
+    }
 
     List<LandingVO> findAllByObservedLocationId(int observedLocationId);
 
     List<LandingVO> saveAllByObservedLocationId(int observedLocationId, List<LandingVO> sources);
 
     List<LandingVO> findAllByTripIds(List<Integer> tripIds);
+
 }

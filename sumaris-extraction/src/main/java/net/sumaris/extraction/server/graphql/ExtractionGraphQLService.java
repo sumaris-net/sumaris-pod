@@ -95,14 +95,17 @@ public class ExtractionGraphQLService {
 
         // Read product
         if (ExtractionTypes.isProduct(type)) {
-            return extractionService.read(checkedType, filter, strata, page,
+            ExtractionResultVO result = extractionService.read(checkedType, filter, strata, page,
                 CacheTTL.fromString(cacheDuration));
+            result.setType(new ExtractionTypeVO(checkedType));
+            return result;
         }
         // Live extraction
         else {
             try {
                 ExtractionResultVO result = extractionService.executeAndRead(checkedType, filter, strata, page,
                     CacheTTL.fromString(cacheDuration));
+                result.setType(new ExtractionTypeVO(checkedType));
                 return result;
             } catch (Throwable t) {
                 log.error(t.getMessage(), t);

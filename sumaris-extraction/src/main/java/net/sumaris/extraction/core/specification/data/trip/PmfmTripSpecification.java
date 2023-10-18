@@ -32,8 +32,6 @@ public interface PmfmTripSpecification extends RdbSpecification {
     String ST_SHEET_NAME = "ST"; // Survival test
     String RL_SHEET_NAME = "RL"; // Release
 
-    String COLUMN_SEX = "sex";
-
     String[] SHEET_NAMES = {
             TR_SHEET_NAME,
             HH_SHEET_NAME,
@@ -47,10 +45,7 @@ public interface PmfmTripSpecification extends RdbSpecification {
     String[] SHEET_NAMES_DEBUG = {
         TR_SHEET_NAME,
         HH_SHEET_NAME,
-
-        // For DEBUG
         SL_RAW_SHEET_NAME,
-
         SL_SHEET_NAME,
         HL_SHEET_NAME,
         ST_SHEET_NAME,

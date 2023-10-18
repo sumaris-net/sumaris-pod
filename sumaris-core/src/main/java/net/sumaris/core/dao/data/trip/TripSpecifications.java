@@ -22,18 +22,13 @@ package net.sumaris.core.dao.data.trip;
  * #L%
  */
 
+import net.sumaris.core.dao.data.IWithObserversSpecifications;
+import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.data.Landing;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.Trip;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.conversion.WeightLengthConversion;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.location.LocationHierarchy;
-import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.model.data.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -42,18 +37,28 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 
-public interface TripSpecifications extends RootDataSpecifications<Trip> {
+public interface TripSpecifications extends RootDataSpecifications<Trip>,
+    IWithVesselSpecifications<Trip>,
+    IWithObserversSpecifications<Trip> {
 
-    String VESSEL_ID_PARAM = "vesselId";
     String LOCATION_ID_PARAM = "locationId";
     String LOCATION_IDS_PARAM = "locationIds";
-    String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
-    String INCLUDED_IDS_PARAM = "includedIds";
-    String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
     String OBSERVED_LOCATION_ID_PARAM = "observedLocationId";
 
     String OPERATION_IDS_PARAM = "operationIds";
+
+
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
+        Join<T, Vessel> vessel = composeVesselJoin(root);
+        return composeVrpJoin(vessel, cb, root.get(Trip.Fields.DEPARTURE_DATE_TIME));
+    }
+
+    default <T> ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<T> root, CriteriaBuilder cb) {
+        Join<T, Vessel> vessel = composeVesselJoin(root);
+        return composeVfJoin(vessel, cb, root.get(Trip.Fields.DEPARTURE_DATE_TIME));
+    }
+
     default Specification<Trip> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
@@ -75,15 +80,6 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
             );
         }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
     }
-
-    default Specification<Trip> hasVesselId(Integer vesselId) {
-        if (vesselId == null) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
-            return cb.equal(root.get(Trip.Fields.VESSEL).get(IEntity.Fields.ID), param);
-        }).addBind(VESSEL_ID_PARAM, vesselId);
-    }
-
 
     default Specification<Trip> hasObservedLocationId(Integer observedLocationId) {
         if (observedLocationId == null) return null;
@@ -115,38 +111,6 @@ public interface TripSpecifications extends RootDataSpecifications<Trip> {
                 return cb.lessThanOrEqualTo(root.get(Trip.Fields.DEPARTURE_DATE_TIME), endDate);
             }
         };
-    }
-
-    default Specification<Trip> hasObserverPersonIds(Integer... observerPersonIds) {
-        if (ArrayUtils.isEmpty(observerPersonIds)) return null;
-
-        return BindableSpecification.where((root, query, cb) -> {
-
-            // Avoid duplicated entries (because of inner join)
-            query.distinct(true);
-
-            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
-            return cb.in(Daos.composeJoin(root, Trip.Fields.OBSERVERS).get(IEntity.Fields.ID))
-                .value(parameter);
-        }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
-    }
-
-    default Specification<Trip> includedIds(Integer[] includedIds) {
-        if (ArrayUtils.isEmpty(includedIds)) return null;
-        return BindableSpecification.<Trip>where((root, query, cb) -> {
-            ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAM);
-            return cb.in(root.get(Trip.Fields.ID)).value(param);
-        })
-                .addBind(INCLUDED_IDS_PARAM, Arrays.asList(includedIds));
-    }
-
-    default Specification<Trip> hasQualityFlagIds(Integer[] qualityFlagIds) {
-        if (ArrayUtils.isEmpty(qualityFlagIds)) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<Collection> param = cb.parameter(Collection.class, QUALITY_FLAG_ID_PARAM);
-                return cb.in(root.get(Trip.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
-            })
-            .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
     }
 
 

@@ -37,6 +37,7 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -47,6 +48,7 @@ public interface DataSpecifications<ID extends Serializable,
     extends IEntitySpecifications<ID, E> {
 
     String RECORDER_DEPARTMENT_ID_PARAM = "recorderDepartmentId";
+    String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
     default Specification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
         if (recorderDepartmentId == null) return null;
@@ -127,5 +129,31 @@ public interface DataSpecifications<ID extends Serializable,
                 .map(s -> s.toPredicate(root, query, cb))
                 .toArray(Predicate[]::new)
         );
+    }
+
+
+    default Specification<E> inQualityFlagIds(Integer... qualityFlagIds) {
+        if (ArrayUtils.isEmpty(qualityFlagIds)) return null;
+
+        if (qualityFlagIds.length == 1) {
+            return withQualityFlagId(qualityFlagIds[0]);
+        }
+
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, QUALITY_FLAG_ID_PARAM);
+                return cb.in(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID)).value(param);
+            })
+            .addBind(QUALITY_FLAG_ID_PARAM, Arrays.asList(qualityFlagIds));
+    }
+
+    default Specification<E> withQualityFlagId(Integer qualityFlagId) {
+        if (qualityFlagId == null) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Integer> param = cb.parameter(Integer.class, QUALITY_FLAG_ID_PARAM);
+                return cb.equal(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), param);
+            })
+            .addBind(QUALITY_FLAG_ID_PARAM, qualityFlagId);
+
     }
 }

@@ -64,7 +64,7 @@ public class PersonServiceTest extends AbstractServiceTest {
         // Find by one profile
         PersonFilterVO filter = new PersonFilterVO();
         filter.setUserProfileId(observerProfileId);
-        List<PersonVO> results = assertFindResult(filter, 2);
+        List<PersonVO> results = assertFindResult(filter, 5);
         PersonVO person = results.get(0);
         Assert.assertTrue(person.getProfiles().size() > 0);
         UserProfileEnum profile = UserProfileEnum.valueOf(person.getProfiles().get(0)) ;
@@ -73,7 +73,7 @@ public class PersonServiceTest extends AbstractServiceTest {
         // Find by many profile
         filter = new PersonFilterVO();
         filter.setUserProfileIds(new Integer[]{observerProfileId, fixtures.getUserProfileSupervisor()});
-        assertFindResult(filter, 3);
+        assertFindResult(filter, 6);
 
         // Find by status (inactive person)
         filter = new PersonFilterVO();

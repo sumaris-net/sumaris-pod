@@ -22,6 +22,7 @@
 
 package net.sumaris.extraction.core.dao;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
@@ -107,6 +108,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     protected ResourceLoader resourceLoader;
 
     protected DatabaseType databaseType = null;
+    protected Version databaseVersion = null;
 
     protected String dropTableQuery;
 
@@ -114,13 +116,14 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
 
     protected boolean production;
 
-    protected boolean enableCleanup;
+    protected boolean enableCleanup = true;
 
     @PostConstruct
     public void init() {
         this.production = configuration.isProduction();
         this.enableCleanup = configuration.enableExtractionCleanup();
         this.databaseType = Daos.getDatabaseType(configuration.getJdbcURL());
+        this.databaseVersion = Daos.getDatabaseVersion(getDataSource());
         this.dropTableQuery = getDialect().getDropTableString("%s");
         this.hibernateQueryTimeout = Math.max(1, Math.round(configuration.getExtractionQueryTimeout() / 1000));
     }
@@ -230,7 +233,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper) {
         Query nativeQuery = createNativeQuery(query);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
-        return resultStream.map(rowMapper).collect(Collectors.toList());
+        return resultStream.map(rowMapper).toList();
     }
 
     protected <R> List<R> query(String query, Function<Object[], R> rowMapper, long offset, int size) {
@@ -238,7 +241,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
             .setFirstResult((int) offset)
             .setMaxResults(size);
         Stream<Object[]> resultStream = (Stream<Object[]>) nativeQuery.getResultStream();
-        return resultStream.map(rowMapper).collect(Collectors.toList());
+        return resultStream.map(rowMapper).toList();
     }
 
 
@@ -389,19 +392,14 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         }
     }
 
-    protected String formatTableName(String tableName, long time) {
-        String finalTableName = String.format(tableName, time);
-        if (this.databaseType != null) {
-            switch (this.databaseType) {
-                case hsqldb:
-                case oracle:
-                    break;
-                case postgresql:
-                    // IMPORTANT: PostgreSQL is always in lowercase. This is required to get metadata with the exact (final) name
-                    finalTableName = finalTableName.toLowerCase();
-                    break;
-            }
+    protected String formatTableName(String tableName, int id) {
+        String finalTableName = String.format(tableName, id);
+
+        // IMPORTANT: PostgreSQL is always in lowercase. This is required to get metadata with the exact (final) name
+        if (databaseType == DatabaseType.postgresql) {
+            return finalTableName.toLowerCase();
         }
+
         return finalTableName;
     }
 
@@ -439,8 +437,14 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         String[] result = new String[columnCount];
         if (columnCount <= 0) columnCount = row.length;
         for (int i = 0; i < columnCount; i++) {
-            if (row[i] != null) {
-                result[i] = row[i].toString();
+            Object cellValue = row[i];
+            if (cellValue != null) {
+                if (cellValue instanceof Integer[]) {
+                    result[i] = Joiner.on(",").join((Integer[])cellValue);
+                }
+                else {
+                    result[i] = cellValue.toString();
+                }
             } else {
                 result[i] = null;
             }
@@ -733,9 +737,8 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
         // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
         xmlQuery.setGroup("injectionPoint", false);
 
-        if (databaseType == DatabaseType.oracle) {
-            Version version = Daos.getOracleVersion(getDataSource());
-            boolean isOracle12 = version.afterOrEquals(Versions.valueOf("12"));
+        if (databaseType == DatabaseType.oracle && databaseVersion != null) {
+            boolean isOracle12 = databaseVersion.afterOrEquals(Versions.valueOf("12"));
             xmlQuery.setGroup("oracle11", !isOracle12);
             xmlQuery.setGroup("oracle12", isOracle12);
         }

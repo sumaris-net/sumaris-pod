@@ -23,27 +23,30 @@ package net.sumaris.core.dao.technical.jpa;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.querydsl.jpa.impl.JPAQuery;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.IUpdateDateEntity;
-import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.model.function.ToEntityFunction;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
+import net.sumaris.core.model.function.ToEntityFunction;
 import net.sumaris.core.util.Beans;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.LockOptions;
@@ -58,7 +61,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -69,7 +71,6 @@ import javax.persistence.*;
 import javax.persistence.criteria.*;
 import javax.sql.DataSource;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
@@ -179,6 +180,12 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public E getById(ID id) {
+        return super.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Unable to load entity " + getDomainClass().getName() + " with identifier '" + id + "': not found in database."));
     }
 
     @Override
@@ -486,13 +493,13 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return this.getQuery(spec, Sort.unsorted()).getResultStream();
     }
 
-    protected <S> Stream<S> streamQuery(TypedQuery<S> query) {
+    protected <T> Stream<T> streamQuery(TypedQuery<T> query) {
         return query.getResultList().stream();
     }
 
-    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
-                                                   @Nullable net.sumaris.core.dao.technical.Page page,
-                                                   Class<S> domainClass) {
+    protected TypedQuery<E> getQuery(@Nullable Specification<E> spec,
+                                    @Nullable net.sumaris.core.dao.technical.Page page,
+                                    Class<E> domainClass) {
         if (page == null) {
             return getQuery(spec, domainClass, Pageable.unpaged());
         }
@@ -500,21 +507,21 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return getQuery(spec, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), domainClass);
     }
 
-    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
-                                                   int offset, int size,
-                                                   String sortBy, SortDirection sortDirection,
-                                                   Class<S> domainClass) {
+    protected TypedQuery<E> getQuery(@Nullable Specification<E> spec,
+                                   int offset, int size,
+                                   String sortBy, SortDirection sortDirection,
+                                   Class<E> domainClass) {
         CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<S> criteriaQuery = builder.createQuery(domainClass);
-        Root<S> root = criteriaQuery.from(domainClass);
+        CriteriaQuery<E> criteriaQuery = builder.createQuery(domainClass);
+        Root<E> root = criteriaQuery.from(domainClass);
 
         Predicate predicate = spec != null ? spec.toPredicate(root, criteriaQuery, builder) : null;
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        addSorting(criteriaQuery, builder, root, sortBy, sortDirection);
+        addSorting(criteriaQuery, root, builder, sortBy, sortDirection);
 
-        TypedQuery<S> query = getEntityManager().createQuery(criteriaQuery);
+        TypedQuery<E> query = getEntityManager().createQuery(criteriaQuery);
 
         // Bind parameters
         applyBindings(query, spec);
@@ -619,45 +626,97 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * Add a orderBy on query
      *
      * @param query         the query
-     * @param builder       criteria builder
-     * @param root          the root of the query
+     * @param from          the root of the query
+     * @param cb            criteria builder
      * @param pageable      page spec
-     * @param <T>           type of query
      * @return the query itself
      */
-    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                              CriteriaBuilder builder,
-                                              Root<?> root,
-                                              Pageable pageable) {
+    protected void addSorting(CriteriaQuery<?> query,
+                                          Root<E> from,
+                                          CriteriaBuilder cb,
+                                          Pageable pageable) {
         Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
         if (sort.isSorted()) {
-            query.orderBy(QueryUtils.toOrders(sort, root, builder));
+            List<javax.persistence.criteria.Order> orders = new ArrayList<>();
+
+            for (org.springframework.data.domain.Sort.Order order : sort) {
+                orders.addAll(toOrders(query, from, cb, order.getProperty(), order.getDirection()));
+            }
+
+            query.orderBy(orders);
         }
-        return query;
     }
     /**
      * Add a orderBy on query
      *
      * @param query         the query
-     * @param builder       criteria builder
-     * @param root          the root of the query
+     * @param cb       criteria builder
+     * @param from          the root of the query
      * @param sortAttribute the sort attribute (can be a nested attribute)
      * @param sortDirection the direction
      * @param <T>           type of query
      * @return the query itself
      */
-    protected <T> CriteriaQuery<T> addSorting(CriteriaQuery<T> query,
-                                              CriteriaBuilder builder,
-                                              Root<?> root, String sortAttribute, SortDirection sortDirection) {
+    protected void addSorting(CriteriaQuery<?> query,
+                              Root<E> from,
+                              CriteriaBuilder cb,
+                              String sortAttribute,
+                              SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
-            Expression<?> sortExpression = Daos.composePath(root, sortAttribute);
-            query.orderBy(SortDirection.DESC.equals(sortDirection) ?
-                builder.desc(sortExpression) :
-                builder.asc(sortExpression)
-            );
+            query.orderBy(toOrders(query, from, cb, sortAttribute, sortDirection));
         }
-        return query;
+    }
+
+    protected List<Order> toOrders(CriteriaQuery<?> query,
+                                   Root<E> from,
+                                   CriteriaBuilder cb,
+                                   String property,
+                                   SortDirection direction) {
+        return toOrders(query, from, cb, property, SortDirection.toJpaDirection(direction));
+    }
+
+    protected List<Order> toOrders(CriteriaQuery<?> query,
+                                   Root<E> from,
+                                   CriteriaBuilder cb,
+                                   String property,
+                                   Sort.Direction direction) {
+        String entityProperty = toEntityProperty(property);
+        if (log.isDebugEnabled() && !property.equals(entityProperty)) {
+            log.debug("Fix sort attribute {} -> {}", property, entityProperty);
+        }
+        return toSortExpressions(query, from, cb, entityProperty)
+            .stream()
+            .map(sortExpression -> direction.isDescending() ?
+                cb.desc(sortExpression) :
+                cb.asc(sortExpression))
+            .toList();
+    }
+
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query,
+                                                    Root<E> from,
+                                                    CriteriaBuilder cb,
+                                                    String property) {
+        return ImmutableList.of(Daos.composePath(from, property));
+    }
+
+    /**
+     * Allow to map a VO property into JPA entity property. Useful for sortBy
+     * @param property A property to map into an entity's property
+     * @return
+     */
+    protected String toEntityProperty(@NonNull String property) {
+        return property;
+    }
+
+    protected String[] toEntityProperties(String[] values) {
+        if (ArrayUtils.isNotEmpty(values)) {
+            return Arrays.stream(values)
+                .map(this::toEntityProperty)
+                .toArray(String[]::new);
+        }
+
+        return values;
     }
 
     protected <ID extends Serializable, CV extends IValueObject<ID>, CT extends IEntity<ID>, PT extends IUpdateDateEntity<?, Date>>

@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
@@ -47,11 +48,13 @@ import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityWatchService;
+import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -89,6 +92,27 @@ public class ReferentialGraphQLService {
         return referentialService.getAllTypes();
     }
 
+    @GraphQLQuery(name = "referential", description = "Load one referential, by entityName and id")
+    @Transactional(readOnly = true)
+    public ReferentialVO loadReferential(
+        @GraphQLArgument(name = "entityName") String entityName,
+        @GraphQLArgument(name = "id") Integer id,
+        @GraphQLEnvironment() ResolutionEnvironment env) {
+
+        // Check can access to the program
+        if (Program.class.getSimpleName().equalsIgnoreCase(entityName)) {
+            Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIds(new Integer[]{id})
+                .orElse(null);
+            if (ArrayUtils.isEmpty(authorizedProgramIds)) throw new UnauthorizedException();
+        }
+
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        return referentialService.get(entityName, id, ReferentialFetchOptions.builder()
+            .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
+            .build());
+    }
+
     @GraphQLQuery(name = "referentials", description = "Search in referentials")
     @Transactional(readOnly = true)
     public List<? extends ReferentialVO> findReferentialsByFilter(
@@ -101,7 +125,6 @@ public class ReferentialGraphQLService {
             @GraphQLEnvironment() ResolutionEnvironment env) {
 
 
-
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
         if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
             return metierRepository.findByFilter(
@@ -110,10 +133,8 @@ public class ReferentialGraphQLService {
                     SortDirection.valueOf(direction.toUpperCase()));
         }
 
-        // Restrict access to program
-        if (Program.class.getSimpleName().equalsIgnoreCase(entityName)) {
-            restrictProgramFilter(entityName, filter);
-        }
+        // Restrict access
+        restrictFilter(entityName, filter);
 
         Set<String> fields = GraphQLUtils.fields(env);
 
@@ -134,7 +155,7 @@ public class ReferentialGraphQLService {
     public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
                                      @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
         // Restrict access to program
-        restrictProgramFilter(entityName, filter);
+        restrictFilter(entityName, filter);
 
         return referentialService.countByFilter(entityName, filter);
     }
@@ -255,7 +276,7 @@ public class ReferentialGraphQLService {
 
     /* -- protected functions -- */
 
-    protected void restrictProgramFilter(@NonNull String entityName, @NonNull ReferentialFilterVO filter) {
+    protected void restrictFilter(@NonNull String entityName, @NonNull ReferentialFilterVO filter) {
 
         // Program
         if (Program.class.getSimpleName().equalsIgnoreCase(entityName)) {

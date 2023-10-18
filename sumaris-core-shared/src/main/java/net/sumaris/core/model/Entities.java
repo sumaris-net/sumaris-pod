@@ -43,4 +43,13 @@ public abstract class Entities {
             .max(Comparator.comparingLong(Date::getTime))
             .orElse(null);
     }
+
+    public static <T extends IEntity<?>> void clearId(T entity) {
+        entity.setId(null);
+    }
+
+    public static <T extends IUpdateDateEntity<?, ?>> void clearIdAndUpdateDate(T entity) {
+        entity.setId(null);
+        entity.setUpdateDate(null);
+    }
 }

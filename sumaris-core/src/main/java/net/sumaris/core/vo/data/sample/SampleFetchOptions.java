@@ -32,6 +32,18 @@ public class SampleFetchOptions implements IDataFetchOptions {
 
     public static final SampleFetchOptions DEFAULT = SampleFetchOptions.builder().build();
 
+
+    public static final SampleFetchOptions FULL_GRAPH = SampleFetchOptions.builder()
+        .withRecorderDepartment(true)
+        .withMeasurementValues(true)
+        .withImages(true)
+        .build();
+
+    public static final SampleFetchOptions WITH_MEASUREMENTS = SampleFetchOptions.builder()
+        .withMeasurementValues(true)
+        .withImages(true)
+        .build();
+
     @Builder.Default
     private boolean withRecorderDepartment = false;
 

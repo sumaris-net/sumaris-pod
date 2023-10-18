@@ -51,6 +51,7 @@ public enum ProgramPropertyEnum implements Serializable {
 
     TRIP_EXTRACTION_SAMPLING_METHOD("sumaris.trip.extraction.sampling.method", String.class, "Observer"),
 
+    TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS("sumaris.trip.extraction.area.locationLevel.ids", String.class, ""),
     TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE("sumaris.trip.extraction.batch.denormalization.enable", Boolean.class, Boolean.FALSE.toString()),
 
     OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM("sumaris.observedLocation.aggregatedLandings.program", String.class, "")

@@ -27,6 +27,8 @@ import au.com.bytecode.opencsv.ResultSetHelperService;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
+import net.sumaris.extraction.core.vo.ExtractionContextVO;
+import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -50,7 +52,7 @@ import java.util.*;
 @Repository("extractionCsvDao")
 @Lazy
 @Slf4j
-public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements ExtractionCsvDao {
+public class ExtractionCommonDaoImpl extends ExtractionBaseDaoImpl<ExtractionContextVO, ExtractionFilterVO> implements ExtractionCommonDao {
 
     @Autowired
     private DataSource dataSource;
@@ -80,6 +82,11 @@ public class ExtractionCsvDaoImpl extends ExtractionBaseDaoImpl implements Extra
         csvWriter.flush();
         csvWriter.close();
 
+    }
+
+    @Override
+    public void clean(ExtractionContextVO context) {
+        super.clean(context);
     }
 
     /* -- private methods -- */

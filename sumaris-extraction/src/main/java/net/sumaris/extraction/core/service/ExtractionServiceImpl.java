@@ -65,7 +65,7 @@ import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.AggregationDao;
 import net.sumaris.extraction.core.dao.ExtractionDao;
 import net.sumaris.extraction.core.dao.administration.ExtractionStrategyDao;
-import net.sumaris.extraction.core.dao.technical.csv.ExtractionCsvDao;
+import net.sumaris.extraction.core.dao.technical.csv.ExtractionCommonDao;
 import net.sumaris.extraction.core.dao.technical.schema.SumarisTableUtils;
 import net.sumaris.extraction.core.dao.technical.table.ExtractionTableColumnOrder;
 import net.sumaris.extraction.core.dao.trip.ExtractionTripDao;
@@ -80,6 +80,7 @@ import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -119,7 +120,7 @@ public class ExtractionServiceImpl implements ExtractionService {
     private final ExtractionTripDao extractionRdbTripDao;
     private final ExtractionStrategyDao extractionStrategyDao;
     private final ExtractionVesselDao extractionVesselDao;
-    private final ExtractionCsvDao extractionCsvDao;
+    private final ExtractionCommonDao extractionCommonDao;
 
     private final ExtractionProductService productService;
     private final SumarisDatabaseMetadata databaseMetadata;
@@ -617,41 +618,35 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Drop all tables (EXT_*)
         {
-            ExtractionContextVO context = new ExtractionContextVO();
-            context.setId(null);
+            ExtractionContextVO context = new ExtractionContextVO(null/*id not need*/);
             context.setTableNamePrefix(ExtractionDao.TABLE_NAME_PREFIX);
             // Get table names
             databaseMetadata.findTableNamesByPrefix(ExtractionDao.TABLE_NAME_PREFIX)
                 .stream()
-                // Exclude table used in products
+                // Exclude product's tables
                 .filter(tableName -> !productTableNames.contains(tableName.toLowerCase()))
-                // TODO keep only old extraction (extraction id as a time, then filter)
-                //.filter()
-                // Add it to context
+                // Add table to context
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());
-            // Apply drop
-            extractionDispatcher.clean(context);
+            // Apply drop tables
+            extractionCommonDao.clean(context);
         }
 
         // Drop all tables (AGG_*)
         {
-            AggregationContextVO context = new AggregationContextVO();
-            context.setId(null);
+            ExtractionContextVO context = new ExtractionContextVO(null/*id not need*/);
             context.setTableNamePrefix(AggregationDao.TABLE_NAME_PREFIX);
             // Get table names
             databaseMetadata.findTableNamesByPrefix(AggregationDao.TABLE_NAME_PREFIX)
                 .stream()
-                // Exclude table used in products
+                // Exclude product's tables
                 .filter(tableName -> !productTableNames.contains(tableName.toLowerCase()))
-                // TODO keep only old extraction (extraction id as a time, then filter)
-                //.filter()
-                // Add it to context
+                // Add table to context
                 .forEach(context::addRawTableName);
             count += CollectionUtils.size(context.getRawTableNames());
 
-            // Apply drop
-            aggregationDispatcher.clean(context);
+            // Apply drop tables
+            extractionCommonDao.clean(context);
         }
 
         if (count == 0) {
@@ -888,7 +883,7 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         Map<String, String> aliases = getAliasByColumnMap(columnNames);
 
-        extractionCsvDao.dumpQueryToCSV(outputFile, query,
+        extractionCommonDao.dumpQueryToCSV(outputFile, query,
             aliases,
             dateFormats,
             null,

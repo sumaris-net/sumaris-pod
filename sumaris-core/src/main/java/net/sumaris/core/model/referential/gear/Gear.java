@@ -43,7 +43,7 @@ import java.util.List;
 @Entity
 @Cacheable
 public class Gear implements IItemReferentialEntity<Integer> {
-
+    public static final String ENTITY_NAME = "Gear";
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_SEQ")
     @SequenceGenerator(name = "GEAR_SEQ", sequenceName="GEAR_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)

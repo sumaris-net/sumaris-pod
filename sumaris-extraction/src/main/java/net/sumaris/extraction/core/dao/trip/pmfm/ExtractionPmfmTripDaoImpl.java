@@ -33,6 +33,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -46,6 +47,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.persistence.PersistenceException;
 import java.net.URL;
 import java.util.Arrays;
@@ -73,9 +75,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // Hide RECORD_TYPE columns
         this.enableRecordTypeColumn = false;
 
+    }
+    @PostConstruct
+    public void init() {
+        super.init();
+
         // -- for DEV only
-        if (!this.production && !enableCleanup) {
-            // add the RW_SL into the visible sheet
+        // set RAW_SL as a visible sheet
+        if (!this.enableCleanup && !this.production) {
             LiveExtractionTypeEnum.PMFM_TRIP.setSheetNames(PmfmTripSpecification.SHEET_NAMES_DEBUG);
         }
     }
@@ -552,6 +559,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         // Have to be lower case due to postgres compatibility
         String pmfmAlias = this.databaseType == DatabaseType.postgresql ? pmfm.getAlias().toLowerCase() : pmfm.getAlias();
         String pmfmLabel = this.databaseType == DatabaseType.postgresql ? pmfm.getLabel().toLowerCase() : pmfm.getLabel();
+        String baseColumnName = Daos.sqlColumnName(pmfmLabel);
+        String columnName = baseColumnName;
 
         if (StringUtils.isNotBlank(injectionPointName)) {
             xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias, injectionPointName);
@@ -560,7 +569,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         }
 
         xmlQuery.bind("pmfmId" + pmfmAlias, String.valueOf(pmfm.getPmfmId()));
-        xmlQuery.bind("pmfmlabel" + pmfmAlias, pmfmLabel);
+        xmlQuery.bind("pmfmlabel" + pmfmAlias, columnName);
 
         // Disable groups of unused pmfm type
         for (PmfmValueType enumType : PmfmValueType.values()) {

@@ -212,6 +212,7 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "privileges", description = "Get current user program's privileges")
     public List<String> getProgramUserPrivileges(@GraphQLContext ProgramVO program) {
+        // TODO add department privileges
         return authService.getAuthenticatedUser()
                 .map(user -> programService.getAllPrivilegesByUserId(program.getId(), user.getId())
                     .stream().map(ProgramPrivilegeEnum::name)

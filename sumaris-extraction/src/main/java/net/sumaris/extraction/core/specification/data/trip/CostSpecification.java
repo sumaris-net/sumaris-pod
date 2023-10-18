@@ -30,4 +30,5 @@ public interface CostSpecification extends RdbSpecification {
     String VERSION_1_4 = "1.4";
 
     String COLUMN_SEX = "sex";
+
 }

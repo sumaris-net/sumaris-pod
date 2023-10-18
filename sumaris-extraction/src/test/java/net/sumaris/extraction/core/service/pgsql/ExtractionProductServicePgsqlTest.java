@@ -27,6 +27,7 @@ import net.sumaris.extraction.core.service.ExtractionProductServiceTest;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * @author benoit.lavenier@e-is.pro
@@ -34,6 +35,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("pgsql")
 @Ignore("Use only a Pgsql database")
+@TestPropertySource(locations = "classpath:application-pgsql.properties")
 public class ExtractionProductServicePgsqlTest extends ExtractionProductServiceTest {
 
     @ClassRule

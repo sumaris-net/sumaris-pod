@@ -25,7 +25,9 @@ package net.sumaris.core.dao.data.batch;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.DenormalizedBatch;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Set;
 
@@ -33,10 +35,14 @@ public interface DenormalizedBatchRepository
         extends SumarisJpaRepository<DenormalizedBatch, Integer, DenormalizedBatchVO>,
     DenormalizedBatchSpecifications<DenormalizedBatch, DenormalizedBatchVO> {
 
-    @Query("select id from DenormalizedBatch where operation.id in ?1")
+    @Query("select id from DenormalizedBatch where operation.id = ?1")
     Set<Integer> getAllIdByOperationId(int operationId);
 
-    @Query("select id from DenormalizedBatch where sale.id in ?1")
+    @Query("select id from DenormalizedBatch where sale.id = ?1")
     Set<Integer> getAllIdBySaleId(int saleId);
 
+    @Override
+    @Modifying
+    @Query("delete from DenormalizedBatch b where b.id in (:ids)")
+    void deleteAllById(@Param("ids") Iterable<? extends Integer> ids);
 }

@@ -27,7 +27,11 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
@@ -67,8 +71,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.PersistenceException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -96,6 +102,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     private static final String CA_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RdbSpecification.CA_SHEET_NAME + "_%s";
 
 
+    protected Splitter splitter = Splitter.on(",").trimResults();
+
     @Autowired
     protected StrategyService strategyService;
 
@@ -107,6 +115,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     @Autowired
     protected DenormalizedBatchService denormalizedBatchService;
+
     @Autowired
     protected DenormalizedOperationService denormalizedOperationService;
 
@@ -114,10 +123,25 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected boolean enableRecordTypeColumn = true;
 
+    protected boolean enableAdagioOptimization = false;
+    protected String adagioSchema = null;
+
+    @PostConstruct
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady() {
+        // Read some config options
+        this.adagioSchema = this.configuration.getAdagioSchema();
+        this.enableAdagioOptimization = StringUtils.isNotBlank(this.adagioSchema)
+            && this.configuration.enableAdagioOptimization()
+            && this.databaseType == DatabaseType.oracle;
+    }
+
     @Override
     public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
     }
+
+
 
     @Override
     public <R extends C> R execute(F filter) {
@@ -387,6 +411,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("stationTableName", context.getStationTableName());
 
         // Bind location level ids
+        xmlQuery.bind("areaLocationLevelIds", Daos.getSqlInNumbers(getAreaLocationLevelIds(context)));
         xmlQuery.bind("rectangleLocationLevelIds", Daos.getSqlInNumbers(getRectangleLocationLevelIds(context)));
 
         // Bind some PMFM ids
@@ -407,6 +432,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
+
+        // Adagio optimisation
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        if (this.enableAdagioOptimization) xmlQuery.bind("adagioSchema", this.adagioSchema);
 
         // Operation filter
         {
@@ -433,30 +463,22 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             // Get all operation ids
             String sql = String.format("SELECT distinct CAST(%s AS INT) from %s where %s='%s'",
                     RdbSpecification.COLUMN_STATION_ID, stationsTableName, RdbSpecification.COLUMN_PROJECT, programLabel);
-            Number[] operationIds = query(sql, Number.class).toArray(Number[]::new);
+            Integer[] operationIds = queryToStream(sql, Number.class)
+                .mapToInt(Number::intValue)
+                .boxed()
+                .toArray(Integer[]::new);
 
+            // Execute batch denormalization
             DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
             // DEBUG
             //options.setEnableRtpWeight(false);
             //if (!this.production) options.setForce(true);
 
-            int pageSize = 500;
-            long pageCount = Math.round((double)(operationIds.length / pageSize) + 0.5); // Get page count
-            for (int page = 0; page < pageCount; page++) {
-                int from = page * pageSize;
-                int to = Math.min(operationIds.length, from + pageSize);
-                Integer[] pageOperationIds = Arrays.stream(Arrays.copyOfRange(operationIds, from, to))
-                    .mapToInt(Number::intValue)
-                    .mapToObj(Integer::valueOf)
-                    .toArray(Integer[]::new);
-
-                denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
-                    .programLabel(programLabel)
-                    .includedIds(pageOperationIds)
-                    .hasNoChildOperation(true)
-                    .needBatchDenormalization(!options.isForce())
-                    .build(), options);
-            }
+            denormalizedOperationService.denormalizeByFilter(OperationFilterVO.builder()
+                .programLabel(programLabel)
+                .includedIds(operationIds)
+                .needBatchDenormalization(!options.isForce())
+                .build(), options);
         });
     }
 
@@ -478,7 +500,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             count -= cleanRow(tableName, context.getFilter(), context.getSpeciesListSheetName());
         }
 
-        if (this.enableCleanup) {
+        if (this.enableCleanup && !this.production) {
             // Add as a raw table (to be able to clean it later)
             context.addRawTableName(tableName);
         }
@@ -526,8 +548,13 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.setGroup("hasLandingOrDiscardPmfm", true);
         xmlQuery.setGroup("!hasLandingOrDiscardPmfm", false);
 
-        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+        // Adagio optimisation
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        if (this.enableAdagioOptimization) xmlQuery.bind("adagioSchema", this.adagioSchema);
 
+        // Compute groupBy
+        xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
         return xmlQuery;
     }
@@ -643,13 +670,26 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         return 0;
     }
 
-    protected Set<Integer> getSpeciesLengthPmfmIds() {
+    protected Collection<Integer> getSpeciesLengthPmfmIds() {
+        List<Integer> configList = configuration.getExtractionSpeciesLengthPmfmIds();
+        if (CollectionUtils.isNotEmpty(configList)) {
+            return configList;
+        }
+
+        // Default list
         return ImmutableSet.of(
             PmfmEnum.LENGTH_TOTAL_CM.getId(),
+            PmfmEnum.LENGTH_TOTAL_MM.getId(),
             PmfmEnum.LENGTH_CARAPACE_CM.getId(),
             PmfmEnum.LENGTH_CARAPACE_MM.getId(),
             PmfmEnum.LENGTH_MANTLE_CM.getId(),
-            PmfmEnum.SEGMENT_LENGTH_MM.getId()
+            PmfmEnum.SEGMENT_LENGTH_MM.getId(),
+            PmfmEnum.HEIGHT_MM.getId(),
+            PmfmEnum.LENGTH_LM_FORK_CM.getId(),
+            PmfmEnum.LENGTH_FORK_CM.getId(),
+            PmfmEnum.LENGTH_PRE_SUPRA_CAUDAL_CM.getId(),
+            PmfmEnum.DOM_HALF_CM.getId(),
+            PmfmEnum.WIDTH_CARAPACE_MM.getId()
         );
     }
 
@@ -686,9 +726,32 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             .build();
     }
 
+    protected Collection<Integer> getAreaLocationLevelIds(C context) {
+        List<Integer> configList = configuration.getExtractionAreaLocationLevelIds();
+        if (CollectionUtils.isNotEmpty(configList)) {
+            return configList;
+        }
+
+        Set<String> programLabels = getTripProgramLabels(context);
+
+        return programLabels.stream().flatMap(programLabel -> {
+            String strValue = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS);
+            if (StringUtils.isBlank(strValue)) {
+                // Default values
+                return Stream.of(
+                    // Sous-Division CIEM (cf issue #416)
+                    LocationLevelEnum.SUB_DIVISION_ICES.getId(),
+                    // Sous-division GFCM - à valider
+                    LocationLevelEnum.SUB_DIVISION_GFCM.getId()
+                );
+            }
+            return splitter.splitToStream(strValue).map(Integer::parseInt);
+        }).collect(Collectors.toSet());
+
+    }
+
     protected Set<Integer> getRectangleLocationLevelIds(C context) {
         Set<String> programLabels = getTripProgramLabels(context);
-        Splitter splitter = Splitter.on(",").trimResults();
 
         return programLabels.stream().flatMap(programLabel -> {
             String strValue = this.programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
@@ -907,8 +970,11 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             result = getTripProgramLabels(context).stream()
                 .flatMap(programLabel -> {
                     String values = programService.getPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-                    if (StringUtils.isBlank(values)) return Stream.empty();
-                    return Splitter.on(",").splitToStream(values);
+                    if (StringUtils.isBlank(values)) {
+                        // No default value
+                        return Stream.empty();
+                    }
+                    return splitter.splitToStream(values);
                 }).collect(Collectors.toSet());
 
             // Fill cache

@@ -23,6 +23,7 @@
 package net.sumaris.core.dao.referential;
 
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.util.StringUtils;
@@ -102,4 +103,6 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
             })
             .addBind(parameterName, value);
     }
+
+    DatabaseType getDatabaseType();
 }

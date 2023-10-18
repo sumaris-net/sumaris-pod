@@ -32,11 +32,20 @@
     <select alias="YEAR" type="number">T.YEAR</select>
     <select alias="PROJECT" type="text">T.PROJECT</select>
     <select alias="TRIP_CODE" type="number">T.TRIP_CODE</select>
-    <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="!operationIdsFilter">ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME)</select>
-    <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="agg,operationIdsFilter"><![CDATA[
+    <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="!adagio,!operationIdsFilter">ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME)</select>
+    <select alias="STATION_NUMBER" type="number" dbms="oracle" group="adagio,!operationIdsFilter">ROW_NUMBER() OVER (PARTITION BY O.FISHING_TRIP_FK ORDER BY O.START_DATE_TIME)</select>
+    <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="!adagio,agg,operationIdsFilter"><![CDATA[
       (SELECT COUNT(*)
         FROM operation O2
         WHERE O2.TRIP_FK = T.TRIP_CODE
+        AND O2.START_DATE_TIME <= O.START_DATE_TIME
+        AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
+      )
+    ]]></select>
+    <select alias="STATION_NUMBER" type="number" dbms="oracle" group="adagio,agg,operationIdsFilter"><![CDATA[
+      (SELECT COUNT(*)
+        FROM operation O2
+        WHERE O2.FISHING_TRIP_FK = T.TRIP_CODE
         AND O2.START_DATE_TIME <= O.START_DATE_TIME
         AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
       )
@@ -81,8 +90,24 @@
     <select alias="POS_END_LON" type="number" dbms="hsqldb,pgsql" group="agg">MAX(P_END.LONGITUDE)</select>
     <select alias="POS_END_LON" type="number" dbms="oracle" group="agg">MAX(CAST(P_END.LONGITUDE AS NUMBER(38, 7)))</select>
 
-    <select alias="AREA" type="text" dbms="hsqldb,pgsql">null</select><!-- TODO get it by LOCATION_HIERARCHY -->
-    <select alias="AREA" type="text" dbms="oracle" group="agg">CAST(null as VARCHAR2(10))</select>
+    <select alias="AREA" type="text" dbms="hsqldb,pgsql" group="agg">
+      MAX(
+        CASE
+          WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;areaLocationLevelIds) THEN
+            L_AREA.LABEL
+          ELSE NULL
+        END
+      )
+    </select>
+    <select alias="AREA" type="text" dbms="oracle" group="agg">
+      MAX(
+        CASE WHEN L_AREA.LOCATION_LEVEL_FK IN (&amp;areaLocationLevelIds) THEN
+        L_AREA.LABEL
+        ELSE
+          CAST(null as VARCHAR2(10))
+        END
+      )
+    </select>
 
     <select alias="STATISTICAL_RECTANGLE" type="text" dbms="hsqldb,pgsql" group="agg">
       MAX(
@@ -144,13 +169,25 @@
     <!-- need to link other tables -->
     <select alias="STATION_ID" type="hidden">O.ID</select>
 
-    <from alias="T">&amp;tripTableName</from>
-    <from join="true">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>
-    <from join="true">LEFT OUTER JOIN METIER M ON M.ID = O.METIER_FK</from>
-    <from join="true">LEFT OUTER JOIN TAXON_GROUP TG_M ON TG_M.ID = M.TAXON_GROUP_FK</from>
-    <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR PG ON PG.ID = O.PHYSICAL_GEAR_FK</from>
-    <from join="true">LEFT OUTER JOIN GEAR G ON G.ID = PG.GEAR_FK</from>
+    <!-- Adagio DB - keep the catch batch id -->
+    <select alias="CATCH_BATCH_ID" type="hidden" group="adagio">O.CATCH_BATCH_FK</select>
 
+    <from alias="T">&amp;tripTableName</from>
+
+    <!-- Legacy DB joins -->
+    <from join="true" group="!adagio">INNER JOIN OPERATION O ON O.TRIP_FK = T.TRIP_CODE</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN METIER M ON M.ID = O.METIER_FK</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN TAXON_GROUP TG_M ON TG_M.ID = M.TAXON_GROUP_FK</from>
+    <from join="true" group="!adagio">LEFT OUTER JOIN PHYSICAL_GEAR PG ON PG.ID = O.PHYSICAL_GEAR_FK</from>
+
+    <!-- Adagio DB joins (skip SUMARiS VIEW) -->
+    <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.OPERATION O ON O.FISHING_TRIP_FK = T.TRIP_CODE</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN &amp;adagioSchema.GEAR_USE_FEATURES GUF ON GUF.OPERATION_FK = O.ID</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN METIER M ON M.ID = GUF.METIER_FK</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN TAXON_GROUP TG_M ON TG_M.ID = M.TAXON_GROUP_FK</from>
+    <from join="true" group="adagio">LEFT OUTER JOIN PHYSICAL_GEAR PG ON PG.ID = O.GEAR_PHYSICAL_FEATURES_FK</from>
+
+    <from join="true">LEFT OUTER JOIN GEAR G ON G.ID = PG.GEAR_FK</from>
     <from join="true">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM ON VUM.OPERATION_FK = O.ID</from>
     <from join="true">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = VUM.QUALITATIVE_VALUE_FK</from>
     <from join="true">LEFT OUTER JOIN PHYSICAL_GEAR_MEASUREMENT PGM ON PGM.PHYSICAL_GEAR_FK = PG.ID</from>

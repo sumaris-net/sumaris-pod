@@ -46,10 +46,11 @@ import java.util.Date;
 @Entity
 public class Metier implements IItemReferentialEntity<Integer> {
 
+    public static final String ENTITY_NAME = "Metier";
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "METIER_SEQ")
     @SequenceGenerator(name = "METIER_SEQ", sequenceName="METIER_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

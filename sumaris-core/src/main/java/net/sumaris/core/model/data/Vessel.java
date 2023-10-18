@@ -113,7 +113,6 @@ public class Vessel implements IRootDataEntity<Integer> {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselRegistrationPeriod.class, mappedBy = VesselRegistrationPeriod.Fields.VESSEL)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    
     private List<VesselRegistrationPeriod> vesselRegistrationPeriods = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselOwnerPeriod.class, mappedBy = VesselOwnerPeriod.Fields.VESSEL)

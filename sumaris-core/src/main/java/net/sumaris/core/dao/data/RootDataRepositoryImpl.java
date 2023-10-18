@@ -25,13 +25,11 @@ package net.sumaris.core.dao.data;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.data.IRootDataEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
-import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IRootDataVO;
@@ -41,7 +39,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import java.util.Date;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
@@ -55,10 +52,6 @@ public abstract class RootDataRepositoryImpl<
         >
         extends DataRepositoryImpl<E, V, F, O>
         implements RootDataRepository<E, V, F, O> {
-
-
-    @Autowired
-    private PersonRepository personRepository;
 
     @Autowired
     private ProgramRepository programRepository;

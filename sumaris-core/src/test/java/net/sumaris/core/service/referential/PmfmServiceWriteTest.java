@@ -48,7 +48,7 @@ public class PmfmServiceWriteTest extends AbstractServiceTest{
     public void save() {
 
         PmfmVO pmfm = new PmfmVO();
-        pmfm.setLabel("PMFM_TEST");
+        pmfm.setLabel("PMFM_TEST-" + System.currentTimeMillis());
         pmfm.setParameterId(5); // is qualitative
         pmfm.setMatrixId(3);
         pmfm.setFractionId(1);

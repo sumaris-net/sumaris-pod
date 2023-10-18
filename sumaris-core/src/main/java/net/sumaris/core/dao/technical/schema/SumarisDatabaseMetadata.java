@@ -26,6 +26,7 @@ package net.sumaris.core.dao.technical.schema;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -184,7 +185,8 @@ public class SumarisDatabaseMetadata {
 	public Set<String> findTableNamesByPrefix(String tablePrefix) {
 		return findTableNamesByPrefix(tablePrefix, defaultSchemaName, defaultCatalogName);
 	}
-	public Set<String> findTableNamesByPrefix(String tablePrefix, String schema, String catalog) {
+
+	public Set<String> findTableNamesByPrefix(@NonNull String tablePrefix, String schema, String catalog) {
 		// Create a new connection then retrieve the metadata :
 		Connection conn = null;
 		try {
@@ -192,16 +194,16 @@ public class SumarisDatabaseMetadata {
 			DatabaseMetaData jdbcMeta = conn.getMetaData();
 
 			// Special case for postgresql: to prefix as lowercase
-			if (tablePrefix != null && Daos.isPostgresqlDatabase(conn)) {
+			if (Daos.isPostgresqlDatabase(conn)) {
 				tablePrefix = tablePrefix.toLowerCase();
 			}
 
-			ResultSet rs = jdbcMeta.getTables(catalog, schema, Daos.getEscapedForLike(tablePrefix) /*escape undescrore*/ + "%", null);
+			ResultSet rs = jdbcMeta.getTables(catalog, schema, Daos.getEscapedForLike(tablePrefix) /*escape underscore*/ + "%", null);
 			Set<String> result = Sets.newHashSet();
 			while (rs.next()) {
 				String tableName = rs.getString("TABLE_NAME");
 				if (tableName.toLowerCase().startsWith(tablePrefix.toLowerCase())) {
-					result.add(rs.getString("TABLE_NAME"));
+					result.add(tableName);
 				}
 				// JDBC meta return a bad tableName (e.g. because '_' special character) => ignore
 				else {

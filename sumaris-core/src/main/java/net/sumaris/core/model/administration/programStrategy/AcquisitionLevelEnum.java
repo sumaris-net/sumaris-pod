@@ -22,14 +22,18 @@ package net.sumaris.core.model.administration.programStrategy;
  * #L%
  */
 
+import lombok.Getter;
 import lombok.NonNull;
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.IEntityEnum;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
+@Getter
 @EntityEnum(entity = AcquisitionLevel.class,
     resolveAttributes = AcquisitionLevel.Fields.LABEL)
-public enum AcquisitionLevelEnum {
+public enum AcquisitionLevelEnum implements IEntityEnum, Serializable {
 
     TRIP(1, "TRIP"),
     OPERATION(3, "OPERATION"),
@@ -71,16 +75,8 @@ public enum AcquisitionLevelEnum {
             .orElseThrow(() -> new IllegalArgumentException("Unknown AcquisitionLevelEnum: " + label));
     }
 
-    public Integer getId() {
-        return id;
-    }
-
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getLabel() {
-        return label;
     }
 
     public void setLabel(String label) {

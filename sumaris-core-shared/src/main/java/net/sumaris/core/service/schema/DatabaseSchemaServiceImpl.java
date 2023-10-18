@@ -231,7 +231,8 @@ public class DatabaseSchemaServiceImpl implements DatabaseSchemaService {
 
                     // Emit update event
                     publisher.publishEvent(event);
-                } catch (InterruptedException e) {
+                } catch (InterruptedException | IllegalStateException e) {
+                    // Silent (closing thread or context)
                 }
 
             });

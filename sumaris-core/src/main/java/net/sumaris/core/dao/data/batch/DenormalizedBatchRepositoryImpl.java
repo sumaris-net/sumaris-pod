@@ -23,6 +23,7 @@
 package net.sumaris.core.dao.data.batch;
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
@@ -290,7 +291,7 @@ public class DenormalizedBatchRepositoryImpl
 
         // Delete remaining objects
         if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
-            existingIdsToRemove.forEach(this::deleteById);
+            deleteAllById(existingIdsToRemove);
         }
 
         return sources;
@@ -317,6 +318,17 @@ public class DenormalizedBatchRepositoryImpl
         }
 
         return sources;
+    }
+
+    @Override
+    public void deleteAllById(@NonNull Iterable<? extends Integer> ids) {
+
+        if (!ids.iterator().hasNext()) return;
+
+        // Use query, instead of default JPA implements
+        // => Avoid an error when the denormalized_batch to remove not exists
+        sortingValueRepository.deleteAllByBatchId(ids);
+        getRepository().deleteAllById(ids);
     }
 
     public DenormalizedBatch toEntity(DenormalizedBatchVO source) {

@@ -50,12 +50,14 @@ public class HSQLSpatialDialect extends HSQLDialect {
 
         // Register additional functions
         for (AdditionalSQLFunctions function: AdditionalSQLFunctions.values()) {
-            if (function == AdditionalSQLFunctions.nvl_end_date) {
-                // Register 'nvl' to use 'coalesce' function
-                registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
-            }
-            else {
-                registerFunction(function.name(), function.asRegisterFunction());
+            switch (function) {
+                case nvl_end_date -> {
+                    // Register 'nvl' to use 'coalesce' function
+                    registerFunction(function.name(), new SQLFunctionTemplate(StandardBasicTypes.DATE, "coalesce(?1, date'2100-01-01')"));
+                }
+                default -> {
+                    registerFunction(function.name(), function.asRegisterFunction());
+                }
             }
         }
     }
