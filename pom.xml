@@ -263,9 +263,9 @@
     <site.path>/var/www/doc.e-is.pro/sumaris</site.path>
     <site.repository>scpexe://${site.host}${site.path}</site.repository>
     <release.server>eis-nexus-deploy</release.server>
-    <release.repository>https://nexus.e-is.pro/nexus/content/repositories/sumaris-releases</release.repository>
+    <release.repository>https://nexus.e-is.pro/repositories/sumaris-releases</release.repository>
     <snapshot.server>eis-nexus-deploy</snapshot.server>
-    <snapshot.repository>https://nexus.e-is.pro/nexus/content/repositories/sumaris-snapshots</snapshot.repository>
+    <snapshot.repository>https://nexus.e-is.pro/repositories/sumaris-snapshots</snapshot.repository>
 
     <assembly.skip>false</assembly.skip>
 
@@ -1571,7 +1571,7 @@
   <repositories>
     <repository>
       <id>sumaris-public-group</id>
-      <url>https://nexus.e-is.pro/nexus/content/groups/sumaris</url>
+      <url>https://nexus.e-is.pro/groups/sumaris</url>
       <snapshots>
         <enabled>true</enabled>
         <checksumPolicy>fail</checksumPolicy>
@@ -1592,7 +1592,7 @@
   <pluginRepositories>
     <pluginRepository>
       <id>sumaris-public-group</id>
-      <url>https://nexus.e-is.pro/nexus/content/groups/sumaris</url>
+      <url>https://nexus.e-is.pro/groups/sumaris</url>
       <snapshots>
         <enabled>true</enabled>
         <checksumPolicy>fail</checksumPolicy>
