@@ -77,22 +77,16 @@ public interface DataSpecifications<ID extends Serializable,
             cb.and(
                 // Control date not null
                 cb.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE)),
-                // Not validated
-                cb.isNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE))
-            );
-    }
-
-    default Specification<E> isValidated() {
-        return (root, query, cb) ->
-            cb.and(
-                // Validation date not null
-                cb.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE)),
                 // Not qualified
                 cb.or(
                     cb.isNull(root.get(IWithDataQualityEntity.Fields.QUALIFICATION_DATE)),
                     cb.equal(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
                 )
             );
+    }
+
+    default Specification<E> isValidated() {
+        return null;
     }
 
     default Specification<E> isQualified() {
@@ -109,7 +103,7 @@ public interface DataSpecifications<ID extends Serializable,
             return switch (status) {
                 case MODIFIED -> isNotControlled();
                 case CONTROLLED -> isControlled();
-                case VALIDATED -> isValidated();
+                case VALIDATED -> null; // No validation date here (only in root entity)
                 case QUALIFIED -> isQualified();
             };
         }
