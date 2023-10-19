@@ -24,8 +24,13 @@ package net.sumaris.core.dao.data;
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.data.DataQualityStatusEnum;
+import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IRootDataEntity;
+import net.sumaris.core.model.data.IWithDataQualityEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -59,6 +64,18 @@ public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
         }).addBind(PROGRAM_LABEL_PARAM, programLabel);
     }
 
+    default Specification<E> withDataQualityStatus(DataQualityStatusEnum status) {
+        if (status != null) {
+            return switch (status) {
+                case MODIFIED -> isNotControlled();
+                case CONTROLLED -> isControlled();
+                case VALIDATED -> isValidated();
+                case QUALIFIED -> isQualified();
+            };
+        }
+        return null;
+    }
+
     default Specification<E> hasProgramIds(Integer[] programIds) {
         if (ArrayUtils.isEmpty(programIds)) return null;
         return BindableSpecification.<E>where((root, query, cb) -> {
@@ -67,4 +84,35 @@ public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
         }).addBind(PROGRAM_IDS_PARAM, Arrays.asList(programIds));
     }
 
+    /**
+     * Control date is not null
+     * @return
+     */
+    default Specification<E> isControlled() {
+        return (root, query, cb) ->
+            cb.and(
+                // Control date not null
+                cb.isNotNull(root.get(IRootDataEntity.Fields.CONTROL_DATE)),
+                // Not validated
+                cb.isNull(root.get(IRootDataEntity.Fields.VALIDATION_DATE)),
+                // Not qualified
+                cb.or(
+                    cb.isNull(root.get(IWithDataQualityEntity.Fields.QUALIFICATION_DATE)),
+                    cb.equal(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+                )
+            );
+    }
+
+    default Specification<E> isValidated() {
+        return (root, query, cb) ->
+            cb.and(
+                // Validation date not null
+                cb.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE)),
+                // Not qualified
+                cb.or(
+                    cb.isNull(root.get(IWithDataQualityEntity.Fields.QUALIFICATION_DATE)),
+                    cb.equal(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+                )
+            );
+    }
 }
