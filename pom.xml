@@ -1571,7 +1571,7 @@
   <repositories>
     <repository>
       <id>sumaris-public-group</id>
-      <url>https://nexus.e-is.pro/groups/sumaris</url>
+      <url>https://nexus.e-is.pro/repository/sumaris</url>
       <snapshots>
         <enabled>true</enabled>
         <checksumPolicy>fail</checksumPolicy>
@@ -1592,7 +1592,7 @@
   <pluginRepositories>
     <pluginRepository>
       <id>sumaris-public-group</id>
-      <url>https://nexus.e-is.pro/groups/sumaris</url>
+      <url>https://nexus.e-is.pro/repository/sumaris</url>
       <snapshots>
         <enabled>true</enabled>
         <checksumPolicy>fail</checksumPolicy>
