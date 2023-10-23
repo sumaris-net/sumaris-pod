@@ -653,17 +653,34 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param query         the query
      * @param cb       criteria builder
      * @param from          the root of the query
-     * @param sortAttribute the sort attribute (can be a nested attribute)
-     * @param sortDirection the direction
+     * @param page  a page
      * @param <T>           type of query
-     * @return the query itself
      */
     protected void addSorting(CriteriaQuery<?> query,
                               Root<E> from,
                               CriteriaBuilder cb,
+                              @Nullable net.sumaris.core.dao.technical.Page page) {
+        // Add sorting
+        if (page != null) {
+            query.orderBy(toOrders(query, from, cb, page.getSortBy(), page.getSortDirection()));
+        }
+    }
 
-                                              String sortAttribute,
-                                              SortDirection sortDirection) {
+    /**
+     * Add a orderBy on query
+     *
+     * @param query         the query
+     * @param cb       criteria builder
+     * @param from          the root of the query
+     * @param sortAttribute the sort attribute (can be a nested attribute)
+     * @param sortDirection the direction
+     * @param <T>           type of query
+     */
+    protected void addSorting(CriteriaQuery<?> query,
+                              Root<E> from,
+                              CriteriaBuilder cb,
+                              String sortAttribute,
+                              SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
             query.orderBy(toOrders(query, from, cb, sortAttribute, sortDirection));

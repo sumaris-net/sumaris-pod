@@ -125,17 +125,20 @@ public class PmfmStrategyRepositoryImpl
 
         // Pmfm
         if (pmfm != null) {
+            target.setPmfmId(pmfm.getId());
 
-            PmfmVO targetPmfm = pmfmRepository.get(pmfm.getId());
+            // Fetch pmfm
+            if (fetchOptions.isWithPmfms()) {
+                PmfmVO targetPmfm = pmfmRepository.get(pmfm.getId());
+                target.setPmfm(targetPmfm);
 
-            target.setPmfmId(targetPmfm.getId());
-            target.setPmfm(targetPmfm);
-
-            // Parameter, Matrix, Fraction, Method Ids
-            target.setParameterId(targetPmfm.getParameterId());
-            target.setMatrixId(targetPmfm.getMatrixId());
-            target.setFractionId(targetPmfm.getFractionId());
-            target.setMethodId(targetPmfm.getMethodId());
+            }
+        }
+        else {
+            if (source.getParameter() != null) target.setParameterId(source.getParameter().getId());
+            if (source.getMatrix() != null) target.setMatrixId(source.getMatrix().getId());
+            if (source.getFraction() != null) target.setFractionId(source.getFraction().getId());
+            if (source.getMethod() != null) target.setMethodId(source.getMethod().getId());
         }
 
         // Acquisition Level

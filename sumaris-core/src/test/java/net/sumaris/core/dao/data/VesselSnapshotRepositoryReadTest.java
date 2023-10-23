@@ -22,11 +22,16 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,19 +39,20 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author peck7 on 06/11/2019.
  */
 @Slf4j
-public class VesselSnapshotDaoImplReadTest extends AbstractDaoTest {
+public class VesselSnapshotRepositoryReadTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
     @Autowired
-    private VesselSnapshotDao dao;
+    private VesselSnapshotRepository repository;
 
     @Before
     public void setUp() throws Exception {
@@ -56,15 +62,25 @@ public class VesselSnapshotDaoImplReadTest extends AbstractDaoTest {
 
     @Test
     public void findByFilter() {
+        Date now = new Date();
+        VesselFilterVO filter = VesselFilterVO.builder()
+            .vesselTypeId(VesselTypeEnum.FISHING_VESSEL.getId())
+            .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+            .searchText("CN851")
+            .startDate(now)
+            .endDate(now)
+            .build();
+        VesselFetchOptions fetchOptions = VesselFetchOptions.builder()
+            .withBasePortLocation(true)
+            .build();
 
-        VesselFilterVO filter = VesselFilterVO.builder().build();
-
-        List<VesselSnapshotVO> result = dao.findByFilter(filter, 0, 10, VesselSnapshotVO.Fields.ID, SortDirection.ASC);
+        List<VesselSnapshotVO> result = repository.findAll(filter, 0, 10, VesselSnapshotVO.Fields.ID, SortDirection.ASC, fetchOptions);
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(4, result.size());
+        Assert.assertEquals(2, result.size());
         VesselSnapshotVO vessel1 = result.get(0);
-        Assert.assertEquals(1, vessel1.getId().intValue());
+        Assert.assertEquals(2, vessel1.getId().intValue()); // Vessel features ID
+        Assert.assertEquals(1, vessel1.getVesselId().intValue());
         Assert.assertEquals("CN851751", vessel1.getExteriorMarking());
         Assert.assertEquals("851751", vessel1.getRegistrationCode());
         Assert.assertEquals("FRA000851751", vessel1.getIntRegistrationCode());
@@ -73,7 +89,8 @@ public class VesselSnapshotDaoImplReadTest extends AbstractDaoTest {
         Assert.assertNotNull(vessel1.getRegistrationLocation());
         Assert.assertEquals(1, vessel1.getRegistrationLocation().getId().intValue());
         VesselSnapshotVO vessel2 = result.get(1);
-        Assert.assertEquals(2, vessel2.getId().intValue());
+        Assert.assertEquals(3, vessel2.getId().intValue());
+        Assert.assertEquals(2, vessel2.getVesselId().intValue());
         Assert.assertEquals("CN851769", vessel2.getExteriorMarking());
         Assert.assertNull(vessel2.getRegistrationCode());
         Assert.assertNotNull(vessel2.getBasePortLocation());
