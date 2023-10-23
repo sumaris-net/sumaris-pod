@@ -84,8 +84,12 @@ public interface VesselFeaturesSpecifications<
     boolean enableRegistrationCodeSearchAsPrefix();
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
+        return composeVrpJoin(root, cb, JoinType.LEFT);
+    }
+
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb, JoinType joinType) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
-        return composeVrpJoin(vessel, cb, null /*VRP should be filtered by filter's dates*/);
+        return composeVrpJoin(vessel, cb, null /*VRP should be filtered by filter's dates*/, joinType);
     }
 
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
@@ -149,11 +153,12 @@ public interface VesselFeaturesSpecifications<
         };
     }
 
-    default Specification<VesselFeatures> betweenRegistrationDate(Date startDate, Date endDate) {
+    default Specification<VesselFeatures> betweenRegistrationDate(Date startDate, Date endDate, final boolean onlyWithRegistration) {
         // Filtre has no dates: special case
         if (startDate == null && endDate == null) {
             return (root, query, cb) -> {
-                Join<?, VesselRegistrationPeriod> vrp = Daos.composeJoin(root, VRP_PATH);
+                ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb, onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
+
                 // NOT outside VesselFeatures.startDate
                 return cb.or(
                     cb.isNull(vrp), // Left outer
@@ -170,12 +175,13 @@ public interface VesselFeaturesSpecifications<
         // Filter on dates
         return (root, query, cb) -> {
 
-            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb, onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
 
+            Predicate vrpDatesPredicate;
             // Start + end date
             if (startDate != null && endDate != null) {
                 // NOT outside the start/end period
-                return cb.not(
+                vrpDatesPredicate = cb.not(
                     cb.or(
                         cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDate),
                         cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate)
@@ -186,14 +192,22 @@ public interface VesselFeaturesSpecifications<
             // Start date only
             else if (startDate != null) {
                 // VRP.end_date >= filter.startDate
-                return cb.greaterThanOrEqualTo(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDate);
+                vrpDatesPredicate = cb.greaterThanOrEqualTo(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDate);
             }
 
             // End date only
             else {
                 // VRP.start_date <=> filter.endDate
-                return cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate);
+                vrpDatesPredicate = cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate);
             }
+
+            if (onlyWithRegistration || vrp.getJoinType() == JoinType.INNER) return vrpDatesPredicate;
+
+            // Allow without VRP (left outer join)
+            return cb.or(
+                cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
+                vrpDatesPredicate
+            );
         };
     }
 

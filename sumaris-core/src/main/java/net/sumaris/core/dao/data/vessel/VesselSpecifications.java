@@ -134,12 +134,12 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
         };
     }
 
-    default Specification<Vessel> betweenRegistrationDate(Date startDate, Date endDate, final boolean onlyWithRegistration) {
+    default Specification<Vessel> betweenRegistrationDate(Date startDate, Date endDate, final Boolean onlyWithRegistration) {
         if (startDate == null && endDate == null) {
             return null;
         }
         return (root, query, cb) -> {
-            Join<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
+            Join<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, Boolean.TRUE.equals(onlyWithRegistration) ? JoinType.INNER : JoinType.LEFT);
 
             // Start + end date
             Predicate vrpDatesPredicate;

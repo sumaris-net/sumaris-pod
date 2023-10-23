@@ -51,6 +51,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
@@ -67,34 +68,28 @@ public class VesselSnapshotRepositoryImpl
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
-    private final SumarisConfiguration configuration;
 
     protected boolean enableRegistrationCodeSearchAsPrefix;
     protected boolean enableAdagioOptimization;
     protected String adagioSchema;
 
-    private boolean enableAdagioOptimization = false;
-    private String adagioSchema = null;
-
     @Autowired
     public VesselSnapshotRepositoryImpl(EntityManager entityManager,
                                         VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository,
                                         LocationRepository locationRepository,
-                                        ReferentialDao referentialDao,
-                                        SumarisConfiguration configuration) {
+                                        ReferentialDao referentialDao) {
         super(VesselFeatures.class, VesselSnapshotVO.class, entityManager);
         this.vesselRegistrationPeriodRepository = vesselRegistrationPeriodRepository;
         this.locationRepository = locationRepository;
         this.referentialDao = referentialDao;
-        this.configuration = configuration;
     }
 
     @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableRegistrationCodeSearchAsPrefix = configuration.enableVesselRegistrationCodeSearchAsPrefix();
-        this.adagioSchema = configuration.getAdagioSchema();
-        this.enableAdagioOptimization = configuration.enableAdagioOptimization() && StringUtils.isNotBlank(adagioSchema);
+        this.enableRegistrationCodeSearchAsPrefix = getConfig().enableVesselRegistrationCodeSearchAsPrefix();
+        this.adagioSchema = getConfig().getAdagioSchema();
+        this.enableAdagioOptimization = getConfig().enableAdagioOptimization() && StringUtils.isNotBlank(adagioSchema);
     }
 
     @Override
@@ -138,11 +133,7 @@ public class VesselSnapshotRepositoryImpl
         if (predicate != null) criteriaQuery.where(predicate);
 
         // Add sorting
-        if (page != null && StringUtils.isNotBlank(page.getSortBy())) {
-            // Fix sort property, from VO to entity
-            String sortBy = toEntityPropertyName(page.getSortBy());
-            addSorting(criteriaQuery, builder, root, sortBy, page.getSortDirection());
-        }
+        addSorting(criteriaQuery, root, cb, page);
 
         TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
 
@@ -156,7 +147,7 @@ public class VesselSnapshotRepositoryImpl
         }
 
         // Set hints
-        configureQuery(query, fetchOptions);
+        configureIndexHints(query, fetchOptions);
 
         try (Stream<Tuple> stream = streamQuery(query)) {
             return stream.map(tuple -> toVO(tuple, fetchOptions, true))
@@ -181,7 +172,7 @@ public class VesselSnapshotRepositoryImpl
             .and(statusIds(filter.getStatusIds()))
             // Dates
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
-            .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate()))
+            .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
             .and(newerThan(filter.getMinUpdateDate()))
             // Text
             .and(searchText(toEntityProperties(filter.getSearchAttributes()), filter.getSearchText()));
@@ -260,6 +251,8 @@ public class VesselSnapshotRepositoryImpl
                         VesselFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
+        fetchOptions = VesselFetchOptions.nullToDefault(fetchOptions);
+
         // Convert from cm to m
         if (source.getLengthOverAll() != null) {
             target.setLengthOverAll(source.getLengthOverAll().doubleValue() / 100);
@@ -273,7 +266,7 @@ public class VesselSnapshotRepositoryImpl
         }
 
         // Base port location
-        if (fetchOptions != null && fetchOptions.isWithBasePortLocation()) {
+        if (fetchOptions.isWithBasePortLocation()) {
             if (basePortLocation != null) {
                 LocationVO targetBasePortLocation = locationRepository.toVO(basePortLocation);
                 if (copyIfNull || targetBasePortLocation != null) {
@@ -286,7 +279,7 @@ public class VesselSnapshotRepositoryImpl
         }
 
         // Recorder department
-        if (fetchOptions != null && fetchOptions.isWithRecorderDepartment()) {
+        if (fetchOptions.isWithRecorderDepartment()) {
             DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);
             target.setRecorderDepartment(recorderDepartment);
         }
@@ -317,7 +310,7 @@ public class VesselSnapshotRepositoryImpl
         }
 
         // Registration period
-        if (fetchOptions != null && fetchOptions.isWithVesselRegistrationPeriod()) {
+        if (fetchOptions.isWithVesselRegistrationPeriod()) {
             if (registrationPeriod != null) {
                 // Registration code
                 target.setRegistrationCode(registrationPeriod.getRegistrationCode());
@@ -361,6 +354,7 @@ public class VesselSnapshotRepositoryImpl
 
         query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
 
+        // Configure hints
         this.configureIndexHints(query, fetchOptions);
     }
 

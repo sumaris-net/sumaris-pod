@@ -24,7 +24,6 @@ package net.sumaris.core.dao.data.sale;
 
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
-import net.sumaris.core.dao.data.VesselSnapshotDao;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.Sale;
@@ -64,9 +63,6 @@ public class SaleRepositoryImpl
     @Autowired
     private PersonRepository personRepository;
 
-    @Autowired
-    private VesselSnapshotDao vesselSnapshotDao;
-
     protected SaleRepositoryImpl(EntityManager entityManager) {
         super(Sale.class, SaleVO.class, entityManager);
     }
@@ -82,9 +78,14 @@ public class SaleRepositoryImpl
         ReferentialVO saleType = referentialDao.toVO(source.getSaleType());
         target.setSaleType(saleType);
 
-        if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) { // default is false
-            target.setVesselSnapshot(vesselSnapshotDao.getByIdAndDate(source.getVessel().getId(), source.getStartDateTime()));
-            target.setQualityFlagId(source.getQualityFlag().getId());
+        // Vessel
+        target.setVesselId(source.getVessel().getId());
+
+        // Quality flag
+        target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Fetch children (default is false)
+        if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
 
             // Recorder department
             DepartmentVO recorderDepartment = referentialDao.toTypedVO(source.getRecorderDepartment(), DepartmentVO.class).orElse(null);

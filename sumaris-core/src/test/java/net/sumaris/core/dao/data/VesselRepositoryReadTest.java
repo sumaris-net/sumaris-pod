@@ -22,11 +22,14 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.dao.data.vessel.VesselRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselVO;
@@ -37,19 +40,20 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.List;
 
 /**
  * @author peck7 on 06/11/2019.
  */
 @Slf4j
-public class VesselDaoImplReadTest extends AbstractDaoTest {
+public class VesselRepositoryReadTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
     @Autowired
-    private VesselDao dao;
+    private VesselRepository repository;
 
     @Before
     public void setUp() throws Exception {
@@ -60,13 +64,17 @@ public class VesselDaoImplReadTest extends AbstractDaoTest {
     @Test
     public void findByFilter() {
 
+        Date now = new Date();
         VesselFilterVO filter = VesselFilterVO.builder()
-            .searchText("CN851")
             .vesselTypeId(VesselTypeEnum.FISHING_VESSEL.getId())
+            .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+            .searchText("CN851")
+            .startDate(now)
+            .endDate(now)
             .build();
-        List<VesselVO> result = dao.findByFilter(filter, 0, 10,
+        List<VesselVO> result = repository.findAll(filter, 0, 10,
             StringUtils.doting(VesselVO.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING),
-            SortDirection.ASC);
+            SortDirection.ASC, null);
 
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());
@@ -89,8 +97,8 @@ public class VesselDaoImplReadTest extends AbstractDaoTest {
 
     @Test
     public void countByFilter() {
-
-        Long count = dao.countByFilter(null);
+        VesselFilterVO filter = VesselFilterVO.builder().build();
+        Long count = repository.count(filter);
 
         Assert.assertNotNull(count);
         Assert.assertEquals(4L, count.longValue());

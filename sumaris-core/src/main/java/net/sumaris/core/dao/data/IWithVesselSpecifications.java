@@ -46,11 +46,15 @@ public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, 
     }
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Join<T, Vessel> vessel, CriteriaBuilder cb, Expression<Date> dateExpression) {
-        ListJoin<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoinList(vessel, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
+        return composeVrpJoin(vessel, cb, dateExpression, JoinType.LEFT);
+    }
+
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Join<T, Vessel> vessel, CriteriaBuilder cb, Expression<Date> dateExpression, JoinType joinType) {
+        ListJoin<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoinList(vessel, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, joinType);
         if (vrp.getOn() == null && dateExpression != null) {
             Predicate vrpCondition = cb.not(
                 cb.or(
-                    cb.lessThan(Daos.nvlEndDate(vrp, cb, VesselRegistrationPeriod.Fields.END_DATE, getDatabaseType()), dateExpression),
+                    cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), dateExpression),
                     cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), dateExpression)
                 )
             );
@@ -65,7 +69,7 @@ public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, 
             vf.on(
                 cb.not(
                     cb.or(
-                        cb.lessThan(Daos.nvlEndDate(vf, cb, VesselFeatures.Fields.END_DATE, getDatabaseType()), dateExpression),
+                        cb.lessThan(Daos.nvlEndDate(vf.get(VesselFeatures.Fields.END_DATE), cb, getDatabaseType()), dateExpression),
                         cb.greaterThan(vf.get(VesselFeatures.Fields.START_DATE), dateExpression)
                     )
                 ));
