@@ -37,6 +37,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.pmfm.Fraction;
@@ -107,6 +108,7 @@ public class ProgramGraphQLService {
     private final EntityWatchService entityWatchService;
 
     private final DataAccessControlService dataAccessControlService;
+
 
     /* -- Program / Strategy-- */
 
@@ -259,6 +261,21 @@ public class ProgramGraphQLService {
             .collect(Collectors.toList());
     }
 
+    @GraphQLQuery(name = "gears", description = "Get strategy's gears")
+    public List<ReferentialVO> getStrategyGears(@GraphQLContext StrategyVO strategy) {
+        if (strategy.getGears() != null) return strategy.getGears();
+
+        if (CollectionUtils.isEmpty(strategy.getPmfms())) return null;
+
+        Integer[] gearIds = Beans.getStream(strategy.getPmfms())
+            .flatMap(ps -> Beans.getStream(ps.getGearIds()))
+            .collect(Collectors.toSet())
+            .toArray(Integer[]::new);
+        if (ArrayUtils.isEmpty(gearIds)) return null;
+
+        return referentialService.findByFilter(Gear.ENTITY_NAME, ReferentialFilterVO.builder().includedIds(gearIds).build(), 0, gearIds.length);
+    }
+
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
     public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy) {
         if (strategy.getPmfms() != null) return strategy.getPmfms();
@@ -326,8 +343,10 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "method", description = "Get strategy method")
     public ReferentialVO getPmfmStrategyMethod(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
         if (pmfmStrategy.getMethod() != null) return pmfmStrategy.getMethod();
-        if (pmfmStrategy.getMethodId() == null) return null;
-        return referentialService.get(Method.class, pmfmStrategy.getMethodId());
+        if (pmfmStrategy.getMethodId() != null) {
+            return referentialService.get(Method.class, pmfmStrategy.getMethodId());
+        }
+        return null;
     }
 
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
@@ -595,9 +614,10 @@ public class ProgramGraphQLService {
             // Retrieve how to fetch Pmfms
             .pmfmsFetchOptions(
                 PmfmStrategyFetchOptions.builder()
-                    .withPmfms(fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, ReferentialVO.Fields.ID)))
                     .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
                     .withGears(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.GEARS)))
+                    // Full pmfm load
+                    .withPmfms(fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, ReferentialVO.Fields.ID)))
                     .build()
             )
 
