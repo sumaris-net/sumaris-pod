@@ -614,6 +614,7 @@ public class ProgramGraphQLService {
             // Retrieve how to fetch Pmfms
             .pmfmsFetchOptions(
                 PmfmStrategyFetchOptions.builder()
+                    .withPmfms(fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, ReferentialVO.Fields.ID)))
                     .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
                     .withGears(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.GEARS)))
                     // Full pmfm load

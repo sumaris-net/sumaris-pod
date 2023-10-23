@@ -679,9 +679,8 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     protected void addSorting(CriteriaQuery<?> query,
                               Root<E> from,
                               CriteriaBuilder cb,
-
-                                              String sortAttribute,
-                                              SortDirection sortDirection) {
+                              String sortAttribute,
+                              SortDirection sortDirection) {
         // Add sorting
         if (StringUtils.isNotBlank(sortAttribute)) {
             query.orderBy(toOrders(query, from, cb, sortAttribute, sortDirection));
