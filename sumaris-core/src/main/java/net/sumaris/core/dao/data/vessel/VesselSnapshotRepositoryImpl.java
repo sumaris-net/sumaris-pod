@@ -98,12 +98,12 @@ public class VesselSnapshotRepositoryImpl
     }
 
     @Override
-    public List<VesselSnapshotVO> findAll(@Nullable VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, VesselFetchOptions fetchOptions) {
+    public List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, VesselFetchOptions fetchOptions) {
         return this.findAll(filter, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
     }
 
     @Override
-    public List<VesselSnapshotVO> findAll(@Nullable VesselFilterVO filter,
+    public List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
                                           @Nullable Page page,
                                           @Nullable VesselFetchOptions fetchOptions) {
 
@@ -184,7 +184,7 @@ public class VesselSnapshotRepositoryImpl
         // Fetch vessel registration period, at the startDate
         VesselRegistrationPeriod registrationPeriod = null;
         if ((fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod())) {
-            registrationPeriod = vesselRegistrationPeriodRepository.getByVesselIdAndDate(
+            registrationPeriod = vesselRegistrationPeriodRepository.findByVesselIdAndDate(
                 source.getVessel().getId(),
                 source.getStartDate()).orElse(null);
         }

@@ -280,8 +280,16 @@ public interface VesselFeaturesSpecifications<
         return specification;
     }
 
+    default Optional<V> findByVesselId(int vesselId) {
+        return findByVesselIdAndDate(vesselId, null, null);
+    }
+
     default Optional<V> findByVesselId(int vesselId, O fetchOptions) {
         return findByVesselIdAndDate(vesselId, null, fetchOptions);
+    }
+
+    default Optional<V> findByVesselIdAndDate(int vesselId, Date date) {
+        return findByVesselIdAndDate(vesselId, date, null);
     }
 
     default Optional<V> findByVesselIdAndDate(int vesselId, Date date, O fetchOptions) {

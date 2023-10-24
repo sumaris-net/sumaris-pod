@@ -40,7 +40,7 @@ import java.util.Date;
 import java.util.List;
 
 @Slf4j
-public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest{
+public class TaxonGroupRepositoryWriteTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

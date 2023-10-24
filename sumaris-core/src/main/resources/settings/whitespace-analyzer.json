@@ -3,7 +3,8 @@
     "analyzer": {
       "whitespace_analyzer": {
         "type": "custom",
-        "tokenizer": "whitespace"
+        "tokenizer": "whitespace",
+        "filter": ["lowercase"]
       }
     }
   }

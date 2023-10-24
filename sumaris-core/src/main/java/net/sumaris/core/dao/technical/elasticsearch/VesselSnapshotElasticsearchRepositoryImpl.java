@@ -20,18 +20,14 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.elasticsearch.vessel;
+package net.sumaris.core.dao.technical.elasticsearch;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.elasticsearch.ElasticsearchUtils;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -46,22 +42,12 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.action.search.ClearScrollRequest;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchScrollRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.core.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.PrefixQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.Scroll;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.*;
@@ -70,19 +56,14 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.Query;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Stream;
 
 @Slf4j
 public class VesselSnapshotElasticsearchRepositoryImpl
-    extends ElasticsearchRestClientAutoConfiguration
     implements VesselSnapshotElasticsearchSpecifications {
 
     protected final SumarisConfiguration configuration;
@@ -100,22 +81,30 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         this.configuration = configuration;
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
         this.indexOperations = operations.indexOps(VesselSnapshotVO.class);
-        this.enable = configuration.enableElasticsearch() && initIndex();
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        SumarisConfiguration config = event.getConfiguration();
-        enableRegistrationCodeSearchAsPrefix = config.enableVesselRegistrationCodeSearchAsPrefix();
+    public void onConfigurationReady() {
+        enableRegistrationCodeSearchAsPrefix = configuration.enableVesselRegistrationCodeSearchAsPrefix();
 
-        boolean enable = config.enableElasticsearch();
+        boolean enable = configuration.enableElasticsearch();
         if (this.enable != enable) {
             this.enable = enable && initIndex();
         }
     }
 
     @Override
+    public long count() {
+        if (!this.enable || !indexOperations.exists()) return 0L;
+
+        return count(VesselFilterVO.builder().build());
+    }
+
+    @Override
     public void recreate() {
+        checkEnable();
+
         if (indexOperations.exists()) {
             log.debug("Elasticsearch index {{}}: recreating mapping", indexOperations.getIndexCoordinates().getIndexName());
             indexOperations.delete();
@@ -173,20 +162,49 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         return ids;
     }
 
-
-    @Override
-    public List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, VesselFetchOptions fetchOptions) {
-        return findAll(filter, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
-    }
-
     @Override
     public List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
                                           @Nullable Page page, VesselFetchOptions fetchOptions) {
         checkEnable();
 
-        // Search on filter.getSearchAttributes()
-        BoolQueryBuilder query = QueryBuilders.boolQuery();
+        QueryBuilder queryBuilder = toSpecification(filter);
 
+        NativeSearchQueryBuilder searchQuery= new NativeSearchQueryBuilder()
+            .withQuery(queryBuilder);
+
+        if (page != null) {
+            searchQuery.withPageable(page.asPageable());
+        }
+
+        try (SearchHitsIterator<VesselSnapshotVO> streamIte = elasticsearchRestTemplate.searchForStream(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
+             Stream<SearchHit<VesselSnapshotVO>> stream = streamIte.stream()) {
+            return stream.map(SearchHit::getContent).toList();
+        }
+    }
+
+    @Override
+    public long count(@NonNull VesselFilterVO filter) {
+        checkEnable();
+
+        QueryBuilder queryBuilder = toSpecification(filter);
+
+        NativeSearchQueryBuilder searchQuery= new NativeSearchQueryBuilder()
+            .withQuery(queryBuilder);
+
+        return elasticsearchRestTemplate.count(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
+    }
+
+    @Override
+    public boolean enableRegistrationCodeSearchAsPrefix() {
+        return enableRegistrationCodeSearchAsPrefix;
+    }
+
+    protected void checkEnable() {
+        if (!this.enable) throw new SumarisTechnicalException("Elasticsearch client has been disabled");
+    }
+
+    protected QueryBuilder toSpecification(@NonNull VesselFilterVO filter) {
+        BoolQueryBuilder query = QueryBuilders.boolQuery();
 
         // Filter on vessel id
         if (filter.getVesselId() != null) {
@@ -207,7 +225,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         if (StringUtils.isNotBlank(filter.getProgramLabel())) {
             query.filter(QueryBuilders.nestedQuery(
                 VesselSnapshotVO.Fields.PROGRAM,
-                QueryBuilders.termQuery(StringUtils.doting(VesselSnapshotVO.Fields.PROGRAM, ProgramVO.Fields.LABEL), filter.getProgramLabel()),
+                QueryBuilders.termQuery(StringUtils.doting(VesselSnapshotVO.Fields.PROGRAM, ProgramVO.Fields.LABEL), filter.getProgramLabel().toLowerCase()),
                 ScoreMode.None));
         }
 
@@ -252,7 +270,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
 
         // Search searchText on each searchAttributes
         if (StringUtils.isNotBlank(filter.getSearchText())) {
-            String escapedSearchText = ElasticsearchUtils.getEscapedSearchText(filter.getSearchText());
+            String escapedSearchText = ElasticsearchUtils.getEscapedSearchText(filter.getSearchText(), true);
             String[] attributes = ArrayUtils.isNotEmpty(filter.getSearchAttributes()) ? filter.getSearchAttributes() : VesselSnapshotRepository.DEFAULT_SEARCH_ATTRIBUTES;
             boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
 
@@ -274,25 +292,6 @@ public class VesselSnapshotElasticsearchRepositoryImpl
             query.must(QueryBuilders.termsQuery(VesselSnapshotVO.Fields.VESSEL_STATUS_ID, filter.getStatusIds()));
         }
 
-        NativeSearchQueryBuilder searchQuery= new NativeSearchQueryBuilder()
-            .withQuery(query);
-
-        if (page != null) {
-            searchQuery.withPageable(page.asPageable());
-        }
-
-        try (SearchHitsIterator<VesselSnapshotVO> streamIte = elasticsearchRestTemplate.searchForStream(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
-             Stream<SearchHit<VesselSnapshotVO>> stream = streamIte.stream()) {
-            return stream.map(SearchHit::getContent).toList();
-        }
-    }
-
-    @Override
-    public boolean enableRegistrationCodeSearchAsPrefix() {
-        return enableRegistrationCodeSearchAsPrefix;
-    }
-
-    private void checkEnable() {
-        if (!this.enable) throw new SumarisTechnicalException("Elasticsearch client has been disabled");
+        return query;
     }
 }

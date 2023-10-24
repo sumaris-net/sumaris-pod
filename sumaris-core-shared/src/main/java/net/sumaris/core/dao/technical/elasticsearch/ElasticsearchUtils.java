@@ -30,6 +30,12 @@ public class ElasticsearchUtils {
         // Helper class
     }
 
+    public static String getEscapedSearchText(String searchText, boolean toLowercase) {
+        searchText = getEscapedSearchText(searchText);
+        if (searchText == null || !toLowercase) return searchText;
+        return searchText.toLowerCase();
+    }
+
     public static String getEscapedSearchText(String searchText) {
         searchText = StringUtils.trimToNull(searchText);
         if (searchText == null) return null;

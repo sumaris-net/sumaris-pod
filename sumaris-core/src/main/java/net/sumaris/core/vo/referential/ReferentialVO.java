@@ -50,7 +50,6 @@ public class ReferentialVO implements IReferentialVO<Integer>,
     private Integer statusId;
     private Integer validityStatusId;
 
-    //@EqualsAndHashCode.Exclude
     private Integer levelId;
     private ReferentialVO level;
     private Integer parentId;

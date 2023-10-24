@@ -22,21 +22,14 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.taxon.ReferenceTaxonRepository;
-import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.taxon.*;
-import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 @Slf4j
 public class ReferenceTaxonRepositoryReadTest extends AbstractDaoTest {

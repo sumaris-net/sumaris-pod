@@ -33,7 +33,7 @@ public enum VesselTypeEnum implements Serializable {
 
     UNKNOWN(0, "UNK"),
     FISHING_VESSEL(1, "FISHING_VESSEL"),
-    SCIENTIFIC_RESEARCH_VESSEL(8, "SCIENTIFIC") // Id adagio
+    SCIENTIFIC_RESEARCH_VESSEL(2, "SCIENTIFIC")
     ;
 
     public static VesselTypeEnum valueOf(final int id) {

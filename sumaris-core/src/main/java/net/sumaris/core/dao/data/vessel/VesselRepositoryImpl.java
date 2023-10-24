@@ -198,8 +198,8 @@ public class VesselRepositoryImpl
         }
 
         // Vessel registration period
-        if (fetchOptions == null || fetchOptions.isWithVesselFeatures()) {
-            VesselRegistrationPeriodVO period = vesselRegistrationPeriodRepository.getLastByVesselId(source.getId()).orElse(null);
+        if (fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod()) {
+            VesselRegistrationPeriodVO period = vesselRegistrationPeriodRepository.findLastByVesselId(source.getId()).orElse(null);
             if (copyIfNull || period != null) {
                 target.setVesselRegistrationPeriod(period);
             }

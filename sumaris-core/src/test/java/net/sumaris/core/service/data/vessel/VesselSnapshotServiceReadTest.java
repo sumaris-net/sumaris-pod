@@ -1,10 +1,8 @@
-package net.sumaris.core.dao.data.vessel;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,19 +20,33 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
-import lombok.NonNull;
-import net.sumaris.core.dao.data.DataRepository;
+package net.sumaris.core.service.data.vessel;
+
+import com.google.common.collect.ImmutableList;
+import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.VesselTypeEnum;
+import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.util.elasticsearch.ElasticsearchResource;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Date;
 import java.util.List;
 
-public interface VesselSnapshotRepository extends
-    DataRepository<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions>,
-    VesselSnapshotSpecifications {
+public class VesselSnapshotServiceReadTest extends VesselSnapshotServiceAbstractReadTest {
+
+    @ClassRule
+    public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
 }

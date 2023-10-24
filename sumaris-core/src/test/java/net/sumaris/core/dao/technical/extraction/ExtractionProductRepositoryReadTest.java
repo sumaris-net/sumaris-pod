@@ -22,14 +22,9 @@ package net.sumaris.core.dao.technical.extraction;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.technical.extraction.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 
 @Slf4j
-public class ExtractionProductRepositoryReadTest extends AbstractDaoTest{
+public class ExtractionProductRepositoryReadTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();

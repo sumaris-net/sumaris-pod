@@ -27,16 +27,13 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
-import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.util.elasticsearch.ElasticsearchResource;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,22 +41,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Date;
 import java.util.List;
 
-
-public class VesselSnapshotReadTest extends AbstractServiceTest{
-
-    @ClassRule
-    public static final DatabaseResource dbResource = DatabaseResource.readDb();
-
-    @ClassRule
-    public static final ElasticsearchResource nodeResource = new ElasticsearchResource();
+public abstract class VesselSnapshotServiceAbstractReadTest extends AbstractServiceTest {
 
     @Autowired
-    private VesselSnapshotService service;
+    protected VesselSnapshotService service;
 
-    @Before
-    public void setup() {
-        // Index vessels
-        service.indexVesselSnapshots(createFilterBuilder().build());
+    @Test
+    public void countByFilter() {
+        VesselFilterVO filter = VesselFilterVO.builder().build();
+        Long count = service.countByFilter(filter);
+
+        Assert.assertNotNull(count);
+        Assert.assertEquals(4L, count.longValue());
     }
 
     @Test
@@ -144,12 +137,12 @@ public class VesselSnapshotReadTest extends AbstractServiceTest{
         }
     }
 
-    /* -- internal functions -- */
+    /* -- protected functions -- */
 
-    private VesselFilterVO.VesselFilterVOBuilder createFilterBuilder(String... searchAttributes) {
+    protected VesselFilterVO.VesselFilterVOBuilder createFilterBuilder(String... searchAttributes) {
         Date now = new Date();
         return VesselFilterVO.builder()
-            .programLabel(ProgramEnum.SIH.getLabel())
+            .programLabel(ProgramEnum.SIH.getLabel().toLowerCase())
             .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
             .searchAttributes(searchAttributes)
             .startDate(now)
@@ -158,7 +151,7 @@ public class VesselSnapshotReadTest extends AbstractServiceTest{
             ;
     }
 
-    private Page createPage(String sortBy) {
+    protected Page createPage(String sortBy) {
         return Page.create(0, 100, sortBy, SortDirection.ASC);
     }
 }
