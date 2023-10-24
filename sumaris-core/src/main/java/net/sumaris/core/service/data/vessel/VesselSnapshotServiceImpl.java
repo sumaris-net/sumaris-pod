@@ -34,7 +34,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.elasticsearch.vessel.VesselSnapshotElasticsearchRepository;
+import net.sumaris.core.dao.technical.elasticsearch.VesselSnapshotElasticsearchRepository;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IEntity;
@@ -50,7 +50,6 @@ import net.sumaris.core.vo.data.vessel.UpdateVesselSnapshotsResultVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.nuiton.i18n.I18n;
@@ -134,7 +133,16 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 	}
 	@Override
 	public Long countByFilter(@NonNull VesselFilterVO filter) {
-		return repository.count(filter);
+		long startTime = TimeLog.getTime();
+		try {
+			if (isElasticsearchEnableAndReady()) {
+				return elasticsearchRepository.count(filter);
+			}
+			return repository.count(filter);
+		}
+		finally {
+			timeLog.log(startTime, "countByFilter");
+		}
 	}
 
 	@Override

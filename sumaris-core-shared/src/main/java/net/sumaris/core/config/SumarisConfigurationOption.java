@@ -702,6 +702,22 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         false
     ),
 
+    ELASTICSEARCH_USERNAME(
+        "spring.elasticsearch.username",
+        n("sumaris.config.option.spring.elasticsearch.username.description"),
+        null,
+        String.class,
+        false
+    ),
+
+    ELASTICSEARCH_PASSWORD(
+        "spring.elasticsearch.password",
+        n("sumaris.config.option.spring.elasticsearch.password.description"),
+        null,
+        String.class,
+        false
+    ),
+
     ELASTICSEARCH_ENABLED(
         "spring.elasticsearch.enabled",
         n("sumaris.config.option.spring.elasticsearch.enabled.description"),

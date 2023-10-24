@@ -24,8 +24,11 @@ package net.sumaris.core.util.elasticsearch;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.util.StringUtils;
 import org.junit.rules.ExternalResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.shaded.com.google.common.base.Preconditions;
 
@@ -42,8 +45,8 @@ public class ElasticsearchResource extends ExternalResource {
 	private ElasticsearchContainer container;
 
 	private final String version;
-	private String host;
-	private int port;
+
+	private String uris;
 
 	public ElasticsearchResource() {
 		this(ELASTICSEARCH_VERSION);
@@ -60,11 +63,10 @@ public class ElasticsearchResource extends ExternalResource {
 		log.debug("Starting Elasticsearch container {{}}...", this.version);
 		container = ElasticsearchTestUtils.createContainer(this.version);
 		container.start();
-		host = container.getHost();
-		port = container.getMappedPort(9200);
-
-		log.info("Elasticsearch container URI {{}}", getNodeUri());
-
+		String host = container.getHost();
+		Integer port = container.getMappedPort(9200);
+		this.uris = String.format("http://%s:%s", host, port);
+		log.info("Elasticsearch container URI {{}}", this.uris);
 
 		this.initConfiguration();
 	}
@@ -76,34 +78,21 @@ public class ElasticsearchResource extends ExternalResource {
 			try {
 				container.close();
 			} catch (Throwable t) {
-				log.error("Failed to stop Elasticsearch container {{}}", getNodeUri(), t);
+				log.error("Failed to stop Elasticsearch container {{}}", this.uris, t);
 			}
 		}
 	}
 
-	public String getNodeUri() {
-		Preconditions.checkNotNull(container, "Container not created");
-		return "http://" + host + ":" + port;
-	}
-
-	public String getHost() {
-		Preconditions.checkNotNull(container, "Container not created");
-		return host;
-	}
-
-	public int getPort() {
-		Preconditions.checkNotNull(container, "Container not created");
-		return this.port;
-	}
-
 	private void initConfiguration() {
-		Preconditions.checkNotNull(container, "Container not created");
+		Preconditions.checkArgument(StringUtils.isNotBlank(uris), "Container not created");
 
-		// Set node URI
-		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_URIS.getKey(), getNodeUri());
+		// Set elasticsearch node URI
+		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_URIS.getKey(), uris);
+
+		// Set elasticsearch password (v8+)
+		//System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_PASSWORD.getKey(), ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
 
 		// Enable elasticsearch features
 		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_ENABLED.getKey(), Boolean.TRUE.toString());
-
 	}
 }

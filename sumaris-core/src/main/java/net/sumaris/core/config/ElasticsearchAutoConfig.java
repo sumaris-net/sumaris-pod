@@ -1,6 +1,7 @@
 package net.sumaris.core.config;
 
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Beans;
@@ -59,11 +60,12 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
   @Bean
   @Override
   public ClientConfiguration clientConfiguration() {
-    String[] nodes = getNodes(properties);
+    ClientConfiguration.MaybeSecureClientConfigurationBuilder clientConfiguration;
 
     // Connect to configured endpoints
+    String[] nodes = getNodes(properties);
     if (ArrayUtils.isNotEmpty(nodes)) {
-      final ClientConfiguration.MaybeSecureClientConfigurationBuilder clientConfiguration =
+      clientConfiguration =
           ClientConfiguration
               .builder()
               .connectedTo(nodes);
@@ -72,14 +74,21 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
         clientConfiguration.withBasicAuth(properties.getUsername(), properties.getPassword());
       }
 
-      return clientConfiguration.build();
     }
 
     // Default configuration (use localhost)
-    return ClientConfiguration
-        .builder()
-        .connectedToLocalhost()
-        .build();
+    else {
+      clientConfiguration = ClientConfiguration
+          .builder()
+          .connectedToLocalhost();
+    }
+
+    // Timeout
+    clientConfiguration
+        .withConnectTimeout(properties.getConnectionTimeout())
+        .withSocketTimeout(properties.getSocketTimeout());
+
+    return clientConfiguration.build();
   }
 
   @Bean

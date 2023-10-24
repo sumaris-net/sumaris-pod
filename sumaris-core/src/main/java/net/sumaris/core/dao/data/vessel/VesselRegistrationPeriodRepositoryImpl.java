@@ -76,13 +76,12 @@ public class VesselRegistrationPeriodRepositoryImpl
         }
     }
 
-    @Override
-    public Optional<VesselRegistrationPeriodVO> getLastByVesselId(int vesselId) {
-        return getByVesselIdAndDate(vesselId, null).map(this::toVO);
+    public Optional<VesselRegistrationPeriodVO> findLastByVesselId(int vesselId) {
+        return findByVesselIdAndDate(vesselId, null).map(this::toVO);
     }
 
     @Override
-    public Optional<VesselRegistrationPeriod> getByVesselIdAndDate(int vesselId, Date date) {
+    public Optional<VesselRegistrationPeriod> findByVesselIdAndDate(int vesselId, Date date) {
 
         Specification<VesselRegistrationPeriod> specification = vesselId(vesselId).and(atDate(date));
         TypedQuery<VesselRegistrationPeriod> query = getQuery(specification, 0, 1, VesselRegistrationPeriod.Fields.START_DATE, SortDirection.DESC, VesselRegistrationPeriod.class);
@@ -91,7 +90,7 @@ public class VesselRegistrationPeriodRepositoryImpl
 
             // Nothing found: retry without a date, if not already the case
             if (result.isEmpty() && date != null) {
-                return getByVesselIdAndDate(vesselId, null);
+                return findByVesselIdAndDate(vesselId, null);
             }
 
             return result;

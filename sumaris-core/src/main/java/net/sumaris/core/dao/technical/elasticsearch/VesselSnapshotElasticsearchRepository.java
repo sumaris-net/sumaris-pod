@@ -20,15 +20,14 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.elasticsearch.vessel;
+package net.sumaris.core.dao.technical.elasticsearch;
 
 import net.sumaris.core.vo.data.VesselSnapshotVO;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.annotations.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
@@ -38,7 +37,8 @@ import java.util.Optional;
 
 @Repository
 public interface VesselSnapshotElasticsearchRepository
-    extends CrudRepository<VesselSnapshotVO, Integer>, VesselSnapshotElasticsearchSpecifications {
+    extends ElasticsearchRepository<VesselSnapshotVO, Integer>,
+    VesselSnapshotElasticsearchSpecifications {
 
     Pageable SORT_BY_START_DATE_DESC = PageRequest.of(0, 1, Sort.by(Sort.Order.desc("startDate")));
 
