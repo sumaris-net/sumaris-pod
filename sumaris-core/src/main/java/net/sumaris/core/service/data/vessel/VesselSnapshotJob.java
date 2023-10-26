@@ -45,6 +45,7 @@ import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.nuiton.i18n.I18n;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -70,7 +71,8 @@ public class VesselSnapshotJob {
 
 	private final JobService jobService;
 
-	private final ObjectMapper objectMapper;
+	@Value("${sumaris.elasticsearch.vessel.snapshot.scheduling.nbYears:-1}")
+	private Integer nbYears;
 
 	private boolean enable = false;
 
@@ -183,6 +185,12 @@ public class VesselSnapshotJob {
 				.map(VesselTypeEnum::getId)
 				.filter(id -> id != null && id >= 0)
 				.toArray(Integer[]::new));
+		}
+
+		// Add start date
+		if (this.nbYears != null && this.nbYears > 0) {
+			Date startDate = Dates.getFirstDayOfYear(Dates.getYear(new Date()) - this.nbYears);
+			filter.startDate(startDate);
 		}
 
 		return filter.build();

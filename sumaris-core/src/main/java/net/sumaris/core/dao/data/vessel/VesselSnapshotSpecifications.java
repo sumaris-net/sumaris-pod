@@ -35,7 +35,8 @@ import java.util.List;
 
 @NoRepositoryBean
 public interface VesselSnapshotSpecifications extends
-    VesselFeaturesSpecifications<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions> {
+    VesselFeaturesSpecifications<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions>,
+    IVesselSnapshotSpecifications {
 
 
     List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,

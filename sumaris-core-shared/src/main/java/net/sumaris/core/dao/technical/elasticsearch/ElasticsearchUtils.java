@@ -40,8 +40,9 @@ public class ElasticsearchUtils {
         searchText = StringUtils.trimToNull(searchText);
         if (searchText == null) return null;
         return searchText.replaceAll("[*]+", "*") // group many '*' chars
-            .replaceAll("^[*]", "") // Remove start wildcard (not need)
-            .replaceAll("[*]$", "") // Remove end wildcard (not need)
+            .replaceAll("[*]+", " *") // Split wildcard using space
+            .replaceAll("^[*\\s]+", "") // Remove start wildcard (not need)
+            .replaceAll("[*\\s]+$", "") // Remove end wildcard (not need)
             ;
     }
 }

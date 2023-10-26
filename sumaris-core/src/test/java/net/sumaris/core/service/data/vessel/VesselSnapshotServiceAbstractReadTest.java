@@ -142,7 +142,7 @@ public abstract class VesselSnapshotServiceAbstractReadTest extends AbstractServ
     protected VesselFilterVO.VesselFilterVOBuilder createFilterBuilder(String... searchAttributes) {
         Date now = new Date();
         return VesselFilterVO.builder()
-            .programLabel(ProgramEnum.SIH.getLabel().toLowerCase())
+            .programLabel(ProgramEnum.SIH.getLabel())
             .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
             .searchAttributes(searchAttributes)
             .startDate(now)
@@ -153,5 +153,12 @@ public abstract class VesselSnapshotServiceAbstractReadTest extends AbstractServ
 
     protected Page createPage(String sortBy) {
         return Page.create(0, 100, sortBy, SortDirection.ASC);
+    }
+
+
+    protected void assertVesselId(int vesselId, VesselSnapshotVO vesselSnapshot) {
+        Assert.assertNotNull(vesselSnapshot);
+        Assert.assertNotNull(vesselSnapshot.getId());
+        Assert.assertEquals(vesselId, vesselSnapshot.getId().intValue());
     }
 }

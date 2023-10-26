@@ -28,10 +28,10 @@ import net.sumaris.core.dao.data.DataSpecifications;
 import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
@@ -62,8 +62,13 @@ public interface VesselFeaturesSpecifications<
     IWithVesselSpecifications<VesselFeatures> {
 
     String VESSEL_ID_PARAM = "vesselId";
+    String INCLUDED_VESSEL_IDS_PARAM = "includedVesselIds";
+
+    String EXCLUDED_VESSEL_IDS_PARAM = "excludedVesselIds";
     String VESSEL_TYPE_IDS_PARAM = "vesselTypeIds";
     String STATUS_IDS_PARAM = "statusIds";
+    String PROGRAM_LABEL_PARAM = "programLabel";
+    String PROGRAM_IDS_PARAM = "programIds";
     String REGISTRATION_LOCATION_ID_PARAM = "registrationLocationId";
     String BASE_PORT_LOCATION_ID = "basePortLocationId";
     String SEARCH_TEXT_PREFIX_PARAM = "searchTextPrefix";
@@ -94,11 +99,25 @@ public interface VesselFeaturesSpecifications<
 
     default Specification<VesselFeatures> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
+        return includedVesselIds(vesselId);
+    }
+
+    default Specification<VesselFeatures> includedVesselIds(Integer... vesselIds) {
+        if (ArrayUtils.isEmpty(vesselIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
-            return cb.equal(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID), param);
-        })
-        .addBind(VESSEL_ID_PARAM, vesselId);
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_VESSEL_IDS_PARAM);
+                return cb.in(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID)).value(param);
+            })
+            .addBind(INCLUDED_VESSEL_IDS_PARAM, ImmutableList.copyOf(vesselIds));
+    }
+
+    default Specification<VesselFeatures> excludedVesselIds(Integer... vesselIds) {
+        if (ArrayUtils.isEmpty(vesselIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_VESSEL_IDS_PARAM);
+                return cb.not(cb.in(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID)).value(param));
+            })
+            .addBind(EXCLUDED_VESSEL_IDS_PARAM, vesselIds);
     }
 
     default Specification<VesselFeatures> vesselTypeId(Integer vesselTypeId) {
@@ -125,6 +144,28 @@ public interface VesselFeaturesSpecifications<
                     .value(param);
             })
             .addBind(STATUS_IDS_PARAM, statusIds);
+    }
+
+    default Specification<VesselFeatures> programLabel(String programLabel) {
+        if (StringUtils.isBlank(programLabel)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<String> param = cb.parameter(String.class, PROGRAM_LABEL_PARAM);
+                return cb.equal(Daos.composePath(root,
+                        StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.PROGRAM, Program.Fields.LABEL)),
+                        param);
+            })
+            .addBind(PROGRAM_LABEL_PARAM, programLabel);
+    }
+
+    default Specification<VesselFeatures> programIds(Integer[] programIds) {
+        if (ArrayUtils.isEmpty(programIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, PROGRAM_IDS_PARAM);
+                return cb.in(Daos.composePath(root,
+                        StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.PROGRAM, Program.Fields.ID)))
+                    .value(param);
+            })
+            .addBind(PROGRAM_IDS_PARAM, ImmutableList.copyOf(programIds));
     }
 
     default Specification<VesselFeatures> betweenFeaturesDate(Date startDate, Date endDate) {

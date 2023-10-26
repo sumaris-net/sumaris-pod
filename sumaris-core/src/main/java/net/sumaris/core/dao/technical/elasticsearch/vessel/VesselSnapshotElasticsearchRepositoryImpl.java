@@ -20,34 +20,25 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.elasticsearch;
+package net.sumaris.core.dao.technical.elasticsearch.vessel;
 
 import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.dao.technical.elasticsearch.ElasticsearchSpecification;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.*;
@@ -59,7 +50,9 @@ import org.springframework.data.elasticsearch.core.query.Query;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -96,9 +89,10 @@ public class VesselSnapshotElasticsearchRepositoryImpl
 
     @Override
     public long count() {
-        if (!this.enable || !indexOperations.exists()) return 0L;
-
-        return count(VesselFilterVO.builder().build());
+        if (!this.enable || !indexOperations.exists()) return -1L;
+        NativeSearchQueryBuilder query= new NativeSearchQueryBuilder()
+            .withQuery(QueryBuilders.matchAllQuery());
+        return elasticsearchRestTemplate.count(query.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
     }
 
     @Override
@@ -109,6 +103,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
             log.debug("Elasticsearch index {{}}: recreating mapping", indexOperations.getIndexCoordinates().getIndexName());
             indexOperations.delete();
         }
+
         indexOperations.createWithMapping();
     }
 
@@ -119,7 +114,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
                 log.debug("Elasticsearch index {{}}: creating mapping", indexOperations.getIndexCoordinates().getIndexName());
                 indexOperations.createWithMapping();
             } else {
-                log.debug("Elasticsearch index {{}}c: refreshing mapping", indexOperations.getIndexCoordinates().getIndexName());
+                log.debug("Elasticsearch index {{}}: refreshing mapping", indexOperations.getIndexCoordinates().getIndexName());
                 indexOperations.refresh();
             }
             return true;
@@ -167,10 +162,9 @@ public class VesselSnapshotElasticsearchRepositoryImpl
                                           @Nullable Page page, VesselFetchOptions fetchOptions) {
         checkEnable();
 
-        QueryBuilder queryBuilder = toSpecification(filter);
-
-        NativeSearchQueryBuilder searchQuery= new NativeSearchQueryBuilder()
-            .withQuery(queryBuilder);
+        QueryBuilder query = createQuery(toSpecification(filter));
+        NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(query);
 
         if (page != null) {
             searchQuery.withPageable(page.asPageable());
@@ -186,10 +180,9 @@ public class VesselSnapshotElasticsearchRepositoryImpl
     public long count(@NonNull VesselFilterVO filter) {
         checkEnable();
 
-        QueryBuilder queryBuilder = toSpecification(filter);
-
-        NativeSearchQueryBuilder searchQuery= new NativeSearchQueryBuilder()
-            .withQuery(queryBuilder);
+        QueryBuilder query = createQuery(ElasticsearchSpecification.constantScore(toSpecification(filter)));
+        NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(query);
 
         return elasticsearchRestTemplate.count(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
     }
@@ -203,95 +196,35 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         if (!this.enable) throw new SumarisTechnicalException("Elasticsearch client has been disabled");
     }
 
-    protected QueryBuilder toSpecification(@NonNull VesselFilterVO filter) {
-        BoolQueryBuilder query = QueryBuilders.boolQuery();
+    protected QueryBuilder createQuery(@org.springframework.lang.Nullable ElasticsearchSpecification<QueryBuilder> specification) {
+        QueryBuilder query = specification != null ? specification.toPredicate() : null;
+        return query != null ? query : QueryBuilders.matchAllQuery();
+    }
 
-        // Filter on vessel id
-        if (filter.getVesselId() != null) {
-            query.filter(QueryBuilders.termQuery(VesselSnapshotVO.Fields.VESSEL_ID, filter.getVesselId()));
-        }
+    protected ElasticsearchSpecification<QueryBuilder> toSpecification(@NonNull VesselFilterVO filter) {
 
-        // Filter on included ids
-        if (ArrayUtils.isNotEmpty(filter.getIncludedIds())) {
-            query.filter(QueryBuilders.termsQuery(VesselSnapshotVO.Fields.VESSEL_ID, (Object[])filter.getIncludedIds()));
-        }
-
-        // Filter on excluded ids
-        if (ArrayUtils.isNotEmpty(filter.getExcludedIds())) {
-            query.mustNot(QueryBuilders.termsQuery(VesselSnapshotVO.Fields.VESSEL_ID, (Object[])filter.getExcludedIds()));
-        }
-
-        // Filter on VesselSnapshotVO.program.label
-        if (StringUtils.isNotBlank(filter.getProgramLabel())) {
-            query.filter(QueryBuilders.nestedQuery(
-                VesselSnapshotVO.Fields.PROGRAM,
-                QueryBuilders.termQuery(StringUtils.doting(VesselSnapshotVO.Fields.PROGRAM, ProgramVO.Fields.LABEL), filter.getProgramLabel().toLowerCase()),
-                ScoreMode.None));
-        }
-
-        // Filter on VesselSnapshotVO.program.id
-        if (ArrayUtils.isNotEmpty(filter.getProgramIds())) {
-            query.filter(QueryBuilders.nestedQuery(
-                VesselSnapshotVO.Fields.PROGRAM,
-                QueryBuilders.termsQuery(StringUtils.doting(VesselSnapshotVO.Fields.PROGRAM, ProgramVO.Fields.ID), (Object[])filter.getProgramIds()),
-                ScoreMode.None));
-        }
-
-        // Filter on vessel type id
-        if (filter.getVesselTypeId() != null) {
-            query.filter(QueryBuilders.nestedQuery(
-                VesselSnapshotVO.Fields.VESSEL_TYPE,
-                QueryBuilders.termQuery(StringUtils.doting(VesselSnapshotVO.Fields.VESSEL_TYPE, ReferentialVO.Fields.ID), filter.getVesselTypeId()),
-                ScoreMode.None));
-        }
-        else if (ArrayUtils.isNotEmpty(filter.getVesselTypeIds())) {
-            query.filter(QueryBuilders.nestedQuery(
-                VesselSnapshotVO.Fields.VESSEL_TYPE,
-                QueryBuilders.termsQuery(StringUtils.doting(VesselSnapshotVO.Fields.VESSEL_TYPE, ReferentialVO.Fields.ID), (Object[])filter.getVesselTypeIds()),
-                ScoreMode.None));
-        }
-
-        // Filter on dates
-        if (filter.getStartDate() != null && filter.getEndDate() != null) {
-            query.mustNot(
-                QueryBuilders.boolQuery()
-                    .should(QueryBuilders.rangeQuery("endDate").lt(filter.getStartDate().getTime()))
-                    .should(QueryBuilders.rangeQuery("startDate").gt(filter.getEndDate().getTime()))
-            );
-        }
-        // Start date only
-        else if (filter.getStartDate() != null) {
-            query.filter(QueryBuilders.rangeQuery("endDate").gte(filter.getStartDate().getTime()));
-        }
-        // End date only
-        else if (filter.getEndDate() != null) {
-            query.filter(QueryBuilders.rangeQuery("startDate").lte(filter.getEndDate().getTime()));
-        }
-
-        // Search searchText on each searchAttributes
-        if (StringUtils.isNotBlank(filter.getSearchText())) {
-            String escapedSearchText = ElasticsearchUtils.getEscapedSearchText(filter.getSearchText(), true);
-            String[] attributes = ArrayUtils.isNotEmpty(filter.getSearchAttributes()) ? filter.getSearchAttributes() : VesselSnapshotRepository.DEFAULT_SEARCH_ATTRIBUTES;
-            boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
-
-            BoolQueryBuilder searchQuery = QueryBuilders.boolQuery().minimumShouldMatch(1);
-            for (String attr : attributes) {
-                boolean usePrefixMatch = enableRegistrationCodeSearchAsPrefix && !attr.endsWith(VesselFeatures.Fields.NAME);
-                if (usePrefixMatch) {
-                    searchQuery.should(QueryBuilders.prefixQuery(attr, escapedSearchText));
-                }
-                else {
-                    searchQuery.should(QueryBuilders.wildcardQuery(attr, "*" + escapedSearchText + "*"));
-                }
-            }
-            query.filter(searchQuery);
-        }
-
-        // Filter on the property statusId
-        if (CollectionUtils.isNotEmpty(filter.getStatusIds())) {
-            query.must(QueryBuilders.termsQuery(VesselSnapshotVO.Fields.VESSEL_STATUS_ID, filter.getStatusIds()));
-        }
-
-        return query;
+        return ElasticsearchSpecification.bool()
+            // IDs
+            .filter(id(filter.getVesselFeaturesId()))
+            .filter(vesselId(filter.getVesselId()))
+            .filter(includedVesselIds(filter.getIncludedIds()))
+            .filter(excludedVesselIds(filter.getExcludedIds()))
+            // Type
+            .filter(vesselTypeId(filter.getVesselTypeId()))
+            .filter(vesselTypeIds(filter.getVesselTypeIds()))
+            // by locations
+            .filter(registrationLocation(filter.getRegistrationLocationId()))
+            .filter(basePortLocation(filter.getBasePortLocationId()))
+            // by Status
+            .filter(hasStatusIds(filter.getStatusIds()))
+            // by program
+            .filter(programLabel(filter.getProgramLabel()))
+            .filter(programIds(filter.getProgramIds()))
+            // Dates
+            .filter(betweenDates(filter.getStartDate(), filter.getEndDate()))
+            .filter(newerThan(filter.getMinUpdateDate()))
+            // Text
+            .must(searchText(filter.getSearchAttributes(), filter.getSearchText()))
+            ;
     }
 }

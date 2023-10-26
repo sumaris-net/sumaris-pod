@@ -1,9 +1,21 @@
 {
   "analysis": {
+    "tokenizer": {
+      "code_tokenizer": {
+        "type": "pattern",
+        "pattern": "(\\s+)",
+        "group": "-1"
+      }
+    },
     "analyzer": {
       "whitespace_analyzer": {
         "type": "custom",
         "tokenizer": "whitespace",
+        "filter": ["lowercase"]
+      },
+      "code_analyzer": {
+        "type": "custom",
+        "tokenizer": "code_tokenizer",
         "filter": ["lowercase"]
       }
     }
