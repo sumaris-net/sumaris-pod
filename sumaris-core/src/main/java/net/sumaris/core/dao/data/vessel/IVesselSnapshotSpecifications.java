@@ -1,8 +1,10 @@
-/*
+package net.sumaris.core.dao.data.vessel;
+
+/*-
  * #%L
- * SUMARiS
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -20,44 +22,29 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.elasticsearch;
-
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.NoRepositoryBean;
 
-import javax.annotation.Nullable;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
+@NoRepositoryBean
+public interface IVesselSnapshotSpecifications {
 
-public interface VesselSnapshotElasticsearchSpecifications  {
-
-    default List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, VesselFetchOptions fetchOptions) {
-        return findAll(filter, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
-    }
 
     List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
-                                   @Nullable Page page,
-                                   @Nullable VesselFetchOptions fetchOptions);
+                                   Page page,
+                                   VesselFetchOptions fetchOptions);
 
-    long count();
+    List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
+                                   int offset, int size,
+                                   String sortAttribute, SortDirection sortDirection,
+                                   VesselFetchOptions fetchOptions);
 
     long count(@NonNull VesselFilterVO filter);
-
-    void recreate();
-
-    Optional<Date> findMaxUpdateDate();
-
-    List<Integer> findAllIds();
-
-    boolean enableRegistrationCodeSearchAsPrefix();
-
 }

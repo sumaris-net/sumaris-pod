@@ -34,7 +34,7 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.elasticsearch.VesselSnapshotElasticsearchRepository;
+import net.sumaris.core.dao.technical.elasticsearch.vessel.VesselSnapshotElasticsearchRepository;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IEntity;
@@ -42,7 +42,6 @@ import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
@@ -70,7 +69,6 @@ import static org.nuiton.i18n.I18n.t;
 @Slf4j
 public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
-	private static Date DEFAULT_END_DATE = Dates.safeParseDate("2100-01-01 00:00:00", Dates.CSV_DATE_TIME);
 
 	protected final SumarisConfiguration configuration;
 
@@ -245,11 +243,18 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		Preconditions.checkNotNull(this.elasticsearchRepository, "Elasticsearch vessel snapshot has been disabled");
 		Preconditions.checkArgument(!indexing, "Vessels indexation already running. Please retry later");
 
-		// full resync: mark elasticsearch as not ready
+		// Force full resync if no data
+		boolean forceRecreate = filter.getMinUpdateDate() != null && elasticsearchRepository.count() == 0L;
+		if (forceRecreate) {
+			filter.setMinUpdateDate(null);
+		}
+
+		// If full resync, then mark elasticsearch as not ready
 		if (filter.getMinUpdateDate() == null) {
 			elasticsearchIndexationReady = false;
 		}
 
+		long startTime = TimeLog.getTime();
 		final Optional<ProgramVO> filteredProgram = Optional.ofNullable(filter.getProgramLabel())
 			.map(label -> programRepository.getByLabel(label, ProgramFetchOptions.MINIMAL));
 
@@ -259,10 +264,11 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 			progression.setCurrent(0L);
 			result.setErrors(0);
 			result.setVessels(0);
-			result.setMinUpdateDate(filter.getMinUpdateDate());
+			result.setFilterStartDate(filter.getStartDate());
+			result.setFilterMinUpdateDate(filter.getMinUpdateDate());
 
-			// Drop index
-			if (filter.getMinUpdateDate() == null && elasticsearchRepository.count() > 0) {
+			// Drop existing index
+			if (forceRecreate) {
 				elasticsearchRepository.recreate();
 			}
 
@@ -308,7 +314,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 						items.forEach(vessel -> {
 							vesselIds.add(vessel.getVesselId());
 							if (vessel.getEndDate() == null) {
-								vessel.setEndDate(DEFAULT_END_DATE);
+								vessel.setEndDate(VesselSnapshotElasticsearchRepository.DEFAULT_END_DATE);
 							}
 
 							// Apply default program
@@ -355,15 +361,13 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 			// Delete old documents
 			if (CollectionUtils.isNotEmpty(existingIds)) {
-//				long deleteStartTime = TimeLog.getTime();
-//				log.debug("Elasticsearch index {{}} - Removing {} documents...", VesselSnapshotVO.INDEX, existingIds.size());
-//				elasticsearchRepository.deleteAllById(existingIds);
-//				this.timeLog.log(deleteStartTime, "deleteAllById");
+				log.debug("Elasticsearch index {{}} - Removing {} documents...", VesselSnapshotVO.INDEX, existingIds.size());
+				elasticsearchRepository.deleteAllById(existingIds);
 			}
 
 			result.setInserts(inserts.getValue());
 			result.setUpdates(updates.getValue());
-			//result.setDeletes(CollectionUtils.size(existingIds));
+			result.setDeletes(CollectionUtils.size(existingIds));
 			result.setVessels(vesselIds.size());
 			result.setErrors(errors.size());
 
@@ -376,6 +380,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 			progression.setCurrent(total + 1);
 			progression.setMessage(I18n.t("sumaris.elasticsearch.vessel.snapshot.success", count));
 			elasticsearchIndexationReady = true;
+			this.timeLog.log(startTime, "indexVesselSnapshots");
 
 		} finally {
 			indexing = false;
@@ -384,6 +389,6 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 
 	private boolean isElasticsearchEnableAndReady() {
-		return this.elasticsearchRepository != null && elasticsearchIndexationReady;
+		return this.elasticsearchRepository != null && this.elasticsearchIndexationReady;
 	}
 }

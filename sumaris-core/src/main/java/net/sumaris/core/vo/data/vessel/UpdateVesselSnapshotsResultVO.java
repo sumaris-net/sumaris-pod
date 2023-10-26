@@ -42,7 +42,9 @@ public class UpdateVesselSnapshotsResultVO implements IJobResultVO {
 
     private String message;
 
-    private Date minUpdateDate;
+    private Date filterStartDate;
+
+    private Date filterMinUpdateDate;
 
     private JobStatusEnum status;
 

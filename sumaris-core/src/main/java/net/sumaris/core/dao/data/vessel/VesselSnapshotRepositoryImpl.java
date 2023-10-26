@@ -162,6 +162,8 @@ public class VesselSnapshotRepositoryImpl
             // IDs
             .and(id(filter.getVesselFeaturesId(), Integer.class))
             .and(vesselId(filter.getVesselId()))
+            .and(includedVesselIds(filter.getIncludedIds()))
+            .and(excludedVesselIds(filter.getExcludedIds()))
             // Type
             .and(vesselTypeId(filter.getVesselTypeId()))
             .and(vesselTypeIds(filter.getVesselTypeIds()))
@@ -170,6 +172,9 @@ public class VesselSnapshotRepositoryImpl
             .and(basePortLocation(filter.getBasePortLocationId()))
             // by Status
             .and(statusIds(filter.getStatusIds()))
+            // by program
+            .and(programLabel(filter.getProgramLabel()))
+            .and(programIds(filter.getProgramIds()))
             // Dates
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))

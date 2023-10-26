@@ -1729,9 +1729,10 @@ public class Daos {
         searchText = StringUtils.trimToNull(searchText);
         if (searchText == null) return null;
         return ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
-            .replaceAll("[*]+", "*") // group many '*' chars
             .replaceAll("[%]", "\\%") // escape '%' char
             .replaceAll("[_]", "\\_") // escape '_' char
+            .replaceAll("[?]+", "_") // replace '?' mark
+            .replaceAll("[*]+", "*") // group many '*' chars
             .replaceAll("[*]", "%"); // replace asterisk mark
     }
 

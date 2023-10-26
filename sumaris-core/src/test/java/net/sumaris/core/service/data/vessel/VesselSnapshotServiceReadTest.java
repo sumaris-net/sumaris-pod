@@ -49,4 +49,5 @@ public class VesselSnapshotServiceReadTest extends VesselSnapshotServiceAbstract
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
+
 }

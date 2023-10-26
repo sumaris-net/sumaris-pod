@@ -41,10 +41,13 @@ public class ProgramVO implements IReferentialVO<Integer>{
 
     @EqualsAndHashCode.Include
     private Integer id;
-    //@Field(type = FieldType.Text, fielddata = true, analyzer = "whitespace_analyzer")
+
+    @Field(type = FieldType.Text, fielddata = true, analyzer = "whitespace_analyzer")
     private String label;
-    //@Field(type = FieldType.Text, fielddata = true, analyzer = "whitespace_analyzer")
+
+    @Field(type = FieldType.Text, fielddata = true)
     private String name;
+
     private String description;
     private String comments;
     private Date updateDate;

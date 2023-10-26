@@ -29,6 +29,9 @@ import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.util.StringUtils;
 import org.junit.rules.ExternalResource;
 import org.springframework.beans.factory.annotation.Value;
+import org.testcontainers.containers.output.OutputFrame;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.shaded.com.google.common.base.Preconditions;
 
@@ -69,6 +72,12 @@ public class ElasticsearchResource extends ExternalResource {
 		log.info("Elasticsearch container URI {{}}", this.uris);
 
 		this.initConfiguration();
+
+		Slf4jLogConsumer logConsumer = new Slf4jLogConsumer(log);
+		container.followOutput(logConsumer, OutputFrame.OutputType.STDERR);
+
+		Wait.forHttp("/")
+			.forStatusCode(200);
 	}
 
 	@Override
@@ -85,6 +94,9 @@ public class ElasticsearchResource extends ExternalResource {
 
 	private void initConfiguration() {
 		Preconditions.checkArgument(StringUtils.isNotBlank(uris), "Container not created");
+
+		// Set elasticsearch node URI
+		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_ENABLED.getKey(), Boolean.TRUE.toString());
 
 		// Set elasticsearch node URI
 		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_URIS.getKey(), uris);

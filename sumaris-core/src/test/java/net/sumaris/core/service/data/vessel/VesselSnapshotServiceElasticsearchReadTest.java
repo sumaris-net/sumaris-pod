@@ -54,9 +54,6 @@ public class VesselSnapshotServiceElasticsearchReadTest extends VesselSnapshotSe
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
 
-    @Value("${spring.elasticsearch.enabled:false}")
-    private boolean enable;
-
     @Before
     public void setup() {
         // Index vessels

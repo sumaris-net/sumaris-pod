@@ -20,13 +20,16 @@
  * #L%
  */
 
-package net.sumaris.core.dao.technical.elasticsearch;
+package net.sumaris.core.dao.technical.elasticsearch.vessel;
 
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.annotations.Query;
+import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
@@ -36,11 +39,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+@ConditionalOnBean({ElasticsearchRestTemplate.class})
 public interface VesselSnapshotElasticsearchRepository
     extends ElasticsearchRepository<VesselSnapshotVO, Integer>,
     VesselSnapshotElasticsearchSpecifications {
 
+    Date DEFAULT_END_DATE = Dates.safeParseDate("2100-01-01 00:00:00", Dates.CSV_DATE_TIME);
+
+
     Pageable SORT_BY_START_DATE_DESC = PageRequest.of(0, 1, Sort.by(Sort.Order.desc("startDate")));
+
 
     @Query("{\"bool\": {\"filter\": [{\"term\": {\"vesselId\": ?0}}]}}")
     List<VesselSnapshotVO> findByVesselId(int vesselId, Pageable pageable);
