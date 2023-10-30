@@ -189,7 +189,7 @@ public class VesselSnapshotJob {
 
 		// Add start date
 		if (this.nbYears != null && this.nbYears > 0) {
-			Date startDate = Dates.getFirstDayOfYear(Dates.getYear(new Date()) - this.nbYears);
+			Date startDate = Dates.resetTime(Dates.getFirstDayOfYear(Dates.getYear(new Date()) - this.nbYears));
 			filter.startDate(startDate);
 		}
 
