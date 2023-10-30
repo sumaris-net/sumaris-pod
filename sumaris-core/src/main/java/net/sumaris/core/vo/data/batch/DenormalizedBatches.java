@@ -120,11 +120,17 @@ public class DenormalizedBatches {
                     double aliveFactor = source.getAliveWeightFactor() != null ? source.getAliveWeightFactor() : 1d;
                     boolean hasSpecies = source.getTaxonGroup() != null || source.getTaxonName() != null;
                     return joiner.join(
-                            treeIndent,
-                            hierarchicalLabel != null ? (hierarchicalLabel + " -") : null,
+                        // Tree indentation
+                        treeIndent,
+
+                        // Computed label
+                        hierarchicalLabel != null ? (hierarchicalLabel + " -") : null,
+
+                        // DEBUG -- batch id
+                        //source.getId(),
 
                         // Is exhaustive inventory ?
-                        getExhaustiveInventoryAsString(source, true),
+                        getExhaustiveInventoryAsString(source, useUnicode),
 
                         // Fish icon
                         useUnicode && hasSpecies ? UnicodeChars.FISH : null,
