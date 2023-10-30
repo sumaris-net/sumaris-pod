@@ -89,18 +89,13 @@ public class ConfigurationGraphQLService {
 
     @GraphQLQuery(name = "configuration", description = "Load pod configuration")
     public ConfigurationVO getConfiguration(
-        @GraphQLArgument(name = "id") Integer id, // /!\ Deprecated !
-        @GraphQLArgument(name = "label") String label, // /!\ Deprecated !
+        @GraphQLArgument(name = "inherited", defaultValue = "true") boolean withInherited,
         @GraphQLEnvironment Set<String> fields
     ) {
-        if (id != null || label != null) {
-            log.warn("Deprecated used of GraphQL 'configuration' query. Since version 1.8.0, arguments 'id' and 'label' have been deprecated, and will be ignored.");
-        }
-
         SoftwareVO software = configurationService.getCurrentSoftware();
 
         // Transform to configuration (fill images, etc.)
-        ConfigurationVO configuration = toConfiguration(software, fields);
+        ConfigurationVO configuration = toConfiguration(software, fields, withInherited);
 
         if (authService.isAdmin()) return configuration;
 
@@ -116,12 +111,14 @@ public class ConfigurationGraphQLService {
 
         SoftwareVO software = softwareService.save(configuration);
 
-        return toConfiguration(software, fields);
+        return toConfiguration(software, fields, false);
     }
 
     /* -- protected methods -- */
 
-    protected ConfigurationVO toConfiguration(SoftwareVO software, Set<String> fields) {
+    protected ConfigurationVO toConfiguration(SoftwareVO software,
+                                              Set<String> fields,
+                                              boolean withInherited) {
         if (software == null) return null;
         ConfigurationVO result = new ConfigurationVO(software);
 
@@ -137,7 +134,7 @@ public class ConfigurationGraphQLService {
 
         // Add properties
         if (fields.contains(ConfigurationVO.Fields.PROPERTIES)) {
-            this.fillProperties(result);
+            this.fillProperties(result, withInherited);
         }
 
         return result;
@@ -190,7 +187,7 @@ public class ConfigurationGraphQLService {
                         }
                     }
                     return null;
-                }).filter(Objects::nonNull).collect(Collectors.toList());
+                }).filter(Objects::nonNull).toList();
 
             departments = Stream.concat(departments.stream(), deserializeDepartments.stream())
                 .collect(Collectors.toList());
@@ -211,7 +208,7 @@ public class ConfigurationGraphQLService {
         }
     }
 
-    protected void fillProperties(ConfigurationVO result) {
+    protected void fillProperties(ConfigurationVO result, boolean withInherited) {
 
         Map<String, String> properties = result.getProperties();
 
@@ -263,8 +260,8 @@ public class ConfigurationGraphQLService {
                 (key) -> Boolean.toString(configuration.enableEntityTrash()));
         }
 
-        // Fill enumeration properties
-        if (configurationService.getEnumerationProperties() != null) {
+        // Fill enumeration properties, if inherited=true
+        if (configurationService.getEnumerationProperties() != null && withInherited) {
             configurationService.getEnumerationProperties().entrySet()
                 .stream().filter(entry -> entry.getValue() != null)
                 .forEach(entry -> properties.putIfAbsent(entry.getKey(), entry.getValue()));
