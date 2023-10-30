@@ -35,6 +35,7 @@
 
     <!-- DEBUG -->
     <!--    <select alias="SPECIE_ID" type="number">SPECIE_B.ID</select>-->
+<!--        <select alias="SAMPLING_B_ID" type="number">SAMPLING_B.ID</select>-->
     <!--    <select alias="SAMPLING_RATIO" type="text">SPECIE_B.SAMPLING_RATIO</select>-->
 
     <!-- PK (new fields) -->
@@ -94,11 +95,12 @@
     <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
 
     <!-- Permet la répartition par taxons/length code, sous l'espèce commerciale - calculé à partir des RTP (cf Baudroie dans ADAP) -->
-    <!-- /!\ La division par count(SPECIE_B.ID) est nécessaire à cause des jointures possibles dans les injections de PMFM -->
+    <!-- /!\ 1. La division par 'count(SPECIE_B.ID)' est nécessaire à cause des jointures possibles dans les injections de PMFM -->
+    <!-- /!\ 2. le 'CAST( as DECIMAL(8,7))' est nécessaire, sinon HSQLDB et Oracle renverrons toujours 0 ou 1 - cf issue #483 -->
     <select alias="SUBSAMPLING_RATIO" type="number" group="agg"><![CDATA[
       CASE
         WHEN SAMPLING_B.ELEVATE_RTP_WEIGHT > 0 THEN
-          TRUNC(CAST(SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / SAMPLING_B.ELEVATE_RTP_WEIGHT / COUNT(distinct SM.ID) + 0.0000005 as numeric), 6)
+          TRUNC(CAST(SUM(LENGTH_B.ELEVATE_RTP_WEIGHT) / COUNT(distinct SM.ID) / SAMPLING_B.ELEVATE_RTP_WEIGHT + 0.0000005 as DECIMAL(8,7)), 6)
         ELSE 1
       END
     ]]></select>
@@ -127,6 +129,7 @@
 
     <!-- Make sure to skip individual measurement -->
     <where operator="AND">SPECIE_B.LABEL NOT LIKE 'SORTING_BATCH_INDIVIDUAL#%'</where>
+    <where operator="AND">(SAMPLING_B.ID IS NULL OR SAMPLING_B.LABEL NOT LIKE 'SORTING_BATCH_INDIVIDUAL#%')</where>
 
     <!-- Case when QV pmfm exists -->
     <!-- Select batch with LANDING/DISCARD defined and a TAXON_GROUP -->
