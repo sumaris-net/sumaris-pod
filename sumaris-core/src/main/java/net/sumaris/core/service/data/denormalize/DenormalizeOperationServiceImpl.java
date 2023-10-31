@@ -146,7 +146,6 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
             int offset = 0;
             int pageSize = 10;
 
-
             if (operationTotal > 0) {
                 do {
                     // Fetch some operations
