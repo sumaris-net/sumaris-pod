@@ -194,14 +194,14 @@ public abstract class AggregationBaseDaoImpl<
 
         final String tableAlias = table.getAlias();
         String tableWithAlias = SumarisTableUtils.getAliasedTableName(tableAlias, tableName);
-        String aggValueColumnName = "AGG_VALUE";
+        String aggValueColumnName = "agg_value";
         String aggColumnNameWithFunction = String.format("%s(COALESCE(%s, 0)) %s",
             aggFunction.name().toLowerCase(),
             SumarisTableUtils.getAliasedColumnName(tableAlias, aggColumnName),
             aggValueColumnName);
 
         String whereClause = SumarisTableUtils.getSqlWhereClause(table, filter);
-        techColumnName = SumarisTableUtils.getAliasedColumnName(tableAlias, techColumnName);
+        String techColumnNameWithAlias = SumarisTableUtils.getAliasedColumnName(tableAlias, techColumnName);
 
         String groupBySql = SumarisTableUtils.getSelectGroupByQuery(
             tableWithAlias,
@@ -209,25 +209,32 @@ public abstract class AggregationBaseDaoImpl<
             ImmutableSet.<String>builder()
                 .add(aggColumnNameWithFunction)
                 .addAll(SumarisTableUtils.getAliasedColumns(tableAlias, groupByColumns))
-                .add(techColumnName)
+                .add(techColumnNameWithAlias)
                 .build(),
             whereClause,
             // Group by (tech + times)
             ImmutableSet.<String>builder()
                 .addAll(SumarisTableUtils.getAliasedColumns(tableAlias, groupByColumns))
-                .add(techColumnName)
+                .add(techColumnNameWithAlias)
                 .build(),
             null, null);
 
-        String sql = String.format("SELECT min(%s), max(%s) FROM (%s)", aggValueColumnName, aggValueColumnName, groupBySql);
+        String sql = String.format("SELECT min(%s), max(%s), min(%s), max(%s) FROM (%s)",
+            aggValueColumnName, aggValueColumnName,
+            techColumnNameWithAlias,
+            techColumnNameWithAlias,
+            groupBySql,
+            tableAlias);
 
         return query(sql, Object[].class)
             .stream().findFirst()
             .map(row -> MinMaxVO.builder()
-                .min(Double.valueOf(row[0].toString()))
-                .max(Double.valueOf(row[1].toString()))
+                .aggMin(Double.valueOf(row[0].toString()))
+                .aggMax(Double.valueOf(row[1].toString()))
+                .techMin(Double.valueOf(row[2].toString()))
+                .techMax(Double.valueOf(row[3].toString()))
                 .build())
-            .orElseGet(() -> new MinMaxVO(0d, 0d));
+            .orElseGet(() -> MinMaxVO.ZERO);
     }
 
     public <C1 extends AggregationContextVO> void clean(C1 context) {

@@ -187,7 +187,7 @@ public class AggregationDispatchImpl implements AggregationDispatcher {
 
         String tableName = source.findTableNameBySheetName(sheetName).orElse(null);
 
-        if (tableName == null) return new MinMaxVO(0d, 0d);
+        if (tableName == null) return MinMaxVO.ZERO;
 
         return getDao(source).getTechMinMax(tableName, filter, strata);
     }

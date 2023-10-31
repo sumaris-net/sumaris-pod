@@ -144,18 +144,25 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
                 .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.extraction.noData")));
         }
 
-        // Create a filter for rows previous, with only includes/exclude columns,
-        // because criterion are not need (already applied when writing temp tables)
-        ExtractionFilterVO readFilter = new ExtractionFilterVO();
-        readFilter.setIncludeColumnNames(filter.getIncludeColumnNames()); // Copy given include columns
-        readFilter.setExcludeColumnNames(SetUtils.union(
-            SetUtils.emptyIfNull(filter.getIncludeColumnNames()),
-            SetUtils.emptyIfNull(context.getHiddenColumns(tableName))
-        ));
+        ExtractionFilterVO readFilter;
+        if (context.getIsSpatial() && !filter.isPreview()) {
+            readFilter = filter;
+        }
+        else {
+            // Create a filter for rows preview, with only includes/exclude columns,
+            // because criterion are not need (already applied when writing temp tables)
+            readFilter = new ExtractionFilterVO();
+            readFilter.setIncludeColumnNames(filter.getIncludeColumnNames()); // Copy given include columns
+            readFilter.setExcludeColumnNames(SetUtils.union(
+                SetUtils.emptyIfNull(filter.getIncludeColumnNames()),
+                SetUtils.emptyIfNull(context.getHiddenColumns(tableName))
+            ));
+
+        }
 
         // Force distinct if there is excluded columns AND distinct is enable on the XML query
         boolean enableDistinct = filter.isDistinct() || CollectionUtils.isNotEmpty(readFilter.getExcludeColumnNames())
-                                                        && context.isDistinctEnable(tableName);
+            && context.isDistinctEnable(tableName);
         readFilter.setDistinct(enableDistinct);
 
         // Replace default sort attribute

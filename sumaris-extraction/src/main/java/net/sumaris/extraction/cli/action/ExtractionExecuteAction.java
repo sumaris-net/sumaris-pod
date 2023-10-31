@@ -26,20 +26,19 @@ package net.sumaris.extraction.cli.action;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.cli.action.ActionUtils;
-import net.sumaris.core.util.Dates;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.util.*;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.exception.UnknownFormatException;
 import net.sumaris.extraction.core.service.*;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.util.ExtractionTypes;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.util.Files;
-import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.util.TimeUtils;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -73,12 +72,21 @@ public class ExtractionExecuteAction {
             return;
         }
 
-
         log.info("Starting {} extraction...",
                 StringUtils.capitalize(type.getFormat().toLowerCase()));
 
         // Check output file
-        File outputFile = ActionUtils.checkAndGetOutputFile(false, ExtractionExecuteAction.class);
+        File outputFile;
+        File outputDirectory;
+        {
+            outputDirectory = SumarisConfiguration.getInstance().getCliOutputFile();
+            if (outputDirectory != null && outputDirectory.exists() && outputDirectory.isDirectory()) {
+                outputFile = new File(outputDirectory, String.format("%s-%s.zip", type.getFormat(), Dates.formatDate(new Date(), Dates.CSV_DATE_TIME)));
+            } else {
+                outputFile = ActionUtils.checkAndGetOutputFile(false, ExtractionExecuteAction.class);
+                outputDirectory = null;
+            }
+        }
 
         // Execute the extraction
         long startTime = System.currentTimeMillis();
@@ -111,13 +119,25 @@ public class ExtractionExecuteAction {
         }
 
         // Move temp file to expected output file
-        try {
-            Files.moveFile(tempFile, outputFile);
-
+        if (outputDirectory == null) {
+            try {
+                Files.moveFile(tempFile, outputFile);
+            }
+            catch (IOException e) {
+                log.error("Error while creating output file: " + e.getMessage(), e);
+                return;
+            }
         }
-        catch (IOException e) {
-            log.error("Error while creating output file: " + e.getMessage(), e);
-            return;
+
+        // Extract temp file to expected output directory
+        else {
+            try {
+                ZipUtils.uncompressFileToPath(tempFile, outputDirectory.getAbsolutePath(), true);
+            }
+            catch (IOException e) {
+                log.error("Error while creating output file: " + e.getMessage(), e);
+                return;
+            }
         }
 
         // Success log
