@@ -33,7 +33,27 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MinMaxVO {
 
-    private Double min;
-    private Double max;
+    public static final MinMaxVO ZERO = new MinMaxVO(0d, 0d, 0d, 0d);
+
+    private Double aggMin;
+    private Double aggMax;
+    private Double techMin;
+    private Double techMax;
+
+    public Double getMin()  {
+        return aggMin;
+    }
+
+    public void setMin(Double min)  {
+        aggMin = min;
+    }
+
+    public Double getMax() {
+        return aggMax;
+    }
+
+    public void setMax(Double max) {
+        this.aggMax = max;
+    }
 
 }
