@@ -23,7 +23,7 @@
 <query type="select">
 
   <select alias="INDIVIDUAL_COUNT" type="number" group="individualCount,agg">MAX(SPECIE_B.ELEVATE_INDIVIDUAL_COUNT)</select>
-  <select alias="SUBSAMPLING_INDIVIDUAL_COUNT" type="number" group="individualCount,agg">MAX(COALESCE(SAMPLING_B.INDIVIDUAL_COUNT,SPECIE_B.INDIVIDUAL_COUNT))</select>
+  <select alias="SUBSAMPLE_INDIVIDUAL_COUNT" type="number" group="individualCount,agg">MAX(COALESCE(SAMPLING_B.INDIVIDUAL_COUNT,SPECIE_B.INDIVIDUAL_COUNT))</select>
 
   <where operator="AND">TG.LABEL IN (&amp;taxonGroupLabels)</where>
 

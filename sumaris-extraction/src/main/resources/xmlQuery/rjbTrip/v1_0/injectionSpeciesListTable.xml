@@ -24,7 +24,7 @@
 
   <!-- new columns, instead of weight columns -->
   <select alias="INDIVIDUAL_COUNT" type="number">SUM(SL.INDIVIDUAL_COUNT)</select>
-  <select alias="SUBSAMPLING_INDIVIDUAL_COUNT" type="number">SUM(SL.SUBSAMPLING_INDIVIDUAL_COUNT)</select>
+  <select alias="SUBSAMPLE_INDIVIDUAL_COUNT" type="number">SUM(SL.SUBSAMPLE_INDIVIDUAL_COUNT)</select>
 
   <!-- re insert existing LENGTH_CODE, after new columns -->
   <select alias="LENGTH_CODE" type="text">SL.LENGTH_CODE</select>
