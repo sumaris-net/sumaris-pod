@@ -687,6 +687,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             Boolean.FALSE.toString(),
             Boolean.class,
             false),
+
+    AUTH_TOKEN_ENABLED(
+            "sumaris.auth.token.enabled",
+            n("sumaris.config.option.sumaris.account.token.enable"),
+            "false",
+            Boolean.class,
+            false),
     ;
 
     /**

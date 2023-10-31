@@ -25,7 +25,6 @@ package net.sumaris.core.vo.administration.user;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.administration.user.UserToken;
 
 import java.util.List;
 
