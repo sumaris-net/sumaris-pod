@@ -26,10 +26,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.List;
+
 @Data
 @FieldNameConstants
 @EqualsAndHashCode(callSuper = true)
 public class AccountVO extends PersonVO {
 
     private UserSettingsVO settings;
+    private List<UserTokenVO> tokens;
 }
