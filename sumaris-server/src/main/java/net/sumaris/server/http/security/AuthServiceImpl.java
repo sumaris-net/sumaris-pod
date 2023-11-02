@@ -240,6 +240,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /* -- internal methods -- */
+
     private void onPersonChangeEvent(AbstractEntityEvent event) {
         Object data = event.getData();
         PersonVO person;

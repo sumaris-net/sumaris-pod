@@ -34,7 +34,7 @@
     <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.sample.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-01-16" LABEL="sumaris.persistence.vessel.registrationCode.searchAsPrefix" NAME="false"/>
     <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-02-03" LABEL="sumaris.social.notification.icons.enable" NAME="true"/>
-
+    <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-02" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
 
 
     <!-- ****** ADAP properties ****** -->
