@@ -694,13 +694,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             Boolean.class,
             false),
 
-    AUTH_TOKEN_ENABLED(
-            "sumaris.auth.token.enabled",
-            n("sumaris.config.option.sumaris.account.token.enable"),
-            "false",
-            Boolean.class,
-            false),
-
     ELASTICSEARCH_URIS(
         "spring.elasticsearch.uris",
         n("sumaris.config.option.spring.elasticsearch.uris.description"),
