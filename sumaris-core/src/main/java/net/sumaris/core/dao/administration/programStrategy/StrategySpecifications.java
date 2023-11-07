@@ -204,7 +204,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
                             cb.not(
                                     cb.or(
                                             cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
-                                            cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                                            cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
                                     )
                             )
                     );
@@ -213,7 +213,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
                 // Start date
                 else if (startDate != null) {
                     predicates.add(
-                            cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                            cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
                     );
                 }
 
