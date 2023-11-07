@@ -125,8 +125,10 @@ public class StrategyServiceReadOracleTest extends AbstractServiceTest{
     public void findByFilter() {
         // Load SIH-OBSMER program
         ProgramVO program = programService.getByLabel("SIH-OBSMER", ProgramFetchOptions.MINIMAL);
-        // Load FRA location
-        LocationVO location = getLocationByLabelAndLevel("FRA", LocationLevelEnum.COUNTRY.getId());
+        // Load FRA country
+        LocationVO country = getLocationByLabelAndLevel("FRA", LocationLevelEnum.COUNTRY.getId());
+        // Load an FRA harbour (XDZ - Douarnenez)
+        LocationVO harbour = getLocationByLabelAndLevel("XDZ", LocationLevelEnum.HARBOUR.getId());
 
         Page page = Page.builder().size(10).build();
 
@@ -140,11 +142,11 @@ public class StrategyServiceReadOracleTest extends AbstractServiceTest{
             Assert.assertEquals(4, strategies.size());
         }
 
-        // Filter by location, and dates (startDate only
+        // Filter by country location, and dates (startDate only
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
                 .programIds(new Integer[]{program.getId()})
-                .locationIds(new Integer[]{location.getId()})
+                .locationIds(new Integer[]{country.getId()})
                 .periods(new PeriodVO[]{PeriodVO.builder()
                     .startDate(Dates.safeParseDate("2020-11-23 00:00:00", "yyyy-MM-dd HH:mm:ss"))
                     .build(),
@@ -156,14 +158,31 @@ public class StrategyServiceReadOracleTest extends AbstractServiceTest{
             Assert.assertEquals("OBSMER démarrage le 23/11/2020", strategies.get(0).getName());
         }
 
+        // Filter by country location, and dates (startDate AND endDate)
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .programIds(new Integer[]{program.getId()})
+                .locationIds(new Integer[]{country.getId()})
+                .periods(new PeriodVO[]{PeriodVO.builder()
+                    .startDate(Dates.safeParseDate("2020-11-23 00:00:00", "yyyy-MM-dd HH:mm:ss"))
+                    .endDate(Dates.safeParseDate("2021-03-31", "yyyy-MM-dd"))
+                    .build(),
+                })
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("OBSMER démarrage le 23/11/2020", strategies.get(0).getName());
+        }
+
+
         // Filter by location, and dates (startDate AND endDate)
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
                 .programIds(new Integer[]{program.getId()})
-                .locationIds(new Integer[]{location.getId()})
+                .locationIds(new Integer[]{harbour.getId()})
                 .periods(new PeriodVO[]{PeriodVO.builder()
                     .startDate(Dates.safeParseDate("2020-11-23 00:00:00", "yyyy-MM-dd HH:mm:ss"))
-                    .endDate(Dates.safeParseDate("2021-03-31", "yyyy-MM-dd"))
                     .build(),
                 })
                 .build();
