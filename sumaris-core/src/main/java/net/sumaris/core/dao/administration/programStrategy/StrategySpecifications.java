@@ -88,13 +88,13 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
                 return cb.not(
                         cb.or(
                                 cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
-                                cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                                cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
                         )
                 );
             }
             // Start date
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate);
+                return cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate);
             }
             // End date
             else {
