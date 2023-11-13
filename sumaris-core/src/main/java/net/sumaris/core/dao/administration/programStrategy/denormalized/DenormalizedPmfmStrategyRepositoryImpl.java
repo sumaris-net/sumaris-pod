@@ -112,7 +112,8 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         // ID = the Pmfm id
         target.setId(pmfm.getId());
 
-        // Fraction, Matrix, method
+        // Parameter, Fraction, Matrix, method
+        if (pmfm.getParameter() != null) target.setParameterId(pmfm.getParameter().getId());
         if (pmfm.getFraction() != null) target.setFractionId(pmfm.getFraction().getId());
         if (pmfm.getMatrix() != null) target.setMatrixId(pmfm.getMatrix().getId());
         if (pmfm.getMethod() != null) {
