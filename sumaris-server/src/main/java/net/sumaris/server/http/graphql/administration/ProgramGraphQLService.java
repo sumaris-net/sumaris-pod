@@ -64,6 +64,7 @@ import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
+import net.sumaris.server.http.graphql.data.DataGraphQLService;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsSupervisor;
@@ -72,6 +73,7 @@ import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityWatchService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.nuiton.util.TimeLog;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -109,6 +111,7 @@ public class ProgramGraphQLService {
 
     private final DataAccessControlService dataAccessControlService;
 
+    private final TimeLog timeLog = new TimeLog(ProgramGraphQLService.class);
 
     /* -- Program / Strategy-- */
 
@@ -241,7 +244,13 @@ public class ProgramGraphQLService {
             log.warn("Fetching program -> strategies without 'filter.acquisitionLevels'. Not recommended in production!");
         }
 
-        return strategyService.findByFilter(filter, null, getStrategyFetchOptions(GraphQLUtils.fields(env)));
+        long now = TimeLog.getTime();
+        try {
+            return strategyService.findByFilter(filter, null, getStrategyFetchOptions(GraphQLUtils.fields(env)));
+        }
+        finally {
+            timeLog.log(now, "getStrategiesByProgram");
+        }
     }
 
 

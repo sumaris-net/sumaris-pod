@@ -36,6 +36,7 @@
     <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-01-16" LABEL="sumaris.persistence.vessel.registrationCode.searchAsPrefix" NAME="false"/>
     <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-02-03" LABEL="sumaris.social.notification.icons.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-02" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-07" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
 
 
     <!-- ****** ADAP properties ****** -->
@@ -128,7 +129,8 @@
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
     <!-- ****** OBSMER properties ****** -->
-    <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="162" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="false"/>
 
 </dataset>
