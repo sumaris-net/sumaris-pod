@@ -65,11 +65,11 @@ public class UserMessageGraphQLService {
         }
 
         // If not admin: use the authenticated user has issuer
-        boolean forceIssuer = !isAdmin
+        boolean forceCurrentIssuer = !isAdmin
             || (message.getIssuerId() == null && message.getIssuer() == null);
 
         // Use current authenticated user, as issuer
-        if (forceIssuer){
+        if (forceCurrentIssuer){
             PersonVO user = authService.getAuthenticatedUser().orElseThrow(UnauthorizedException::new);
             message.setIssuer(user);
             message.setIssuerId(null);
