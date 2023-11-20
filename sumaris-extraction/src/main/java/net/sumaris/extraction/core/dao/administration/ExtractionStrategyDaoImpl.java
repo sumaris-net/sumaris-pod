@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.PersistenceException;
 import java.util.Date;
 import java.util.Objects;
@@ -77,8 +78,9 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
     private boolean enableAdagioOptimization = false;
     private String adagioSchema = null;
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady() {
         // Read some config options
         String adagioSchema = this.configuration.getAdagioSchema();
         boolean enableAdagioOptimization = StringUtils.isNotBlank(adagioSchema)
