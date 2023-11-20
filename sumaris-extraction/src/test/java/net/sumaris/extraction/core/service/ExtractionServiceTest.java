@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -902,7 +903,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         return trip;
     }
 
-    protected File executeStrat(ExtractionStrategyFilterVO filter) throws IOException {
+    protected File executeStrat(@NonNull ExtractionStrategyFilterVO filter) throws IOException {
 
         // Test the Strategy format
         File outputFile = service.executeAndDumpStrategies(LiveExtractionTypeEnum.STRAT, filter);

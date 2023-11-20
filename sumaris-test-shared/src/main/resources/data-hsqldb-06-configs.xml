@@ -5,6 +5,7 @@
     <SOFTWARE ID="4" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="OBSDEB" NAME="Application de saisie des débarquements observés" />
     <SOFTWARE ID="5" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="IMAGINE" NAME="Suivi des paramètres biologique" />
     <SOFTWARE ID="6" STATUS_FK="1" CREATION_DATE="2021-08-01" LABEL="OPEN" NAME="Base de données ouverte, pour la collecte de données halieutiques" />
+    <SOFTWARE ID="7" STATUS_FK="1" CREATION_DATE="2023-10-18" LABEL="OBSMER" NAME="Marées observées en mer" />
 
     <!-- ****** SUMARiS properties ****** -->
 
@@ -13,7 +14,7 @@
     <SOFTWARE_PROPERTY ID="3"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:50"/>
     <SOFTWARE_PROPERTY ID="4"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:50"/>
     <SOFTWARE_PROPERTY ID="5"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:2,department:3,department:4,department:5,department:6,department:7"/>
-    <SOFTWARE_PROPERTY ID="6" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:40,image:41,image:42,image:43,image:44,image:45,image:46,image:47,image:48,image:49"/>
+    <SOFTWARE_PROPERTY ID="6" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:40|Credit SUMARIS,image:41|Credit SUMARIS,image:42|Credit SUMARIS,image:43|Credit SUMARIS,image:44|Credit SUMARIS,image:45|Credit SUMARIS,image:46|Credit SUMARIS,image:47|Credit SUMARIS,image:48|Credit SUMARIS,image:49|Credit SUMARIS"/>
     <SOFTWARE_PROPERTY ID="7" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:55"/>
     <SOFTWARE_PROPERTY ID="8" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="9" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
@@ -34,7 +35,7 @@
     <SOFTWARE_PROPERTY ID="24" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.persistence.sample.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-01-16" LABEL="sumaris.persistence.vessel.registrationCode.searchAsPrefix" NAME="false"/>
     <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-02-03" LABEL="sumaris.social.notification.icons.enable" NAME="true"/>
-
+    <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-02" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
 
 
     <!-- ****** ADAP properties ****** -->
@@ -110,7 +111,6 @@
 
 
     <!-- ****** OPEN (ACOST, PIFIL, HOMARD, ...) properties ****** -->
-
     <SOFTWARE_PROPERTY ID="130" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:50"/>
     <SOFTWARE_PROPERTY ID="131" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:50"/>
     <SOFTWARE_PROPERTY ID="132" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:2,department:3,department:4,department:5,department:6,department:7"/>
@@ -126,5 +126,9 @@
     <SOFTWARE_PROPERTY ID="142" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="143" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
+
+    <!-- ****** OBSMER properties ****** -->
+    <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
 
 </dataset>

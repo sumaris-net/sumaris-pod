@@ -49,9 +49,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -178,5 +176,22 @@ public abstract class AbstractServiceTest {
         String headerName = StringUtils.underscoreToChangeCase(columnName);
         Assert.assertFalse(String.format("Should not have the column header '%s' in file: %s", headerName, file.getPath()),
             hasHeaderInCsvFile(file, headerName));
+    }
+
+    protected List<Map<String, String>> readCsvFileToMaps(File file) throws IOException {
+        List<String[]> lines = readCsvFile(file);
+        String[] headers = lines.get(0);
+
+        return lines.stream()
+            .skip(1) // Skip headers
+            .map(values -> {
+            Map<String, String> result = new HashMap<>();
+                for (int i = 0 ; i< headers.length; i++) {
+                    String name = headers[i];
+                    String value = StringUtils.defaultIfBlank(values[i], null);
+                    result.put(name, value);
+                }
+                return result;
+            }).toList();
     }
 }

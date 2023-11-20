@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
@@ -42,6 +43,8 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -77,14 +80,39 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
 
         ExtractionStrategyFilterVO filter = new ExtractionStrategyFilterVO();
         filter.setProgramLabel("SIH-PARAM-BIO");
-        //filter.setStrategyLabels(ImmutableList.of("22CHITCOR001"));
 
-        File root = this.executeStrat(filter);
+        File root = super.executeStrat(filter);
 
         // Check realized effort
         {
             File monitoringFile = new File(root, StratSpecification.SM_SHEET_NAME + ".csv");
             Assert.assertTrue(countLineInCsvFile(monitoringFile) > 3);
+
+            List<Map<String, String>> lines = readCsvFileToMaps(monitoringFile);
+            lines.forEach(line -> {
+                String strategyLabel = line.get(StratSpecification.COLUMN_STRATEGY);
+                Assert.assertNotNull("Missing strategy", strategyLabel);
+
+                String startDate = line.get(StringUtils.underscoreToChangeCase(StratSpecification.COLUMN_START_DATE));
+                Assert.assertNotNull("Missing start_date", startDate);
+
+                String expectedEffortEffortStr = line.get(StringUtils.underscoreToChangeCase(StratSpecification.COLUMN_EXPECTED_EFFORT));
+                Assert.assertNotNull("Missing expected_effort", expectedEffortEffortStr);
+
+                String realizedEffortStr = line.get(StringUtils.underscoreToChangeCase(StratSpecification.COLUMN_REALIZED_EFFORT));
+                Assert.assertNotNull("Missing realized_effort", realizedEffortStr);
+
+                try {
+                    double realizedEffort = Double.parseDouble(realizedEffortStr);
+                    if (realizedEffort > 0) {
+                        log.info(String.format("%s - %s - %s/%s", strategyLabel, startDate, realizedEffortStr, expectedEffortEffortStr));
+                    }
+                }
+                catch (NumberFormatException e) {
+                    log.error("Invalid realized_effort value. Should be a number: " + realizedEffortStr, e);
+                    Assert.fail("Invalid realized_effort value. Should be a number: " + realizedEffortStr);
+                }
+            });
         }
 
     }

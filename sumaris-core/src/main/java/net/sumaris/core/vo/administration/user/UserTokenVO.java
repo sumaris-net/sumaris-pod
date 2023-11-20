@@ -4,7 +4,7 @@ package net.sumaris.core.vo.administration.user;
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2023 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,17 +22,31 @@ package net.sumaris.core.vo.administration.user;
  * #L%
  */
 
+import io.leangen.graphql.annotations.GraphQLIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
 
-import java.util.List;
+import java.sql.Timestamp;
+import java.util.Date;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode(callSuper = true)
-public class AccountVO extends PersonVO {
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class UserTokenVO implements IUpdateDateEntity<Integer, Date>, IValueObject<Integer> {
+    private Integer id;
+    @GraphQLIgnore
+    private Integer userId;
+    private String pubkey; // Used only for compatibility with Sumaris API
+    @EqualsAndHashCode.Include
+    private String token;
+    private String name;
+    private Integer flags;
+    private Timestamp expirationDate;
+    private Timestamp lastUsedDate;
 
-    private UserSettingsVO settings;
-    private List<UserTokenVO> tokens;
+    private Date updateDate;
+    private Date creationDate;
 }

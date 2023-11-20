@@ -22,17 +22,22 @@
 
 package net.sumaris.extraction.core.service.hsqldb;
 
+import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
-import org.junit.ClassRule;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import net.sumaris.extraction.core.specification.administration.StratSpecification;
+import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
@@ -40,6 +45,7 @@ import java.io.IOException;
 @ActiveProfiles("hsqldb")
 @TestPropertySource(locations = "classpath:application-hsqldb.properties")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@Slf4j
 public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
 
     @ClassRule
@@ -49,11 +55,6 @@ public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
     @Override @Test
     public void executeFree1() {
         super.executeFree1();
-    }
-
-    @Override @Test
-    public void executeStrat() throws IOException {
-        super.executeStrat();
     }
 
     @Override @Test
@@ -154,6 +155,72 @@ public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
     @Override @Test
     public void updateAggRdbProduct() {
         super.updateAggRdbProduct();
+    }
+
+    @Test
+    public void executeStrat() throws IOException {
+        ExtractionStrategyFilterVO filter = new ExtractionStrategyFilterVO();
+        filter.setProgramLabel("SIH-OBSBIO");
+
+        File root = super.executeStrat(filter);
+
+        // Check realized effort
+        {
+            File monitoringFile = new File(root, StratSpecification.SM_SHEET_NAME + ".csv");
+
+            List<Map<String, String>> lines = readCsvFileToMaps(monitoringFile);
+
+            Assert.assertEquals(8, lines.size());
+
+            Map<String, Integer> realizedEffortByStrategy = Maps.newHashMap();
+            lines.forEach(line -> {
+
+                String strategyLabel = line.get(StratSpecification.COLUMN_STRATEGY);
+                Assert.assertNotNull("Missing strategy", strategyLabel);
+
+                String startDate = line.get(StringUtils.underscoreToChangeCase(StratSpecification.COLUMN_START_DATE));
+                Assert.assertNotNull("Missing start_date", startDate);
+
+                String expectedEffortEffortStr = line.get(StringUtils.underscoreToChangeCase(StratSpecification.COLUMN_EXPECTED_EFFORT));
+                Assert.assertNotNull("Missing expected_effort", expectedEffortEffortStr);
+
+                String realizedEffortStr = line.get(StringUtils.underscoreToChangeCase(StratSpecification.COLUMN_REALIZED_EFFORT));
+                Assert.assertNotNull("Missing realized_effort", realizedEffortStr);
+
+                try {
+                    int realizedEffort = Integer.parseInt(realizedEffortStr);
+                    if (realizedEffort > 0) {
+                        log.info(String.format("%s - %s - %s/%s", strategyLabel, startDate, realizedEffortStr, expectedEffortEffortStr));
+                    }
+
+                    // SUM(realized_effort) group by strategy
+                    Integer sum = realizedEffortByStrategy.get(strategyLabel);
+                    sum = sum == null ? realizedEffort : sum + realizedEffort;
+                    realizedEffortByStrategy.put(strategyLabel, sum);
+                }
+                catch (NumberFormatException e) {
+                    log.error("Invalid realized_effort value. Should be a number: " + realizedEffortStr, e);
+                    Assert.fail("Invalid realized_effort value. Should be a number: " + realizedEffortStr);
+                }
+
+            });
+
+            // 20LEUCCIR001 - expected 5 realized effort
+            {
+                Integer realizedEffort = realizedEffortByStrategy.get("20LEUCCIR001").intValue();
+                Assert.assertNotNull(realizedEffort);
+                // FIXME
+                // Change les données de tests afin qu'elle aliment TRIP/OPERATION (en plus de LANDING) pour que les SAMPLEs soient reliés à OPERATION
+                //Assert.assertEquals("Expected 4 realized effort for 20LEUCCIR002", 4, realizedEffort.intValue());
+            }
+
+            // 20LEUCCIR002 - expected 1 realized effort
+            {
+                Integer realizedEffort = realizedEffortByStrategy.get("20LEUCCIR002").intValue();
+                Assert.assertNotNull(realizedEffort);
+                Assert.assertEquals("Expected 1 realized effort for 20LEUCCIR002", 1, realizedEffort.intValue());
+            }
+        }
     }
 
     @Override

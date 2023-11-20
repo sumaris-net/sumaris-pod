@@ -3,49 +3,51 @@
 SCRIPT_DIR=$(dirname $0)
 BASEDIR=$(cd "${SCRIPT_DIR}" && pwd -P)
 
+DEFAULT_VERSION=develop
+DEFAULT_PORT=8181
+DEFAULT_PROFILES=val
+
 VERSION=$1
 PORT=$2
 PROFILES=$3
-CONFIG=${BASEDIR}/config
-TIMEZONE=UTC
-[[ "_${VERSION}" = "_" ]] && VERSION=develop
-[[ "_${PORT}" = "_" && "${VERSION}" = "develop" ]] && PORT=8080
-[[ "_${PROFILES}" = "_" && "${VERSION}" = "develop" ]] && PROFILES=dev
+
+[[ "_${VERSION}" = "_" ]] && VERSION=$DEFAULT_VERSION
+[[ "_${PORT}" = "_" && "${VERSION}" = "${DEFAULT_VERSION}" ]] && PORT=$DEFAULT_PORT
+[[ "_${PROFILES}" = "_" && "${VERSION}" = "${DEFAULT_VERSION}" && "${PORT}" = "${DEFAULT_PORT}" ]] && PROFILES=$DEFAULT_PROFILES
+
+CONFIG_DIR=${BASEDIR}/config
+DATA_DIR=${BASEDIR}/data/${PROFILES}
+TIMEZONE=Europe/Paris
+JVM_MEMORY=1g
 
 CI_REGISTRY=gitlab-registry.ifremer.fr
 CI_PROJECT_NAME=sumaris-pod
 CI_PROJECT_PATH=sih-public/sumaris/sumaris-pod
 CI_REGISTRY_IMAGE_PATH=${CI_REGISTRY}/${CI_PROJECT_PATH}
 CI_REGISTER_USER=gitlab+deploy-token
-CI_REGISTER_PWD=<REPLACE_WITH_DEPLOY_TOKEN>
+CI_REGISTER_PWD=# TODO <REPLACE_WITH_DEPLOY_TOKEN>
 CI_REGISTRY_IMAGE=${CI_REGISTRY_IMAGE_PATH}:${VERSION}
+
 CONTAINER_PREFIX="${CI_PROJECT_NAME}-${PORT}"
 CONTAINER_NAME="${CONTAINER_PREFIX}-${VERSION}"
-CONFIG_FILE=${CONFIG}application-${PROFILES}.properties
+CONTAINER_MEMORY=2g
 
 # Check arguments
-if [[ (! $VERSION =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc|SNAPSHOT)[-0-9]*)?$ && $VERSION != 'develop' && $VERSION != 'imagine' $VERSION =~ ^feature[/][a-zA-Z0-9_-]+$ ) ]]; then
+if [[ (! $VERSION =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc|SNAPSHOT)[-0-9]*)?$ && $VERSION != 'imagine' && $VERSION != 'develop' ) ]]; then
   echo "ERROR: Invalid version"
-  echo " Usage: $0 <version> <port>"
+  echo " Usage: $0 <version> <port> <profile>"
   exit 1
 fi
 if [[ (! $PORT =~ ^[0-9]+$ ) ]]; then
   echo "ERROR: Invalid port"
-  echo " Usage: $0 <version> <port>"
-  exit 1
-fi
-# Check if config exists
-if [[ ! -d "${CONFIG}" ]]; then
-  echo "ERROR: Config directory not found: '${CONFIG}'"
-  exit 1
-fi
-if [[ ! -f ${CONFIG_FILE} ]]; then
-  echo "ERROR: Config file not found: '${CONFIG_FILE}'"
+  echo " Usage: $0 <version> <port> <profile>"
   exit 1
 fi
 
+mkdir -p ${DATA_DIR}
+
 # Log start
-echo "--- Starting ${CI_PROJECT_NAME} v${APP_VERSION} on port ${PORT} (profiles: '${PROFILES}', config: '${CONFIG})'}"
+echo "--- Starting ${CI_PROJECT_NAME} v${APP_VERSION} on port ${PORT} (profiles: '${PROFILES}', config: '${CONFIG_DIR}, data: '${DATA_DIR}')'}"
 
 ## Login to container registry
 echo "Login to ${CI_REGISTRY}..."
@@ -66,17 +68,26 @@ if [[ ! -z  $(docker ps -f name=${CONTAINER_PREFIX} -q) ]]; then
   docker stop $(docker ps -f name=${CONTAINER_PREFIX} -q)
 fi
 
+if [[ ! -d "${CONFIG_DIR}" ]]; then
+  echo "ERROR: Config directory not found: '${CONFIG_DIR}'"
+  exit 1
+fi
+
 # Waiting container really removed
 sleep 3
 
 docker run -it -d --rm \
            --name "${CONTAINER_NAME}" \
+           --memory ${CONTAINER_MEMORY} \
            -p ${PORT}:${PORT} \
-           -v ${CONFIG}:/app/config   \
+           -v ${CONFIG_DIR}:/app/config   \
            -v /home/tnsnames:/home/tnsnames \
+           -v ${DATA_DIR}:/app/data \
            -e PROFILES=${PROFILES} \
            -e PORT=${PORT} \
            -e TZ=${TIMEZONE} \
+           -e XMS=${JVM_MEMORY} \
+           -e XMX=${JVM_MEMORY} \
            ${CI_REGISTRY_IMAGE}
 
 echo "---- ${CI_PROJECT_NAME} is running !"
@@ -85,4 +96,4 @@ echo " Available commands:"
 echo "    logs: docker logs -f ${CONTAINER_NAME}"
 echo "    bash: docker exec -it ${CONTAINER_NAME} bash"
 echo "    stop: docker stop ${CONTAINER_NAME}"
-echo "  status: docker ps -a ${CONTAINER_NAME}"
+echo "  status: docker ps -f name=${CONTAINER_NAME}"
