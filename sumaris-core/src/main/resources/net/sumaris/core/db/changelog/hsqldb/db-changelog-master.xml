@@ -196,10 +196,11 @@
 
     <include relativeToChangelogFile="true" file="db-changelog-2.7.0.xml"/>
 
-    <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
-    <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>
-
     <include relativeToChangelogFile="true" file="db-changelog-2.8.2.xml"/>
     <include relativeToChangelogFile="true" file="adap/db-changelog-2.8.2.xml"/>
 
+    <include relativeToChangelogFile="true" file="db-changelog-2.8.12.xml"/>
+
+    <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
+    <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>
 </databaseChangeLog>
