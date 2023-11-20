@@ -37,6 +37,8 @@ public interface StratSpecification {
     String COLUMN_STRATEGY_ID = "strategy_id";
     String COLUMN_START_DATE = "start_date";
     String COLUMN_END_DATE = "end_date";
+    String COLUMN_EXPECTED_EFFORT = "expected_effort";
+    String COLUMN_REALIZED_EFFORT = "realized_effort";
 
     String[] SHEET_NAMES = {ST_SHEET_NAME, SM_SHEET_NAME};
 }
