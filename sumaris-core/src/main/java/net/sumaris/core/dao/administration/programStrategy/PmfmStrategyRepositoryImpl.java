@@ -55,11 +55,12 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -139,7 +140,6 @@ public class PmfmStrategyRepositoryImpl
             if (source.getMatrix() != null) target.setMatrixId(source.getMatrix().getId());
             if (source.getFraction() != null) target.setFractionId(source.getFraction().getId());
             if (source.getMethod() != null) target.setMethodId(source.getMethod().getId());
-        }
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
