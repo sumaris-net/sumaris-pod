@@ -80,7 +80,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
             // Avoid duplicated entries (because of left join)
             query.distinct(true);
 
-            Join<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
+            ListJoin<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
             Join<AppliedStrategy, AppliedPeriod> appliedPeriods = Daos.composeJoinList(appliedStrategies, AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
 
             // Start + end date
