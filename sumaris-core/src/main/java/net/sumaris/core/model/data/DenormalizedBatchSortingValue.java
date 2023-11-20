@@ -80,7 +80,8 @@ public class DenormalizedBatchSortingValue implements IEntity<Integer>
     private QualitativeValue qualitativeValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "batch_fk", nullable = false)
+    @JoinColumn(name = "batch_fk", nullable = false,
+        foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (batch_fk) references denormalized_batch(id) on delete cascade"))
     @ToString.Exclude
     private DenormalizedBatch batch;
 

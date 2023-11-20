@@ -215,12 +215,14 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     private DenormalizedBatch parent;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "operation_fk")
+    @JoinColumn(name = "operation_fk",
+        foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (operation_fk) references operation(id) on delete cascade"))
     @ToString.Exclude
     private Operation operation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sale_fk")
+    @JoinColumn(name = "sale_fk",
+        foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (sale_fk) references sale(id) on delete cascade"))
     @ToString.Exclude
     private Sale sale;
 
