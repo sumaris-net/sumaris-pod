@@ -137,6 +137,16 @@ public enum ExtractionConfigurationOption implements ConfigOptionDef {
         false),
 
     /**
+     * Allow to enable scientific cruise strategy monitoring (issue #)
+     */
+    EXTRACTION_STRAT_MONITORING_SCIENTIFIC_CRUISE(
+        "sumaris.extraction.strat.monitoring.scientificCruise.enable",
+        n("sumaris.config.option.extraction.strat.monitoring.scientificCruise.enable.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
+
+    /**
      * /!\ Should NOT be disabled in production (only for DEBUG purpose)
      */
     EXTRACTION_CLEANUP_ENABLE(
