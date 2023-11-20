@@ -40,10 +40,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
 import java.util.*;
 
 /**
@@ -80,7 +77,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
             // Avoid duplicated entries (because of left join)
             query.distinct(true);
 
-            Join<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
+            ListJoin<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
             Join<AppliedStrategy, AppliedPeriod> appliedPeriods = Daos.composeJoinList(appliedStrategies, AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
 
             // Start + end date
