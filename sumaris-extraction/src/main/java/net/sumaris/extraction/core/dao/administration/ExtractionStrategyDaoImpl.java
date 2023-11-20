@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableSet;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -36,7 +35,6 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.xml.query.XMLQuery;
@@ -78,6 +76,8 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
     private boolean enableAdagioOptimization = false;
     private String adagioSchema = null;
 
+    private boolean enableScientificCruise = false;
+
     @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
@@ -87,20 +87,28 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
             && this.configuration.enableAdagioOptimization()
             && this.databaseType == DatabaseType.oracle;
 
+        boolean enableScientificCruiseMonitoring = this.configuration.enableStratMonitoringScientificCruise();
+
         // Check if there is some changes
         boolean hasChanges = !Objects.equals(this.adagioSchema, adagioSchema)
-            || this.enableAdagioOptimization != enableAdagioOptimization;
+            || this.enableAdagioOptimization != enableAdagioOptimization
+            || this.enableScientificCruise != enableScientificCruiseMonitoring;
 
         // Apply changes if need
         if (hasChanges) {
             this.adagioSchema = adagioSchema;
             this.enableAdagioOptimization = enableAdagioOptimization;
+            this.enableScientificCruise = enableScientificCruiseMonitoring;
 
             if (this.enableAdagioOptimization) {
-                log.info("Enabled extraction format {}, using optimization for schema '{}'", StratSpecification.FORMAT, this.adagioSchema);
+                log.info("Enabled extraction format {}, using optimization for schema '{}' and {} scientific cruise.",
+                    StratSpecification.FORMAT, this.adagioSchema,
+                    this.enableScientificCruise ? "with" : "without"
+                    );
             }
             else {
-                log.info("Enabled extraction format {} (without schema optimization)", StratSpecification.FORMAT);
+                log.info("Enabled extraction format {} (without schema optimization and {} scientific cruise)", StratSpecification.FORMAT,
+                    this.enableScientificCruise ? "with" : "without");
             }
 
         }
@@ -283,6 +291,8 @@ public class ExtractionStrategyDaoImpl<C extends ExtractionStrategyContextVO, F 
         xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
         xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
         xmlQuery.bind("adagioSchema", this.adagioSchema);
+
+        xmlQuery.setGroup("scientificCruise", this.enableScientificCruise);
 
         return xmlQuery;
     }
