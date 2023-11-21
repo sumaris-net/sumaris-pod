@@ -129,6 +129,10 @@ public final class EntityEnums {
         return enumeration.name();
     }
 
+    public static boolean isResolved(IEntityEnum enumeration) {
+        return !isUnresolved(enumeration);
+    }
+
     public static boolean isUnresolved(IEntityEnum enumeration) {
         try {
             Object id = Beans.getProperty((Object)enumeration, "id");

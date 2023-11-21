@@ -27,12 +27,16 @@
   <select alias="GEAR_COMMENTS" type="text" group="gearComments,agg" dbms="hsqldb,pgsql">MAX(PG.COMMENTS)</select>
   <select alias="GEAR_COMMENTS" type="text" group="gearComments,agg" dbms="oracle">MAX(CAST(PG.COMMENTS AS VARCHAR2(2000)))</select>
 
-  <from join="true" group="allowParent">LEFT OUTER JOIN OPERATION O2 ON O2.ID = O.OPERATION_FK</from>
-  <from join="true" group="allowParent">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM2 ON VUM2.OPERATION_FK = O2.ID</from>
-  <from join="true" group="allowParent">LEFT OUTER JOIN QUALITATIVE_VALUE QV2 on QV2.ID = VUM2.QUALITATIVE_VALUE_FK</from>
+  <!-- join parent operation -->
+  <from join="true" group="allowParentOperation">LEFT OUTER JOIN OPERATION O2 ON O2.ID = O.OPERATION_FK</from>
+  <from join="true" group="allowParentOperation">LEFT OUTER JOIN VESSEL_USE_MEASUREMENT VUM2 ON VUM2.OPERATION_FK = O2.ID</from>
+  <from join="true" group="allowParentOperation">LEFT OUTER JOIN QUALITATIVE_VALUE QV2 on QV2.ID = VUM2.QUALITATIVE_VALUE_FK</from>
 
-  <!-- Skip not completed parent operation -->
-  <where operator="AND" group="allowParent">O.QUALITY_FLAG_FK != 8</where>
+  <!-- Exclude parent operation (when incomplete or fishing time = 0) -->
+  <where operator="AND" group="allowParentOperation">
+    (O2.ID IS NOT NULL
+      OR NOT(O.QUALITY_FLAG_FK = &amp;incompleteQualityFlagId OR O.START_DATE_TIME = O.END_DATE_TIME OR O.FISHING_START_DATE_TIME = O.FISHING_END_DATE_TIME)
+  )</where>
 
   <!-- Already exists in the parent query
     <groupby>&amp;groupByColumns</groupby>-->
