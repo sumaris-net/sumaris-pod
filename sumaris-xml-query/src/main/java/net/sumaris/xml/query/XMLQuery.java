@@ -109,6 +109,8 @@ public interface XMLQuery {
 
     void bind(String pName, String pValue) throws XMLQueryException;
 
+    void bind(String pName, Integer pValue) throws XMLQueryException;
+
     void setGroup(String groupName, boolean active);
 
     void setDbms(String dbms);

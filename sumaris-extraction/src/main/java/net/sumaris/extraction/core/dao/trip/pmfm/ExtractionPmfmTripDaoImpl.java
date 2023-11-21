@@ -29,9 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
@@ -159,7 +161,22 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         return true;
     }
 
+    @Override
+    protected boolean enableTripProgressPmfm(C context) {
+        if (EntityEnums.isUnresolved(PmfmEnum.TRIP_PROGRESS)) return false;
 
+        Set<String> programLabels = getTripProgramLabels(context);
+        boolean enableParentOperation = enableParentOperation(context);
+        List<DenormalizedPmfmStrategyVO> pmfms;
+        if (!enableParentOperation) {
+            pmfms = loadPmfms(context, programLabels, AcquisitionLevelEnum.OPERATION);
+        }
+        else {
+            pmfms = loadPmfms(context, programLabels, AcquisitionLevelEnum.CHILD_OPERATION);
+        }
+
+        return pmfms.stream().anyMatch(pmfm -> PmfmEnum.TRIP_PROGRESS.getId().equals(pmfm.getId()));
+    }
 
     @Override
     protected Class<? extends ExtractionRdbTripContextVO> getContextClass() {
@@ -241,7 +258,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             PmfmEnum.TRIP_PROGRESS.getId()
         );
 
-        xmlQuery.setGroup("allowParent", enableParentOperation);
+        xmlQuery.setGroup("allowParentOperation", enableParentOperation);
 
         // Bind group by columns
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);

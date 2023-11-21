@@ -29,13 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.annotation.EntityEnums;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -318,9 +319,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("tripTableName", context.getTripTableName());
 
         // Bind some referential ids
-        xmlQuery.bind("nbOperationPmfmId", String.valueOf(PmfmEnum.NB_OPERATION.getId()));
+        xmlQuery.bind("nbOperationPmfmId", PmfmEnum.NB_OPERATION.getId());
         Integer countryLocationLevelId = LocationLevelEnum.COUNTRY.getLabel() != null ? getReferentialIdByUniqueLabel(LocationLevel.class, LocationLevelEnum.COUNTRY.getLabel()) : LocationLevelEnum.COUNTRY.getId();
-        xmlQuery.bind("countryLocationLevelId", String.valueOf(countryLocationLevelId));
+        xmlQuery.bind("countryLocationLevelId", countryLocationLevelId);
         xmlQuery.bind("samplingMethod", StringUtils.trimToEmpty(ProgramPropertyEnum.TRIP_EXTRACTION_SAMPLING_METHOD.getDefaultValue()));
 
         // Date filters
@@ -410,25 +411,36 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("tripTableName", context.getTripTableName());
         xmlQuery.bind("stationTableName", context.getStationTableName());
 
-        // Bind location level ids
+        // Bind some location level ids
         xmlQuery.bind("areaLocationLevelIds", Daos.getSqlInNumbers(getAreaLocationLevelIds(context)));
         xmlQuery.bind("rectangleLocationLevelIds", Daos.getSqlInNumbers(getRectangleLocationLevelIds(context)));
 
-        // Bind some PMFM ids
-        xmlQuery.bind("meshSizePmfmId", String.valueOf(PmfmEnum.SMALLER_MESH_GAUGE_MM.getId()));
-        xmlQuery.bind("mainFishingDepthPmfmId", String.valueOf(PmfmEnum.GEAR_DEPTH_M.getId()));
-        xmlQuery.bind("mainWaterDepthPmfmId", String.valueOf(PmfmEnum.BOTTOM_DEPTH_M.getId()));
-        xmlQuery.bind("selectionDevicePmfmIds", Daos.getSqlInNumbers(getSelectivityDevicePmfmIds()));
-        xmlQuery.bind("tripProgressPmfmId", String.valueOf(PmfmEnum.TRIP_PROGRESS.getId()));
-        xmlQuery.bind("nationalTaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.NATIONAL.getId()));
-        xmlQuery.bind("ueLevel5TaxonGroupTypeId", String.valueOf(TaxonGroupTypeEnum.DCF_METIER_LVL_5.getId()));
+        // Bind some quality flags
+        xmlQuery.bind("notQualifiedQualityFlagId", QualityFlagEnum.NOT_QUALIFIED.getId());
+        xmlQuery.bind("badQualityFlagId", QualityFlagEnum.BAD.getId());
+        xmlQuery.bind("incompleteQualityFlagId", QualityFlagEnum.NOT_COMPLETED.getId());
+        xmlQuery.bind("missingQualityFlagId", QualityFlagEnum.MISSING.getId());
 
-        // ENable some columns, using groups
+        // Bind some PMFM ids
+        xmlQuery.bind("meshSizePmfmId", PmfmEnum.SMALLER_MESH_GAUGE_MM.getId());
+        xmlQuery.bind("mainFishingDepthPmfmId", PmfmEnum.GEAR_DEPTH_M.getId());
+        xmlQuery.bind("mainWaterDepthPmfmId", PmfmEnum.BOTTOM_DEPTH_M.getId());
+        xmlQuery.bind("selectionDevicePmfmIds", Daos.getSqlInNumbers(getSelectivityDevicePmfmIds()));
+        xmlQuery.bind("tripProgressPmfmId", PmfmEnum.TRIP_PROGRESS.getId());
+        xmlQuery.bind("nationalTaxonGroupTypeId", TaxonGroupTypeEnum.NATIONAL.getId());
+        xmlQuery.bind("ueLevel5TaxonGroupTypeId", TaxonGroupTypeEnum.DCF_METIER_LVL_5.getId());
+
+        // Enable some columns, using groups
         xmlQuery.setGroup("gearType", true);
         xmlQuery.setGroup("date", true);
         xmlQuery.setGroup("time", true);
         xmlQuery.setGroup("fishingTime", true);
         xmlQuery.setGroup("selectionDevice", true);
+
+        // Has trip progress PMFM? (to compute fishing_validity column)
+        boolean tripProgress = enableTripProgressPmfm(context);
+        xmlQuery.setGroup("tripProgress", tripProgress);
+        xmlQuery.setGroup("!tripProgress", !tripProgress);
 
         // Record type
         xmlQuery.setGroup("recordType", enableRecordTypeColumn);
@@ -527,12 +539,12 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("defaultCommercialSizeCategoryScale", configuration.getExtractionDefaultCommercialSizeCategoryScale());
 
         // Bind some ids
-        xmlQuery.bind("catchCategoryPmfmId", String.valueOf(PmfmEnum.DISCARD_OR_LANDING.getId()));
-        xmlQuery.bind("landingQvId", String.valueOf(QualitativeValueEnum.LANDING.getId()));
-        xmlQuery.bind("discardQvId", String.valueOf(QualitativeValueEnum.DISCARD.getId()));
-        xmlQuery.bind("landingCategoryPmfmId", String.valueOf(PmfmEnum.LANDING_CATEGORY.getId()));
+        xmlQuery.bind("catchCategoryPmfmId", PmfmEnum.DISCARD_OR_LANDING.getId());
+        xmlQuery.bind("landingQvId", QualitativeValueEnum.LANDING.getId());
+        xmlQuery.bind("discardQvId", QualitativeValueEnum.DISCARD.getId());
+        xmlQuery.bind("landingCategoryPmfmId", PmfmEnum.LANDING_CATEGORY.getId());
         xmlQuery.bind("sizeCategoryPmfmIds", Daos.getSqlInNumbers(getSizeCategoryPmfmIds()));
-        xmlQuery.bind("subsamplingCategoryPmfmId", String.valueOf(PmfmEnum.BATCH_SORTING.getId()));
+        xmlQuery.bind("subsamplingCategoryPmfmId", PmfmEnum.BATCH_SORTING.getId());
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
 
 
@@ -643,10 +655,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         xmlQuery.bind("speciesLengthTableName", context.getSpeciesLengthTableName());
 
         // Bind some ids
-        xmlQuery.bind("sexPmfmId", String.valueOf(PmfmEnum.SEX.getId()));
+        xmlQuery.bind("sexPmfmId", PmfmEnum.SEX.getId());
         xmlQuery.bind("lengthPmfmIds", Daos.getSqlInNumbers(getSpeciesLengthPmfmIds()));
-        xmlQuery.bind("centimeterUnitId", String.valueOf(UnitEnum.CM.getId()));
-        xmlQuery.bind("millimeterUnitId", String.valueOf(UnitEnum.MM.getId()));
+        xmlQuery.bind("centimeterUnitId", UnitEnum.CM.getId());
+        xmlQuery.bind("millimeterUnitId", UnitEnum.MM.getId());
 
         xmlQuery.setGroup("sex", true);
         xmlQuery.setGroup("lengthClass", true);
@@ -946,6 +958,10 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
             log.error("Error while updating TR 'sampling_method' column: " + e.getMessage(), e);
             // Continue
         }
+    }
+
+    protected boolean enableTripProgressPmfm(C context) {
+        return EntityEnums.isResolved(PmfmEnum.TRIP_PROGRESS);
     }
 
     protected boolean enableSpeciesLengthTaxon(C context) {
