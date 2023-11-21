@@ -269,17 +269,17 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
+        boolean enableBatchDenormalization = enableBatchDenormalization(context);
 
         injectPmfmColumns(context, xmlQuery,
             getTripProgramLabels(context),
             AcquisitionLevelEnum.SORTING_BATCH,
-            null,
+            enableBatchDenormalization ? "injectionRawSpeciesListDenormalizePmfm" : "injectionRawSpeciesListPmfm",
             "pmfmsInjection",
             // Excluded PMFM (already exists as RDB format columns)
             getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
 
-        boolean enableBatchDenormalization = enableBatchDenormalization(context);
         xmlQuery.injectQuery(getXMLQueryURL(context, enableBatchDenormalization ? "injectionRawSpeciesListDenormalizeTable" : "injectionRawSpeciesListTable"));
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
@@ -473,13 +473,14 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionPhysicalGearPmfm":
             case "injectionStationPmfm":
             case "injectionStationParentPmfm":
-            case "injectionRawSpeciesListPmfm":
-            case "injectionSpeciesListPmfm":
             case "injectionSamplePmfm":
             case "injectionTripTable":
             case "injectionStationTable":
-            case "injectionRawSpeciesListTable":
             case "injectionRawSpeciesListDenormalizeTable":
+            case "injectionRawSpeciesListDenormalizePmfm":
+            case "injectionRawSpeciesListTable":
+            case "injectionRawSpeciesListPmfm":
+            case "injectionSpeciesListPmfm":
             case "injectionSpeciesListTable_afterSpecies":
             case "injectionSpeciesListTable_afterSex":
             case "injectionSpeciesLengthPmfm":
@@ -536,15 +537,17 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         if (CollectionUtils.isEmpty(pmfmColumns)) return ""; // Skip if empty
 
-        List<Integer> excludedPmfmIdsList = Arrays.asList(excludedPmfmIds);
-
-        pmfmColumns.stream()
-            .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
-            .forEach(pmfm -> injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfm));
+        final List<Integer> excludedPmfmIdsList = Arrays.asList(excludedPmfmIds);
 
         return pmfmColumns.stream()
             .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
-            .map(ExtractionPmfmColumnVO::getLabel)
+            .map(pmfmColumn -> {
+                // Inject pmfm column
+                injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfmColumn);
+
+                // Return column label
+                return pmfmColumn.getLabel();
+            })
             .collect(Collectors.joining(","));
     }
 

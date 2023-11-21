@@ -56,7 +56,9 @@
     <select alias="SPECIES" type="text">SL.SPECIES</select>
     <injection name="afterSpeciesInjection" type="select" group="injectionPoint"/>
     <select alias="CATCH_CATEGORY" type="text">SL.CATCH_CATEGORY</select>
-    <select alias="LANDING_CATEGORY" type="text">SL.LANDING_CATEGORY</select>
+    <select alias="LANDING_CATEGORY" type="text">
+      (CASE SL.CATCH_CATEGORY WHEN 'LAN' THEN SL.LANDING_CATEGORY ELSE NULL END)
+    </select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text">SL.COMMERCIAL_SIZE_CATEGORY_SCALE</select>
     <select alias="COMMERCIAL_SIZE_CATEGORY" type="text">
       (CASE SL.COMMERCIAL_SIZE_CATEGORY WHEN 'NA' THEN NULL ELSE SL.COMMERCIAL_SIZE_CATEGORY END)
