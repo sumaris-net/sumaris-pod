@@ -70,6 +70,8 @@
     <select alias="INDIVIDUAL_SEX" group="sex" type="text">B.SEX</select>
     <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
+    <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
+
     <select alias="LENGTH_CLASS" group="lengthClass" type="number">B.LENGTH_CLASS</select>
     <select alias="NUMBER_AT_LENGTH"  group="numberAtLength,agg" type="number">SUM(B.INDIVIDUAL_COUNT)</select>
 

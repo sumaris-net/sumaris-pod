@@ -74,6 +74,7 @@
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true)
       ))]]>
     </select>
+    <injection name="afterWeightInjection" type="select" group="injectionPoint"/>
 
     <!-- TODO get precision from PMFM (unit + maxDecimals) ? -->
     <select alias="LENGTH_CODE" type="text" group="agg"><![CDATA[

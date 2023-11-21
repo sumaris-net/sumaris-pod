@@ -91,6 +91,7 @@
         ELSE NULL
       END)
     ]]></select>
+    <injection name="afterWeightInjection" type="select" group="injectionPoint"/>
 
     <select alias="LENGTH_CODE" type="text">UNIT.LABEL</select>
 
