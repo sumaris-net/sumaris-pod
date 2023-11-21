@@ -131,7 +131,7 @@
 
     <where>1=1</where>
     <where operator="AND" group="excludeOperationGroup">
-      NOT (O.START_DATE_TIME=T.DEPARTURE_DATE_TIME AND O.END_DATE_TIME=T.RETURN_DATE_TIME)
+      NOT(O.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O.END_DATE_TIME = T.RETURN_DATE_TIME)
     </where>
     <where operator="AND" group="operationIdsFilter">
       O.ID IN (&amp;operationIds)

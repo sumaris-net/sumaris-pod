@@ -29,4 +29,7 @@
   <from join="true" group="pmfms">LEFT OUTER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = SPECIE_B.ID</from>
   <from join="true" group="pmfms">LEFT OUTER JOIN QUALITATIVE_VALUE QV on QV.ID = SM.QUALITATIVE_VALUE_FK</from>
 
+  <from join="true" group="pmfms">LEFT OUTER JOIN SORTING_MEASUREMENT_B SM2 ON SM2.BATCH_FK = SORTING_B.ID</from>
+  <from join="true" group="pmfms">LEFT OUTER JOIN QUALITATIVE_VALUE QV2 on QV2.ID = SM2.QUALITATIVE_VALUE_FK</from>
+
 </query>

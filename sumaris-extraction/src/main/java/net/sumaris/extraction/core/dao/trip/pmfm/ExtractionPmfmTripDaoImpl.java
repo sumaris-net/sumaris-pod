@@ -29,9 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
@@ -159,7 +161,22 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         return true;
     }
 
+    @Override
+    protected boolean enableTripProgressPmfm(C context) {
+        if (EntityEnums.isUnresolved(PmfmEnum.TRIP_PROGRESS)) return false;
 
+        Set<String> programLabels = getTripProgramLabels(context);
+        boolean enableParentOperation = enableParentOperation(context);
+        List<DenormalizedPmfmStrategyVO> pmfms;
+        if (!enableParentOperation) {
+            pmfms = loadPmfms(context, programLabels, AcquisitionLevelEnum.OPERATION);
+        }
+        else {
+            pmfms = loadPmfms(context, programLabels, AcquisitionLevelEnum.CHILD_OPERATION);
+        }
+
+        return pmfms.stream().anyMatch(pmfm -> PmfmEnum.TRIP_PROGRESS.getId().equals(pmfm.getId()));
+    }
 
     @Override
     protected Class<? extends ExtractionRdbTripContextVO> getContextClass() {
@@ -241,7 +258,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             PmfmEnum.TRIP_PROGRESS.getId()
         );
 
-        xmlQuery.setGroup("allowParent", enableParentOperation);
+        xmlQuery.setGroup("allowParentOperation", enableParentOperation);
 
         // Bind group by columns
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
@@ -251,18 +268,19 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
     protected XMLQuery createRawSpeciesListQuery(C context, boolean excludeInvalidStation) {
         XMLQuery xmlQuery = super.createRawSpeciesListQuery(context, excludeInvalidStation);
+        boolean enableBatchDenormalization = enableBatchDenormalization(context);
 
         injectPmfmColumns(context, xmlQuery,
             getTripProgramLabels(context),
             AcquisitionLevelEnum.SORTING_BATCH,
-            null,
+            enableBatchDenormalization ? "injectionRawSpeciesListDenormalizePmfm" : "injectionRawSpeciesListPmfm",
             "pmfmsInjection",
             // Excluded PMFM (already exists as RDB format columns)
             getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
 
-        boolean enableBatchDenormalization = enableBatchDenormalization(context);
-        xmlQuery.injectQuery(getXMLQueryURL(context, enableBatchDenormalization ? "injectionRawSpeciesListDenormalizeTable" : "injectionRawSpeciesListTable"));
+        xmlQuery.injectQuery(getXMLQueryURL(context, enableBatchDenormalization ? "injectionRawSpeciesListDenormalizeTable" : "injectionRawSpeciesListTable"),
+            "afterWeightInjection");
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
@@ -291,16 +309,17 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         XMLQuery xmlQuery = super.createSpeciesListQuery(context);
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterSpecies"), "afterSpeciesInjection");
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterSex"), "afterSexInjection");
 
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
                 AcquisitionLevelEnum.SORTING_BATCH,
                 "injectionSpeciesListPmfm",
-                "afterSexInjection",
+                "pmfmsInjection",
             // Excluded PMFM (already exists as RDB format columns)
             getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
+
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterWeight"), "afterWeightInjection");
 
         // Add group by pmfms
         xmlQuery.setGroup("pmfms", StringUtils.isNotBlank(pmfmsColumns));
@@ -330,7 +349,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             getTripProgramLabels(context),
             AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL,
             "injectionSpeciesLengthPmfm",
-            "afterSexInjection",
+            "pmfmsInjection",
             // Excluded some pmfms (already extracted in the RDB format)
             ImmutableList.builder()
                 .add(PmfmEnum.DISCARD_OR_LANDING.getId(),
@@ -455,15 +474,16 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionPhysicalGearPmfm":
             case "injectionStationPmfm":
             case "injectionStationParentPmfm":
-            case "injectionRawSpeciesListPmfm":
-            case "injectionSpeciesListPmfm":
             case "injectionSamplePmfm":
             case "injectionTripTable":
             case "injectionStationTable":
-            case "injectionRawSpeciesListTable":
             case "injectionRawSpeciesListDenormalizeTable":
+            case "injectionRawSpeciesListDenormalizePmfm":
+            case "injectionRawSpeciesListTable":
+            case "injectionRawSpeciesListPmfm":
+            case "injectionSpeciesListPmfm":
             case "injectionSpeciesListTable_afterSpecies":
-            case "injectionSpeciesListTable_afterSex":
+            case "injectionSpeciesListTable_afterWeight":
             case "injectionSpeciesLengthPmfm":
             case "injectionSpeciesLengthTable":
             case "injectionSpeciesLengthTaxon":
@@ -518,15 +538,17 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         if (CollectionUtils.isEmpty(pmfmColumns)) return ""; // Skip if empty
 
-        List<Integer> excludedPmfmIdsList = Arrays.asList(excludedPmfmIds);
-
-        pmfmColumns.stream()
-            .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
-            .forEach(pmfm -> injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfm));
+        final List<Integer> excludedPmfmIdsList = Arrays.asList(excludedPmfmIds);
 
         return pmfmColumns.stream()
             .filter(pmfm -> !excludedPmfmIdsList.contains(pmfm.getPmfmId()))
-            .map(ExtractionPmfmColumnVO::getLabel)
+            .map(pmfmColumn -> {
+                // Inject pmfm column
+                injectPmfmColumn(context, xmlQuery, injectionQuery, injectionPointName, pmfmColumn);
+
+                // Return column label
+                return pmfmColumn.getLabel();
+            })
             .collect(Collectors.joining(","));
     }
 

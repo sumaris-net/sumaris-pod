@@ -526,6 +526,11 @@ public class XMLQueryImpl implements XMLQuery {
         delegate.bind(pName, pValue);
     }
 
+    @Override
+    public void bind(String pName, Integer pValue) throws XMLQueryException {
+        delegate.bind(pName, pValue != null ? pValue.toString() : null);
+    }
+
     public void validate() throws XMLQueryException {
         delegate.validate();
     }

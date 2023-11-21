@@ -60,7 +60,7 @@
     ]]></select>
 
     <!-- other fields -->
-    <select alias="FISHING_VALIDITY" type="text" group="agg">
+    <select alias="FISHING_VALIDITY" type="text" group="tripProgress,agg">
       MAX(
         CASE VUM.PMFM_FK WHEN &amp;tripProgressPmfmId THEN
           CASE VUM.NUMERICAL_VALUE
@@ -69,6 +69,14 @@
           ELSE null END
         ELSE null END
       )
+    </select>
+    <select alias="FISHING_VALIDITY" type="text" group="!tripProgress,agg">
+      MAX(CASE O.QUALITY_FLAG_FK
+        WHEN &amp;badQualityFlagId THEN UPPER('I')
+        WHEN &amp;incompleteQualityFlagId THEN UPPER('I')
+        WHEN &amp;missingQualityFlagId THEN UPPER('I')
+        ELSE UPPER('V')
+      END)
     </select>
     <select alias="AGGREGATION_LEVEL" type="text">UPPER('H')</select>
     <select alias="CATCH_REGISTRATION" type="text">'All'</select><!-- TODO : check batch lan/dis -->

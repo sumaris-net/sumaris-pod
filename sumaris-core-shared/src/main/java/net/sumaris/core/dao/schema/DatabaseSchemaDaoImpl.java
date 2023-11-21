@@ -196,8 +196,10 @@ public class DatabaseSchemaDaoImpl
         // Add table and columns comment
         try {
             appendRemarks(filename, metadata);
-        } catch (SQLException | IOException e) {
-            throw new SumarisTechnicalException("Error when appending comments on file", e);
+        } catch (Exception e) {
+            // FIXME java.lang.NullPointerException: Cannot invoke "org.hibernate.boot.model.relational.QualifiedName.getCatalogName()" because "name" is null
+            // throw new SumarisTechnicalException("Error when appending comments on file", e);
+            log.error("Failed to export remarks: {}", e.getMessage(), e);
         }
     }
 
@@ -785,9 +787,12 @@ public class DatabaseSchemaDaoImpl
             HibernateConnectionProvider.setConnection(connection);
         }
 
-        try {
+        try (SessionFactory sf = metadata.buildSessionFactory()) {
             String schemaName = connection.getSchema();
-            metadata.buildSessionFactory().getMetamodel().getEntities().stream()
+            sf.getMetamodel()
+                .getEntities()
+                .stream()
+                .filter(entityType -> entityType.getName() != null)
                 .sorted(Comparator.comparing(EntityType::getName))
                 .forEach(entityType -> {
                     Table table = entityType.getJavaType().getAnnotation(Table.class);
@@ -798,6 +803,7 @@ public class DatabaseSchemaDaoImpl
                         }
                         // iterate attributes
                         entityType.getAttributes().stream()
+                            .filter(attribute -> attribute.getName() != null)
                             .sorted(Comparator.comparing(Attribute::getName))
                             .forEach(attribute -> {
                                 if (attribute.getJavaMember() instanceof Field) {

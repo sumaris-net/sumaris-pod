@@ -43,7 +43,9 @@
         INNER JOIN QUALITATIVE_VALUE QV ON QV.ID=SM.QUALITATIVE_VALUE_FK
       WHERE SM.BATCH_FK = SORTING_B.ID and SM.PMFM_FK=&catchCategoryPmfmId
     )]]></select>
-    <select alias="LANDING_CATEGORY" type="text" group="agg">'&amp;defaultLandingCategory'</select>
+    <select alias="LANDING_CATEGORY" type="text" group="agg">
+      '&amp;defaultLandingCategory'
+    </select>
     <select alias="COMMERCIAL_SIZE_CATEGORY_SCALE" type="text" group="agg">
       MAX(CASE TG.LABEL WHEN 'NEP' THEN 'Nephrops' ELSE '&amp;defaultCommercialSizeCategoryScale' END)
     </select>
@@ -72,6 +74,7 @@
       (SELECT QM.NUMERICAL_VALUE FROM QUANTIFICATION_MEASUREMENT_B QM WHERE QM.BATCH_FK=SORTING_B.ID and QM.IS_REFERENCE_QUANTIFICATION=true)
       ))]]>
     </select>
+    <injection name="afterWeightInjection" type="select" group="injectionPoint"/>
 
     <!-- TODO get precision from PMFM (unit + maxDecimals) ? -->
     <select alias="LENGTH_CODE" type="text" group="agg"><![CDATA[
