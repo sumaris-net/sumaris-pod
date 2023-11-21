@@ -47,6 +47,8 @@
     <select alias="SEX" type="text">SL.SEX</select><!-- always define in the HL table -->
     <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
+    <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
+
     <!-- other fields -->
     <select alias="WEIGHT" group="weight,agg" type="number">CAST(SUM(SL.WEIGHT * SL.SUBSAMPLING_RATIO * 1000) AS INTEGER)</select>
     <select alias="SUBSAMPLE_WEIGHT" group="weight,agg" type="number"><![CDATA[
@@ -55,6 +57,7 @@
         ELSE NULL
       END)
     ]]></select>
+    <injection name="afterWeightInjection" type="select" group="injectionPoint"/>
 
     <select alias="LENGTH_CODE" group="lengthCode" type="text">SL.LENGTH_CODE</select>
 

@@ -280,7 +280,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
 
-        xmlQuery.injectQuery(getXMLQueryURL(context, enableBatchDenormalization ? "injectionRawSpeciesListDenormalizeTable" : "injectionRawSpeciesListTable"));
+        xmlQuery.injectQuery(getXMLQueryURL(context, enableBatchDenormalization ? "injectionRawSpeciesListDenormalizeTable" : "injectionRawSpeciesListTable"),
+            "afterWeightInjection");
 
         // Enable taxon columns, if enable by program (e.g. in the SUMARiS program)
         boolean enableTaxonColumns = this.enableSpeciesListTaxon(context) || this.enableSpeciesLengthTaxon(context);
@@ -309,16 +310,17 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         XMLQuery xmlQuery = super.createSpeciesListQuery(context);
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterSpecies"), "afterSpeciesInjection");
-        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterSex"), "afterSexInjection");
 
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
                 getTripProgramLabels(context),
                 AcquisitionLevelEnum.SORTING_BATCH,
                 "injectionSpeciesListPmfm",
-                "afterSexInjection",
+                "pmfmsInjection",
             // Excluded PMFM (already exists as RDB format columns)
             getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
         );
+
+        xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesListTable_afterWeight"), "afterWeightInjection");
 
         // Add group by pmfms
         xmlQuery.setGroup("pmfms", StringUtils.isNotBlank(pmfmsColumns));
@@ -348,7 +350,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             getTripProgramLabels(context),
             AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL,
             "injectionSpeciesLengthPmfm",
-            "afterSexInjection",
+            "pmfmsInjection",
             // Excluded some pmfms (already extracted in the RDB format)
             ImmutableList.builder()
                 .add(PmfmEnum.DISCARD_OR_LANDING.getId(),
@@ -482,7 +484,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionRawSpeciesListPmfm":
             case "injectionSpeciesListPmfm":
             case "injectionSpeciesListTable_afterSpecies":
-            case "injectionSpeciesListTable_afterSex":
+            case "injectionSpeciesListTable_afterWeight":
             case "injectionSpeciesLengthPmfm":
             case "injectionSpeciesLengthTable":
             case "injectionSpeciesLengthTaxon":
