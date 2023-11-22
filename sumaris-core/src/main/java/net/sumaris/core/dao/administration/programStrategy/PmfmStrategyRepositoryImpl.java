@@ -139,6 +139,7 @@ public class PmfmStrategyRepositoryImpl
             if (source.getMatrix() != null) target.setMatrixId(source.getMatrix().getId());
             if (source.getFraction() != null) target.setFractionId(source.getFraction().getId());
             if (source.getMethod() != null) target.setMethodId(source.getMethod().getId());
+        }
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {

@@ -56,7 +56,11 @@ public interface VesselService {
 	@Transactional(readOnly = true)
 	VesselVO get(int id);
 
-	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
+	@CacheEvict(cacheNames = {
+		CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE,
+		CacheConfiguration.Names.VESSEL_SNAPSHOTS_BY_FILTER,
+		CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER
+	}, allEntries = true)
 	VesselVO save(VesselVO source);
 
 	@CacheEvict(cacheNames = {

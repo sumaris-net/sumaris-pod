@@ -119,12 +119,13 @@ public class TripServiceImpl implements TripService {
     public TripVO get(int id, @NonNull TripFetchOptions fetchOptions) {
         TripVO target = tripRepository.get(id);
 
+        // Vessel snapshot
+        if (fetchOptions.isWithVesselSnaphost() && target.getVesselId() != null && target.getVesselSnapshot() == null) {
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDepartureDateTime())));
+        }
+
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
-
-            if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
-                target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDepartureDateTime())));
-            }
 
             DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
 
@@ -215,6 +216,16 @@ public class TripServiceImpl implements TripService {
                 }
             }
         });
+    }
+
+    public void fillVesselSnapshot(TripVO target) {
+        if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getVesselDateTime())));
+        }
+    }
+
+    public void fillVesselSnapshots(List<TripVO> target) {
+        target.parallelStream().forEach(this::fillVesselSnapshot);
     }
 
     @Override

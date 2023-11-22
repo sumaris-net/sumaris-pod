@@ -1172,9 +1172,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "deleteAggregatedLandings", description = "Delete many aggregated landings")
     public void deleteAggregatedLandings(
             @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-            @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
+            @GraphQLArgument(name = "vesselIds") List<Integer> vesselIds
     ) {
-        aggregatedLandingService.deleteAll(filter, vesselSnapshotIds);
+        aggregatedLandingService.deleteAll(filter, vesselIds);
     }
 
     /* -- Measurements -- */

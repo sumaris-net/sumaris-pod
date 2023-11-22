@@ -40,6 +40,7 @@ public class LandingFetchOptions implements IDataFetchOptions {
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withObservers(false)
+        .withVesselSnapshot(false)
         .build();
 
     public static final LandingFetchOptions FULL_GRAPH = LandingFetchOptions.builder()
@@ -50,6 +51,9 @@ public class LandingFetchOptions implements IDataFetchOptions {
         .withTripExpectedSales(true)
         .sampleFetchOptions(SampleFetchOptions.FULL_GRAPH)
         .build();
+
+    @Builder.Default
+    private boolean withVesselSnapshot = true;
 
     @Builder.Default
     private boolean withRecorderDepartment = true;

@@ -43,6 +43,6 @@ public interface AggregatedLandingService {
 
 	List<AggregatedLandingVO> saveAll(AggregatedLandingFilterVO filter, List<AggregatedLandingVO> aggregatedLandings);
 
-	void deleteAll(AggregatedLandingFilterVO filter, List<Integer> vesselSnapshotIds);
+	void deleteAll(AggregatedLandingFilterVO filter, List<Integer> vesselIds);
 
 }

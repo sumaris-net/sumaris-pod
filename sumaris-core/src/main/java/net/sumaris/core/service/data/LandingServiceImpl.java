@@ -93,8 +93,12 @@ public class LandingServiceImpl implements LandingService {
     @Override
     public List<LandingVO> findAll(@Nullable LandingFilterVO filter, @Nullable Page page, LandingFetchOptions fetchOptions) {
        filter = LandingFilterVO.nullToEmpty(filter);
-       return landingRepository.findAll(filter, page, fetchOptions);
+       List<LandingVO> landings = landingRepository.findAll(filter, page, fetchOptions);
 
+       // Fill vessel snapshots
+       if (fetchOptions == null || fetchOptions.isWithVesselSnapshot()) fillVesselSnapshots(landings);
+
+       return landings;
     }
 
     @Override
@@ -110,6 +114,9 @@ public class LandingServiceImpl implements LandingService {
     @Override
     public LandingVO get(Integer id, @NonNull LandingFetchOptions fetchOptions) {
         LandingVO target = landingRepository.get(id, fetchOptions);
+
+        // Fill vessel snapshot
+        if (fetchOptions.isWithVesselSnapshot()) fillVesselSnapshot(target);
 
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
@@ -150,6 +157,16 @@ public class LandingServiceImpl implements LandingService {
         }
 
         return target;
+    }
+
+    public void fillVesselSnapshot(LandingVO target) {
+        if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getVesselDateTime())));
+        }
+    }
+
+    public void fillVesselSnapshots(List<LandingVO> target) {
+        target.parallelStream().forEach(this::fillVesselSnapshot);
     }
 
     @Override
@@ -204,6 +221,12 @@ public class LandingServiceImpl implements LandingService {
     public void deleteAllByObservedLocationId(int observedLocationId) {
         landingRepository.findAllIdsByObservedLocationId(observedLocationId)
                 .forEach(this::delete);
+    }
+
+    @Override
+    public void deleteAllByFilter(@NonNull LandingFilterVO filter) {
+        List<LandingVO> landingsToDelete = findAll(filter, null, LandingFetchOptions.MINIMAL);
+        landingsToDelete.stream().map(LandingVO::getId).forEach(this::delete);
     }
 
     @Override

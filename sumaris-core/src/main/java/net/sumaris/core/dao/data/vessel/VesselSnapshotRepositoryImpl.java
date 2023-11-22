@@ -51,8 +51,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
-import javax.annotation.Nullable;
-import javax.persistence.EntityGraph;
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
@@ -372,7 +371,5 @@ public class VesselSnapshotRepositoryImpl
         if (enableAdagioOptimization) {
             query.setHint("org.hibernate.comment", String.format("+ INDEX(%s.VESSEL_REGISTRATION_PERIOD IX_VESSEL_REG_PER_END_DATE)", adagioSchema));
         }
-
-        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
 }
