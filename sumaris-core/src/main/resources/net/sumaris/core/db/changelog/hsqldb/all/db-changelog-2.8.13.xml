@@ -8,7 +8,27 @@
   <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
   <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
+  <!-- Add SAMPLE on OBJECT_TYPE whit ID 2 if availiable -->
   <changeSet author="maxime.demarest@e-is.pro" id="1701160467-100" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM object_type where label='SAMPLE'</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM object_type where id=2</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="object_type">
+      <column name="ID">2</column>
+      <column name="LABEL">SAMPLE</column>
+      <column name="NAME">Échantillon</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="current_timestamp" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+  <!-- Else compute it ID with sequence -->
+  <changeSet author="maxime.demarest@e-is.pro" id="1701160467-200" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <and>
         <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
