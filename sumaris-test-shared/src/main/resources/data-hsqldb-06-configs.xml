@@ -132,5 +132,7 @@
     <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="162" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="163" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.vessel.filter.type.id" NAME="1"/> <!-- FISHING VESSEL -->
+
 
 </dataset>

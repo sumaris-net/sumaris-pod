@@ -176,6 +176,7 @@ public class ExtractionConfiguration {
     public boolean enableStratMonitoringScientificCruise() {
         return getApplicationConfig().getOptionAsBoolean(ExtractionConfigurationOption.EXTRACTION_STRAT_MONITORING_SCIENTIFIC_CRUISE.getKey());
     }
+    
     public char getCsvSeparator() {
         return delegate.getCsvSeparator();
     }

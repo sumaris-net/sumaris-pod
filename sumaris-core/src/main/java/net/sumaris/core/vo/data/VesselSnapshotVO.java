@@ -51,6 +51,7 @@ import java.util.Map;
 public class VesselSnapshotVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>, IRootDataVO<Integer> {
 
+    @JsonIgnore
     public static final String INDEX = "vessel_snapshot";
 
     @Id
