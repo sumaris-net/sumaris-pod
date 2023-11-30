@@ -276,7 +276,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 					List<VesselVO> vessels = readRows(reader, includedHeaders).stream()
 						.map(this::toVO)
-						.collect(Collectors.toList());
+						.toList();
 
 					progressionModel.setTotal(vessels.size() + 1 /*disable vessels*/);
 
@@ -286,7 +286,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 							// Get the unique key
 							String uniqueKey = Beans.getProperty(vessel, uniqueKeyPropertyName);
 							if (uniqueKey == null) {
-								warnings.increment();;
+								warnings.increment();
 								String message = String.format("Invalid row #%s: no value for the required header '%s'. Skipping", rowCounter, uniqueKeyHeaderName);
 								messages.add(message);
 								log.warn(message);
@@ -601,7 +601,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		// Update current data periods
 		if (source.getVesselFeatures() != null) {
 			// Reuse previous ids
-			if (previousVessel.getVesselFeatures() != null && previousVessel.getVesselFeatures().getStartDate().equals(startDate)) {
+			if (previousVessel.getVesselFeatures() != null && startDate.equals(previousVessel.getVesselFeatures().getStartDate())) {
 				source.getVesselFeatures().setId(previousVessel.getVesselFeatures().getId());
 			}
 			else {
@@ -613,7 +613,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		}
 		if (source.getVesselRegistrationPeriod() != null) {
 			// Reuse previous ids
-			if (previousVessel.getVesselRegistrationPeriod() != null && previousVessel.getVesselRegistrationPeriod().getStartDate().equals(startDate)) {
+			if (previousVessel.getVesselRegistrationPeriod() != null && startDate.equals(previousVessel.getVesselRegistrationPeriod().getStartDate())) {
 				source.getVesselRegistrationPeriod().setId(previousVessel.getVesselRegistrationPeriod().getId());
 			}
 			else {

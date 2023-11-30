@@ -6,19 +6,21 @@
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.8.12.xml">
 
   <!-- Drop the denormalized_batch_operation_fkc constraint -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-001">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-001" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <foreignKeyConstraintExists foreignKeyName="denormalized_batch_operation_fkc" />
+      <foreignKeyConstraintExists foreignKeyTableName="denormalized_batch"
+                                  foreignKeyName="denormalized_batch_operation_fkc" />
     </preConditions>
     <dropForeignKeyConstraint baseTableName="denormalized_batch"
                               constraintName="denormalized_batch_operation_fkc"/>
   </changeSet>
 
-  <!-- Add a new  foreign key with delete cascade -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-002">
+  <!-- Add a new foreign key with delete cascade -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-002" runOnChange="true" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <not>
-        <foreignKeyConstraintExists foreignKeyName="denormalized_batch_operation_fkc" />
+        <foreignKeyConstraintExists foreignKeyTableName="denormalized_batch"
+                                    foreignKeyName="denormalized_batch_operation_fkc" />
       </not>
     </preConditions>
     <addForeignKeyConstraint baseTableName="denormalized_batch"
@@ -39,7 +41,7 @@
   </changeSet>
 
   <!-- Add a new denormalized_batch_sale_fkc with delete cascade -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-004">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-004" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <not>
         <foreignKeyConstraintExists foreignKeyName="denormalized_batch_sale_fkc" />

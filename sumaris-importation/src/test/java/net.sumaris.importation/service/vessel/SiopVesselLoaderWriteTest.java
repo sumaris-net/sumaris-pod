@@ -23,14 +23,18 @@
 package net.sumaris.importation.service.vessel;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.importation.DatabaseResource;
 import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
@@ -40,6 +44,8 @@ import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.util.Date;
+import java.util.List;
 
 @Slf4j
 public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
@@ -52,6 +58,9 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
 
     @Autowired
     private PersonService personService = null;
+
+    @Autowired
+    private VesselService vesselService = null;
 
     @Autowired
     private ConfigurationService configurationService;
@@ -84,6 +93,34 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
         File file = new File(basePath, "bateaux_09_11_2022.csv");
 
         assertLoadFromFile(file);
+    }
+
+    @Test
+    public void loadFile_issueDuplicatedVesselFeatures() {
+        String basePath = "src/test/data/vessel/";
+        File file = new File(basePath, "vessels-siop-bom.csv");
+
+        assertLoadFromFile(file);
+        assertLoadFromFile(file);
+
+        List<VesselFeaturesVO> features = vesselService.getFeaturesByVesselId(1, Page.builder().build().asPageable(), DataFetchOptions.builder().build()).stream().toList();
+        List<Date> featuresEndDates = features.stream().map(VesselFeaturesVO::getEndDate).toList();
+        List<Date> featuesEndDatesDuplicatedRemoved = featuresEndDates.stream().distinct().toList();
+        Assert.assertEquals(featuresEndDates.size(), featuesEndDatesDuplicatedRemoved.size());
+    }
+
+    @Test
+    public void loadFile_issueDuplicatedVesselRegistrationPeriod() {
+        String basePath = "src/test/data/vessel/";
+        File file = new File(basePath, "vessels-siop-bom.csv");
+
+        assertLoadFromFile(file);
+        assertLoadFromFile(file);
+
+        List<VesselRegistrationPeriodVO> registrationPeriod = vesselService.getRegistrationPeriodsByVesselId(1, Page.builder().build().asPageable()).stream().toList();
+        List<Date> registrationPeriodEndDates = registrationPeriod.stream().map(VesselRegistrationPeriodVO::getEndDate).toList();
+        List<Date> registrationPeriodEndDatesDuplicatedRemoved = registrationPeriodEndDates.stream().distinct().toList();
+        Assert.assertEquals(registrationPeriodEndDates.size(), registrationPeriodEndDatesDuplicatedRemoved.size());
     }
 
     /* -- internal -- */

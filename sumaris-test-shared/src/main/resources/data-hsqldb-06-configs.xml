@@ -36,6 +36,8 @@
     <SOFTWARE_PROPERTY ID="25" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-01-16" LABEL="sumaris.persistence.vessel.registrationCode.searchAsPrefix" NAME="false"/>
     <SOFTWARE_PROPERTY ID="26" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-02-03" LABEL="sumaris.social.notification.icons.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-02" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-22" LABEL="sumaris.data.accessNotSelfData.role" NAME="ROLE_SUPERVISOR"/>
+    <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-22" LABEL="sumaris.data.accessNotSelfData.department.ids" NAME="2"/>
 
 
     <!-- ****** ADAP properties ****** -->

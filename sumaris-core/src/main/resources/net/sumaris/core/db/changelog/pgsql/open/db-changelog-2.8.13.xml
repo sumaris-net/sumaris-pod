@@ -1,0 +1,157 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~  
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~  
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-2.8.13.xml">
+
+    <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+    <property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
+    <property name="sqlCheck.open.expectedResult" value="1"/>
+
+    <preConditions onFail="WARN" onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
+        <or>
+            <!-- Test if database is empty -->
+            <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+            <!-- OR if expected production database -->
+            <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+        </or>
+    </preConditions>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1700496725700-400" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">
+                        SELECT count(distinct child.id)
+                        FROM operation AS child
+                        INNER JOIN operation AS parent ON parent.id = child.operation_fk
+                        INNER JOIN VESSEL_POSITION AS p_pos ON p_pos.OPERATION_FK = parent.id
+                        INNER JOIN VESSEL_POSITION AS c_pos ON c_pos.OPERATION_FK = child.id
+                        WHERE
+                            p_pos.DATE_TIME = c_pos.DATE_TIME AND (p_pos.LATITUDE != c_pos.LATITUDE OR p_pos.LONGITUDE != c_pos.LONGITUDE)
+                </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            UPDATE VESSEL_POSITION SET LATITUDE = (
+                SELECT
+                    p_pos.LATITUDE
+                FROM operation AS child
+                         INNER JOIN operation AS parent ON parent.id = child.operation_fk
+                         INNER JOIN VESSEL_POSITION AS p_pos ON p_pos.OPERATION_FK = parent.id
+                         INNER JOIN VESSEL_POSITION AS c_pos ON c_pos.OPERATION_FK = child.id
+                WHERE p_pos.DATE_TIME = c_pos.DATE_TIME AND p_pos.LATITUDE != c_pos.LATITUDE
+                )
+            WHERE ID = (
+                SELECT
+                c_pos.id
+                FROM operation AS child
+                INNER JOIN operation AS parent ON parent.id = child.operation_fk
+                INNER JOIN VESSEL_POSITION AS p_pos ON p_pos.OPERATION_FK = parent.id
+                INNER JOIN VESSEL_POSITION AS c_pos ON c_pos.OPERATION_FK = child.id
+                WHERE p_pos.DATE_TIME = c_pos.DATE_TIME AND p_pos.LATITUDE != c_pos.LATITUDE
+                );
+            UPDATE VESSEL_POSITION SET LONGITUDE = (
+                SELECT
+                    p_pos.LONGITUDE
+                FROM operation AS child
+                         INNER JOIN operation AS parent ON parent.id = child.operation_fk
+                         INNER JOIN VESSEL_POSITION AS p_pos ON p_pos.OPERATION_FK = parent.id
+                         INNER JOIN VESSEL_POSITION AS c_pos ON c_pos.OPERATION_FK = child.id
+                WHERE p_pos.DATE_TIME = c_pos.DATE_TIME AND p_pos.LONGITUDE != c_pos.LONGITUDE
+                )
+            WHERE ID = (
+                SELECT
+                c_pos.id
+                FROM operation AS child
+                INNER JOIN operation AS parent ON parent.id = child.operation_fk
+                INNER JOIN VESSEL_POSITION AS p_pos ON p_pos.OPERATION_FK = parent.id
+                INNER JOIN VESSEL_POSITION AS c_pos ON c_pos.OPERATION_FK = child.id
+                WHERE p_pos.DATE_TIME = c_pos.DATE_TIME AND p_pos.LONGITUDE != c_pos.LONGITUDE
+                );
+            commit;
+        </sql>
+    </changeSet>
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1700496725700-401" runOnChange="true">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+                <not>
+                    <sqlCheck expectedResult="0">
+                        select count(distinct o.id)
+                        from operation o
+                        inner join operation p on p.id=o.operation_fk
+                        inner join vessel_position vpp on vpp.operation_fk=p.id and vpp.date_time = p.fishing_start_date_time
+                        where o.start_date_time != o.fishing_start_date_time
+                        and not exists (select * from vessel_position vp where vp.operation_fk=o.id and vp.date_time = o.fishing_start_date_time)
+                    </sqlCheck>
+                </not>
+            </and>
+        </preConditions>
+        <sql endDelimiter=";">
+            update operation set update_date=current_timestamp
+            where id in (
+                select o.id
+                from operation o
+                         inner join operation p on p.id=o.operation_fk
+                         inner join vessel_position vpp on vpp.operation_fk=p.id and vpp.date_time = p.fishing_start_date_time
+                where
+                  o.start_date_time != o.fishing_start_date_time
+                  and not exists (
+                    select * from vessel_position vp
+                    where vp.operation_fk=o.id and vp.date_time = o.fishing_start_date_time
+                  )
+              );
+            insert into vessel_position (id, control_date, date_time, latitude,
+                                         longitude, qualification_comments, qualification_date,
+                                         update_date, validation_date, operation_fk,
+                                         quality_flag_fk, recorder_department_fk)
+            select
+                nextval('vessel_position_seq') as id,
+                o.control_date,
+                vpp.date_time, vpp.latitude, vpp.longitude,
+                vpp.qualification_comments, vpp.qualification_date,
+                current_timestamp as update_date,
+                null as validation_date,
+                o.id as operation_fk,
+                0 as quality_flag_fk,
+                o.recorder_department_fk
+            from operation o
+                 inner join operation p on p.id=o.operation_fk
+                 inner join vessel_position vpp on vpp.operation_fk=p.id and vpp.date_time = p.fishing_start_date_time
+            where
+                o.start_date_time != o.fishing_start_date_time
+                and not exists (
+                    select * from vessel_position vp
+                    where vp.operation_fk=o.id and vp.date_time = o.fishing_start_date_time
+                );
+            commit;
+        </sql>
+    </changeSet>
+</databaseChangeLog>
