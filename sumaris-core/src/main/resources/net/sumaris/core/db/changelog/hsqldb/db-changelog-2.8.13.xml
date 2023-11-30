@@ -6,7 +6,7 @@
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.8.13.xml">
 
   <!-- update SYSTEM_VERSION -->
-  <changeSet author="maxime.demarest@e-is.pro" id="1701102935-100" runOnChange="true">
+  <changeSet author="maxime.demarest@e-is.pro" id="1700496725700-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
       <where>LABEL='2.8.13'</where>
     </delete>
