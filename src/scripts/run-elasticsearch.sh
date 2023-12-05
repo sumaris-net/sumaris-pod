@@ -1,4 +1,4 @@
-#/bin/bash
+#/bin/bash -e
 
 SCRIPT_DIR=$(dirname "$(readlink "$BASH_SOURCE" || echo "$BASH_SOURCE")")
 PROJECT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd -P)
@@ -23,7 +23,7 @@ export ES_PATH_HOME=${PROJECT_DIR}/.local/elasticsearch-${ES_VERSION}
 export ES_PATH_CONF=${ES_PATH_HOME}/config
 #export ES_JAVA_OPTS="-Xmx512M -XX:MaxPermSize=512m -Djava.security.policy=file://${ES_PATH_CONF}/security.policy"
 
-if [ ! -d "${ES_PAHT_HOME}" ]; then
+if [ ! -d "${ES_PATH_HOME}" ]; then
   es_target="$(dirname ${ES_PATH_HOME})/elasticsearch-${ES_VERSION}-linux-x86_64.tar.gz"
   if [ ! -f "${es_target}" ]; then
     echo "Download elasticsearch ${ES_VERSION}..."
