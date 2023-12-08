@@ -48,6 +48,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Stream;
@@ -74,6 +75,7 @@ public class PhysicalGearRepositoryImpl
         //setCheckUpdateDate(false);
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableHashOptimization = getConfig().enablePhysicalGearHashOptimization();
