@@ -36,6 +36,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.IWithBatchesEntity;
 import net.sumaris.core.model.data.Operation;
@@ -57,6 +58,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.util.*;
@@ -87,6 +89,7 @@ public class BatchRepositoryImpl
         this.productRepository = productRepository;
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableHashOptimization = getConfig().enableBatchHashOptimization();
@@ -312,7 +315,11 @@ public class BatchRepositoryImpl
                 // Try to find it by hash code
                 Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
                 // Not found by hash code: try by label
-                if (CollectionUtils.isEmpty(existingBatchs) && source.getLabel() != null) {
+                if (CollectionUtils.isEmpty(existingBatchs) && source.getLabel() != null
+                    // /!\ Do NOT use label on individual sorting batch (individual measure)
+                    // because not unique on complex batch tree (e.g. APASE program - fix issue #498)
+                    && !source.getLabel().startsWith(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel())
+                ) {
                     existingBatchs = sourcesByLabelMap.get(source.getLabel());
                 }
                 // If one on match => use it
