@@ -357,6 +357,9 @@ public class DatabaseFixtures {
 	public Integer getPmfmBatchWeight() {
 		return 50;
 	}
+	public Integer getPmfmBatchTotalLengthCm() {
+		return 81;
+	}
 
 	public Integer getPmfmSampleTagId() {
 		return 82;

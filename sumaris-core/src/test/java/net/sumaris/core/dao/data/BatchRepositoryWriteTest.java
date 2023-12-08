@@ -29,7 +29,10 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.operation.OperationRepository;
 import net.sumaris.core.model.data.BatchQuantificationMeasurement;
+import net.sumaris.core.model.data.BatchSortingMeasurement;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
@@ -136,47 +139,12 @@ public class BatchRepositoryWriteTest extends AbstractDaoTest {
         List<BatchVO> batches = Lists.newArrayList();
 
         {
-            BatchVO catchBatch = new BatchVO();
-            catchBatch.setOperationId(parentOperation.getId());
-            catchBatch.setComments("Catch batch ope #" + parentOperation.getId());
-
-            catchBatch.setLabel("CATCH_BATCH");
-            catchBatch.setExhaustiveInventory(false);
-            catchBatch.setRankOrder(1);
-
-            // Recorder department
-            DepartmentVO recorderDepartment = new DepartmentVO();
-            recorderDepartment.setId(fixtures.getDepartmentId(0));
-            catchBatch.setRecorderDepartment(recorderDepartment);
-
+            BatchVO catchBatch = createCatchBatch();
             batches.add(catchBatch);
 
-            // Child 1
+            // Child species batch 1
             {
-                BatchVO child = new BatchVO();
-                child.setOperationId(parentOperation.getId());
-                child.setComments("Sorting batch #1 ope #" + parentOperation.getId());
-
-                child.setLabel("SORTING_BATCH#1");
-                child.setExhaustiveInventory(false);
-                child.setRankOrder(1);
-                child.setIndividualCount(1);
-
-                // Recorder department
-                child.setRecorderDepartment(recorderDepartment);
-
-                // Taxon group
-                ReferentialVO taxonGroup = new ReferentialVO();
-                taxonGroup.setId(fixtures.getTaxonGroupFAOId(0));
-                child.setTaxonGroup(taxonGroup);
-
-                // Measurement: weight
-                QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
-                weightMeasurement.setPmfmId(fixtures.getPmfmBatchWeight()); // landing weight
-                weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
-                weightMeasurement.setIsReferenceQuantification(true);
-
-                child.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
+                BatchVO child = createSpeciesBatch(0, 100, 1);
 
                 // Link to parent
                 child.setParent(catchBatch);
@@ -206,5 +174,164 @@ public class BatchRepositoryWriteTest extends AbstractDaoTest {
 
     }
 
+    @Test
+    public void saveAllByOperationId_issue498() {
 
+        List<BatchVO> batches = Lists.newArrayList();
+        String duplicatedLabel = "SORTING_BATCH_INDIVIDUAL#1";
+
+        BatchVO catchBatch = createCatchBatch();
+        batches.add(catchBatch);
+        String catchBatchLabel = catchBatch.getLabel();
+
+        {
+
+            // Child 1
+            {
+                BatchVO child = createSpeciesBatch(0, 100, 2);
+
+                // Link to parent + Add to full list
+                child.setParent(catchBatch);
+                batches.add(child);
+
+                // No individual yet (will be insert after the first save)
+            }
+
+            // Child 2
+            {
+                BatchVO child = createSpeciesBatch(1, 50, 1);
+
+                // Link to parent + Add to full list
+                child.setParent(catchBatch);
+                batches.add(child);
+
+                // Measure 1
+                {
+                    BatchVO individualBatch = createIndividualBatch(0, fixtures.getPmfmBatchTotalLengthCm(), 60, 1);
+                    individualBatch.setLabel(duplicatedLabel); // /!\ Should have same label
+                    individualBatch.setParent(child);
+                    batches.add(individualBatch);
+                }
+            }
+        }
+
+        // First save, to get an ID on each BATCH
+        List<BatchVO> savedResult = repository.saveAllByOperationId(parentOperation.getId(), batches);
+        Assert.assertNotNull(savedResult);
+        Assert.assertEquals(4, savedResult.size());
+
+        // Now, we add 1 species + 1 measure with an already used label
+        {
+            // Use saved entities (with ID)
+            batches = Lists.newArrayList(savedResult);
+            BatchVO child = savedResult.stream()
+                .filter(b -> "SORTING_BATCH#1".equals(b.getLabel()))
+                .findFirst().orElseGet(() -> {
+                    Assert.fail("Missing sorting batch #1");
+                    return null;
+                });
+
+            // Measure 1 (with the existing label)
+            {
+                BatchVO individualBatch = createIndividualBatch(0, fixtures.getPmfmBatchTotalLengthCm(), 60, 1);
+                individualBatch.setLabel(duplicatedLabel);
+                individualBatch.setParent(child);
+
+                // Insert after it parent (BEFORE the saved batch with the same label)
+                batches.add(2 , individualBatch);
+            }
+        }
+
+        // Save it for the second time. In issue 498, the second individual was getting the ID of the first individual,
+        // because ID was fund by label
+        savedResult = repository.saveAllByOperationId(parentOperation.getId(), batches);
+        Assert.assertNotNull(savedResult);
+        Assert.assertEquals(5, savedResult.size());
+
+        List<BatchVO> individualBatches = savedResult.stream().filter(b -> duplicatedLabel.equals(b.getLabel())).toList();
+        Assert.assertEquals(2, individualBatches.size());
+        Assert.assertNotEquals("Batches with same label should not have same ID",
+            individualBatches.get(0).getId(), individualBatches.get(1).getId());
+    }
+
+
+    /* -- -- */
+
+    protected BatchVO createCatchBatch() {
+        BatchVO catchBatch = new BatchVO();
+        catchBatch.setOperationId(parentOperation.getId());
+        catchBatch.setComments("Catch batch ope #" + parentOperation.getId());
+
+        catchBatch.setLabel("CATCH_BATCH");
+        catchBatch.setExhaustiveInventory(false);
+        catchBatch.setRankOrder(1);
+
+        // Recorder department
+        DepartmentVO recorderDepartment = new DepartmentVO();
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
+        catchBatch.setRecorderDepartment(recorderDepartment);
+
+        return catchBatch;
+    }
+
+    protected BatchVO createSpeciesBatch(int taxonGroupIndex, double totalWeight, Integer individualCount) {
+        int rankOrder = taxonGroupIndex+1;
+
+        BatchVO child = new BatchVO();
+        child.setOperationId(parentOperation.getId());
+        child.setComments("Sorting batch #1 ope #" + parentOperation.getId());
+
+        child.setLabel("SORTING_BATCH#" + rankOrder);
+        child.setExhaustiveInventory(false);
+        child.setRankOrder(rankOrder);
+        child.setIndividualCount(individualCount);
+
+        // Recorder department
+        DepartmentVO recorderDepartment = new DepartmentVO();
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
+        child.setRecorderDepartment(recorderDepartment);
+
+        // Taxon group
+        ReferentialVO taxonGroup = new ReferentialVO();
+        taxonGroup.setId(fixtures.getTaxonGroupFAOId(taxonGroupIndex));
+        child.setTaxonGroup(taxonGroup);
+
+        // Measurement: weight
+        QuantificationMeasurementVO weightMeasurement = new QuantificationMeasurementVO();
+        weightMeasurement.setPmfmId(fixtures.getPmfmBatchWeight()); // landing weight
+        weightMeasurement.setEntityName(BatchQuantificationMeasurement.class.getSimpleName());
+        weightMeasurement.setIsReferenceQuantification(true);
+        weightMeasurement.setNumericalValue(totalWeight);
+
+        child.setQuantificationMeasurements(ImmutableList.of(weightMeasurement));
+
+        return child;
+    }
+
+    protected BatchVO createIndividualBatch(int index, int pmfmId, double lengthValue, int individualCount) {
+        int rankOrder = index+1;
+        BatchVO child = new BatchVO();
+        child.setOperationId(parentOperation.getId());
+        child.setComments("Sorting batch individual #" + rankOrder);
+
+        child.setLabel("SORTING_BATCH_INDIVIDUAL#" + rankOrder);
+        child.setExhaustiveInventory(true);
+        child.setRankOrder(rankOrder);
+        child.setIndividualCount(individualCount);
+
+        // Recorder department
+        DepartmentVO recorderDepartment = new DepartmentVO();
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
+        child.setRecorderDepartment(recorderDepartment);
+
+        // Measurement: length
+        MeasurementVO lengthMeasurement = new MeasurementVO();
+        lengthMeasurement.setPmfmId(pmfmId); // landing weight
+        lengthMeasurement.setEntityName(BatchSortingMeasurement.class.getSimpleName());
+        lengthMeasurement.setNumericalValue(lengthValue);
+
+        child.setSortingMeasurements(ImmutableList.of(lengthMeasurement));
+
+        return child;
+    }
 }
