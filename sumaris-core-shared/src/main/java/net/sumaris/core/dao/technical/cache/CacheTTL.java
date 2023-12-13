@@ -49,6 +49,8 @@ public enum CacheTTL {
 
     DAY(24 * 60 * 60), // 1 day
 
+    WEEK(24 * 60 * 60 * 7), // 1 week
+
     // 2 days ~ almost eternal! :)
     // - We do not use infinite duration, because some SQL operations can have been done in the DB (SQL scripts, etc.)
     // - We need more than one day, to avoid cache reload/timeout each morning, when user comme back to the office

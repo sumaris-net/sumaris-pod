@@ -157,12 +157,14 @@ public class LocationRepositoryImpl
                 "Location parent " +
                 "where l.id=la.childLocation.id and parent.id=la.parentLocation.id", Object[].class);
 
-            int count = insertMissingLocationHierarchies(query.getResultStream(),
-                allParentsByChild,
-                updateDate);
-            stop = count == 0;
-            counter += count;
-            iterationCounter++;
+            try (Stream<Object[]> stream = query.getResultStream()) {
+                int count = insertMissingLocationHierarchies(stream,
+                    allParentsByChild,
+                    updateDate);
+                stop = count == 0;
+                counter += count;
+                iterationCounter++;
+            }
         }
 
         log.info("Adding missing LocationHierarchy [OK] {} - ({} inserts - {} iterations)",
@@ -235,14 +237,15 @@ public class LocationRepositoryImpl
 
     protected Map<Integer, Set<Integer>> loadLocationHierarchyMap() {
         TypedQuery<Object[]> query = this.getEntityManager().createQuery("select distinct lh.childLocation.id, lh.parentLocation.id from LocationHierarchy lh", Object[].class);
-        return query.getResultStream()
-            .collect(Collectors.toMap(
-                row -> (Integer)row[0], // key
-                row -> Sets.newHashSet((Integer)row[1]), // value
+        try (Stream<Object[]> stream = query.getResultStream()) {
+            return stream.collect(Collectors.toMap(
+                row -> (Integer) row[0], // key
+                row -> Sets.newHashSet((Integer) row[1]), // value
                 (o1, o2) -> {
                     o1.addAll(o2);
                     return o1;
                 },
                 HashMap<Integer, Set<Integer>>::new));
+        }
     }
 }

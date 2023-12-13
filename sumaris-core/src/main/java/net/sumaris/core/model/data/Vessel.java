@@ -96,7 +96,6 @@ public class Vessel implements IRootDataEntity<Integer> {
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselType.class)
     @JoinColumn(name="vessel_type_fk", nullable = false)
-    
     private VesselType vesselType;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -14,10 +14,10 @@
     <SOFTWARE_PROPERTY ID="3"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="image:50"/>
     <SOFTWARE_PROPERTY ID="4"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="image:50"/>
     <SOFTWARE_PROPERTY ID="5"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.partner.departments" NAME="department:2,department:3,department:4,department:5,department:6,department:7"/>
-    <SOFTWARE_PROPERTY ID="6" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:40|Credit SUMARIS,image:41|Credit SUMARIS,image:42|Credit SUMARIS,image:43|Credit SUMARIS,image:44|Credit SUMARIS,image:45|Credit SUMARIS,image:46|Credit SUMARIS,image:47|Credit SUMARIS,image:48|Credit SUMARIS,image:49|Credit SUMARIS"/>
-    <SOFTWARE_PROPERTY ID="7" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:55"/>
-    <SOFTWARE_PROPERTY ID="8" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="9" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
+    <SOFTWARE_PROPERTY ID="6"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="image:40|Credit SUMARIS,image:41|Credit SUMARIS,image:42|Credit SUMARIS,image:43|Credit SUMARIS,image:44|Credit SUMARIS,image:45|Credit SUMARIS,image:46|Credit SUMARIS,image:47|Credit SUMARIS,image:48|Credit SUMARIS,image:49|Credit SUMARIS"/>
+    <SOFTWARE_PROPERTY ID="7"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="image:55"/>
+    <SOFTWARE_PROPERTY ID="8"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="9"  STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.android.install.url" NAME="./download/android/sumaris-app-latest.apk"/>
     <SOFTWARE_PROPERTY ID="10" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="11" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.testing.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="12" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
@@ -38,7 +38,7 @@
     <SOFTWARE_PROPERTY ID="27" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-02" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="28" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-22" LABEL="sumaris.data.accessNotSelfData.role" NAME="ROLE_SUPERVISOR"/>
     <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-22" LABEL="sumaris.data.accessNotSelfData.department.ids" NAME="2"/>
-
+    <SOFTWARE_PROPERTY ID="30" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-07" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
 
     <!-- ****** ADAP properties ****** -->
 
@@ -88,11 +88,11 @@
 
 
     <!-- ****** IMAGINE properties ****** -->
-    <SOFTWARE_PROPERTY ID="100" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
-    <SOFTWARE_PROPERTY ID="101" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="https://image.ifremer.fr/html/tmp/logo4.jpg"/>
+    <SOFTWARE_PROPERTY ID="100" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo" NAME="https://test.sumaris.net/assets/img/logo/logo-imagine_110px.png"/>
+    <SOFTWARE_PROPERTY ID="101" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.logo.large" NAME="https://test.sumaris.net/assets/img/logo/logo-imagine.png"/>
     <SOFTWARE_PROPERTY ID="102" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="103" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.observedLocation.name" NAME="MENU.OCCASIONS"/>
-    <SOFTWARE_PROPERTY ID="104" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00665/77740/md/31271.jpg"/>
+    <SOFTWARE_PROPERTY ID="104" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00665/77740/md/31271.jpg|Crédit Ifremer"/>
     <SOFTWARE_PROPERTY ID="105" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.favicon" NAME="https://image.ifremer.fr/html/tmp/logo4_110.jpg"/>
     <SOFTWARE_PROPERTY ID="106" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.enabled" NAME="true"/>
     <SOFTWARE_PROPERTY ID="107" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="false"/>
@@ -109,7 +109,7 @@
     <SOFTWARE_PROPERTY ID="118" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-05-16" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="119" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-05-16" LABEL="sumaris.persistence.adagio.optimization" NAME="false"/><!-- true in production -->
     <SOFTWARE_PROPERTY ID="120" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-05-16" LABEL="sumaris.persistence.adagio.schema" NAME="SIH2_ADAGIO_DBA"/>
-
+    <SOFTWARE_PROPERTY ID="121" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-12-13" LABEL="sumaris.persistence.db.timezone" NAME="UTC"/>
 
 
     <!-- ****** OPEN (ACOST, PIFIL, HOMARD, ...) properties ****** -->
@@ -130,7 +130,15 @@
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
     <!-- ****** OBSMER properties ****** -->
-    <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="false"/>
-    <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="162" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="163" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.vessel.filter.type.id" NAME="1"/> <!-- FISHING VESSEL -->
+    <SOFTWARE_PROPERTY ID="164" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="165" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.logo" NAME="image:57"/>
+    <SOFTWARE_PROPERTY ID="166" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.logo.large" NAME="image:57"/>
+    <SOFTWARE_PROPERTY ID="167" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.partner.departments" NAME="department:3"/>
+    <SOFTWARE_PROPERTY ID="168" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.favicon" NAME="image:58"/>
+    <SOFTWARE_PROPERTY ID="169" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00681/79280/md/32118.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00735/84699/md/40390.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36575.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36572.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36565.jpg|Crédit Ifremer"/>
 
 </dataset>

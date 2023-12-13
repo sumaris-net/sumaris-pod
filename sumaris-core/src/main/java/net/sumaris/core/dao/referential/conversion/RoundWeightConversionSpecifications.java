@@ -65,7 +65,7 @@ public interface RoundWeightConversionSpecifications extends IEntityWithStatusSp
             ParameterExpression<Date> dateParam = cb.parameter(Date.class, DATE_PARAMETER);
             return cb.not(
                 cb.or(
-                    cb.lessThan(Daos.nvlEndDate(root, cb, RoundWeightConversion.Fields.END_DATE, getDatabaseType()), dateParam),
+                    cb.lessThan(Daos.nvlEndDate(root.get(RoundWeightConversion.Fields.END_DATE), cb, getDatabaseType()), dateParam),
                     cb.greaterThan(root.get(RoundWeightConversion.Fields.START_DATE), dateParam)
                 )
             );

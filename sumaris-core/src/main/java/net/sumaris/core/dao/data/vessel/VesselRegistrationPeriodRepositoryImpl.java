@@ -25,7 +25,7 @@ package net.sumaris.core.dao.data.vessel;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.location.LocationRepository;
-import net.sumaris.core.dao.technical.Pageables;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
@@ -37,13 +37,14 @@ import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Slf4j
 public class VesselRegistrationPeriodRepositoryImpl
@@ -66,31 +67,34 @@ public class VesselRegistrationPeriodRepositoryImpl
     }
 
     @Override
-    public Page<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Pageable pageable) {
-        return super.findAll(toSpecification(filter), pageable)
-            .map(this::toVO);
-    }
+    public List<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Page page) {
 
-    @Override
-    public Optional<VesselRegistrationPeriodVO> getLastByVesselId(int vesselId) {
-        return getByVesselIdAndDate(vesselId, null).map(this::toVO);
-    }
+        TypedQuery<VesselRegistrationPeriod> query = getQuery(toSpecification(filter), page, VesselRegistrationPeriod.class);
 
-    @Override
-    public Optional<VesselRegistrationPeriod> getByVesselIdAndDate(int vesselId, Date date) {
-
-        Pageable pageable = Pageables.create(0, 1,
-            VesselRegistrationPeriod.Fields.START_DATE,
-            SortDirection.DESC);
-        Specification<VesselRegistrationPeriod> specification = vesselId(vesselId).and(atDate(date));
-        Optional<VesselRegistrationPeriod> result = findAll(specification, pageable).get().findFirst();
-
-        // Nothing found: retry without a date, if not already the case
-        if (!result.isPresent() && date != null) {
-            return getByVesselIdAndDate(vesselId, null);
+        try (Stream<VesselRegistrationPeriod> stream = streamQuery(query)) {
+            return stream.map(this::toVO).toList();
         }
+    }
 
-        return result;
+    public Optional<VesselRegistrationPeriodVO> findLastByVesselId(int vesselId) {
+        return findByVesselIdAndDate(vesselId, null).map(this::toVO);
+    }
+
+    @Override
+    public Optional<VesselRegistrationPeriod> findByVesselIdAndDate(int vesselId, Date date) {
+
+        Specification<VesselRegistrationPeriod> specification = vesselId(vesselId).and(atDate(date));
+        TypedQuery<VesselRegistrationPeriod> query = getQuery(specification, 0, 1, VesselRegistrationPeriod.Fields.START_DATE, SortDirection.DESC, VesselRegistrationPeriod.class);
+        try (Stream<VesselRegistrationPeriod> stream = query.getResultStream()) {
+            Optional<VesselRegistrationPeriod> result = stream.findFirst();
+
+            // Nothing found: retry without a date, if not already the case
+            if (result.isEmpty() && date != null) {
+                return findByVesselIdAndDate(vesselId, null);
+            }
+
+            return result;
+        }
     }
 
     @Override

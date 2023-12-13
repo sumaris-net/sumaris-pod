@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -34,6 +35,7 @@ import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -53,29 +55,26 @@ import net.sumaris.server.http.security.IsUser;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @GraphQLApi
 @Transactional
+@RequiredArgsConstructor
 public class VesselGraphQLService {
     /* Logger */
     private static final Logger log = LoggerFactory.getLogger(VesselGraphQLService.class);
 
-    @Autowired
-    private SumarisServerConfiguration configuration;
+    private final SumarisServerConfiguration configuration;
 
-    @Autowired
-    private VesselService vesselService;
+    private final VesselService vesselService;
 
-    @Autowired
-    private AuthService authService;
+    private final VesselSnapshotService vesselSnapshotService;
+
+    private final AuthService authService;
 
     /* -- Vessel -- */
 
@@ -125,7 +124,7 @@ public class VesselGraphQLService {
         // Compute fetch options
         VesselFetchOptions fetchOptions = getSnapshotFetchOptions(GraphQLUtils.fields(env));
 
-        return vesselService.findAllSnapshots(
+        return vesselSnapshotService.findAll(
                 filter,
                 Page.builder()
                     .offset(offset)
@@ -145,7 +144,7 @@ public class VesselGraphQLService {
         // and fill (or fix) dates
         filter = fillVesselFilterDefaults(filter);
 
-        return vesselService.countSnapshotsByFilter(filter);
+        return vesselSnapshotService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "vesselsCount", description = "Get total vessels count")
@@ -186,11 +185,9 @@ public class VesselGraphQLService {
 
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
-        return vesselService.getFeaturesByVesselId(vesselId,
-            Pageables.create(offset, size, sort, SortDirection.fromString(direction)),
-            //offset, size, sort, SortDirection.fromString(direction),
-            getFeaturesFetchOptions(GraphQLUtils.fields(env)))
-            .getContent();
+        return vesselService.findFeaturesByVesselId(vesselId,
+            Page.create(offset, size, sort, SortDirection.fromString(direction)),
+            getFeaturesFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
@@ -204,11 +201,7 @@ public class VesselGraphQLService {
                                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
-        return vesselService.getRegistrationPeriodsByVesselId(vesselId,
-            Pageables.create(offset, size, sort, SortDirection.fromString(direction))
-            //offset, size, sort, SortDirection.fromString(direction)
-            )
-            .getContent();
+        return vesselService.findRegistrationPeriodsByVesselId(vesselId, Page.create(offset, size, sort, SortDirection.fromString(direction)));
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
@@ -248,12 +241,9 @@ public class VesselGraphQLService {
         // Add vessel if need
         VesselSnapshotVO result = bean.getVesselSnapshot();
 
-        // No ID: cannot fetch
-        if (result == null || result.getId() == null) return;
-
         // Fetch (if need)
-        if (result.getName() == null && hasVesselFeaturesField(fields)) {
-            result = vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime()));
+        if (result == null && bean.getVesselId() != null && hasVesselFeaturesField(fields)) {
+            result = vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime()));
             bean.setVesselSnapshot(result);
         }
     }
@@ -261,9 +251,9 @@ public class VesselGraphQLService {
     public <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans, Set<String> fields) {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
-            beans.forEach(bean -> {
-                if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                    bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
+            beans.parallelStream().forEach(bean -> {
+                if (bean.getVesselId() != null && bean.getVesselSnapshot() == null) {
+                    bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime())));
                 }
             });
         }
@@ -317,7 +307,6 @@ public class VesselGraphQLService {
 
     /**
      * If need, restrict vessel program (to SIH), and dates (to today)
-     * @param filter
      */
     protected VesselFilterVO fillVesselFilterDefaults(VesselFilterVO filter) {
         filter = VesselFilterVO.nullToEmpty(filter);

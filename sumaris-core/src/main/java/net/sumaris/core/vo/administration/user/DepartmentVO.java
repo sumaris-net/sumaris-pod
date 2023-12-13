@@ -22,25 +22,22 @@ package net.sumaris.core.vo.administration.user;
  * #L%
  */
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 
-@Data
+@Getter
+@Setter
 @FieldNameConstants
-@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class DepartmentVO extends ReferentialVO {
 
     // Copy fields from ReferentialVO (workaround need for GraphQL serialisation)
-    @EqualsAndHashCode.Include
-    private Integer id;
     private Date updateDate;
     private Date creationDate;
-    private String label;
     private String name;
     private String description;
     private String comments;

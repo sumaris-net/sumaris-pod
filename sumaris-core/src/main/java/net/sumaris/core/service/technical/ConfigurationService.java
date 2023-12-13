@@ -29,6 +29,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.PersistenceException;
+import java.util.Map;
+import java.util.Properties;
 
 @Transactional(readOnly = true)
 public interface ConfigurationService {
@@ -46,6 +48,7 @@ public interface ConfigurationService {
 
     void removeListener(ConfigurationEventListener listener);
 
+    Map<String, String> getEnumerationProperties();
 
 }
 

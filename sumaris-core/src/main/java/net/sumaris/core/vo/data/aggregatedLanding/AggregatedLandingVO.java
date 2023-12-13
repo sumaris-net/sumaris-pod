@@ -40,7 +40,10 @@ public class AggregatedLandingVO implements IValueObject<Integer>,
 
     private Integer id;
     private Integer observedLocationId;
+
+    private Integer vesselId;
     private VesselSnapshotVO vesselSnapshot;
+
     private List<VesselActivityVO> vesselActivities;
 
     public AggregatedLandingVO() {

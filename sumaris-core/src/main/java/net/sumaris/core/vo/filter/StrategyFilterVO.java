@@ -76,6 +76,8 @@ public class StrategyFilterVO implements IReferentialFilter {
 
     private String[] acquisitionLevels;
 
+    private Date minUpdateDate;
+
     /* -- Synonym properties (need by IReferentialFilter) -- */
 
     public Integer[] getLevelIds() {

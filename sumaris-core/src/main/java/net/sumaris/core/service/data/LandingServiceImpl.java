@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
@@ -38,7 +39,7 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
-import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
@@ -62,32 +63,25 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service("landingService")
+@RequiredArgsConstructor
 @Slf4j
 public class LandingServiceImpl implements LandingService {
 
-    @Autowired
-    protected LandingRepository landingRepository;
+    protected final LandingRepository landingRepository;
 
-    @Autowired
-    protected TripService tripService;
+    protected final TripService tripService;
 
-    @Autowired
-    protected VesselService vesselService;
+    protected final VesselSnapshotService vesselSnapshotService;
 
-    @Autowired
-    protected MeasurementDao measurementDao;
+    protected final MeasurementDao measurementDao;
 
-    @Autowired
-    protected SampleService sampleService;
+    protected final SampleService sampleService;
 
-    @Autowired
-    protected OperationGroupService operationGroupService;
+    protected final OperationGroupService operationGroupService;
 
-    @Autowired
-    protected PmfmService pmfmService;
+    protected final PmfmService pmfmService;
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
 
     private boolean enableTrash = false;
 
@@ -99,8 +93,12 @@ public class LandingServiceImpl implements LandingService {
     @Override
     public List<LandingVO> findAll(@Nullable LandingFilterVO filter, @Nullable Page page, LandingFetchOptions fetchOptions) {
        filter = LandingFilterVO.nullToEmpty(filter);
-       return landingRepository.findAll(filter, page, fetchOptions);
+       List<LandingVO> landings = landingRepository.findAll(filter, page, fetchOptions);
 
+       // Fill vessel snapshots
+       if (fetchOptions == null || fetchOptions.isWithVesselSnapshot()) fillVesselSnapshots(landings);
+
+       return landings;
     }
 
     @Override
@@ -117,10 +115,15 @@ public class LandingServiceImpl implements LandingService {
     public LandingVO get(Integer id, @NonNull LandingFetchOptions fetchOptions) {
         LandingVO target = landingRepository.get(id, fetchOptions);
 
+        // Fill vessel snapshot
+        if (fetchOptions.isWithVesselSnapshot()) fillVesselSnapshot(target);
+
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
 
-            target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDateTime())));
+            if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+                target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDateTime())));
+            }
 
             Integer mainUndefinedOperationGroupId = null;
             if (target.getTripId() != null && fetchOptions.isWithTrip()) {
@@ -154,6 +157,16 @@ public class LandingServiceImpl implements LandingService {
         }
 
         return target;
+    }
+
+    public void fillVesselSnapshot(LandingVO target) {
+        if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getVesselDateTime())));
+        }
+    }
+
+    public void fillVesselSnapshots(List<LandingVO> target) {
+        target.parallelStream().forEach(this::fillVesselSnapshot);
     }
 
     @Override
@@ -208,6 +221,12 @@ public class LandingServiceImpl implements LandingService {
     public void deleteAllByObservedLocationId(int observedLocationId) {
         landingRepository.findAllIdsByObservedLocationId(observedLocationId)
                 .forEach(this::delete);
+    }
+
+    @Override
+    public void deleteAllByFilter(@NonNull LandingFilterVO filter) {
+        List<LandingVO> landingsToDelete = findAll(filter, null, LandingFetchOptions.MINIMAL);
+        landingsToDelete.stream().map(LandingVO::getId).forEach(this::delete);
     }
 
     @Override

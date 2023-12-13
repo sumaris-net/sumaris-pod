@@ -22,20 +22,11 @@ package net.sumaris.core.dao.technical;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.technical.history.ProcessingFrequencyEnum;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableColumnVO;
-import net.sumaris.core.vo.technical.extraction.ExtractionTableVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,10 +34,8 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
 @Slf4j
-public class JobRepositoryWriteTest extends AbstractDaoTest{
+public class JobRepositoryWriteTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -66,7 +55,7 @@ public class JobRepositoryWriteTest extends AbstractDaoTest{
         source.setName("Test job");
         source.setStatus(JobStatusEnum.PENDING);
         source.setType(JobTypeEnum.SIOP_VESSELS_IMPORTATION.name());
-        source.setIssuer("SYSTEM");
+        source.setIssuer(JobVO.SYSTEM_ISSUER);
 
         // Save
         JobVO target = repository.save(source);

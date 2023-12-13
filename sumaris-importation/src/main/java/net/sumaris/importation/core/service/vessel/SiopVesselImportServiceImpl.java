@@ -445,7 +445,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		} catch (Exception e) {
 			// Result is kept in context
 			result = context.getResult();
-			result.setMessage(t("sumaris.import.vessel.error.detail", ExceptionUtils.getStackTrace(e)));
+			result.setMessage(t("sumaris.job.error.detail", ExceptionUtils.getStackTrace(e)));
 
 			// Set failed status
 			result.setStatus(JobStatusEnum.FATAL);
@@ -601,7 +601,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		// Update current data periods
 		if (source.getVesselFeatures() != null) {
 			// Reuse previous ids
-			if (previousVessel.getVesselFeatures() != null && startDate.equals(previousVessel.getVesselFeatures().getStartDate())) {
+			if (previousVessel.getVesselFeatures() != null && Dates.equals(startDate, previousVessel.getVesselFeatures().getStartDate())) {
 				source.getVesselFeatures().setId(previousVessel.getVesselFeatures().getId());
 			}
 			else {
@@ -613,7 +613,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		}
 		if (source.getVesselRegistrationPeriod() != null) {
 			// Reuse previous ids
-			if (previousVessel.getVesselRegistrationPeriod() != null && startDate.equals(previousVessel.getVesselRegistrationPeriod().getStartDate())) {
+			if (previousVessel.getVesselRegistrationPeriod() != null && Dates.equals(startDate, previousVessel.getVesselRegistrationPeriod().getStartDate())) {
 				source.getVesselRegistrationPeriod().setId(previousVessel.getVesselRegistrationPeriod().getId());
 			}
 			else {

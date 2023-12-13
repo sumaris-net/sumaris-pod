@@ -30,6 +30,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -65,6 +66,9 @@ public class LandingServiceWriteOracleTest extends AbstractServiceTest {
 
     @Autowired
     private VesselService vesselService;
+
+    @Autowired
+    private VesselSnapshotService vesselSnapshotService;
 
     @Autowired
     protected DatabaseFixtures fixtures;
@@ -126,8 +130,8 @@ public class LandingServiceWriteOracleTest extends AbstractServiceTest {
     protected <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(List<T> beans) {
         // Add vessel if need
         beans.forEach(bean -> {
-            if (bean.getVesselSnapshot() != null && bean.getVesselSnapshot().getId() != null && bean.getVesselSnapshot().getName() == null) {
-                bean.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(bean.getVesselSnapshot().getId(), Dates.resetTime(bean.getVesselDateTime())));
+            if (bean.getVesselSnapshot() != null && bean.getVesselId() != null && bean.getVesselSnapshot().getName() == null) {
+                bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime())));
             }
         });
     }
@@ -144,7 +148,7 @@ public class LandingServiceWriteOracleTest extends AbstractServiceTest {
 
         // Vessel
         VesselSnapshotVO vessel = new VesselSnapshotVO();
-        vessel.setId(fixtures.getVesselId(0));
+        vessel.setVesselId(fixtures.getVesselId(0));
         vo.setVesselSnapshot(vessel);
 
         // Department

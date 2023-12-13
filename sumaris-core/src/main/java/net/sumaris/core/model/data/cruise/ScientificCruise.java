@@ -48,9 +48,10 @@ import java.util.List;
 @Entity
 @Table(name = "scientific_cruise")
 @NamedEntityGraph(
-    name = ScientificCruise.GRAPH_PROGRAM,
+    name = ScientificCruise.GRAPH_PROGRAM_AND_MANAGER,
     attributeNodes = {
-        @NamedAttributeNode(ScientificCruise.Fields.PROGRAM)
+        @NamedAttributeNode(ScientificCruise.Fields.PROGRAM),
+        @NamedAttributeNode(ScientificCruise.Fields.MANAGER_PERSON)
     }
 )
 public class ScientificCruise implements
@@ -58,7 +59,7 @@ public class ScientificCruise implements
     IWithRecorderPersonEntity<Integer, Person>,
     IWithVesselEntity<Integer, Vessel> {
 
-    public static final String GRAPH_PROGRAM = "ScientificCruise.program";
+    public static final String GRAPH_PROGRAM_AND_MANAGER = "ScientificCruise.programAndManager";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SCIENTIFIC_CRUISE_SEQ")

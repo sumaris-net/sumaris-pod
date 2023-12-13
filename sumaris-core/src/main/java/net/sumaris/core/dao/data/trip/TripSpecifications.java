@@ -29,6 +29,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.cruise.ScientificCruise;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -88,6 +89,35 @@ public interface TripSpecifications extends RootDataSpecifications<Trip>,
             ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.INNER);
             return cb.equal(landingJoin.get(Landing.Fields.OBSERVED_LOCATION).get(IEntity.Fields.ID), param);
         }).addBind(OBSERVED_LOCATION_ID_PARAM, observedLocationId);
+    }
+
+    default Specification<Trip> hasObservedLocation(Boolean hasObservedLocation) {
+        if (hasObservedLocation == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            if (hasObservedLocation) {
+                query.distinct(true);
+                ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.INNER);
+                return cb.isNotNull(landingJoin.get(Landing.Fields.OBSERVED_LOCATION));
+            }
+            else {
+                ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.LEFT);
+                return cb.isNull(landingJoin.get(Landing.Fields.OBSERVED_LOCATION));
+            }
+        });
+    }
+
+    default Specification<Trip> hasScientificCruise(Boolean hasScientificCruise) {
+        if (hasScientificCruise == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            if (hasScientificCruise) {
+                Join<Trip, ScientificCruise> cruiseJoin = Daos.composeJoin(root, Trip.Fields.SCIENTIFIC_CRUISE, JoinType.INNER);
+                return cb.isNotNull(cruiseJoin);
+            }
+            else {
+                Join<Trip, ScientificCruise> cruiseJoin = Daos.composeJoin(root, Trip.Fields.SCIENTIFIC_CRUISE, JoinType.LEFT);
+                return cb.isNull(cruiseJoin);
+            }
+        });
     }
 
     default Specification<Trip> betweenDate(Date startDate, Date endDate) {

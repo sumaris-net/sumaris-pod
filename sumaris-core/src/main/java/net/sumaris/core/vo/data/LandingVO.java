@@ -58,6 +58,7 @@ public class LandingVO implements IRootDataVO<Integer>,
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    private Integer vesselId;
     private VesselSnapshotVO vesselSnapshot;
 
     private Date dateTime;

@@ -1,10 +1,10 @@
-package net.sumaris.core.dao.data;
+package net.sumaris.core.util.converter;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2023 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,17 +22,20 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.filter.VesselFilterVO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.ReadingConverter;
 
 import java.util.Date;
-import java.util.List;
 
-public interface VesselSnapshotDao {
+@ReadingConverter
+@Slf4j
+public class IntegerToDateConverter implements Converter<Integer, Date> {
 
-    VesselSnapshotVO getByIdAndDate(int vesselId, Date date);
-
-    List<VesselSnapshotVO> findByFilter(VesselFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
-
+    @Override
+    public Date convert(Integer source) {
+        if (source == null) return null;
+        log.debug("Converting integer ({}) to date. Please check your index mapping", source);
+        return new Date(source.longValue());
+    }
 }

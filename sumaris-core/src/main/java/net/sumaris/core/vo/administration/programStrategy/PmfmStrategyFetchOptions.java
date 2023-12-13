@@ -47,4 +47,13 @@ public class PmfmStrategyFetchOptions implements IFetchOptions {
 
     @Builder.Default
     private boolean uniqueByPmfmId = false;
+
+    @Builder.Default
+    private boolean withGears = false;
+
+    @Builder.Default
+    private boolean withTaxonGroups = false;
+
+    @Builder.Default
+    private boolean withPmfms = false;
 }

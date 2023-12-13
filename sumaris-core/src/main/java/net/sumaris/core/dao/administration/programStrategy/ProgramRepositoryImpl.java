@@ -76,6 +76,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -139,13 +140,14 @@ public class ProgramRepositoryImpl
 
     @Override
     public Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
-        return getQuery(
-            BindableSpecification.where(hasId(id)).and(newerThan(updateDate)),
-            Program.class, Sort.by(Program.Fields.ID)
-        )
-            .getResultStream()
-            .findFirst()
-            .map(source -> toVO(source, fetchOptions));
+        try (Stream<Program> stream = streamAll(
+                BindableSpecification.where(hasId(id))
+                    .and(newerThan(updateDate)),
+                Sort.by(Program.Fields.ID)
+            )) {
+            return stream.findFirst()
+                .map(source -> toVO(source, fetchOptions));
+        }
     }
 
     @Override
@@ -395,12 +397,11 @@ public class ProgramRepositoryImpl
         // Sort by rank order
         query.orderBy(builder.asc(root.get(TaxonGroup.Fields.LABEL)));
 
-        return getEntityManager()
-            .createQuery(query)
-            .setParameter(programIdParam, programId)
-            .getResultStream()
-            .map(taxonGroupRepository::toVO)
-            .collect(Collectors.toList());
+        try (Stream<TaxonGroup> stream = getEntityManager().createQuery(query)
+                .setParameter(programIdParam, programId)
+                .getResultStream()) {
+            return stream.map(taxonGroupRepository::toVO).toList();
+        }
     }
 
     @Override
@@ -425,12 +426,12 @@ public class ProgramRepositoryImpl
         // Sort by rank order
         query.orderBy(builder.asc(root.get(Gear.Fields.LABEL)));
 
-        return getEntityManager()
+        try (Stream<Gear> stream = getEntityManager()
             .createQuery(query)
             .setParameter(programIdParam, programId)
-            .getResultStream()
-            .map(referentialDao::toVO)
-            .collect(Collectors.toList());
+            .getResultStream()) {
+            return stream.map(referentialDao::toVO).toList();
+        }
     }
 
     @Override

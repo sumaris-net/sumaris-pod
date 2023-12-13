@@ -96,6 +96,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final List<ConfigurationEventListener> listeners = new CopyOnWriteArrayList<>();
 
+    private Map<String, String> enumerationProperties;
+
     public ConfigurationServiceImpl(SumarisConfiguration configuration,
                                     EntityManager entityManager,
                                     SoftwareService softwareService,
@@ -120,6 +122,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     public SoftwareVO getCurrentSoftware() {
         return softwareService.getByLabel(currentSoftwareLabel);
+    }
+
+    @Override
+    public Map<String, String> getEnumerationProperties() {
+        return enumerationProperties;
     }
 
     @Override
@@ -326,6 +333,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         AtomicInteger successCounter = new AtomicInteger(0);
         AtomicInteger errorCounter = new AtomicInteger(0);
 
+        Map<String, String> enumerationProperties = new HashMap<>();
+
         // For each enum classes
         EntityEnums.getEntityEnumClasses(configuration).forEach(enumClass -> {
             log.debug("- Processing {} ...", enumClass.getSimpleName());
@@ -427,6 +436,18 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
                     // Update the enum
                     Beans.copyProperties(entity.get(), enumValue);
+
+                    // Remember options in a map (e.g. need by app)
+                    sortedAttributes.forEach(attribute -> {
+                        String configOptionKey = configPrefix + StringUtils.doting(entityClassName, enumValue.toString(), attribute);
+                        Object attributeValue = Beans.getProperty(enumValue, attribute);
+                        if (attributeValue != null) {
+                            enumerationProperties.put(configOptionKey, attributeValue.toString());
+                        }
+                        else {
+                            enumerationProperties.put(configOptionKey, null);
+                        }
+                    });
                 }
                 else {
                     errorCounter.incrementAndGet();
@@ -445,6 +466,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 errorCounter.get());
         if (errorCounter.get() > 0) log.error(logMessage);
         else log.info(logMessage);
+
+        this.enumerationProperties = enumerationProperties;
     }
 
 

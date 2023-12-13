@@ -40,7 +40,6 @@ import java.util.Date;
  */
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -50,7 +49,6 @@ public class Matrix implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "MATRIX_SEQ")
     @SequenceGenerator(name = "MATRIX_SEQ", sequenceName="MATRIX_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

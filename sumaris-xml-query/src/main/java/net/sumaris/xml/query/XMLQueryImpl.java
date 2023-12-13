@@ -31,8 +31,8 @@ import lombok.NonNull;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.xml.query.utils.ElementFilter;
 import net.sumaris.xml.query.utils.XPaths;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
@@ -45,12 +45,13 @@ import org.jdom2.filter.Filters;
 import org.jdom2.output.Format;
 import org.jdom2.util.IteratorIterable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -142,20 +143,33 @@ public class XMLQueryImpl implements XMLQuery {
     }
 
     @Override
-    public Set<String> getColumnNames(final Predicate<Element> filter) {
-        Preconditions.checkNotNull(filter);
+    public Set<String> getColumnNames(final Predicate<Element> predicate) {
+        Preconditions.checkNotNull(predicate);
 
         try {
-            List<Element> selectElements = XPaths.compile("//query/select", Filters.element())
+            List<Element> selectElements = XPaths.compile("//query/select",
+                    new ElementFilter(predicate))
                 .evaluate(getDocument());
             if (CollectionUtils.isEmpty(selectElements)) return null;
 
+            // Get alias (keep original order)
             return selectElements.stream()
-                // Apply filter
-                .filter(filter::evaluate)
-                // Get alias
                 .map(this::getAlias)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        } catch (Exception e) {
+            throw new SumarisTechnicalException(e);
+        }
+    }
+
+    @Override
+    public boolean hasColumnName(final String columnName) {
+        Preconditions.checkNotNull(columnName);
+        try {
+            String lowerCaseColumnName = columnName.toLowerCase();
+            Element firstMatch = XPaths.compile("//query/select",
+                    new ElementFilter(element -> lowerCaseColumnName.equals(this.getAlias(element, true))))
+                .evaluateFirst(getDocument());
+            return firstMatch != null;
         } catch (Exception e) {
             throw new SumarisTechnicalException(e);
         }
