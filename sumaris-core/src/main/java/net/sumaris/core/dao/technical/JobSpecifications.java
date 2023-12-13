@@ -68,12 +68,6 @@ public interface JobSpecifications extends IEntityWithJoinSpecifications<Integer
             types);
     }
 
-    default Specification<ProcessingHistory> hasStatus(String... status) {
-        return hasInnerJoinValues(
-            StringUtils.doting(ProcessingHistory.Fields.PROCESSING_STATUS, ProcessingStatus.Fields.LABEL),
-            status);
-    }
-
     default Specification<ProcessingHistory> hasJobStatus(JobStatusEnum... jobStatus) {
         if (ArrayUtils.isEmpty(jobStatus)) return null;
         List<Integer> statusIds = Arrays.stream(jobStatus)

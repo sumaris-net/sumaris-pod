@@ -112,7 +112,8 @@ public class VesselRepositoryImpl
         Root<Vessel> root = criteriaQuery.from(Vessel.class);
         Join<Vessel, VesselFeatures> featuresJoin = root.join(Vessel.Fields.VESSEL_FEATURES, JoinType.LEFT);
 
-        boolean fetchRegistrationPeriod = filter.getStartDate() != null || filter.getEndDate() != null;
+        boolean fetchRegistrationPeriod = (fetchOptions != null && fetchOptions.isWithVesselRegistrationPeriod())
+            || (filter.getStartDate() != null || filter.getEndDate() != null);
         if (fetchRegistrationPeriod) {
             Join<Vessel, VesselRegistrationPeriod> vrpJoin = root.join(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, JoinType.LEFT);
             criteriaQuery.multiselect(root, featuresJoin, vrpJoin);
@@ -159,9 +160,11 @@ public class VesselRepositoryImpl
             .and(statusIds(filter.getStatusIds()))
             // by type
             .and(vesselTypeId(filter.getVesselTypeId()))
-            // By period or single date
+            .and(vesselTypeIds(filter.getVesselTypeIds()))
+            // Dates
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
+            .and(newerThan(filter.getMinUpdateDate()))
             // By text
             .and(searchText(filter.getSearchAttributes(), filter.getSearchText()))
             // Quality
@@ -188,15 +191,15 @@ public class VesselRepositoryImpl
 
         // Vessel features
         if (fetchOptions == null || fetchOptions.isWithVesselFeatures()) {
-            VesselFeaturesVO features = vesselFeaturesRepository.getLastByVesselId(source.getId(), DataFetchOptions.MINIMAL).orElse(null);
+            VesselFeaturesVO features = vesselFeaturesRepository.findByVesselId(source.getId(), DataFetchOptions.MINIMAL).orElse(null);
             if (copyIfNull || features != null) {
                 target.setVesselFeatures(features);
             }
         }
 
         // Vessel registration period
-        if (fetchOptions == null || fetchOptions.isWithVesselFeatures()) {
-            VesselRegistrationPeriodVO period = vesselRegistrationPeriodRepository.getLastByVesselId(source.getId()).orElse(null);
+        if (fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod()) {
+            VesselRegistrationPeriodVO period = vesselRegistrationPeriodRepository.findLastByVesselId(source.getId()).orElse(null);
             if (copyIfNull || period != null) {
                 target.setVesselRegistrationPeriod(period);
             }

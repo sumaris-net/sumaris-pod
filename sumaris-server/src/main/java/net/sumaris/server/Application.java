@@ -34,6 +34,7 @@ import org.apache.commons.io.FileUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jsonb.JsonbAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
@@ -62,7 +63,8 @@ import java.io.IOException;
         LiquibaseAutoConfiguration.class,
         FreeMarkerAutoConfiguration.class,
         JsonbAutoConfiguration.class,
-        SecurityFilterAutoConfiguration.class
+        SecurityFilterAutoConfiguration.class,
+        ElasticsearchRestClientAutoConfiguration.class
     }
 )
 @EnableWebSocket
@@ -112,6 +114,8 @@ public class Application extends SpringBootServletInitializer {
         // Init cache
         initCache(config);
 
+        // Init liquibase
+        initLiquibase(config);
     }
 
     /* -- Internal method -- */
@@ -170,6 +174,20 @@ public class Application extends SpringBootServletInitializer {
     protected static void initCache(SumarisConfiguration config) {
         // Init EHCache directory (see 'ehcache.xml' file)
         System.setProperty(SumarisConfigurationOption.CACHE_DIRECTORY.getKey(), config.getCacheDirectory().getPath() + File.separator);
+    }
+
+    protected static void initLiquibase(SumarisConfiguration config) {
+
+        // Force path to adagio changelog
+        if (config.enableAdagioOptimization() && config.isLiquibaseEnabled() &&
+            StringUtils.equals(
+                config.getLiquibaseChangeLogPath(),
+                SumarisConfigurationOption.LIQUIBASE_CHANGE_LOG_PATH.getDefaultValue())) {
+
+            String changeLogPath = "classpath:net/sumaris/core/db/changelog/oracle/ifremer/db-changelog-master.xml";
+            log.info("Using Liquibase changelog path: {{}}", changeLogPath);
+            config.getApplicationConfig().setOption(SumarisConfigurationOption.LIQUIBASE_CHANGE_LOG_PATH.getKey(), changeLogPath);
+        }
     }
 
     /**

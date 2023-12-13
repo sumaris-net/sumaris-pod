@@ -50,6 +50,9 @@ public class TripFetchOptions implements IDataFetchOptions {
         .build();
 
     @Builder.Default
+    private boolean withVesselSnaphost = true;
+
+    @Builder.Default
     private boolean withRecorderDepartment = true;
 
     @Builder.Default

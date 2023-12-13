@@ -1038,6 +1038,22 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.VESSEL_REGISTRATION_CODE_SEARCH_AS_PREFIX.getKey());
     }
 
+    public boolean enableJobs() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.JOB_ENABLED.getKey());
+    }
+
+    public boolean enableElasticsearch() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ELASTICSEARCH_ENABLED.getKey());
+    }
+
+    public boolean enableElasticsearchVesselSnapshot() {
+        return enableElasticsearch() && applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ELASTICSEARCH_VESSEL_SNAPSHOT_ENABLED.getKey());
+    }
+
+    public List<Integer> getDataVesselTypeIds() {
+        return getConfigurationOptionAsNumbers(SumarisConfigurationOption.DATA_VESSEL_TYPE_IDS.getKey());
+    }
+
     /**
      * <p>find the ActiveMQ broker URL.</p>
      *

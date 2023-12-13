@@ -33,7 +33,7 @@ import java.util.Arrays;
 public enum ParameterEnum implements Serializable, IEntityEnum {
 
     HULL_MATERIAL(420, "HULL_MATERIAL"),
-
+    AGE(350, "AGE"),
     SEX(80, "SEX")
 
     ;

@@ -37,7 +37,6 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupHistoricalRecord;
-import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroup2TaxonHierarchy;
 import net.sumaris.core.model.technical.optimization.taxon.TaxonGroupHierarchy;
@@ -48,17 +47,16 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.persistence.TemporalType;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class TaxonGroupRepositoryImpl
@@ -88,12 +86,14 @@ public class TaxonGroupRepositoryImpl
 
         Preconditions.checkNotNull(filter);
 
-        TypedQuery<TaxonGroup> query = getQuery(toSpecification(filter), TaxonGroup.class,
-            Pageables.create(offset, size, sortAttribute, sortDirection));
-
-        return query.getResultStream()
-            .map(this::toVO)
-            .collect(Collectors.toList());
+        try (Stream<TaxonGroup> stream = getQuery(toSpecification(filter),
+                TaxonGroup.class,
+                Pageables.create(offset, size, sortDirection, sortAttribute))
+            .getResultStream()) {
+            return stream
+                .map(this::toVO)
+                .collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -136,9 +136,7 @@ public class TaxonGroupRepositoryImpl
                     em.persist(tgh);
                     insertCounter.increment();
                     newLinks.put(childId, childId);
-                    if (log.isDebugEnabled()) log.debug(String.format("Adding TAXON_GROUP_HISTORY: TaxonGroup#%s -> himself",
-                            childId,
-                            childId));
+                    if (log.isDebugEnabled()) log.debug("Adding TAXON_GROUP_HISTORY: TaxonGroup#{} -> himself", childId);
                 }
 
                 TaxonGroup parent = tg.getParent();

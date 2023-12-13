@@ -32,12 +32,18 @@ import java.util.Date;
 public interface IWithVesselSnapshotEntity<T extends Serializable, V extends VesselSnapshotVO> extends IEntity<T> {
 
     interface Fields {
+
+        String VESSEL_Id = "vesselId";
         String VESSEL_SNAPSHOT = "vesselSnapshot";
     }
 
     V getVesselSnapshot();
 
     void setVesselSnapshot(V vesselSnapshot);
+
+    Integer getVesselId();
+
+    void setVesselId(Integer id);
 
     @Transient
     Date getVesselDateTime();

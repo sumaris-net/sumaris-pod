@@ -133,7 +133,7 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         String.class),
 
     DB_TIMEZONE(
-        "sumaris.persistence.db.timezone", // /!\ key uused by sumaris-app - DO NOT CHANGED
+        "sumaris.persistence.db.timezone", // /!\ key used by sumaris-app - DO NOT CHANGED
         n("sumaris.config.option.db.timezone.description"),
         "${user.timezone}",
         String.class,
@@ -241,6 +241,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     // -- DATA CONSTANTS --------------------------------------------------//
     // ------------------------------------------------------------------------//
 
+    DATA_VESSEL_TYPE_IDS(
+        "sumaris.data.vessel.type.ids",
+        n("sumaris.config.option.data.vessel.type.ids.description"),
+        null, // "${sumaris.enumeration.VesselType.FISHING_VESSEL.id}",
+        String.class,
+        false),
     DATA_IMAGES_ENABLE("sumaris.data.images.enable",
         n("sumaris.config.option.data.images.enable.description"),
         Boolean.FALSE.toString(),
@@ -662,14 +668,14 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
 
     VESSEL_REGISTRATION_CODE_NATURAL_ORDER(
         "sumaris.persistence.vessel.registrationCode.naturalOrder.enable",
-        n("sumaris.config.option.persistence.vessel.registrationCode.naturalOrder.enabled.description"),
+        n("sumaris.config.option.persistence.vessel.registrationCode.naturalOrder.enable.description"),
         Boolean.FALSE.toString(),
         Boolean.class,
         false),
 
     VESSEL_REGISTRATION_CODE_SEARCH_AS_PREFIX(
         "sumaris.persistence.vessel.registrationCode.searchAsPrefix",
-        n("sumaris.config.option.persistence.vessel.registrationCode.search.prefix.description"),
+        n("sumaris.config.option.persistence.vessel.registrationCode.searchAsPrefix.description"),
         Boolean.TRUE.toString(),
         Boolean.class,
         false),
@@ -694,6 +700,45 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
             "false",
             Boolean.class,
             false),
+
+    ELASTICSEARCH_URIS(
+        "spring.elasticsearch.uris",
+        n("sumaris.config.option.spring.elasticsearch.uris.description"),
+        "http://localhost:9200",
+        String.class,
+        false
+    ),
+
+    ELASTICSEARCH_USERNAME(
+        "spring.elasticsearch.username",
+        n("sumaris.config.option.spring.elasticsearch.username.description"),
+        null,
+        String.class,
+        false
+    ),
+
+    ELASTICSEARCH_PASSWORD(
+        "spring.elasticsearch.password",
+        n("sumaris.config.option.spring.elasticsearch.password.description"),
+        null,
+        String.class,
+        false
+    ),
+
+    ELASTICSEARCH_ENABLED(
+        "spring.elasticsearch.enabled",
+        n("sumaris.config.option.spring.elasticsearch.enabled.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false
+    ),
+
+    ELASTICSEARCH_VESSEL_SNAPSHOT_ENABLED(
+        "sumaris.elasticsearch.vessel.snapshot.enabled",
+        n("sumaris.config.option.elasticsearch.vessel.snapshot.enabled.description"),
+        "${spring.elasticsearch.enabled}",
+        Boolean.class,
+        false),
     ;
 
     /**

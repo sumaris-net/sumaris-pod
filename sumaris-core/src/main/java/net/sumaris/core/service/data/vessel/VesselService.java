@@ -24,16 +24,16 @@ package net.sumaris.core.service.data.vessel;
 
 
 import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.VesselFeaturesVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
+import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -45,36 +45,22 @@ import java.util.List;
 @Transactional
 public interface VesselService {
 
-	/* -- snapshot vessel (e.g. used by combo field) -- */
-
-	@Transactional(readOnly = true)
-	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOTS_BY_FILTER)
-	List<VesselSnapshotVO> findAllSnapshots(final VesselFilterVO filter,
-											final net.sumaris.core.dao.technical.Page page,
-											final VesselFetchOptions fetchOptions);
-
-	@Transactional(readOnly = true)
-	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, key = "#filter.hashCode()")
-	Long countSnapshotsByFilter(final VesselFilterVO filter);
-
-	@Transactional(readOnly = true)
-	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE)
-	VesselSnapshotVO getSnapshotByIdAndDate(int vesselId, Date date);
-
-	/* -- full vessel -- */
-
 	@Transactional(readOnly = true)
 	List<VesselVO> findAll(final VesselFilterVO filter,
 						   final net.sumaris.core.dao.technical.Page page,
 						   final VesselFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	Long countByFilter(final VesselFilterVO filter);
+	long countByFilter(final VesselFilterVO filter);
 
 	@Transactional(readOnly = true)
 	VesselVO get(int id);
 
-	@CacheEvict(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE, allEntries = true)
+	@CacheEvict(cacheNames = {
+		CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE,
+		CacheConfiguration.Names.VESSEL_SNAPSHOTS_BY_FILTER,
+		CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER
+	}, allEntries = true)
 	VesselVO save(VesselVO source);
 
 	@CacheEvict(cacheNames = {
@@ -99,10 +85,10 @@ public interface VesselService {
 	void delete(List<Integer> ids);
 
 	@Transactional(readOnly = true)
-	Page<VesselFeaturesVO> getFeaturesByVesselId(int vesselId, Pageable pageable, DataFetchOptions fetchOptions);
+	List<VesselFeaturesVO> findFeaturesByVesselId(int vesselId, Page page, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	Page<VesselRegistrationPeriodVO> getRegistrationPeriodsByVesselId(int vesselId, Pageable pageable);
+	List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page);
 
 	@CacheEvict(cacheNames = {
 		CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE,

@@ -61,6 +61,9 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
     @Autowired
     private VesselService service;
 
+    @Autowired
+    private VesselSnapshotService vesselSnapshotService;
+
     @Test
     public void countAll() {
 
@@ -80,10 +83,9 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
             filter.setEndDate(Dates.fromISODateTimeString("2025-01-01T00:00:00.000Z"));
 
             long now = System.currentTimeMillis();
-            Long count = service.countByFilter(filter);
-            Assert.assertNotNull(count);
+            long count = service.countByFilter(filter);
             log.info("[start/end dates] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
-            Assert.assertEquals(1, count.intValue());
+            Assert.assertEquals(1L, count);
 
             // Reset filter dates
             filter.setStartDate(null);
@@ -96,18 +98,16 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
             // Valid date (today)
             filter.setStartDate(new Date());
             long now = System.currentTimeMillis();
-            Long count = service.countByFilter(filter);
-            Assert.assertNotNull(count);
+            long count = service.countByFilter(filter);
             log.info("[startDate only] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
-            Assert.assertEquals(1, count.intValue());
+            Assert.assertEquals(1L, count);
 
             // Invalid date ( > year 2100 - see NVL condition in vessel query specification)
             filter.setDate(Dates.fromISODateTimeString("2101-01-01T00:00:00.000Z"));
             now = System.currentTimeMillis();
             count = service.countByFilter(filter);
-            Assert.assertNotNull(count);
             log.info("[startDate only] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
-            Assert.assertEquals(0, count.intValue());
+            Assert.assertEquals(0L, count);
         }
     }
 
@@ -181,7 +181,7 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
 
             // First execution
             long startTime1 = System.currentTimeMillis();
-            List<VesselSnapshotVO> result1 = service.findAllSnapshots(filter, page, VesselFetchOptions.DEFAULT);
+            List<VesselSnapshotVO> result1 = vesselSnapshotService.findAll(filter, page, VesselFetchOptions.DEFAULT);
             long duration1 = System.currentTimeMillis() - startTime1;
             Assert.assertNotNull(result1);
             Assert.assertFalse(result1.isEmpty());
@@ -189,7 +189,7 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
 
             // Second execution, to test cache
             long startTime2 = System.currentTimeMillis();
-            List<VesselSnapshotVO> result2 = service.findAllSnapshots(filter, page, VesselFetchOptions.DEFAULT);
+            List<VesselSnapshotVO> result2 = vesselSnapshotService.findAll(filter, page, VesselFetchOptions.DEFAULT);
             long duration2 = System.currentTimeMillis() - startTime2;
             Assert.assertNotNull(result2);
             Assert.assertEquals(result1.size(), result2.size());
@@ -216,12 +216,12 @@ public class VesselServiceReadOracleTest extends AbstractServiceTest{
 
         // Count FRA vessels
         filter.setRegistrationLocationId(12 /*= FRA country*/);
-        Long countFra = service.countSnapshotsByFilter(filter);
+        Long countFra = vesselSnapshotService.countByFilter(filter);
         log.info("FRA vessel count:{}", countFra);
 
         // Count NLD vessels
         filter.setRegistrationLocationId(30 /*= NLD*/);
-        Long countNld = service.countSnapshotsByFilter(filter);
+        Long countNld = vesselSnapshotService.countByFilter(filter);
         log.info("NLD vessel count={}", countNld);
 
         Assert.assertTrue(countFra > countNld);

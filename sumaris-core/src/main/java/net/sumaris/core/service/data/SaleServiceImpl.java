@@ -24,16 +24,16 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sale.SaleRepository;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SaleMeasurement;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.data.ProductVO;
-import net.sumaris.core.vo.data.SaleVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.SaleFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,20 +44,31 @@ import java.util.stream.Collectors;
 
 @Service("saleService")
 @Slf4j
+@RequiredArgsConstructor
 public class SaleServiceImpl implements SaleService {
 
-	@Autowired
-	protected SaleRepository saleRepository;
+	protected final SaleRepository saleRepository;
 
-	@Autowired
-	protected MeasurementDao measurementDao;
+	protected final MeasurementDao measurementDao;
 
-	@Autowired
-	protected ProductService productService;
+	protected final ProductService productService;
+
+	protected final VesselSnapshotService vesselSnapshotService;
 
 	@Override
 	public List<SaleVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions) {
-		return saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
+		List<SaleVO> sales = saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
+
+		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
+			sales.forEach(sale -> {
+				if (sale.getVesselId() != null && sale.getVesselSnapshot() == null) {
+					VesselSnapshotVO vessel = vesselSnapshotService.getByIdAndDate(sale.getVesselId(), sale.getStartDateTime());
+					sale.setVesselSnapshot(vessel);
+				}
+			});
+		}
+
+		return sales;
 	}
 
 	@Override
@@ -67,7 +78,16 @@ public class SaleServiceImpl implements SaleService {
 
 	@Override
 	public SaleVO get(int saleId, DataFetchOptions fetchOptions) {
-		return saleRepository.get(saleId, fetchOptions);
+		SaleVO sale = saleRepository.get(saleId, fetchOptions);
+
+		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
+			if (sale.getVesselId() != null && sale.getVesselSnapshot() == null) {
+				VesselSnapshotVO vessel = vesselSnapshotService.getByIdAndDate(sale.getVesselId(), sale.getStartDateTime());
+				sale.setVesselSnapshot(vessel);
+			}
+		}
+
+		return sale;
 	}
 
 	@Override

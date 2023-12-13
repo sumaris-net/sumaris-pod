@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.administration.programStrategy.denormalized.DenormalizedPmfmStrategyRepository;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -50,6 +51,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.LocationFilterVO;
@@ -73,6 +75,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 24/08/2020.
@@ -97,8 +100,11 @@ public class StrategyRepositoryImpl
 
     protected final ProgramPrivilegeRepository programPrivilegeRepository;
 
+    protected final TimeZone dbTimeZone;
+
     public StrategyRepositoryImpl(EntityManager entityManager, ReferentialDao referentialDao, PmfmStrategyRepository pmfmStrategyRepository,
-                                  DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository, TaxonNameRepository taxonNameRepository, LocationRepository locationRepository, DepartmentRepository departmentRepository, ProgramPrivilegeRepository programPrivilegeRepository) {
+                                  DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository, TaxonNameRepository taxonNameRepository, LocationRepository locationRepository, DepartmentRepository departmentRepository, ProgramPrivilegeRepository programPrivilegeRepository,
+                                  SumarisConfiguration configuration) {
         super(Strategy.class, StrategyVO.class, entityManager);
         this.referentialDao = referentialDao;
         this.pmfmStrategyRepository = pmfmStrategyRepository;
@@ -107,6 +113,7 @@ public class StrategyRepositoryImpl
         this.locationRepository = locationRepository;
         this.departmentRepository = departmentRepository;
         this.programPrivilegeRepository = programPrivilegeRepository;
+        this.dbTimeZone = configuration.getDbTimezone();
         setLockForUpdate(true);
     }
 
@@ -234,13 +241,12 @@ public class StrategyRepositoryImpl
         // Sort by label
         query.orderBy(builder.asc(root.get(Gear.Fields.LABEL)));
 
-        return getEntityManager()
-                .createQuery(query)
-                .setParameter(strategyIdParam, strategyId)
-                .getResultStream()
-                .map(referentialDao::toVO)
-                .collect(Collectors.toList());
-
+        try (Stream<Gear> stream = getEntityManager()
+            .createQuery(query)
+            .setParameter(strategyIdParam, strategyId)
+            .getResultStream()) {
+            return stream.map(referentialDao::toVO).toList();
+        }
     }
 
     @Override
@@ -376,11 +382,11 @@ public class StrategyRepositoryImpl
 
     @Override
     public List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions) {
-        return findAll(
-                BindableSpecification.where(hasProgramIds(programId))
-                        .and(newerThan(updateDate))).stream()
-                .map(entity -> toVO(entity, fetchOptions))
-                .collect(Collectors.toList());
+        try (Stream<Strategy> stream =  streamAll(
+            BindableSpecification.where(hasProgramIds(programId))
+                .and(newerThan(updateDate)))) {
+            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+        }
     }
 
     @Override
@@ -666,7 +672,9 @@ public class StrategyRepositoryImpl
                 .and(hasLocationIds(filter.getLocationIds()))
                 .and(hasParameterIds(filter.getParameterIds()))
                 .and(hasPeriods(filter.getPeriods()))
-                .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()));
+                .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()))
+                .and(newerThan(filter.getMinUpdateDate()))
+            ;
     }
 
     @Override
@@ -805,6 +813,11 @@ public class StrategyRepositoryImpl
                                 .map(sourceAppliedPeriod -> {
                                     AppliedPeriodVO targetAppliedPeriod = new AppliedPeriodVO();
                                     Beans.copyProperties(sourceAppliedPeriod, targetAppliedPeriod);
+
+                                    // Convert date to have a timezone (see issue sumaris-app#500)
+                                    targetAppliedPeriod.setStartDate(Dates.resetTime(targetAppliedPeriod.getStartDate(), this.dbTimeZone));
+                                    targetAppliedPeriod.setEndDate(Dates.resetTime(targetAppliedPeriod.getEndDate(), this.dbTimeZone));
+
                                     targetAppliedPeriod.setAppliedStrategyId(target.getId());
                                     return targetAppliedPeriod;
                                 }).collect(Collectors.toList());

@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
@@ -46,14 +47,13 @@ import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.SaleTypeEnum;
-import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -67,6 +67,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service("tripService")
 @Slf4j
 public class TripServiceImpl implements TripService {
@@ -84,28 +85,9 @@ public class TripServiceImpl implements TripService {
     private final ObservedLocationRepository observedLocationRepository;
     private final ReferentialService referentialService;
     private final FishingAreaService fishingAreaService;
-    private final VesselService vesselService;
+    private final VesselSnapshotService vesselSnapshotService;
     private boolean enableTrash = false;
 
-    public TripServiceImpl(MeasurementDao measurementDao, TripRepository tripRepository, SaleService saleService, ExpectedSaleService expectedSaleService,
-                           OperationService operationService, OperationGroupService operationGroupService, PhysicalGearService physicalGearService, ApplicationEventPublisher publisher,
-                           FishingAreaService fishingAreaService, PmfmService pmfmService, VesselService vesselService, LandingRepository landingRepository,
-                           ObservedLocationRepository observedLocationRepository, ReferentialService referentialService) {
-        this.measurementDao = measurementDao;
-        this.tripRepository = tripRepository;
-        this.saleService = saleService;
-        this.expectedSaleService = expectedSaleService;
-        this.operationService = operationService;
-        this.operationGroupService = operationGroupService;
-        this.physicalGearService = physicalGearService;
-        this.publisher = publisher;
-        this.fishingAreaService = fishingAreaService;
-        this.pmfmService = pmfmService;
-        this.vesselService = vesselService;
-        this.landingRepository = landingRepository;
-        this.observedLocationRepository = observedLocationRepository;
-        this.referentialService = referentialService;
-    }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
@@ -137,10 +119,13 @@ public class TripServiceImpl implements TripService {
     public TripVO get(int id, @NonNull TripFetchOptions fetchOptions) {
         TripVO target = tripRepository.get(id);
 
+        // Vessel snapshot
+        if (fetchOptions.isWithVesselSnaphost() && target.getVesselId() != null && target.getVesselSnapshot() == null) {
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDepartureDateTime())));
+        }
+
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
-
-            target.setVesselSnapshot(vesselService.getSnapshotByIdAndDate(target.getVesselSnapshot().getId(), Dates.resetTime(target.getDepartureDateTime())));
 
             DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
 
@@ -231,6 +216,16 @@ public class TripServiceImpl implements TripService {
                 }
             }
         });
+    }
+
+    public void fillVesselSnapshot(TripVO target) {
+        if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getVesselDateTime())));
+        }
+    }
+
+    public void fillVesselSnapshots(List<TripVO> target) {
+        target.parallelStream().forEach(this::fillVesselSnapshot);
     }
 
     @Override
@@ -553,7 +548,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
         Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
-        Preconditions.checkNotNull(source.getVesselSnapshot().getId(), "Missing vesselSnapshot.id");
+        Preconditions.checkNotNull(source.getVesselSnapshot().getVesselId(), "Missing vesselSnapshot.id");
         Preconditions.checkArgument(Objects.isNull(source.getSale()) || CollectionUtils.isEmpty(source.getSales()), "Must not have both 'sales' and 'sale' attributes");
         Preconditions.checkArgument(Objects.isNull(source.getExpectedSale()) || CollectionUtils.isEmpty(source.getExpectedSales()), "Must not have both 'expectedSales' and 'expectedSale' attributes");
 

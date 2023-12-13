@@ -62,11 +62,13 @@
       <artifactId>sumaris-importation</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
+
+    <!-- Disable to reduce the size of the war file (need by Ifremer gitlab) -->
+    <!--<dependency>
       <groupId>net.sumaris</groupId>
       <artifactId>sumaris-rdf</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </dependency>-->
 
     <!-- API dependencies -->
     <dependency>
@@ -193,8 +195,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.oracle</groupId>
-      <artifactId>ojdbc8</artifactId>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc10</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>

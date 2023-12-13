@@ -30,7 +30,6 @@ import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -41,7 +40,7 @@ import java.text.ParseException;
 import java.util.List;
 
 @Slf4j
-public class MetierRepositoryReadTest extends AbstractDaoTest{
+public class MetierRepositoryReadTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();

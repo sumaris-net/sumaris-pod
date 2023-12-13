@@ -28,13 +28,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
-import net.sumaris.core.model.technical.job.JobTypeEnum;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @FieldNameConstants

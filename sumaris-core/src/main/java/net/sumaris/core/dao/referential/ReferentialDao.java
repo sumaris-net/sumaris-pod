@@ -67,6 +67,8 @@ public interface ReferentialDao {
 
     Long countByFilter(final String entityName, IReferentialFilter filter);
 
+    List<String> findLabelsByFilter(final String entityName, IReferentialFilter filter);
+
     Optional<ReferentialVO> findByUniqueLabel(String entityName, String label);
 
     <T extends IReferentialEntity> ReferentialVO toVO(T source);

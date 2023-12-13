@@ -31,8 +31,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 @Getter
-@EntityEnum(entity = AcquisitionLevel.class,
-    resolveAttributes = AcquisitionLevel.Fields.LABEL)
+@EntityEnum(entity = AcquisitionLevel.class, resolveAttributes = AcquisitionLevel.Fields.LABEL)
 public enum AcquisitionLevelEnum implements IEntityEnum, Serializable {
 
     TRIP(1, "TRIP"),

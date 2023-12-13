@@ -28,17 +28,17 @@ import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
 
-import java.sql.Date;
-
 public enum AdditionalSQLFunctions {
 
     // left pad (need by StrategyRepository)
     lpad("lpad", StandardBasicTypes.STRING),
 
     // nvl (need by VesselRepository and Vessel entity)
-    nvl_end_date("nvl", new SQLFunctionTemplate(StandardBasicTypes.DATE, "nvl(?1, date'2100-01-01')")),
+    nvl_end_date("nvl", new SQLFunctionTemplate(StandardBasicTypes.TIMESTAMP, "NVL(?1, TO_DATE('2100-01-01 00:00:00', 'yyyy-mm-dd hh24:mi:ss'))")),
 
     regexp_substr("regexp_substr", new SQLFunctionTemplate(StandardBasicTypes.STRING, "regexp_substr(?1, ?2)")),
+
+    add_days("add_day", new SQLFunctionTemplate(StandardBasicTypes.DATE, "?1 + INTERVAL '?2' DAY")),
     ;
 
     private SQLFunction function;

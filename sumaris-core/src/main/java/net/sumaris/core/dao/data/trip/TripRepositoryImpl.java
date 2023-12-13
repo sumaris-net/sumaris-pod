@@ -98,6 +98,8 @@ public class TripRepositoryImpl
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(withOperationIds(filter.getOperationIds()))
+            .and(hasObservedLocation(filter.getHasObservedLocation()))
+            .and(hasScientificCruise(filter.getHasScientificCruise()))
             ;
     }
 
@@ -124,9 +126,10 @@ public class TripRepositoryImpl
             }
         }
 
-        // Parent link
-        // TODO scientificCruise
-
+        // Scientific cruise
+        if (source.getScientificCruise() != null) {
+            target.setScientificCruiseId(source.getScientificCruise().getId());
+        }
     }
 
     @Override

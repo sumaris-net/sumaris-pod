@@ -67,6 +67,9 @@ public interface TripService extends IRootDataQualityService<TripVO> {
 	@Transactional(readOnly = true)
 	int getProgramIdById(int id);
 
+	void fillVesselSnapshot(TripVO target);
+
+	void fillVesselSnapshots(List<TripVO> targets);
 	void fillTripLandingLinks(TripVO target);
 
 	void fillTripsLandingLinks(List<TripVO> targets);

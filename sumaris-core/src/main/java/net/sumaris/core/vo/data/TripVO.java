@@ -62,6 +62,7 @@ public class TripVO implements IRootDataVO<Integer>,
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
 
+    private Integer vesselId;
     private VesselSnapshotVO vesselSnapshot;
 
     private Date departureDateTime;
@@ -110,6 +111,10 @@ public class TripVO implements IRootDataVO<Integer>,
     private Integer observedLocationId;
     @ToString.Exclude
     private ObservedLocationVO observedLocation;
+
+    @ToString.Exclude
+    private ScientificCruiseVO scientificCruise;
+    private Integer scientificCruiseId;
 
     @Override
     @JsonIgnore
