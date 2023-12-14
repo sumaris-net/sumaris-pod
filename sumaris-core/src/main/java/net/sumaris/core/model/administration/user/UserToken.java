@@ -50,21 +50,22 @@ public class UserToken implements IEntity<Integer> {
     @Column(name="token", nullable = false, unique = true)
     private String token;
 
-    private String name;
-
-    private Integer flags;
-
-    @Column(name="expiration_date")
-    private Date expirationDate;
-
-    @Column(name="last_used_date")
-    private Date lastUsedDate;
-
+// FIXME: enable when Oracle Adagio USER_TOKEN table will be updated (+ SIH2_ADAGIO_SUMARIS_MAP.USER_TOKEN view)
+//    private String name;
+//
+//    private Integer flags;
+//
+//    @Column(name="expiration_date")
+//    private Date expirationDate;
+//
+//    @Column(name="last_used_date")
+//    private Date lastUsedDate;
+//
     @Column(name = "creation_date", nullable = false)
     private Date creationDate;
-
-    @Column(name="update_date")
-    private Date updateDate;
+//
+//    @Column(name="update_date")
+//    private Date updateDate;
 
     public int hashCode() {
         return Objects.hash(token);
