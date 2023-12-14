@@ -20,34 +20,42 @@
  * #L%
  */
 
-package net.sumaris.core.model.referential;
+package net.sumaris.core.model.referential.regulation;
 
-import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Set;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "origin_item_type")
-public class OriginItemType implements IItemReferentialEntity<Integer> {
+@Table(name = "fishery")
+public class Fishery {
+
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE, generator = "ORIGIN_ITEM_TYPE_SEQ")
-    @SequenceGenerator(name = "ORIGIN_ITEM_TYPE_SEQ", sequenceName="ORIGIN_ITEM_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FISHERY_SEQ")
+    @SequenceGenerator(name = "FISHERY_SEQ", sequenceName="FISHERY_SEQ", allocationSize = IItemReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_fk", nullable = false)
-    private Status status;
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    private String label;
+
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
+    private String name;
+
+    private String description;
+
+    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
+    private String comments;
 
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -57,14 +65,14 @@ public class OriginItemType implements IItemReferentialEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = LENGTH_LABEL)
-    private String label;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "regulation_area_fk")
+    private RegulationArea regulationArea;
 
-    @Column(nullable = false, length = LENGTH_NAME)
-    private String name;
+    @ManyToMany(mappedBy = "fisheries")
+    private Set<Corpus> corpuses;
 
-    private String description;
+    // Relations avec Grouping, Metier, TaxonGroup, Gear (à définir)
 
-    @Column(length = LENGTH_COMMENTS)
-    private String comments;
+    // Getters and Setters
 }
