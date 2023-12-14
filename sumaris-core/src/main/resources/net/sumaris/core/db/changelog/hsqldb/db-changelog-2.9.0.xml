@@ -1,0 +1,72 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+                   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.9.0.xml">
+
+    <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-001">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="user_token" columnName="expiration_date"/></not>
+        </preConditions>
+        <addColumn tableName="user_token">
+            <column name="expiration_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-002">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="user_token" columnName="flags"/></not>
+        </preConditions>
+        <addColumn tableName="user_token">
+            <column name="flags" type="integer"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-003">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="user_token" columnName="last_used_date"/></not>
+        </preConditions>
+        <addColumn tableName="user_token">
+            <column name="last_used_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-004">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="user_token" columnName="name"/></not>
+        </preConditions>
+        <addColumn tableName="user_token">
+            <column name="name" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-005">
+        <preConditions onFail="MARK_RAN">
+            <not><columnExists tableName="user_token" columnName="update_date"/></not>
+        </preConditions>
+        <addColumn tableName="user_token">
+            <column name="update_date" type="timestamp"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-006">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="user_event" indexName="user_event_recipient_idx"/></not>
+        </preConditions>
+        <createIndex indexName="user_event_recipient_idx" tableName="user_event">
+            <column name="recipient"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- update SYSTEM_VERSION -->
+    <changeSet author="maxime.demarest@e-is.pro" id="1702548457172-200" runOnChange="true">
+        <delete tableName="SYSTEM_VERSION">
+            <where>LABEL='2.9.0'</where>
+        </delete>
+        <insert tableName="SYSTEM_VERSION">
+            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="LABEL">2.9.0</column>
+            <column name="DESCRIPTION">
+                - Add some columns on USER_TOKEN
+            </column>
+            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+            <column name="COMMENTS">
+                - Add some columns (NAME, LAST_USED_DATE, etc.) on USER_TOKEN
+            </column>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
