@@ -20,34 +20,49 @@
  * #L%
  */
 
-package net.sumaris.core.model.referential;
+package net.sumaris.core.model.data.samplingScheme;
 
-import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.data.IDataEntity;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Getter
 @Setter
-
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@Table(name = "origin_item_type")
-public class OriginItemType implements IItemReferentialEntity<Integer> {
+@Table(name = "sampling_scheme")
+@Cacheable
+public class SamplingScheme implements IEntity<Integer> {
+
     @Id
-    @GeneratedValue(strategy= GenerationType.SEQUENCE, generator = "ORIGIN_ITEM_TYPE_SEQ")
-    @SequenceGenerator(name = "ORIGIN_ITEM_TYPE_SEQ", sequenceName="ORIGIN_ITEM_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLING_SCHEME_SEQ")
+    @SequenceGenerator(name = "SAMPLING_SCHEME_SEQ", sequenceName="SAMPLING_SCHEME_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_fk", nullable = false)
-    private Status status;
+    @Column(nullable = false)
+    private String label;
+
+    @Column(nullable = false)
+    private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
+
+    @Column(length = 2000)
+    private String description;
+
+    @Column(length = 2000)
+    private String comments;
 
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -57,14 +72,4 @@ public class OriginItemType implements IItemReferentialEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = LENGTH_LABEL)
-    private String label;
-
-    @Column(nullable = false, length = LENGTH_NAME)
-    private String name;
-
-    private String description;
-
-    @Column(length = LENGTH_COMMENTS)
-    private String comments;
 }
