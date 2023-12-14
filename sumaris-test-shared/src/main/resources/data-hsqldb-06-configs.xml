@@ -140,5 +140,7 @@
     <SOFTWARE_PROPERTY ID="167" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.partner.departments" NAME="department:3"/>
     <SOFTWARE_PROPERTY ID="168" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.favicon" NAME="image:58"/>
     <SOFTWARE_PROPERTY ID="169" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00681/79280/md/32118.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00735/84699/md/40390.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36575.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36572.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36565.jpg|Crédit Ifremer"/>
+    <SOFTWARE_PROPERTY ID="170" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.data.program.ids" NAME="40,80,90,100"/> <!-- Ifremer programs -->
+
 
 </dataset>
