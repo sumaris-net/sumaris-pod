@@ -55,7 +55,7 @@
     <module>sumaris-core</module>
     <module>sumaris-importation</module>
     <module>sumaris-extraction</module>
-    <module>sumaris-rdf</module>
+    <!--<module>sumaris-rdf</module>-->
     <module>sumaris-server</module>
   </modules>
 

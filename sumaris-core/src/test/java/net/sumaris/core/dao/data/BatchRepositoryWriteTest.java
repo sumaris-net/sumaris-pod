@@ -182,7 +182,6 @@ public class BatchRepositoryWriteTest extends AbstractDaoTest {
 
         BatchVO catchBatch = createCatchBatch();
         batches.add(catchBatch);
-        String catchBatchLabel = catchBatch.getLabel();
 
         {
 
