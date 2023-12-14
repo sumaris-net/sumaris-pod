@@ -30,7 +30,6 @@ import net.sumaris.core.model.referential.DepthGradient;
 import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.NearbySpecificArea;
-import net.sumaris.core.model.referential.grouping.Grouping;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
@@ -56,33 +55,24 @@ public class RegulationArea {
     private Location location;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "depth_gradient_fk")
-    private DepthGradient depthGradient;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nearby_specific_area_fk")
     private NearbySpecificArea nearbySpecificArea;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "depth_gradient_fk")
+    private DepthGradient depthGradient;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "distance_to_coast_gradient_fk")
     private DistanceToCoastGradient distanceToCoastGradient;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grouping_fk")
-    private Grouping grouping;
-
     @ManyToMany
     @JoinTable(
-        name = "regulation_area2reg_location",
+        name = "regulation_area2regulation_location",
         joinColumns = @JoinColumn(name = "regulation_area_fk"),
         inverseJoinColumns = @JoinColumn(name = "location_fk")
     )
     private Set<Location> regulationLocations;
 
-    /* -- parent -- */
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fishery_fk", nullable = false)
-    private Fishery fishery;
+    // Getters and Setters
 }

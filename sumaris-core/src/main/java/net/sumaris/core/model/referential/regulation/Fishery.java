@@ -27,9 +27,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.pmfm.QualitativeValue;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -41,7 +38,7 @@ import java.util.Set;
 @FieldNameConstants
 @Entity
 @Table(name = "fishery")
-public class Fishery implements IItemReferentialEntity<Integer> {
+public class Fishery {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FISHERY_SEQ")
@@ -68,16 +65,12 @@ public class Fishery implements IItemReferentialEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = RegulationArea.class, mappedBy = RegulationArea.Fields.FISHERY)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private Set<RegulationArea> regulationAreas;
-
-    @ManyToMany(mappedBy = Corpus.Fields.FISHERIES)
-    private Set<Corpus> corpuses;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_fk", nullable = false)
-    private Status status;
+    @JoinColumn(name = "regulation_area_fk")
+    private RegulationArea regulationArea;
+
+    @ManyToMany(mappedBy = "fisheries")
+    private Set<Corpus> corpuses;
 
     // Relations avec Grouping, Metier, TaxonGroup, Gear (à définir)
 

@@ -49,19 +49,16 @@ public class MinimumSizeAllowed {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(name = "minimum_size", nullable = false)
-    private Double minimumSize;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "size_unit_fk", nullable = false)
-    private Unit sizeUnit;
-
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "taxon_group_fk", nullable = false)
+    @JoinColumn(name = "size_unit_fk")
+    private Unit sizeUnit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "taxon_group_fk")
     private TaxonGroup taxonGroup;
 
     @ManyToMany
@@ -72,9 +69,7 @@ public class MinimumSizeAllowed {
     )
     private Set<Location> locations;
 
-    /* -- parent -- */
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "corpus_fk", nullable = false)
+    @JoinColumn(name = "corpus_fk")
     private Corpus corpus;
 }

@@ -28,7 +28,6 @@ import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
@@ -41,7 +40,7 @@ import java.util.Set;
 @FieldNameConstants
 @Entity
 @Table(name = "corpus")
-public class Corpus implements IItemReferentialEntity<Integer> {
+public class Corpus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CORPUS_SEQ")
@@ -49,13 +48,13 @@ public class Corpus implements IItemReferentialEntity<Integer> {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    @Column(nullable = false)
     private String label;
 
-    @Column(length = IItemReferentialEntity.LENGTH_NAME)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "start_date", nullable = false)
+    @Column(name = "start_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
 
@@ -63,9 +62,10 @@ public class Corpus implements IItemReferentialEntity<Integer> {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
 
+    @Column(length = 2000)
     private String description;
 
-    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
+    @Column(length = 2000)
     private String comments;
 
     @Column(name = "creation_date", nullable = false)
@@ -77,15 +77,11 @@ public class Corpus implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "corpus_type_fk", nullable = false)
-    private CorpusType type;
+    @JoinColumn(name = "corpus_type_fk")
+    private CorpusType corpusType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_fk", nullable = false)
-    private Status status;
-
-    @OneToMany(mappedBy = MinimumSizeAllowed.Fields.CORPUS)
-    private Set<MinimumSizeAllowed> minimumSizesAllowed;
+    @OneToMany(mappedBy = "corpus")
+    private Set<MinimumSizeAllowed> minimumSizeAlloweds;
 
     @ManyToMany
     @JoinTable(
