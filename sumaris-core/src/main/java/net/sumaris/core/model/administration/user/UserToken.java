@@ -44,14 +44,27 @@ public class UserToken implements IEntity<Integer> {
     @SequenceGenerator(name = "USER_TOKEN_SEQ", sequenceName="USER_TOKEN_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     private Integer id;
 
-    @Column(name = "creation_date", nullable = false)
-    private Date creationDate;
-
     @Column(name="pubkey", nullable = false)
     private String pubkey;
 
     @Column(name="token", nullable = false, unique = true)
     private String token;
+
+    private String name;
+
+    private Integer flags;
+
+    @Column(name="expiration_date")
+    private Date expirationDate;
+
+    @Column(name="last_used_date")
+    private Date lastUsedDate;
+
+    @Column(name = "creation_date", nullable = false)
+    private Date creationDate;
+
+    @Column(name="update_date")
+    private Date updateDate;
 
     public int hashCode() {
         return Objects.hash(token);
