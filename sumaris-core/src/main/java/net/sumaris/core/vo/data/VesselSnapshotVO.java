@@ -22,6 +22,7 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+import io.leangen.graphql.annotations.GraphQLIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,11 +49,13 @@ import java.util.Map;
 public class VesselSnapshotVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>, IRootDataVO<Integer> {
 
+    @GraphQLIgnore
     public static final String INDEX = "vessel_snapshot";
 
     @Id
     private Integer vesselFeaturesId; // = VesselFeatures.ID = the unique key used by ElasticSearch indexation
 
+    @GraphQLIgnore
     @EqualsAndHashCode.Include
     private Integer vesselId; // = Vessel.ID of original id, need by ElasticSearch indexation
 
