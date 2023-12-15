@@ -81,7 +81,6 @@ public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithSt
     private Date updateDate;
 
     @Column(length = IItemReferentialEntity.LENGTH_LABEL, unique = true)
-    
     private String label;
 
     @Formula("(select p.name from parameter p where p.id = parameter_fk)")

@@ -75,7 +75,7 @@ public class Sale implements IRootDataEntity<Integer>,
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
-    @Column(length = 2000)
+    @Column(length = IDataEntity.LENGTH_COMMENTS)
     private String comments;
 
     @Column(name = "control_date")
@@ -147,6 +147,11 @@ public class Sale implements IRootDataEntity<Integer>,
     @JoinColumn(name = "trip_fk")
     @ToString.Exclude
     private Trip trip;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Landing.class)
+    @JoinColumn(name = "landing_fk")
+    @ToString.Exclude
+    private Landing landing;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObservedLocation.class)
     @JoinColumn(name = "observed_location_fk")
