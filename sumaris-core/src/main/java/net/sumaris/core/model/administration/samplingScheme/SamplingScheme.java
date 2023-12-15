@@ -46,7 +46,7 @@ public class SamplingScheme implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLING_SCHEME_SEQ")
-    @SequenceGenerator(name = "SAMPLING_SCHEME_SEQ", sequenceName="SAMPLING_SCHEME_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "SAMPLING_SCHEME_SEQ", sequenceName="SAMPLING_SCHEME_SEQ", allocationSize = IItemReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
