@@ -20,12 +20,15 @@
  * #L%
  */
 
-package net.sumaris.core.model.referential.regulation;
+package net.sumaris.core.model.administration.samplingScheme;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -33,19 +36,18 @@ import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.Set;
 
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@Table(name = "corpus")
-public class Corpus implements IItemReferentialEntity<Integer> {
+@Table(name = "denormalized_sampling_strata")
+public class DenormalizedSamplingStrata implements IItemReferentialEntity<Integer> {
+
+    public static final String ENTITY_NAME = "DenormalizedSamplingStrata";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CORPUS_SEQ")
-    @SequenceGenerator(name = "CORPUS_SEQ", sequenceName="CORPUS_SEQ", allocationSize = IItemReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -65,33 +67,64 @@ public class Corpus implements IItemReferentialEntity<Integer> {
 
     private String description;
 
-    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
+    @Column(length = IDataEntity.LENGTH_COMMENTS)
     private String comments;
+
+    @Column(length = 100)
+    private String observationLocationComments;
+
+    @Column(length = 100)
+    private String samplingStrategy;
+
+    @Column(length = 100)
+    private String taxonGroupName;
+
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    private String samplingSchemeLabel;
+
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
+    private String samplingSchemeName;
+
+    private String samplingSchemeDescription;
+
+    @Column(length = IItemReferentialEntity.LENGTH_NAME)
+    private String gearMeshRange;
+
+    @Column(length = IItemReferentialEntity.LENGTH_NAME)
+    private String vesselLengthRange;
+
+    private String metier;
+
+    @Column(length = 150)
+    private String areaName;
+
+    private String subAreaLocationIds;
 
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date creationDate;
 
-    @Column(name = "update_date")
+    @Column(name = "update_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "corpus_type_fk", nullable = false)
-    private CorpusType type;
+    @JoinColumn(name = "program_fk", nullable = false)
+    private Program program;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_fk", nullable = false)
     private Status status;
 
-    @OneToMany(mappedBy = MinimumSizeAllowed.Fields.CORPUS)
-    private Set<MinimumSizeAllowed> minimumSizesAllowed;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_fk")
+    private Department department;
 
-    @ManyToMany
-    @JoinTable(
-        name = "corpus2fishery",
-        joinColumns = @JoinColumn(name = "corpus_fk"),
-        inverseJoinColumns = @JoinColumn(name = "fishery_fk")
-    )
-    private Set<Fishery> fisheries;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "person_fk")
+    private Person person;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "observation_location_fk")
+    private Location observationLocation;
 }

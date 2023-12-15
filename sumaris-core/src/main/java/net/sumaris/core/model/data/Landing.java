@@ -140,6 +140,10 @@ public class Landing implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Product> products = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Sale.Fields.LANDING)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Sale> sales = new ArrayList<>();
+
     // FIXME when enable, LandginServiceImpl.findAllByObservedLocationId() always fetch expectedSale, but don't knwn shy
     // (see issue sumaris-pod #24)
     /*@OneToMany(fetch = FetchType.LAZY, targetEntity = ExpectedSale.class, mappedBy = ExpectedSale.Fields.LANDING)

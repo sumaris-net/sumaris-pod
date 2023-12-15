@@ -20,18 +20,22 @@
  * #L%
  */
 
-package net.sumaris.core.model.data.samplingScheme;
+package net.sumaris.core.model.administration.samplingScheme;
 
 import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.grouping.Grouping;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.regulation.Fishery;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -45,7 +49,8 @@ import java.util.Set;
 @Entity
 @Table(name = "sampling_strata")
 @Cacheable
-public class SamplingStrata {
+public class SamplingStrata implements IItemReferentialEntity<Integer> {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLING_STRATA_SEQ")
@@ -53,8 +58,13 @@ public class SamplingStrata {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
     private String label;
+
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
+    private String name;
+
+    private String description;
 
     @Column(name = "start_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -64,21 +74,34 @@ public class SamplingStrata {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
 
-    @Column(length = 2000)
-    private String description;
-
-    @Column(length = 2000)
+    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
+
+    @Column(name = "creation_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date creationDate;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sampling_scheme_id")
-    private SamplingScheme samplingScheme;
+    @JoinColumn(name = "department_fk")
+    private Department department;
 
-    @OneToMany(mappedBy = "samplingStrata", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "person_fk")
+    private Person person;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "observation_location_fk")
+    private Location location;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
+
+    @OneToMany(mappedBy = SamplingStrataMeasurement.Fields.SAMPLING_STRATA, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SamplingStrataMeasurement> samplingStrataMeasurements;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
@@ -86,7 +109,7 @@ public class SamplingStrata {
         @JoinColumn(name = "sampling_strata_fk", nullable = false, updatable = false) },
         inverseJoinColumns = {
             @JoinColumn(name = "grouping_fk", nullable = false, updatable = false) })
-    private List<Grouping> groupings;
+    private Set<Grouping> groupings;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "sampling_strata2fishery", joinColumns = {
@@ -95,10 +118,18 @@ public class SamplingStrata {
             @JoinColumn(name = "fishery_fk", nullable = false, updatable = false) })
     private Set<Fishery> fisheries = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
-    @JoinTable(name = "sampling_strata2vessel", joinColumns = {
-        @JoinColumn(name = "sampling_strata_fk", nullable = false, updatable = false) },
-        inverseJoinColumns = {
-            @JoinColumn(name = "vessel_fk", nullable = false, updatable = false) })
-    private Set<Vessel> vessels = Sets.newHashSet();
+
+//    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+//    @JoinTable(name = "sampling_strata2vessel", joinColumns = {
+//        @JoinColumn(name = "sampling_strata_fk", nullable = false, updatable = false) },
+//        inverseJoinColumns = {
+//            @JoinColumn(name = "vessel_fk", nullable = false, updatable = false) })
+//    private Set<Vessel> vessels = Sets.newHashSet();
+
+    /* -- parent -- */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sampling_scheme_fk", nullable = false)
+    private SamplingScheme samplingScheme;
+
 }

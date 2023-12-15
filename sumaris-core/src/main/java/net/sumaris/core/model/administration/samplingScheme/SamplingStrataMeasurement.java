@@ -20,14 +20,13 @@
  * #L%
  */
 
-package net.sumaris.core.model.data.samplingScheme;
+package net.sumaris.core.model.administration.samplingScheme;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.ISortedMeasurementEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
@@ -91,7 +90,7 @@ public class SamplingStrataMeasurement implements ISortedMeasurementEntity {
     @JoinColumn(name = "qualitative_value_fk")
     private QualitativeValue qualitativeValue;
 
-    @Column(name = "rank_order", nullable = false)
+    @Column(name = "rank_order")
     private Short rankOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -99,7 +98,7 @@ public class SamplingStrataMeasurement implements ISortedMeasurementEntity {
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = SamplingStrata.class)
-    @JoinColumn(name = "sampling_strata_fk")
+    @JoinColumn(name = "sampling_strata_fk", nullable = false)
     private SamplingStrata samplingStrata;
 
 }

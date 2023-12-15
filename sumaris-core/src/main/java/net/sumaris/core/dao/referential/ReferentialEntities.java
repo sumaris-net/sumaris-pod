@@ -29,6 +29,9 @@ import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
+import net.sumaris.core.model.administration.samplingScheme.DenormalizedSamplingStrata;
+import net.sumaris.core.model.administration.samplingScheme.SamplingScheme;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.conversion.RoundWeightConversion;
@@ -44,6 +47,10 @@ import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.*;
+import net.sumaris.core.model.referential.regulation.Corpus;
+import net.sumaris.core.model.referential.regulation.CorpusType;
+import net.sumaris.core.model.referential.regulation.Fishery;
+import net.sumaris.core.model.referential.regulation.MinimumSizeAllowed;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
@@ -119,6 +126,17 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.transcribingSystem");
         I18n.n("sumaris.persistence.table.transcribingItem");
         I18n.n("sumaris.persistence.table.transcribingItemType");
+        // Corpus
+        I18n.n("sumaris.persistence.table.corpusType");
+        I18n.n("sumaris.persistence.table.corpus");
+        I18n.n("sumaris.persistence.table.minimumSizeAllowed");
+        I18n.n("sumaris.persistence.table.fishery");
+        I18n.n("sumaris.persistence.table.regulationArea");
+        // Sampling scheme
+        I18n.n("sumaris.persistence.table.samplingScheme");
+        I18n.n("sumaris.persistence.table.samplingStrata");
+        I18n.n("sumaris.persistence.table.samplingStrataMeasurement");
+
 
     }
 
@@ -176,6 +194,15 @@ public class ReferentialEntities {
                 Software.class,
                 // Program
                 ProgramPrivilege.class,
+                // Corpus
+                CorpusType.class,
+                Corpus.class,
+                Fishery.class,
+                // Sampling scheme
+                SamplingScheme.class,
+                SamplingStrata.class,
+                DenormalizedSamplingStrata.class,
+
                 // Technical
                 SystemVersion.class,
                 OriginItemType.class,
@@ -184,7 +211,7 @@ public class ReferentialEntities {
                 ProcessingStatus.class
         );
 
-    public static final List<Class<? extends IReferentialEntity>> SUB_CLASSES = ImmutableList.of(
+    public static final List<Class<? extends IReferentialEntity<?>>> SUB_CLASSES = ImmutableList.of(
         WeightLengthConversion.class,
         RoundWeightConversion.class
     );
@@ -210,7 +237,14 @@ public class ReferentialEntities {
         Software.class,
         // Technical
         SystemVersion.class,
-        UnitConversion.class
+        UnitConversion.class,
+        // Sampling scheme
+        SamplingScheme.class,
+        SamplingStrata.class,
+        // Corpus
+        CorpusType.class,
+        Corpus.class,
+        Fishery.class
     );
 
     public static final Collection<String> LAST_UPDATE_DATE_ENTITY_NAMES = Stream.concat(
@@ -251,6 +285,11 @@ public class ReferentialEntities {
         result.put(Gear.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Gear.class, Gear.Fields.GEAR_CLASSIFICATION));
         result.put(TranscribingItemType.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TranscribingItemType.class, TranscribingItemType.Fields.OBJECT_TYPE));
         result.put(TranscribingItem.class.getSimpleName(), BeanUtils.getPropertyDescriptor(TranscribingItem.class, TranscribingItem.Fields.TYPE));
+
+        result.put(Corpus.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Corpus.class, Corpus.Fields.TYPE));
+
+        result.put(SamplingScheme.class.getSimpleName(), BeanUtils.getPropertyDescriptor(SamplingScheme.class, SamplingScheme.Fields.PROGRAM));
+        result.put(SamplingStrata.class.getSimpleName(), BeanUtils.getPropertyDescriptor(SamplingStrata.class, SamplingStrata.Fields.SAMPLING_SCHEME));
 
         // TODO remove the following put ? Too many put for the same Program class
         result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.GEAR_CLASSIFICATION));
