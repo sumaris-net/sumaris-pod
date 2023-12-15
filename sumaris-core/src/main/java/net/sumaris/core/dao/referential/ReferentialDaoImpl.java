@@ -35,6 +35,8 @@ import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.samplingScheme.DenormalizedSamplingStrata;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -972,7 +974,7 @@ public class ReferentialDaoImpl
 
     protected void copyProperties(final IReferentialEntity source, ReferentialVO target) {
 
-        // TODO use EntitiesUtils
+        // TODO use ReferentialEntities
         switch (source.getClass().getSimpleName()) {
             case Method.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.of(
@@ -985,6 +987,13 @@ public class ReferentialDaoImpl
                     Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier)source).getTaxonGroup()),
                     Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear())
                 ));
+            }
+            case DenormalizedSamplingStrata.ENTITY_NAME -> {
+//                target.setProperties(ImmutableMap.<String, Object>builder()
+//                    .put(DenormalizedSamplingStrata.Fields.TAXON_GROUP_NAME, ((DenormalizedSamplingStrata)source).getTaxonGroupName())
+//                    // TODO continue ?
+//                    .build()
+//                );
             }
         }
     }

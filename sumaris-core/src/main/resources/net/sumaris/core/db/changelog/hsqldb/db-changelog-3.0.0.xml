@@ -5,6 +5,392 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-3.0.0.xml">
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-122">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="CORPUS_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="1" sequenceName="CORPUS_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-123">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="FISHERY_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="1" sequenceName="FISHERY_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-124">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="MINIMUM_SIZE_ALLOWED_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="1" sequenceName="MINIMUM_SIZE_ALLOWED_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-125">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="REGULATION_AREA_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="1" sequenceName="REGULATION_AREA_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-126">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="SAMPLING_SCHEME_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="SAMPLING_SCHEME_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-127">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="SAMPLING_STRATA_MEASUREMENT_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="SAMPLING_STRATA_MEASUREMENT_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-128">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="SAMPLING_STRATA_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="SAMPLING_STRATA_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-129">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="corpus_type_seq"/></not>
+    </preConditions>
+    <createSequence incrementBy="1" sequenceName="corpus_type_seq" startValue="1"/>
+  </changeSet>
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-130">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="corpus"/></not>
+    </preConditions>
+    <createTable tableName="corpus">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="corpus_pk"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)"/>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="corpus_type_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-131">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="corpus2fishery"/></not>
+    </preConditions>
+    <createTable tableName="corpus2fishery">
+      <column name="corpus_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="corpus2fishery_pk"/>
+      </column>
+      <column name="fishery_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="corpus2fishery_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-132">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="corpus_type"/></not>
+    </preConditions>
+    <createTable tableName="corpus_type">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="corpus_typePK"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-133">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="denormalized_sampling_strata"/></not>
+    </preConditions>
+    <createTable tableName="denormalized_sampling_strata">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="denormalized_sampling_strataPK"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)"/>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="start_date" type="TIMESTAMP"/>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="areaName" type="VARCHAR(150)"/>
+      <column name="gearMeshRange" type="VARCHAR(100)"/>
+      <column name="metier" type="VARCHAR(255)"/>
+      <column name="observationLocationComments" type="VARCHAR(100)"/>
+      <column name="samplingSchemeDescription" type="VARCHAR(255)"/>
+      <column name="samplingSchemeLabel" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="samplingSchemeName" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="samplingStrategy" type="VARCHAR(100)"/>
+      <column name="subAreaLocationIds" type="VARCHAR(255)"/>
+      <column name="taxonGroupName" type="VARCHAR(100)"/>
+      <column name="vesselLengthRange" type="VARCHAR(100)"/>
+      <column name="department_fk" type="INT"/>
+      <column name="observation_location_fk" type="INT"/>
+      <column name="person_fk" type="INT"/>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-134">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="fishery"/></not>
+    </preConditions>
+    <createTable tableName="fishery">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="fisheryPK"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="regulation_area_fk" type="INT"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-135">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="minimum_size_allowed"/></not>
+    </preConditions>
+    <createTable tableName="minimum_size_allowed">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="minimum_size_allowed_pk"/>
+      </column>
+      <column name="minimum_size" type="DOUBLE">
+        <constraints nullable="false"/>
+      </column>
+      <column name="size_unit_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="corpus_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="taxon_group_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-136">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="minimum_size_allowed2location"/></not>
+    </preConditions>
+    <createTable tableName="minimum_size_allowed2location">
+      <column name="minimum_size_allowed_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="minimum_size_allowed2location_pk"/>
+      </column>
+      <column name="location_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="minimum_size_allowed2location_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-137">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="regulation_area"/></not>
+    </preConditions>
+    <createTable tableName="regulation_area">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="regulation_area_pk"/>
+      </column>
+      <column name="location_fk" type="INT"/>
+      <column name="depth_gradient_fk" type="INT"/>
+      <column name="nearby_specific_area_fk" type="INT"/>
+      <column name="distance_to_coast_gradient_fk" type="INT"/>
+      <column name="fishery_fk" type="INT"/>
+      <column name="grouping_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-138">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="regulation_area2reg_location"/></not>
+    </preConditions>
+    <createTable tableName="regulation_area2reg_location">
+      <column name="regulation_area_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="regulation_area2reg_location_pk"/>
+      </column>
+      <column name="location_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="regulation_area2reg_location_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-139">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="sampling_scheme"/></not>
+    </preConditions>
+    <createTable tableName="sampling_scheme">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="sampling_scheme_pk"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-140">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="sampling_strata"/></not>
+    </preConditions>
+    <createTable tableName="sampling_strata">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="sampling_strata_pk"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="person_fk" type="INT"/>
+      <column name="department_fk" type="INT"/>
+      <column name="observation_location_fk" type="INT"/>
+      <column name="sampling_scheme_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-141">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="sampling_strata2fishery"/></not>
+    </preConditions>
+    <createTable tableName="sampling_strata2fishery">
+      <column name="sampling_strata_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="sampling_strata2fishery_pk"/>
+      </column>
+      <column name="fishery_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="sampling_strata2fishery_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-142">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="sampling_strata2grouping"/></not>
+    </preConditions>
+    <createTable tableName="sampling_strata2grouping">
+      <column name="sampling_strata_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="sampling_strata2grouping_pk"/>
+      </column>
+      <column name="grouping_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="sampling_strata2grouping_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-143">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="sampling_strata_measurement"/></not>
+    </preConditions>
+    <createTable tableName="sampling_strata_measurement">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="sampling_strata_measurement_pk"/>
+      </column>
+      <column name="alphanumerical_value" type="VARCHAR(40)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="digit_count" type="INT"/>
+      <column name="numerical_value" type="DOUBLE"/>
+      <column name="precision_value" type="DOUBLE"/>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="rank_order" type="SMALLINT"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="pmfm_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualitative_value_fk" type="INT"/>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="sampling_strata_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-144">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="sale" columnName="landing_fk"/></not>
+    </preConditions>
+    <addColumn tableName="sale">
+      <column name="landing_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+
+  
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

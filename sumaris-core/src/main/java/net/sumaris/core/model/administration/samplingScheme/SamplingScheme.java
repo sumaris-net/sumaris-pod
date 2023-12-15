@@ -20,7 +20,7 @@
  * #L%
  */
 
-package net.sumaris.core.model.data.samplingScheme;
+package net.sumaris.core.model.administration.samplingScheme;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -29,6 +29,8 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -40,7 +42,7 @@ import java.util.Date;
 @Entity
 @Table(name = "sampling_scheme")
 @Cacheable
-public class SamplingScheme implements IEntity<Integer> {
+public class SamplingScheme implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLING_SCHEME_SEQ")
@@ -48,20 +50,23 @@ public class SamplingScheme implements IEntity<Integer> {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
     private String label;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @Column(length = 2000)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
+
     private String description;
 
-    @Column(length = 2000)
+    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
 
     @Column(name = "creation_date", nullable = false)
