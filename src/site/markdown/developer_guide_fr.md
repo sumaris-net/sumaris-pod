@@ -15,9 +15,9 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
   - Utiliser @EqualsAndHashCode.Include sur la clef primaire.
   - Utiliser l'annotation @Table pour définir le nom de la table en utilisant des mots en minuscules et séparés par des underscores (snake_case).
   - Utiliser "_fk" pour les clés étrangères.
-  - Utiliser des séquences pour les @Id, avec un nom préfixé en "_seq".
-  - Toutes les colonnes sont obligatoires (nullable = false).
-  - Ignorer la génération des imports.
+  - Utiliser des séquences pour les @Id, avec un suffixe "_seq".
+  - Toutes les colonnes sont obligatoires (nullable = false), sauf mention contraire.
+  - Pour les IA: ne pas générer les `import ...` en début de fichier.
 
 
 - Classe de transport (`ValueObject` ou `VO`) :
@@ -29,7 +29,7 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
   - Pour chaque entités liées, ajouter aussi un attribut portant uniquement l'identifiant. Par exemple : `private Integer entityId`, en remplaçant `entity` par le nom de l'attribut.
   - Pour les collections de type simple (String, Integer, etc), préférer des `array` aux `List<>`.
   - Pour les collections de classes VO, préférer l'usage de `List<>`.
-  - Ignorer la génération des imports.
+  - Pour les IA: ne pas générer les `import ...` en début de fichier.
 
 - Interface `Specifications` pour la spécification des requêtes via JPA
   - Étendre l'interface `extends IEntitySpecifications<ID, E>` en remplaçant "ID" par le type de la clef primaire, et `E` par la classe de l'entité.
@@ -98,13 +98,13 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
     ```
-  - Ignorer la génération des imports.
+  - Pour les IA: ne pas générer les `import ...` en début de fichier.
 
 - Une classe `FetchOptions` :
   - Préfixer la classe par le nom de l'entité.
   - Utiliser Lombok avec @Data, @Builder
   - Impleménter l'interface `IFetchOptions`
-  - Ignorer la génération des imports.
+  - Pour les IA: ne pas générer les `import ...` en début de fichier.
 
 - Une interface `Service` est implémentée par chaque classe entity :
   - Préfixer l'interface par le nom de l'entité.
@@ -118,7 +118,7 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
     E save(E source);
     void delete(ID id);
     ```
-  - Ignorer la génération des imports.
+  - Pour les IA: ne pas générer les `import ...` en début de fichier.
 
 - Une classe `ServiceImpl`, implémente l'interface `Service` correspondante :
   - Préfixer la classe par le nom de l'entité.
@@ -135,7 +135,7 @@ Voici les contraintes de génération d'une classe et de la modélisation UML :
   - Pour chaque méthode déclarée dans l'interface `Service`, déclarer une méthode identifique (même nom et paramètres) en y ajoutant :
     - Une annotation `@GraphQLQuery(name = "&lt;methodName>", description = "&lt;methodDescription>")` en remplaçant "&lt;methodName>" par le nom de la fonction, et "&lt;methodDescription>" par sa documentation.  
     - Une annotation `@GraphQLArgument(name = "&lt;parameterName>")` pour chaque paramètre de la méthode, en remplaçant "&lt;parameterName>" par son nom.
-  - Ignorer la génération des imports.
+  - Pour les IA: ne pas générer les `import ...` en début de fichier.
 
 ## Gestion des mise à jour BDD
 
@@ -188,4 +188,4 @@ Voici les contraintes de génération d'une classe typescript :
         this.myEntity = Entite1.fromObject(source.myEntity); 
     }
   ```
-  - Ignorer la génération des imports (pour les IA uniquement).
+  - Pour les IA: ne pas générer les `import ...` en début de fichier.
