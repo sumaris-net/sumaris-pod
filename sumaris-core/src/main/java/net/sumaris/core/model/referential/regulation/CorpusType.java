@@ -48,6 +48,17 @@ public class CorpusType implements IItemReferentialEntity<Integer>, IWithDescrip
     @EqualsAndHashCode.Include
     private Integer id;
 
+    @Column(nullable = false, length = LENGTH_LABEL)
+    private String label;
+
+    @Column(nullable = false, length = LENGTH_NAME)
+    private String name;
+
+    private String description;
+
+    @Column(length = LENGTH_COMMENTS)
+    private String comments;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_fk", nullable = false)
     private Status status;
@@ -60,14 +71,5 @@ public class CorpusType implements IItemReferentialEntity<Integer>, IWithDescrip
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = LENGTH_LABEL)
-    private String label;
 
-    @Column(nullable = false, length = LENGTH_NAME)
-    private String name;
-
-    private String description;
-
-    @Column(length = LENGTH_COMMENTS)
-    private String comments;
 }

@@ -69,7 +69,7 @@ public class PmfmStrategy implements IEntity<Integer> {
     private Double defaultValue;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pmfm_fk", nullable=false)
+    @JoinColumn(name = "pmfm_fk")
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY)
