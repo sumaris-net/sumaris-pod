@@ -28,6 +28,7 @@ import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
@@ -40,7 +41,7 @@ import java.util.Set;
 @FieldNameConstants
 @Entity
 @Table(name = "corpus")
-public class Corpus {
+public class Corpus implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "CORPUS_SEQ")
@@ -48,10 +49,10 @@ public class Corpus {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
     private String label;
 
-    @Column(nullable = false)
+    @Column(length = IItemReferentialEntity.LENGTH_NAME)
     private String name;
 
     @Column(name = "start_date")
@@ -62,10 +63,9 @@ public class Corpus {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
 
-    @Column(length = 2000)
     private String description;
 
-    @Column(length = 2000)
+    @Column(length = IItemReferentialEntity.LENGTH_COMMENTS)
     private String comments;
 
     @Column(name = "creation_date", nullable = false)
@@ -77,11 +77,15 @@ public class Corpus {
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "corpus_type_fk")
-    private CorpusType corpusType;
+    @JoinColumn(name = "corpus_type_fk", nullable = false)
+    private CorpusType type;
 
-    @OneToMany(mappedBy = "corpus")
-    private Set<MinimumSizeAllowed> minimumSizeAlloweds;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
+
+    @OneToMany(mappedBy = MinimumSizeAllowed.Fields.CORPUS)
+    private Set<MinimumSizeAllowed> minimumSizesAllowed;
 
     @ManyToMany
     @JoinTable(

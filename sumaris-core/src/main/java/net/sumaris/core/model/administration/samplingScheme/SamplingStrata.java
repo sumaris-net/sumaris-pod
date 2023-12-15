@@ -54,7 +54,7 @@ public class SamplingStrata implements IItemReferentialEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLING_STRATA_SEQ")
-    @SequenceGenerator(name = "SAMPLING_STRATA_SEQ", sequenceName="SAMPLING_STRATA_SEQ", allocationSize = IItemReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "SAMPLING_STRATA_SEQ", sequenceName="SAMPLING_STRATA_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 

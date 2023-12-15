@@ -28,7 +28,6 @@ import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.ISortedMeasurementEntity;
-import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
@@ -45,7 +44,7 @@ public class SamplingStrataMeasurement implements ISortedMeasurementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SAMPLING_STRATA_MEASUREMENT_SEQ")
-    @SequenceGenerator(name = "SAMPLING_STRATA_MEASUREMENT_SEQ", sequenceName="SAMPLING_STRATA_MEASUREMENT_SEQ", allocationSize = IItemReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "SAMPLING_STRATA_MEASUREMENT_SEQ", sequenceName="SAMPLING_STRATA_MEASUREMENT_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
