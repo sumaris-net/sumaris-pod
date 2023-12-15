@@ -55,7 +55,7 @@ public class Corpus implements IItemReferentialEntity<Integer> {
     @Column(length = IItemReferentialEntity.LENGTH_NAME)
     private String name;
 
-    @Column(name = "start_date")
+    @Column(name = "start_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date startDate;
 
