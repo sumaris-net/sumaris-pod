@@ -5,6 +5,407 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-3.0.0.xml">
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-001">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="ACTIVITY_CALENDAR_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="ACTIVITY_CALENDAR_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-002">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="DAILY_ACTIVITY_CALENDAR_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="DAILY_ACTIVITY_CALENDAR_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-003">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="GEAR_USE_FEATURE_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="GEAR_USE_FEATURE_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-004">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="VESSEL_USE_FEATURE_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="VESSEL_USE_FEATURE_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-005">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="activity_calendar"/></not>
+    </preConditions>
+    <createTable tableName="activity_calendar">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="activity_calendar_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="direct_survey_investigation" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="validation_date" type="TIMESTAMP"/>
+      <column name="year" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_person_fk" type="INT"/>
+      <column name="vessel_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-006">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="daily_activity_calendar"/></not>
+    </preConditions>
+    <createTable tableName="daily_activity_calendar">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="daily_activity_calendar_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="direct_survey_investigation" type="BOOLEAN">
+        <constraints nullable="false"/>
+      </column>
+      <column name="end_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="validation_date" type="TIMESTAMP"/>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_person_fk" type="INT"/>
+      <column name="vessel_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-007">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="gear_use_features"/></not>
+    </preConditions>
+    <createTable tableName="gear_use_features">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="gear_use_features_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="isActive" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="validation_date" type="TIMESTAMP"/>
+      <column name="activity_calendar_fk" type="INT"/>
+      <column name="base_port_location_fk" type="INT"/>
+      <column name="daily_activity_calendar_fk" type="INT"/>
+      <column name="gear_fk" type="INT"/>
+      <column name="metier_fk" type="INT"/>
+      <column name="other_gear_fk" type="INT"/>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="vessel_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-008">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="gear_use_features_origin"/></not>
+    </preConditions>
+    <createTable tableName="gear_use_features_origin">
+      <column name="gear_use_features_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="acquisition_level_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-009">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="vessel_use_features"/></not>
+    </preConditions>
+    <createTable tableName="vessel_use_features">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="vessel_use_features_pk"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="end_date" type="TIMESTAMP"/>
+      <column name="is_active" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="validation_date" type="TIMESTAMP"/>
+      <column name="activity_calendar_fk" type="INT"/>
+      <column name="base_port_location_fk" type="INT"/>
+      <column name="daily_activity_calendar_fk" type="INT"/>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="vessel_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-010">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="vessel_use_features_origin"/></not>
+    </preConditions>
+    <createTable tableName="vessel_use_features_origin">
+      <column name="vessel_use_features_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="vessel_use_features_origin_pk"/>
+      </column>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="vessel_use_features_origin_pk"/>
+      </column>
+      <column name="acquisition_level_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-011">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="survey_measurement" columnName="activity_calendar_fk"/></not>
+    </preConditions>
+    <addColumn tableName="survey_measurement">
+      <column name="activity_calendar_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-012">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="survey_measurement" columnName="daily_activity_calendar_fk"/></not>
+    </preConditions>
+    <addColumn tableName="survey_measurement">
+      <column name="daily_activity_calendar_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-013">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="fishing_area" columnName="gear_use_features_fk"/></not>
+    </preConditions>
+    <addColumn tableName="fishing_area">
+      <column name="gear_use_features_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-014">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="gear_use_measurement" columnName="gear_use_features_fk"/></not>
+    </preConditions>
+    <addColumn tableName="gear_use_measurement">
+      <column name="gear_use_features_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-020">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="fishing_area" columnName="sale_fk"/></not>
+    </preConditions>
+    <addColumn tableName="fishing_area">
+      <column name="sale_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-021">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="fishing_area" columnName="vessel_use_features_fk"/></not>
+    </preConditions>
+    <addColumn tableName="fishing_area">
+      <column name="vessel_use_features_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-022">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="vessel_use_measurement" columnName="vessel_use_features_fk"/></not>
+    </preConditions>
+    <addColumn tableName="vessel_use_measurement">
+      <column name="vessel_use_features_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-023" failOnError="false">
+    <addPrimaryKey columnNames="program_fk, gear_use_features_fk" constraintName="gear_use_features_originPK" tableName="gear_use_features_origin"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-024" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="daily_activity_calendar" constraintName="FK13kq7a3i2kkhl2xpogfveegny" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-025" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="daily_activity_calendar" constraintName="FK13tx8pfbwvtypkojucnua0who" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-026" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sale_fk" baseTableName="fishing_area" constraintName="FK145nir0p9naopwp1lboiycrre" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sale" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-027" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_use_features_fk" baseTableName="vessel_use_measurement" constraintName="FK1a0xnqi9vqxu04pkdasovc9pl" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel_use_features" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-028" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="vessel_use_features" constraintName="FK1siq6il2ehmllbbdl7nkmwxgv" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-029" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="base_port_location_fk" baseTableName="gear_use_features" constraintName="FK1uo9a5nul5io63pl2h0cuo4v0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-030" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="vessel_use_features" constraintName="FK26cji9ixqytd7nvkj6fqraqcg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-031" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="survey_measurement" constraintName="FK33jxceo6nkrutl2n1r0xe6oo6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-032" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="activity_calendar" constraintName="FK48yuksul44930ntgbjemj10mx" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-033" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="daily_activity_calendar_fk" baseTableName="survey_measurement" constraintName="FK60uxno1ikddopsnlf3m3o850h" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="daily_activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-034" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="other_gear_fk" baseTableName="gear_use_features" constraintName="FK7e9i4m7f4hs520chf12utkum" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Gear" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-035" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="gear_use_features_fk" baseTableName="gear_use_features_origin" constraintName="FK7jgshg0rju4thbiksppaslu0n" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear_use_features" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-036" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="daily_activity_calendar_fk" baseTableName="vessel_use_features" constraintName="FK7twfur06tgewbwepn7dr75qpg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="daily_activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-037" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="daily_activity_calendar" constraintName="FKb4ly2ws0skj83td9ob0x8h0e7" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-038" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="vessel_use_features" constraintName="FKbvvv484o4mxyxjer5sjh7atl6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-039" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="activity_calendar" constraintName="FKbycc4a5t2rg05y4othv681k7x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-040" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="vessel_use_features" constraintName="FKc3lkfm7pgomn2f5cgta01ruyc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-041" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="base_port_location_fk" baseTableName="vessel_use_features" constraintName="FKcfs5f5qp11pb4xy7xu5g641p9" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-042" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="gear_use_features" constraintName="FKchgmc8dpvt4a5mbwaxf7xmemc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-043" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="acquisition_level_fk" baseTableName="gear_use_features_origin" constraintName="FKe2w3jdtwokuatar3kh22nukuc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="acquisition_level" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-044" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="daily_activity_calendar" constraintName="FKe8t7udp1hmt3lag6cn4clpffj" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-045" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="gear_use_features_fk" baseTableName="fishing_area" constraintName="FKeypcwigdoqembuusoc7iccme6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear_use_features" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-046" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="gear_use_features" constraintName="FKf12yudpbmpsl8r2wk8pap3b3g" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-047" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="gear_use_features" constraintName="FKf2j36eyr7c2sw9ylkajndwo72" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-048" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="activity_calendar" constraintName="FKg322yelnhoo8mr0jp2qppsj8v" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-049" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="gear_use_features" constraintName="FKivirvqosrrkb7i4gjdpk28b44" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-050" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="daily_activity_calendar" constraintName="FKjf920uyn71os9xsx5jl0lv3fc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-051" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="vessel_use_features_origin" constraintName="FKjj9i5fx0renp84vbm1osio1c2" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-052" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="activity_calendar" constraintName="FKjocnddd1j309vqnb3wu7g6nir" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-053" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="gear_fk" baseTableName="gear_use_features" constraintName="FKkess027ebtp951rh4j2skgwac" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Gear" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-054" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_use_features_fk" baseTableName="vessel_use_features_origin" constraintName="FKkqrpa4jp1fu58mjg2jnpartjq" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel_use_features" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-055" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_use_features_fk" baseTableName="fishing_area" constraintName="FKm0loiib9p0p2mxy0u5ieehl0v" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel_use_features" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-056" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="acquisition_level_fk" baseTableName="vessel_use_features_origin" constraintName="FKm2u43vi0r3lkx4egh7g7b1lc7" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="acquisition_level" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-057" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="daily_activity_calendar_fk" baseTableName="gear_use_features" constraintName="FKmi4t05skjatmstaujre5gxfvt" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="daily_activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-058" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="gear_use_features_origin" constraintName="FKmswk16eruuo63lnpvvjygn2w" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-059" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="gear_use_features_fk" baseTableName="gear_use_measurement" constraintName="FKpo21pgun6n29fvdx2xipu20xo" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear_use_features" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-060" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="activity_calendar" constraintName="FKsofno47a04qvguwdstqgqqp1l" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-061" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="gear_use_features" constraintName="FKtaksgk140xe330221kxyyiix6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Metier" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-062" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="landing_fk" tableName="survey_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-063" failOnError="false">
+    <dropNotNullConstraint columnDataType="varchar(100)" columnName="name" tableName="transcribing_item"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-064" failOnError="false">
+    <dropNotNullConstraint columnDataType="int" columnName="operation_fk" tableName="gear_use_measurement"/>
+  </changeSet>
+
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-122">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="CORPUS_SEQ"/></not>

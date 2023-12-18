@@ -98,11 +98,15 @@ public class GearUseMeasurement implements IMeasurementEntity, ISortedMeasuremen
     @JoinColumn(name = "pmfm_fk", nullable = false)
     private Pmfm pmfm;
 
+    /* -- Parent entity -- */
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
-    @JoinColumn(name = "operation_fk", nullable = false)
+    @JoinColumn(name = "operation_fk")
     @ToString.Exclude
     private Operation operation;
 
-
-
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = GearUseFeatures.class)
+    @JoinColumn(name = "gear_use_features_fk")
+    @ToString.Exclude
+    private GearUseFeatures gearUseFeatures;
 }
