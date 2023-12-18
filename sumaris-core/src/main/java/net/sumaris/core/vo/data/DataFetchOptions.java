@@ -51,13 +51,13 @@ public class DataFetchOptions implements IDataFetchOptions {
             .build();
 
     public static final DataFetchOptions copy(IDataFetchOptions other) {
-        return DataFetchOptions.builder()
+        DataFetchOptions result = DataFetchOptions.builder()
             .withRecorderDepartment(other.isWithRecorderDepartment())
             .withRecorderPerson(other.isWithRecorderPerson())
-            .withObservers(other.isWithObservers())
             .withChildrenEntities(other.isWithChildrenEntities())
             .withMeasurementValues(other.isWithMeasurementValues())
             .build();
+        return result;
     }
 
     @Builder.Default

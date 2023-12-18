@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class TripFetchOptions implements IDataFetchOptions {
+public class TripFetchOptions implements IDataFetchOptions, IWithObserversFetchOptions {
 
     public static final TripFetchOptions DEFAULT = TripFetchOptions.builder().build();
 
@@ -50,7 +50,7 @@ public class TripFetchOptions implements IDataFetchOptions {
         .build();
 
     @Builder.Default
-    private boolean withVesselSnaphost = true;
+    private boolean withVesselSnapshot = true;
 
     @Builder.Default
     private boolean withRecorderDepartment = true;

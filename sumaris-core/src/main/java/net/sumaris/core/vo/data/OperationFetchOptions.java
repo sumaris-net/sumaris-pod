@@ -56,9 +56,6 @@ public class OperationFetchOptions implements IDataFetchOptions {
     private boolean withRecorderPerson = true;
 
     @Builder.Default
-    private boolean withObservers = true;
-
-    @Builder.Default
     private boolean withChildrenEntities = false; // If true, enable other property (positions, fishing areas, batches, samples, etc.)
 
     @Builder.Default

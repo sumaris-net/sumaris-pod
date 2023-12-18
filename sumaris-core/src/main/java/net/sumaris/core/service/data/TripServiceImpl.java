@@ -30,13 +30,13 @@ import com.google.common.collect.Multimap;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
@@ -63,6 +63,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -72,7 +73,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TripServiceImpl implements TripService {
 
-    private final TripRepository tripRepository;
+    private final SumarisConfiguration configuration;
+    private final TripRepository repository;
     private final SaleService saleService;
     private final ExpectedSaleService expectedSaleService;
     private final OperationService operationService;
@@ -89,25 +91,26 @@ public class TripServiceImpl implements TripService {
     private boolean enableTrash = false;
 
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableTrash = event.getConfiguration().enableEntityTrash();
+    public void onConfigurationReady() {
+        this.enableTrash = configuration.enableEntityTrash();
     }
 
     @Override
     public List<TripVO> findAll(TripFilterVO filter, int offset, int size, String sortAttribute,
                                 SortDirection sortDirection, TripFetchOptions fetchOptions) {
-        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+        return repository.findAll(TripFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override
     public List<TripVO> findAll(@Nullable TripFilterVO filter, @Nullable Page page, TripFetchOptions fetchOptions) {
-        return tripRepository.findAll(TripFilterVO.nullToEmpty(filter), page, fetchOptions);
+        return repository.findAll(TripFilterVO.nullToEmpty(filter), page, fetchOptions);
     }
 
     @Override
     public long countByFilter(TripFilterVO filter) {
-        return tripRepository.count(filter);
+        return repository.count(filter);
     }
 
     @Override
@@ -117,11 +120,11 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripVO get(int id, @NonNull TripFetchOptions fetchOptions) {
-        TripVO target = tripRepository.get(id);
+        TripVO target = repository.get(id);
 
         // Vessel snapshot
-        if (fetchOptions.isWithVesselSnaphost() && target.getVesselId() != null && target.getVesselSnapshot() == null) {
-            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDepartureDateTime())));
+        if (fetchOptions.isWithVesselSnapshot()) {
+            fillVesselSnapshot(target);
         }
 
         // Fetch children (disabled by default)
@@ -153,7 +156,6 @@ public class TripServiceImpl implements TripService {
                 OperationFetchOptions operationFetchOptions = OperationFetchOptions.builder()
                     .withChildrenEntities(true)
                     .withMeasurementValues(fetchOptions.isWithMeasurementValues())
-                    .withObservers(fetchOptions.isWithObservers())
                     .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
                     .withRecorderPerson(fetchOptions.isWithRecorderPerson())
                     .build();
@@ -173,7 +175,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public int getProgramIdById(int id) {
-        return tripRepository.getProgramIdById(id);
+        return repository.getProgramIdById(id);
     }
 
     @Override
@@ -254,7 +256,7 @@ public class TripServiceImpl implements TripService {
         options.setObservedLocationId(source.getObservedLocationId());
 
         // Save
-        TripVO target = tripRepository.save(source);
+        TripVO target = repository.save(source);
 
         // Avoid sequence configuration mistake (see AllocationSize)
         Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid Trip.id. Make sure your sequence has been well configured");
@@ -431,7 +433,7 @@ public class TripServiceImpl implements TripService {
         });
 
         // Apply deletion
-        tripRepository.deleteById(id);
+        repository.deleteById(id);
 
         // Publish delete event
         publisher.publishEvent(new EntityDeleteEvent(id, Trip.class.getSimpleName(), eventData));
@@ -447,7 +449,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void deleteAllByLandingId(int landingId) {
-        tripRepository.deleteByLandingId(landingId);
+        repository.deleteByLandingId(landingId);
     }
 
     @Override
@@ -480,7 +482,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getId());
         Preconditions.checkArgument(trip.getControlDate() == null);
 
-        TripVO result = tripRepository.control(trip);
+        TripVO result = repository.control(trip);
 
         // Publish event
         publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
@@ -495,7 +497,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getControlDate());
         Preconditions.checkArgument(trip.getValidationDate() == null);
 
-        TripVO result = tripRepository.validate(trip);
+        TripVO result = repository.validate(trip);
 
         // Publish event
         publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
@@ -510,7 +512,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getControlDate());
         Preconditions.checkNotNull(trip.getValidationDate());
 
-        TripVO result = tripRepository.unValidate(trip);
+        TripVO result = repository.unValidate(trip);
 
         // Publish event
         publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
@@ -526,7 +528,7 @@ public class TripServiceImpl implements TripService {
         Preconditions.checkNotNull(trip.getValidationDate());
         Preconditions.checkNotNull(trip.getQualityFlagId());
 
-        TripVO result = tripRepository.qualify(trip);
+        TripVO result = repository.qualify(trip);
 
         // Publish event
         publisher.publishEvent(new EntityUpdateEvent(result.getId(), Trip.class.getSimpleName(), result));
@@ -696,7 +698,7 @@ public class TripServiceImpl implements TripService {
         // Set default values from parent
         DataBeans.setDefaultRecorderDepartment(sale, parent.getRecorderDepartment());
         DataBeans.setDefaultRecorderPerson(sale, parent.getRecorderPerson());
-        DataBeans.setDefaultVesselFeatures(sale, parent.getVesselSnapshot());
+        DataBeans.setDefaultVesselSnapshot(sale, parent.getVesselSnapshot());
 
         if (sale.getStartDateTime() == null) {
             sale.setStartDateTime(parent.getReturnDateTime());

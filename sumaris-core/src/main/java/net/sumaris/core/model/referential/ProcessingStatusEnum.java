@@ -89,7 +89,7 @@ public enum ProcessingStatusEnum implements Serializable  {
 
     public static boolean isFinished(@NonNull ProcessingStatusEnum status) {
         return switch (status) {
-            case ERROR, WARNING, WAITING_ACKNOWLEDGE, SUCCESS, CANCELLED -> true;
+            case ERROR, WARNING, WAITING_ACKNOWLEDGE, SUCCESS, CANCELLED, FATAL -> true;
             case WAITING_EXECUTION, RUNNING, default -> false;
         };
     }

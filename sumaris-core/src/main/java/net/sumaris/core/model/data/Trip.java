@@ -39,7 +39,6 @@ import java.util.*;
 
 @Getter
 @Setter
-
 @FieldNameConstants
 @Entity
 @Table(name = "trip")

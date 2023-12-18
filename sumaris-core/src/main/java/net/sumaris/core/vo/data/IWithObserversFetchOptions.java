@@ -25,14 +25,8 @@ package net.sumaris.core.vo.data;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
 
-public interface IDataFetchOptions extends IFetchOptions {
+public interface IWithObserversFetchOptions extends IFetchOptions {
 
-    boolean isWithRecorderDepartment();
-
-    boolean isWithRecorderPerson();
-
-    boolean isWithChildrenEntities();
-
-    boolean isWithMeasurementValues();
+    boolean isWithObservers();
 
 }

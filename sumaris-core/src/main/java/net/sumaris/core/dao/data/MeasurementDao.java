@@ -120,13 +120,13 @@ public interface MeasurementDao {
 
     Map<Integer, String> getLandingMeasurementsMap(int landingId, List<Integer> pmfmIds);
 
-    // Survey (from Landing)
-    List<MeasurementVO> saveSurveyMeasurements(int landingId, List<MeasurementVO> sources);
-    Map<Integer, String> saveSurveyMeasurementsMap(final int landingId, Map<Integer, String> sources);
-    List<MeasurementVO> getSurveyMeasurements(int landingId);
-    Map<Integer, String> getSurveyMeasurementsMap(int landingId);
+    // Landing (Survey measurement)
+    List<MeasurementVO> saveLandingSurveyMeasurements(int landingId, List<MeasurementVO> sources);
+    Map<Integer, String> saveLandingSurveyMeasurementsMap(final int landingId, Map<Integer, String> sources);
+    List<MeasurementVO> getLandingSurveyMeasurements(int landingId);
+    Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId);
 
-    Map<Integer, String> getSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds);
+    Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds);
 
     // Sample
     List<MeasurementVO> getSampleMeasurements(int sampleId);
@@ -159,6 +159,12 @@ public interface MeasurementDao {
     Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId);
     List<MeasurementVO> saveVesselPhysicalMeasurements(int vesselFeaturesId, List<MeasurementVO> sources);
     Map<Integer, String> saveVesselPhysicalMeasurementsMap(final int vesselFeaturesId, Map<Integer, String> sources);
+
+    // Activity calendar
+    List<MeasurementVO> saveActivityCalendarMeasurements(int activityCalendarId, List<MeasurementVO> sources);
+    Map<Integer, String> saveActivityCalendarMeasurementsMap(final int activityCalendarId, Map<Integer, String> sources);
+    List<MeasurementVO> getActivityCalendarMeasurements(int activityCalendarId);
+    Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId);
 
     // Utils
     <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources);

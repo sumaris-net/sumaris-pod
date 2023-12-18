@@ -9,25 +9,25 @@
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="ACTIVITY_CALENDAR_SEQ"/></not>
     </preConditions>
-    <createSequence incrementBy="50" sequenceName="ACTIVITY_CALENDAR_SEQ" startValue="1"/>
+    <createSequence sequenceName="ACTIVITY_CALENDAR_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-002">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="DAILY_ACTIVITY_CALENDAR_SEQ"/></not>
     </preConditions>
-    <createSequence incrementBy="50" sequenceName="DAILY_ACTIVITY_CALENDAR_SEQ" startValue="1"/>
+    <createSequence sequenceName="DAILY_ACTIVITY_CALENDAR_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-003">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="GEAR_USE_FEATURE_SEQ"/></not>
     </preConditions>
-    <createSequence incrementBy="50" sequenceName="GEAR_USE_FEATURE_SEQ" startValue="1"/>
+    <createSequence sequenceName="GEAR_USE_FEATURE_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-004">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="VESSEL_USE_FEATURE_SEQ"/></not>
     </preConditions>
-    <createSequence incrementBy="50" sequenceName="VESSEL_USE_FEATURE_SEQ" startValue="1"/>
+    <createSequence sequenceName="VESSEL_USE_FEATURE_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-005">
     <preConditions onFail="MARK_RAN">

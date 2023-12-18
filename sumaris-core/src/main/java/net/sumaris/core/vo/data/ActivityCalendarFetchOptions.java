@@ -26,29 +26,23 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class LandingFetchOptions implements IDataFetchOptions {
+public class ActivityCalendarFetchOptions implements IDataFetchOptions {
 
-    public static final LandingFetchOptions DEFAULT = LandingFetchOptions.builder().build();
+    public static final ActivityCalendarFetchOptions DEFAULT = ActivityCalendarFetchOptions.builder().build();
 
-    public static final LandingFetchOptions MINIMAL = LandingFetchOptions.builder()
+    public static final ActivityCalendarFetchOptions MINIMAL = ActivityCalendarFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
-        .withVesselSnapshot(false)
         .build();
 
-    public static final LandingFetchOptions FULL_GRAPH = LandingFetchOptions.builder()
+    public static final ActivityCalendarFetchOptions FULL_GRAPH = ActivityCalendarFetchOptions.builder()
         .withChildrenEntities(true)
         .withMeasurementValues(true)
-        .withTrip(true)
-        .withTripSales(true)
-        .withTripExpectedSales(true)
-        .sampleFetchOptions(SampleFetchOptions.FULL_GRAPH)
         .build();
 
     @Builder.Default
@@ -61,20 +55,11 @@ public class LandingFetchOptions implements IDataFetchOptions {
     private boolean withRecorderPerson = true;
 
     @Builder.Default
-    private boolean withChildrenEntities = false; // Important: should be disabled by default (see TripService or LandingService)
+    private boolean withChildrenEntities = false;
 
     @Builder.Default
     private boolean withMeasurementValues = false;
 
     @Builder.Default
-    private boolean withTrip = false;
-
-    @Builder.Default
-    private boolean withTripSales = false;
-
-    @Builder.Default
-    private boolean withTripExpectedSales = false;
-
-    @Builder.Default
-    private SampleFetchOptions sampleFetchOptions = null;
+    private boolean withProgram = true;
 }

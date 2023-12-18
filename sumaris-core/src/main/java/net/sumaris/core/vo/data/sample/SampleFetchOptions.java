@@ -57,11 +57,6 @@ public class SampleFetchOptions implements IDataFetchOptions {
     private boolean withImages = false;
 
     @Override
-    public boolean isWithObservers() {
-        return false;
-    }
-
-    @Override
     public boolean isWithRecorderPerson() {
         return false;
     }

@@ -39,6 +39,8 @@ public enum AdditionalSQLFunctions {
     regexp_substr("regexp_substr", new SQLFunctionTemplate(StandardBasicTypes.STRING, "regexp_substr(?1, ?2)")),
 
     add_days("add_day", new SQLFunctionTemplate(StandardBasicTypes.DATE, "?1 + INTERVAL '?2' DAY")),
+
+    first_day_of_year("first_day_of_year", new SQLFunctionTemplate(StandardBasicTypes.DATE, "TO_DATE('' || ?1, 'YY')")),
     ;
 
     private SQLFunction function;

@@ -43,6 +43,7 @@ import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
+import net.sumaris.core.vo.data.IWithObserversFetchOptions;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.IDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -317,8 +318,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         }
 
         // Observers
-        if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            if (fetchOptions == null || fetchOptions.isWithObservers()) {
+        if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity && fetchOptions instanceof IWithObserversFetchOptions) {
+            if (((IWithObserversFetchOptions)fetchOptions).isWithObservers()) {
                 Set<Person> sourceObservers = ((IWithObserversEntity<Integer, Person>) source).getObservers();
                 if (CollectionUtils.isNotEmpty(sourceObservers)) {
                     Set<PersonVO> observers = sourceObservers.stream()
