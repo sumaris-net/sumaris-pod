@@ -39,6 +39,7 @@ SUMARiS tools comes with:
 
 ## Technical documentation
 
+- [UML specification guide](uml_guide.md) ([EN](uml_guide.md) | [FR](uml_guide_fr.md));;
 - [Developer guide](developer_guide.md) ([EN](developer_guide.md) | [FR](developer_guide_fr.md));;
 - [Database documentation](db.md);
 
