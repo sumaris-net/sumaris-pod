@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+<dataset>
+
+  <!-- SIH-ACTIFLOT Program -->
+  <PROGRAM ID="110" LABEL="SIH-ACTIFLOT" NAME="Activité des flottilles" DESCRIPTION="Recensement annuel de l'activité des navires en termes de métiers pratiqués. Cette enquête concerne en priorité les navires de pêche français inscrits au registre de la flotte de pêche européenne."
+           STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
+  <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="110" LOCATION_CLASSIFICATION_FK="1"/>
+
+  <PROGRAM2PERSON ID="110" PROGRAM_FK="110" PERSON_FK="3" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2023-12-14"/>
+  <PROGRAM2PERSON ID="111" PROGRAM_FK="110" PERSON_FK="2" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2023-12-14"/>
+  <PROGRAM2PERSON ID="112" PROGRAM_FK="110" PERSON_FK="7" PROGRAM_PRIVILEGE_FK="4" UPDATE_DATE="2023-11-22"/> <!-- viewer -->
+  <PROGRAM2PERSON ID="113" PROGRAM_FK="110" PERSON_FK="8" PROGRAM_PRIVILEGE_FK="4" UPDATE_DATE="2023-11-22"/> <!-- validator -->
+  <PROGRAM2PERSON ID="114" PROGRAM_FK="110" PERSON_FK="9" PROGRAM_PRIVILEGE_FK="4" UPDATE_DATE="2023-11-22"/> <!-- qualifier -->
+
+  <PROGRAM2DEPARTMENT ID="110" PROGRAM_FK="110" DEPARTMENT_FK="13" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2023-12-14"/>
+  <PROGRAM2DEPARTMENT ID="111" PROGRAM_FK="110" DEPARTMENT_FK="3"  PROGRAM_PRIVILEGE_FK="3" UPDATE_DATE="2023-12-14"/> <!-- Ifremer as Observers -->
+
+  <PROGRAM_PROPERTY ID="600" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2023-12-14" LABEL="sumaris.data.strategy.resolution" NAME="spatio-temporal"/>
+  <PROGRAM_PROPERTY ID="601" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2023-12-14"  LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
+
+  <!-- strategies -->
+  <STRATEGY ID="110" PROGRAM_FK="110" LABEL="ACTIFLOT-2023" NAME="ACTIFLOT démarrage le 01/01/2023" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
+
+  <APPLIED_STRATEGY ID="110" STRATEGY_FK="110" LOCATION_FK="1"/>
+  <APPLIED_PERIOD APPLIED_STRATEGY_FK="110" START_DATE="2023-01-01" END_DATE="2023-12-31"/>
+
+  <!-- PmfmStrategy / Survey  -->
+  <PMFM_STRATEGY ID="2300" STRATEGY_FK="110" ACQUISITION_LEVEL_FK="22" PMFM_FK="446" RANK_ORDER="1" ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- SURVEY_QUALIFICATION -->
+  <PMFM_STRATEGY ID="2301" STRATEGY_FK="110" ACQUISITION_LEVEL_FK="22" PMFM_FK="447" RANK_ORDER="2" ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- SURVEY_RELIABILITY -->
+
+  <!-- PmfmStrategy / Monthly activity  -->
+  <PMFM_STRATEGY ID="2310" STRATEGY_FK="110" ACQUISITION_LEVEL_FK="23" PMFM_FK="450" RANK_ORDER="1" ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- DURATION_AT_SEA -->
+  <PMFM_STRATEGY ID="2311" STRATEGY_FK="110" ACQUISITION_LEVEL_FK="23" PMFM_FK="37" RANK_ORDER="2" ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- FISHING_DURATION -->
+  <PMFM_STRATEGY ID="2312" STRATEGY_FK="110" ACQUISITION_LEVEL_FK="23" PMFM_FK="21" RANK_ORDER="3" ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- NB_FISHERMEN = CREW_SIZE -->
+
+  <!-- PmfmStrategy / Gear use features
+  <PMFM_STRATEGY ID="2300" STRATEGY_FK="110" ACQUISITION_LEVEL_FK="24" PMFM_FK="" RANK_ORDER="1" ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
+  -->
+
+</dataset>

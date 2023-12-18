@@ -59,8 +59,8 @@ public class GearUseFeatures implements Serializable,
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @Column(nullable = false)
-    private Integer isActive;
+    @Column(name="rank_order", nullable = false)
+    private Short rankOrder;
 
     @Column(name="start_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
