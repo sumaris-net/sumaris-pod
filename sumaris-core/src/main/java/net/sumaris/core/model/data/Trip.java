@@ -24,12 +24,10 @@ package net.sumaris.core.model.data;
 
 import com.google.common.collect.Sets;
 import lombok.*;
-import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.cruise.ScientificCruise;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.apache.commons.lang3.builder.EqualsBuilder;
