@@ -66,14 +66,6 @@ public class FishingArea implements IEntity<Integer> {
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    // parent
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
-    @JoinColumn(name = "operation_fk")
-    @ToString.Exclude
-    private Operation operation;
-
-    // TODO : add other parent (from SIH-Adagio model)
-
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class)
     @JoinColumn(name = "location_fk", nullable = false)
     private Location location;
@@ -90,4 +82,25 @@ public class FishingArea implements IEntity<Integer> {
     @JoinColumn(name = "nearby_specific_area_fk")
     private NearbySpecificArea nearbySpecificArea;
 
+    /* -- Parent entity -- */
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Operation.class)
+    @JoinColumn(name = "operation_fk")
+    @ToString.Exclude
+    private Operation operation;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = GearUseFeatures.class)
+    @JoinColumn(name = "gear_use_features_fk")
+    @ToString.Exclude
+    private GearUseFeatures gearUserFeatures;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselUseFeatures.class)
+    @JoinColumn(name = "vessel_use_features_fk")
+    @ToString.Exclude
+    private VesselUseFeatures vesselUserFeatures;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Sale.class)
+    @JoinColumn(name = "sale_fk")
+    @ToString.Exclude
+    private Sale sale;
 }

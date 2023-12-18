@@ -98,6 +98,8 @@ public class VesselUseMeasurement implements IMeasurementEntity, ISortedMeasurem
     @JoinColumn(name = "pmfm_fk", nullable = false)
     private Pmfm pmfm;
 
+    /* -- Parent entity -- */
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Trip.class)
     @JoinColumn(name = "trip_fk")
     @ToString.Exclude
@@ -107,4 +109,9 @@ public class VesselUseMeasurement implements IMeasurementEntity, ISortedMeasurem
     @JoinColumn(name = "operation_fk")
     @ToString.Exclude
     private Operation operation;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselUseFeatures.class)
+    @JoinColumn(name = "vessel_use_features_fk")
+    @ToString.Exclude
+    private VesselUseFeatures vesselUseFeatures;
 }

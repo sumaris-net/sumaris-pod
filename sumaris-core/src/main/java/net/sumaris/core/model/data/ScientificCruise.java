@@ -1,10 +1,8 @@
-package net.sumaris.core.model.data.cruise;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,6 +20,8 @@ package net.sumaris.core.model.data.cruise;
  * #L%
  */
 
+package net.sumaris.core.model.data;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,7 +31,6 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.annotation.Comment;
-import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.annotations.Cascade;

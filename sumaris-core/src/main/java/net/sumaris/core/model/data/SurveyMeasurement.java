@@ -98,8 +98,20 @@ public class SurveyMeasurement implements IMeasurementEntity, ISortedMeasurement
     @JoinColumn(name = "pmfm_fk", nullable = false)
     private Pmfm pmfm;
 
+    /* -- Parent entity -- */
+
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Landing.class)
-    @JoinColumn(name = "landing_fk", nullable = false)
+    @JoinColumn(name = "landing_fk")
     @ToString.Exclude
     private Landing landing;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ActivityCalendar.class)
+    @JoinColumn(name = "activity_calendar_fk")
+    @ToString.Exclude
+    private ActivityCalendar activityCalendar;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = DailyActivityCalendar.class)
+    @JoinColumn(name = "daily_activity_calendar_fk")
+    @ToString.Exclude
+    private DailyActivityCalendar dailyActivityCalendar;
 }
