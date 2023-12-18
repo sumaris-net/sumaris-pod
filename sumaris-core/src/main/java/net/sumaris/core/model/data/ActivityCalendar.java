@@ -30,6 +30,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
+import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -41,8 +42,20 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "activity_calendar")
+@NamedEntityGraph(
+    name = ActivityCalendar.GRAPH_PROGRAM,
+    attributeNodes = {
+        @NamedAttributeNode(ActivityCalendar.Fields.PROGRAM)
+    }
+)
 public class ActivityCalendar implements IRootDataEntity<Integer>,
     IWithVesselEntity<Integer, Vessel> {
+
+    static {
+        I18n.n("sumaris.persistence.table.activityCalendar");
+    }
+
+    public static final String GRAPH_PROGRAM = "Trip.withProgram";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ACTIVITY_CALENDAR_SEQ")

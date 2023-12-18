@@ -121,6 +121,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Survey
         result.put(SurveyMeasurement.class, BeanUtils.getPropertyDescriptor(SurveyMeasurement.class, SurveyMeasurement.Fields.LANDING));
+        result.put(SurveyMeasurement.class, BeanUtils.getPropertyDescriptor(SurveyMeasurement.class, SurveyMeasurement.Fields.ACTIVITY_CALENDAR));
 
         return result;
     }
@@ -359,7 +360,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> getSurveyMeasurements(int landingId) {
+    public List<MeasurementVO> getLandingSurveyMeasurements(int landingId) {
         return getMeasurementsByParentId(SurveyMeasurement.class,
             MeasurementVO.class,
             SurveyMeasurement.Fields.LANDING,
@@ -369,7 +370,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public Map<Integer, String> getSurveyMeasurementsMap(int landingId) {
+    public Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId) {
         return getMeasurementsMapByParentId(SurveyMeasurement.class,
             SurveyMeasurement.Fields.LANDING,
             landingId,
@@ -378,7 +379,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public Map<Integer, String> getSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
+    public Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
         return getMeasurementsMapByParentId(SurveyMeasurement.class,
             SurveyMeasurement.Fields.LANDING,
             landingId,
@@ -423,6 +424,37 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             expectedSaleId,
             null
         );
+    }
+
+    @Override
+    public List<MeasurementVO> getActivityCalendarMeasurements(int activityCalendarId) {
+        return getMeasurementsByParentId(SurveyMeasurement.class,
+            MeasurementVO.class,
+            SurveyMeasurement.Fields.ACTIVITY_CALENDAR,
+            activityCalendarId,
+            SurveyMeasurement.Fields.ID
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId) {
+        return getMeasurementsMapByParentId(SurveyMeasurement.class,
+            SurveyMeasurement.Fields.ACTIVITY_CALENDAR,
+            activityCalendarId,
+            null
+        );
+    }
+
+    @Override
+    public List<MeasurementVO> saveActivityCalendarMeasurements(int activityCalendarId, List<MeasurementVO> sources) {
+        ActivityCalendar parent = getById(ActivityCalendar.class, activityCalendarId);
+        return saveMeasurements(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveActivityCalendarMeasurementsMap(int activityCalendarId, Map<Integer, String> sources) {
+        ActivityCalendar parent = getById(ActivityCalendar.class, activityCalendarId);
+        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override
@@ -559,13 +591,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> saveSurveyMeasurements(int landingId, List<MeasurementVO> sources) {
+    public List<MeasurementVO> saveLandingSurveyMeasurements(int landingId, List<MeasurementVO> sources) {
         Landing parent = getById(Landing.class, landingId);
         return saveMeasurements(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override
-    public Map<Integer, String> saveSurveyMeasurementsMap(int landingId, Map<Integer, String> sources) {
+    public Map<Integer, String> saveLandingSurveyMeasurementsMap(int landingId, Map<Integer, String> sources) {
         Landing parent = getById(Landing.class, landingId);
         return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }

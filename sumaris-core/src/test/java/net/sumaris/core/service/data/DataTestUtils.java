@@ -486,4 +486,27 @@ public class DataTestUtils {
         result.setId(id);
         return result;
     }
+
+    public static ActivityCalendarVO createActivityCalendar(DatabaseFixtures fixtures,
+                                                            PmfmService pmfmService, int year) {
+        ActivityCalendarVO vo = new ActivityCalendarVO();
+
+        vo.setProgram(fixtures.getActivityCalendarProgram());
+
+        // Vessel
+        VesselSnapshotVO vessel = new VesselSnapshotVO();
+        vessel.setVesselId(fixtures.getVesselId(0));
+        vo.setVesselSnapshot(vessel);
+
+        // Other properties
+        vo.setYear(year);
+        vo.setDirectSurveyInvestigation(Boolean.TRUE);
+
+        // Recorder
+        DepartmentVO recorderDepartment = new DepartmentVO();
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
+        vo.setRecorderDepartment(recorderDepartment);
+
+        return vo;
+    }
 }

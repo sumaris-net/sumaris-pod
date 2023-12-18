@@ -59,10 +59,6 @@ public class VesselFetchOptions implements IDataFetchOptions {
     @Builder.Default
     private boolean withMeasurementValues = false;
 
-    @Override
-    public boolean isWithObservers() {
-        return false;
-    }
 
 
 }

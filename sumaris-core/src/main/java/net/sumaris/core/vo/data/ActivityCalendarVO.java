@@ -37,9 +37,11 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
 
 import javax.persistence.*;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -71,20 +73,18 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
 
     private ProgramVO program;
 
-    private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
+
+    private List<VesselActivityVO> vesselActivities;
+
+    public ActivityCalendarVO() {
+        vesselActivities = new ArrayList<>();
+    }
 
     @Override
     @JsonIgnore
     public Date getVesselDateTime() {
-        if (year == null) return null;
-
-        try {
-            String dateStr = String.format("01/01/%s", StringUtils.leftPad(this.year.toString(), 4, "0"));
-            return Dates.parseDate(dateStr, "DD/MM/YYYY");
-        } catch (ParseException e) {
-            throw new SumarisTechnicalException(e.getMessage(), e);
-        }
+        return null;
     }
 
 }

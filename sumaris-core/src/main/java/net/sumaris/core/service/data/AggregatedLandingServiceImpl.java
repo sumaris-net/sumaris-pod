@@ -66,7 +66,6 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         .withVesselSnapshot(true)
         .withRecorderDepartment(true)
         .withRecorderPerson(true)
-        .withObservers(false)
         .withChildrenEntities(false)
         .build();
 
@@ -760,7 +759,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         if (landing.getMeasurementValues() == null) {
             Map<Integer, String> result = new HashMap<>();
             Optional.ofNullable(measurementDao.getLandingMeasurementsMap(landing.getId())).ifPresent(result::putAll);
-            Optional.ofNullable(measurementDao.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+            Optional.ofNullable(measurementDao.getLandingSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
             landing.setMeasurementValues(result);
         }
     }

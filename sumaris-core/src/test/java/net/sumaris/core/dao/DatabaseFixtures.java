@@ -191,6 +191,17 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getActivityCalendarId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1; // on vessel 1
+
+			default:
+				return 1;
+		}
+	}
+
 	/* -- Referential -- */
 
 	public Integer getGearId(int index) {
@@ -349,6 +360,13 @@ public class DatabaseFixtures {
 		ProgramVO program = new ProgramVO();
 		program.setId(70);
 		program.setLabel("APASE");
+		return program;
+	}
+
+	public ProgramVO getActivityCalendarProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(110);
+		program.setLabel("SIH-ACTIFLOT");
 		return program;
 	}
 

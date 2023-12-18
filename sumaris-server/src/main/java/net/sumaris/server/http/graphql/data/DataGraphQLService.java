@@ -1420,7 +1420,7 @@ public class DataGraphQLService {
         if (landing.getId() == null) return null;
         Map<Integer, String> result = new HashMap<>();
         Optional.ofNullable(measurementService.getLandingMeasurementsMap(landing.getId())).ifPresent(result::putAll);
-        Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+        Optional.ofNullable(measurementService.getLandingSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
         return result;
     }
 
@@ -1431,7 +1431,7 @@ public class DataGraphQLService {
         if (landing.getId() == null) return null;
         Map<Integer, String> result = new HashMap<>();
         Optional.ofNullable(measurementService.getLandingMeasurementsMap(landing.getId(), pmfmIds)).ifPresent(result::putAll);
-        Optional.ofNullable(measurementService.getSurveyMeasurementsMap(landing.getId(), pmfmIds)).ifPresent(result::putAll);
+        Optional.ofNullable(measurementService.getLandingSurveyMeasurementsMap(landing.getId(), pmfmIds)).ifPresent(result::putAll);
         return result;
     }
 
@@ -1665,7 +1665,6 @@ public class DataGraphQLService {
 
     protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
         return OperationFetchOptions.builder()
-                .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
@@ -1699,7 +1698,6 @@ public class DataGraphQLService {
     /**
      * Restrict to self data and/or department data
      *
-     * @param filter
      */
     protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
         try {

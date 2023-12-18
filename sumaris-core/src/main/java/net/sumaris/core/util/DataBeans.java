@@ -63,7 +63,7 @@ public class DataBeans extends Beans {
         }
     }
 
-    public static <T extends Serializable, D extends VesselSnapshotVO> void setDefaultVesselFeatures(
+    public static <T extends Serializable, D extends VesselSnapshotVO> void setDefaultVesselSnapshot(
             IWithVesselSnapshotEntity<T, D> target,
             D defaultValue) {
         if (target == null) return;

@@ -44,11 +44,6 @@ public class BatchFetchOptions implements IDataFetchOptions {
     private boolean withMeasurementValues = false;
 
     @Override
-    public boolean isWithObservers() {
-        return false;
-    }
-
-    @Override
     public boolean isWithRecorderPerson() {
         return false;
     }

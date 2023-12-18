@@ -51,7 +51,6 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -347,7 +346,7 @@ public class LandingServiceImpl implements LandingService {
             Map<Integer, String> surveyMeasurementMap = Beans.filterMap(source.getMeasurementValues(), pmfmId -> pmfmService.isSurveyPmfm(pmfmId));
             Map<Integer, String> landingMeasurementMap = Beans.filterMap(source.getMeasurementValues(), pmfmId -> !surveyMeasurementMap.containsKey(pmfmId));
             measurementDao.saveLandingMeasurementsMap(source.getId(), landingMeasurementMap);
-            measurementDao.saveSurveyMeasurementsMap(source.getId(), surveyMeasurementMap);
+            measurementDao.saveLandingSurveyMeasurementsMap(source.getId(), surveyMeasurementMap);
         } else {
             // Split survey and landing measurements
 
@@ -358,7 +357,7 @@ public class LandingServiceImpl implements LandingService {
             landingMeasurements.forEach(m -> fillDefaultProperties(source, m, LandingMeasurement.class));
             landingMeasurements = measurementDao.saveLandingMeasurements(source.getId(), landingMeasurements);
             surveyMeasurements.forEach(m -> fillDefaultProperties(source, m, SurveyMeasurement.class));
-            surveyMeasurements = measurementDao.saveSurveyMeasurements(source.getId(), surveyMeasurements);
+            surveyMeasurements = measurementDao.saveLandingSurveyMeasurements(source.getId(), surveyMeasurements);
 
             source.setMeasurements(ListUtils.union(landingMeasurements, surveyMeasurements));
         }
