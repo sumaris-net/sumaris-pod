@@ -39,12 +39,13 @@ Les outils SUMARiS comprennent :
 
 ## Documentation technique
 
+- [Guide pour les specifications UML](uml_guide_fr.md) ([EN](uml_guide.md) | [FR](uml_guide_fr.md));
 - [Guide du développeur](developer_guide.md) ([EN](developer_guide.md) | [FR](doc/developer_guide_fr.md)) ;;
 - [Documentation de la base de données](db.md) ;
 
 ## Installation
 
-- [Installation de l'application](app.md)
+- [Installation de l'App](app.md)
 - [Installation du Pod et de la base de données](pod.md)
 
 ## Licence
