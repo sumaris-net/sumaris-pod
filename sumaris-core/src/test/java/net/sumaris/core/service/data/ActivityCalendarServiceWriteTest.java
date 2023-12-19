@@ -22,12 +22,16 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
+import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.GearUseFeaturesVO;
+import net.sumaris.core.vo.data.VesselUseFeaturesVO;
+import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -51,7 +55,7 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
     @Test
     public void save() {
-        ActivityCalendarVO vo = createActivityCalendar(2023);
+        ActivityCalendarVO vo = createActivityCalendar(2023, 0);
         ActivityCalendarVO savedVO = service.save(vo);
 
         Assert.assertNotNull(savedVO);
@@ -64,24 +68,10 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
-    public void saveWithActivities() {
+    public void saveWithFeatures() {
+        int expectedMonth = 12;
         // Create a activityCalendar, with an physical gear
-        ActivityCalendarVO activityCalendar = createActivityCalendar(2023);
-
-        List<VesselActivityVO> activities = Lists.newArrayList();
-
-        // january
-        {
-            VesselActivityVO month = createVesselActivity(1);
-            activities.add(month);
-        }
-        // february
-        {
-            VesselActivityVO month = createVesselActivity(2);
-            activities.add(month);
-        }
-
-        activityCalendar.setVesselActivities(activities);
+        ActivityCalendarVO activityCalendar = createActivityCalendar(2023, expectedMonth);
 
         ActivityCalendarVO savedVO = service.save(activityCalendar);
 
@@ -90,8 +80,11 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
 
         ActivityCalendarVO reloadedVO = service.get(activityCalendar.getId(), ActivityCalendarFetchOptions.FULL_GRAPH);
-        Assert.assertNotNull(reloadedVO.getVesselActivities());
-        Assert.assertEquals(2, reloadedVO.getVesselActivities().size());
+        Assert.assertNotNull(reloadedVO.getVesselUseFeatures());
+        Assert.assertEquals(expectedMonth, reloadedVO.getVesselUseFeatures().size());
+
+        Assert.assertNotNull(reloadedVO.getGearUseFeatures());
+        Assert.assertEquals(expectedMonth, reloadedVO.getGearUseFeatures().size());
 
 //
 //        // Reload and check
@@ -130,13 +123,54 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
     /* -- Protected -- */
 
-    protected ActivityCalendarVO createActivityCalendar(int year) {
-        return DataTestUtils.createActivityCalendar(fixtures, pmfmService, year);
+    protected ActivityCalendarVO createActivityCalendar(int year, int monthCount) {
+        ActivityCalendarVO calendar = DataTestUtils.createActivityCalendar(fixtures, year);
+
+        // Create features
+        List<VesselUseFeaturesVO> vesselUseFeatures = Lists.newArrayList();
+        calendar.setVesselUseFeatures(vesselUseFeatures);
+
+        List<GearUseFeaturesVO> gearUseFeatures = Lists.newArrayList();
+        calendar.setGearUseFeatures(gearUseFeatures);
+
+        for (int i = 0; i < monthCount; i++) {
+            // VUF
+            VesselUseFeaturesVO vuf = createVesselUseFeatures(year, i+1);
+            vuf.setProgram(calendar.getProgram());
+            vuf.setVesselId(calendar.getVesselId());
+            vesselUseFeatures.add(vuf);
+
+            // GUF
+            GearUseFeaturesVO guf = createGearUseFeatures(year, i+1);
+            guf.setProgram(calendar.getProgram());
+            guf.setVesselId(calendar.getVesselId());
+            gearUseFeatures.add(guf);
+        }
+
+        return calendar;
     }
 
-    protected VesselActivityVO createVesselActivity(int month) {
-        VesselActivityVO vo = new VesselActivityVO();
-        // TODO
+    protected VesselUseFeaturesVO createVesselUseFeatures(int year, int month) {
+        VesselUseFeaturesVO vo = DataTestUtils.createActivityCalendarVesselUseFeatures(fixtures, year, month);
+
+        vo.setMeasurementValues(ImmutableMap.of(
+            PmfmEnum.NB_FISHERMEN.getId(), "2",
+            PmfmEnum.DURATION_AT_SEA_DAYS.getId(), "20",
+            PmfmEnum.FISHING_DURATION_DAYS.getId(), "20"
+        ));
+
+        return vo;
+    }
+
+    protected GearUseFeaturesVO createGearUseFeatures(int year, int month) {
+        GearUseFeaturesVO vo = DataTestUtils.createActivityCalendarGearUseFeatures(fixtures, year, month);
+
+        vo.setMeasurementValues(ImmutableMap.of(
+            PmfmEnum.NB_FISHERMEN.getId(), "2",
+            PmfmEnum.DURATION_AT_SEA_DAYS.getId(), "20",
+            PmfmEnum.FISHING_DURATION_DAYS.getId(), "20"
+        ));
+
         return vo;
     }
 }

@@ -143,8 +143,10 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     STRATEGY_LABEL(359, "STRATEGY_LABEL"),
 
     REFUSED_SURVEY(266, "REFUSED_SURVEY"),
-    GPS_USED(188, "GPS_USED")
+    GPS_USED(188, "GPS_USED"),
 
+    DURATION_AT_SEA_DAYS(449, "DURATION_AT_SEA_DAYS"),
+    FISHING_DURATION_DAYS(450, "FISHING_DURATION_DAYS")
     ;
 
     public static PmfmEnum valueOf(final int id) {

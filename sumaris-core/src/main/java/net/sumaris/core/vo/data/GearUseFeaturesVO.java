@@ -38,6 +38,8 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -53,10 +55,14 @@ public class GearUseFeaturesVO implements IValueObject<Integer> {
     private Date startDate;
     private Date endDate;
 
+    private Integer vesselId;
+    private ProgramVO program;
+
     private Short rankOrder;
     private MetierVO metier;
     private ReferentialVO gear;
     private ReferentialVO otherGear;
+    private Map<Integer, String> measurementValues;
 
     private String comments;
 
@@ -66,19 +72,18 @@ public class GearUseFeaturesVO implements IValueObject<Integer> {
     private Integer qualityFlagId;
     private Date qualificationDate;
     private String qualificationComments;
-    private DepartmentVO recorderDepartment;
-    private PersonVO recorderPerson;
-
-    private Integer vesselId;
-
-    private ProgramVO program;
-
-    private List<MeasurementVO> measurements;
-    private Map<Integer, String> measurementValues;
+    private Integer recorderDepartmentId;
+    private Integer recorderPersonId;
 
     // TODO create GearUseFeaturesOriginVO
     //private List<GearUseFeaturesOrigin> gearUseFeaturesOrigins;
 
+    /* -- link to parent -- */
+
     private Integer activityCalendarId;
     private Integer dailyActivityCalendarId;
+
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
 }
