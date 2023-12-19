@@ -45,7 +45,7 @@ import java.util.Date;
 import java.util.List;
 
 public interface LandingSpecifications extends RootDataSpecifications<Landing>,
-    IWithVesselSpecifications<Landing>,
+    IWithVesselSpecifications<Integer, Landing>,
     IWithObserversSpecifications<Landing> {
 
     String OBSERVED_LOCATION_ID_PARAM = "observedLocationId";

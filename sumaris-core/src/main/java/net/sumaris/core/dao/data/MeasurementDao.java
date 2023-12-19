@@ -166,6 +166,13 @@ public interface MeasurementDao {
     List<MeasurementVO> getActivityCalendarMeasurements(int activityCalendarId);
     Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId);
 
+
+    Map<Integer, String> getVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId);
+    Map<Integer, String> saveVesselUseFeaturesMeasurementsMap(final int vesselUseFeaturesId, Map<Integer, String> sources);
+
+    Map<Integer, String> getGearUseFeaturesMeasurementsMap(int gearUseFeaturesId);
+    Map<Integer, String> saveGearUseFeaturesMeasurementsMap(final int gearUseFeaturesId, Map<Integer, String> sources);
+
     // Utils
     <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources);
 

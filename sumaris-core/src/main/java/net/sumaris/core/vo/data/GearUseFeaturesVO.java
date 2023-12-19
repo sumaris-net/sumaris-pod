@@ -49,7 +49,7 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class GearUseFeaturesVO implements IValueObject<Integer> {
+public class GearUseFeaturesVO implements IUseFeaturesVO {
 
     private Integer id;
     private Date startDate;
@@ -63,6 +63,9 @@ public class GearUseFeaturesVO implements IValueObject<Integer> {
     private ReferentialVO gear;
     private ReferentialVO otherGear;
     private Map<Integer, String> measurementValues;
+
+    private List<FishingAreaVO> fishingAreas;
+    private List<DataOriginVO> origins;
 
     private String comments;
 

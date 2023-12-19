@@ -42,7 +42,7 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_use_features")
-public class VesselUseFeatures implements IDataEntity<Integer> {
+public class VesselUseFeatures implements IUseFeaturesEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_USE_FEATURE_SEQ")
@@ -103,11 +103,11 @@ public class VesselUseFeatures implements IDataEntity<Integer> {
     @JoinColumn(name = "base_port_location_fk")
     private Location basePortLocation;
 
-    @OneToMany(mappedBy = VesselUseMeasurement.Fields.VESSEL_USE_FEATURES)
-    private List<VesselUseMeasurement> vesselUseMeasurements;
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseMeasurement.class, mappedBy = VesselUseMeasurement.Fields.VESSEL_USE_FEATURES, cascade = CascadeType.REMOVE)
+    private List<VesselUseMeasurement> measurements;
 
-    @OneToMany(mappedBy = VesselUseFeaturesOrigin.Fields.VESSEL_USE_FEATURES)
-    private List<VesselUseFeaturesOrigin> vesselUseFeaturesOrigins;
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseFeaturesOrigin.class, mappedBy = VesselUseFeaturesOrigin.Fields.VESSEL_USE_FEATURES, cascade = CascadeType.REMOVE)
+    private List<VesselUseFeaturesOrigin> origins;
 
     @Transient
     private Department recorderDepartment; // Not used

@@ -22,7 +22,7 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
-import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
@@ -45,7 +45,7 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationSpecifications
-    extends DataSpecifications<Integer, Operation> {
+    extends IDataSpecifications<Integer, Operation> {
 
     String TRIP_ID_PARAM = "tripId";
     String VESSEL_ID_PARAM = "vesselId";

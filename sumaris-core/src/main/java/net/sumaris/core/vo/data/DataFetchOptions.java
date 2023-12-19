@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class DataFetchOptions implements IDataFetchOptions {
+public class DataFetchOptions implements IDataFetchOptions, IWithObserversFetchOptions {
 
     public static DataFetchOptions nullToEmpty(DataFetchOptions fetchOptions) {
         return fetchOptions == null ? new DataFetchOptions() : fetchOptions;
@@ -50,13 +50,16 @@ public class DataFetchOptions implements IDataFetchOptions {
             .withMeasurementValues(true)
             .build();
 
-    public static final DataFetchOptions copy(IDataFetchOptions other) {
+    public static DataFetchOptions copy(IDataFetchOptions other) {
         DataFetchOptions result = DataFetchOptions.builder()
             .withRecorderDepartment(other.isWithRecorderDepartment())
             .withRecorderPerson(other.isWithRecorderPerson())
             .withChildrenEntities(other.isWithChildrenEntities())
             .withMeasurementValues(other.isWithMeasurementValues())
             .build();
+        if (other instanceof IWithObserversFetchOptions ofo) {
+            result.setWithObservers(ofo.isWithObservers());
+        }
         return result;
     }
 

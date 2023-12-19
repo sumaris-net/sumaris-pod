@@ -22,31 +22,18 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.IEntity;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.util.List;
 
-public interface IRootDataEntity<ID extends Serializable>
-        extends IDataEntity<ID>,
-        IWithRecorderPersonEntity<ID, Person>,
-        IWithDataQualityEntity<ID>,
-        IWithProgramEntity<ID, Program>{
+public interface IWithVesselUseFeaturesEntity<ID extends Serializable, U extends IUseFeaturesEntity> extends IEntity<ID> {
 
-    interface Fields extends IDataEntity.Fields,
-        IWithDataQualityEntity.Fields,
-        IWithRecorderPersonEntity.Fields,
-        IWithProgramEntity.Fields {
-        String CREATION_DATE = "creationDate";
-        String COMMENTS = "comments";
+    interface Fields extends IEntity.Fields {
+        String VESSEL_USE_FEATURES = "vesselUseFeatures";
     }
 
-    Date getCreationDate() ;
+    List<U> getVesselUseFeatures();
 
-    void setCreationDate(Date creationDate);
-
-    String getComments();
-
-    void setComments(String comments);
+    void setVesselUseFeatures(List<U> vesselUseFeatures);
 }

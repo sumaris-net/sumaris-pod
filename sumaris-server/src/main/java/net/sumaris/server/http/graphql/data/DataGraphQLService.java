@@ -1455,6 +1455,20 @@ public class DataGraphQLService {
         return measurementService.getVesselFeaturesMeasurementsMap(vesselSnapshot.getVesselFeaturesId());
     }
 
+    @GraphQLQuery(name = "measurementValues", description = "Get vessel use features measurements")
+    public Map<Integer, String> getVesselUseFeaturesMeasurementsMap(@GraphQLContext VesselUseFeaturesVO vesselUseFeatures) {
+        if (vesselUseFeatures.getMeasurementValues() != null) vesselUseFeatures.getMeasurementValues();
+        if (vesselUseFeatures.getId() == null) return null;
+        return measurementService.getVesselUseFeaturesMeasurementsMap(vesselUseFeatures.getId());
+    }
+
+    @GraphQLQuery(name = "measurementValues", description = "Get gear use features measurements")
+    public Map<Integer, String> getGearUseFeaturesMeasurementsMap(@GraphQLContext GearUseFeaturesVO gearUseFeatures) {
+        if (gearUseFeatures.getMeasurementValues() != null) gearUseFeatures.getMeasurementValues();
+        if (gearUseFeatures.getId() == null) return null;
+        return measurementService.getGearUseFeaturesMeasurementsMap(gearUseFeatures.getId());
+    }
+
     // Images
     @GraphQLQuery(name = "images", description = "Get sample's images")
     public List<ImageAttachmentVO> getSampleImages(@GraphQLContext SampleVO sample) {

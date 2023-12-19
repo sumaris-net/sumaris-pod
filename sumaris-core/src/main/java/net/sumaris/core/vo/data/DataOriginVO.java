@@ -1,10 +1,8 @@
-package net.sumaris.core.dao.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,15 +20,21 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.IRootDataEntity;
+package net.sumaris.core.vo.data;
 
-/**
- * @author peck7 on 28/08/2020.
- */
-public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
-        extends IDataSpecifications<Integer, E>,
-    IWithDataQualitySpecifications<Integer, E>,
-    IWithProgramSpecifications<Integer, E>,
-    IWithRecorderPersonSpecifications<Integer, E> {
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 
+@Data
+@FieldNameConstants
+@EqualsAndHashCode
+public class DataOriginVO {
+
+    @EqualsAndHashCode.Exclude
+    private ProgramVO program;
+    private Integer programId;
+
+    private String acquisitionLevel;
 }

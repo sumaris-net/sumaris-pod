@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.Date;
 
 public interface TripSpecifications extends RootDataSpecifications<Trip>,
-    IWithVesselSpecifications<Trip>,
+    IWithVesselSpecifications<Integer, Trip>,
     IWithObserversSpecifications<Trip> {
 
     String LOCATION_ID_PARAM = "locationId";

@@ -232,6 +232,18 @@ public class DatabaseFixtures {
 		return new String[]{"65F1", "65F2", "65F3", "65F4","65F5"};
 	}
 
+	public int getRectangleId(int index) {
+        return switch (index) {
+            case 0 -> 110;  // 65F1
+            case 1 -> 111; // 65F2
+            case 2 -> 112; // 65F3
+            case 3 -> 113; // 65F4
+            case 4 -> 114; // 65F5
+
+            default -> 110;
+        };
+	}
+
 	public Integer getDepartmentId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

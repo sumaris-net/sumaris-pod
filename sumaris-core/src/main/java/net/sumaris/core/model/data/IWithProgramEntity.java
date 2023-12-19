@@ -2,7 +2,7 @@ package net.sumaris.core.model.data;
 
 /*-
  * #%L
- * SUMARiS:: Core
+ * SUMARiS:: Core shared
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,31 +22,17 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.IEntity;
 
 import java.io.Serializable;
-import java.util.Date;
 
-public interface IRootDataEntity<ID extends Serializable>
-        extends IDataEntity<ID>,
-        IWithRecorderPersonEntity<ID, Person>,
-        IWithDataQualityEntity<ID>,
-        IWithProgramEntity<ID, Program>{
+public interface IWithProgramEntity<ID extends Serializable, P extends IEntity<Integer>> extends IEntity<ID> {
 
-    interface Fields extends IDataEntity.Fields,
-        IWithDataQualityEntity.Fields,
-        IWithRecorderPersonEntity.Fields,
-        IWithProgramEntity.Fields {
-        String CREATION_DATE = "creationDate";
-        String COMMENTS = "comments";
+    interface Fields extends IEntity.Fields {
+        String PROGRAM = "program";
     }
 
-    Date getCreationDate() ;
+    P getProgram();
 
-    void setCreationDate(Date creationDate);
-
-    String getComments();
-
-    void setComments(String comments);
+    void setProgram(P program);
 }

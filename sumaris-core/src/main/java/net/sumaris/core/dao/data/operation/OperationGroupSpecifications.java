@@ -23,7 +23,7 @@ package net.sumaris.core.dao.data.operation;
  */
 
 import net.sumaris.core.config.CacheConfiguration;
-import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
@@ -38,7 +38,7 @@ import java.util.List;
  * @author peck7 on 01/09/2020.
  */
 public interface OperationGroupSpecifications
-    extends DataSpecifications<Integer, Operation> {
+    extends IDataSpecifications<Integer, Operation> {
 
 
     List<OperationGroupVO> saveAllByTripId(int tripId, List<OperationGroupVO> operationGroups);

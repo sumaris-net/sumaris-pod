@@ -22,17 +22,22 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.vo.data.FishingAreaVO;
 import net.sumaris.core.vo.data.GearUseFeaturesVO;
 import net.sumaris.core.vo.data.VesselUseFeaturesVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
+import net.sumaris.core.vo.referential.LocationVO;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -80,42 +85,67 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
 
         ActivityCalendarVO reloadedVO = service.get(activityCalendar.getId(), ActivityCalendarFetchOptions.FULL_GRAPH);
+
+        // Check VUF
         Assert.assertNotNull(reloadedVO.getVesselUseFeatures());
         Assert.assertEquals(expectedMonth, reloadedVO.getVesselUseFeatures().size());
+        reloadedVO.getVesselUseFeatures().forEach(vuf -> {
+            Assert.assertNotNull(vuf);
+            Assert.assertNotNull(vuf.getActivityCalendarId());
+            Assert.assertNotNull(vuf.getVesselId());
+            Assert.assertNotNull(vuf.getStartDate());
+            Assert.assertNotNull(vuf.getEndDate());
+            Assert.assertNotNull(vuf.getProgram());
+            Assert.assertNotNull(vuf.getProgram().getId());
+            Assert.assertNotNull(vuf.getIsActive());
 
+            Assert.assertEquals(3, MapUtils.size(vuf.getMeasurementValues()));
+        });
+
+        // Check GUF
         Assert.assertNotNull(reloadedVO.getGearUseFeatures());
         Assert.assertEquals(expectedMonth, reloadedVO.getGearUseFeatures().size());
+        reloadedVO.getGearUseFeatures().forEach(guf -> {
+            Assert.assertNotNull(guf);
+            Assert.assertNotNull(guf.getActivityCalendarId());
+            Assert.assertNotNull(guf.getVesselId());
+            Assert.assertNotNull(guf.getStartDate());
+            Assert.assertNotNull(guf.getEndDate());
+            Assert.assertNotNull(guf.getProgram());
+            Assert.assertNotNull(guf.getProgram().getId());
+            Assert.assertNotNull(guf.getMetier());
 
-//
-//        // Reload and check
-//        List<OperationVO> savedOperations = operationService.findAllByActivityCalendarId(savedVO.getId(), OperationFetchOptions.DEFAULT);
-//        Assert.assertNotNull(savedOperations);
-//        Assert.assertEquals(1, savedOperations.size());
-//
-//        OperationVO saveOperation = savedOperations.get(0);
-//        Assert.assertNotNull(saveOperation.getPhysicalGear());
-//        Assert.assertNotNull(saveOperation.getPhysicalGear().getId());
-//
-//        Assert.assertEquals("Operation's physical gear id should be equals to activityCalendar's physical gear",
-//                savedVO.getGears().get(0).getId(), saveOperation.getPhysicalGear().getId());
+            // FIXME fetch origins
+            //Assert.assertNotNull(guf.getOrigins());
 
+            Assert.assertNull(guf.getGear());
+            Assert.assertNull(guf.getOtherGear());
+
+            Assert.assertNotNull(guf.getFishingAreas());
+            Assert.assertEquals(1, CollectionUtils.size(guf.getFishingAreas()));
+
+            guf.getFishingAreas().forEach(fa -> {
+                Assert.assertNotNull(fa);
+                Assert.assertNotNull(fa.getId());
+                Assert.assertNotNull(fa.getLocation());
+                Assert.assertNotNull(fa.getLocation().getId());
+            });
+        });
     }
 
     @Test
     public void delete() {
+        // Create an activity calendar
         ActivityCalendarVO savedVO = null;
         try {
-            // Create activityCalendar
-            savedVO = service.save(createActivityCalendar(2023));
+            savedVO = service.save(createActivityCalendar(2023, 1));
             Assume.assumeNotNull(savedVO);
-
-            // TODO create activities
-
         }
         catch(Exception e) {
             Assume.assumeNoException(e);
         }
 
+        // Then delete it
         if (savedVO != null) {
             service.asyncDelete(savedVO.getId());
         }
@@ -125,6 +155,11 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
     protected ActivityCalendarVO createActivityCalendar(int year, int monthCount) {
         ActivityCalendarVO calendar = DataTestUtils.createActivityCalendar(fixtures, year);
+
+        calendar.setMeasurementValues(ImmutableMap.of(
+            PmfmEnum.SURVEY_QUALIFICATION.getId(), "591", // Directe
+            PmfmEnum.SURVEY_RELIABILITY.getId(), "600" // Fiable
+        ));
 
         // Create features
         List<VesselUseFeaturesVO> vesselUseFeatures = Lists.newArrayList();
@@ -136,14 +171,10 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         for (int i = 0; i < monthCount; i++) {
             // VUF
             VesselUseFeaturesVO vuf = createVesselUseFeatures(year, i+1);
-            vuf.setProgram(calendar.getProgram());
-            vuf.setVesselId(calendar.getVesselId());
             vesselUseFeatures.add(vuf);
 
             // GUF
             GearUseFeaturesVO guf = createGearUseFeatures(year, i+1);
-            guf.setProgram(calendar.getProgram());
-            guf.setVesselId(calendar.getVesselId());
             gearUseFeatures.add(guf);
         }
 
@@ -165,11 +196,12 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
     protected GearUseFeaturesVO createGearUseFeatures(int year, int month) {
         GearUseFeaturesVO vo = DataTestUtils.createActivityCalendarGearUseFeatures(fixtures, year, month);
 
-        vo.setMeasurementValues(ImmutableMap.of(
-            PmfmEnum.NB_FISHERMEN.getId(), "2",
-            PmfmEnum.DURATION_AT_SEA_DAYS.getId(), "20",
-            PmfmEnum.FISHING_DURATION_DAYS.getId(), "20"
-        ));
+        FishingAreaVO fa = new FishingAreaVO();
+        LocationVO rectangle = new LocationVO();
+        rectangle.setId(fixtures.getRectangleId(month % 5));
+        fa.setLocation(rectangle);
+
+        vo.setFishingAreas(ImmutableList.of(fa));
 
         return vo;
     }

@@ -28,7 +28,9 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.FishingArea;
+import net.sumaris.core.model.data.GearUseFeatures;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.referential.DepthGradient;
 import net.sumaris.core.model.referential.DistanceToCoastGradient;
@@ -94,6 +96,9 @@ public class FishingAreaRepositoryImpl
 
         if (source.getOperation() != null)
             target.setOperationId(source.getOperation().getId());
+
+        if (source.getGearUseFeatures() != null)
+            target.setGearUseFeaturesId(source.getGearUseFeatures().getId());
     }
 
     @Override
@@ -140,7 +145,7 @@ public class FishingAreaRepositoryImpl
             }
         }
 
-        // parent operation
+        // Operation
         Integer operationId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
         source.setOperationId(operationId);
         if (copyIfNull || (operationId != null)) {
@@ -148,6 +153,17 @@ public class FishingAreaRepositoryImpl
                 target.setOperation(null);
             } else {
                 target.setOperation(getReference(Operation.class, operationId));
+            }
+        }
+
+        // Gear Use Features
+        Integer gufId = source.getGearUseFeaturesId() != null ? source.getGearUseFeaturesId() : (source.getGearUseFeatures() != null ? source.getGearUseFeatures().getId() : null);
+        source.setGearUseFeaturesId(gufId);
+        if (copyIfNull || (gufId != null)) {
+            if (gufId == null) {
+                target.setGearUseFeatures(null);
+            } else {
+                target.setGearUseFeatures(getReference(GearUseFeatures.class, gufId));
             }
         }
 
@@ -162,17 +178,63 @@ public class FishingAreaRepositoryImpl
     }
 
     @Override
+    public List<FishingAreaVO> getAllByGearUseFeaturesId(int gufId) {
+        return getRepository().getFishingAreaByGearUseFeaturesId(gufId)
+            .stream()
+            .map(this::toVO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public List<FishingAreaVO> saveAllByOperationId(int operationId, @Nonnull List<FishingAreaVO> sources) {
 
         // Filter on non null objects
-        sources = sources.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        sources = sources.stream().filter(Objects::nonNull).toList();
 
         // Set parent link
-        sources.forEach(fa -> fa.setOperationId(operationId));
+        sources.forEach(fa -> {
+            fa.setOperationId(operationId);
+            fa.setGearUseFeaturesId(null);
+        });
 
         // Get existing fishing areas
         Operation operation = getById(Operation.class, operationId);
-        List<Integer> existingIds = Beans.collectIds(operation.getFishingAreas());
+
+        return saveAllByList(sources, operation.getFishingAreas());
+    }
+
+    @Override
+    public List<FishingAreaVO> saveAllByGearUseFeaturesId(int gearUseFeaturesId, List<FishingAreaVO> sources) {
+
+        // Filter on non null objects
+        sources = sources.stream().filter(Objects::nonNull).toList();
+
+        // Set parent link
+        sources.forEach(fa -> {
+            fa.setGearUseFeaturesId(gearUseFeaturesId);
+            fa.setOperationId(null);
+        });
+
+        // Get existing fishing areas
+        GearUseFeatures guf = getById(GearUseFeatures.class, gearUseFeaturesId);
+
+        return saveAllByList(sources, guf.getFishingAreas());
+    }
+
+    private FishingAreaRepository repository;
+
+    protected FishingAreaRepository getRepository() {
+        if (repository == null) {
+            repository = this.applicationContext.getBean(FishingAreaRepository.class);
+        }
+        return repository;
+    }
+
+    protected List<FishingAreaVO> saveAllByList(@Nonnull List<FishingAreaVO> sources, @Nonnull List<FishingArea> target) {
+
+
+        // Get existing fishing areas
+        List<Integer> existingIds = Beans.collectIds(target);
 
         // Save
         sources.forEach(fishingArea -> {
@@ -188,14 +250,5 @@ public class FishingAreaRepositoryImpl
         sources.forEach(this::save);
 
         return sources;
-    }
-
-    private FishingAreaRepository repository;
-
-    protected FishingAreaRepository getRepository() {
-        if (repository == null) {
-            repository = this.applicationContext.getBean(FishingAreaRepository.class);
-        }
-        return repository;
     }
 }

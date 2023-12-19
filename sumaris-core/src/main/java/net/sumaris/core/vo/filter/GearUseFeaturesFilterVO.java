@@ -37,10 +37,10 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldNameConstants
-public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter {
+public class GearUseFeaturesFilterVO implements IDataFilter, IVesselFilter {
 
-    public static ActivityCalendarFilterVO nullToEmpty(@Nullable ActivityCalendarFilterVO filter) {
-        return filter == null ? new ActivityCalendarFilterVO() : filter;
+    public static GearUseFeaturesFilterVO nullToEmpty(@Nullable GearUseFeaturesFilterVO filter) {
+        return filter == null ? new GearUseFeaturesFilterVO() : filter;
     }
 
     private Date startDate;
@@ -49,17 +49,25 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     private String programLabel;
     private Integer[] programIds;
 
+
     private Integer vesselId;
-    private Integer locationId;
-    private Integer[] locationIds;
+
+    private Integer metierId;
+    private Integer[] metierIds;
+    private Integer gearId;
+    private Integer[] gearIds;
 
     private Integer[] excludedIds;
     private Integer[] includedIds;
-    private Integer activityCalendarId;
+    private Integer gearUseFeaturesId;
+
+    private Integer recorderDepartmentId;
+    private Integer recorderPersonId;
 
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
 
-    private Integer recorderDepartmentId;
-    private Integer recorderPersonId;
+    // Parent link
+    private Integer activityCalendarId;
+    private Integer dailyActivityCalendarId;
 }

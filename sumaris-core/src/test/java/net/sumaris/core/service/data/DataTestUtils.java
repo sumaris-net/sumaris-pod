@@ -526,7 +526,7 @@ public class DataTestUtils {
         // Dates
         Calendar date = Calendar.getInstance();
         date.set(Calendar.YEAR, year);
-        date.set(Calendar.MONTH, month);
+        date.set(Calendar.MONTH, month - 1);
         date.set(Calendar.DAY_OF_MONTH, 1);
         Dates.resetTime(date);
         vo.setStartDate(date.getTime());

@@ -1,4 +1,4 @@
-package net.sumaris.core.dao.data.fishingArea;
+package net.sumaris.core.dao.data.vessel;
 
 /*-
  * #%L
@@ -22,21 +22,16 @@ package net.sumaris.core.dao.data.fishingArea;
  * #L%
  */
 
-import net.sumaris.core.model.data.FishingArea;
-import net.sumaris.core.vo.data.FishingAreaVO;
-import org.springframework.data.jpa.domain.Specification;
+import net.sumaris.core.model.data.VesselUseFeatures;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.VesselUseFeaturesVO;
+import net.sumaris.core.vo.filter.VesselUseFeaturesFilterVO;
+import org.springframework.stereotype.Repository;
 
-import java.util.List;
+@Repository("vesselUseFeaturesRepository")
+public interface VesselUseFeaturesRepository extends
+    UseFeaturesRepository<VesselUseFeatures, VesselUseFeaturesVO, VesselUseFeaturesFilterVO, DataFetchOptions>,
+    VesselUseFeaturesSpecifications {
 
-public interface FishingAreaSpecifications {
 
-    List<FishingAreaVO> getAllByOperationId(int operationId);
-
-    List<FishingAreaVO> getAllByGearUseFeaturesId(int gearUseFeaturesId);
-
-    List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
-
-    List<FishingAreaVO> saveAllByGearUseFeaturesId(int gearUseFeaturesId, List<FishingAreaVO> fishingAreas);
-
-    List<FishingAreaVO> findAllVO(Specification<FishingArea> spec);
 }

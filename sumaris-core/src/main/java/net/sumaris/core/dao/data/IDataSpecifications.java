@@ -32,6 +32,7 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
@@ -43,7 +44,8 @@ import java.util.Objects;
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface DataSpecifications<ID extends Serializable,
+@NoRepositoryBean
+public interface IDataSpecifications<ID extends Serializable,
     E extends IDataEntity<ID>>
     extends IEntitySpecifications<ID, E> {
 

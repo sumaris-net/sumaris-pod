@@ -37,14 +37,15 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldNameConstants
-public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter {
+public class VesselUseFeaturesFilterVO implements IDataFilter, IVesselFilter {
 
-    public static ActivityCalendarFilterVO nullToEmpty(@Nullable ActivityCalendarFilterVO filter) {
-        return filter == null ? new ActivityCalendarFilterVO() : filter;
+    public static VesselUseFeaturesFilterVO nullToEmpty(@Nullable VesselUseFeaturesFilterVO filter) {
+        return filter == null ? new VesselUseFeaturesFilterVO() : filter;
     }
 
     private Date startDate;
     private Date endDate;
+    private Integer isActive;
 
     private String programLabel;
     private Integer[] programIds;
@@ -55,11 +56,15 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
 
     private Integer[] excludedIds;
     private Integer[] includedIds;
-    private Integer activityCalendarId;
+    private Integer vesselUseFeaturesId;
 
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
 
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
+
+    // Parent link
+    private Integer activityCalendarId;
+    private Integer dailyActivityCalendarId;
 }

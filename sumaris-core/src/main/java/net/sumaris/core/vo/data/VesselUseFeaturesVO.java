@@ -44,7 +44,7 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class VesselUseFeaturesVO implements IValueObject<Integer> {
+public class VesselUseFeaturesVO implements IUseFeaturesVO {
 
     private Integer id;
     private Date startDate;
@@ -68,11 +68,11 @@ public class VesselUseFeaturesVO implements IValueObject<Integer> {
 
     private ProgramVO program;
 
-    //private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
+    private List<DataOriginVO> origins;
 
     // TODO create VesselUseFeaturesOriginVO
-    //private List<VesselUseFeaturesOriginVO> vesselUseFeaturesOrigins;
+    //private List<VesselUseFeaturesOriginVO> origins;
 
     /* -- link to parent -- */
 
