@@ -29,12 +29,15 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.data.PhysicalGear;
+import net.sumaris.core.model.data.VesselUseFeaturesIsActiveEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -487,15 +490,15 @@ public class DataTestUtils {
         return result;
     }
 
-    public static ActivityCalendarVO createActivityCalendar(DatabaseFixtures fixtures,
-                                                            PmfmService pmfmService, int year) {
+    public static ActivityCalendarVO createActivityCalendar(DatabaseFixtures fixtures, int year) {
         ActivityCalendarVO vo = new ActivityCalendarVO();
 
         vo.setProgram(fixtures.getActivityCalendarProgram());
 
         // Vessel
+        vo.setVesselId(fixtures.getVesselId(0));
         VesselSnapshotVO vessel = new VesselSnapshotVO();
-        vessel.setVesselId(fixtures.getVesselId(0));
+        vessel.setVesselId(vo.getVesselId());
         vo.setVesselSnapshot(vessel);
 
         // Other properties
@@ -506,6 +509,80 @@ public class DataTestUtils {
         DepartmentVO recorderDepartment = new DepartmentVO();
         recorderDepartment.setId(fixtures.getDepartmentId(0));
         vo.setRecorderDepartment(recorderDepartment);
+
+        return vo;
+    }
+
+    public static VesselUseFeaturesVO createActivityCalendarVesselUseFeatures(DatabaseFixtures fixtures,
+                                                                              int year, int month) {
+        VesselUseFeaturesVO vo = new VesselUseFeaturesVO();
+
+        // Program
+        vo.setProgram(fixtures.getActivityCalendarProgram());
+
+        // Vessel
+        vo.setVesselId(fixtures.getVesselId(0));
+
+        // Dates
+        Calendar date = Calendar.getInstance();
+        date.set(Calendar.YEAR, year);
+        date.set(Calendar.MONTH, month);
+        date.set(Calendar.DAY_OF_MONTH, 1);
+        Dates.resetTime(date);
+        vo.setStartDate(date.getTime());
+
+        date.add(Calendar.MONTH, 1);
+        date.add(Calendar.DAY_OF_YEAR, -1);
+        vo.setEndDate(date.getTime());
+
+        // Is active
+        vo.setIsActive(VesselUseFeaturesIsActiveEnum.ACTIVE.getValue());
+
+        // Base port location
+        LocationVO basePortLocation = new LocationVO();
+        basePortLocation.setId(fixtures.getLocationPortId(0));
+        vo.setBasePortLocation(basePortLocation);
+
+        // Recorder department
+        vo.setRecorderDepartmentId(fixtures.getDepartmentId(0));
+        vo.setRecorderPersonId(fixtures.getPersonIdObserver());
+
+        return vo;
+    }
+
+    public static GearUseFeaturesVO createActivityCalendarGearUseFeatures(DatabaseFixtures fixtures,
+                                                                          int year, int month) {
+        GearUseFeaturesVO vo = new GearUseFeaturesVO();
+
+        // Program
+        vo.setProgram(fixtures.getActivityCalendarProgram());
+
+        // Vessel
+        vo.setVesselId(fixtures.getVesselId(0));
+
+        // Dates
+        Calendar date = Calendar.getInstance();
+        date.set(Calendar.YEAR, year);
+        date.set(Calendar.MONTH, month);
+        date.set(Calendar.DAY_OF_MONTH, 1);
+        Dates.resetTime(date);
+        vo.setStartDate(date.getTime());
+
+        date.add(Calendar.MONTH, 1);
+        date.add(Calendar.DAY_OF_YEAR, -1);
+        vo.setEndDate(date.getTime());
+
+        // RankOrder
+        vo.setRankOrder((short)1);
+
+        // Metier
+        MetierVO metier = new MetierVO();
+        metier.setId(fixtures.getMetierIdForOTB(0));
+        vo.setMetier(metier);
+
+        // Recorder department
+        vo.setRecorderDepartmentId(fixtures.getDepartmentId(0));
+        vo.setRecorderPersonId(fixtures.getPersonIdObserver());
 
         return vo;
     }

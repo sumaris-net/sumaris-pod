@@ -23,7 +23,6 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,14 +42,14 @@ import net.sumaris.core.model.data.SurveyMeasurement;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -84,7 +83,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
 
     @Override
     public List<ActivityCalendarVO> findAll(ActivityCalendarFilterVO filter, int offset, int size, String sortAttribute,
-                                SortDirection sortDirection, ActivityCalendarFetchOptions fetchOptions) {
+                                            SortDirection sortDirection, ActivityCalendarFetchOptions fetchOptions) {
         return repository.findAll(ActivityCalendarFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 

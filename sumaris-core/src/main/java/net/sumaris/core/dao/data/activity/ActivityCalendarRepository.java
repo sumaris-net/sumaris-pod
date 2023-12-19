@@ -24,8 +24,8 @@ package net.sumaris.core.dao.data.activity;
 
 import net.sumaris.core.dao.data.RootDataRepository;
 import net.sumaris.core.model.data.ActivityCalendar;
-import net.sumaris.core.vo.data.ActivityCalendarFetchOptions;
-import net.sumaris.core.vo.data.ActivityCalendarVO;
+import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

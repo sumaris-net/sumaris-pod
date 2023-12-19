@@ -33,12 +33,10 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.ActivityCalendarFetchOptions;
-import net.sumaris.core.vo.data.ActivityCalendarVO;
+import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -52,7 +50,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 public class ActivityCalendarRepositoryImpl

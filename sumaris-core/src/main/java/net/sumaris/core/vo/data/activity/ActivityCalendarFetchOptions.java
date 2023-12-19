@@ -1,10 +1,8 @@
-package net.sumaris.core.vo.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,10 +20,13 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+package net.sumaris.core.vo.data.activity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 
 @Data
 @AllArgsConstructor

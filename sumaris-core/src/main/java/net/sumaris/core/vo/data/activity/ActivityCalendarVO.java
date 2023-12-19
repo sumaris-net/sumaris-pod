@@ -20,27 +20,21 @@
  * #L%
  */
 
-package net.sumaris.core.vo.data;
+package net.sumaris.core.vo.data.activity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
+import net.sumaris.core.vo.data.*;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
-import javax.persistence.*;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -75,11 +69,12 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
 
     private Map<Integer, String> measurementValues;
 
-    private List<VesselActivityVO> vesselActivities;
+    @EqualsAndHashCode.Exclude
+    private List<VesselUseFeaturesVO> vesselUseFeatures;
 
-    public ActivityCalendarVO() {
-        vesselActivities = new ArrayList<>();
-    }
+    @EqualsAndHashCode.Exclude
+    private List<GearUseFeaturesVO> gearUseFeatures;
+
 
     @Override
     @JsonIgnore
@@ -87,4 +82,7 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
         return null;
     }
 
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
 }

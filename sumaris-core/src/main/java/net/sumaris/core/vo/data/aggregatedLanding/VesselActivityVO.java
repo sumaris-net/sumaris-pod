@@ -50,7 +50,6 @@ public class VesselActivityVO implements IWithMeasurementValues, Serializable {
     private Integer observedLocationId;
     private Integer landingId;
     private Integer tripId;
-    private Integer activityCalendarId;
 
     public VesselActivityVO() {
         metiers = new ArrayList<>();

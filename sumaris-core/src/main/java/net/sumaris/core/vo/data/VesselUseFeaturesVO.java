@@ -61,18 +61,20 @@ public class VesselUseFeaturesVO implements IValueObject<Integer> {
     private Integer qualityFlagId;
     private Date qualificationDate;
     private String qualificationComments;
-    private DepartmentVO recorderDepartment;
-    private PersonVO recorderPerson;
+    private Integer recorderDepartmentId;
+    private Integer recorderPersonId;
 
     private Integer vesselId;
 
     private ProgramVO program;
 
-    private List<MeasurementVO> measurements;
+    //private List<MeasurementVO> measurements;
     private Map<Integer, String> measurementValues;
 
     // TODO create VesselUseFeaturesOriginVO
     //private List<VesselUseFeaturesOriginVO> vesselUseFeaturesOrigins;
+
+    /* -- link to parent -- */
 
     private Integer activityCalendarId;
     private Integer dailyActivityCalendarId;
