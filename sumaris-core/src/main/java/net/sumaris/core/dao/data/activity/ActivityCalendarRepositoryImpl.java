@@ -25,14 +25,14 @@ package net.sumaris.core.dao.data.activity;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
-import net.sumaris.core.dao.data.landing.LandingRepository;
-import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.ActivityCalendar;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
@@ -56,20 +56,12 @@ public class ActivityCalendarRepositoryImpl
         extends RootDataRepositoryImpl<ActivityCalendar, ActivityCalendarVO, ActivityCalendarFilterVO, ActivityCalendarFetchOptions>
         implements ActivityCalendarSpecifications {
 
-    private final LocationRepository locationRepository;
-    private final LandingRepository landingRepository;
-
     private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
     public ActivityCalendarRepositoryImpl(EntityManager entityManager,
-                                          LocationRepository locationRepository,
-                                          LandingRepository landingRepository,
-                                          SumarisConfiguration configuration,
                                           GenericConversionService conversionService) {
         super(ActivityCalendar.class, ActivityCalendarVO.class, entityManager);
-        this.locationRepository = locationRepository;
-        this.landingRepository = landingRepository;
         conversionService.addConverter(ActivityCalendar.class, ActivityCalendarVO.class, this::toVO);
     }
 
@@ -160,11 +152,6 @@ public class ActivityCalendarRepositoryImpl
         }
 
         return (expression != null) ? ImmutableList.of(expression) : super.toSortExpressions(query, root, cb, property);
-    }
-
-    @Override
-    protected void onAfterSaveEntity(ActivityCalendarVO vo, ActivityCalendar savedEntity, boolean isNew) {
-        super.onAfterSaveEntity(vo, savedEntity, isNew);
     }
 
     @Override

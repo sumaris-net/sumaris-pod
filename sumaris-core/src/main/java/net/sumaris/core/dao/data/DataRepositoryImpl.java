@@ -44,12 +44,10 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.data.IWithObserversFetchOptions;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.filter.IDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -70,7 +68,7 @@ import java.util.stream.Stream;
 @Slf4j
 public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends IDataFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements DataRepository<E, V, F, O>, DataSpecifications<Integer, E> {
+    implements DataRepository<E, V, F, O>, IDataSpecifications<Integer, E> {
 
     protected static PersonFetchOptions PERSON_FETCH_OPTIONS = PersonFetchOptions.builder()
         .withDepartment(true)

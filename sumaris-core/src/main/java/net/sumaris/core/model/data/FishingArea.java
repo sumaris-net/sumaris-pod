@@ -41,7 +41,6 @@ import java.util.Date;
  */
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -92,12 +91,12 @@ public class FishingArea implements IEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = GearUseFeatures.class)
     @JoinColumn(name = "gear_use_features_fk")
     @ToString.Exclude
-    private GearUseFeatures gearUserFeatures;
+    private GearUseFeatures gearUseFeatures;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = VesselUseFeatures.class)
     @JoinColumn(name = "vessel_use_features_fk")
     @ToString.Exclude
-    private VesselUseFeatures vesselUserFeatures;
+    private VesselUseFeatures vesselUseFeatures;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Sale.class)
     @JoinColumn(name = "sale_fk")

@@ -42,7 +42,9 @@ import java.util.List;
 @Entity
 @Table(name = "daily_activity_calendar")
 public class DailyActivityCalendar implements IRootDataEntity<Integer>,
-    IWithVesselEntity<Integer, Vessel> {
+    IWithVesselEntity<Integer, Vessel>,
+    IWithVesselUseFeaturesEntity<Integer, VesselUseFeatures>,
+    IWithGearUseFeaturesEntity<Integer, GearUseFeatures> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DAILY_ACTIVITY_CALENDAR_SEQ")

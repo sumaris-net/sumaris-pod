@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.activity.ActivityCalendarRepository;
+import net.sumaris.core.dao.data.vessel.VesselUseFeaturesRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -38,18 +39,20 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.ActivityCalendar;
-import net.sumaris.core.model.data.SurveyMeasurement;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
-import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.util.DataBeans;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.GearUseFeaturesVO;
+import net.sumaris.core.vo.data.IUseFeaturesVO;
+import net.sumaris.core.vo.data.VesselUseFeaturesVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
-import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import net.sumaris.core.vo.filter.GearUseFeaturesFilterVO;
+import net.sumaris.core.vo.filter.VesselUseFeaturesFilterVO;
+import net.sumaris.core.dao.data.vessel.GearUseFeaturesRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -57,7 +60,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
@@ -69,10 +74,10 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     private final ActivityCalendarRepository repository;
     private final MeasurementDao measurementDao;
     private final ApplicationEventPublisher publisher;
-    private final PmfmService pmfmService;
-    private final ReferentialService referentialService;
-    private final FishingAreaService fishingAreaService;
     private final VesselSnapshotService vesselSnapshotService;
+    private final VesselUseFeaturesRepository vesselUseFeaturesRepository;
+    private final GearUseFeaturesRepository gearUseFeaturesRepository;
+
     private boolean enableTrash = false;
 
     @PostConstruct
@@ -116,6 +121,27 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             target.setMeasurementValues(measurementDao.getActivityCalendarMeasurementsMap(id));
         }
 
+        // Load features
+        if (fetchOptions.isWithChildrenEntities()) {
+            DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
+
+            // Vessel use features
+            {
+                List<VesselUseFeaturesVO> vesselUseFeatures = vesselUseFeaturesRepository.findAll(VesselUseFeaturesFilterVO.builder()
+                    .activityCalendarId(id)
+                    .build(), childrenFetchOptions);
+                target.setVesselUseFeatures(vesselUseFeatures);
+            }
+
+            // Gear use features
+            {
+                List<GearUseFeaturesVO> gearUseFeatures = gearUseFeaturesRepository.findAll(GearUseFeaturesFilterVO.builder()
+                    .activityCalendarId(id)
+                    .build(), childrenFetchOptions);
+                target.setGearUseFeatures(gearUseFeatures);
+            }
+        }
+
         return target;
     }
 
@@ -157,10 +183,8 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         // Avoid sequence configuration mistake (see AllocationSize)
         Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid ActivityCalendar.id. Make sure your sequence has been well configured");
 
-        if (source.getMeasurementValues() != null) {
-            measurementDao.saveActivityCalendarMeasurementsMap(source.getId(), source.getMeasurementValues());
-        }
-
+        // Save children entities (measurement, etc.)
+        saveChildrenEntities(target);
 
         // Publish event
         if (isNew) {
@@ -304,27 +328,60 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         Preconditions.checkNotNull(source.getVesselSnapshot().getVesselId(), "Missing vesselSnapshot.id");
     }
 
-    protected void fillDefaultProperties(ActivityCalendarVO parent, VesselActivityVO vesselActivity) {
-        if (vesselActivity == null) return;
 
-        // Set default values from parent
-        // TODO BLA remove this ?
-        //DataBeans.setDefaultRecorderDepartment(vesselActivity, parent.getRecorderDepartment());
-        //DataBeans.setDefaultRecorderPerson(vesselActivity, parent.getRecorderPerson());
-        //DataBeans.setDefaultVesselSnapshot(vesselActivity, parent.getVesselSnapshot());
+    protected void saveChildrenEntities(final ActivityCalendarVO source) {
 
-       vesselActivity.setActivityCalendarId(parent.getId());
+        // Save measurements
+        if (source.getMeasurementValues() != null) {
+            measurementDao.saveActivityCalendarMeasurementsMap(source.getId(), source.getMeasurementValues());
+        }
+
+        // Save vessel use features
+        {
+            List<VesselUseFeaturesVO> vesselUseFeatures = Beans.getList(source.getVesselUseFeatures());
+            vesselUseFeatures.forEach(vuf -> fillDefaultProperties(source, vuf));
+            vesselUseFeatures = vesselUseFeaturesRepository.saveAllByActivityCalendarId(source.getId(), vesselUseFeatures);
+            source.setVesselUseFeatures(vesselUseFeatures);
+        }
+
+        // Save gear use features
+        {
+            List<GearUseFeaturesVO> gearUseFeatures = Beans.getList(source.getGearUseFeatures());
+            gearUseFeatures.forEach(vuf -> fillDefaultProperties(source, vuf));
+            gearUseFeatures = gearUseFeaturesRepository.saveAllByActivityCalendarId(source.getId(), gearUseFeatures);
+            source.setGearUseFeatures(gearUseFeatures);
+        }
+
     }
 
+    protected void fillDefaultProperties(ActivityCalendarVO parent, IUseFeaturesVO source) {
+        if (source == null) return;
 
-    protected void fillDefaultProperties(ActivityCalendarVO parent, MeasurementVO measurement) {
-        if (measurement == null) return;
+        // Same program
+        source.setProgram(parent.getProgram());
 
-        // Set default value for recorder department and person
-        DataBeans.setDefaultRecorderDepartment(measurement, parent.getRecorderDepartment());
-        DataBeans.setDefaultRecorderPerson(measurement, parent.getRecorderPerson());
+        // Same vessel
+        if (parent.getVesselId() != null) {
+            source.setVesselId(parent.getVesselId());
+        }
+        else if (parent.getVesselSnapshot() != null) {
+            source.setVesselId(parent.getVesselSnapshot().getId());
+        }
 
-        measurement.setEntityName(SurveyMeasurement.class.getSimpleName());
+        // Set default recorder department/person
+        if (source.getRecorderDepartmentId() == null && parent.getRecorderDepartment() != null) {
+            source.setRecorderDepartmentId(parent.getRecorderDepartment().getId());
+        }
+        if (source.getRecorderPersonId() == null && parent.getRecorderPerson() != null) {
+            source.setRecorderPersonId(parent.getRecorderPerson().getId());
+        }
+
+        if (source instanceof VesselUseFeaturesVO vuf) {
+            vuf.setActivityCalendarId(parent.getId());
+        }
+        else if (source instanceof GearUseFeaturesVO guf) {
+            guf.setActivityCalendarId(parent.getId());
+        }
     }
 
 }

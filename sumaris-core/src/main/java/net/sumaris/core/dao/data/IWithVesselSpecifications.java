@@ -30,13 +30,14 @@ import net.sumaris.core.model.data.*;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, Vessel>>
-        extends IEntitySpecifications<Integer, E> {
+public interface IWithVesselSpecifications<ID extends Serializable, E extends IWithVesselEntity<ID, Vessel>>
+        extends IEntitySpecifications<ID, E> {
 
     String VESSEL_ID_PARAM = "vesselId";
 

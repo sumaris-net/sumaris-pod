@@ -22,7 +22,7 @@ package net.sumaris.core.dao.data.batch;
  * #L%
  */
 
-import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Batch;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author peck7 on 30/03/2020.
  */
-public interface BatchSpecifications extends DataSpecifications<Integer, Batch> {
+public interface BatchSpecifications extends IDataSpecifications<Integer, Batch> {
 
     String DEFAULT_ROOT_BATCH_LABEL = "CATCH_BATCH";
 

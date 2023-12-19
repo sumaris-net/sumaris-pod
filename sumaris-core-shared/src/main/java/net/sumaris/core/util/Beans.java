@@ -426,7 +426,7 @@ public class Beans {
     }
 
     public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> function) {
-        return collection.stream().map(function).collect(Collectors.toList());
+        return Beans.getStream(collection).map(function).collect(Collectors.toList());
     }
 
     public static <K, V> Map<K, V> mergeMap(Map<K, V> map1, Map<K, V> map2) {

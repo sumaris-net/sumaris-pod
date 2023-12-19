@@ -179,7 +179,6 @@ public class VesselSnapshotRepositoryImpl
             .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
             .and(newerThan(filter.getMinUpdateDate()))
-            .and(newerThan(filter.getMinUpdateDate()))
             // Text
             .and(searchText(toEntityProperties(filter.getSearchAttributes()), filter.getSearchText()));
     }

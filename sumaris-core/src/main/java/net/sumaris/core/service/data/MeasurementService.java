@@ -115,6 +115,12 @@ public interface MeasurementService {
     Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId);
 
     @Transactional(readOnly = true)
+    Map<Integer, String> getVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getGearUseFeaturesMeasurementsMap(int gearUseFeaturesId);
+
+    @Transactional(readOnly = true)
     Map<Integer, String> getLandingMeasurementsMap(int landingId);
 
     @Transactional(readOnly = true)

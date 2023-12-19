@@ -178,19 +178,19 @@ public class LandingServiceImpl implements LandingService {
         boolean isNew = source.getId() == null;
 
         // Save
-        LandingVO savedLanding = landingRepository.save(source);
+        LandingVO target = landingRepository.save(source);
 
         // Save children entities (measurement, etc.)
-        saveChildrenEntities(savedLanding);
+        saveChildrenEntities(target);
 
         // Publish event
         if (isNew) {
-            publisher.publishEvent(new EntityInsertEvent(savedLanding.getId(), Landing.class.getSimpleName(), savedLanding));
+            publisher.publishEvent(new EntityInsertEvent(target.getId(), Landing.class.getSimpleName(), target));
         } else {
-            publisher.publishEvent(new EntityUpdateEvent(savedLanding.getId(), Landing.class.getSimpleName(), savedLanding));
+            publisher.publishEvent(new EntityUpdateEvent(target.getId(), Landing.class.getSimpleName(), target));
         }
 
-        return savedLanding;
+        return target;
     }
 
     @Override

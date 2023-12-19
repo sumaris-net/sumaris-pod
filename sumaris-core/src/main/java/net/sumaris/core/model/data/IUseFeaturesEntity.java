@@ -2,7 +2,7 @@ package net.sumaris.core.model.data;
 
 /*-
  * #%L
- * SUMARiS:: Core
+ * SUMARiS:: Core shared
  * %%
  * Copyright (C) 2018 SUMARiS Consortium
  * %%
@@ -22,31 +22,34 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.vo.referential.IReferentialVO;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IRootDataEntity<ID extends Serializable>
-        extends IDataEntity<ID>,
-        IWithRecorderPersonEntity<ID, Person>,
-        IWithDataQualityEntity<ID>,
-        IWithProgramEntity<ID, Program>{
+public interface IUseFeaturesEntity extends
+    IDataEntity<Integer>,
+    IWithVesselEntity<Integer, Vessel>,
+    IWithProgramEntity<Integer, Program>,
+    IWithDataQualityEntity<Integer> {
 
-    interface Fields extends IDataEntity.Fields,
-        IWithDataQualityEntity.Fields,
-        IWithRecorderPersonEntity.Fields,
-        IWithProgramEntity.Fields {
+    interface Fields extends IDataEntity.Fields, IWithVesselEntity.Fields, IWithProgramEntity.Fields, IWithDataQualityEntity.Fields {
+        String END_DATE = "endDate";
+        String START_DATE = "startDate";
         String CREATION_DATE = "creationDate";
-        String COMMENTS = "comments";
     }
 
-    Date getCreationDate() ;
+    Date getStartDate();
+
+    void setStartDate(Date startDate);
+
+    Date getEndDate();
+
+    void setEndDate(Date endDate);
+
+    Date getCreationDate();
 
     void setCreationDate(Date creationDate);
-
-    String getComments();
-
-    void setComments(String comments);
 }

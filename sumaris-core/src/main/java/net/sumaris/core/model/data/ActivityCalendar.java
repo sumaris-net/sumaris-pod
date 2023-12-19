@@ -49,7 +49,9 @@ import java.util.List;
     }
 )
 public class ActivityCalendar implements IRootDataEntity<Integer>,
-    IWithVesselEntity<Integer, Vessel> {
+    IWithVesselEntity<Integer, Vessel>,
+    IWithVesselUseFeaturesEntity<Integer, VesselUseFeatures>,
+    IWithGearUseFeaturesEntity<Integer, GearUseFeatures> {
 
     static {
         I18n.n("sumaris.persistence.table.activityCalendar");
@@ -116,7 +118,7 @@ public class ActivityCalendar implements IRootDataEntity<Integer>,
     private Person recorderPerson;
 
     @OneToMany(mappedBy = SurveyMeasurement.Fields.ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SurveyMeasurement> surveyMeasurements;
+    private List<SurveyMeasurement> measurements;
 
     @OneToMany(mappedBy = VesselUseFeatures.Fields.ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VesselUseFeatures> vesselUseFeatures;

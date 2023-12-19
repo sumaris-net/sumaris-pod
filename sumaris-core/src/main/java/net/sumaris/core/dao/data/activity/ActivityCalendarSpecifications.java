@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.Date;
 
 public interface ActivityCalendarSpecifications extends RootDataSpecifications<ActivityCalendar>,
-    IWithVesselSpecifications<ActivityCalendar> {
+    IWithVesselSpecifications<Integer, ActivityCalendar> {
 
     String LOCATION_ID_PARAM = "locationId";
     String LOCATION_IDS_PARAM = "locationIds";
@@ -69,6 +69,7 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
             query.distinct(true);
             Join<ActivityCalendar, VesselUseFeatures> vuf = Daos.composeJoinList(root, ActivityCalendar.Fields.VESSEL_USE_FEATURES, JoinType.INNER);
             ParameterExpression<Integer> param = cb.parameter(Integer.class, LOCATION_ID_PARAM);
+            // TODO use LocationHierarchy
             return cb.equal(vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID), param);
         }).addBind(LOCATION_ID_PARAM, locationId);
     }
@@ -79,6 +80,7 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
             query.distinct(true);
             Join<ActivityCalendar, VesselUseFeatures> vuf = Daos.composeJoinList(root, ActivityCalendar.Fields.VESSEL_USE_FEATURES, JoinType.INNER);
             ParameterExpression<Collection> param = cb.parameter(Collection.class, LOCATION_IDS_PARAM);
+            // TODO use LocationHierarchy
             return cb.in(vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID)).value(param);
         }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
     }
