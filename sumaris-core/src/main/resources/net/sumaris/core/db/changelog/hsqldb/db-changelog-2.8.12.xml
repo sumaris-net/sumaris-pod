@@ -57,21 +57,13 @@
 
 
   <!-- Drop the denormalized_batch_sort_val_batch_fkc constraint -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-005">
+  <!-- then add a new denormalized_batch_sort_val_batch_fkc with delete cascade -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-005" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="denormalized_batch_sort_val_batch_fkc" />
     </preConditions>
     <dropForeignKeyConstraint baseTableName="denormalized_batch_sort_val"
                               constraintName="denormalized_batch_sort_val_batch_fkc"/>
-  </changeSet>
-
-  <!-- Add a new denormalized_batch_sort_val_batch_fkc with delete cascade -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-006">
-    <preConditions onFail="MARK_RAN">
-      <not>
-        <foreignKeyConstraintExists foreignKeyName="denormalized_batch_sort_val_batch_fkc" />
-      </not>
-    </preConditions>
     <addForeignKeyConstraint baseTableName="denormalized_batch_sort_val"
                              baseColumnNames="batch_fk"
                              referencedTableName="denormalized_batch"
