@@ -56,6 +56,7 @@
   <PROGRAM_PROPERTY ID="514" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.landing.samples.weightUnit" NAME="g"/>
   <PROGRAM_PROPERTY ID="515" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.report.enable" NAME="true"/> <!-- DEV only - not in production -->
   <PROGRAM_PROPERTY ID="516" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
+  <PROGRAM_PROPERTY ID="517" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.data.strategy.resolution" NAME="last"/>
 
   <!--  <PROGRAM_PROPERTY ID="71" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.i18nSuffix" NAME="SAMPLING."/>-->
 
