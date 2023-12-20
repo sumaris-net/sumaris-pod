@@ -34,7 +34,7 @@ import java.util.Arrays;
     required = false)
 public enum PmfmEnum implements IEntityEnum, Serializable {
 
-    SMALLER_MESH_GAUGE_MM(3, "SMALLER_MESH_GAUGE_MM"),
+    SMALLER_MESH_GAUGE_MM(1, "SMALLER_MESH_GAUGE_MM"),
     HEADLINE_CUMULATIVE_LENGTH(12, "HEADLINE_CUMULATIVE_LENGTH"),
 
     HEADLINE_LENGTH(39, "HEADLINE_LENGTH"),

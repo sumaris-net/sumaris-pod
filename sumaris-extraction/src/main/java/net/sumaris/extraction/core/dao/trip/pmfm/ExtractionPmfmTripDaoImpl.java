@@ -89,6 +89,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         }
     }
 
+
     public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.PMFM_TRIP);
     }
@@ -580,9 +581,15 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     ) {
         // Have to be lower case due to postgres compatibility
         String pmfmAlias = this.databaseType == DatabaseType.postgresql ? pmfm.getAlias().toLowerCase() : pmfm.getAlias();
-        String pmfmLabel = this.databaseType == DatabaseType.postgresql ? pmfm.getLabel().toLowerCase() : pmfm.getLabel();
+        String pmfmLabel = this.databaseType == DatabaseType.postgresql ? pmfm.getLabel().toLowerCase() : pmfm.getLabel().toUpperCase();
         String baseColumnName = Daos.sqlColumnName(pmfmLabel);
         String columnName = baseColumnName;
+
+        // Make sure column name is unique, otherwise add a _<counter>
+        int counter = 2;
+        while (xmlQuery.hasColumnName(columnName)) {
+            columnName = baseColumnName + "_" + (counter++);
+        }
 
         if (StringUtils.isNotBlank(injectionPointName)) {
             xmlQuery.injectQuery(injectionPmfmQuery, "%pmfmalias%", pmfmAlias, injectionPointName);

@@ -486,15 +486,15 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected Stream<E> streamAll(@Nullable Specification<E> spec, Sort sort) {
-        return this.getQuery(spec, sort).getResultStream();
+        return streamQuery(this.getQuery(spec, sort));
     }
 
     protected Stream<E> streamAll(@Nullable Specification<E> spec) {
-        return this.getQuery(spec, Sort.unsorted()).getResultStream();
+        return streamAll(spec, Sort.unsorted());
     }
 
     protected <T> Stream<T> streamQuery(TypedQuery<T> query) {
-        return query.getResultList().stream();
+        return query.getResultStream();
     }
 
     protected TypedQuery<E> getQuery(@Nullable Specification<E> spec,
@@ -646,6 +646,26 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
             query.orderBy(orders);
         }
     }
+
+    /**
+     * Add a orderBy on query
+     *
+     * @param query         the query
+     * @param cb       criteria builder
+     * @param from          the root of the query
+     * @param page  a page
+     * @param <T>           type of query
+     */
+    protected void addSorting(CriteriaQuery<?> query,
+                              Root<E> from,
+                              CriteriaBuilder cb,
+                              @Nullable net.sumaris.core.dao.technical.Page page) {
+        // Add sorting
+        if (page != null) {
+            query.orderBy(toOrders(query, from, cb, page.getSortBy(), page.getSortDirection()));
+        }
+    }
+
     /**
      * Add a orderBy on query
      *
@@ -655,7 +675,6 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param sortAttribute the sort attribute (can be a nested attribute)
      * @param sortDirection the direction
      * @param <T>           type of query
-     * @return the query itself
      */
     protected void addSorting(CriteriaQuery<?> query,
                               Root<E> from,

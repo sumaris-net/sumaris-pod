@@ -69,7 +69,7 @@ public class DataBeans extends Beans {
         if (target == null) return;
 
         // Copy recorder person from the parent
-        if (target.getVesselSnapshot() == null || target.getVesselSnapshot().getId() == null) {
+        if (target.getVesselSnapshot() == null || target.getVesselSnapshot().getVesselId() == null) {
             target.setVesselSnapshot(defaultValue);
         }
     }

@@ -66,8 +66,8 @@ import org.junit.runners.Suite;
     LandingRepositoryReadTest.class,
     SampleRepositoryWriteTest.class,
     TripRepositoryWriteTest.class,
-    VesselDaoImplReadTest.class,
-    VesselSnapshotDaoImplReadTest.class,
+    VesselRepositoryReadTest.class,
+    VesselSnapshotRepositoryReadTest.class,
     // DAO: technical
     DatabaseSchemaDaoTest.class,
     ExtractionProductRepositoryWriteTest.class,

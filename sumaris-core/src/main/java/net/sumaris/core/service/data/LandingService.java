@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.DataControlOptions;
 import net.sumaris.core.vo.data.DataValidateOptions;
 import net.sumaris.core.vo.data.LandingFetchOptions;
@@ -63,6 +64,8 @@ public interface LandingService {
 
 	void deleteAllByObservedLocationId(int observedLocationId);
 
+	void deleteAllByFilter(LandingFilterVO filter);
+
 	void delete(int id);
 
 	void delete(List<Integer> ids);
@@ -72,4 +75,8 @@ public interface LandingService {
 	LandingVO validate(LandingVO data, @Nullable DataValidateOptions options);
 
 	LandingVO unvalidate(LandingVO data, @Nullable DataValidateOptions options);
+
+	void fillVesselSnapshot(LandingVO target);
+
+	void fillVesselSnapshots(List<LandingVO> target);
 }

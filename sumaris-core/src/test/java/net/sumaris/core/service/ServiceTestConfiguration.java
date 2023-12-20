@@ -25,9 +25,11 @@ package net.sumaris.core.service;
 import net.sumaris.core.TestConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration;
 import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(
@@ -35,7 +37,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
             LiquibaseAutoConfiguration.class,
             FreeMarkerAutoConfiguration.class,
             JmsAutoConfiguration.class,
-            CacheAutoConfiguration.class
+            CacheAutoConfiguration.class,
+            ElasticsearchRestClientAutoConfiguration.class
         },
         scanBasePackages = {
             "net.sumaris.core"

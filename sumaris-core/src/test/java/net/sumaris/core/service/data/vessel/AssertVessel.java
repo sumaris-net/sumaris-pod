@@ -23,15 +23,19 @@
 package net.sumaris.core.service.data.vessel;
 
 import com.google.common.collect.Sets;
+import lombok.NonNull;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselVO;
 import org.junit.Assert;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class AssertVessel {
+
 
 
     public static void assertValid(VesselVO source) {
@@ -71,7 +75,7 @@ public class AssertVessel {
 
     public static void assertValid(VesselSnapshotVO source, AssertVesselSpecification spec) {
         Assert.assertNotNull(source);
-        Assert.assertNotNull(source.getId());
+        Assert.assertNotNull(source.getVesselId());
 
         // Vessel type
         Assert.assertNotNull(source.getVesselType());
@@ -97,6 +101,16 @@ public class AssertVessel {
         assertAllValid(vessels, AssertVesselSpecification.builder().build());
     }
 
+    public static <E extends IEntity<Integer>> void assertAnyMatch(Collection<E> vessels,
+                                                                   @NonNull Predicate<E> predicate) {
+        Assert.assertTrue(vessels.stream().anyMatch(predicate));
+    }
+
+    public static <E extends IEntity<Integer>> void assertNoneMatch(@NonNull Collection<E> vessels,
+                                                                    @NonNull Predicate<E> predicate) {
+        Assert.assertTrue(vessels.stream().noneMatch(predicate));
+    }
+
     public static <E extends IEntity<Integer>> void assertAllValid(Collection<E> vessels, AssertVesselSpecification spec) {
         for (E vessel: vessels) {
             if (vessel instanceof VesselVO) {
@@ -111,6 +125,18 @@ public class AssertVessel {
     public static <E extends IEntity<Integer>> void assertUniqueIds(Collection<E> vessels) {
         final Set<Integer> ids = Sets.newHashSet();
         for (E vessel: vessels) {
+            Assert.assertFalse("Duplicated vessel id=" + vessel.getId(), ids.contains(vessel.getId()));
+            ids.add(vessel.getId());
+        }
+    }
+
+    /**
+     * Check no duplicate (by id)
+     * @param result
+     */
+    public static void assertNoDuplicate(List<? extends IEntity<Integer>> result) {
+        final Set<Integer> ids = Sets.newHashSet();
+        for (IEntity<Integer> vessel : result) {
             Assert.assertFalse("Duplicated vessel id=" + vessel.getId(), ids.contains(vessel.getId()));
             ids.add(vessel.getId());
         }

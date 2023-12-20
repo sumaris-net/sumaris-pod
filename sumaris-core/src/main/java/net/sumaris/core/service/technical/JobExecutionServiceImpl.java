@@ -23,6 +23,7 @@ package net.sumaris.core.service.technical;
  */
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -31,7 +32,6 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.event.job.JobEndEvent;
 import net.sumaris.core.event.job.JobProgressionEvent;
 import net.sumaris.core.event.job.JobProgressionVO;
@@ -53,8 +53,8 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.reactive.Observables;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.social.UserEventVO;
-import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.IJobResultVO;
+import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.server.security.ISecurityContext;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,7 +63,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.jms.annotation.JmsListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -80,9 +79,7 @@ import java.util.function.Function;
 import static org.nuiton.i18n.I18n.t;
 
 @Component
-@ConditionalOnProperty(name = "sumaris.job.service.enabled",
-    havingValue = "true",
-    matchIfMissing = true)
+@ConditionalOnProperty(name = "sumaris.job.service.enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class JobExecutionServiceImpl implements JobExecutionService {
 
@@ -105,10 +102,13 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                                    ApplicationEventPublisher publisher) {
         this.jobService = jobService;
         this.userEventService = userEventService;
-        this.objectMapper = objectMapper;
         this.securityContext = securityContext.orElse(null);
         this.publisher = publisher;
         this.taskExecutor = taskExecutor.orElse(null);
+
+        // Use a cloned object mapper, to skip attributes with null value
+        this.objectMapper = objectMapper.copy();
+        this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @PostConstruct
@@ -144,7 +144,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                 Object configuration = configurationLoader.call();
                 // Store configuration into the job (as json)
                 if (configuration != null) {
-                    job.setConfiguration(objectMapper.writeValueAsString(configuration));
+                    job.setConfiguration(writeValueAsString(configuration));
                 }
             } catch (Exception e) {
                 throw new SumarisTechnicalException(e);
@@ -243,12 +243,8 @@ public class JobExecutionServiceImpl implements JobExecutionService {
 
             // Store result as report
             if (result != null) {
-                try {
-                    // Serialize result in job report (as json)
-                    job.setReport(objectMapper.writeValueAsString(result));
-                } catch (JsonProcessingException e) {
-                    throw new SumarisTechnicalException(e);
-                }
+                // Serialize result in job report (as json)
+                job.setReport(writeValueAsString(result));
             }
 
             return new AsyncResult(result);
@@ -289,7 +285,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                     .orElse(ProcessingTypeEnum.UNKNOWN);
                 if (!ProcessingTypeEnum.UNKNOWN.equals(processingType)) {
 
-                    String cancelMessage = I18n.t("sumaris.server.job.cancel.message", SystemRecipientEnum.SYSTEM);
+                    String cancelMessage = I18n.t("sumaris.job.cancel.message", SystemRecipientEnum.SYSTEM);
                     log.info("Job#{} - {}", job.getId(), cancelMessage);
 
                     // Just update the job end date, in the history table
@@ -463,7 +459,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
 
         int jobId = progression.getId();
-        log.debug("Receiving job progression event for job {}", progression);
+        if (log.isDebugEnabled()) {
+            log.debug("Receiving job progression event for job {}", this.writeValueAsString(progression));
+        }
 
         // Notify listeners
         List<Consumer<JobProgressionVO>> listeners = getProgressionListeners(jobId);
@@ -478,7 +476,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         Preconditions.checkNotNull(job.getIssuer());
 
         // Prepare content
-        String content = toJsonString(job);
+        String content = writeValueAsString(job);
 
         // Build events
         UserEventVO userEvent = UserEventVO.builder()
@@ -523,7 +521,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
     }
 
-    private String toJsonString(Object object) {
+    public String writeValueAsString(Object object) {
         String content = null;
         if (object != null) {
             if (object instanceof String) {
@@ -537,5 +535,21 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             }
         }
         return content;
+    }
+
+    @Override
+    public <T> T readConfiguration(@NonNull JobVO job, @NonNull Class<T> configurationClass) {
+        if (StringUtils.isBlank(job.getConfiguration())) return null;
+        String configuration = job.getConfiguration();
+        if (configurationClass.isAssignableFrom(String.class)) {
+            return (T)configuration;
+        } else {
+            try {
+                return objectMapper.readValue(configuration, configurationClass);
+            } catch (JsonProcessingException e) {
+                log.error(String.format("Can't parse JSON: %s", configuration), e);
+                return null;
+            }
+        }
     }
 }

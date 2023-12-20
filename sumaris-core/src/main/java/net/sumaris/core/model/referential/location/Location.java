@@ -36,7 +36,6 @@ import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -47,7 +46,6 @@ public class Location implements IItemReferentialEntity<Integer>, IWithValidityS
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")
     @SequenceGenerator(name = "LOCATION_SEQ", sequenceName="LOCATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class TripRepositoryWriteTest extends AbstractDaoTest{
+public class TripRepositoryWriteTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();

@@ -31,7 +31,6 @@ import java.util.Optional;
 
 public interface SoftwareRepository extends JpaRepository<Software, Integer> {
 
-    @Query //(value="FROM Software WHERE label = ?1")
     Software getByLabel(String label) ;
 
     Optional<Software> findOneByLabel(String label) ;

@@ -59,7 +59,6 @@ import java.util.Date;
  */
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -71,7 +70,6 @@ public class Method implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "METHOD_SEQ")
     @SequenceGenerator(name = "METHOD_SEQ", sequenceName="METHOD_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

@@ -34,9 +34,9 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
+import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.pmfm.Fraction;
@@ -71,8 +71,8 @@ import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityWatchService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.nuiton.util.TimeLog;
 import org.reactivestreams.Publisher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,6 +107,8 @@ public class ProgramGraphQLService {
     private final EntityWatchService entityWatchService;
 
     private final DataAccessControlService dataAccessControlService;
+
+    private final TimeLog timeLog = new TimeLog(ProgramGraphQLService.class);
 
     /* -- Program / Strategy-- */
 
@@ -239,7 +241,13 @@ public class ProgramGraphQLService {
             log.warn("Fetching program -> strategies without 'filter.acquisitionLevels'. Not recommended in production!");
         }
 
-        return strategyService.findByFilter(filter, null, getStrategyFetchOptions(GraphQLUtils.fields(env)));
+        long now = TimeLog.getTime();
+        try {
+            return strategyService.findByFilter(filter, null, getStrategyFetchOptions(GraphQLUtils.fields(env)));
+        }
+        finally {
+            timeLog.log(now, "getStrategiesByProgram");
+        }
     }
 
 
@@ -259,6 +267,21 @@ public class ProgramGraphQLService {
             .collect(Collectors.toList());
     }
 
+    @GraphQLQuery(name = "gears", description = "Get strategy's gears")
+    public List<ReferentialVO> getStrategyGears(@GraphQLContext StrategyVO strategy) {
+        if (strategy.getGears() != null) return strategy.getGears();
+
+        if (CollectionUtils.isEmpty(strategy.getPmfms())) return null;
+
+        Integer[] gearIds = Beans.getStream(strategy.getPmfms())
+            .flatMap(ps -> Beans.getStream(ps.getGearIds()))
+            .collect(Collectors.toSet())
+            .toArray(Integer[]::new);
+        if (ArrayUtils.isEmpty(gearIds)) return null;
+
+        return referentialService.findByFilter(Gear.ENTITY_NAME, ReferentialFilterVO.builder().includedIds(gearIds).build(), 0, gearIds.length);
+    }
+
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
     public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy) {
         if (strategy.getPmfms() != null) return strategy.getPmfms();
@@ -276,6 +299,7 @@ public class ProgramGraphQLService {
             PmfmStrategyFetchOptions.builder()
                 .uniqueByPmfmId(true)
                 .withCompleteName(fields.contains(DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME))
+                .withGears(fields.contains(DenormalizedPmfmStrategyVO.Fields.GEARS))
                 .build());
     }
 
@@ -325,8 +349,10 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "method", description = "Get strategy method")
     public ReferentialVO getPmfmStrategyMethod(@GraphQLContext PmfmStrategyVO pmfmStrategy) {
         if (pmfmStrategy.getMethod() != null) return pmfmStrategy.getMethod();
-        if (pmfmStrategy.getMethodId() == null) return null;
-        return referentialService.get(Method.class, pmfmStrategy.getMethodId());
+        if (pmfmStrategy.getMethodId() != null) {
+            return referentialService.get(Method.class, pmfmStrategy.getMethodId());
+        }
+        return null;
     }
 
     @GraphQLQuery(name = "taxonNames", description = "Get taxon group's taxons")
@@ -595,6 +621,9 @@ public class ProgramGraphQLService {
             .pmfmsFetchOptions(
                 PmfmStrategyFetchOptions.builder()
                     .withCompleteName(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.COMPLETE_NAME)))
+                    .withGears(fields.contains(StringUtils.slashing(StrategyVO.Fields.DENORMALIZED_PMFMS, DenormalizedPmfmStrategyVO.Fields.GEARS)))
+                    // Full pmfm load
+                    .withPmfms(fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, ReferentialVO.Fields.ID)))
                     .build()
             )
 

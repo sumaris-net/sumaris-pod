@@ -33,6 +33,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
+import javax.persistence.Id;
 import java.util.Date;
 
 @Data
@@ -43,6 +44,7 @@ public class MeasurementVO implements IUpdateDateEntity<Integer, Date>,
         IWithRecorderDepartmentEntity<Integer, DepartmentVO>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
+    @Id
     @EqualsAndHashCode.Exclude
     private Integer id;
     private int pmfmId;

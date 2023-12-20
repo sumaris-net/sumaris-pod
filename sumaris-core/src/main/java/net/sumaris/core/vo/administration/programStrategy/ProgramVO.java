@@ -27,6 +27,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.util.Date;
 import java.util.List;
@@ -39,8 +41,13 @@ public class ProgramVO implements IReferentialVO<Integer>{
 
     @EqualsAndHashCode.Include
     private Integer id;
+
+    @Field(type = FieldType.Text, fielddata = true, analyzer = "whitespace_analyzer")
     private String label;
+
+    @Field(type = FieldType.Text, fielddata = true)
     private String name;
+
     private String description;
     private String comments;
     private Date updateDate;

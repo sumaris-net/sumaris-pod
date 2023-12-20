@@ -25,11 +25,13 @@ package net.sumaris.core.util;
  */
 
 import com.google.common.base.Preconditions;
+import com.sun.istack.NotNull;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.util.DateUtil;
 
+import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -125,16 +127,34 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
      * @return a {@link Date} object.
      */
     public static Date lastSecondOfTheDay(Date date) {
+        return lastSecondOfTheDay(date, null);
+    }
+
+    /**
+     * Get the last second time of a day: 23:59:59 (0 millisecond)
+     *
+     * @param date a {@link Date} object.
+     * @return a {@link Date} object.
+     */
+    public static Date lastSecondOfTheDay(Date date, TimeZone timezone) {
         if (date == null) {
             return null;
         }
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = timezone != null ? Calendar.getInstance(timezone) : Calendar.getInstance();
         calendar.setTime(date);
+        lastSecondOfTheDay(calendar);
+        return calendar.getTime();
+    }
+
+    public static Calendar lastSecondOfTheDay(Calendar calendar) {
+        if (calendar == null) {
+            return null;
+        }
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
         calendar.set(Calendar.MILLISECOND, 0);
-        return calendar.getTime();
+        return calendar;
     }
 
     /**
@@ -176,7 +196,6 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-
         return calendar;
     }
 
@@ -580,5 +599,19 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
         return (d1 == null || d2 == null)
                 ? (d1 != null ? d1 : d2)
                 : (d1.getTime() <= d2.getTime() ? d1 : d2);
+    }
+
+    public static boolean isNullOrBetween(@Nullable Date date, @NonNull Date startDate, @Nullable Date endDate) {
+        return date == null || isBetween(date, startDate, endDate);
+    }
+
+    public static boolean isBetween(@NonNull Date date, @NonNull Date startDate, @Nullable Date endDate) {
+        // False if endDate < date
+        if (endDate != null && endDate.getTime() < date.getTime()) return false;
+
+        // False if endDate < date
+        if (startDate.getTime() > date.getTime()) return false;
+
+        return true;
     }
 }

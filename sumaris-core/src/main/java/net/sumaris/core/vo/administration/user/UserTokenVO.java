@@ -44,8 +44,8 @@ public class UserTokenVO implements IUpdateDateEntity<Integer, Date>, IValueObje
     private String token;
     private String name;
     private Integer flags;
-    private Timestamp expirationDate;
-    private Timestamp lastUsedDate;
+    private Date expirationDate;
+    private Date lastUsedDate;
 
     private Date updateDate;
     private Date creationDate;

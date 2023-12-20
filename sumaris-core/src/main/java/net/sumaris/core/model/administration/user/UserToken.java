@@ -33,8 +33,6 @@ import java.util.Objects;
 
 @Getter
 @Setter
-
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "user_token")
@@ -44,18 +42,30 @@ public class UserToken implements IEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "USER_TOKEN_SEQ")
     @SequenceGenerator(name = "USER_TOKEN_SEQ", sequenceName="USER_TOKEN_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    
-    @EqualsAndHashCode.Include
     private Integer id;
-
-    @Column(name = "creation_date", nullable = false)
-    private Date creationDate;
 
     @Column(name="pubkey", nullable = false)
     private String pubkey;
 
     @Column(name="token", nullable = false, unique = true)
     private String token;
+
+// FIXME: enable when Oracle Adagio USER_TOKEN table will be updated (+ SIH2_ADAGIO_SUMARIS_MAP.USER_TOKEN view)
+//    private String name;
+//
+//    private Integer flags;
+//
+//    @Column(name="expiration_date")
+//    private Date expirationDate;
+//
+//    @Column(name="last_used_date")
+//    private Date lastUsedDate;
+//
+    @Column(name = "creation_date", nullable = false)
+    private Date creationDate;
+//
+//    @Column(name="update_date")
+//    private Date updateDate;
 
     public int hashCode() {
         return Objects.hash(token);
@@ -66,6 +76,11 @@ public class UserToken implements IEntity<Integer> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserToken userToken = (UserToken) o;
+
+        // Same ID
+        if (this.id != null && this.id.equals(userToken.id)) return true;
+
+        // Same token
         return token.equals(userToken.token);
     }
 }

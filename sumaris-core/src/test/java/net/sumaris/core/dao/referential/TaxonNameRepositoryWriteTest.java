@@ -24,19 +24,13 @@ package net.sumaris.core.dao.referential;
 
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.vo.referential.ParameterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.TaxonNameVO;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author peck7 on 19/08/2020.

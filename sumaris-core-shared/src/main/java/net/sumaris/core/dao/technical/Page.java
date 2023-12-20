@@ -37,6 +37,14 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class Page implements Serializable {
 
+    public static Page create(long offset, int size, String sortAttribute, SortDirection sortDirection) {
+        return Page.builder()
+            .offset(offset)
+            .size(size)
+            .sortBy(sortAttribute)
+            .sortDirection(sortDirection)
+            .build();
+    }
     @Builder.Default
     private long offset = 0L;
 

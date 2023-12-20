@@ -61,7 +61,6 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
-import net.sumaris.server.http.security.AnonymousUserDetails;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsSupervisor;
 import net.sumaris.server.http.security.IsUser;
@@ -176,6 +175,14 @@ public class DataGraphQLService {
         }
 
         filter = fillRootDataFilter(filter, TripFilterVO.class);
+
+        // Exclude trip with observed location
+        if (filter.getHasObservedLocation() == null) {
+            filter.setHasObservedLocation(false);
+        }
+        if (filter.getHasScientificCruise() == null) {
+            filter.setHasScientificCruise(false);
+        }
 
         // Set default sort
         // Remove default sortBy - fix IMAGINE issue (see app LandingService.fixLandingDates())
@@ -1164,9 +1171,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "deleteAggregatedLandings", description = "Delete many aggregated landings")
     public void deleteAggregatedLandings(
             @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-            @GraphQLArgument(name = "vesselSnapshotIds") List<Integer> vesselSnapshotIds
+            @GraphQLArgument(name = "vesselIds") List<Integer> vesselIds
     ) {
-        aggregatedLandingService.deleteAll(filter, vesselSnapshotIds);
+        aggregatedLandingService.deleteAll(filter, vesselIds);
     }
 
     /* -- Measurements -- */
@@ -1438,14 +1445,14 @@ public class DataGraphQLService {
     // Vessel
     @GraphQLQuery(name = "measurements", description = "Get vessel's physical measurements")
     public List<MeasurementVO> getVesselFeaturesMeasurements(@GraphQLContext VesselSnapshotVO vesselSnapshot) {
-        return measurementService.getVesselFeaturesMeasurements(vesselSnapshot.getId());
+        return measurementService.getVesselFeaturesMeasurements(vesselSnapshot.getVesselFeaturesId());
     }
 
     @GraphQLQuery(name = "measurementValues", description = "Get vessel's physical measurements")
     public Map<Integer, String> getVesselFeaturesMeasurementsMap(@GraphQLContext VesselSnapshotVO vesselSnapshot) {
         if (vesselSnapshot.getMeasurementValues() != null) vesselSnapshot.getMeasurementValues();
-        if (vesselSnapshot.getId() == null) return null;
-        return measurementService.getVesselFeaturesMeasurementsMap(vesselSnapshot.getId());
+        if (vesselSnapshot.getVesselFeaturesId() == null) return null;
+        return measurementService.getVesselFeaturesMeasurementsMap(vesselSnapshot.getVesselFeaturesId());
     }
 
     // Images

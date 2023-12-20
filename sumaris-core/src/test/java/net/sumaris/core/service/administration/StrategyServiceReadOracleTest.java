@@ -25,16 +25,27 @@ package net.sumaris.core.service.administration;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
+import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.service.referential.ReferentialService;
+import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.StrategyFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
+import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.apache.commons.collections4.CollectionUtils;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -43,7 +54,7 @@ import java.util.List;
 
 @Ignore("Use only Ifremer Oracle database")
 @ActiveProfiles("oracle")
-@TestPropertySource(locations = "classpath:application-oracle.properties")
+@TestPropertySource(locations = "classpath:application-test-oracle.properties")
 @Slf4j
 public class StrategyServiceReadOracleTest extends AbstractServiceTest{
 
@@ -52,6 +63,21 @@ public class StrategyServiceReadOracleTest extends AbstractServiceTest{
 
     @Autowired
     private StrategyService service;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private LocationService locationService;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Before
+    public void setUp() throws Exception {
+
+        configurationService.applySoftwareProperties();
+    }
 
     @Test
     public void findByFilterWithFetch() {
@@ -93,5 +119,87 @@ public class StrategyServiceReadOracleTest extends AbstractServiceTest{
             Assert.assertTrue( duration2 <= duration1 / 2);
 
         }
+    }
+
+    @Test
+    public void findByFilter() {
+        // Load SIH-OBSMER program
+        ProgramVO program = programService.getByLabel("SIH-OBSMER", ProgramFetchOptions.MINIMAL);
+        // Load FRA country
+        LocationVO country = getLocationByLabelAndLevel("FRA", LocationLevelEnum.COUNTRY.getId());
+        // Load an FRA harbour (XDZ - Douarnenez)
+        LocationVO harbour = getLocationByLabelAndLevel("XDZ", LocationLevelEnum.HARBOUR.getId());
+
+        Page page = Page.builder().size(10).build();
+
+        // Filter by program
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .programIds(new Integer[]{program.getId()})
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(4, strategies.size());
+        }
+
+        // Filter by country location, and dates (startDate only
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .programIds(new Integer[]{program.getId()})
+                .locationIds(new Integer[]{country.getId()})
+                .periods(new PeriodVO[]{PeriodVO.builder()
+                    .startDate(Dates.safeParseDate("2020-11-23 00:00:00", "yyyy-MM-dd HH:mm:ss"))
+                    .build(),
+                })
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("OBSMER démarrage le 23/11/2020", strategies.get(0).getName());
+        }
+
+        // Filter by country location, and dates (startDate AND endDate)
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .programIds(new Integer[]{program.getId()})
+                .locationIds(new Integer[]{country.getId()})
+                .periods(new PeriodVO[]{PeriodVO.builder()
+                    .startDate(Dates.safeParseDate("2020-11-23 00:00:00", "yyyy-MM-dd HH:mm:ss"))
+                    .endDate(Dates.safeParseDate("2021-03-31", "yyyy-MM-dd"))
+                    .build(),
+                })
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("OBSMER démarrage le 23/11/2020", strategies.get(0).getName());
+        }
+
+
+        // Filter by location, and dates (startDate AND endDate)
+        {
+            StrategyFilterVO filter = StrategyFilterVO.builder()
+                .programIds(new Integer[]{program.getId()})
+                .locationIds(new Integer[]{harbour.getId()})
+                .periods(new PeriodVO[]{PeriodVO.builder()
+                    .startDate(Dates.safeParseDate("2020-11-23 00:00:00", "yyyy-MM-dd HH:mm:ss"))
+                    .build(),
+                })
+                .build();
+            List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategies);
+            Assert.assertEquals(1, strategies.size());
+            Assert.assertEquals("OBSMER démarrage le 23/11/2020", strategies.get(0).getName());
+        }
+    }
+
+    private LocationVO getLocationByLabelAndLevel(String label, int levelId) {
+        List<LocationVO> locations = locationService.findByFilter(LocationFilterVO.builder()
+                .label(label)
+            .levelIds(new Integer[]{levelId})
+            .build());
+        Assume.assumeNotNull(locations);
+        Assume.assumeTrue(locations.size() == 1);
+        return CollectionUtils.extractSingleton(locations);
     }
 }

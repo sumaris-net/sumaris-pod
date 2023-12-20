@@ -45,9 +45,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 21/08/2020.
@@ -71,15 +73,18 @@ public class JobRepositoryImpl
 
     @Override
     public List<JobVO> findAll(JobFilterVO filter) {
-        return super.streamAll(toSpecification(filter))
-            .map(this::toVO)
-            .toList();
+        try (Stream<ProcessingHistory> stream = super.streamAll(toSpecification(filter))) {
+            return stream.map(this::toVO).toList();
+        }
     }
 
     @Override
     public List<JobVO> findAll(JobFilterVO filter, net.sumaris.core.dao.technical.Page page) {
-        return this.findAll(filter, page != null ? page.asPageable(): Pageable.unpaged())
-            .getContent();
+        TypedQuery<ProcessingHistory> query = getQuery(toSpecification(filter), page, ProcessingHistory.class);
+
+        try (Stream<ProcessingHistory> stream = streamQuery(query)) {
+            return stream.map(this::toVO).toList();
+        }
     }
 
     @Override
@@ -189,7 +194,7 @@ public class JobRepositoryImpl
 
         // Status
         ProcessingStatusEnum targetStatus = source.getStatus().getProcessingStatus();
-        if (targetStatus == null) {
+        if (targetStatus == null || targetStatus.getId() == -1 /*not resolved*/) {
             targetStatus = ProcessingStatusEnum.WAITING_EXECUTION;
         }
         target.setProcessingStatus(getReference(ProcessingStatus.class, targetStatus.getId()));

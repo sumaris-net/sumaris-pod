@@ -28,6 +28,7 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
@@ -55,19 +56,18 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
     String PARAMETER_IDS = "parameterIds";
 
     String ACQUISITION_LEVEL_LABELS = "acquisitionLevelLabels";
-    String UPDATE_DATE_GREATER_THAN_PARAM = "updateDateGreaterThan";
+    String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
 
     default Specification<Strategy> hasProgramIds(Integer... programIds) {
         return inLevelIds(Strategy.class, programIds);
     }
 
-    default Specification<Strategy> newerThan(Date updateDate) {
-        BindableSpecification<Strategy> specification = BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, UPDATE_DATE_GREATER_THAN_PARAM);
+    default Specification<Strategy> newerThan(Date minUpdateDate) {
+        if (minUpdateDate == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Date> updateDateParam = cb.parameter(Date.class, MIN_UPDATE_DATE_PARAM);
             return cb.greaterThan(root.get(Strategy.Fields.UPDATE_DATE), updateDateParam);
-        });
-        specification.addBind(UPDATE_DATE_GREATER_THAN_PARAM, updateDate);
-        return specification;
+        }).addBind(MIN_UPDATE_DATE_PARAM, minUpdateDate);
     }
 
     default Specification<Strategy> betweenDate(Date startDate, Date endDate) {
@@ -85,13 +85,14 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
                 return cb.not(
                         cb.or(
                                 cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
-                                cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                                cb.lessThanOrEqualTo(
+                                    Daos.addOneDay(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), cb), startDate)
                         )
                 );
             }
             // Start date
             else if (startDate != null) {
-                return cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate);
+                return cb.greaterThan(Daos.addOneDay(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), cb), startDate);
             }
             // End date
             else {
@@ -149,17 +150,30 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
         if (ArrayUtils.isEmpty(locationIds)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, LOCATION_IDS);
 
-            // Avoid duplicated entries (because of inner join)
+            // Avoid duplicated entries (because of left join)
             query.distinct(true);
 
-            Join<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
+            ListJoin<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
 
-            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, LOCATION_IDS);
-            return cb.in(
-                            Daos.composePath(appliedStrategies, StringUtils.doting(AppliedStrategy.Fields.LOCATION, Location.Fields.ID))
-                    )
-                    .value(parameter);
+            Subquery<LocationHierarchy> subQuery = query.subquery(LocationHierarchy.class);
+            Root<LocationHierarchy> lh = subQuery.from(LocationHierarchy.class);
+            subQuery.select(lh.get(LocationHierarchy.Fields.PARENT_LOCATION).get(Location.Fields.ID));
+
+            subQuery.where(
+                cb.and(
+                    cb.equal(
+                        lh.get(LocationHierarchy.Fields.PARENT_LOCATION).get(Location.Fields.ID),
+                        appliedStrategies.get(AppliedStrategy.Fields.LOCATION).get(Location.Fields.ID)
+                    ),
+                    lh.get(LocationHierarchy.Fields.CHILD_LOCATION).get(Location.Fields.ID).in(param)
+                )
+            );
+
+            // And without an update to date denormalization
+            return cb.exists(subQuery);
+            //return cb.in(Daos.composePath(appliedStrategies, StringUtils.doting(AppliedStrategy.Fields.LOCATION, Location.Fields.ID))).value(param);
         }).addBind(LOCATION_IDS, Arrays.asList(locationIds));
     }
 
@@ -189,7 +203,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
         return (root, query, cb) -> {
             final List<Predicate> predicates = new ArrayList<Predicate>();
 
-            Join<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
+            ListJoin<Strategy, AppliedStrategy> appliedStrategies = Daos.composeJoinList(root, Strategy.Fields.APPLIED_STRATEGIES, JoinType.LEFT);
             Join<AppliedStrategy, AppliedPeriod> appliedPeriods = Daos.composeJoinList(appliedStrategies, AppliedStrategy.Fields.APPLIED_PERIODS, JoinType.LEFT);
 
             for (PeriodVO dates : periods) {
@@ -202,7 +216,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
                             cb.not(
                                     cb.or(
                                             cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.START_DATE), endDate),
-                                            cb.lessThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                                            cb.lessThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
                                     )
                             )
                     );
@@ -211,7 +225,7 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
                 // Start date
                 else if (startDate != null) {
                     predicates.add(
-                            cb.greaterThanOrEqualTo(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
+                            cb.greaterThan(appliedPeriods.get(AppliedPeriod.Fields.END_DATE), startDate)
                     );
                 }
 
@@ -224,6 +238,10 @@ public interface StrategySpecifications extends ReferentialSpecifications<Intege
             }
 
             if (CollectionUtils.isEmpty(predicates)) return null;
+
+            // Avoid row duplication
+            query.distinct(true);
+
             return cb.or(predicates.toArray(new Predicate[predicates.size()]));
         };
     }

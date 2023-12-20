@@ -34,6 +34,10 @@ public class VesselFetchOptions implements IDataFetchOptions {
 
     public static final VesselFetchOptions DEFAULT = VesselFetchOptions.builder().build();
 
+    public static VesselFetchOptions nullToDefault(VesselFetchOptions options) {
+        return options != null ? options : DEFAULT;
+    }
+
     @Builder.Default
     private boolean withRecorderDepartment = false;
 

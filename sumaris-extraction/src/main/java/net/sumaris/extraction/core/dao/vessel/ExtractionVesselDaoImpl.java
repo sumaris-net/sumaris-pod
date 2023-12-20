@@ -51,6 +51,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.PersistenceException;
 import java.util.Date;
 import java.util.Objects;
@@ -76,8 +77,9 @@ public class ExtractionVesselDaoImpl<C extends ExtractionVesselContextVO, F exte
     private boolean enableAdagioOptimization = false;
     private String adagioSchema = null;
 
+    @PostConstruct()
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
+    public void onConfigurationReady() {
         // Read some config options
         String adagioSchema = this.configuration.getAdagioSchema();
         boolean enableAdagioOptimization = StringUtils.isNotBlank(adagioSchema)
@@ -94,10 +96,10 @@ public class ExtractionVesselDaoImpl<C extends ExtractionVesselContextVO, F exte
             this.enableAdagioOptimization = enableAdagioOptimization;
 
             if (this.enableAdagioOptimization) {
-                log.info("Enabled extraction format {}, using optimization for schema '{}'", StratSpecification.FORMAT, this.adagioSchema);
+                log.info("Enabled vessel indexation {}, using optimization for schema '{}'", VesselSpecification.FORMAT, this.adagioSchema);
             }
             else {
-                log.info("Enabled extraction format {} (without schema optimization)", StratSpecification.FORMAT);
+                log.info("Enabled vessel indexation {} (without schema optimization)", VesselSpecification.FORMAT);
             }
 
         }

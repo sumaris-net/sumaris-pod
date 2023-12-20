@@ -22,15 +22,16 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.data.DataRepository;
-import net.sumaris.core.dao.data.RootDataRepository;
-import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+
+import java.util.List;
 
 public interface VesselSnapshotRepository extends
     DataRepository<VesselFeatures, VesselSnapshotVO, VesselFilterVO, VesselFetchOptions>,

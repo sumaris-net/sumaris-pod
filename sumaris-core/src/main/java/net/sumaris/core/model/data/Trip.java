@@ -163,7 +163,7 @@ public class Trip implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Set<Person> observers = Sets.newHashSet();
 
-    @ManyToOne(fetch = FetchType.EAGER, targetEntity = ScientificCruise.class)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ScientificCruise.class)
     @JoinColumn(name = "scientific_cruise_fk")
     private ScientificCruise scientificCruise;
 

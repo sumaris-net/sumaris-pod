@@ -61,9 +61,11 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
         StrategyFetchOptions fetchOptions = StrategyFetchOptions.builder()
             .withPmfms(true)
             .withTaxonNames(true)
-            .withPmfms(true)
             .withDepartments(true)
             .withAppliedStrategies(true)
+            .pmfmsFetchOptions(PmfmStrategyFetchOptions.builder()
+                .withPmfms(true)
+                .build())
             .build();
         Integer strategyId = null;
         StrategyVO strategy = service.getByLabel("20LEUCCIR001", fetchOptions);
@@ -81,22 +83,26 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
 
         // Modify name
         strategy.setName("Strategy Name changed");
+
         // Modify departments
         StrategyDepartmentVO strategyDepartment = new StrategyDepartmentVO();
-        ReferentialVO privilege = new ReferentialVO();
-        DepartmentVO department = new DepartmentVO();
-        Beans.copyProperties(referentialService.get(ProgramPrivilege.class, 3), privilege);
-        Beans.copyProperties(referentialService.get(Department.class, 3), department);
-        strategyDepartment.setPrivilege(privilege);
-        strategyDepartment.setDepartment(department);
-        strategy.setDepartments(Lists.newArrayList(strategyDepartment));
+        {
+            strategyDepartment.setPrivilege(new ReferentialVO());
+            strategyDepartment.setDepartment(new DepartmentVO());
+            Beans.copyProperties(referentialService.get(ProgramPrivilege.class, 3), strategyDepartment.getPrivilege());
+            Beans.copyProperties(referentialService.get(Department.class, 3), strategyDepartment.getDepartment());
+            strategy.setDepartments(Lists.newArrayList(strategyDepartment));
+        }
+
         // Add an applied period
-        AppliedPeriodVO appliedPeriod = new AppliedPeriodVO();
-        appliedPeriod.setStartDate(Dates.getFirstDayOfYear(2020));
-        appliedPeriod.setEndDate(Dates.getFirstDayOfYear(2021));
-        appliedPeriod.setAcquisitionNumber(10);
-        strategy.getAppliedStrategies().get(1).setAppliedPeriods(Lists.newArrayList(appliedPeriod));
-        strategy.getAppliedStrategies().get(2).setAppliedPeriods(Lists.newArrayList());
+        {
+            AppliedPeriodVO appliedPeriod = new AppliedPeriodVO();
+            appliedPeriod.setStartDate(Dates.getFirstDayOfYear(2020));
+            appliedPeriod.setEndDate(Dates.getFirstDayOfYear(2021));
+            appliedPeriod.setAcquisitionNumber(10);
+            strategy.getAppliedStrategies().get(1).setAppliedPeriods(Lists.newArrayList(appliedPeriod));
+            strategy.getAppliedStrategies().get(2).setAppliedPeriods(Lists.newArrayList());
+        }
 
         service.save(strategy);
 
@@ -108,8 +114,8 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
         Assert.assertNotNull(strategy.getDepartments());
         Assert.assertEquals(1, strategy.getDepartments().size());
         StrategyDepartmentVO actualStrategyDepartment = strategy.getDepartments().get(0);
-        Assert.assertEquals(privilege, actualStrategyDepartment.getPrivilege());
-        Assert.assertEquals(department, actualStrategyDepartment.getDepartment());
+        Assert.assertEquals(strategyDepartment.getPrivilege(), actualStrategyDepartment.getPrivilege());
+        Assert.assertEquals(strategyDepartment.getDepartment(), actualStrategyDepartment.getDepartment());
 
         Assert.assertNotNull(strategy.getAppliedStrategies());
         Assert.assertEquals(3, strategy.getAppliedStrategies().size());
@@ -126,8 +132,8 @@ public class StrategyServiceWriteTest extends AbstractServiceTest {
     @Test
     public void saveNew() {
         StrategyVO strategy = new StrategyVO();
-        strategy.setLabel("STRAT-TEST");
-        strategy.setName("label test");
+        strategy.setLabel("STRATEGY-TEST");
+        strategy.setName("strategy test");
         strategy.setStatusId(StatusEnum.TEMPORARY.getId());
         strategy.setProgramId(40);
 

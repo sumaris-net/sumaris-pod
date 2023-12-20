@@ -1729,9 +1729,10 @@ public class Daos {
         searchText = StringUtils.trimToNull(searchText);
         if (searchText == null) return null;
         return ((searchAny ? "*" : "") + searchText + "*") // add leading wildcard (if searchAny specified) and trailing wildcard
-            .replaceAll("[*]+", "*") // group many '*' chars
             .replaceAll("[%]", "\\%") // escape '%' char
             .replaceAll("[_]", "\\_") // escape '_' char
+            .replaceAll("[?]+", "_") // replace '?' mark
+            .replaceAll("[*]+", "*") // group many '*' chars
             .replaceAll("[*]", "%"); // replace asterisk mark
     }
 
@@ -1989,17 +1990,26 @@ public class Daos {
         }
     }
 
-    public static Expression<Date> nvlEndDate(Path<?> root, CriteriaBuilder cb,
-                                              String endDateFieldName,
+    public static Expression<Date> nvlEndDate(Expression<Date> endDateFieldPath,
+                                              CriteriaBuilder cb,
                                               DatabaseType databaseType) {
 
         if (databaseType == DatabaseType.oracle) {
             // When using Oracle (e.g. over a SIH-Adagio schema): use NVL to allow use of index
             return cb.function(AdditionalSQLFunctions.nvl_end_date.name(), Date.class,
-                root.get(endDateFieldName)
+                endDateFieldPath
             );
         }
-        return cb.coalesce(root.get(endDateFieldName), Daos.DEFAULT_END_DATE_TIME);
+        return cb.coalesce(endDateFieldPath, Daos.DEFAULT_END_DATE_TIME);
+    }
+
+    public static Expression<Date> addOneDay(Expression<Date> endDateFieldPath,
+                                          CriteriaBuilder cb) {
+
+        return cb.function(AdditionalSQLFunctions.add_days.name(), Date.class,
+            endDateFieldPath,
+            cb.literal(1)
+        );
     }
 
     public static Expression<String> naturalSort(CriteriaBuilder cb, Expression<?> path) {

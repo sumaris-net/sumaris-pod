@@ -55,7 +55,7 @@ public class DataTestUtils {
 
         // Vessel
         VesselSnapshotVO vessel = new VesselSnapshotVO();
-        vessel.setId(fixtures.getVesselId(0));
+        vessel.setVesselId(fixtures.getVesselId(0));
         vo.setVesselSnapshot(vessel);
 
         // Set dates

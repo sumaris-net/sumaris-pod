@@ -173,14 +173,21 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
 
     AUTH_TOKEN_TYPE(
         "sumaris.auth.token.type",
-        n("sumaris.config.option.spring.auth.token.type.description"),
+        n("sumaris.config.option.auth.token.type.description"),
         null, // NUll == auto detected
         String.class),
+
+    AUTH_API_TOKEN_ENABLED(
+        "sumaris.auth.api.token.enabled",
+        n("sumaris.config.option.auth.api.token.enable"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
 
     APP_MIN_VERSION(
             "sumaris.app.version.min",
             n("sumaris.config.option.sumaris.app.version.min.description"),
-            "1.5.0",
+            "2.8.0",
             Version.class,
             false),
 

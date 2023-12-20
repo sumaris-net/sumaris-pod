@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -88,18 +89,13 @@ public class ConfigurationGraphQLService {
 
     @GraphQLQuery(name = "configuration", description = "Load pod configuration")
     public ConfigurationVO getConfiguration(
-        @GraphQLArgument(name = "id") Integer id, // /!\ Deprecated !
-        @GraphQLArgument(name = "label") String label, // /!\ Deprecated !
+        @GraphQLArgument(name = "inherited", defaultValue = "false", description = "Should included all enumerations values in properties ?") boolean withInherited,
         @GraphQLEnvironment Set<String> fields
     ) {
-        if (id != null || label != null) {
-            log.warn("Deprecated used of GraphQL 'configuration' query. Since version 1.8.0, arguments 'id' and 'label' have been deprecated, and will be ignored.");
-        }
-
         SoftwareVO software = configurationService.getCurrentSoftware();
 
         // Transform to configuration (fill images, etc.)
-        ConfigurationVO configuration = toConfiguration(software, fields);
+        ConfigurationVO configuration = toConfiguration(software, fields, withInherited);
 
         if (authService.isAdmin()) return configuration;
 
@@ -115,12 +111,14 @@ public class ConfigurationGraphQLService {
 
         SoftwareVO software = softwareService.save(configuration);
 
-        return toConfiguration(software, fields);
+        return toConfiguration(software, fields, false);
     }
 
     /* -- protected methods -- */
 
-    protected ConfigurationVO toConfiguration(SoftwareVO software, Set<String> fields) {
+    protected ConfigurationVO toConfiguration(SoftwareVO software,
+                                              Set<String> fields,
+                                              boolean withInherited) {
         if (software == null) return null;
         ConfigurationVO result = new ConfigurationVO(software);
 
@@ -134,52 +132,9 @@ public class ConfigurationGraphQLService {
             this.fillBackgroundImages(result);
         }
 
-        // Fill logo URL
-        String logoUri = getProperty(result, SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey());
-        if (StringUtils.isNotBlank(logoUri)) {
-            String logoUrl = imageService.getImageUrlByUri(logoUri);
-            result.getProperties().put(
-                SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey(),
-                logoUrl);
-            result.setSmallLogo(logoUrl);
-        }
-
-        // Fill large logo
-        String logoLargeUri = getProperty(result, SumarisServerConfigurationOption.LOGO_LARGE.getKey());
-        if (StringUtils.isNotBlank(logoLargeUri)) {
-            String logoLargeUrl = imageService.getImageUrlByUri(logoLargeUri);
-            result.getProperties().put(
-                SumarisServerConfigurationOption.LOGO_LARGE.getKey(),
-                logoLargeUrl);
-            result.setLargeLogo(logoLargeUrl);
-        }
-
-        // Replace favicon ID by an URL
-        String faviconUri = getProperty(result, SumarisServerConfigurationOption.SITE_FAVICON.getKey());
-        if (StringUtils.isNotBlank(faviconUri)) {
-            String faviconUrl = imageService.getImageUrlByUri(faviconUri);
-            result.getProperties().put(SumarisServerConfigurationOption.SITE_FAVICON.getKey(), faviconUrl);
-        }
-
-        // Add expected auth token
-        result.getProperties().put(
-            SumarisServerConfigurationOption.AUTH_TOKEN_TYPE.getKey(),
-            configuration.getAuthTokenType().getLabel());
-
-        // Publish some option, need by App
-        {
-            // Add DB timezone (e.g. used by SFA instance)
-            String dbTimeZone = configuration.getApplicationConfig().getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
-            if (StringUtils.isNotBlank(dbTimeZone)) {
-                result.getProperties().put(
-                    SumarisConfigurationOption.DB_TIMEZONE.getKey(),
-                    dbTimeZone);
-            }
-
-            // Trash enable ?
-            result.getProperties().computeIfAbsent(
-                SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey(),
-                (key) -> Boolean.toString(configuration.enableEntityTrash()));
+        // Add properties
+        if (fields.contains(ConfigurationVO.Fields.PROPERTIES)) {
+            this.fillProperties(result, withInherited);
         }
 
         return result;
@@ -232,7 +187,7 @@ public class ConfigurationGraphQLService {
                         }
                     }
                     return null;
-                }).filter(Objects::nonNull).collect(Collectors.toList());
+                }).filter(Objects::nonNull).toList();
 
             departments = Stream.concat(departments.stream(), deserializeDepartments.stream())
                 .collect(Collectors.toList());
@@ -253,6 +208,66 @@ public class ConfigurationGraphQLService {
         }
     }
 
+    protected void fillProperties(ConfigurationVO result, boolean withInherited) {
+
+        Map<String, String> properties = result.getProperties();
+
+        // Fill logo URL
+        String logoUri = getProperty(result, SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey());
+        if (StringUtils.isNotBlank(logoUri)) {
+            String logoUrl = imageService.getImageUrlByUri(logoUri);
+            result.getProperties().put(
+                SumarisServerConfigurationOption.SITE_LOGO_SMALL.getKey(),
+                logoUrl);
+            result.setSmallLogo(logoUrl);
+        }
+
+        // Fill large logo
+        String logoLargeUri = getProperty(result, SumarisServerConfigurationOption.LOGO_LARGE.getKey());
+        if (StringUtils.isNotBlank(logoLargeUri)) {
+            String logoLargeUrl = imageService.getImageUrlByUri(logoLargeUri);
+            result.getProperties().put(
+                SumarisServerConfigurationOption.LOGO_LARGE.getKey(),
+                logoLargeUrl);
+            result.setLargeLogo(logoLargeUrl);
+        }
+
+        // Replace favicon ID by an URL
+        String faviconUri = getProperty(result, SumarisServerConfigurationOption.SITE_FAVICON.getKey());
+        if (StringUtils.isNotBlank(faviconUri)) {
+            String faviconUrl = imageService.getImageUrlByUri(faviconUri);
+            result.getProperties().put(SumarisServerConfigurationOption.SITE_FAVICON.getKey(), faviconUrl);
+        }
+
+        // Publish auth token
+        properties.put(
+            SumarisServerConfigurationOption.AUTH_TOKEN_TYPE.getKey(),
+            configuration.getAuthTokenType().getLabel());
+
+        // Publish some other option, used by App
+        {
+            // Add DB timezone (e.g. used by SFA instance)
+            String dbTimeZone = configuration.getApplicationConfig().getOption(SumarisConfigurationOption.DB_TIMEZONE.getKey());
+            if (StringUtils.isNotBlank(dbTimeZone)) {
+                properties.put(
+                    SumarisConfigurationOption.DB_TIMEZONE.getKey(),
+                    dbTimeZone);
+            }
+
+            // Trash enable ?
+            properties.computeIfAbsent(
+                SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey(),
+                (key) -> Boolean.toString(configuration.enableEntityTrash()));
+        }
+
+        // Fill enumeration properties, if inherited=true
+        if (configurationService.getEnumerationProperties() != null && withInherited) {
+            configurationService.getEnumerationProperties().entrySet()
+                .stream().filter(entry -> entry.getValue() != null)
+                .forEach(entry -> properties.putIfAbsent(entry.getKey(), entry.getValue()));
+        }
+    }
+
     /**
      * Clean configuraiton properties for NON admin users
      * @param configuration
@@ -262,6 +277,8 @@ public class ConfigurationGraphQLService {
 
         // Remove all transient keys (but keep some, like DB Timezone...)
         // TODO
+
+        // Add enumerations
 
         return configuration;
     }

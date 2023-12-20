@@ -103,10 +103,10 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
         assertLoadFromFile(file);
         assertLoadFromFile(file);
 
-        List<VesselFeaturesVO> features = vesselService.getFeaturesByVesselId(1, Page.builder().build().asPageable(), DataFetchOptions.builder().build()).stream().toList();
+        List<VesselFeaturesVO> features = vesselService.findFeaturesByVesselId(1, Page.builder().build(), DataFetchOptions.builder().build());
         List<Date> featuresEndDates = features.stream().map(VesselFeaturesVO::getEndDate).toList();
-        List<Date> featuesEndDatesDuplicatedRemoved = featuresEndDates.stream().distinct().toList();
-        Assert.assertEquals(featuresEndDates.size(), featuesEndDatesDuplicatedRemoved.size());
+        List<Date> featuresEndDatesDuplicatedRemoved = featuresEndDates.stream().distinct().toList();
+        Assert.assertEquals(featuresEndDates.size(), featuresEndDatesDuplicatedRemoved.size());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
         assertLoadFromFile(file);
         assertLoadFromFile(file);
 
-        List<VesselRegistrationPeriodVO> registrationPeriod = vesselService.getRegistrationPeriodsByVesselId(1, Page.builder().build().asPageable()).stream().toList();
+        List<VesselRegistrationPeriodVO> registrationPeriod = vesselService.findRegistrationPeriodsByVesselId(1, Page.builder().build());
         List<Date> registrationPeriodEndDates = registrationPeriod.stream().map(VesselRegistrationPeriodVO::getEndDate).toList();
         List<Date> registrationPeriodEndDatesDuplicatedRemoved = registrationPeriodEndDates.stream().distinct().toList();
         Assert.assertEquals(registrationPeriodEndDates.size(), registrationPeriodEndDatesDuplicatedRemoved.size());

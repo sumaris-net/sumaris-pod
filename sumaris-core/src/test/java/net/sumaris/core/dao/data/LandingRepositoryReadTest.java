@@ -39,7 +39,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @Slf4j
-public class LandingRepositoryReadTest extends AbstractDaoTest{
+public class LandingRepositoryReadTest extends AbstractDaoTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
