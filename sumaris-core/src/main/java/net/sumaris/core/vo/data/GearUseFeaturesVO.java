@@ -24,25 +24,12 @@ package net.sumaris.core.vo.data;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +43,9 @@ public class GearUseFeaturesVO implements IUseFeaturesVO {
     private Date endDate;
 
     private Integer vesselId;
+    @ToString.Exclude
+    private VesselSnapshotVO vesselSnapshot;
+
     private ProgramVO program;
 
     private Short rankOrder;
@@ -63,9 +53,8 @@ public class GearUseFeaturesVO implements IUseFeaturesVO {
     private ReferentialVO gear;
     private ReferentialVO otherGear;
     private Map<Integer, String> measurementValues;
-
     private List<FishingAreaVO> fishingAreas;
-    private List<DataOriginVO> origins;
+    private List<DataOriginVO> dataOrigins;
 
     private String comments;
 
@@ -73,13 +62,11 @@ public class GearUseFeaturesVO implements IUseFeaturesVO {
     private Date updateDate;
     private Date controlDate;
     private Integer qualityFlagId;
+    private Date validationDate;
     private Date qualificationDate;
     private String qualificationComments;
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
-
-    // TODO create GearUseFeaturesOriginVO
-    //private List<GearUseFeaturesOrigin> gearUseFeaturesOrigins;
 
     /* -- link to parent -- */
 

@@ -22,7 +22,8 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
-import net.sumaris.core.dao.data.IWithDataQualitySpecifications;
+import net.sumaris.core.dao.data.IDataSpecifications;
+import net.sumaris.core.dao.data.IValidatableDataSpecifications;
 import net.sumaris.core.dao.data.IWithProgramSpecifications;
 import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.technical.Daos;
@@ -38,8 +39,8 @@ import java.util.Date;
 
 public interface UseFeaturesSpecifications<E extends IUseFeaturesEntity>
     extends
+    IDataSpecifications<Integer, E>,
     IWithVesselSpecifications<Integer, E>,
-    IWithDataQualitySpecifications<Integer, E>,
     IWithProgramSpecifications<Integer, E> {
 
     String PARENT_ID_PARAM = "parentId";

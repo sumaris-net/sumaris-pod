@@ -24,8 +24,12 @@ package net.sumaris.core.dao.data.vessel;
 
 import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
+import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.GearUseFeatures;
 import net.sumaris.core.model.data.IUseFeaturesEntity;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.GearUseFeaturesVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;

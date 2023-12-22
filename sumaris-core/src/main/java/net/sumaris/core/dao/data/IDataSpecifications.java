@@ -27,7 +27,6 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
 import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.data.IWithDataQualityEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import org.apache.commons.lang3.ArrayUtils;
@@ -81,7 +80,7 @@ public interface IDataSpecifications<ID extends Serializable,
                 cb.isNotNull(root.get(IDataEntity.Fields.CONTROL_DATE)),
                 // Not qualified
                 cb.or(
-                    cb.isNull(root.get(IWithDataQualityEntity.Fields.QUALIFICATION_DATE)),
+                    cb.isNull(root.get(IDataEntity.Fields.QUALIFICATION_DATE)),
                     cb.equal(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
                 )
             );

@@ -28,9 +28,8 @@ import net.sumaris.core.model.data.IRootDataEntity;
  * @author peck7 on 28/08/2020.
  */
 public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
-        extends IDataSpecifications<Integer, E>,
-    IWithDataQualitySpecifications<Integer, E>,
-    IWithProgramSpecifications<Integer, E>,
-    IWithRecorderPersonSpecifications<Integer, E> {
+        extends IValidatableDataSpecifications<Integer, E>,
+            IWithProgramSpecifications<Integer, E>,
+            IWithRecorderPersonSpecifications<Integer, E> {
 
 }

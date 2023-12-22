@@ -22,6 +22,7 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -30,33 +31,17 @@ import java.io.Serializable;
 import java.util.Date;
 
 public interface IDataEntity<ID extends Serializable>
-        extends Serializable, IUpdateDateEntity<ID, Date>,
+        extends IUpdateDateEntity<ID, Date>,
+        IWithDataQualityEntity<ID, QualityFlag>,
         IWithRecorderDepartmentEntity<ID, Department> {
 
-    interface Fields extends IUpdateDateEntity.Fields, IWithRecorderDepartmentEntity.Fields {
-        String CONTROL_DATE = "controlDate";
-        String QUALIFICATION_DATE = "qualificationDate";
-        String QUALITY_FLAG = "qualityFlag";
-        String QUALIFICATION_COMMENTS = "qualificationComments";
+    interface Fields extends IUpdateDateEntity.Fields,
+        IWithDataQualityEntity.Fields,
+        IWithRecorderDepartmentEntity.Fields {
     }
 
     int SEQUENCE_ALLOCATION_SIZE = 50;
 
     int LENGTH_COMMENTS = 2000;
 
-    Date getControlDate();
-
-    void setControlDate(Date controlDate);
-
-    Date getQualificationDate();
-
-    void setQualificationDate(Date qualificationDate);
-
-    QualityFlag getQualityFlag();
-
-    void setQualityFlag(QualityFlag qualityFlag);
-
-    String getQualificationComments();
-
-    void setQualificationComments(String qualificationComments);
 }

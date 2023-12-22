@@ -23,34 +23,18 @@ package net.sumaris.core.model.data;
  */
 
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.IUpdateDateEntity;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IWithDataQualityEntity<ID extends Serializable, QF extends Serializable>
-        extends IEntity<ID> {
+public interface IWithValidationDateEntity<ID extends Serializable, QF extends Serializable>
+        extends IEntity<ID>, IWithDataQualityEntity<ID, QF> {
 
-    interface Fields extends IEntity.Fields {
-        String CONTROL_DATE = "controlDate";
-        String QUALIFICATION_DATE = "qualificationDate";
-        String QUALITY_FLAG = "qualityFlag";
-        String QUALIFICATION_COMMENTS = "qualificationComments";
+    interface Fields extends IEntity.Fields, IWithDataQualityEntity.Fields {
+        String VALIDATION_DATE = "validationDate";
     }
 
-    Date getControlDate();
+    Date getValidationDate() ;
 
-    void setControlDate(Date controlDate);
-
-    Date getQualificationDate();
-
-    void setQualificationDate(Date qualificationDate);
-
-    QF getQualityFlag();
-
-    void setQualityFlag(QF qualityFlag);
-
-    String getQualificationComments();
-
-    void setQualificationComments(String qualificationComments);
+    void setValidationDate(Date validationDate);
 }

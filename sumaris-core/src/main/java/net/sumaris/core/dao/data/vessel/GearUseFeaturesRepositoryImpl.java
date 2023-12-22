@@ -22,23 +22,34 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.ActivityCalendar;
 import net.sumaris.core.model.data.DailyActivityCalendar;
 import net.sumaris.core.model.data.GearUseFeatures;
+import net.sumaris.core.model.data.GearUseFeaturesOrigin;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.DataOriginVO;
 import net.sumaris.core.vo.data.GearUseFeaturesVO;
 import net.sumaris.core.vo.filter.GearUseFeaturesFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 public class GearUseFeaturesRepositoryImpl
@@ -51,6 +62,9 @@ public class GearUseFeaturesRepositoryImpl
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private ProgramRepository programRepository;
 
     @Autowired
     private FishingAreaRepository fishingAreaRepository;
@@ -110,9 +124,13 @@ public class GearUseFeaturesRepositoryImpl
             target.setMeasurementValues(measurementDao.getGearUseFeaturesMeasurementsMap(source.getId()));
         }
 
-        // Fishing areas
         if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
+
+            // Fishing areas
             target.setFishingAreas(fishingAreaRepository.getAllByGearUseFeaturesId(source.getId()));
+
+            // Origins
+            target.setDataOrigins(toOriginVOs(source.getOrigins()));
         }
 
         // Activity Calendar
@@ -195,27 +213,127 @@ public class GearUseFeaturesRepositoryImpl
     }
 
     @Override
-    public List<GearUseFeaturesVO> saveAllByActivityCalendarId(int parentId, List<GearUseFeaturesVO> sources) {
-        ActivityCalendar parent = getReference(ActivityCalendar.class, parentId);
+    public List<GearUseFeaturesVO> saveAllByActivityCalendarId(int parentId, @NonNull List<GearUseFeaturesVO> sources) {
+        ActivityCalendar parent = getById(ActivityCalendar.class, parentId);
+
+        sources.forEach(source -> source.setActivityCalendarId(parentId));
+
         return this.saveAllByList(parent.getGearUseFeatures(), sources);
     }
 
     @Override
-    public List<GearUseFeaturesVO> saveAllByDailyActivityCalendarId(int parentId, List<GearUseFeaturesVO> sources) {
-        DailyActivityCalendar parent = getReference(DailyActivityCalendar.class, parentId);
+    public List<GearUseFeaturesVO> saveAllByDailyActivityCalendarId(int parentId, @NonNull List<GearUseFeaturesVO> sources) {
+        DailyActivityCalendar parent = getById(DailyActivityCalendar.class, parentId);
+        sources.forEach(source -> source.setActivityCalendarId(parentId));
         return this.saveAllByList(parent.getGearUseFeatures(), sources);
     }
 
     /* -- protected functions -- */
 
     @Override
+    protected void onBeforeSaveEntity(GearUseFeaturesVO source, GearUseFeatures target, boolean isNew) {
+        super.onBeforeSaveEntity(source, target, isNew);
+
+    }
+
+    @Override
     protected void onAfterSaveEntity(GearUseFeaturesVO vo, GearUseFeatures savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
+
+        // Save origins
+        saveAllOrigins(vo.getDataOrigins(), savedEntity);
 
         // Save measurements
         measurementDao.saveGearUseFeaturesMeasurementsMap(savedEntity.getId(), vo.getMeasurementValues());
 
         // Save fishing areas
         fishingAreaRepository.saveAllByGearUseFeaturesId(savedEntity.getId(), vo.getFishingAreas());
+
+    }
+
+    protected List<DataOriginVO> toOriginVOs(List<GearUseFeaturesOrigin> sources) {
+        return Beans.getStream(sources).map(this::toOriginVO).toList();
+    }
+
+    protected DataOriginVO toOriginVO(GearUseFeaturesOrigin source) {
+        DataOriginVO target = new DataOriginVO();
+        target.setProgramId(source.getProgram().getId());
+        if (target.getProgramId() != null) {
+            target.setProgram(programRepository.get(target.getProgramId()));
+        }
+
+        if (source.getAcquisitionLevel() != null) {
+            target.setAcquisitionLevel(referentialDao.getAcquisitionLevelLabelById(source.getAcquisitionLevel().getId()));
+        }
+
+        target.setVesselUseFeaturesId(null);
+        target.setGearUseFeaturesId(source.getGearUseFeatures().getId());
+
+        return target;
+    }
+
+    protected List<DataOriginVO> saveAllOrigins(List<DataOriginVO> sources, GearUseFeatures parent) {
+
+        EntityManager em = getEntityManager();
+        if (parent.getOrigins() == null) {
+            parent.setOrigins(Lists.newArrayList());
+        }
+
+        ListMultimap<Integer, GearUseFeaturesOrigin> existingByProgramId = Beans.splitByNotUniqueProperty(parent.getOrigins(), StringUtils.doting(GearUseFeaturesOrigin.Fields.PROGRAM,  Program.Fields.ID), -1);
+        final List<GearUseFeaturesOrigin> targets = parent.getOrigins();
+
+        Beans.getStream(sources)
+            .forEach(source -> {
+                Integer programId = source.getProgramId() != null ? source.getProgramId() :
+                    (source.getProgram() != null ? source.getProgram().getId() : null);
+
+                if (programId == null || programId < 0) return; // Skip if no program
+
+                source.setGearUseFeaturesId(parent.getId());
+                source.setVesselUseFeaturesId(null);
+                source.setProgramId(programId);
+                if (source.getProgram() != null) {
+                    source.setProgram(programRepository.get(programId));
+                }
+
+                // Check if exists
+                GearUseFeaturesOrigin target = existingByProgramId.containsKey(programId) ? existingByProgramId.get(programId).get(0) : null;
+                boolean isNew = target == null;
+
+                if (isNew) {
+                    target = new GearUseFeaturesOrigin();
+                    target.setGearUseFeatures(parent);
+                    target.setProgram(getReference(Program.class, programId));
+                    targets.add(target);
+                }
+                else {
+                    existingByProgramId.remove(programId, target);
+                }
+
+                // Acquisition level
+                if (StringUtils.isNotBlank(source.getAcquisitionLevel())) {
+                    target.setAcquisitionLevel(getReference(AcquisitionLevel.class, referentialDao.getAcquisitionLevelIdByLabel(source.getAcquisitionLevel())));
+                }
+                else {
+                    target.setAcquisitionLevel(null);
+                }
+
+                if (isNew) {
+                    em.persist(target);
+                }
+                else {
+                    em.merge(target);
+                }
+
+            });
+
+        // Remove unused existing origins
+        Collection<GearUseFeaturesOrigin> entitiesToRemove = existingByProgramId.values();
+        if (CollectionUtils.isNotEmpty(entitiesToRemove)) {
+            targets.removeAll(entitiesToRemove);
+            entitiesToRemove.forEach(em::remove);
+        }
+
+        return sources;
     }
 }

@@ -23,9 +23,8 @@ package net.sumaris.core.dao.data;
  */
 
 import net.sumaris.core.model.data.DataQualityStatusEnum;
-import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.data.IRootDataEntity;
-import net.sumaris.core.model.data.IWithDataQualityEntity;
+import net.sumaris.core.model.data.IValidatableDataEntity;
+import net.sumaris.core.model.data.IWithValidationDateEntity;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import org.springframework.data.jpa.domain.Specification;
@@ -35,7 +34,7 @@ import java.io.Serializable;
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface IWithDataQualitySpecifications<ID extends Serializable, E extends IWithDataQualityEntity<ID>>
+public interface IValidatableDataSpecifications<ID extends Serializable, E extends IValidatableDataEntity<ID>>
         extends IDataSpecifications<ID, E> {
 
     default Specification<E> withDataQualityStatus(DataQualityStatusEnum status) {
@@ -58,13 +57,13 @@ public interface IWithDataQualitySpecifications<ID extends Serializable, E exten
         return (root, query, cb) ->
             cb.and(
                 // Control date not null
-                cb.isNotNull(root.get(IRootDataEntity.Fields.CONTROL_DATE)),
+                cb.isNotNull(root.get(IValidatableDataEntity.Fields.CONTROL_DATE)),
                 // Not validated
-                cb.isNull(root.get(IRootDataEntity.Fields.VALIDATION_DATE)),
+                cb.isNull(root.get(IValidatableDataEntity.Fields.VALIDATION_DATE)),
                 // Not qualified
                 cb.or(
-                    cb.isNull(root.get(IWithDataQualityEntity.Fields.QUALIFICATION_DATE)),
-                    cb.equal(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+                    cb.isNull(root.get(IValidatableDataEntity.Fields.QUALIFICATION_DATE)),
+                    cb.equal(cb.coalesce(root.get(IValidatableDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
                 )
             );
     }
@@ -73,11 +72,11 @@ public interface IWithDataQualitySpecifications<ID extends Serializable, E exten
         return (root, query, cb) ->
             cb.and(
                 // Validation date not null
-                cb.isNotNull(root.get(IWithDataQualityEntity.Fields.VALIDATION_DATE)),
+                cb.isNotNull(root.get(IWithValidationDateEntity.Fields.VALIDATION_DATE)),
                 // Not qualified
                 cb.or(
-                    cb.isNull(root.get(IWithDataQualityEntity.Fields.QUALIFICATION_DATE)),
-                    cb.equal(cb.coalesce(root.get(IDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
+                    cb.isNull(root.get(IValidatableDataEntity.Fields.QUALIFICATION_DATE)),
+                    cb.equal(cb.coalesce(root.get(IValidatableDataEntity.Fields.QUALITY_FLAG).get(QualityFlag.Fields.ID), QualityFlagEnum.NOT_QUALIFIED.getId()), QualityFlagEnum.NOT_QUALIFIED.getId())
                 )
             );
     }

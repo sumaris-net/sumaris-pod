@@ -24,8 +24,11 @@ package net.sumaris.core.vo.data;
 
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
+import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IWithDataQualityEntity;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -33,6 +36,7 @@ import java.util.Date;
 public interface IDataVO<ID extends Serializable>
     extends IValueObject<ID>,
         IUpdateDateEntity<ID, Date>,
+        IWithDataQualityEntity<ID, Integer>,
         IWithRecorderDepartmentEntity<ID, DepartmentVO> {
 
     Date getControlDate();
@@ -50,4 +54,12 @@ public interface IDataVO<ID extends Serializable>
     String getQualificationComments();
 
     void setQualificationComments(String qualificationComments);
+
+    default Integer getQualityFlag() {
+        return this.getQualityFlagId();
+    }
+
+    default void setQualityFlag(Integer qualityFlag) {
+        this.setQualityFlagId(qualityFlag);
+    }
 }

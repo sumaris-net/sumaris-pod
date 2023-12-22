@@ -830,8 +830,7 @@ public class StrategyRepositoryImpl
     }
 
 
-    protected List<AppliedPeriodVO> saveAppliedPeriodsByAppliedStrategyId(int appliedStrategyId, List<AppliedPeriodVO> sources) {
-        Preconditions.checkNotNull(sources);
+    protected List<AppliedPeriodVO> saveAppliedPeriodsByAppliedStrategyId(int appliedStrategyId, @NonNull List<AppliedPeriodVO> sources) {
 
         EntityManager em = getEntityManager();
 
@@ -867,7 +866,7 @@ public class StrategyRepositoryImpl
                 em.merge(target);
             }
             return target;
-        }).collect(Collectors.toList());
+        }).toList();
 
         parent.setAppliedPeriods(targets);
 

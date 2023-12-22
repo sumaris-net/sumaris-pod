@@ -33,8 +33,10 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.data.FishingAreaVO;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -86,10 +88,6 @@ public class GearUseFeatures implements IUseFeaturesEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name = "validation_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date validationDate;
-
     @Column(name = "qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
@@ -113,17 +111,20 @@ public class GearUseFeatures implements IUseFeaturesEntity {
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = GearUseMeasurement.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
-    private List<GearUseMeasurement> measurements;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = GearUseMeasurement.Fields.GEAR_USE_FEATURES)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<GearUseMeasurement> measurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseFeaturesOrigin.class, mappedBy = GearUseFeaturesOrigin.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
-    private List<GearUseFeaturesOrigin> origins;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = GearUseFeaturesOrigin.Fields.GEAR_USE_FEATURES)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<GearUseFeaturesOrigin> origins = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
-    private List<FishingArea> fishingAreas;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = FishingArea.Fields.GEAR_USE_FEATURES)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<FishingArea> fishingAreas = new ArrayList<>();
 
     @Transient
-    private Department recorderDepartment; // Not used
+    private Department recorderDepartment; // Missing in DB, but expected by IDataEntity
 
     /* -- parent entity -- */
 

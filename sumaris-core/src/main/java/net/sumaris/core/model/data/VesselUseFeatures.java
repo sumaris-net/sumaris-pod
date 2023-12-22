@@ -72,10 +72,6 @@ public class VesselUseFeatures implements IUseFeaturesEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name = "validation_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date validationDate;
-
     @Column(name = "qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
@@ -110,7 +106,7 @@ public class VesselUseFeatures implements IUseFeaturesEntity {
     private List<VesselUseFeaturesOrigin> origins;
 
     @Transient
-    private Department recorderDepartment; // Not used
+    private Department recorderDepartment; // Missing in DB, but expected by IDataEntity
 
     /* -- parent entity -- */
 

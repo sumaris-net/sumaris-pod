@@ -22,19 +22,24 @@
 
 package net.sumaris.core.vo.data;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 
 @Data
 @FieldNameConstants
 @EqualsAndHashCode
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DataOriginVO {
+
+    private String acquisitionLevel;
 
     @EqualsAndHashCode.Exclude
     private ProgramVO program;
     private Integer programId;
 
-    private String acquisitionLevel;
+    private Integer vesselUseFeaturesId;
+    private Integer gearUseFeaturesId;
 }

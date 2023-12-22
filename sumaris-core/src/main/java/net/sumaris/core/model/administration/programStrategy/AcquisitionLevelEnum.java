@@ -48,8 +48,11 @@ public enum AcquisitionLevelEnum implements IEntityEnum, Serializable {
     @Deprecated
     SURVIVAL_TEST(7, "SURVIVAL_TEST"),
     INDIVIDUAL_MONITORING(8, "INDIVIDUAL_MONITORING"),
-    SAMPLE(12, "SAMPLE"),
     OBSERVED_LOCATION(10, "OBSERVED_LOCATION"),
+    LANDING(11, "LANDING"),
+    SAMPLE(12, "SAMPLE"),
+    PRODUCT(13, "PRODUCT"),
+    SALE(14, "SALE"),
 
     // Activity calendar
     ACTIVITY_CALENDAR(22, "ACTIVITY_CALENDAR"),

@@ -546,6 +546,7 @@ public class ProgramRepositoryImpl
                 parent.setProperties(Lists.newArrayList());
             }
             final List<ProgramProperty> targetProperties = parent.getProperties();
+            targetProperties.clear();
 
             // Transform each entry into ProgramProperty
             source.keySet().stream()
@@ -566,7 +567,7 @@ public class ProgramRepositoryImpl
                     if (isNew) {
                         em.persist(prop);
                     } else {
-                        em.merge(prop);
+                        prop = em.merge(prop);
                     }
                     return prop;
                 })
@@ -574,7 +575,6 @@ public class ProgramRepositoryImpl
 
             // Remove old properties
             if (CollectionUtils.isNotEmpty(existingValues)) {
-                parent.getProperties().removeAll(existingValues);
                 existingValues.forEach(em::remove);
             }
 

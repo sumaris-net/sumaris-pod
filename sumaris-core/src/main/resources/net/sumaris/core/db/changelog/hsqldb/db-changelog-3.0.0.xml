@@ -126,7 +126,7 @@
         <constraints nullable="false"/>
       </column>
       <column name="end_date" type="TIMESTAMP"/>
-      <column name="rank_order" type="smallint">
+      <column name="rank_order" type="smallint" defaultValueNumeric="1">
         <constraints nullable="false"/>
       </column>
       <column name="qualification_comments" type="VARCHAR(2000)"/>
@@ -137,10 +137,6 @@
       <column name="update_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
-      <column name="validation_date" type="TIMESTAMP"/>
-      <column name="activity_calendar_fk" type="INT"/>
-      <column name="base_port_location_fk" type="INT"/>
-      <column name="daily_activity_calendar_fk" type="INT"/>
       <column name="gear_fk" type="INT"/>
       <column name="metier_fk" type="INT"/>
       <column name="other_gear_fk" type="INT"/>
@@ -153,6 +149,8 @@
       <column name="vessel_fk" type="INT">
         <constraints nullable="false"/>
       </column>
+      <column name="activity_calendar_fk" type="INT"/>
+      <column name="daily_activity_calendar_fk" type="INT"/>
     </createTable>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-008">
@@ -194,10 +192,7 @@
       <column name="update_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
-      <column name="validation_date" type="TIMESTAMP"/>
-      <column name="activity_calendar_fk" type="INT"/>
       <column name="base_port_location_fk" type="INT"/>
-      <column name="daily_activity_calendar_fk" type="INT"/>
       <column name="program_fk" type="INT">
         <constraints nullable="false"/>
       </column>
@@ -207,6 +202,8 @@
       <column name="vessel_fk" type="INT">
         <constraints nullable="false"/>
       </column>
+      <column name="activity_calendar_fk" type="INT"/>
+      <column name="daily_activity_calendar_fk" type="INT"/>
     </createTable>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-010">
@@ -296,9 +293,6 @@
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-028" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="vessel_use_features" constraintName="FK1siq6il2ehmllbbdl7nkmwxgv" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
-  </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-029" failOnError="false">
-    <addForeignKeyConstraint baseColumnNames="base_port_location_fk" baseTableName="gear_use_features" constraintName="FK1uo9a5nul5io63pl2h0cuo4v0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-030" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="vessel_use_features" constraintName="FK26cji9ixqytd7nvkj6fqraqcg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>

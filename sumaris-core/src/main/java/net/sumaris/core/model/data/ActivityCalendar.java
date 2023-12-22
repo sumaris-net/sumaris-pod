@@ -30,9 +30,11 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
+import org.hibernate.annotations.Cascade;
 import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -117,13 +119,16 @@ public class ActivityCalendar implements IRootDataEntity<Integer>,
     @JoinColumn(name = "recorder_person_fk")
     private Person recorderPerson;
 
-    @OneToMany(mappedBy = SurveyMeasurement.Fields.ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SurveyMeasurement> measurements;
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SurveyMeasurement.class, mappedBy = SurveyMeasurement.Fields.ACTIVITY_CALENDAR)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<SurveyMeasurement> surveyMeasurements = new ArrayList<>();
 
-    @OneToMany(mappedBy = VesselUseFeatures.Fields.ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VesselUseFeatures> vesselUseFeatures;
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseFeatures.class, mappedBy = VesselUseFeatures.Fields.ACTIVITY_CALENDAR)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselUseFeatures> vesselUseFeatures = new ArrayList<>();
 
-    @OneToMany(mappedBy = GearUseFeatures.Fields.ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GearUseFeatures> gearUseFeatures;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = GearUseFeatures.Fields.ACTIVITY_CALENDAR)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<GearUseFeatures> gearUseFeatures = new ArrayList<>();
 
 }

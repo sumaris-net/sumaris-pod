@@ -382,6 +382,13 @@ public class DatabaseFixtures {
 		return program;
 	}
 
+	public ProgramVO getActivityCalendarPredocProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(111);
+		program.setLabel("SIH-ACTIPRED");
+		return program;
+	}
+
 	/* -- PMFM -- */
 
 	public Integer getPmfmBatchWeight() {

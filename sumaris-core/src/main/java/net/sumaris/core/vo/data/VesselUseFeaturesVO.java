@@ -24,20 +24,11 @@ package net.sumaris.core.vo.data;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.QualityFlag;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
-import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -50,32 +41,35 @@ public class VesselUseFeaturesVO implements IUseFeaturesVO {
     private Date startDate;
     private Date endDate;
 
+    private Integer vesselId;
+    @ToString.Exclude
+    private VesselSnapshotVO vesselSnapshot;
+
+    private ProgramVO program;
+
     private Integer isActive; // See enumeration
     private LocationVO basePortLocation;
+    private Map<Integer, String> measurementValues;
+    private List<DataOriginVO> dataOrigins;
 
     private String comments;
 
     private Date creationDate;
     private Date updateDate;
     private Date controlDate;
+    private Date validationDate;
     private Integer qualityFlagId;
     private Date qualificationDate;
     private String qualificationComments;
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
-    private Integer vesselId;
-
-    private ProgramVO program;
-
-    private Map<Integer, String> measurementValues;
-    private List<DataOriginVO> origins;
-
-    // TODO create VesselUseFeaturesOriginVO
-    //private List<VesselUseFeaturesOriginVO> origins;
-
     /* -- link to parent -- */
 
     private Integer activityCalendarId;
     private Integer dailyActivityCalendarId;
+
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    }
 }

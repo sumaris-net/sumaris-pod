@@ -23,15 +23,11 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.event.config.ConfigurationEvent;
-import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
@@ -45,12 +41,10 @@ import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 
@@ -65,9 +59,6 @@ public class PmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
         implements PmfmStrategyRepository {
 
-    private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
-    private final Map<Integer, String> acquisitionLevelLabelById = Maps.newConcurrentMap();
-
 
     private final ReferentialDao referentialDao;
     private final PmfmRepository pmfmRepository;
@@ -79,11 +70,6 @@ public class PmfmStrategyRepositoryImpl
         super(PmfmStrategy.class, PmfmStrategyVO.class, entityManager);
         this.referentialDao = referentialDao;
         this.pmfmRepository = pmfmRepository;
-    }
-
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.loadAcquisitionLevels();
     }
 
     @Override
@@ -140,7 +126,7 @@ public class PmfmStrategyRepositoryImpl
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
-            target.setAcquisitionLevel(getAcquisitionLevelLabelById(source.getAcquisitionLevel().getId()));
+            target.setAcquisitionLevel(referentialDao.getAcquisitionLevelLabelById(source.getAcquisitionLevel().getId()));
         }
 
         // Gears
@@ -277,7 +263,7 @@ public class PmfmStrategyRepositoryImpl
         String acquisitionLevel = source.getAcquisitionLevel();
         if (copyIfNull || acquisitionLevel != null) {
             if (acquisitionLevel != null) {
-                target.setAcquisitionLevel(getReference(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(acquisitionLevel)));
+                target.setAcquisitionLevel(getReference(AcquisitionLevel.class, referentialDao.getAcquisitionLevelIdByLabel(acquisitionLevel)));
             }
             else {
                 target.setAcquisitionLevel(null);
@@ -307,58 +293,6 @@ public class PmfmStrategyRepositoryImpl
                 target.getReferenceTaxons().addAll(loadAllAsSet(ReferenceTaxon.class, source.getReferenceTaxonIds(), true));
             }
         }
-    }
-
-    /* -- protected methods -- */
-
-
-    private void loadAcquisitionLevels() {
-        acquisitionLevelIdByLabel.clear();
-        acquisitionLevelLabelById.clear();
-
-        // Fill acquisition levels map
-        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null, null);
-        items.forEach(item -> {
-            acquisitionLevelIdByLabel.put(item.getLabel(), item.getId());
-            acquisitionLevelLabelById.put(item.getId(), item.getLabel());
-        });
-    }
-    private int getAcquisitionLevelIdByLabel(String label) {
-        Integer acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
-        if (acquisitionLevelId == null) {
-
-            // Try to reload
-            synchronized (this) {
-                loadAcquisitionLevels();
-            }
-
-            // Retry to find it
-            acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
-            if (acquisitionLevelId == null) {
-                throw new DataIntegrityViolationException("Unknown acquisition level's label=" + label);
-            }
-        }
-
-        return acquisitionLevelId;
-    }
-
-    private String getAcquisitionLevelLabelById(int id) {
-        String label = acquisitionLevelLabelById.get(id);
-        if (label == null) {
-
-            // Try to reload
-            synchronized (this) {
-                loadAcquisitionLevels();
-            }
-
-            // Retry to find it
-            label = acquisitionLevelLabelById.get(id);
-            if (label == null) {
-                throw new DataIntegrityViolationException("Unknown acquisition level's id=" + id);
-            }
-        }
-
-        return label;
     }
 
 }
