@@ -86,7 +86,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public Long count(ObservedLocationFilterVO filter) {
+	public Long countByFilter(ObservedLocationFilterVO filter) {
 		filter = ObservedLocationFilterVO.nullToEmpty(filter);
 		return observedLocationRepository.count(filter);
 	}

@@ -132,4 +132,9 @@ public interface MeasurementService {
     @Transactional(readOnly = true)
     Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds);
 
+    @Transactional(readOnly = true)
+    Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId);
 }

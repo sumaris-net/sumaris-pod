@@ -178,6 +178,16 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
+	public Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId) {
+		return measurementDao.getActivityCalendarMeasurementsMap(activityCalendarId);
+	}
+
+	@Override
+	public Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId) {
+		return measurementDao.getDailyActivityCalendarMeasurementsMap(dailyActivityCalendarId);
+	}
+
+	@Override
 	public List<MeasurementVO> getVesselFeaturesMeasurements(int vesselFeaturesId) {
 		return measurementDao.getVesselFeaturesMeasurements(vesselFeaturesId);
 	}
