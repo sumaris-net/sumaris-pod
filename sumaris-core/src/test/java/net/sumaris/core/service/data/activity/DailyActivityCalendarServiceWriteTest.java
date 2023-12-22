@@ -1,26 +1,26 @@
-package net.sumaris.core.service.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
+
+package net.sumaris.core.service.data.activity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -29,13 +29,18 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
+import net.sumaris.core.service.data.DataTestUtils;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.DataOriginVO;
 import net.sumaris.core.vo.data.FishingAreaVO;
 import net.sumaris.core.vo.data.GearUseFeaturesVO;
 import net.sumaris.core.vo.data.VesselUseFeaturesVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -45,97 +50,97 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
-public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
+public class DailyActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private ActivityCalendarService service;
+    private DailyActivityCalendarService service;
 
     @Test
     public void save() {
-        ActivityCalendarVO vo = createActivityCalendar(2023, 0);
-        ActivityCalendarVO savedVO = service.save(vo);
+        DailyActivityCalendarVO vo = createDailyActivityCalendar(new Date(), 0);
+        DailyActivityCalendarVO savedVO = service.save(vo);
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
 
         // Reload and check
-        ActivityCalendarVO reloadedVO = service.get(savedVO.getId());
+        DailyActivityCalendarVO reloadedVO = service.get(savedVO.getId());
         Assert.assertNotNull(reloadedVO);
 
     }
 
     @Test
     public void saveWithFeatures() {
-        int expectedMonth = 12;
-        // Create a activityCalendar, with an physical gear
-        ActivityCalendarVO source = createActivityCalendar(2023, expectedMonth);
+        int dayCount = 7;
+        // Create a dailyActivityCalendar, with an physical gear
+        DailyActivityCalendarVO source = createDailyActivityCalendar(new Date(), dayCount);
 
-        ActivityCalendarVO savedVO = service.save(source);
+        DailyActivityCalendarVO savedVO = service.save(source);
 
         Assert.assertNotNull(savedVO);
         Assert.assertNotNull(savedVO.getId());
 
 
-        ActivityCalendarVO reloadedVO = service.get(source.getId(), ActivityCalendarFetchOptions.FULL_GRAPH);
+        DailyActivityCalendarVO reloadedVO = service.get(source.getId(), DailyActivityCalendarFetchOptions.FULL_GRAPH);
 
         // Check VUF and GUF
-        assertValidVesselUseFeatures(reloadedVO, expectedMonth);
-        assertValidGearUseFeatures(reloadedVO, expectedMonth);
+        assertValidVesselUseFeatures(reloadedVO, dayCount);
+        assertValidGearUseFeatures(reloadedVO, dayCount);
     }
 
     @Test
-    public void saveAndUpdateOrigins() {
-        // Create a activityCalendar, with an physical gear
-        ActivityCalendarVO source = createActivityCalendar(2023, 1);
+    public void saveAndUpdate() {
+        // Create a dailyActivityCalendar, with an physical gear
+        DailyActivityCalendarVO source = createDailyActivityCalendar(new Date(), 1);
         source = service.save(source);
 
         Assert.assertNotNull(source);
         Assert.assertNotNull(source.getId());
 
-        // Keep only one guf, then update data origin
+        // Keep only one guf, then update metier
         GearUseFeaturesVO guf = source.getGearUseFeatures().get(0);
-        DataOriginVO origin = DataOriginVO.builder()
-            .program(fixtures.getDefaultProgram())
-            .acquisitionLevel(AcquisitionLevelEnum.OPERATION.getLabel())
-            .gearUseFeaturesId(source.getId())
-            .build();
-        guf.setDataOrigins(ImmutableList.of(origin));
+
+        // Update the metier
+        MetierVO metier = new MetierVO();
+        Integer newMetierId = fixtures.getMetierIdForFPO(0);
+        metier.setId(newMetierId);
+        guf.setMetier(metier);
         source.setGearUseFeatures(ImmutableList.of(guf));
 
         // Save and reload
         service.save(source);
 
-        ActivityCalendarVO reloadedVO = service.get(source.getId(), ActivityCalendarFetchOptions.FULL_GRAPH);
+        DailyActivityCalendarVO reloadedVO = service.get(source.getId(), DailyActivityCalendarFetchOptions.FULL_GRAPH);
 
         Assert.assertNotNull(reloadedVO);
         Assert.assertNotNull(reloadedVO.getId());
 
-        // Check GUF origin
+        // Check metier
         Assert.assertNotNull(reloadedVO.getGearUseFeatures());
         Assert.assertEquals(1, reloadedVO.getGearUseFeatures().size());
 
         GearUseFeaturesVO reloadedGuf = reloadedVO.getGearUseFeatures().get(0);
         Assert.assertNotNull(reloadedGuf);
-        Assert.assertNotNull(reloadedGuf.getDataOrigins());
-        Assert.assertEquals(1, reloadedGuf.getDataOrigins().size());
-        Assert.assertNotNull(reloadedGuf.getDataOrigins().get(0));
-        Assert.assertEquals(fixtures.getDefaultProgram().getId(), reloadedGuf.getDataOrigins().get(0).getProgramId());
-
-        Assert.assertNotNull(reloadedGuf.getDataOrigins().get(0).getProgram());
-        Assert.assertEquals(fixtures.getDefaultProgram().getId(), reloadedGuf.getDataOrigins().get(0).getProgram().getId());
+        Assert.assertNotNull(reloadedGuf.getMetier());
+        Assert.assertEquals(newMetierId, reloadedGuf.getMetier().getId());
     }
 
     @Test
-    public void delete() {
+    public void delete() throws ParseException {
+
+        Date startDate = Dates.parseDate("01/01/2022", "dd/MM/yyyy");
         // Create an activity calendar
-        ActivityCalendarVO savedVO = null;
+        DailyActivityCalendarVO savedVO = null;
         try {
-            savedVO = service.save(createActivityCalendar(2023, 1));
+            savedVO = service.save(createDailyActivityCalendar(startDate, 1));
             Assume.assumeNotNull(savedVO);
         }
         catch(Exception e) {
@@ -150,12 +155,13 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
     /* -- Protected -- */
 
-    protected ActivityCalendarVO createActivityCalendar(int year, int monthCount) {
-        ActivityCalendarVO calendar = DataTestUtils.createActivityCalendar(fixtures, year);
+    protected DailyActivityCalendarVO createDailyActivityCalendar(Date startDate, int dayCount) {
+        DailyActivityCalendarVO calendar = DataTestUtils.createDailyActivityCalendar(fixtures, startDate, dayCount);
 
         calendar.setMeasurementValues(ImmutableMap.of(
-            PmfmEnum.SURVEY_QUALIFICATION.getId(), "591", // Directe
-            PmfmEnum.SURVEY_RELIABILITY.getId(), "600" // Fiable
+            // TODO: add ObsDeb pmfm (SURVEY_MEASUREMENT) if any
+            //PmfmEnum.SURVEY_QUALIFICATION.getId(), "591", // Directe
+            //PmfmEnum.SURVEY_RELIABILITY.getId(), "600" // Fiable
         ));
 
         // Create features
@@ -165,31 +171,26 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         List<GearUseFeaturesVO> gearUseFeatures = Lists.newArrayList();
         calendar.setGearUseFeatures(gearUseFeatures);
 
-        // Init origins
-        DataOriginVO[] origins = new DataOriginVO[]{
-            DataOriginVO.builder().program(fixtures.getActivityCalendarProgram()).build(), // Année N - 1
-            DataOriginVO.builder().program(fixtures.getActivityCalendarPredocProgram()).build(), // Déclaratif/prédoc
-            DataOriginVO.builder().build() // No program = Enquêteur
-        };
-
-        for (int i = 0; i < monthCount; i++) {
+        for (int i = 0; i < dayCount; i++) {
             // VUF
-            VesselUseFeaturesVO vuf = createVesselUseFeatures(year, i+1);
+            VesselUseFeaturesVO vuf = createVesselUseFeatures(startDate, i+1);
             vesselUseFeatures.add(vuf);
 
             // GUF
-            GearUseFeaturesVO guf = createGearUseFeatures(year, i+1);
-            guf.setDataOrigins(ImmutableList.of(origins[i % 3]));
+            GearUseFeaturesVO guf = createGearUseFeatures(startDate, i+1);
             gearUseFeatures.add(guf);
         }
 
         return calendar;
     }
 
-    protected VesselUseFeaturesVO createVesselUseFeatures(int year, int month) {
-        VesselUseFeaturesVO vo = DataTestUtils.createActivityCalendarVesselUseFeatures(fixtures, year, month);
+    protected VesselUseFeaturesVO createVesselUseFeatures(Date date, int index) {
+        VesselUseFeaturesVO vo = DataTestUtils.createVesselUseFeatures(fixtures,
+            fixtures.getDailyActivityCalendarProgram(),
+            Dates.resetTime(date), Dates.lastSecondOfTheDay(date));
 
         vo.setMeasurementValues(ImmutableMap.of(
+            // TODO review (should use ObsDEB pmfms, not ACTIFLOT pmfms)
             PmfmEnum.NB_FISHERMEN.getId(), "2",
             PmfmEnum.DURATION_AT_SEA_DAYS.getId(), "20",
             PmfmEnum.FISHING_DURATION_DAYS.getId(), "20"
@@ -198,12 +199,14 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         return vo;
     }
 
-    protected GearUseFeaturesVO createGearUseFeatures(int year, int month) {
-        GearUseFeaturesVO vo = DataTestUtils.createActivityCalendarGearUseFeatures(fixtures, year, month);
+    protected GearUseFeaturesVO createGearUseFeatures(Date date, int index) {
+        GearUseFeaturesVO vo = DataTestUtils.createGearUseFeatures(fixtures,
+            fixtures.getDailyActivityCalendarProgram(),
+            Dates.resetTime(date), Dates.lastSecondOfTheDay(date));
 
         FishingAreaVO fa = new FishingAreaVO();
         LocationVO rectangle = new LocationVO();
-        rectangle.setId(fixtures.getRectangleId(month % 5));
+        rectangle.setId(fixtures.getRectangleId(index % 5));
         fa.setLocation(rectangle);
 
         vo.setFishingAreas(ImmutableList.of(fa));
@@ -211,13 +214,13 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         return vo;
     }
 
-    protected void assertValidVesselUseFeatures(ActivityCalendarVO vo, int expectedMonth) {
+    protected void assertValidVesselUseFeatures(DailyActivityCalendarVO vo, int expectedMonth) {
         // Check VUF
         Assert.assertNotNull(vo.getVesselUseFeatures());
         Assert.assertEquals(expectedMonth, vo.getVesselUseFeatures().size());
         vo.getVesselUseFeatures().forEach(vuf -> {
             Assert.assertNotNull(vuf);
-            Assert.assertNotNull(vuf.getActivityCalendarId());
+            Assert.assertNotNull(vuf.getDailyActivityCalendarId());
             Assert.assertNotNull(vuf.getVesselId());
             Assert.assertNotNull(vuf.getStartDate());
             Assert.assertNotNull(vuf.getEndDate());
@@ -228,20 +231,21 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
             Assert.assertEquals(3, MapUtils.size(vuf.getMeasurementValues()));
         });
     }
-    protected void assertValidGearUseFeatures(ActivityCalendarVO vo, int expectedMonth) {
+    protected void assertValidGearUseFeatures(DailyActivityCalendarVO vo, int expectedSize) {
 
         MutableInt counter = new MutableInt(0);
         Assert.assertNotNull(vo.getGearUseFeatures());
-        Assert.assertEquals(expectedMonth, vo.getGearUseFeatures().size());
+        Assert.assertEquals(expectedSize, vo.getGearUseFeatures().size());
         vo.getGearUseFeatures().forEach(guf -> {
             Assert.assertNotNull(guf);
-            Assert.assertNotNull(guf.getActivityCalendarId());
+            Assert.assertNotNull(guf.getDailyActivityCalendarId());
             Assert.assertNotNull(guf.getVesselId());
             Assert.assertNotNull(guf.getStartDate());
             Assert.assertNotNull(guf.getEndDate());
             Assert.assertNotNull(guf.getProgram());
             Assert.assertNotNull(guf.getProgram().getId());
             Assert.assertNotNull(guf.getMetier());
+            Assert.assertNotNull(guf.getMetier().getId());
 
             Assert.assertNull(guf.getGear());
             Assert.assertNull(guf.getOtherGear());
@@ -255,18 +259,6 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
                 Assert.assertNotNull(fa.getLocation());
                 Assert.assertNotNull(fa.getLocation().getId());
             });
-
-            // Check origins
-            boolean surveyOrigin = counter.intValue() % 3 == 2;
-            if (!surveyOrigin) {
-                Assert.assertEquals(1, CollectionUtils.size(guf.getDataOrigins()));
-                Assert.assertNotNull(guf.getDataOrigins().get(0).getProgramId());
-                Assert.assertNotNull(guf.getDataOrigins().get(0).getProgram());
-                Assert.assertNotNull(guf.getDataOrigins().get(0).getProgram().getId());
-            }
-            else {
-                Assert.assertEquals(0, CollectionUtils.size(guf.getDataOrigins()));
-            }
 
             counter.increment();
         });

@@ -215,16 +215,14 @@ public class GearUseFeaturesRepositoryImpl
     @Override
     public List<GearUseFeaturesVO> saveAllByActivityCalendarId(int parentId, @NonNull List<GearUseFeaturesVO> sources) {
         ActivityCalendar parent = getById(ActivityCalendar.class, parentId);
-
         sources.forEach(source -> source.setActivityCalendarId(parentId));
-
         return this.saveAllByList(parent.getGearUseFeatures(), sources);
     }
 
     @Override
     public List<GearUseFeaturesVO> saveAllByDailyActivityCalendarId(int parentId, @NonNull List<GearUseFeaturesVO> sources) {
         DailyActivityCalendar parent = getById(DailyActivityCalendar.class, parentId);
-        sources.forEach(source -> source.setActivityCalendarId(parentId));
+        sources.forEach(source -> source.setDailyActivityCalendarId(parentId));
         return this.saveAllByList(parent.getGearUseFeatures(), sources);
     }
 

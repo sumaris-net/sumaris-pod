@@ -82,9 +82,6 @@
       <column name="creation_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
-      <column name="direct_survey_investigation" type="BOOLEAN">
-        <constraints nullable="false"/>
-      </column>
       <column name="end_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
@@ -110,6 +107,7 @@
       <column name="vessel_fk" type="INT">
         <constraints nullable="false"/>
       </column>
+      <column name="observed_location_fk" type="INT"/>
     </createTable>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-007">
@@ -398,6 +396,21 @@
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-064" failOnError="false">
     <dropNotNullConstraint columnDataType="int" columnName="operation_fk" tableName="gear_use_measurement"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1703243837449-065" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="daily_activity_calendar" constraintName="FKg0kkuoaq1d1su1k4au3f7b1ka" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-066" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><uniqueConstraintExists tableName="activity_calendar" columnNames="vessel_fk, program_fk, year"/></not>
+    </preConditions>
+    <addUniqueConstraint columnNames="vessel_fk, program_fk, year" constraintName="activity_calendar_unique_key" tableName="activity_calendar"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-067" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><uniqueConstraintExists tableName="daily_activity_calendar" columnNames="vessel_fk, program_fk, start_date, end_date"/></not>
+    </preConditions>
+    <addUniqueConstraint columnNames="vessel_fk, program_fk, start_date, end_date" constraintName="daily_activity_calendar_unique_key" tableName="daily_activity_calendar"/>
   </changeSet>
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-122">

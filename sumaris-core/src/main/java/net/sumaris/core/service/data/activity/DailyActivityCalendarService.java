@@ -1,33 +1,33 @@
-package net.sumaris.core.service.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
+package net.sumaris.core.service.data.activity;
 
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
-import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
-import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import net.sumaris.core.service.data.IRootDataQualityService;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
+import net.sumaris.core.vo.filter.DailyActivityCalendarFilterVO;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,37 +41,37 @@ import java.util.concurrent.CompletableFuture;
  * 
  */
 @Transactional
-public interface ActivityCalendarService extends IRootDataQualityService<ActivityCalendarVO> {
+public interface DailyActivityCalendarService extends IRootDataQualityService<DailyActivityCalendarVO> {
 
 	@Transactional(readOnly = true)
-	List<ActivityCalendarVO> findAll(ActivityCalendarFilterVO filter, Page page,
-						 ActivityCalendarFetchOptions fetchOptions);
+	List<DailyActivityCalendarVO> findAll(DailyActivityCalendarFilterVO filter, Page page,
+										  DailyActivityCalendarFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	List<ActivityCalendarVO> findAll(ActivityCalendarFilterVO filter, int offset, int size,
+	List<DailyActivityCalendarVO> findAll(DailyActivityCalendarFilterVO filter, int offset, int size,
 						 String sortAttribute,
 						 SortDirection sortDirection,
-						 ActivityCalendarFetchOptions fetchOptions);
+						 DailyActivityCalendarFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	long countByFilter(ActivityCalendarFilterVO filter);
+	long countByFilter(DailyActivityCalendarFilterVO filter);
 
 	@Transactional(readOnly = true)
-	ActivityCalendarVO get(int id);
+	DailyActivityCalendarVO get(int id);
 
 	@Transactional(readOnly = true)
-	ActivityCalendarVO get(int id, ActivityCalendarFetchOptions fetchOptions);
+	DailyActivityCalendarVO get(int id, DailyActivityCalendarFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	int getProgramIdById(int id);
 
-	void fillVesselSnapshot(ActivityCalendarVO target);
+	void fillVesselSnapshot(DailyActivityCalendarVO target);
 
-	void fillVesselSnapshots(List<ActivityCalendarVO> targets);
+	void fillVesselSnapshots(List<DailyActivityCalendarVO> targets);
 
-	ActivityCalendarVO save(ActivityCalendarVO source);
+	DailyActivityCalendarVO save(DailyActivityCalendarVO source);
 
-	List<ActivityCalendarVO> save(List<ActivityCalendarVO> sources);
+	List<DailyActivityCalendarVO> save(List<DailyActivityCalendarVO> sources);
 
 
 	@Async

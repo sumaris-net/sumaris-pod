@@ -317,10 +317,25 @@ public class DatabaseFixtures {
 			case 0:
 				return 5;
 			case 1:
-				return 6;
+				return 17;
 
 			default:
-				return 1;
+				return 38;
+		}
+	}
+
+	public Integer getMetierIdForFPO(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 6;
+			case 1:
+				return 16;
+			case 2:
+				return 55;
+
+			default:
+				return 92;
 		}
 	}
 
@@ -388,6 +403,14 @@ public class DatabaseFixtures {
 		program.setLabel("SIH-ACTIPRED");
 		return program;
 	}
+
+	public ProgramVO getDailyActivityCalendarProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(30);
+		program.setLabel("SIH-OBSDEB");
+		return program;
+	}
+
 
 	/* -- PMFM -- */
 

@@ -25,13 +25,17 @@ package net.sumaris.core.model.data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
+import org.hibernate.annotations.Cascade;
+import org.nuiton.i18n.I18n;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -40,9 +44,26 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "daily_activity_calendar")
+@Table(name = "daily_activity_calendar", uniqueConstraints = {
+    @UniqueConstraint(
+        columnNames = {"vessel_fk", "program_fk", "start_date", "end_date"},
+        name = "daily_activity_calendar_unique_key"
+    )
+})
+@NamedEntityGraph(
+    name = DailyActivityCalendar.GRAPH_PROGRAM,
+    attributeNodes = {
+        @NamedAttributeNode(ActivityCalendar.Fields.PROGRAM)
+    }
+)
 public class DailyActivityCalendar implements IRootDataEntity<Integer>,
     IWithVesselEntity<Integer, Vessel> {
+
+    static {
+        I18n.n("sumaris.persistence.table.dailyActivityCalendar");
+    }
+
+    public static final String GRAPH_PROGRAM = "DailyActivityCalendar.withProgram";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DAILY_ACTIVITY_CALENDAR_SEQ")
@@ -61,9 +82,6 @@ public class DailyActivityCalendar implements IRootDataEntity<Integer>,
     @Column(name = "end_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
-
-    @Column(name = "direct_survey_investigation", nullable = false)
-    private Boolean directSurveyInvestigation;
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
@@ -107,12 +125,22 @@ public class DailyActivityCalendar implements IRootDataEntity<Integer>,
     @JoinColumn(name = "recorder_person_fk")
     private Person recorderPerson;
 
-    @OneToMany(mappedBy = SurveyMeasurement.Fields.DAILY_ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SurveyMeasurement> surveyMeasurements;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = SurveyMeasurement.Fields.DAILY_ACTIVITY_CALENDAR)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<SurveyMeasurement> surveyMeasurements = new ArrayList<>();
 
-    @OneToMany(mappedBy = VesselUseFeatures.Fields.DAILY_ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<VesselUseFeatures> vesselUseFeatures;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = VesselUseFeatures.Fields.DAILY_ACTIVITY_CALENDAR)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<VesselUseFeatures> vesselUseFeatures = new ArrayList<>();
 
-    @OneToMany(mappedBy = GearUseFeatures.Fields.DAILY_ACTIVITY_CALENDAR, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GearUseFeatures> gearUseFeatures;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = GearUseFeatures.Fields.DAILY_ACTIVITY_CALENDAR)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<GearUseFeatures> gearUseFeatures = new ArrayList<>();
+
+    /* -- parent -- */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "observed_location_fk")
+    @ToString.Exclude
+    private ObservedLocation observedLocation;
 }
