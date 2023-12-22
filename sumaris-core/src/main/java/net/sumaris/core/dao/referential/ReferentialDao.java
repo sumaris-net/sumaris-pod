@@ -29,6 +29,7 @@ import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -87,4 +88,7 @@ public interface ReferentialDao {
 
     void clearCache(String entityName);
 
+    int getAcquisitionLevelIdByLabel(String label);
+
+    String getAcquisitionLevelLabelById(int id);
 }

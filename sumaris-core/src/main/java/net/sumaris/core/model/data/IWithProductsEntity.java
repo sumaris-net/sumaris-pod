@@ -27,13 +27,13 @@ import net.sumaris.core.model.IEntity;
 import java.io.Serializable;
 import java.util.List;
 
-public interface IWithProductsEntity<T extends Serializable, B extends IEntity<Integer>> extends IEntity<T> {
+public interface IWithProductsEntity<T extends Serializable, P extends IEntity<Integer>> extends IEntity<T> {
 
     interface Fields extends IEntity.Fields {
         String PRODUCTS = "products";
     }
 
-    List<B> getProducts();
+    List<P> getProducts();
 
-    void setProducts(List<B> batches);
+    void setProducts(List<P> batches);
 }

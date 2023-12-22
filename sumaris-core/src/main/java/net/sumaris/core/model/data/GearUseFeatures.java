@@ -27,16 +27,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.metier.Metier;
 
 import javax.persistence.*;
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -46,8 +44,7 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "gear_use_features")
-public class GearUseFeatures implements Serializable,
-    IDataEntity<Integer> {
+public class GearUseFeatures implements IUseFeaturesEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_USE_FEATURE_SEQ")
@@ -59,8 +56,8 @@ public class GearUseFeatures implements Serializable,
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @Column(nullable = false)
-    private Integer isActive;
+    @Column(name="rank_order", nullable = false)
+    private Short rankOrder;
 
     @Column(name="start_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -70,15 +67,15 @@ public class GearUseFeatures implements Serializable,
     @Temporal(TemporalType.TIMESTAMP)
     private Date endDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "metier_fk")
     private Metier metier;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "gear_fk")
     private Gear gear;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "other_gear_fk")
     private Gear otherGear;
 
@@ -116,18 +113,17 @@ public class GearUseFeatures implements Serializable,
     @JoinColumn(name = "quality_flag_fk", nullable = false)
     private QualityFlag qualityFlag;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "base_port_location_fk")
-    private Location basePortLocation;
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseMeasurement.class, mappedBy = GearUseMeasurement.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
-    private List<GearUseMeasurement> gearUseMeasurements;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = GearUseMeasurement.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
+    private List<GearUseMeasurement> measurements = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = GearUseFeaturesOrigin.class, mappedBy = GearUseFeaturesOrigin.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
-    private List<GearUseFeaturesOrigin> gearUseFeaturesOrigins;
+    private List<GearUseFeaturesOrigin> origins;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
+    private List<FishingArea> fishingAreas;
 
     @Transient
-    private Department recorderDepartment; // Not used
+    private Department recorderDepartment; // Missing in DB, but expected by IDataEntity
 
     /* -- parent entity -- */
 

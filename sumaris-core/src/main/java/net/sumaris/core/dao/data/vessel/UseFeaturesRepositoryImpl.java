@@ -202,7 +202,7 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
         List<Integer> remoteIds = Beans.collectIds(targets);
 
         List<V> savedTargets = sources.stream().map(vuf -> {
-            boolean isNew = vuf.getId() != null;
+            boolean isNew = vuf.getId() == null;
             if (!isNew) remoteIds.remove(vuf.getId());
             return save(vuf);
         }).toList();

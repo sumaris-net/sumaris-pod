@@ -47,8 +47,9 @@ import java.util.List;
 @Entity
 @Table(name = "product")
 public class Product
-    implements IDataEntity<Integer>, IWithRecorderPersonEntity<Integer, Person>,
-        IWithDataQualityEntity<Integer> {
+    implements IDataEntity<Integer>,
+        IWithRecorderPersonEntity<Integer, Person>,
+        IWithValidationDateEntity<Integer, QualityFlag> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PRODUCT_SEQ")

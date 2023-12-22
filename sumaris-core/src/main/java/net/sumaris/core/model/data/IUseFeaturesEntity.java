@@ -24,7 +24,7 @@ package net.sumaris.core.model.data;
 
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.vo.referential.IReferentialVO;
+import net.sumaris.core.model.referential.QualityFlag;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -32,10 +32,9 @@ import java.util.Date;
 public interface IUseFeaturesEntity extends
     IDataEntity<Integer>,
     IWithVesselEntity<Integer, Vessel>,
-    IWithProgramEntity<Integer, Program>,
-    IWithDataQualityEntity<Integer> {
+    IWithProgramEntity<Integer, Program> {
 
-    interface Fields extends IDataEntity.Fields, IWithVesselEntity.Fields, IWithProgramEntity.Fields, IWithDataQualityEntity.Fields {
+    interface Fields extends IDataEntity.Fields, IWithVesselEntity.Fields, IWithProgramEntity.Fields, IWithValidationDateEntity.Fields {
         String END_DATE = "endDate";
         String START_DATE = "startDate";
         String CREATION_DATE = "creationDate";

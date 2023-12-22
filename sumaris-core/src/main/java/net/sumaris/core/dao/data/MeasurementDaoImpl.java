@@ -456,13 +456,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     @Override
     public List<MeasurementVO> saveActivityCalendarMeasurements(int activityCalendarId, List<MeasurementVO> sources) {
         ActivityCalendar parent = getById(ActivityCalendar.class, activityCalendarId);
-        return saveMeasurements(SurveyMeasurement.class, sources, parent.getMeasurements(), parent);
+        return saveMeasurements(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override
     public Map<Integer, String> saveActivityCalendarMeasurementsMap(int activityCalendarId, Map<Integer, String> sources) {
         ActivityCalendar parent = getById(ActivityCalendar.class, activityCalendarId);
-        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getMeasurements(), parent);
+        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override

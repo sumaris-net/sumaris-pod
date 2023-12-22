@@ -22,16 +22,24 @@
 
 package net.sumaris.core.vo.data;
 
-import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.model.data.IDataEntity;
-import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.data.IUseFeaturesEntity;
+import net.sumaris.core.model.data.IWithDataQualityEntity;
+import net.sumaris.core.model.data.IWithProgramEntity;
+import net.sumaris.core.model.data.IWithVesselEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
-public interface IUseFeaturesVO extends IDataVO<Integer>, IWithMeasurementValues {
+public interface IUseFeaturesVO extends
+    IDataVO<Integer>,
+    IWithVesselSnapshotVO<Integer>,
+    IWithProgramEntity<Integer, ProgramVO>,
+    IWithDataQualityEntity<Integer, Integer>,
+    IWithMeasurementValues
+{
 
     Date getStartDate();
     void setStartDate(Date value);
@@ -55,6 +63,9 @@ public interface IUseFeaturesVO extends IDataVO<Integer>, IWithMeasurementValues
 
     Integer getRecorderPersonId();
     void setRecorderPersonId(Integer value);
+
+    List<DataOriginVO> getDataOrigins();
+    void setDataOrigins(List<DataOriginVO> value);
 
     @Override
     default DepartmentVO getRecorderDepartment() {

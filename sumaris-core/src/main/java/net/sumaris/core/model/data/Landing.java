@@ -140,7 +140,7 @@ public class Landing implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Product> products = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Sale.Fields.LANDING)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.LANDING)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Sale> sales = new ArrayList<>();
 

@@ -41,13 +41,13 @@ import java.io.Serializable;
 public class GearUseFeaturesOrigin implements Serializable {
 
     @Id
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "program_fk", nullable = false)
     @EqualsAndHashCode.Include
     private Program program;
 
     @Id
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gear_use_features_fk", nullable = false)
     @EqualsAndHashCode.Include
     private GearUseFeatures gearUseFeatures;

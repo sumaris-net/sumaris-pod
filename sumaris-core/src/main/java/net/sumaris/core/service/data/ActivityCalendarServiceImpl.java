@@ -109,7 +109,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
 
     @Override
     public ActivityCalendarVO get(int id, @NonNull ActivityCalendarFetchOptions fetchOptions) {
-        ActivityCalendarVO target = repository.get(id);
+        ActivityCalendarVO target = repository.get(id, fetchOptions);
 
         // Vessel snapshot
         if (fetchOptions.isWithVesselSnapshot()) {
@@ -347,7 +347,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         // Save gear use features
         {
             List<GearUseFeaturesVO> gearUseFeatures = Beans.getList(source.getGearUseFeatures());
-            gearUseFeatures.forEach(vuf -> fillDefaultProperties(source, vuf));
+            gearUseFeatures.forEach(guf -> fillDefaultProperties(source, guf));
             gearUseFeatures = gearUseFeaturesRepository.saveAllByActivityCalendarId(source.getId(), gearUseFeatures);
             source.setGearUseFeatures(gearUseFeatures);
         }

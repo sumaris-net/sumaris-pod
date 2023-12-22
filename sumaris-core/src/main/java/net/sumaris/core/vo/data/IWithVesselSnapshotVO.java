@@ -1,4 +1,4 @@
-package net.sumaris.core.model.data;
+package net.sumaris.core.vo.data;
 
 /*-
  * #%L
@@ -22,35 +22,31 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
+import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
+import net.sumaris.core.model.data.IWithVesselEntity;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IWithDataQualityEntity<ID extends Serializable, QF extends Serializable>
-        extends IEntity<ID> {
+public interface IWithVesselSnapshotVO<ID extends Serializable>
+    extends IValueObject<ID>,
+    IWithVesselEntity<ID, VesselSnapshotVO> {
 
-    interface Fields extends IEntity.Fields {
-        String CONTROL_DATE = "controlDate";
-        String QUALIFICATION_DATE = "qualificationDate";
-        String QUALITY_FLAG = "qualityFlag";
-        String QUALIFICATION_COMMENTS = "qualificationComments";
+    VesselSnapshotVO getVesselSnapshot();
+    void setVesselSnapshot(VesselSnapshotVO vesselSnapshot);
+
+    default VesselSnapshotVO getVessel() {
+        return getVesselSnapshot();
     }
 
-    Date getControlDate();
+    default void setVessel(VesselSnapshotVO vesselSnapshot) {
+        this.setVesselSnapshot(vesselSnapshot);
+    }
 
-    void setControlDate(Date controlDate);
 
-    Date getQualificationDate();
-
-    void setQualificationDate(Date qualificationDate);
-
-    QF getQualityFlag();
-
-    void setQualityFlag(QF qualityFlag);
-
-    String getQualificationComments();
-
-    void setQualificationComments(String qualificationComments);
 }
