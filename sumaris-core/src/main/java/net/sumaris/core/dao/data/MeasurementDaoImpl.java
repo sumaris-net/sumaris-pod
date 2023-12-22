@@ -452,7 +452,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     @Override
     public Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId) {
         return getMeasurementsMapByParentId(SurveyMeasurement.class,
-            SurveyMeasurement.Fields.ACTIVITY_CALENDAR,
+            SurveyMeasurement.Fields.DAILY_ACTIVITY_CALENDAR,
             dailyActivityCalendarId,
             null
         );

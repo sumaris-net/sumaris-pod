@@ -52,7 +52,7 @@ public interface ObservedLocationService {
 									 SortDirection sortDirection, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	Long count(ObservedLocationFilterVO filter);
+	Long countByFilter(ObservedLocationFilterVO filter);
 
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id);

@@ -43,12 +43,17 @@ import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.data.*;
+import net.sumaris.core.service.data.activity.ActivityCalendarService;
+import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
 import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchVO;
@@ -111,6 +116,10 @@ public class DataGraphQLService {
     private final BatchService batchService;
 
     private final MeasurementService measurementService;
+
+    private final ActivityCalendarService activityCalendarService;
+
+    private final DailyActivityCalendarService dailyActivityCalendarService;
 
     private final PmfmService pmfmService;
 
@@ -328,7 +337,7 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "deleteTrip", description = "Delete a trip")
     @IsUser
-    public void deleteTrip(@GraphQLNonNull @GraphQLArgument(name = "id") int id) {
+    public void deleteTrip(@GraphQLArgument(name = "id") int id) {
         tripService.asyncDelete(id);
     }
 
@@ -526,7 +535,7 @@ public class DataGraphQLService {
 
         filter = fillRootDataFilter(filter, ObservedLocationFilterVO.class);
 
-        return observedLocationService.count(filter);
+        return observedLocationService.countByFilter(filter);
     }
 
     @GraphQLQuery(name = "observedLocation", description = "Get an observed location, by id")
@@ -534,7 +543,6 @@ public class DataGraphQLService {
     @IsUser
     public ObservedLocationVO getObservedLocationById(@GraphQLArgument(name = "id") int id,
                                                       @GraphQLEnvironment ResolutionEnvironment env) {
-        int userId = authService.getAuthenticatedUserId().orElseThrow(UnauthorizedException::new);
 
         final ObservedLocationVO result = observedLocationService.get(id);
 
@@ -592,7 +600,7 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "deleteObservedLocations", description = "Delete many observed locations")
     @IsUser
-    public void deleteObservedLocations(@GraphQLArgument(name = "ids") List<Integer> ids) {
+    public void deleteObservedLocations(@GraphQLNonNull @GraphQLArgument(name = "ids") List<Integer> ids) {
         observedLocationService.delete(ids);
     }
 
@@ -795,7 +803,7 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "deleteOperations", description = "Delete many operations")
     @IsUser
-    public void deleteOperations(@GraphQLArgument(name = "ids") List<Integer> ids) {
+    public void deleteOperations(@GraphQLNonNull @GraphQLArgument(name = "ids") List<Integer> ids) {
         operationService.delete(ids);
     }
 
@@ -1115,7 +1123,7 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "deleteLandings", description = "Delete many observed locations")
     @IsUser
-    public void deleteLandings(@GraphQLArgument(name = "ids") List<Integer> ids) {
+    public void deleteLandings(@GraphQLNonNull @GraphQLArgument(name = "ids") List<Integer> ids) {
         landingService.delete(ids);
     }
 
@@ -1174,6 +1182,137 @@ public class DataGraphQLService {
             @GraphQLArgument(name = "vesselIds") List<Integer> vesselIds
     ) {
         aggregatedLandingService.deleteAll(filter, vesselIds);
+    }
+
+    /* -- Activity calendar -- */
+
+    @GraphQLQuery(name = "activityCalendars", description = "Search in observed locations")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<ActivityCalendarVO> findActivityCalendars(@GraphQLArgument(name = "filter") ActivityCalendarFilterVO filter,
+                                                          @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                          @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                          @GraphQLArgument(name = "sortBy", defaultValue = ActivityCalendarVO.Fields.YEAR) String sort,
+                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                          @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
+                                                          @GraphQLEnvironment ResolutionEnvironment env
+    ) {
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
+
+        // Read from trash
+        if (trash) {
+            // Check user is admin
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
+
+            // Set default sort
+            sort = sort != null ? sort : ActivityCalendarVO.Fields.UPDATE_DATE;
+
+            // Call the trash service
+            return trashService.findAll(ActivityCalendar.class.getSimpleName(),
+                Pageables.create(offset, size, sort, sortDirection),
+                ActivityCalendarVO.class).getContent();
+        }
+
+        filter = fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
+        Set<String> fields = GraphQLUtils.fields(env);
+        ActivityCalendarFetchOptions fetchOptions = getActivityCalendarFetchOptions(fields);
+
+        long now = TimeLog.getTime();
+        final List<ActivityCalendarVO> result = activityCalendarService.findAll(
+            filter,
+            offset, size, sort,
+            sortDirection, fetchOptions);
+
+        // Add additional properties if needed
+        fillActivityCalendarsFields(result, fields);
+
+        timeLog.log(now, "findActivityCalendars");
+
+        return result;
+    }
+
+    @GraphQLQuery(name = "activityCalendarsCount", description = "Get total number of observed locations")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long countActivityCalendars(@GraphQLArgument(name = "filter") ActivityCalendarFilterVO filter,
+                                       @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash) {
+        if (trash) {
+            // Check user is admin
+            dataAccessControlService.checkIsAdmin("Cannot access to trash");
+
+            // Call the trash service
+            return trashService.count(ActivityCalendar.class.getSimpleName());
+        }
+
+        filter = fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
+
+        return activityCalendarService.countByFilter(filter);
+    }
+
+
+    @GraphQLQuery(name = "activityCalendar", description = "Get an activity calendar, by id")
+    @Transactional(readOnly = true)
+    @IsUser
+    public ActivityCalendarVO getActivityCalendarById(@GraphQLArgument(name = "id") int id,
+                                                      @GraphQLEnvironment ResolutionEnvironment env) {
+        final ActivityCalendarVO result = activityCalendarService.get(id,
+            getActivityCalendarFetchOptions(GraphQLHelper.fields(env)));
+
+        // Check read access
+        dataAccessControlService.checkCanRead(result);
+
+        // Add additional properties if needed
+        fillActivityCalendarFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveActivityCalendar", description = "Create or update an observed location")
+    @IsUser
+    public ActivityCalendarVO saveActivityCalendar(
+        @GraphQLArgument(name = "activityCalendar") ActivityCalendarVO activityCalendar,
+        @GraphQLEnvironment ResolutionEnvironment env) {
+
+        // Make sure user can write
+        dataAccessControlService.checkCanWrite(activityCalendar);
+
+        // Save
+        ActivityCalendarVO result = activityCalendarService.save(activityCalendar);
+
+        // Fill expected fields
+        fillActivityCalendarFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "saveActivityCalendars", description = "Create or update many observed locations")
+    @IsUser
+    public List<ActivityCalendarVO> saveActivityCalendars(
+        @GraphQLArgument(name = "activityCalendars") List<ActivityCalendarVO> activityCalendars,
+        @GraphQLEnvironment ResolutionEnvironment env) {
+
+        // Make sure user can write
+        dataAccessControlService.checkCanWriteAll(activityCalendars);
+
+        final List<ActivityCalendarVO> result = activityCalendarService.save(activityCalendars);
+
+        // Fill expected fields
+        fillActivityCalendarsFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "deleteActivityCalendar", description = "Delete an activity calendar")
+    @IsUser
+    public void deleteActivityCalendar(@GraphQLArgument(name = "id") int id) {
+        activityCalendarService.delete(id);
+    }
+
+
+    @GraphQLMutation(name = "deleteActivityCalendars", description = "Delete many activity calendar, by ids")
+    @IsUser
+    public void deleteActivityCalendars(@GraphQLNonNull @GraphQLArgument(name = "ids") List<Integer> ids) {
+        activityCalendarService.delete(ids);
     }
 
     /* -- Measurements -- */
@@ -1435,6 +1574,21 @@ public class DataGraphQLService {
         return result;
     }
 
+    // Activity calendar
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getActivityCalendarMeasurementsMap(@GraphQLContext ActivityCalendarVO activityCalendar) {
+        if (activityCalendar.getMeasurementValues() != null) return activityCalendar.getMeasurementValues();
+        if (activityCalendar.getId() == null) return null;
+        return measurementService.getActivityCalendarMeasurementsMap(activityCalendar.getId());
+    }
+
+    // Daily activity calendar
+    @GraphQLQuery(name = "measurementValues", description = "Get measurement values (as a key/value map, using pmfmId as key)")
+    public Map<Integer, String> getDailyActivityCalendarMeasurementsMap(@GraphQLContext DailyActivityCalendarVO dailyActivityCalendar) {
+        if (dailyActivityCalendar.getMeasurementValues() != null) return dailyActivityCalendar.getMeasurementValues();
+        if (dailyActivityCalendar.getId() == null) return null;
+        return measurementService.getDailyActivityCalendarMeasurementsMap(dailyActivityCalendar.getId());
+    }
 
     // Measurement pmfm
     @GraphQLQuery(name = "pmfm", description = "Get measurement's pmfm")
@@ -1587,6 +1741,25 @@ public class DataGraphQLService {
         return landings;
     }
 
+    protected ActivityCalendarVO fillActivityCalendarFields(ActivityCalendarVO activityCalendar, Set<String> fields) {
+        // Add image if need
+        fillImages(activityCalendar, fields);
+
+        // Add vessel if need
+        vesselGraphQLService.fillVesselSnapshot(activityCalendar, fields);
+
+        return activityCalendar;
+    }
+    protected List<ActivityCalendarVO> fillActivityCalendarsFields(List<ActivityCalendarVO> activityCalendars, Set<String> fields) {
+        // Add image if need
+        fillImages(activityCalendars, fields);
+
+        // Add vessel if need
+        vesselGraphQLService.fillVesselSnapshot(activityCalendars, fields);
+
+        return activityCalendars;
+    }
+
     protected boolean hasImageField(Set<String> fields) {
         return fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_DEPARTMENT, DepartmentVO.Fields.LOGO))
                 || fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_PERSON, PersonVO.Fields.AVATAR));
@@ -1707,6 +1880,17 @@ public class DataGraphQLService {
                 // Enable images only if enable in Pod configuration
                 .withImages(this.enableImageAttachments && fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
                 .build();
+    }
+
+    protected ActivityCalendarFetchOptions getActivityCalendarFetchOptions(Set<String> fields) {
+        return ActivityCalendarFetchOptions.builder()
+            .withProgram(fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.PROGRAM, IEntity.Fields.ID)))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withMeasurementValues(fields.contains(ActivityCalendarVO.Fields.MEASUREMENT_VALUES))
+            .withChildrenEntities(fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.VESSEL_USE_FEATURES, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.GEAR_USE_FEATURES, IEntity.Fields.ID)))
+            .build();
     }
 
     /**
