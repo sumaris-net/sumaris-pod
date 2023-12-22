@@ -175,11 +175,11 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
 
         for (int i = 0; i < monthCount; i++) {
             // VUF
-            VesselUseFeaturesVO vuf = createVesselUseFeatures(year, i+1);
+            VesselUseFeaturesVO vuf = createVesselUseFeatures(year, i);
             vesselUseFeatures.add(vuf);
 
             // GUF
-            GearUseFeaturesVO guf = createGearUseFeatures(year, i+1);
+            GearUseFeaturesVO guf = createGearUseFeatures(year, i);
             guf.setDataOrigins(ImmutableList.of(origins[i % 3]));
             gearUseFeatures.add(guf);
         }
