@@ -526,7 +526,7 @@ public class DataTestUtils {
         Date startDate = date.getTime();
 
         date.add(Calendar.MONTH, 1);
-        date.add(Calendar.DAY_OF_YEAR, -1);
+        date.add(Calendar.DAY_OF_MONTH, -1);
         Date endDate = date.getTime();
 
         return createVesselUseFeatures(fixtures, fixtures.getActivityCalendarProgram(),
@@ -544,7 +544,7 @@ public class DataTestUtils {
         Date startDate = date.getTime();
 
         date.add(Calendar.MONTH, 1);
-        date.add(Calendar.DAY_OF_YEAR, -1);
+        date.add(Calendar.DAY_OF_MONTH, -1);
         Date endDate = date.getTime();
 
         return createGearUseFeatures(fixtures, fixtures.getActivityCalendarProgram(), startDate, endDate);
