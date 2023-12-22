@@ -161,10 +161,11 @@ public interface MeasurementDao {
     Map<Integer, String> saveVesselPhysicalMeasurementsMap(final int vesselFeaturesId, Map<Integer, String> sources);
 
     // Activity calendar
-    List<MeasurementVO> saveActivityCalendarMeasurements(int activityCalendarId, List<MeasurementVO> sources);
     Map<Integer, String> saveActivityCalendarMeasurementsMap(final int activityCalendarId, Map<Integer, String> sources);
-    List<MeasurementVO> getActivityCalendarMeasurements(int activityCalendarId);
     Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId);
+
+    Map<Integer, String> saveDailyActivityCalendarMeasurementsMap(final int dailyActivityCalendarId, Map<Integer, String> sources);
+    Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId);
 
 
     Map<Integer, String> getVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId);

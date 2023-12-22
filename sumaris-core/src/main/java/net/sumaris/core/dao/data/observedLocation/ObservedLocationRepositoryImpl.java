@@ -67,7 +67,9 @@ public class ObservedLocationRepositoryImpl
             .and(withStartDate(filter.getStartDate()))
             .and(withEndDate(filter.getEndDate()))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
-            .and(inDataQualityStatus(filter.getDataQualityStatus()));
+            .and(inQualityFlagIds(filter.getQualityFlagIds()))
+            .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            ;
     }
 
     @Override

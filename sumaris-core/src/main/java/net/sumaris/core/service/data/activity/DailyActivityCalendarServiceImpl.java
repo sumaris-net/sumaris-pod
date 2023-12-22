@@ -1,10 +1,8 @@
-package net.sumaris.core.service.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,13 +20,17 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
+package net.sumaris.core.service.data.activity;
+
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.activity.ActivityCalendarRepository;
+import net.sumaris.core.dao.data.activity.DailyActivityCalendarRepository;
+import net.sumaris.core.dao.data.activity.DailyActivityCalendarRepository;
+import net.sumaris.core.dao.data.vessel.GearUseFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselUseFeaturesRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -38,7 +40,7 @@ import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.data.ActivityCalendar;
+import net.sumaris.core.model.data.DailyActivityCalendar;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
@@ -47,12 +49,11 @@ import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.GearUseFeaturesVO;
 import net.sumaris.core.vo.data.IUseFeaturesVO;
 import net.sumaris.core.vo.data.VesselUseFeaturesVO;
-import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
-import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
-import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
+import net.sumaris.core.vo.filter.DailyActivityCalendarFilterVO;
 import net.sumaris.core.vo.filter.GearUseFeaturesFilterVO;
 import net.sumaris.core.vo.filter.VesselUseFeaturesFilterVO;
-import net.sumaris.core.dao.data.vessel.GearUseFeaturesRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -66,12 +67,12 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
-@Service("activityCalendarService")
+@Service("dailyActivityCalendarService")
 @Slf4j
-public class ActivityCalendarServiceImpl implements ActivityCalendarService {
+public class DailyActivityCalendarServiceImpl implements DailyActivityCalendarService {
 
     private final SumarisConfiguration configuration;
-    private final ActivityCalendarRepository repository;
+    private final DailyActivityCalendarRepository repository;
     private final MeasurementDao measurementDao;
     private final ApplicationEventPublisher publisher;
     private final VesselSnapshotService vesselSnapshotService;
@@ -87,29 +88,29 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     }
 
     @Override
-    public List<ActivityCalendarVO> findAll(ActivityCalendarFilterVO filter, int offset, int size, String sortAttribute,
-                                            SortDirection sortDirection, ActivityCalendarFetchOptions fetchOptions) {
-        return repository.findAll(ActivityCalendarFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+    public List<DailyActivityCalendarVO> findAll(DailyActivityCalendarFilterVO filter, int offset, int size, String sortAttribute,
+                                            SortDirection sortDirection, DailyActivityCalendarFetchOptions fetchOptions) {
+        return repository.findAll(DailyActivityCalendarFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
     }
 
     @Override
-    public List<ActivityCalendarVO> findAll(@Nullable ActivityCalendarFilterVO filter, @Nullable Page page, ActivityCalendarFetchOptions fetchOptions) {
-        return repository.findAll(ActivityCalendarFilterVO.nullToEmpty(filter), page, fetchOptions);
+    public List<DailyActivityCalendarVO> findAll(@Nullable DailyActivityCalendarFilterVO filter, @Nullable Page page, DailyActivityCalendarFetchOptions fetchOptions) {
+        return repository.findAll(DailyActivityCalendarFilterVO.nullToEmpty(filter), page, fetchOptions);
     }
 
     @Override
-    public long countByFilter(ActivityCalendarFilterVO filter) {
+    public long countByFilter(DailyActivityCalendarFilterVO filter) {
         return repository.count(filter);
     }
 
     @Override
-    public ActivityCalendarVO get(int id) {
-        return get(id, ActivityCalendarFetchOptions.DEFAULT);
+    public DailyActivityCalendarVO get(int id) {
+        return get(id, DailyActivityCalendarFetchOptions.DEFAULT);
     }
 
     @Override
-    public ActivityCalendarVO get(int id, @NonNull ActivityCalendarFetchOptions fetchOptions) {
-        ActivityCalendarVO target = repository.get(id, fetchOptions);
+    public DailyActivityCalendarVO get(int id, @NonNull DailyActivityCalendarFetchOptions fetchOptions) {
+        DailyActivityCalendarVO target = repository.get(id, fetchOptions);
 
         // Vessel snapshot
         if (fetchOptions.isWithVesselSnapshot()) {
@@ -118,7 +119,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
 
         // Measurements
         if (fetchOptions.isWithMeasurementValues()) {
-            target.setMeasurementValues(measurementDao.getActivityCalendarMeasurementsMap(id));
+            target.setMeasurementValues(measurementDao.getDailyActivityCalendarMeasurementsMap(id));
         }
 
         // Load features
@@ -128,7 +129,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             // Vessel use features
             {
                 List<VesselUseFeaturesVO> vesselUseFeatures = vesselUseFeaturesRepository.findAll(VesselUseFeaturesFilterVO.builder()
-                    .activityCalendarId(id)
+                    .dailyActivityCalendarId(id)
                     .build(), childrenFetchOptions);
                 target.setVesselUseFeatures(vesselUseFeatures);
             }
@@ -136,7 +137,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             // Gear use features
             {
                 List<GearUseFeaturesVO> gearUseFeatures = gearUseFeaturesRepository.findAll(GearUseFeaturesFilterVO.builder()
-                    .activityCalendarId(id)
+                    .dailyActivityCalendarId(id)
                     .build(), childrenFetchOptions);
                 target.setGearUseFeatures(gearUseFeatures);
             }
@@ -150,26 +151,18 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         return repository.getProgramIdById(id);
     }
 
-    public void fillVesselSnapshot(ActivityCalendarVO target) {
-        Integer year = target.getYear();
-        if (year != null && target.getVesselId() != null && target.getVesselSnapshot() == null) {
-
-            try {
-                String dateStr = String.format("%s-01-01", StringUtils.leftPad(year.toString(), 4, "0"));
-                Date vesselDate = Dates.resetTime(Dates.parseDate(dateStr, "yyyy-MM-dd"));
-                target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), vesselDate));
-            } catch (ParseException e) {
-                throw new SumarisTechnicalException(e.getMessage(), e);
-            }
+    public void fillVesselSnapshot(DailyActivityCalendarVO target) {
+        if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getVesselDateTime())));
         }
     }
 
-    public void fillVesselSnapshots(List<ActivityCalendarVO> target) {
+    public void fillVesselSnapshots(List<DailyActivityCalendarVO> target) {
         target.parallelStream().forEach(this::fillVesselSnapshot);
     }
 
     @Override
-    public ActivityCalendarVO save(final ActivityCalendarVO source) {
+    public DailyActivityCalendarVO save(final DailyActivityCalendarVO source) {
         checkCanSave(source);
 
         // Reset control date
@@ -178,26 +171,26 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         boolean isNew = source.getId() == null;
 
         // Save
-        ActivityCalendarVO target = repository.save(source);
+        DailyActivityCalendarVO target = repository.save(source);
 
         // Avoid sequence configuration mistake (see AllocationSize)
-        Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid ActivityCalendar.id. Make sure your sequence has been well configured");
+        Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid DailyActivityCalendar.id. Make sure your sequence has been well configured");
 
         // Save children entities (measurement, etc.)
         saveChildrenEntities(target);
 
         // Publish event
         if (isNew) {
-            publisher.publishEvent(new EntityInsertEvent(target.getId(), ActivityCalendar.class.getSimpleName(), target));
+            publisher.publishEvent(new EntityInsertEvent(target.getId(), DailyActivityCalendar.class.getSimpleName(), target));
         } else {
-            publisher.publishEvent(new EntityUpdateEvent(target.getId(), ActivityCalendar.class.getSimpleName(), target));
+            publisher.publishEvent(new EntityUpdateEvent(target.getId(), DailyActivityCalendar.class.getSimpleName(), target));
         }
 
         return target;
     }
 
     @Override
-    public List<ActivityCalendarVO> save(@NonNull List<ActivityCalendarVO> sources) {
+    public List<DailyActivityCalendarVO> save(@NonNull List<DailyActivityCalendarVO> sources) {
         return sources.stream()
             .map(this::save)
             .toList();
@@ -205,19 +198,19 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
 
     @Override
     public void delete(int id) {
-        log.info("Delete ActivityCalendar#{} {trash: {}}", id, enableTrash);
+        log.info("Delete DailyActivityCalendar#{} {trash: {}}", id, enableTrash);
 
         // Construct the event data
         // (should be done before deletion, to be able to get the VO)
-        ActivityCalendarVO eventData = enableTrash ?
-            get(id, ActivityCalendarFetchOptions.FULL_GRAPH) :
+        DailyActivityCalendarVO eventData = enableTrash ?
+            get(id, DailyActivityCalendarFetchOptions.FULL_GRAPH) :
             null;
 
         // Apply deletion
         repository.deleteById(id);
 
         // Publish delete event
-        publisher.publishEvent(new EntityDeleteEvent(id, ActivityCalendar.class.getSimpleName(), eventData));
+        publisher.publishEvent(new EntityDeleteEvent(id, DailyActivityCalendar.class.getSimpleName(), eventData));
     }
 
     @Override
@@ -235,7 +228,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             this.delete(id);
             return CompletableFuture.completedFuture(Boolean.TRUE);
         } catch (Exception e) {
-            log.warn(String.format("Error while deleting activityCalendar {id: %s}: %s", id, e.getMessage()), e);
+            log.warn(String.format("Error while deleting dailyActivityCalendar {id: %s}: %s", id, e.getMessage()), e);
             return CompletableFuture.completedFuture(Boolean.FALSE);
         }
     }
@@ -247,67 +240,67 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             this.delete(ids);
             return CompletableFuture.completedFuture(Boolean.TRUE);
         } catch (Exception e) {
-            log.warn(String.format("Error while deleting activityCalendar {ids: %s}: %s", ids, e.getMessage()), e);
+            log.warn(String.format("Error while deleting dailyActivityCalendar {ids: %s}: %s", ids, e.getMessage()), e);
             return CompletableFuture.completedFuture(Boolean.FALSE);
         }
     }
 
     @Override
-    public ActivityCalendarVO control(ActivityCalendarVO activityCalendar) {
-        Preconditions.checkNotNull(activityCalendar);
-        Preconditions.checkNotNull(activityCalendar.getId());
-        Preconditions.checkArgument(activityCalendar.getControlDate() == null);
+    public DailyActivityCalendarVO control(DailyActivityCalendarVO dailyActivityCalendar) {
+        Preconditions.checkNotNull(dailyActivityCalendar);
+        Preconditions.checkNotNull(dailyActivityCalendar.getId());
+        Preconditions.checkArgument(dailyActivityCalendar.getControlDate() == null);
 
-        ActivityCalendarVO result = repository.control(activityCalendar);
+        DailyActivityCalendarVO result = repository.control(dailyActivityCalendar);
 
         // Publish event
-        publisher.publishEvent(new EntityUpdateEvent(result.getId(), ActivityCalendar.class.getSimpleName(), result));
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), DailyActivityCalendar.class.getSimpleName(), result));
 
         return result;
     }
 
     @Override
-    public ActivityCalendarVO validate(ActivityCalendarVO activityCalendar) {
-        Preconditions.checkNotNull(activityCalendar);
-        Preconditions.checkNotNull(activityCalendar.getId());
-        Preconditions.checkNotNull(activityCalendar.getControlDate());
-        Preconditions.checkArgument(activityCalendar.getValidationDate() == null);
+    public DailyActivityCalendarVO validate(DailyActivityCalendarVO dailyActivityCalendar) {
+        Preconditions.checkNotNull(dailyActivityCalendar);
+        Preconditions.checkNotNull(dailyActivityCalendar.getId());
+        Preconditions.checkNotNull(dailyActivityCalendar.getControlDate());
+        Preconditions.checkArgument(dailyActivityCalendar.getValidationDate() == null);
 
-        ActivityCalendarVO result = repository.validate(activityCalendar);
+        DailyActivityCalendarVO result = repository.validate(dailyActivityCalendar);
 
         // Publish event
-        publisher.publishEvent(new EntityUpdateEvent(result.getId(), ActivityCalendar.class.getSimpleName(), result));
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), DailyActivityCalendar.class.getSimpleName(), result));
 
         return result;
     }
 
     @Override
-    public ActivityCalendarVO unvalidate(ActivityCalendarVO activityCalendar) {
-        Preconditions.checkNotNull(activityCalendar);
-        Preconditions.checkNotNull(activityCalendar.getId());
-        Preconditions.checkNotNull(activityCalendar.getControlDate());
-        Preconditions.checkNotNull(activityCalendar.getValidationDate());
+    public DailyActivityCalendarVO unvalidate(DailyActivityCalendarVO dailyActivityCalendar) {
+        Preconditions.checkNotNull(dailyActivityCalendar);
+        Preconditions.checkNotNull(dailyActivityCalendar.getId());
+        Preconditions.checkNotNull(dailyActivityCalendar.getControlDate());
+        Preconditions.checkNotNull(dailyActivityCalendar.getValidationDate());
 
-        ActivityCalendarVO result = repository.unValidate(activityCalendar);
+        DailyActivityCalendarVO result = repository.unValidate(dailyActivityCalendar);
 
         // Publish event
-        publisher.publishEvent(new EntityUpdateEvent(result.getId(), ActivityCalendar.class.getSimpleName(), result));
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), DailyActivityCalendar.class.getSimpleName(), result));
 
         return result;
     }
 
     @Override
-    public ActivityCalendarVO qualify(ActivityCalendarVO activityCalendar) {
-        Preconditions.checkNotNull(activityCalendar);
-        Preconditions.checkNotNull(activityCalendar.getId());
-        Preconditions.checkNotNull(activityCalendar.getControlDate());
-        Preconditions.checkNotNull(activityCalendar.getValidationDate());
-        Preconditions.checkNotNull(activityCalendar.getQualityFlagId());
+    public DailyActivityCalendarVO qualify(DailyActivityCalendarVO dailyActivityCalendar) {
+        Preconditions.checkNotNull(dailyActivityCalendar);
+        Preconditions.checkNotNull(dailyActivityCalendar.getId());
+        Preconditions.checkNotNull(dailyActivityCalendar.getControlDate());
+        Preconditions.checkNotNull(dailyActivityCalendar.getValidationDate());
+        Preconditions.checkNotNull(dailyActivityCalendar.getQualityFlagId());
 
-        ActivityCalendarVO result = repository.qualify(activityCalendar);
+        DailyActivityCalendarVO result = repository.qualify(dailyActivityCalendar);
 
         // Publish event
-        publisher.publishEvent(new EntityUpdateEvent(result.getId(), ActivityCalendar.class.getSimpleName(), result));
+        publisher.publishEvent(new EntityUpdateEvent(result.getId(), DailyActivityCalendar.class.getSimpleName(), result));
 
         return result;
     }
@@ -315,13 +308,13 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
 
     /* -- protected methods -- */
 
-    protected void checkCanSave(ActivityCalendarVO source) {
+    protected void checkCanSave(DailyActivityCalendarVO source) {
         Preconditions.checkNotNull(source);
-        Preconditions.checkArgument(source.getId() == null || source.getId() >= 0, "Cannot save a activityCalendar with a local id: " + source.getId());
+        Preconditions.checkArgument(source.getId() == null || source.getId() >= 0, "Cannot save a dailyActivityCalendar with a local id: " + source.getId());
         Preconditions.checkNotNull(source.getProgram(), "Missing program");
         Preconditions.checkArgument(source.getProgram().getId() != null || source.getProgram().getLabel() != null, "Missing program.id or program.label");
-        Preconditions.checkNotNull(source.getYear(), "Missing year");
-        Preconditions.checkNotNull(source.getDirectSurveyInvestigation(), "Missing directSurveyInvestigation");
+        Preconditions.checkNotNull(source.getStartDate(), "Missing startDate");
+        Preconditions.checkNotNull(source.getEndDate(), "Missing endDate");
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
         Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
@@ -329,18 +322,18 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     }
 
 
-    protected void saveChildrenEntities(final ActivityCalendarVO source) {
+    protected void saveChildrenEntities(final DailyActivityCalendarVO source) {
 
         // Save measurements
         if (source.getMeasurementValues() != null) {
-            measurementDao.saveActivityCalendarMeasurementsMap(source.getId(), source.getMeasurementValues());
+            measurementDao.saveDailyActivityCalendarMeasurementsMap(source.getId(), source.getMeasurementValues());
         }
 
         // Save vessel use features
         {
             List<VesselUseFeaturesVO> vesselUseFeatures = Beans.getList(source.getVesselUseFeatures());
             vesselUseFeatures.forEach(vuf -> fillDefaultProperties(source, vuf));
-            vesselUseFeatures = vesselUseFeaturesRepository.saveAllByActivityCalendarId(source.getId(), vesselUseFeatures);
+            vesselUseFeatures = vesselUseFeaturesRepository.saveAllByDailyActivityCalendarId(source.getId(), vesselUseFeatures);
             source.setVesselUseFeatures(vesselUseFeatures);
         }
 
@@ -348,13 +341,13 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         {
             List<GearUseFeaturesVO> gearUseFeatures = Beans.getList(source.getGearUseFeatures());
             gearUseFeatures.forEach(guf -> fillDefaultProperties(source, guf));
-            gearUseFeatures = gearUseFeaturesRepository.saveAllByActivityCalendarId(source.getId(), gearUseFeatures);
+            gearUseFeatures = gearUseFeaturesRepository.saveAllByDailyActivityCalendarId(source.getId(), gearUseFeatures);
             source.setGearUseFeatures(gearUseFeatures);
         }
 
     }
 
-    protected void fillDefaultProperties(ActivityCalendarVO parent, IUseFeaturesVO source) {
+    protected void fillDefaultProperties(DailyActivityCalendarVO parent, IUseFeaturesVO source) {
         if (source == null) return;
 
         // Same program
@@ -377,10 +370,10 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         }
 
         if (source instanceof VesselUseFeaturesVO vuf) {
-            vuf.setActivityCalendarId(parent.getId());
+            vuf.setDailyActivityCalendarId(parent.getId());
         }
         else if (source instanceof GearUseFeaturesVO guf) {
-            guf.setActivityCalendarId(parent.getId());
+            guf.setDailyActivityCalendarId(parent.getId());
         }
     }
 

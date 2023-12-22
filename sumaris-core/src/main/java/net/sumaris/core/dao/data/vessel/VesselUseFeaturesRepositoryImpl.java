@@ -148,13 +148,15 @@ public class VesselUseFeaturesRepositoryImpl
 
     @Override
     public List<VesselUseFeaturesVO> saveAllByActivityCalendarId(int parentId, List<VesselUseFeaturesVO> sources) {
-        ActivityCalendar parent = getReference(ActivityCalendar.class, parentId);
+        ActivityCalendar parent = getById(ActivityCalendar.class, parentId);
+        sources.forEach(source -> source.setActivityCalendarId(parentId));
         return this.saveAllByList(parent.getVesselUseFeatures(), sources);
     }
 
     @Override
     public List<VesselUseFeaturesVO> saveAllByDailyActivityCalendarId(int parentId, List<VesselUseFeaturesVO> sources) {
-        DailyActivityCalendar parent = getReference(DailyActivityCalendar.class, parentId);
+        DailyActivityCalendar parent = getById(DailyActivityCalendar.class, parentId);
+        sources.forEach(source -> source.setDailyActivityCalendarId(parentId));
         return this.saveAllByList(parent.getVesselUseFeatures(), sources);
     }
 

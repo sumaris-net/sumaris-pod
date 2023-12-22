@@ -43,7 +43,12 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "activity_calendar")
+@Table(name = "activity_calendar", uniqueConstraints = {
+    @UniqueConstraint(
+        columnNames = {"vessel_fk", "program_fk", "year"},
+        name = "activity_calendar_unique_key"
+    )
+})
 @NamedEntityGraph(
     name = ActivityCalendar.GRAPH_PROGRAM,
     attributeNodes = {
@@ -59,7 +64,7 @@ public class ActivityCalendar implements IRootDataEntity<Integer>,
         I18n.n("sumaris.persistence.table.activityCalendar");
     }
 
-    public static final String GRAPH_PROGRAM = "Trip.withProgram";
+    public static final String GRAPH_PROGRAM = "ActivityCalendar.withProgram";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ACTIVITY_CALENDAR_SEQ")
@@ -119,11 +124,11 @@ public class ActivityCalendar implements IRootDataEntity<Integer>,
     @JoinColumn(name = "recorder_person_fk")
     private Person recorderPerson;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = SurveyMeasurement.class, mappedBy = SurveyMeasurement.Fields.ACTIVITY_CALENDAR)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = SurveyMeasurement.Fields.ACTIVITY_CALENDAR)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SurveyMeasurement> surveyMeasurements = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = VesselUseFeatures.class, mappedBy = VesselUseFeatures.Fields.ACTIVITY_CALENDAR)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = VesselUseFeatures.Fields.ACTIVITY_CALENDAR)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<VesselUseFeatures> vesselUseFeatures = new ArrayList<>();
 

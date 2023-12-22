@@ -435,16 +435,6 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> getActivityCalendarMeasurements(int activityCalendarId) {
-        return getMeasurementsByParentId(SurveyMeasurement.class,
-            MeasurementVO.class,
-            SurveyMeasurement.Fields.ACTIVITY_CALENDAR,
-            activityCalendarId,
-            SurveyMeasurement.Fields.ID
-        );
-    }
-
-    @Override
     public Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId) {
         return getMeasurementsMapByParentId(SurveyMeasurement.class,
             SurveyMeasurement.Fields.ACTIVITY_CALENDAR,
@@ -454,14 +444,23 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> saveActivityCalendarMeasurements(int activityCalendarId, List<MeasurementVO> sources) {
+    public Map<Integer, String> saveActivityCalendarMeasurementsMap(int activityCalendarId, Map<Integer, String> sources) {
         ActivityCalendar parent = getById(ActivityCalendar.class, activityCalendarId);
-        return saveMeasurements(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
+        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override
-    public Map<Integer, String> saveActivityCalendarMeasurementsMap(int activityCalendarId, Map<Integer, String> sources) {
-        ActivityCalendar parent = getById(ActivityCalendar.class, activityCalendarId);
+    public Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId) {
+        return getMeasurementsMapByParentId(SurveyMeasurement.class,
+            SurveyMeasurement.Fields.ACTIVITY_CALENDAR,
+            dailyActivityCalendarId,
+            null
+        );
+    }
+
+    @Override
+    public Map<Integer, String> saveDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId, Map<Integer, String> sources) {
+        DailyActivityCalendar parent = getById(DailyActivityCalendar.class, dailyActivityCalendarId);
         return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 

@@ -34,10 +34,12 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -46,6 +48,7 @@ import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class DataTestUtils {
@@ -515,6 +518,67 @@ public class DataTestUtils {
 
     public static VesselUseFeaturesVO createActivityCalendarVesselUseFeatures(DatabaseFixtures fixtures,
                                                                               int year, int month) {
+        Calendar date = Calendar.getInstance();
+        date.set(Calendar.YEAR, year);
+        date.set(Calendar.MONTH, month);
+        date.set(Calendar.DAY_OF_MONTH, 1);
+        Dates.resetTime(date);
+        Date startDate = date.getTime();
+
+        date.add(Calendar.MONTH, 1);
+        date.add(Calendar.DAY_OF_YEAR, -1);
+        Date endDate = date.getTime();
+
+        return createVesselUseFeatures(fixtures, fixtures.getActivityCalendarProgram(),
+            startDate, endDate);
+    }
+
+    public static GearUseFeaturesVO createActivityCalendarGearUseFeatures(DatabaseFixtures fixtures,
+                                                                          int year, int month) {
+
+        Calendar date = Calendar.getInstance();
+        date.set(Calendar.YEAR, year);
+        date.set(Calendar.MONTH, month);
+        date.set(Calendar.DAY_OF_MONTH, 1);
+        Dates.resetTime(date);
+        Date startDate = date.getTime();
+
+        date.add(Calendar.MONTH, 1);
+        date.add(Calendar.DAY_OF_YEAR, -1);
+        Date endDate = date.getTime();
+
+        return createGearUseFeatures(fixtures, fixtures.getActivityCalendarProgram(), startDate, endDate);
+    }
+
+    public static DailyActivityCalendarVO createDailyActivityCalendar(DatabaseFixtures fixtures, Date startDate, int dayCount) {
+        DailyActivityCalendarVO vo = new DailyActivityCalendarVO();
+
+        vo.setProgram(fixtures.getDailyActivityCalendarProgram());
+
+        // Vessel
+        vo.setVesselId(fixtures.getVesselId(0));
+        VesselSnapshotVO vessel = new VesselSnapshotVO();
+        vessel.setVesselId(vo.getVesselId());
+        vo.setVesselSnapshot(vessel);
+
+        // Dates
+        vo.setStartDate(Dates.resetTime(startDate));
+        Calendar endDateCalendar = Calendar.getInstance();
+        endDateCalendar.setTime(Dates.resetTime(startDate));
+        endDateCalendar.add(Calendar.DAY_OF_YEAR, dayCount);
+        vo.setEndDate(endDateCalendar.getTime());
+
+        // Recorder
+        DepartmentVO recorderDepartment = new DepartmentVO();
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
+        vo.setRecorderDepartment(recorderDepartment);
+
+        return vo;
+    }
+
+    public static VesselUseFeaturesVO createVesselUseFeatures(DatabaseFixtures fixtures,
+                                                              ProgramVO program,
+                                                              Date startDate, Date endDate) {
         VesselUseFeaturesVO vo = new VesselUseFeaturesVO();
 
         // Program
@@ -524,16 +588,8 @@ public class DataTestUtils {
         vo.setVesselId(fixtures.getVesselId(0));
 
         // Dates
-        Calendar date = Calendar.getInstance();
-        date.set(Calendar.YEAR, year);
-        date.set(Calendar.MONTH, month - 1);
-        date.set(Calendar.DAY_OF_MONTH, 1);
-        Dates.resetTime(date);
-        vo.setStartDate(date.getTime());
-
-        date.add(Calendar.MONTH, 1);
-        date.add(Calendar.DAY_OF_YEAR, -1);
-        vo.setEndDate(date.getTime());
+        vo.setStartDate(startDate);
+        vo.setEndDate(endDate);
 
         // Is active
         vo.setIsActive(VesselUseFeaturesIsActiveEnum.ACTIVE.getValue());
@@ -550,27 +606,20 @@ public class DataTestUtils {
         return vo;
     }
 
-    public static GearUseFeaturesVO createActivityCalendarGearUseFeatures(DatabaseFixtures fixtures,
-                                                                          int year, int month) {
+    public static GearUseFeaturesVO createGearUseFeatures(DatabaseFixtures fixtures,
+                                                          ProgramVO program,
+                                                          Date startDate, Date endDate) {
         GearUseFeaturesVO vo = new GearUseFeaturesVO();
 
         // Program
-        vo.setProgram(fixtures.getActivityCalendarProgram());
+        vo.setProgram(program);
 
         // Vessel
         vo.setVesselId(fixtures.getVesselId(0));
 
         // Dates
-        Calendar date = Calendar.getInstance();
-        date.set(Calendar.YEAR, year);
-        date.set(Calendar.MONTH, month);
-        date.set(Calendar.DAY_OF_MONTH, 1);
-        Dates.resetTime(date);
-        vo.setStartDate(date.getTime());
-
-        date.add(Calendar.MONTH, 1);
-        date.add(Calendar.DAY_OF_YEAR, -1);
-        vo.setEndDate(date.getTime());
+        vo.setStartDate(startDate);
+        vo.setEndDate(endDate);
 
         // RankOrder
         vo.setRankOrder((short)1);

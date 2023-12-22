@@ -29,14 +29,11 @@ import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.model.data.ActivityCalendar;
-import net.sumaris.core.model.data.Vessel;
-import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
-import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
-import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
+import net.sumaris.core.vo.filter.DailyActivityCalendarFilterVO;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -52,17 +49,17 @@ import javax.persistence.criteria.*;
 import java.util.List;
 
 @Slf4j
-public class ActivityCalendarRepositoryImpl
-        extends RootDataRepositoryImpl<ActivityCalendar, ActivityCalendarVO, ActivityCalendarFilterVO, ActivityCalendarFetchOptions>
-        implements ActivityCalendarSpecifications {
+public class DailyActivityCalendarRepositoryImpl
+        extends RootDataRepositoryImpl<DailyActivityCalendar, DailyActivityCalendarVO, DailyActivityCalendarFilterVO, DailyActivityCalendarFetchOptions>
+        implements DailyActivityCalendarSpecifications {
 
     private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
-    public ActivityCalendarRepositoryImpl(EntityManager entityManager,
-                                          GenericConversionService conversionService) {
-        super(ActivityCalendar.class, ActivityCalendarVO.class, entityManager);
-        conversionService.addConverter(ActivityCalendar.class, ActivityCalendarVO.class, this::toVO);
+    public DailyActivityCalendarRepositoryImpl(EntityManager entityManager,
+                                               GenericConversionService conversionService) {
+        super(DailyActivityCalendar.class, DailyActivityCalendarVO.class, entityManager);
+        conversionService.addConverter(DailyActivityCalendar.class, DailyActivityCalendarVO.class, this::toVO);
     }
 
     @PostConstruct
@@ -72,54 +69,68 @@ public class ActivityCalendarRepositoryImpl
     }
 
     @Override
-    public Specification<ActivityCalendar> toSpecification(ActivityCalendarFilterVO filter, ActivityCalendarFetchOptions fetchOptions) {
+    public Specification<DailyActivityCalendar> toSpecification(DailyActivityCalendarFilterVO filter, DailyActivityCalendarFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(id(filter.getActivityCalendarId(), Integer.class))
+            .and(id(filter.getDailyActivityCalendarId(), Integer.class))
+            .and(excludedIds(filter.getExcludedIds()))
+            .and(includedIds(filter.getIncludedIds()))
+            .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
-            .and(excludedIds(filter.getExcludedIds()))
-            .and(includedIds(filter.getIncludedIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             ;
     }
 
     @Override
-    public void toVO(ActivityCalendar source, ActivityCalendarVO target, ActivityCalendarFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(DailyActivityCalendar source, DailyActivityCalendarVO target, DailyActivityCalendarFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
+        // Observed location
+        if (source.getObservedLocation() != null) {
+            target.setObservedLocationId(source.getObservedLocation().getId());
+        }
     }
 
     @Override
-    public void toEntity(ActivityCalendarVO source, ActivityCalendar target, boolean copyIfNull) {
+    public void toEntity(DailyActivityCalendarVO source, DailyActivityCalendar target, boolean copyIfNull) {
 
         super.toEntity(source, target, copyIfNull);
 
+        // Observed location
+        Integer observedLocationId = source.getObservedLocationId() != null ? source.getObservedLocationId() : (source.getObservedLocation() != null ? source.getObservedLocation().getId() : null);
+        if (copyIfNull || (observedLocationId != null)) {
+            if (observedLocationId == null) {
+                target.setObservedLocation(null);
+            } else {
+                target.setObservedLocation(getReference(ObservedLocation.class, observedLocationId));
+            }
+        }
     }
 
     /* -- protected functions -- */
 
     @Override
     protected String toEntityProperty(@NonNull String property) {
-        if (ActivityCalendar.Fields.VESSEL.equalsIgnoreCase(property) || property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
-            return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+        if (DailyActivityCalendar.Fields.VESSEL.equalsIgnoreCase(property) || property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
+            return StringUtils.doting(DailyActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
         }
         if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
-            return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+            return StringUtils.doting(DailyActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
         }
         if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
-            return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING);
+            return StringUtils.doting(DailyActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING);
         }
         if (property.endsWith(VesselFeatures.Fields.NAME)) {
-            return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME);
+            return StringUtils.doting(DailyActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.NAME);
         }
         return super.toEntityProperty(property);
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<ActivityCalendar> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<DailyActivityCalendar> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 
@@ -155,17 +166,17 @@ public class ActivityCalendarRepositoryImpl
     }
 
     @Override
-    protected void configureQuery(TypedQuery<ActivityCalendar> query, @Nullable ActivityCalendarFetchOptions fetchOptions) {
+    protected void configureQuery(TypedQuery<DailyActivityCalendar> query, @Nullable DailyActivityCalendarFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
         if (fetchOptions == null || fetchOptions.isWithProgram()) {
             // Prepare load graph
             EntityManager em = getEntityManager();
-            EntityGraph<?> entityGraph = em.getEntityGraph(ActivityCalendar.GRAPH_PROGRAM);
+            EntityGraph<?> entityGraph = em.getEntityGraph(DailyActivityCalendar.GRAPH_PROGRAM);
             if (fetchOptions == null || fetchOptions.isWithRecorderPerson())
-                entityGraph.addSubgraph(ActivityCalendar.Fields.RECORDER_PERSON);
+                entityGraph.addSubgraph(DailyActivityCalendar.Fields.RECORDER_PERSON);
             if (fetchOptions == null || fetchOptions.isWithRecorderDepartment())
-                entityGraph.addSubgraph(ActivityCalendar.Fields.RECORDER_DEPARTMENT);
+                entityGraph.addSubgraph(DailyActivityCalendar.Fields.RECORDER_DEPARTMENT);
 
             query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
         }
