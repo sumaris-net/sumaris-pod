@@ -362,7 +362,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 			// Delete old documents
 			if (CollectionUtils.isNotEmpty(existingVesselFeaturesIds)) {
-				log.debug("Elasticsearch index {{}} - Removing {} documents...", VesselSnapshotVO.INDEX, existingVesselFeaturesIds.size());
+				progression.setMessage(I18n.t("sumaris.elasticsearch.vessel.snapshot.removing", existingVesselFeaturesIds.size()));
 				elasticsearchRepository.deleteAllById(existingVesselFeaturesIds);
 			}
 

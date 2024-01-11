@@ -35,13 +35,13 @@ import net.sumaris.core.dao.referential.StatusRepository;
 import net.sumaris.core.dao.referential.ValidityStatusRepository;
 import net.sumaris.core.dao.referential.location.*;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IProgressionModel;
+import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.referential.Status;
-import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.ValidityStatus;
 import net.sumaris.core.model.referential.ValidityStatusEnum;
 import net.sumaris.core.model.referential.location.*;
@@ -55,17 +55,21 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Geometry;
+import org.nuiton.i18n.I18n;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -107,7 +111,9 @@ public class LocationServiceImpl implements LocationService {
         // Update technical tables (if option changed)
         if (enableTechnicalTablesUpdate != configuration.enableTechnicalTablesUpdate()) {
             enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
-            if (enableTechnicalTablesUpdate) {
+
+            // Launch if enable (skip if jobs enable: will be executed by a job component)
+            if (enableTechnicalTablesUpdate && !configuration.enableJobs()) {
                 updateLocationHierarchy();
             }
         }
@@ -447,6 +453,30 @@ public class LocationServiceImpl implements LocationService {
             log.info("Updating location hierarchy...");
         }
         locationRepository.updateLocationHierarchy();
+    }
+
+    @Override
+    public Future<Void> asyncUpdateLocationHierarchy(@Nullable IProgressionModel progression) {
+
+        if (progression == null) {
+            ProgressionModel progressionModel = new ProgressionModel();
+            progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, (event) -> {
+                if (event.getNewValue() != null) log.debug(event.getNewValue().toString());
+            });
+            progression = progressionModel;
+        }
+
+        progression.setCurrent(0);
+        progression.setTotal(1);
+        progression.setMessage(I18n.t("sumaris.referential.location.hierarchy.job.start"));
+
+        // Run update
+        updateLocationHierarchy();
+
+        progression.setCurrent(1);
+        progression.setMessage(I18n.t("sumaris.referential.location.hierarchy.job.success"));
+
+        return new AsyncResult<>(null);
     }
 
     @Override

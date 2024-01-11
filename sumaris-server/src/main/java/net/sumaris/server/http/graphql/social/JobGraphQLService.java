@@ -38,6 +38,7 @@ import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotJob;
+import net.sumaris.core.service.referential.LocationHierarchyJob;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.Dates;
@@ -80,6 +81,8 @@ public class JobGraphQLService {
     private final AuthService authService;
 
     private final VesselSnapshotJob vesselSnapshotJob;
+
+    private final LocationHierarchyJob locationHierarchyJob;
 
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
     @IsUser
@@ -223,6 +226,11 @@ public class JobGraphQLService {
             String dateStr = MapUtils.getString(params, "minUpdateDate", null);
             Date minUpdateDate = StringUtils.isNotBlank(dateStr) ? Dates.fromISODateTimeString(dateStr) : null;
             return vesselSnapshotJob.indexVesselSnapshots(issuer, minUpdateDate);
+        }
+
+        // Update location hierarchy
+        if (jobType == JobTypeEnum.LOCATION_HIERARCHY) {
+            return locationHierarchyJob.updateLocationHierarchy(issuer);
         }
 
         throw new SumarisTechnicalException("Unknown job type: " + type);
