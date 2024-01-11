@@ -83,7 +83,6 @@ public class VesselSnapshotJob {
 
 		boolean enable = configuration.enableElasticsearchVesselSnapshot() && configuration.enableJobs();
 
-
 		if (this.enable != enable) {
 			this.enable = enable;
 

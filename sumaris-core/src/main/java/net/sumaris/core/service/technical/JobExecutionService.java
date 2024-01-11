@@ -36,7 +36,7 @@ import java.util.function.Function;
 public interface JobExecutionService {
     <R> JobVO run(JobVO job,
                   Callable<Object> configurationLoader,
-                  Function<IProgressionModel, Future<R>> asyncMethod);
+                  Function<IProgressionModel, Future<R>> callableFuture);
 
     <R> JobVO run(JobVO job,
                   Function<IProgressionModel, Future<R>> callableFuture);
