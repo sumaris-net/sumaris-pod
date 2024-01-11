@@ -714,6 +714,10 @@ public class DatabaseSchemaDaoImpl
         sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, HibernatePhysicalNamingStrategy.class.getName());
         //sessionSettings.put(Environment.PHYSICAL_NAMING_STRATEGY, "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy");
 
+        if (getConfig().isProduction()) {
+            sessionSettings.put(Environment.XML_MAPPING_ENABLED, Boolean.FALSE);
+        }
+
         return sessionSettings;
     }
 
