@@ -1315,6 +1315,64 @@ public class DataGraphQLService {
         activityCalendarService.delete(ids);
     }
 
+    @GraphQLSubscription(name = "updateActivityCalendar", description = "Subscribe to changes on an activity calendar")
+    @IsUser
+    public Publisher<ActivityCalendarVO> updateActivityCalendar(@GraphQLNonNull @GraphQLArgument(name = "id") final int id,
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                        @GraphQLEnvironment() ResolutionEnvironment env) {
+
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        Set<String> fields = GraphQLUtils.fields(env);
+        return entityWatchService.watchEntity(ActivityCalendar.class, ActivityCalendarVO.class, id, minIntervalInSecond, true)
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(t -> fillActivityCalendarFields(t, fields));
+    }
+
+    @GraphQLMutation(name = "controlActivityCalendar", description = "Control a activityCalendar")
+    @IsUser
+    public ActivityCalendarVO controlActivityCalendar(@GraphQLNonNull @GraphQLArgument(name = "activityCalendar") ActivityCalendarVO activityCalendar, @GraphQLEnvironment ResolutionEnvironment env) {
+        final ActivityCalendarVO result = activityCalendarService.control(activityCalendar);
+
+        // Add additional properties if needed
+        fillActivityCalendarFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "validateActivityCalendar", description = "Validate a activityCalendar")
+    @IsSupervisor
+    public ActivityCalendarVO validateActivityCalendar(@GraphQLNonNull @GraphQLArgument(name = "activityCalendar") ActivityCalendarVO activityCalendar, @GraphQLEnvironment ResolutionEnvironment env) {
+        final ActivityCalendarVO result = activityCalendarService.validate(activityCalendar);
+
+        // Add additional properties if needed
+        fillActivityCalendarFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "unvalidateActivityCalendar", description = "Unvalidate a activityCalendar")
+    @IsSupervisor
+    public ActivityCalendarVO unvalidateActivityCalendar(@GraphQLNonNull @GraphQLArgument(name = "activityCalendar") ActivityCalendarVO activityCalendar, @GraphQLEnvironment ResolutionEnvironment env) {
+        final ActivityCalendarVO result = activityCalendarService.unvalidate(activityCalendar);
+
+        // Add additional properties if needed
+        fillActivityCalendarFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "qualifyActivityCalendar", description = "Qualify a activityCalendar")
+    @IsSupervisor
+    public ActivityCalendarVO qualifyActivityCalendar(@GraphQLNonNull @GraphQLArgument(name = "activityCalendar") ActivityCalendarVO activityCalendar,
+                              @GraphQLEnvironment ResolutionEnvironment env) {
+        final ActivityCalendarVO result = activityCalendarService.qualify(activityCalendar);
+
+        // Add additional properties if needed
+        fillActivityCalendarFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
     /* -- Measurements -- */
 
     // Trip
