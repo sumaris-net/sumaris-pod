@@ -68,14 +68,18 @@
     <!-- trip return country location -->
     <from join="true">INNER JOIN LOCATION_HIERARCHY LH on LH.CHILD_LOCATION_FK = T.RETURN_LOCATION_FK</from>
     <from join="true">INNER JOIN LOCATION PL ON PL.ID = LH.PARENT_LOCATION_FK AND PL.LOCATION_LEVEL_FK = &amp;countryLocationLevelId</from>
-    <!-- vessel -->
+
+    <!-- vessel registration -->
     <from join="true">INNER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VRP.VESSEL_FK = T.VESSEL_FK
       AND VRP.START_DATE &lt;= T.DEPARTURE_DATE_TIME
       AND COALESCE(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
     </from>
+
     <!-- vessel country location -->
-    <from join="true">INNER JOIN LOCATION_HIERARCHY VLH on VLH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK</from>
-    <from join="true">INNER JOIN LOCATION VL ON VL.ID = VLH.PARENT_LOCATION_FK AND VL.LOCATION_LEVEL_FK = &amp;countryLocationLevelId</from>
+    <from join="true">LEFT OUTER JOIN LOCATION_HIERARCHY VLH on VLH.CHILD_LOCATION_FK = VRP.REGISTRATION_LOCATION_FK</from>
+    <from join="true">LEFT OUTER JOIN LOCATION VL ON VL.ID = VLH.PARENT_LOCATION_FK AND VL.LOCATION_LEVEL_FK = &amp;countryLocationLevelId</from>
+
+    <!-- vessel features -->
     <from join="true">LEFT OUTER JOIN VESSEL_FEATURES VF ON VF.VESSEL_FK = T.VESSEL_FK
       AND VF.START_DATE &lt;= T.DEPARTURE_DATE_TIME
       AND COALESCE(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) &gt;= T.DEPARTURE_DATE_TIME
