@@ -76,7 +76,7 @@ cd ${PROJECT_DIR}
 git commit -a -m "Release $version\n$release_description" && git status
 git tag -a "${version}" -m "${version}"
 git push origin ${branch}
-git push --tags
+git push origin refs/tags/${branch}
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Push changes to branch [OK]"
@@ -84,7 +84,7 @@ echo ""
 
 echo "---- Removing local release branch ..."
 echo ""
-git branch -d "release/$version"
+git branch -d "release/$version" || true
 # NOTE: can fail, but continue
 
 echo "---- Uploading artifacts to Github..."
