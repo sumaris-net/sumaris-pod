@@ -55,7 +55,6 @@
                              onDelete="CASCADE"/>
   </changeSet>
 
-
   <!-- Drop the denormalized_batch_sort_val_batch_fkc constraint -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-005">
     <preConditions onFail="MARK_RAN">
@@ -63,6 +62,13 @@
     </preConditions>
     <dropForeignKeyConstraint baseTableName="denormalized_batch_sort_val"
                               constraintName="denormalized_batch_sort_val_batch_fkc"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-005-1">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyName="FK7b85ijj7pf194pwkm7wvha55d" /> <!-- same as 'denormalized_batch_sort_val_batch_fkc' -->
+    </preConditions>
+    <dropForeignKeyConstraint baseTableName="denormalized_batch_sort_val"
+                              constraintName="FK7b85ijj7pf194pwkm7wvha55d"/>
   </changeSet>
 
   <!-- Add a new denormalized_batch_sort_val_batch_fkc with delete cascade -->
