@@ -49,7 +49,8 @@ mvn versions:set -DnewVersion=$version && mvn versions:commit
 [[ $? -ne 0 ]] && exit 1
 echo "---- Prepare release [OK]"
 echo ""
-git branch -B "release/$version" || true
+git branch -B "release/$version"
+[[ $? -ne 0 ]] && exit 1
 
 echo "---- Performing release..."
 mvn clean deploy -DperformRelease -DskipTests -Dspring.sql.init.platform=hsqldb
@@ -77,7 +78,8 @@ cd ${PROJECT_DIR}
 git commit -a -m "Release $version\n$release_description" && git status
 git tag -a "${version}" -m "${version}"
 git push origin ${branch}
-git push origin refs/tags/${branch}
+[[ $? -ne 0 ]] && exit 1
+git push origin refs/tags/${version}
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Push changes to branch [OK]"
