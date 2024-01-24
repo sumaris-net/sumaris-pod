@@ -17,6 +17,7 @@ cd ${PROJECT_DIR}
 task=$1
 version=$2
 release_description=$3
+branch=${4:"master"}
 PROJECT_NAME="sumaris-pod"
 OWNER="sumaris-net"
 REPO="${OWNER}/${PROJECT_NAME}"

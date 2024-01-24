@@ -14,10 +14,10 @@ fi;
 cd ${PROJECT_DIR}
 
 ### Control that the script is run on `develop` branch
-branch=`git rev-parse --abbrev-ref HEAD`
-if [[ ! "$branch" = "develop" ]];
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$branch" = "develop" ]] || [[ "$branch" = "master" ]];
 then
-  echo ">> This script must be run under \`develop\` branch"
+  echo ">> This script must NOT be run under a \`master\` or \`develop\`, but under any other branch"
   exit 1
 fi
 
@@ -45,10 +45,12 @@ echo ""
 git branch -D "release/$version" || true
 
 echo "---- Preparing release..."
-mvn -B gitflow:release-start -DreleaseVersion="$version"
+mvn versions:set -DnewVersion=$version && mvn versions:commit
 [[ $? -ne 0 ]] && exit 1
 echo "---- Prepare release [OK]"
 echo ""
+git branch -B "release/$version"
+[[ $? -ne 0 ]] && exit 1
 
 echo "---- Performing release..."
 mvn clean deploy -DperformRelease -DskipTests -Dspring.sql.init.platform=hsqldb
@@ -71,28 +73,29 @@ zip -q -r "sumaris-db-$version.zip" db
 echo "---- Generate DB [OK]"
 echo ""
 
-echo "---- Pushing changes to upstream..."
+echo "---- Push changes to branch..."
 cd ${PROJECT_DIR}
-git commit -a -m "Release $version\n$release_description"
-git status
-mvn gitflow:release-finish
+git commit -a -m "Release $version\n$release_description" && git status
+git tag -a "${version}" -m "${version}"
+git push origin ${branch}
+[[ $? -ne 0 ]] && exit 1
+git push origin refs/tags/${version}
 [[ $? -ne 0 ]] && exit 1
 
-echo "---- Push changes to upstream [OK]"
+echo "---- Push changes to branch [OK]"
 echo ""
 
 echo "---- Removing local release branch ..."
 echo ""
-git branch -d "release/$version"
-# NOTE: can fail, but continu
+git branch -d "release/$version" || true
+# NOTE: can fail, but continue
 
 echo "---- Uploading artifacts to Github..."
 echo ""
 
 # Pause (wait propagation to from gitlab to github)
 echo " Waiting 40s, for propagation to github..." && sleep 40s
-
-. ${PROJECT_DIR}/src/scripts/release-to-github.sh $task $version ''"$release_description"'' 'master'
+. ${PROJECT_DIR}/src/scripts/release-to-github.sh $task $version ''"$release_description"'' $branch
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Uploading artifacts to Github [OK]"

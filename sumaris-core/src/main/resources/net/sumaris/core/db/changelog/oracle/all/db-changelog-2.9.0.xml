@@ -25,11 +25,25 @@
   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
-  logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/oracle/all/db-changelog-3.0.0.xml">
+  logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/oracle/all/db-changelog-2.9.0.xml">
 
   <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
   <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-  <!-- TODO -->
+  <!-- Rename some config options -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-300" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <not>
+          <sqlCheck expectedResult="0">select count(*) from SOFTWARE_PROPERTY where label ='sumaris.vessel.filter.registrationCountry.Id'</sqlCheck>
+        </not>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      update SOFTWARE_PROPERTY set label='sumaris.vessel.filter.registrationCountry.id' where label='sumaris.vessel.filter.registrationCountry.Id';
+      commit;
+    </sql>
+  </changeSet>
 
 </databaseChangeLog>
