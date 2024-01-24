@@ -76,10 +76,15 @@ echo ""
 echo "---- Push changes to branch..."
 cd ${PROJECT_DIR}
 git commit -a -m "Release $version\n$release_description" && git status
-git tag -a "${version}" -m "${version}"
-git push origin ${branch}
+git checkout "${branch}"
 [[ $? -ne 0 ]] && exit 1
-git push origin refs/tags/${version}
+git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}"
+[[ $? -ne 0 ]] && exit 1
+git tag -a "${version}" -m "${version}"
+[[ $? -ne 0 ]] && exit 1
+git push origin "${branch}"
+[[ $? -ne 0 ]] && exit 1
+git push origin "refs/tags/${version}"
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Push changes to branch [OK]"
