@@ -49,7 +49,7 @@ mvn versions:set -DnewVersion=$version && mvn versions:commit
 [[ $? -ne 0 ]] && exit 1
 echo "---- Prepare release [OK]"
 echo ""
-git ckeckout -B "release/$version"
+git checkout -B "release/$version"
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Performing release..."
