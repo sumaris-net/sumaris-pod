@@ -70,12 +70,20 @@
         ELSE null END
       )
     </select>
-    <select alias="FISHING_VALIDITY" type="text" group="!tripProgress,agg">
+    <select alias="FISHING_VALIDITY" type="text" group="!tripProgress,adagio,agg">
+      MAX(CASE TO_NUMBER(O.QUALITY_FLAG_FK)
+      WHEN &amp;badQualityFlagId THEN UPPER('I')
+      WHEN &amp;incompleteQualityFlagId THEN UPPER('I')
+      WHEN &amp;missingQualityFlagId THEN UPPER('I')
+      ELSE UPPER('V')
+      END)
+    </select>
+    <select alias="FISHING_VALIDITY" type="text" group="!tripProgress,!adagio,agg">
       MAX(CASE O.QUALITY_FLAG_FK
-        WHEN &amp;badQualityFlagId THEN UPPER('I')
-        WHEN &amp;incompleteQualityFlagId THEN UPPER('I')
-        WHEN &amp;missingQualityFlagId THEN UPPER('I')
-        ELSE UPPER('V')
+      WHEN &amp;badQualityFlagId THEN UPPER('I')
+      WHEN &amp;incompleteQualityFlagId THEN UPPER('I')
+      WHEN &amp;missingQualityFlagId THEN UPPER('I')
+      ELSE UPPER('V')
       END)
     </select>
     <select alias="AGGREGATION_LEVEL" type="text">UPPER('H')</select>
