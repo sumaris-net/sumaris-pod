@@ -70,14 +70,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@Service("userMessage")
+@Service("userMessageService")
 public class UserMessageServiceImpl implements UserMessageService {
 
 
     private final SumarisServerConfiguration configuration;
     private final PersonService personService;
     private final UserEventService userEventService;
-    private final EmailService emailService;
+    private final Optional<EmailService> emailService;
     private final ObjectMapper objectMapper;
 
     private InternetAddress emailDefaultFromAddress;
@@ -92,13 +92,13 @@ public class UserMessageServiceImpl implements UserMessageService {
         this.personService = personService;
         this.userEventService = userEventService;
         this.objectMapper = objectMapper;
-        this.emailService = emailService.orElse(null);
+        this.emailService = emailService;
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
 
-        boolean emailEnable = (emailService != null && configuration.enableMailService());
+        boolean emailEnable = emailService.isPresent() && configuration.enableMailService();
 
         // Get mail 'from'
         if (emailEnable) {
@@ -211,12 +211,14 @@ public class UserMessageServiceImpl implements UserMessageService {
             return;
         }
 
-        int recipientsCount = CollectionUtils.size(email.getTo())
-            + CollectionUtils.size(email.getCc())
-            + CollectionUtils.size(email.getBcc());
-        log.info("Sending email to {} recipients, from {} ...", recipientsCount, email.getFrom());
+        emailService.ifPresent(service -> {
+            int recipientsCount = CollectionUtils.size(email.getTo())
+                + CollectionUtils.size(email.getCc())
+                + CollectionUtils.size(email.getBcc());
+            log.info("Sending email to {} recipients, from {} ...", recipientsCount, email.getFrom());
 
-        emailService.send(email);
+            service.send(email);
+        });
     }
 
     protected void send(@NonNull List<UserEventVO> userEvents) {

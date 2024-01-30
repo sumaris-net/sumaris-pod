@@ -178,7 +178,7 @@ public class JobRepositoryImpl
         target.setDataTransfertAddress(source.getIssuer());
 
         // Type
-        Integer processingTypeId = ProcessingTypeEnum.byLabel(source.getType())
+        Integer processingTypeId = ProcessingTypeEnum.byLabelOrName(source.getType())
             .map(ProcessingTypeEnum::getId)
             .filter(id -> id >= 0) // Skip if unresolved
             .orElseGet(() -> {

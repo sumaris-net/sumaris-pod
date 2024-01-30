@@ -151,7 +151,7 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, unless="#result == null")
     public Optional<ProgramVO> findVOById(Integer id) {
         return super.findVOById(id);
     }

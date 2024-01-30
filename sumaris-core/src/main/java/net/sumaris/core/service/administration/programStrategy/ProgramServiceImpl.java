@@ -107,6 +107,11 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public Optional<Integer> findIdByLabel(String label) {
+		return programRepository.findByLabel(label).map(ProgramVO::getId);
+	}
+
+	@Override
 	public List<ReferentialVO> getAcquisitionLevelsById(int id) {
 		return programRepository.getAcquisitionLevelsById(id);
 	}

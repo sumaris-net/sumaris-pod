@@ -229,7 +229,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
                     job.setStatus(((IJobResultVO)result).getStatus());
                 }
                 else {
-                    log.warn("Cannot read job's status, from result (not implements IWithJobStatusVO). Will use SUCCESS");
+                    log.warn("Cannot read {} job's status (job's result not implements {}). Will use SUCCESS", job.getType(), IJobResultVO.class.getSimpleName());
                     job.setStatus(JobStatusEnum.SUCCESS);
                 }
 
@@ -281,7 +281,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             }
             else {
                 // Make sure this kind of job is callable by the pod
-                ProcessingTypeEnum processingType = ProcessingTypeEnum.byLabelOrEmpty(job.getType())
+                ProcessingTypeEnum processingType = ProcessingTypeEnum.byLabel(job.getType())
                     .orElse(ProcessingTypeEnum.UNKNOWN);
                 if (!ProcessingTypeEnum.UNKNOWN.equals(processingType)) {
 

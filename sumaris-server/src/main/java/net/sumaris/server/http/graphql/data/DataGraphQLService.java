@@ -237,19 +237,21 @@ public class DataGraphQLService {
     public TripVO getTripById(@GraphQLNonNull @GraphQLArgument(name = "id") int id,
                               @GraphQLEnvironment ResolutionEnvironment env) {
 
-        final TripVO result = tripService.get(id);
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        final TripVO result = tripService.get(id, getTripFetchOptions(fields));
 
         // Check read access
         dataAccessControlService.checkCanRead(result);
 
         // Add additional properties if needed
-        fillTripFields(result, GraphQLUtils.fields(env));
+        fillTripFields(result, fields);
 
         return result;
     }
 
     @GraphQLQuery(name = "landing", description = "Get trip's landing")
-    public LandingVO getTripLanding(@GraphQLContext TripVO trip) {
+    public LandingVO getTripLanding(@GraphQLContext TripVO trip, @GraphQLEnvironment ResolutionEnvironment env) {
         if (trip.getLanding() != null) return trip.getLanding();
         if (trip.getLandingId() == null) return null;
 
@@ -259,6 +261,9 @@ public class DataGraphQLService {
 
         // Avoid trip to be reload from landing (in GraphQL fragment)
         target.setTrip(trip);
+        target.setVesselSnapshot(trip.getVesselSnapshot());
+
+        fillLandingFields(target, GraphQLUtils.fields(env));
 
         return target;
     }
@@ -510,7 +515,7 @@ public class DataGraphQLService {
                 filter,
                 offset, size, sort,
                 sortDirection,
-                getFetchOptions(fields));
+                getObservedLocationFetchOptions(fields));
 
         // Add additional properties if needed
         fillObservedLocationsFields(result, fields);
@@ -544,13 +549,15 @@ public class DataGraphQLService {
     public ObservedLocationVO getObservedLocationById(@GraphQLArgument(name = "id") int id,
                                                       @GraphQLEnvironment ResolutionEnvironment env) {
 
-        final ObservedLocationVO result = observedLocationService.get(id);
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        final ObservedLocationVO result = observedLocationService.get(id, getObservedLocationFetchOptions(fields));
 
         // Check read access
         dataAccessControlService.checkCanRead(result);
 
         // Add additional properties if needed
-        fillObservedLocationFields(result, GraphQLUtils.fields(env));
+        fillObservedLocationFields(result, fields);
 
         return result;
     }
@@ -1781,7 +1788,7 @@ public class DataGraphQLService {
 
         // Add landing to child trip, if need (will avoid a reload of the same landing)
         if (landing.getTrip() != null
-                && landing.getTrip().getLandingId() == landing.getId()
+                && Objects.equals(landing.getTrip().getLandingId(), landing.getId())
                 && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.LANDING, IEntity.Fields.ID))) {
             landing.getTrip().setLanding(landing);
         }
@@ -1940,6 +1947,18 @@ public class DataGraphQLService {
                 .build();
     }
 
+
+    protected ObservedLocationFetchOptions getObservedLocationFetchOptions(Set<String> fields) {
+        return ObservedLocationFetchOptions.builder()
+            .withLocations(fields.contains(StringUtils.slashing(ObservedLocationVO.Fields.LOCATION, IEntity.Fields.ID)))
+            .withProgram(fields.contains(StringUtils.slashing(ObservedLocationVO.Fields.PROGRAM, IEntity.Fields.ID)))
+            .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withLandings(fields.contains(StringUtils.slashing(ObservedLocationVO.Fields.LANDINGS, IEntity.Fields.ID)))
+            .build();
+    }
+
     protected ActivityCalendarFetchOptions getActivityCalendarFetchOptions(Set<String> fields) {
         return ActivityCalendarFetchOptions.builder()
             .withProgram(fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.PROGRAM, IEntity.Fields.ID)))
@@ -1960,12 +1979,16 @@ public class DataGraphQLService {
             filter = filter != null ? filter : Beans.newInstance(filterClass);
         } catch (Exception e) {
             log.error("Cannot create filter instance: {}", e.getMessage(), e);
+            return filter;
         }
 
         // Replace programLabel by ID
         if (StringUtils.isNotBlank(filter.getProgramLabel()) && ArrayUtils.isEmpty(filter.getProgramIds())) {
-            Integer programId = this.programService.getIdByLabel(filter.getProgramLabel());
-            filter.setProgramIds(new Integer[]{programId});
+            // Use optional, to avoid error when programLabel not found (e.g. when changing pod in the App settings)
+            Integer[] programIds = this.programService.findIdByLabel(filter.getProgramLabel())
+                .map(programId -> new Integer[]{programId})
+                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+            filter.setProgramIds(programIds);
             filter.setProgramLabel(null);
         }
 

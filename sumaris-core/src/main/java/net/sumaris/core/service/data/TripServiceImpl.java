@@ -120,7 +120,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public TripVO get(int id, @NonNull TripFetchOptions fetchOptions) {
-        TripVO target = repository.get(id);
+        TripVO target = repository.get(id, fetchOptions);
 
         // Vessel snapshot
         if (fetchOptions.isWithVesselSnapshot()) {

@@ -26,34 +26,19 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
-import net.sumaris.core.model.referential.VesselTypeEnum;
-import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
 @Component("locationHierarchyJob")
 @RequiredArgsConstructor
@@ -94,7 +79,7 @@ public class LocationHierarchyJob {
 
 		// Init a job
 		JobVO job = JobVO.builder()
-			.type(JobTypeEnum.LOCATION_HIERARCHY.name())
+			.type(JobTypeEnum.FILL_LOCATION_HIERARCHY.name())
 			.name(I18n.t("sumaris.referential.location.hierarchy.job.name"))
 			.issuer(issuer)
 			.build();
