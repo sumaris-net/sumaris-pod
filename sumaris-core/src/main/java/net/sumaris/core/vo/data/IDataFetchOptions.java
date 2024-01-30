@@ -29,10 +29,18 @@ public interface IDataFetchOptions extends IFetchOptions {
 
     boolean isWithRecorderDepartment();
 
+    void setWithRecorderDepartment(boolean withRecorderDepartment);
+
     boolean isWithRecorderPerson();
+
+    void setWithRecorderPerson(boolean withRecorderPerson);
 
     boolean isWithChildrenEntities();
 
+    void setWithChildrenEntities(boolean withChildrenEntities);
+
     boolean isWithMeasurementValues();
+
+    void setWithMeasurementValues(boolean withMeasurementValues);
 
 }

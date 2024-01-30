@@ -29,4 +29,6 @@ public interface IWithObserversFetchOptions extends IFetchOptions {
 
     boolean isWithObservers();
 
+    void setWithObservers(boolean withObservers);
+
 }

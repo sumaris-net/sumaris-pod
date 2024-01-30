@@ -55,7 +55,11 @@
     <select alias="LANDING_CATEGORY" type="text" group="agg">
       MAX(
         CASE
-          WHEN SM.PMFM_FK = &amp;landingCategoryPmfmId THEN QV.LABEL
+          WHEN SM.PMFM_FK = &amp;landingCategoryPmfmId AND QV.LABEL IS NOT NULL THEN
+            CASE QV.LABEL
+              WHEN 'HCN' THEN 'HUC'
+              ELSE QV.LABEL
+            END
           WHEN SPECIE_B.IS_LANDING=true THEN '&amp;defaultLandingCategory'
           ELSE NULL
         END

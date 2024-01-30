@@ -229,7 +229,7 @@ public class JobGraphQLService {
         }
 
         // Update location hierarchy
-        if (jobType == JobTypeEnum.LOCATION_HIERARCHY) {
+        if (jobType == JobTypeEnum.FILL_LOCATION_HIERARCHY) {
             return locationHierarchyJob.updateLocationHierarchy(issuer);
         }
 

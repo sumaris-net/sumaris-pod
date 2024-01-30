@@ -31,38 +31,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class DataFetchOptions implements IDataFetchOptions, IWithObserversFetchOptions {
+public class ObservedLocationFetchOptions implements IDataFetchOptions, IWithObserversFetchOptions {
 
-    public static DataFetchOptions nullToEmpty(DataFetchOptions fetchOptions) {
-        return fetchOptions == null ? new DataFetchOptions() : fetchOptions;
-    }
+    public static final ObservedLocationFetchOptions DEFAULT = ObservedLocationFetchOptions.builder().build();
 
-    public static final DataFetchOptions DEFAULT = DataFetchOptions.builder().build();
-
-    public static final DataFetchOptions MINIMAL = DataFetchOptions.builder()
+    public static final ObservedLocationFetchOptions MINIMAL = ObservedLocationFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withObservers(false)
         .build();
 
-    public static final DataFetchOptions FULL_GRAPH = DataFetchOptions.builder()
-            .withChildrenEntities(true)
-            .withMeasurementValues(true)
-            .build();
+    public static final ObservedLocationFetchOptions FULL_GRAPH = ObservedLocationFetchOptions.builder()
+        .withChildrenEntities(true)
+        .withMeasurementValues(true)
+        .build();
 
-    public static DataFetchOptions copy(IDataFetchOptions source) {
-        return copy(source, DataFetchOptions.builder().build());
-    }
-
-    public static <T extends IDataFetchOptions > T copy(IDataFetchOptions source, T target) {
-        target.setWithRecorderDepartment(source.isWithRecorderDepartment());
-        target.setWithRecorderPerson(source.isWithRecorderPerson());
-        target.setWithChildrenEntities(source.isWithChildrenEntities());
-        target.setWithMeasurementValues(source.isWithMeasurementValues());
-        if (source instanceof IWithObserversFetchOptions ofo) {
-            ((IWithObserversFetchOptions)target).setWithObservers(ofo.isWithObservers());
-        }
-        return target;
+    public static ObservedLocationFetchOptions copy(IDataFetchOptions source) {
+        return DataFetchOptions.copy(source, ObservedLocationFetchOptions.builder().build());
     }
 
     @Builder.Default
@@ -80,4 +65,12 @@ public class DataFetchOptions implements IDataFetchOptions, IWithObserversFetchO
     @Builder.Default
     private boolean withMeasurementValues = false;
 
+    @Builder.Default
+    private boolean withLandings = true;
+
+    @Builder.Default
+    private boolean withLocations = true;
+
+    @Builder.Default
+    private boolean withProgram = true;
 }

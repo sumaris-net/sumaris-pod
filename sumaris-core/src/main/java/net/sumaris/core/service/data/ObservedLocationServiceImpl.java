@@ -76,12 +76,12 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 	@Override
 	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
-											SortDirection sortDirection, DataFetchOptions fetchOptions) {
+											SortDirection sortDirection, ObservedLocationFetchOptions fetchOptions) {
 		return observedLocationRepository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
 	}
 
 	@Override
-	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, DataFetchOptions fetchOptions) {
+	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, ObservedLocationFetchOptions fetchOptions) {
 		return observedLocationRepository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), page, fetchOptions);
 	}
 
@@ -92,8 +92,13 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
-	public ObservedLocationVO get(int observedLocationId) {
-		return observedLocationRepository.get(observedLocationId);
+	public ObservedLocationVO get(int id) {
+		return this.get(id, ObservedLocationFetchOptions.DEFAULT);
+	}
+
+	@Override
+	public ObservedLocationVO get(int id, ObservedLocationFetchOptions fetchOptions) {
+		return observedLocationRepository.get(id, fetchOptions);
 	}
 
 	@Override
@@ -190,7 +195,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 								.endDate(observedLocation.getEndDateTime())
 								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
 								.build(), Page.builder().offset(0).size(1000).build(),
-						DataFetchOptions.MINIMAL)
+					ObservedLocationFetchOptions.MINIMAL)
 						.forEach((i) -> this.control(i, controlOptions));
 			}
 
@@ -237,7 +242,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 								.endDate(observedLocation.getEndDateTime())
 								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.CONTROLLED})
 								.build(), Page.builder().offset(0).size(1000).build(),
-						DataFetchOptions.MINIMAL)
+						ObservedLocationFetchOptions.MINIMAL)
 						.forEach((i) -> this.validate(i, validateOptions));
 			}
 
@@ -285,7 +290,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 								.endDate(observedLocation.getEndDateTime())
 								.dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.VALIDATED, DataQualityStatusEnum.QUALIFIED})
 								.build(), Page.builder().offset(0).size(1000).build(),
-						DataFetchOptions.MINIMAL)
+					ObservedLocationFetchOptions.MINIMAL)
 						.forEach((i) -> this.unvalidate(i, validateOptions));
 			}
 

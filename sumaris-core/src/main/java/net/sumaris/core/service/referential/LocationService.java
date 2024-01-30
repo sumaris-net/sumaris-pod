@@ -57,9 +57,11 @@ public interface LocationService extends LocationByPositionService  {
 
     void insertOrUpdateRectangleAndSquareAreas();
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     void updateLocationHierarchy();
+
     @Async("jobTaskExecutor")
-    @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     Future<Void> asyncUpdateLocationHierarchy(@Nullable IProgressionModel progressionModel);
 
 

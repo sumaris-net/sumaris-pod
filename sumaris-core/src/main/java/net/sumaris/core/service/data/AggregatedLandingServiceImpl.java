@@ -129,11 +129,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            DataFetchOptions.copy(defaultLandingFetchOptions));
+            ObservedLocationFetchOptions.copy(defaultLandingFetchOptions));
 
         ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
         observedLocations
-//            .parallelStream() // Warning: Can cause concurrent exceptions on landingsByBateByVessel.computeIfAbsent
+            //.parallelStream() // Warning: Can cause concurrent exceptions on landingsByBateByVessel.computeIfAbsent
             .forEach(observedLocation -> {
 
             List<LandingVO> landings = landingService.findAll(LandingFilterVO.builder().observedLocationId(observedLocation.getId()).build(),
@@ -255,7 +255,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            DataFetchOptions.copy(defaultLandingFetchOptions));
+            ObservedLocationFetchOptions.copy(defaultLandingFetchOptions));
 
         // Create observed location if missing
         Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime)
@@ -370,7 +370,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            DataFetchOptions.copy(defaultLandingFetchOptions));
+            ObservedLocationFetchOptions.copy(defaultLandingFetchOptions));
 
         observedLocations.forEach(observedLocation -> vesselIds.forEach(vesselId -> {
             landingService.deleteAllByFilter(LandingFilterVO.builder()

@@ -22,12 +22,16 @@
 
 package net.sumaris.core.vo.data.sample;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 
 @Data
-@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class SampleFetchOptions implements IDataFetchOptions {
 
     public static final SampleFetchOptions DEFAULT = SampleFetchOptions.builder().build();
@@ -48,6 +52,9 @@ public class SampleFetchOptions implements IDataFetchOptions {
     private boolean withRecorderDepartment = false;
 
     @Builder.Default
+    private boolean withRecorderPerson = false;
+
+    @Builder.Default
     private boolean withChildrenEntities = false;
 
     @Builder.Default
@@ -55,9 +62,4 @@ public class SampleFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withImages = false;
-
-    @Override
-    public boolean isWithRecorderPerson() {
-        return false;
-    }
 }

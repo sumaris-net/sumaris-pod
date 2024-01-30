@@ -26,8 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.ObservedLocation;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.ObservedLocationFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.hibernate.jpa.QueryHints;
@@ -45,7 +46,7 @@ import javax.persistence.TypedQuery;
  */
 @Slf4j
 public class ObservedLocationRepositoryImpl
-    extends RootDataRepositoryImpl<ObservedLocation, ObservedLocationVO, ObservedLocationFilterVO, DataFetchOptions>
+    extends RootDataRepositoryImpl<ObservedLocation, ObservedLocationVO, ObservedLocationFilterVO, ObservedLocationFetchOptions>
     implements ObservedLocationSpecifications {
 
     private final LocationRepository locationRepository;
@@ -60,7 +61,7 @@ public class ObservedLocationRepositoryImpl
     }
 
     @Override
-    public Specification<ObservedLocation> toSpecification(ObservedLocationFilterVO filter, DataFetchOptions fetchOptions) {
+    public Specification<ObservedLocation> toSpecification(ObservedLocationFilterVO filter, ObservedLocationFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(hasLocationId(filter.getLocationId()))
             .and(hasLocationIds(filter.getLocationIds()))
@@ -73,7 +74,7 @@ public class ObservedLocationRepositoryImpl
     }
 
     @Override
-    public void toVO(ObservedLocation source, ObservedLocationVO target, DataFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(ObservedLocation source, ObservedLocationVO target, ObservedLocationFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // Remove endDateTime if same as startDateTime
@@ -106,18 +107,23 @@ public class ObservedLocationRepositoryImpl
 
     @Override
     protected void configureQuery(TypedQuery<ObservedLocation> query,
-                                  @Nullable DataFetchOptions fetchOptions) {
+                                  @Nullable ObservedLocationFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
-        // Prepare load graph
-        EntityManager em = getEntityManager();
-        EntityGraph<?> entityGraph = em.getEntityGraph(ObservedLocation.GRAPH_LOCATION_AND_PROGRAM);
-        if (fetchOptions == null || fetchOptions.isWithRecorderPerson()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_PERSON);
-        if (fetchOptions == null || fetchOptions.isWithRecorderDepartment()) entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_DEPARTMENT);
+        if (fetchOptions == null || fetchOptions.isWithLocations() || fetchOptions.isWithProgram()) {
+            // Prepare load graph
+            EntityManager em = getEntityManager();
+            EntityGraph<?> entityGraph = em.getEntityGraph(ObservedLocation.GRAPH_LOCATION_AND_PROGRAM);
+            if (fetchOptions == null || fetchOptions.isWithRecorderPerson())
+                entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_PERSON);
+            if (fetchOptions == null || fetchOptions.isWithRecorderDepartment())
+                entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_DEPARTMENT);
 
-        // WARNING: should not enable this fetch, because page cannot be applied
-        //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(ObservedLocation.Fields.OBSERVERS);
+            // WARNING: should not enable this fetch, because page cannot be applied
+            //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
 
-        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+            query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+        }
+
     }
 }
