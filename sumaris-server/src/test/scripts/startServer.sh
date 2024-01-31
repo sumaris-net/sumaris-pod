@@ -25,17 +25,21 @@ PROFILE="hsqldb"
 echo "Project root: ${PROJECT_ROOT}"
 mkdir -p ${APP_BASEDIR}
 
-
 # ------------------------------------
-echo "${LOG_PREFIX} Building [core-shared], [core] and [server]... ${LOG_PREFIX}"
+# BUILD
 # ------------------------------------
-cd ${PROJECT_DIR} || exit 1
-rm -f target/sumaris-server-*.war
+if [[ "$@" == *"--build"* ]]; then
+  echo "${LOG_PREFIX} Building [core-shared], [core] and [server]... ${LOG_PREFIX}"
 
-cd ${PROJECT_ROOT} || exit 1
-#mvn install -pl sumaris-core-shared,sumaris-core,sumaris-server $MVN_INSTALL_OPTS
-mvn install -pl sumaris-core-shared,sumaris-core,sumaris-extraction,sumaris-importation,sumaris-server $MVN_INSTALL_OPTS
-[[ $? -ne 0 ]] && exit 1
+  cd ${PROJECT_DIR} || exit 1
+  rm -f target/sumaris-server-*.war
+
+  cd ${PROJECT_ROOT} || exit 1
+
+  #mvn install -pl sumaris-core-shared,sumaris-core,sumaris-server $MVN_INSTALL_OPTS
+  mvn install -pl sumaris-core-shared,sumaris-core,sumaris-extraction,sumaris-importation,sumaris-server $MVN_INSTALL_OPTS
+  [[ $? -ne 0 ]] && exit 1
+fi
 
 cd ${PROJECT_DIR} || exit 1
 VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)

@@ -144,7 +144,7 @@ public class SampleServiceImpl implements SampleService {
 		if (CollectionUtils.isEmpty(changes)) return result; // No changes: skip
 
 		// Check all samples have the same programId
-		// /!\ should be the full list, not only changes
+		// /!\ should be done in the full list, not only changes
 		int programId = extractSingleProgramId(result);
 
 		// Check all sample's tag ids are unique
@@ -160,6 +160,9 @@ public class SampleServiceImpl implements SampleService {
 		// Save measurements
 		changes.forEach(this::saveMeasurements);
 
+		// Save images
+		changes.forEach(this::saveImageAttachments);
+
 		return result;
 	}
 
@@ -173,7 +176,7 @@ public class SampleServiceImpl implements SampleService {
 
 		if (CollectionUtils.isEmpty(changes)) return result; // No changes: skip
 
-		// Check all sample's have the same program
+		// Check all samples have the same program
 		// /!\ should be done in the full list, not only changes
 		int programId = extractSingleProgramId(result);
 
