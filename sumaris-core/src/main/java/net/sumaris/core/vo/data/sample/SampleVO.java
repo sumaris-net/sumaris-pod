@@ -63,6 +63,7 @@ public class SampleVO implements IRootDataVO<Integer>,
     @ToString.Include
     private Integer id;
     private String comments;
+    @EqualsAndHashCode.Exclude
     private Date creationDate;
     @EqualsAndHashCode.Exclude
     private Date updateDate;

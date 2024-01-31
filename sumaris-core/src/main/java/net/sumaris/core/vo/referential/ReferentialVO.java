@@ -35,12 +35,16 @@ import java.util.Map;
 @Builder
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class ReferentialVO implements IReferentialVO<Integer>,
     IReferentialWithLevelVO<Integer> {
 
     @EqualsAndHashCode.Include
+    @ToString.Include
     private Integer id;
+    @ToString.Include
     private String label;
+    @ToString.Include
     private String name;
     private String description;
     private String comments;
@@ -50,15 +54,18 @@ public class ReferentialVO implements IReferentialVO<Integer>,
     private Integer statusId;
     private Integer validityStatusId;
 
+    @ToString.Include
     private Integer levelId;
     private ReferentialVO level;
+
+    @ToString.Include
     private Integer parentId;
     private ReferentialVO parent;
 
     private Integer rankOrder;
 
     // Metadata
-    //@EqualsAndHashCode.Exclude
+    @ToString.Include
     private String entityName;
 
     private Map<String, Object> properties;

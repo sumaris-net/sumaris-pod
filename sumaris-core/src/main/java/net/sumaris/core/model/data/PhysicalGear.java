@@ -40,7 +40,6 @@ import java.util.List;
 
 @Getter
 @Setter
-
 @FieldNameConstants
 @Entity
 @Table(name="physical_gear")
@@ -50,7 +49,6 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PHYSICAL_GEAR_SEQ")
     @SequenceGenerator(name = "PHYSICAL_GEAR_SEQ", sequenceName="PHYSICAL_GEAR_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

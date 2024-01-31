@@ -35,10 +35,7 @@ import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.*;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
@@ -204,7 +201,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     @Override
     public List<AggregatedLandingVO> saveAll(AggregatedLandingFilterVO filter, List<AggregatedLandingVO> aggregatedLandings) {
 
-        long start = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) log.debug("Saving aggregated landings...");
 
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(filter.getObservedLocationId());
@@ -337,7 +335,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Saving done in %s ms", System.currentTimeMillis() - start));
+            log.debug("Saving aggregated landings [OK] in {}", TimeUtils.printDurationFrom(startTime));
         }
 
         return aggregatedLandings;

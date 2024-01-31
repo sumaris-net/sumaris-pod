@@ -36,6 +36,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.pmfm.Matrix;
@@ -348,7 +349,7 @@ public class SampleRepositoryImpl
     public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug(String.format("Saving operation {id:%s} samples... {hash_optimization:%s}", operationId, enableHashOptimization));
+        if (debugTime != 0L) log.debug("Saving samples of Operation#{}... {hash_optimization: {}}", operationId, enableHashOptimization);
 
         // Load parent entity
         Operation parent = getById(Operation.class, operationId);
@@ -369,7 +370,7 @@ public class SampleRepositoryImpl
             getEntityManager().clear();
         }
 
-        if (debugTime != 0L) log.debug("Saving operation {id: {}} samples [OK] in {}", operationId, TimeUtils.printDurationFrom(debugTime));
+        if (debugTime != 0L) log.debug("Saving samples of Operation#{} [OK] in {}", operationId, TimeUtils.printDurationFrom(debugTime));
 
         return sources;
     }
@@ -378,7 +379,7 @@ public class SampleRepositoryImpl
     public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> samples) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples... {hash_optimization:%s}", landingId, enableHashOptimization));
+        if (debugTime != 0L) log.debug("Saving samples of Landing#{}... {hash_optimization: {}}", landingId, enableHashOptimization);
 
         // Load parent entity
         Landing parent = getById(Landing.class, landingId);
@@ -400,7 +401,7 @@ public class SampleRepositoryImpl
             getEntityManager().clear();
         }
 
-        if (debugTime != 0L) log.debug(String.format("Saving landing {id:%s} samples [OK] in %s ms", landingId, System.currentTimeMillis() - debugTime));
+        if (debugTime != 0L) log.debug("Saving samples of Landing#{} [OK] in {}", landingId, TimeUtils.printDurationFrom(debugTime));
 
         return samples;
     }
@@ -499,8 +500,9 @@ public class SampleRepositoryImpl
 
         // Stop here (without change on the update_date)
         if (skipSave) {
-            // Flag as same hash
-            source.addFlag(ValueObjectFlags.SAME_HASH);
+            // Mark as same hash (current item and all children)
+            TreeNodeEntities.streamAll(source).forEach(vo -> vo.addFlag(ValueObjectFlags.SAME_HASH));
+
             return source;
         }
 
