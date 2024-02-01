@@ -18,9 +18,7 @@ APP_BASEDIR="${PROJECT_ROOT}/.local"
 LOG_DIR="${APP_BASEDIR}/log/sumaris-pod.log"
 DB_URL="jdbc:hsqldb:hsql://localhost/sumaris"
 CONFIG_DIR="${PROJECT_ROOT}/.local/config"
-ARGS=$*
-PROFILE="hsqldb"
-[[ "_${ARGS}" != "_" ]] && PROFILE="${PROFILE},${ARGS}"
+PROFILE="hsqldb,$1"
 
 echo "Project root: ${PROJECT_ROOT}"
 mkdir -p ${APP_BASEDIR}
