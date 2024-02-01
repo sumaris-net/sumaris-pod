@@ -59,12 +59,12 @@ public class TripEventListener {
     }
 
     public void onInsertTrip(TripVO entity) {
-        log.info("New trip {id: {}, recorderPerson: {id: {}}}",  entity.getId(), entity.getRecorderPerson().getId());
+        log.info("New Trip#{} {recorderPerson: {id: {}}}",  entity.getId(), entity.getRecorderPerson().getId());
         // TODO send event for supervisor
     }
 
     public void onUpdateTrip(TripVO entity) {
-        log.info("Updated trip {id: {}, updateDate: '{}', recorderPerson: {id: {}}}",  entity.getId(),
+        log.info("Update Trip#{} {updateDate: '{}', recorderPerson: {id: {}}}",  entity.getId(),
             Dates.toISODateTimeString(entity.getUpdateDate()),
             entity.getRecorderPerson().getId());
         // TODO send event for supervisor
