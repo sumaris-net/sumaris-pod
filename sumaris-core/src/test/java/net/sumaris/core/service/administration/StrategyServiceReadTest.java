@@ -230,6 +230,7 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
         // Filter by pmfm
         {
             StrategyFilterVO filter = StrategyFilterVO.builder()
+                    .programLabels(new String[]{"SIH-OBSBIO"})
                     .parameterIds(new Integer[]{350, 351})
                     .build();
             List<StrategyVO> strategies = service.findByFilter(filter, page, StrategyFetchOptions.DEFAULT);
