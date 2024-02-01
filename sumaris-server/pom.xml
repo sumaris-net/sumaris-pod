@@ -298,18 +298,6 @@
     <plugins>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>${compilerPluginVersion}</version>
-        <configuration>
-          <source>${javaVersion}</source>
-          <target>${javaVersion}</target>
-          <compilerArgument>-parameters</compilerArgument>
-          <testCompilerArgument>-parameters</testCompilerArgument>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <groupId>org.nuiton.i18n</groupId>
         <artifactId>i18n-maven-plugin</artifactId>
 
