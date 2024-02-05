@@ -110,6 +110,8 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     IS_DEAD(94, "IS_DEAD"),
     DISCARD_REASON(95, "DISCARD_REASON"),
+    DISCARD_TYPE(408, "DISCARD_TYPE"),
+    IS_SAMPLING(409, "IS_SAMPLING"), // Lot est-il détaillé ou pas ?
     HAS_INDIVIDUAL_MEASURES(121, "HAS_INDIVIDUAL_MEASURES"),
 
     HULL_MATERIAL(440, "HULL_MATERIAL"), // Adagio HULL_MATERIAL (id=145)
