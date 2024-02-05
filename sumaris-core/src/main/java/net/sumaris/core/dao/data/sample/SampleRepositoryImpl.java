@@ -62,6 +62,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Stream;
@@ -91,20 +92,18 @@ public class SampleRepositoryImpl
     private boolean enableImageAttachments;
 
     @Autowired
-    public SampleRepositoryImpl(EntityManager entityManager, SumarisConfiguration configuration) {
+    public SampleRepositoryImpl(EntityManager entityManager) {
         super(Sample.class, SampleVO.class, entityManager);
-
-        this.enableHashOptimization = configuration.enableSampleHashOptimization();
-        this.enableImageAttachments = configuration.enableDataImages();
 
         // FIXME: Client app: update entity from the save() result
         setCheckUpdateDate(false); // for default save()
     }
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableHashOptimization = event.getConfiguration().enableSampleHashOptimization();
-        this.enableImageAttachments = event.getConfiguration().enableDataImages();
+    public void onConfigurationReady() {
+        this.enableHashOptimization = configuration.enableSampleHashOptimization();
+        this.enableImageAttachments = configuration.enableDataImages();
     }
 
     @Override
