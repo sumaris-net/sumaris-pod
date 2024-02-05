@@ -84,11 +84,14 @@ public class SampleServiceImpl implements SampleService {
 	protected boolean enableSampleUniqueTag;
 	protected boolean enableAdagioOptimization;
 
+	protected boolean enableSampleImages;
+
 	@PostConstruct
 	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
 	public void onConfigurationReady() {
 		this.enableSampleUniqueTag = configuration.enableSampleUniqueTag();
 		this.enableAdagioOptimization = configuration.enableAdagioOptimization();
+		this.enableSampleImages = configuration.enableDataImages();
 	}
 
 	@Override
@@ -161,7 +164,9 @@ public class SampleServiceImpl implements SampleService {
 		changes.forEach(this::saveMeasurements);
 
 		// Save images
-		changes.forEach(this::saveImageAttachments);
+		if (this.enableSampleImages) {
+			changes.forEach(this::saveImageAttachments);
+		}
 
 		return result;
 	}
@@ -194,7 +199,9 @@ public class SampleServiceImpl implements SampleService {
 		changes.forEach(this::saveMeasurements);
 
 		// Save images
-		changes.forEach(this::saveImageAttachments);
+		if (this.enableSampleImages) {
+			changes.forEach(this::saveImageAttachments);
+		}
 
 		return result;
 	}
@@ -301,9 +308,11 @@ public class SampleServiceImpl implements SampleService {
 			.forEach(image -> {
 				boolean exists = existingIdsToRemove.remove(image.getId());
 
-				// Skip image when already saved, and no content
+				// Update only, when images already exists, and no content changes
 				if (exists && image.getContent() == null) {
-					log.debug("Skipping save of an existing image (content not set)");
+					// Update comments only
+					log.debug("Update Image#{} comments", image.getId());
+					imageAttachmentRepository.updateComments(image.getId(), image.getComments());
 				}
 				else {
 					// Fill defaults
