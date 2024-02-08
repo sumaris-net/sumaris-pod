@@ -681,7 +681,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "sales", description = "Get trip's sales")
     public List<SaleVO> getSalesByTrip(@GraphQLContext TripVO trip) {
-        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-651)
         if (trip.getHasSales() == Boolean.FALSE) return null;
 
         if (trip.getSales() != null) return trip.getSales();
@@ -689,9 +689,19 @@ public class DataGraphQLService {
         return saleService.getAllByTripId(trip.getId(), null);
     }
 
+    @GraphQLQuery(name = "sales", description = "Get landing's sales")
+    public List<SaleVO> getSalesByLanding(@GraphQLContext LandingVO landing) {
+        // Optimization: avoid fetching sale when not need
+        if (landing.getHasSales() == Boolean.FALSE) return null;
+
+        if (landing.getSales() != null) return landing.getSales();
+        if (landing.getId() == null) return null;
+        return saleService.getAllByLandingId(landing.getId(), null);
+    }
+
     @GraphQLQuery(name = "sale", description = "Get trip's unique sale")
     public SaleVO getUniqueSaleByTrip(@GraphQLContext TripVO trip) {
-        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        // Optimization: avoid fetching sale when not need (fix #IMAGINE-651)
         if (trip.getHasSales() == Boolean.FALSE) return null;
 
         if (trip.getSale() != null) return trip.getSale();
@@ -704,7 +714,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "expectedSales", description = "Get trip's expected sales")
     public List<ExpectedSaleVO> getExpectedSalesByTrip(@GraphQLContext TripVO trip) {
-        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-651)
         if (trip.getHasExpectedSales() == Boolean.FALSE) return null;
 
         if (trip.getExpectedSales() != null) return trip.getExpectedSales();
@@ -714,7 +724,7 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "expectedSale", description = "Get trip's unique expected sale")
     public ExpectedSaleVO getUniqueExpectedSaleByTrip(@GraphQLContext TripVO trip) {
-        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-)
+        // Optimization: avoid fetching expected sale when not need (fix #IMAGINE-651)
         if (trip.getHasExpectedSales() == Boolean.FALSE) return null;
 
         if (trip.getExpectedSale() != null) return trip.getExpectedSale();
@@ -941,6 +951,8 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "samples", description = "Get landing's samples")
     public List<SampleVO> getSamplesByLanding(@GraphQLContext LandingVO landing,
                                               @GraphQLEnvironment ResolutionEnvironment env) {
+        if (landing.getHasSamples() == Boolean.FALSE) return null;
+
         // Avoid a reloading (e.g. when saving)
         if (landing.getSamples() != null) return landing.getSamples();
         if (landing.getId() == null) return null;
@@ -1894,6 +1906,7 @@ public class DataGraphQLService {
 
 
     protected LandingFetchOptions getLandingFetchOptions(Set<String> fields) {
+        boolean withSales = fields.contains(StringUtils.slashing(LandingVO.Fields.SALES, IEntity.Fields.ID));
         boolean withTrip = fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, IEntity.Fields.ID));
         boolean withTripSale = withTrip && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALE, IEntity.Fields.ID))
                 || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALES, IEntity.Fields.ID));
@@ -1907,12 +1920,13 @@ public class DataGraphQLService {
         sampleFetchOptions.setWithRecorderDepartment(false);
 
         return LandingFetchOptions.builder()
-                .withTrip(withTrip)
-                .withTripSales(withTripSale)
-                .withTripExpectedSales(withTripExpectedSale)
-                .withChildrenEntities(withChildrenEntities)
-                .sampleFetchOptions(sampleFetchOptions)
-                .build();
+            .withSales(withSales)
+            .withTrip(withTrip)
+            .withTripSales(withTripSale)
+            .withTripExpectedSales(withTripExpectedSale)
+            .withChildrenEntities(withChildrenEntities)
+            .sampleFetchOptions(sampleFetchOptions)
+            .build();
     }
 
     protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {

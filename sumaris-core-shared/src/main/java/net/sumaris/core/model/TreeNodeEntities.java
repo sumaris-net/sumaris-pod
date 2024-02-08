@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 public class TreeNodeEntities {
 
     public static <T extends ITreeNodeEntity<? extends Serializable, T>> List<T> treeAsList(T rootNode) {
-        return streamAll(rootNode).collect(Collectors.toList());
+        return streamAll(rootNode).toList();
     }
 
     /**

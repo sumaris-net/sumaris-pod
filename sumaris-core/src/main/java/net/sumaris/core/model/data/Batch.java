@@ -141,9 +141,5 @@ public class Batch implements IDataEntity<Integer>,
     @JoinColumn(name = "sale_fk")
     private Sale sale;
 
-    // TODO: add location (for fishing area - need for sale)
-    //@ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class)
-    //@JoinColumn(name = "location_fk")
-    //private Location location;
 
 }

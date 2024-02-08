@@ -28,14 +28,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sale.SaleRepository;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SaleMeasurement;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.SaleFilterVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,43 +55,43 @@ public class SaleServiceImpl implements SaleService {
 	protected final VesselSnapshotService vesselSnapshotService;
 
 	@Override
-	public List<SaleVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions) {
-		List<SaleVO> sales = saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
+	public List<SaleVO> getAllByTripId(int tripId, SaleFetchOptions fetchOptions) {
+		List<SaleVO> targets = saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
 
-		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
-			sales.forEach(sale -> {
-				if (sale.getVesselId() != null && sale.getVesselSnapshot() == null) {
-					VesselSnapshotVO vessel = vesselSnapshotService.getByIdAndDate(sale.getVesselId(), sale.getStartDateTime());
-					sale.setVesselSnapshot(vessel);
-				}
-			});
-		}
+		// Fill vessels
+		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) this.fillVesselSnapshots(targets);
 
-		return sales;
+		return targets;
+	}
+
+	@Override
+	public List<SaleVO> getAllByLandingId(int landingId, SaleFetchOptions fetchOptions) {
+		List<SaleVO> targets = saleRepository.findAll(SaleFilterVO.builder().landingId(landingId).build(), fetchOptions);
+
+		// Fill vessel snapshots
+		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) this.fillVesselSnapshots(targets);
+
+		return targets;
 	}
 
 	@Override
 	public SaleVO get(int saleId) {
-		return get(saleId, null);
+		return get(saleId, SaleFetchOptions.DEFAULT);
 	}
 
 	@Override
-	public SaleVO get(int saleId, DataFetchOptions fetchOptions) {
-		SaleVO sale = saleRepository.get(saleId, fetchOptions);
+	public SaleVO get(int saleId, SaleFetchOptions fetchOptions) {
+		SaleVO target = saleRepository.get(saleId, fetchOptions);
 
-		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
-			if (sale.getVesselId() != null && sale.getVesselSnapshot() == null) {
-				VesselSnapshotVO vessel = vesselSnapshotService.getByIdAndDate(sale.getVesselId(), sale.getStartDateTime());
-				sale.setVesselSnapshot(vessel);
-			}
-		}
+		// Fill vessel snapshot
+		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) fillVesselSnapshot(target);
 
-		return sale;
+		return target;
 	}
 
 	@Override
 	public int getProgramIdById(int id) {
-		return saleRepository.get(id, DataFetchOptions.MINIMAL).getProgram().getId();
+		return saleRepository.get(id, SaleFetchOptions.MINIMAL).getProgram().getId();
 	}
 
 	@Override
@@ -101,6 +100,18 @@ public class SaleServiceImpl implements SaleService {
 		sources.forEach(this::checkSale);
 
 		List<SaleVO> saved = saleRepository.saveAllByTripId(tripId, sources);
+
+		saved.forEach(this::saveChildrenEntities);
+
+		return saved;
+	}
+
+	@Override
+	public List<SaleVO> saveAllByLandingId(int landingId, List<SaleVO> sources) {
+		Preconditions.checkNotNull(sources);
+		sources.forEach(this::checkSale);
+
+		List<SaleVO> saved = saleRepository.saveAllByLandingId(landingId, sources);
 
 		saved.forEach(this::saveChildrenEntities);
 
@@ -138,6 +149,18 @@ public class SaleServiceImpl implements SaleService {
 		ids.stream()
 				.filter(Objects::nonNull)
 				.forEach(this::delete);
+	}
+
+	@Override
+	public void fillVesselSnapshot(SaleVO target) {
+		if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+			target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getVesselDateTime())));
+		}
+	}
+
+	@Override
+	public void fillVesselSnapshots(List<SaleVO> target) {
+		target.parallelStream().forEach(this::fillVesselSnapshot);
 	}
 
 	/* -- protected methods -- */

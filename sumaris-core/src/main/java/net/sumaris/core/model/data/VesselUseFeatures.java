@@ -42,7 +42,7 @@ import java.util.List;
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_use_features")
-public class VesselUseFeatures implements IDataEntity<Integer> {
+public class VesselUseFeatures implements IUseFeaturesEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_USE_FEATURE_SEQ")
@@ -100,10 +100,10 @@ public class VesselUseFeatures implements IDataEntity<Integer> {
     private Location basePortLocation;
 
     @OneToMany(mappedBy = VesselUseMeasurement.Fields.VESSEL_USE_FEATURES)
-    private List<VesselUseMeasurement> vesselUseMeasurements;
+    private List<VesselUseMeasurement> measurements;
 
     @OneToMany(mappedBy = VesselUseFeaturesOrigin.Fields.VESSEL_USE_FEATURES)
-    private List<VesselUseFeaturesOrigin> vesselUseFeaturesOrigins;
+    private List<VesselUseFeaturesOrigin> origins;
 
     @Transient
     private Department recorderDepartment; // Missing in DB, but expected by IDataEntity

@@ -59,6 +59,7 @@ public class SaleVO implements IRootDataVO<Integer>,
     private ProgramVO program;
 
     private Integer vesselId;
+    @ToString.Exclude
     private VesselSnapshotVO vesselSnapshot;
 
     private Date startDateTime;
@@ -67,11 +68,14 @@ public class SaleVO implements IRootDataVO<Integer>,
     private ReferentialVO saleType;
 
     private Set<PersonVO> observers;
-    private List<SampleVO> samples;
 
     @ToString.Exclude
     private TripVO trip;
     private Integer tripId;
+
+    @ToString.Exclude
+    private LandingVO landing;
+    private Integer landingId;
 
     private List<MeasurementVO> measurements; // sale_measurement
     private Map<Integer, String> measurementValues; // sale_measurement

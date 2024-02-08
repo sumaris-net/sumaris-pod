@@ -39,6 +39,7 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
 
     String TRIP_ID_PARAM = "tripId";
     String LOCATION_ID_PARAM = "locationId";
+    String LANDING_ID_PARAM = "landingId";
 
     default Specification<Sale> hasTripId(Integer tripId) {
         if (tripId == null) return null;
@@ -46,6 +47,14 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, TRIP_ID_PARAM);
             return cb.equal(root.get(Sale.Fields.TRIP).get(IEntity.Fields.ID), param);
         }).addBind(TRIP_ID_PARAM, tripId);
+    }
+
+    default Specification<Sale> hasLandingId(Integer landingId) {
+        if (landingId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, LANDING_ID_PARAM);
+            return cb.equal(root.get(Sale.Fields.LANDING).get(IEntity.Fields.ID), param);
+        }).addBind(LANDING_ID_PARAM, landingId);
     }
 
     default Specification<Sale> hasSaleLocation(Integer locationId) {
@@ -57,5 +66,7 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
     }
 
     List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sales);
+
+    List<SaleVO> saveAllByLandingId(int landingId, List<SaleVO> sales);
 
 }

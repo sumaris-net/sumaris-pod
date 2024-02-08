@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.ObservedLocation;
-import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.ObservedLocationFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;

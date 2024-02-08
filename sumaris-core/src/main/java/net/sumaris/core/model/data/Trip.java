@@ -53,7 +53,8 @@ import java.util.*;
 public class Trip implements IRootDataEntity<Integer>,
         IWithObserversEntity<Integer, Person>,
         IWithVesselEntity<Integer, Vessel>,
-        IWithGearsEntity<Integer, PhysicalGear> {
+        IWithGearsEntity<Integer, PhysicalGear>,
+        IWithSalesEntity<Integer, Sale> {
 
     static {
         I18n.n("sumaris.persistence.table.trip");

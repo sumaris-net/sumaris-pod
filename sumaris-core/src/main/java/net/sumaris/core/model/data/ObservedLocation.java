@@ -129,10 +129,6 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.OBSERVED_LOCATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<Sale> sales = new ArrayList<>();
-
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.Fields.OBSERVED_LOCATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Landing> landings = new ArrayList<>();

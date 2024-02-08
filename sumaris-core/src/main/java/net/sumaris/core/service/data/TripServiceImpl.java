@@ -129,14 +129,13 @@ public class TripServiceImpl implements TripService {
 
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
-
             DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
-
             if (fetchOptions.isWithGears()) {
                 target.setGears(physicalGearService.getAllByTripId(id, childrenFetchOptions));
             }
             if (fetchOptions.isWithSales()) {
-                target.setSales(saleService.getAllByTripId(id, childrenFetchOptions));
+                SaleFetchOptions saleFetchOptions = SaleFetchOptions.copy(fetchOptions);
+                target.setSales(saleService.getAllByTripId(id, saleFetchOptions));
             }
             if (fetchOptions.isWithExpectedSales()) {
               target.setExpectedSales(expectedSaleService.getAllByTripId(id));
@@ -153,16 +152,9 @@ public class TripServiceImpl implements TripService {
 
             // Operations
             else {
-                OperationFetchOptions operationFetchOptions = OperationFetchOptions.builder()
-                    .withChildrenEntities(true)
-                    .withMeasurementValues(fetchOptions.isWithMeasurementValues())
-                    .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                    .withRecorderPerson(fetchOptions.isWithRecorderPerson())
-                    .build();
-
+                OperationFetchOptions operationFetchOptions = OperationFetchOptions.copy(fetchOptions);
                 target.setOperations(operationService.findAllByTripId(id, operationFetchOptions));
             }
-
         }
 
         // Measurements

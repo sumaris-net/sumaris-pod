@@ -37,6 +37,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
@@ -75,6 +76,8 @@ public class LandingServiceImpl implements LandingService {
     protected final MeasurementDao measurementDao;
 
     protected final SampleService sampleService;
+
+    protected final SaleService saleService;
 
     protected final OperationGroupService operationGroupService;
 
@@ -134,7 +137,7 @@ public class LandingServiceImpl implements LandingService {
                 TripVO trip = tripService.get(target.getTripId(), tripFetchOptions);
                 target.setTrip(trip);
 
-                // Optimization: avoid fetching expected sale (fix #IMAGINE-651)
+                // Optimization: avoid fetching sale and expected sale (fix #IMAGINE-651)
                 trip.setHasSales(false);
                 trip.setHasExpectedSales(false);
 
@@ -424,6 +427,14 @@ public class LandingServiceImpl implements LandingService {
             source.setSamples(samples);
         }
 
+        // Save sales
+        if (source.getSales() != null) {
+            source.getSales().forEach((SaleVO sale) -> fillDefaultProperties(source, sale));
+            source.setSales(saleService.saveAllByLandingId(source.getId(), source.getSales()));
+        }
+        else {
+            source.setHasSales(false);
+        }
     }
 
     protected void checkCanSave(final LandingVO source) {
@@ -480,6 +491,32 @@ public class LandingServiceImpl implements LandingService {
         if (trip.getVesselSnapshot() == null) {
             trip.setVesselSnapshot(parent.getVesselSnapshot());
         }
+        if (trip.getVesselId() == null) {
+            trip.setVesselId(parent.getVesselId());
+        }
+    }
+
+    protected void fillDefaultProperties(LandingVO parent, SaleVO sale) {
+        if (sale == null) return;
+
+        // Copy recorder department from the parent
+        DataBeans.setDefaultRecorderDepartment(sale, parent.getRecorderDepartment());
+        DataBeans.setDefaultRecorderPerson(sale, parent.getRecorderPerson());
+
+        if (sale.getProgram() == null) {
+            sale.setProgram(parent.getProgram());
+        }
+        if (sale.getVesselSnapshot() == null) {
+            sale.setVesselSnapshot(parent.getVesselSnapshot());
+        }
+        if (sale.getVesselId() == null) {
+            sale.setVesselId(parent.getVesselId());
+        }
+        if (sale.getSaleLocation() == null) {
+            sale.setSaleLocation(parent.getLocation());
+        }
+
+        sale.setLandingId(parent.getId());
     }
 
     /**

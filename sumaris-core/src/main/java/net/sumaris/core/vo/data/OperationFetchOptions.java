@@ -48,6 +48,9 @@ public class OperationFetchOptions implements IDataFetchOptions {
     public static OperationFetchOptions clone(OperationFetchOptions options) {
         return options != null ? options.clone() : new OperationFetchOptions();
     }
+    public static OperationFetchOptions copy(IDataFetchOptions source) {
+        return DataFetchOptions.copy(source, OperationFetchOptions.builder().build());
+    }
 
     @Builder.Default
     private boolean withRecorderDepartment = true;

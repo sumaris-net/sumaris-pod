@@ -1,10 +1,8 @@
-package net.sumaris.core.vo.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,6 +20,8 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
+package net.sumaris.core.vo.data;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,34 +32,37 @@ import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class LandingFetchOptions implements IDataFetchOptions {
+public class SaleFetchOptions implements IDataFetchOptions {
 
-    public static final LandingFetchOptions DEFAULT = LandingFetchOptions.builder().build();
+    public static final SaleFetchOptions DEFAULT = SaleFetchOptions.builder().build();
 
-    public static final LandingFetchOptions MINIMAL = LandingFetchOptions.builder()
+    public static final SaleFetchOptions MINIMAL = SaleFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withVesselSnapshot(false)
         .build();
 
-    public static final LandingFetchOptions FULL_GRAPH = LandingFetchOptions.builder()
+    public static final SaleFetchOptions FULL_GRAPH = SaleFetchOptions.builder()
+        .withRecorderDepartment(true)
+        .withRecorderPerson(true)
+        .withVesselSnapshot(true)
         .withChildrenEntities(true)
         .withMeasurementValues(true)
-        .withSales(true)
-        .withTrip(true)
-        .withTripSales(true)
-        .withTripExpectedSales(true)
-        .sampleFetchOptions(SampleFetchOptions.FULL_GRAPH)
+        .withProducts(true)
         .build();
 
-    @Builder.Default
-    private boolean withVesselSnapshot = true;
+    public static SaleFetchOptions copy(IDataFetchOptions source) {
+        return DataFetchOptions.copy(source, SaleFetchOptions.builder().build());
+    }
 
     @Builder.Default
-    private boolean withRecorderDepartment = true;
+    private boolean withVesselSnapshot = false;
 
     @Builder.Default
-    private boolean withRecorderPerson = true;
+    private boolean withRecorderDepartment = false;
+
+    @Builder.Default
+    private boolean withRecorderPerson = false;
 
     @Builder.Default
     private boolean withChildrenEntities = false; // Important: should be disabled by default (see TripService or LandingService)
@@ -68,17 +71,5 @@ public class LandingFetchOptions implements IDataFetchOptions {
     private boolean withMeasurementValues = false;
 
     @Builder.Default
-    private boolean withSales = false;
-
-    @Builder.Default
-    private boolean withTrip = false;
-
-    @Builder.Default
-    private boolean withTripSales = false;
-
-    @Builder.Default
-    private boolean withTripExpectedSales = false;
-
-    @Builder.Default
-    private SampleFetchOptions sampleFetchOptions = null;
+    private boolean withProducts = false;
 }

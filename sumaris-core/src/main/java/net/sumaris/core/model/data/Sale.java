@@ -152,9 +152,4 @@ public class Sale implements IRootDataEntity<Integer>,
     @JoinColumn(name = "landing_fk")
     @ToString.Exclude
     private Landing landing;
-
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObservedLocation.class)
-    @JoinColumn(name = "observed_location_fk")
-    @ToString.Exclude
-    private ObservedLocation observedLocation;
 }

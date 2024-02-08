@@ -45,7 +45,6 @@ public interface ExpectedSaleSpecifications {
             return cb.equal(root.get(ExpectedSale.Fields.TRIP).get(IEntity.Fields.ID), param);
         }).addBind(TRIP_ID_PARAM, tripId);
     }
-
     List<ExpectedSaleVO> getAllByTripId(int tripId);
 
     List<ExpectedSaleVO> saveAllByTripId(int tripId, List<ExpectedSaleVO> sales);

@@ -50,6 +50,7 @@ public class SaleFilterVO implements IRootDataFilter {
 
     // Parent
     private Integer tripId;
+    private Integer landingId;
     private Integer[] programIds;
 
     // Quality

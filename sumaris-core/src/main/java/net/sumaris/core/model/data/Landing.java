@@ -54,10 +54,11 @@ import java.util.Set;
     }
 )
 public class Landing implements IRootDataEntity<Integer>,
-        IWithObserversEntity<Integer, Person>,
-        IWithVesselEntity<Integer, Vessel>,
-        IWithSamplesEntity<Integer, Sample>,
-        IWithProductsEntity<Integer, Product> {
+    IWithObserversEntity<Integer, Person>,
+    IWithVesselEntity<Integer, Vessel>,
+    IWithSamplesEntity<Integer, Sample>,
+    IWithProductsEntity<Integer, Product>,
+    IWithSalesEntity<Integer, Sale> {
 
     public static final String GRAPH_LOCATION_AND_PROGRAM = "Landing.locationAndProgram";
 
