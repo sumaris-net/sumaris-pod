@@ -69,6 +69,7 @@ public class ObservedLocationRepositoryImpl
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(hasLandingVesselIds(filter.getVesselIds()))
             ;
     }
 

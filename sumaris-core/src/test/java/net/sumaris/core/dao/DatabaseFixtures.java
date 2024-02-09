@@ -74,6 +74,10 @@ public class DatabaseFixtures {
 		};
 	}
 
+	public Integer getScientificVesselId() {
+		return 4;
+	}
+
 	public String getVesselRegistrationCode(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

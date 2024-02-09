@@ -50,6 +50,7 @@ public class ObservedLocationFilterVO implements IRootDataFilter {
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
     private Integer[] observerPersonIds;
+    private Integer[] vesselIds;
 
     private Integer[] programIds;
 

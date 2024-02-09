@@ -52,6 +52,7 @@ public class TripFilterVO implements IRootDataFilter, IVesselFilter {
     private Integer[] observerPersonIds;
 
     private Integer vesselId;
+    private Integer[] vesselIds;
     private Integer locationId;
     private Integer[] locationIds;
 

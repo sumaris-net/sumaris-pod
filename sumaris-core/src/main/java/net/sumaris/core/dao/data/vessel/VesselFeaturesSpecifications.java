@@ -130,7 +130,7 @@ public interface VesselFeaturesSpecifications<
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, VESSEL_TYPE_IDS_PARAM);
                 return cb.in(Daos.composePath(root, StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_TYPE, VesselType.Fields.ID), JoinType.INNER)).value(param);
             })
-            .addBind(VESSEL_TYPE_IDS_PARAM, ImmutableList.copyOf(vesselTypeIds));
+            .addBind(VESSEL_TYPE_IDS_PARAM, Arrays.asList(vesselTypeIds));
     }
 
     default Specification<VesselFeatures> statusIds(List<Integer> statusIds) {
@@ -164,7 +164,7 @@ public interface VesselFeaturesSpecifications<
                         StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.PROGRAM, Program.Fields.ID)))
                     .value(param);
             })
-            .addBind(PROGRAM_IDS_PARAM, ImmutableList.copyOf(programIds));
+            .addBind(PROGRAM_IDS_PARAM, Arrays.asList(programIds));
     }
 
     default Specification<VesselFeatures> betweenFeaturesDate(Date startDate, Date endDate) {

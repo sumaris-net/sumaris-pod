@@ -49,6 +49,8 @@ public interface OperationSpecifications
 
     String TRIP_ID_PARAM = "tripId";
     String VESSEL_ID_PARAM = "vesselId";
+
+    String VESSEL_IDS_PARAM = "vesselIds";
     String PROGRAM_LABEL_PARAM = "programLabel";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
@@ -108,6 +110,17 @@ public interface OperationSpecifications
                     param);
             })
             .addBind(VESSEL_ID_PARAM, vesselId);
+    }
+
+    default Specification<Operation> hasVesselIds(Integer... vesselIds) {
+        if (ArrayUtils.isEmpty(vesselIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, VESSEL_IDS_PARAM);
+                return cb.in(
+                    Daos.composePath(root, StringUtils.doting(Operation.Fields.TRIP, Trip.Fields.VESSEL, Vessel.Fields.ID)))
+                        .value(param);
+            })
+            .addBind(VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
     }
 
     default Specification<Operation> excludeChildOperation(Boolean excludeChildOperation) {

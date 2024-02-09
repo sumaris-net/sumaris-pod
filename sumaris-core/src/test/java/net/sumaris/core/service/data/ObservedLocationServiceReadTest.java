@@ -109,6 +109,20 @@ public class ObservedLocationServiceReadTest extends AbstractServiceTest{
             0);
     }
 
+    @Test
+    public void findByFilterWithVesselIds() {
+
+        assertFindAll(ObservedLocationFilterVO.builder()
+                .vesselIds(new Integer[]{fixtures.getVesselId(0)})
+                .build(),
+            4);
+
+        assertFindAll(ObservedLocationFilterVO.builder()
+                .vesselIds(new Integer[]{fixtures.getVesselId(1)})
+                .build(),
+            1);
+    }
+
     /* -- protected -- */
 
     protected List<ObservedLocationVO> assertFindAll(@NonNull ObservedLocationFilterVO filter, int expectedSize) {

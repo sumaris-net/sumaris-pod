@@ -22,12 +22,19 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.landing.LandingRepository;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.LandingFetchOptions;
 import net.sumaris.core.vo.data.LandingVO;
+import net.sumaris.core.vo.data.OperationFetchOptions;
+import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.filter.LandingFilterVO;
+import net.sumaris.core.vo.filter.OperationFilterVO;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -77,5 +84,22 @@ public class LandingRepositoryReadTest extends AbstractDaoTest {
 
     }
 
+    @Test
+    public void findAllWithVesselIds() {
+        assertFindAll(LandingFilterVO.builder()
+            .vesselIds(new Integer[]{fixtures.getVesselId(1)})
+            .build(), 1);
 
+        assertFindAll(LandingFilterVO.builder()
+            .vesselIds(new Integer[]{fixtures.getScientificVesselId()})
+            .build(), 0);
+    }
+
+    protected List<LandingVO> assertFindAll(@NonNull LandingFilterVO filter, int expectedSize) {
+        List<LandingVO> vos = repository.findAll(filter, 0, 100, OperationVO.Fields.ID, SortDirection.ASC,
+            LandingFetchOptions.DEFAULT);
+        Assert.assertNotNull(vos);
+        Assert.assertEquals(expectedSize, vos.size());
+        return vos;
+    }
 }
