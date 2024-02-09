@@ -120,4 +120,12 @@ public class PmfmStrategy implements IEntity<Integer> {
                     @JoinColumn(name = "reference_taxon_fk", nullable = false, updatable = false) })
     private Set<ReferenceTaxon> referenceTaxons = Sets.newHashSet();
 
+    /*@ManyToMany()
+    @JoinTable(name = "PMFM_STRAT_PMFM_QUAL_VALUE",
+        joinColumns = @JoinColumn(name = "PMFM_STRAT_ID"),
+        foreignKey = @ForeignKey(value = ConstraintMode.PROVIDER_DEFAULT, name = "FK_PMFM_S_PMFM_Q_V_PMFM_S"),
+        inverseJoinColumns = {@JoinColumn(name = "PMFM_ID"), @JoinColumn(name = "QUAL_VALUE_ID")},
+        inverseForeignKey = @ForeignKey(value = ConstraintMode.PROVIDER_DEFAULT, name = "FK_PMFM_S_PMFM_Q_V_PMFM_Q_V")
+    )
+    private List<Pmfm2QualitativeValue> pmfmuQualitativeValues = new ArrayList<>();*/
 }
