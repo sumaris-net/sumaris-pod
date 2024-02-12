@@ -23,14 +23,15 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import com.google.common.collect.Sets;
-import lombok.*;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.pmfm.Parameter;
+import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
@@ -39,17 +40,24 @@ import java.util.Set;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "pmfm_strategy")
+@NamedEntityGraph(
+    name = PmfmStrategy.GRAPH_PMFM,
+    attributeNodes = {
+        @NamedAttributeNode(PmfmStrategy.Fields.PMFM)
+    }
+)
 public class PmfmStrategy implements IEntity<Integer> {
+
+
+    public static final String GRAPH_PMFM = "PmfmStrategy.pmfm";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PMFM_STRATEGY_SEQ")
     @SequenceGenerator(name = "PMFM_STRATEGY_SEQ", sequenceName="PMFM_STRATEGY_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -99,21 +107,21 @@ public class PmfmStrategy implements IEntity<Integer> {
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
     private AcquisitionLevel acquisitionLevel;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(name = "pmfm_strategy2gear", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(name = "pmfm_strategy2taxon_group", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "taxon_group_fk", nullable = false, updatable = false) })
     private Set<TaxonGroup> taxonGroups = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(name = "pmfm_strategy2reference_taxon", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {

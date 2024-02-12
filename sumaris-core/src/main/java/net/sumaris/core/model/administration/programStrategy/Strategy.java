@@ -95,27 +95,23 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = AppliedStrategy.class, mappedBy = AppliedStrategy.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AppliedStrategy> appliedStrategies = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.Fields.STRATEGY)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = PmfmStrategy.class, mappedBy = PmfmStrategy.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PmfmStrategy> pmfms = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyDepartment.class, mappedBy = StrategyDepartment.Fields.STRATEGY)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyDepartment.class, mappedBy = StrategyDepartment.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<StrategyDepartment> departments = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(name = "strategy2gear", joinColumns = {
             @JoinColumn(name = "strategy_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.Fields.STRATEGY)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ReferenceTaxonStrategy> referenceTaxons = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.STRATEGY)

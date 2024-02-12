@@ -43,11 +43,18 @@ import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.Subgraph;
+import javax.persistence.TypedQuery;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -73,13 +80,15 @@ public class DenormalizedPmfmStrategyRepositoryImpl
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER)
     public List<DenormalizedPmfmStrategyVO> findByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
-        return findAll(toSpecification(filter),
-                Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
-        )
-                .stream()
-                .flatMap(entity -> toVOs(entity, fetchOptions))
-                //.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
-                .collect(Collectors.toList());
+        Specification<PmfmStrategy> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
+        TypedQuery<PmfmStrategy> query = getQuery(spec, Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER));
+
+        // Add hints
+        configureQuery(query, fetchOptions);
+
+        try (Stream<PmfmStrategy> stream = streamQuery(query)) {
+            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+        }
     }
 
     @Override
@@ -216,5 +225,22 @@ public class DenormalizedPmfmStrategyRepositoryImpl
                 .build();
         return pmfmRepository.streamAllByParts(filter)
                 .map(pmfm -> toVO(source, pmfm, fetchOptions));
+    }
+
+
+    protected void configureQuery(TypedQuery<PmfmStrategy> query, @Nullable PmfmStrategyFetchOptions fetchOptions) {
+        // Prepare load graph
+        EntityManager em = getEntityManager();
+        EntityGraph<?> entityGraph = em.getEntityGraph(PmfmStrategy.GRAPH_PMFM);
+
+        // Fetch Pmfm, and all sub parts
+        Subgraph<Pmfm> pmfmSubGraph = entityGraph.addSubgraph(PmfmStrategy.Fields.PMFM);
+        pmfmSubGraph.addSubgraph(Pmfm.Fields.PARAMETER);
+        pmfmSubGraph.addSubgraph(Pmfm.Fields.MATRIX);
+        pmfmSubGraph.addSubgraph(Pmfm.Fields.FRACTION);
+        pmfmSubGraph.addSubgraph(Pmfm.Fields.METHOD);
+        pmfmSubGraph.addSubgraph(Pmfm.Fields.UNIT);
+
+        query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
     }
 }
