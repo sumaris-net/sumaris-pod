@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -66,30 +67,30 @@ public class ConfigurationGraphQLService {
 
     public static final String JSON_START_SUFFIX = "{";
 
-    @Autowired
+    @Resource
     private SumarisServerConfiguration configuration;
 
-    @Autowired
+    @Resource
     private SoftwareService softwareService;
 
-    @Autowired
+    @Resource
     private ConfigurationService configurationService;
 
-    @Autowired
+    @Resource
     private DepartmentService departmentService;
 
-    @Autowired
+    @Resource
     private ObjectMapper objectMapper;
 
-    @Autowired
+    @Resource
     private ImageService imageService;
 
-    @Autowired
+    @Resource
     private AuthService authService;
 
     @GraphQLQuery(name = "configuration", description = "Load pod configuration")
     public ConfigurationVO getConfiguration(
-        @GraphQLArgument(name = "inherited", defaultValue = "false", description = "Should included all enumerations values in properties ?") boolean withInherited,
+        @GraphQLArgument(name = "inherited", defaultValue = "true", description = "Should included all enumerations values in properties ?") boolean withInherited,
         @GraphQLEnvironment Set<String> fields
     ) {
         SoftwareVO software = configurationService.getCurrentSoftware();
