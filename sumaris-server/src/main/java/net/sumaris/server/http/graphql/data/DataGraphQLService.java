@@ -423,7 +423,8 @@ public class DataGraphQLService {
                                                   @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                                   @GraphQLEnvironment ResolutionEnvironment env) {
         Preconditions.checkNotNull(filter, "Missing filter");
-        Preconditions.checkArgument(filter.getVesselId() != null || filter.getParentGearId() != null, "Missing 'filter.vesselId' or 'filter.parentGearId'");
+        Preconditions.checkArgument(filter.getVesselId() != null || filter.getParentGearId() != null
+            || ArrayUtils.isNotEmpty(filter.getVesselIds()), "Missing 'filter.vesselId', 'filter.vesselIds' or 'filter.parentGearId'");
         Page page = Page.builder().offset(offset)
                 .size(size)
                 .sortBy(sort)
