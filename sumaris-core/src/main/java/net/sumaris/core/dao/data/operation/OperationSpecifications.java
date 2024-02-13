@@ -32,6 +32,7 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -48,9 +49,6 @@ public interface OperationSpecifications
     extends IDataSpecifications<Integer, Operation> {
 
     String TRIP_ID_PARAM = "tripId";
-    String VESSEL_ID_PARAM = "vesselId";
-
-    String VESSEL_IDS_PARAM = "vesselIds";
     String PROGRAM_LABEL_PARAM = "programLabel";
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
@@ -104,23 +102,23 @@ public interface OperationSpecifications
     default Specification<Operation> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
+                ParameterExpression<Integer> param = cb.parameter(Integer.class, OperationFilterVO.Fields.VESSEL_ID);
                 return cb.equal(
                     Daos.composePath(root, StringUtils.doting(Operation.Fields.TRIP, Trip.Fields.VESSEL, Vessel.Fields.ID)),
                     param);
             })
-            .addBind(VESSEL_ID_PARAM, vesselId);
+            .addBind(OperationFilterVO.Fields.VESSEL_ID, vesselId);
     }
 
     default Specification<Operation> hasVesselIds(Integer... vesselIds) {
         if (ArrayUtils.isEmpty(vesselIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<Collection> param = cb.parameter(Collection.class, VESSEL_IDS_PARAM);
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, OperationFilterVO.Fields.VESSEL_IDS);
                 return cb.in(
                     Daos.composePath(root, StringUtils.doting(Operation.Fields.TRIP, Trip.Fields.VESSEL, Vessel.Fields.ID)))
                         .value(param);
             })
-            .addBind(VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
+            .addBind(OperationFilterVO.Fields.VESSEL_IDS, Arrays.asList(vesselIds));
     }
 
     default Specification<Operation> excludeChildOperation(Boolean excludeChildOperation) {

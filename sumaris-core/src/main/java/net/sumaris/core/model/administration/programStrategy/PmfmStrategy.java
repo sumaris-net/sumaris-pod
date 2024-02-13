@@ -30,6 +30,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.Parameter;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
@@ -109,21 +110,34 @@ public class PmfmStrategy implements IEntity<Integer> {
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(name = "pmfm_strategy2gear", joinColumns = {
-            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
-            inverseJoinColumns = {
+            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
+                foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade"))
+        },
+        inverseJoinColumns = {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
+
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JoinTable(name = "pmfm_strategy2metier", joinColumns = {
+        @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
+            foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade")) },
+        inverseJoinColumns = {
+            @JoinColumn(name = "metier_fk", nullable = false, updatable = false) })
+    private Set<Metier> metiers = Sets.newHashSet();
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(name = "pmfm_strategy2taxon_group", joinColumns = {
-            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
+            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
+                foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade")) },
             inverseJoinColumns = {
                     @JoinColumn(name = "taxon_group_fk", nullable = false, updatable = false) })
     private Set<TaxonGroup> taxonGroups = Sets.newHashSet();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JoinTable(name = "pmfm_strategy2reference_taxon", joinColumns = {
-            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false) },
+            @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
+                foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade")) },
             inverseJoinColumns = {
                     @JoinColumn(name = "reference_taxon_fk", nullable = false, updatable = false) })
     private Set<ReferenceTaxon> referenceTaxons = Sets.newHashSet();

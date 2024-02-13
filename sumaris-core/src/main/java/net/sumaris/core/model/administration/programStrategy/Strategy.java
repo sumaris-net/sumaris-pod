@@ -59,7 +59,6 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")
     @SequenceGenerator(name = "STRATEGY_SEQ", sequenceName="STRATEGY_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -80,7 +79,6 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     private String label;
 
     @Column(nullable = false, length = 100)
-    
     private String name;
 
     private String description;

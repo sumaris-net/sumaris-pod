@@ -619,7 +619,9 @@ public class ProgramRepositoryImpl
 
                 target.setPerson(personRepository.get(item.getPerson().getId()));
                 target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
-
+                if (item.getReferencePerson() != null) {
+                    target.setReferencePerson(personRepository.get(item.getReferencePerson().getId()));
+                }
                 return target;
             })
             .collect(Collectors.toList());
@@ -702,6 +704,16 @@ public class ProgramRepositoryImpl
                 target.setPrivilege(null);
             } else {
                 target.setPrivilege(getReference(ProgramPrivilege.class, privilegeId));
+            }
+        }
+
+        // Reference Person
+        Integer referencePersonId = source.getReferencePerson() != null ? source.getReferencePerson().getId() : null;
+        if (copyIfNull || referencePersonId != null) {
+            if (personId == null) {
+                target.setReferencePerson(null);
+            } else {
+                target.setReferencePerson(getReference(Person.class, referencePersonId));
             }
         }
     }

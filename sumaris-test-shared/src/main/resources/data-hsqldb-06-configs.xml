@@ -145,7 +145,7 @@
     <SOFTWARE_PROPERTY ID="172" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.batch.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="173" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.physicalGear.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="174" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.sample.hashOptimization" NAME="true"/>
-
+    <SOFTWARE_PROPERTY ID="175" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-13" LABEL="sumaris.social.notification.icons.enable" NAME="true"/>
 
 
 </dataset>
