@@ -79,6 +79,7 @@ public class ActivityCalendarRepositoryImpl
             .and(hasLocationId(filter.getLocationId()))
             .and(hasLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
+            .and(hasVesselIds(filter.getVesselIds()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))

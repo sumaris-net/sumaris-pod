@@ -1206,14 +1206,14 @@ public class DataGraphQLService {
 
     /* -- Activity calendar -- */
 
-    @GraphQLQuery(name = "activityCalendars", description = "Search in observed locations")
+    @GraphQLQuery(name = "activityCalendars", description = "Search in activity calendars")
     @Transactional(readOnly = true)
     @IsUser
     public List<ActivityCalendarVO> findActivityCalendars(@GraphQLArgument(name = "filter") ActivityCalendarFilterVO filter,
                                                           @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
                                                           @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
                                                           @GraphQLArgument(name = "sortBy", defaultValue = ActivityCalendarVO.Fields.YEAR) String sort,
-                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                                          @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
                                                           @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                                           @GraphQLEnvironment ResolutionEnvironment env
     ) {
