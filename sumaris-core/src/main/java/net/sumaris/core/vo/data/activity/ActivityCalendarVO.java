@@ -47,6 +47,8 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
 
     private Integer id;
     private Integer year;
+    private Integer[] registrationLocationIds;
+    private Integer[] basePortLocationIds;
     private Boolean directSurveyInvestigation;
     private String comments;
 

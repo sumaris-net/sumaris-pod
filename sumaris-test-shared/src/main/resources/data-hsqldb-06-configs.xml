@@ -130,6 +130,7 @@
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
     <!-- ****** OBSMER properties ****** -->
+    <SOFTWARE_PROPERTY ID="159" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-15" LABEL="sumaris.activityCalendar.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="162" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="true"/>
@@ -146,6 +147,7 @@
     <SOFTWARE_PROPERTY ID="173" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.physicalGear.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="174" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.sample.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="175" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-13" LABEL="sumaris.social.notification.icons.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="176" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-13" LABEL="sumaris.referential.vessel.registration.location.level.ids" NAME="1,8"/>
 
 
 </dataset>

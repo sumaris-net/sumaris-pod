@@ -29,7 +29,9 @@ import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -40,9 +42,6 @@ import java.util.Date;
 
 public interface ActivityCalendarSpecifications extends RootDataSpecifications<ActivityCalendar>,
     IWithVesselSpecifications<Integer, ActivityCalendar> {
-
-    String LOCATION_ID_PARAM = "locationId";
-    String LOCATION_IDS_PARAM = "locationIds";
 
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
@@ -63,26 +62,26 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
         return composeVfJoin(vessel, cb, firstDayOfYear);
     }
 
-    default Specification<ActivityCalendar> hasLocationId(Integer locationId) {
-        if (locationId == null) return null;
+    default Specification<ActivityCalendar> hasRegistrationLocationIds(Integer[] locationIds) {
+        if (ArrayUtils.isEmpty(locationIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
             query.distinct(true);
-            Join<ActivityCalendar, VesselUseFeatures> vuf = Daos.composeJoinList(root, ActivityCalendar.Fields.VESSEL_USE_FEATURES, JoinType.INNER);
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, LOCATION_ID_PARAM);
-            // TODO use LocationHierarchy
-            return cb.equal(vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID), param);
-        }).addBind(LOCATION_ID_PARAM, locationId);
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.REGISTRATION_LOCATION_IDS);
+            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
+            Join<VesselRegistrationPeriod, Location> registrationLocation = Daos.composeJoin(vrp, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION);
+            return cb.in(registrationLocation.get(IEntity.Fields.ID)).value(param);
+        }).addBind(ActivityCalendarFilterVO.Fields.REGISTRATION_LOCATION_IDS, Arrays.asList(locationIds));
     }
 
-    default Specification<ActivityCalendar> hasLocationIds(Integer[] locationIds) {
+    default Specification<ActivityCalendar> hasBasePortLocationIds(Integer[] locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
             query.distinct(true);
             Join<ActivityCalendar, VesselUseFeatures> vuf = Daos.composeJoinList(root, ActivityCalendar.Fields.VESSEL_USE_FEATURES, JoinType.INNER);
-            ParameterExpression<Collection> param = cb.parameter(Collection.class, LOCATION_IDS_PARAM);
-            // TODO use LocationHierarchy
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS);
+            // TODO use LocationHierarchy ?
             return cb.in(vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID)).value(param);
-        }).addBind(LOCATION_IDS_PARAM, Arrays.asList(locationIds));
+        }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds));
     }
 
     default Specification<ActivityCalendar> betweenDate(Date startDate, Date endDate) {
