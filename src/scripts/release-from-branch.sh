@@ -78,7 +78,7 @@ cd ${PROJECT_DIR}
 git commit -a -m "Release $version\n$release_description" && git status
 git checkout "${branch}"
 [[ $? -ne 0 ]] && exit 1
-git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}"
+git merge --no-ff --no-edit -m "[skip ci] Release ${version}" "release/${version}"
 [[ $? -ne 0 ]] && exit 1
 git tag -a "${version}" -m "${version}"
 [[ $? -ne 0 ]] && exit 1
