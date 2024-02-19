@@ -23,5 +23,5 @@
 <query type="select">
   <select alias="VESSEL_NAME" type="text">VF.NAME</select>
 
-  <groupby>VESSEL_NAME</groupby>
+  <groupby>VF.NAME</groupby>
 </query>
