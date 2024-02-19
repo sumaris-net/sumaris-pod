@@ -49,8 +49,7 @@ mvn versions:set -DnewVersion=$version && mvn versions:commit
 [[ $? -ne 0 ]] && exit 1
 echo "---- Prepare release [OK]"
 echo ""
-
-git branch -f "release/$version"
+git checkout -B "release/$version"
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Performing release..."
@@ -77,10 +76,15 @@ echo ""
 echo "---- Push changes to branch..."
 cd ${PROJECT_DIR}
 git commit -a -m "Release $version\n$release_description" && git status
-git tag -a "${version}" -m "${version}"
-git push origin ${branch}
+git checkout "${branch}"
 [[ $? -ne 0 ]] && exit 1
-git push origin refs/tags/${version}
+git merge --no-ff --no-edit -m "[skip ci] Release ${version}" "release/${version}"
+[[ $? -ne 0 ]] && exit 1
+git tag -a "${version}" -m "${version}"
+[[ $? -ne 0 ]] && exit 1
+git push origin "${branch}"
+[[ $? -ne 0 ]] && exit 1
+git push origin "refs/tags/${version}"
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Push changes to branch [OK]"
