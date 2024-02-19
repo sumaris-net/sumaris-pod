@@ -32,6 +32,9 @@
 
   <select alias="MEASURE_TYPE" type="text">B.PARAMETER_NAME</select>
 
+  <!-- This hidden column is required to distinguish individuals, when same lengthClass BUT different PMFM values (see issue #521 - SFA LOGBOOK-LOBSTER)-->
+  <select alias="MEASURE_ID" type="hidden">B.ID</select>
+
   <from join="true" group="pmfms">INNER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = B.ID</from>
   <from join="true" group="pmfms">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID = SM.QUALITATIVE_VALUE_FK</from>
 
