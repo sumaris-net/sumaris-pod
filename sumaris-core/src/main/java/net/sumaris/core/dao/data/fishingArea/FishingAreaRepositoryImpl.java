@@ -28,7 +28,6 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.model.data.GearUseFeatures;
 import net.sumaris.core.model.data.Operation;

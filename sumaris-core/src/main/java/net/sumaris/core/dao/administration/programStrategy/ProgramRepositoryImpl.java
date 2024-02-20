@@ -710,7 +710,7 @@ public class ProgramRepositoryImpl
         // Reference Person
         Integer referencePersonId = source.getReferencePerson() != null ? source.getReferencePerson().getId() : null;
         if (copyIfNull || referencePersonId != null) {
-            if (personId == null) {
+            if (referencePersonId == null) {
                 target.setReferencePerson(null);
             } else {
                 target.setReferencePerson(getReference(Person.class, referencePersonId));
