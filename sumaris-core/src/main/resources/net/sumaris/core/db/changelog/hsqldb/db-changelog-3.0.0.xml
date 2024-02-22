@@ -1027,6 +1027,32 @@
     </sql>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-200">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="pmfm_strategy2metier"/>
+      </not>
+    </preConditions>
+    <createTable tableName="pmfm_strategy2metier">
+      <column name="pmfm_strategy_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="pmfm_strategy2metierPK"/>
+      </column>
+      <column name="metier_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="pmfm_strategy2metierPK"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-201" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_strategy_fk" baseTableName="pmfm_strategy2metier" constraintName="FKkpsf7mltd51yyyh6ypvg5vutm" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm_strategy" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-202" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="pmfm_strategy2metier" constraintName="FKkv3xicma1ub1ed01ekfeyvfqg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="metier" validate="true"/>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-203" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="taxon_group_strategy" constraintName="FKn0ls7id9yw6mp96w3iecpu6ly" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy" validate="true"/>
+  </changeSet>
+
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
