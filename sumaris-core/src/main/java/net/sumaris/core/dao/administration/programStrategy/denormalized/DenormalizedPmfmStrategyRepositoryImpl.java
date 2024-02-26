@@ -46,7 +46,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -87,7 +86,7 @@ public class DenormalizedPmfmStrategyRepositoryImpl
         configureQuery(query, fetchOptions);
 
         try (Stream<PmfmStrategy> stream = streamQuery(query)) {
-            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+            return stream.flatMap(entity -> toVOs(entity, fetchOptions)).toList();
         }
     }
 
