@@ -7,6 +7,7 @@ include:
 variables:
   JAVA_BUILDER_BUILD_COMMAND: clean install -DskipTests
   JAVA_BUILDER_OUTPUT_DIR: $CI_PROJECT_DIR
+  JAVA_BUILDER_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
   RUNNER_TAG: sih_public_runner
   APP_SHARED_MODULE: sumaris-core-shared
   APP_CORE_MODULE: sumaris-core
