@@ -14,6 +14,7 @@ variables:
 
   ## Build
   JAVA_BUILDER_BUILD_COMMAND: clean install -DskipTests
+  JAVA_BUILDER_BUILD_IMAGE: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/maven:3.8.7-eclipse-temurin-17-alpine
   RUNNER_TAG: sih_public_runner
 
   ## Container Image
