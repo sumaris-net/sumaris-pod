@@ -5,33 +5,25 @@ include:
 
 
 variables:
-  JAVA_BUILDER_BUILD_COMMAND: clean install -DskipTests
-  JAVA_BUILDER_OUTPUT_DIR: $CI_PROJECT_DIR
-  JAVA_BUILDER_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
-  RUNNER_TAG: sih_public_runner
+
+  ## Application
   APP_SHARED_MODULE: sumaris-core-shared
-  APP_CORE_MODULE: sumaris-core
-  APP_DB_MODULE: sumaris-db
   APP_WAR_MODULE: sumaris-server
   ARTIFACT_WAR_FILE: $APP_WAR_MODULE/target/*.war
   ARTIFACT_CONFIG_FILES: $APP_WAR_MODULE/target/classes/*.properties
   IFREMER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
 
+  ## Build
+  JAVA_BUILDER_BUILD_COMMAND: clean install -DskipTests
+  JAVA_BUILDER_ARTIFACTS_PATH: $APP_WAR_MODULE/target
+  JAVA_BUILDER_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+  RUNNER_TAG: sih_public_runner
 
-
-container-image:docker:build 🐳:
-  script:
-    - mkdir -p target/docker/config
-    - cp -rf $APP_WAR_MODULE/src/main/docker/run/* target/docker/
-    - cp -f $ARTIFACT_WAR_FILE target/docker/app.war
-    - cp -f $ARTIFACT_CONFIG_FILES target/docker/config/
-    - cd target/docker
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-      - docker buildx build
-      --push
-      --build-arg BUILDKIT_INLINE_CACHE=1
-      --build-arg IMAGE_REGISTRY=$IFREMER_IMAGE_REGISTRY
-      --cache-from $CI_REGISTRY_IMAGE
-      -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-      -t $CI_REGISTRY_IMAGE
-      .
+  ## Container Image
+  CONTAINER_IMAGE_BUILD_ARGS: >-
+    --build-arg ENTRYPOINT=$APP_WAR_MODULE/src/main/docker/run/app.sh
+    --build-arg WAR_FILE=$ARTIFACT_WAR_FILE
+    --build-arg CONFIG_FILES=$ARTIFACT_CONFIG_FILES
+    --build-arg IMAGE_REGISTRY=$IFREMER_IMAGE_REGISTRY
+  CONTAINER_IMAGE_DOCKER_FILE_PATH: $APP_WAR_MODULE/src/main/docker/run/Dockerfile
+  CONTAINER_IMAGE_BUILD_CONTEXT: $JAVA_BUILDER_ARTIFACTS_PATH
