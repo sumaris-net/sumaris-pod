@@ -24,7 +24,7 @@ variables:
     --build-arg CONFIG_FILES=$ARTIFACT_CONFIG_FILES
     --build-arg IMAGE_REGISTRY=$IFREMER_IMAGE_REGISTRY
   CONTAINER_IMAGE_DOCKER_FILE_PATH: $APP_WAR_MODULE/src/main/docker/run/Dockerfile
-  CONTAINER_IMAGE_BUILD_CONTEXT: $APP_WAR_MODULE/target
+  CONTAINER_IMAGE_BUILD_CONTEXT: $APP_WAR_MODULE
 
 # Overload due to specific, heavy artifacts (we can't afford to export the entire target folder)
 maven:build 🏗️:
