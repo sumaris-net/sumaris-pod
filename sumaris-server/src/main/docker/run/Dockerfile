@@ -12,10 +12,11 @@ ARG GROUPNAME="spring"
 ARG GROUPID="20001"
 
 # Create execution user/group
-RUN echo "Creating group ${GROUPNAME}:${GROUPID}"
-RUN groupadd -g ${GROUPID} ${GROUPNAME}
-RUN echo "Creating user ${USERNAME}:${USERID}"
-RUN useradd -g ${GROUPNAME} -d /app -u ${USERID} ${USERNAME}
+RUN \
+    echo "Creation group ${GROUPNAME}:${GROUPID}" && \
+    addgroup -g ${GROUPID} ${GROUPNAME} && \
+    echo "Creating user ${USERNAME}:${USERID}" && \
+    adduser -u ${USERID} -G ${GROUPNAME} -h /app -D ${USERNAME}
 USER ${USERNAME}:${GROUPNAME}
 
 # Copy files
