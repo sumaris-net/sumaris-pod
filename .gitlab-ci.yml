@@ -34,8 +34,3 @@ maven:build 🏗️:
       - $ARTIFACT_CONFIG_FILES
     reports:
       junit: $CI_PROJECT_DIR/**/target/**/TEST-*.xml
-
-# Overload to deactivate this inherited job in the pipeline
-coverage ☂️:
-  rules:
-    - when: never
