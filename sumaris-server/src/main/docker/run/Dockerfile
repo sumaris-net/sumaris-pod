@@ -1,5 +1,5 @@
 ARG IMAGE_REGISTRY
-ARG DOCKER_IMAGE="openjdk:17-jdk-slim"
+ARG DOCKER_IMAGE="eclipse-temurin:17-jdk-alpine"
 FROM $IMAGE_REGISTRY$DOCKER_IMAGE
 
 # Build arg
