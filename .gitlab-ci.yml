@@ -7,7 +7,6 @@ include:
 variables:
 
   ## Application
-  APP_SHARED_MODULE: sumaris-core-shared
   APP_WAR_MODULE: sumaris-server
   ARTIFACT_WAR_FILE: $APP_WAR_MODULE/target/*.war
   ARTIFACT_CONFIG_FILES: $APP_WAR_MODULE/target/classes/*.properties
@@ -15,7 +14,6 @@ variables:
 
   ## Build
   JAVA_BUILDER_BUILD_COMMAND: clean install -DskipTests
-  JAVA_BUILDER_ARTIFACTS_PATH: $APP_WAR_MODULE/target
   JAVA_BUILDER_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
   RUNNER_TAG: sih_public_runner
 
@@ -27,3 +25,13 @@ variables:
     --build-arg IMAGE_REGISTRY=$IFREMER_IMAGE_REGISTRY
   CONTAINER_IMAGE_DOCKER_FILE_PATH: $APP_WAR_MODULE/src/main/docker/run/Dockerfile
   CONTAINER_IMAGE_BUILD_CONTEXT: $JAVA_BUILDER_ARTIFACTS_PATH
+
+# Overload due to specific, heavy artifacts (we can't afford to export the entire target folder)
+maven:build 🏗️:
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - $ARTIFACT_WAR_FILE
+      - $ARTIFACT_CONFIG_FILES
+    reports:
+      junit: $CI_PROJECT_DIR/**/target/**/TEST-*.xml
