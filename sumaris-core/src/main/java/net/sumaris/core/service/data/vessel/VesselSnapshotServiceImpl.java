@@ -170,44 +170,6 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		}
 	}
 
-
-	@Override
-	public Future<UpdateVesselSnapshotsResultVO> asyncIndexVesselSnapshots(@NonNull VesselFilterVO filter,
-                                                                           @Nullable IProgressionModel progression) {
-
-		if (progression == null) {
-			ProgressionModel progressionModel = new ProgressionModel();
-			progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, (event) -> {
-				if (event.getNewValue() != null) log.debug(event.getNewValue().toString());
-			});
-			progression = progressionModel;
-		}
-
-		UpdateVesselSnapshotsResultVO result = UpdateVesselSnapshotsResultVO.builder()
-            .build();
-		try {
-			indexVesselSnapshots(result, filter, progression);
-
-			// Set result status
-			result.setStatus(result.hasError() ? JobStatusEnum.ERROR : JobStatusEnum.SUCCESS);
-
-		} catch (SumarisBusinessException e) {
-
-			result.setMessage(t("sumaris.job.error.detail", ExceptionUtils.getStackTrace(e)));
-
-			// Set failed status
-			result.setStatus(JobStatusEnum.ERROR);
-		} catch (Throwable e) {
-			log.error("Error while indexing vessel snapshots: {}", e.getMessage(), e);
-
-			result.setMessage(t("sumaris.job.error.detail", ExceptionUtils.getStackTrace(e)));
-
-			// Set failed status
-			result.setStatus(JobStatusEnum.FATAL);
-		}
-		return new AsyncResult<>(result);
-	}
-
 	@Override
 	public Optional<Date> getMaxIndexedUpdateDate() {
 		if (elasticsearchRepository == null || elasticsearchRepository.count() == 0) return Optional.empty();
@@ -233,9 +195,8 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		return indexing;
 	}
 
-	/* -- protected methods -- */
 
-	protected void indexVesselSnapshots(
+	public void indexVesselSnapshots(
 		@NonNull UpdateVesselSnapshotsResultVO result,
 		@NonNull VesselFilterVO filter,
 		@NonNull IProgressionModel progression) {
@@ -388,6 +349,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		}
 	}
 
+	/* -- private methods -- */
 
 	private boolean isElasticsearchEnableAndReady() {
 		return this.elasticsearchRepository != null && this.elasticsearchIndexationReady;

@@ -456,30 +456,6 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Future<Void> asyncUpdateLocationHierarchy(@Nullable IProgressionModel progression) {
-
-        if (progression == null) {
-            ProgressionModel progressionModel = new ProgressionModel();
-            progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, (event) -> {
-                if (event.getNewValue() != null) log.debug(event.getNewValue().toString());
-            });
-            progression = progressionModel;
-        }
-
-        progression.setCurrent(0);
-        progression.setTotal(1);
-        progression.setMessage(I18n.t("sumaris.referential.location.hierarchy.job.start"));
-
-        // Run update
-        updateLocationHierarchy();
-
-        progression.setCurrent(1);
-        progression.setMessage(I18n.t("sumaris.referential.location.hierarchy.job.success"));
-
-        return new AsyncResult<>(null);
-    }
-
-    @Override
     public Optional<String> getStatisticalRectangleLabelByLatLong(Number latitude, Number longitude) {
         if (longitude == null || latitude == null) {
             throw new IllegalArgumentException("Arguments 'latitude' and 'longitude' should not be null.");

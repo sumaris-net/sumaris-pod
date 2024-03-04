@@ -25,7 +25,6 @@ package net.sumaris.cli.action.data;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.ServiceLocator;
 import net.sumaris.core.service.data.vessel.VesselSnapshotJob;
-import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.sound.SoundUtils;
 
 @Slf4j
@@ -38,7 +37,7 @@ public class UpdateVesselSnapshotsAction {
         VesselSnapshotJob service = ServiceLocator.instance().getService("vesselSnapshotJob", VesselSnapshotJob.class);
 
         // Execute job
-        service.indexVesselSnapshots();
+        service.schedule();
 
         // Play a beep
         SoundUtils.playFinished();

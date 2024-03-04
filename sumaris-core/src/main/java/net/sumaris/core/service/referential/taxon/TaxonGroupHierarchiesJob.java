@@ -1,4 +1,4 @@
-package net.sumaris.core.service.referential;
+package net.sumaris.core.service.referential.taxon;
 
 /*-
  * #%L
@@ -49,15 +49,15 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.util.concurrent.Future;
 
-@Component("locationHierarchyJob")
+@Component("taxonGroupHierarchyJob")
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnBean({JobExecutionService.class, JobService.class})
-public class LocationHierarchyJob {
+public class TaxonGroupHierarchiesJob {
 
 	private final SumarisConfiguration configuration;
 
-	private final LocationService service;
+	private final TaxonGroupService service;
 
 	private final JobExecutionService jobExecutionService;
 
@@ -77,19 +77,19 @@ public class LocationHierarchyJob {
 		}
 	}
 
-	@Scheduled(cron = "${sumaris.referential.location.hierarchy.scheduling.cron:0 0 * * * ?}") // Hourly by default
+	@Scheduled(cron = "${sumaris.referential.taxonGroup.hierarchy.scheduling.cron:0 0 * * * ?}") // Hourly by default
 	public void schedule() {
 		if (!enable) return; // Skip
 		start(JobVO.SYSTEM_ISSUER);
 	}
 
 	public JobVO start(@NonNull String issuer) {
-		if (!enable) throw new SumarisTechnicalException("LocationHierarchy update has been disabled"); // Skip
+		if (!enable) throw new SumarisTechnicalException("TaxonGroupHierarchies update has been disabled"); // Skip
 
 		// Init a job
 		JobVO job = JobVO.builder()
-			.type(JobTypeEnum.FILL_LOCATION_HIERARCHY.name())
-			.name(I18n.t("sumaris.referential.location.hierarchy.job.name"))
+			.type(JobTypeEnum.FILL_TAXON_GROUP_HIERARCHY.name())
+			.name(I18n.t("sumaris.referential.taxonGroup.hierarchy.job.name"))
 			.issuer(issuer)
 			.build();
 
@@ -98,6 +98,7 @@ public class LocationHierarchyJob {
 
 		return job;
 	}
+
 
 	@Async("jobTaskExecutor")
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -113,13 +114,13 @@ public class LocationHierarchyJob {
 
 		progression.setCurrent(0);
 		progression.setTotal(1);
-		progression.setMessage(I18n.t("sumaris.referential.location.hierarchy.job.start"));
+		progression.setMessage(I18n.t("sumaris.referential.taxonGroup.hierarchy.job.start"));
 
 		// Run update
-		service.updateLocationHierarchy();
+		service.updateTaxonGroupHierarchies();
 
 		progression.setCurrent(1);
-		progression.setMessage(I18n.t("sumaris.referential.location.hierarchy.job.success"));
+		progression.setMessage(I18n.t("sumaris.referential.taxonGroup.hierarchy.job.success"));
 
 		return new AsyncResult<>(null);
 	}

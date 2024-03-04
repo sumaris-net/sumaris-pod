@@ -26,6 +26,7 @@ package net.sumaris.core.service.data.vessel;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.IProgressionModel;
+import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.UpdateVesselSnapshotsResultVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
@@ -75,10 +76,9 @@ public interface VesselSnapshotService {
 	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	UpdateVesselSnapshotsResultVO indexVesselSnapshots(VesselFilterVO filter);
 
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+	void indexVesselSnapshots(UpdateVesselSnapshotsResultVO result, VesselFilterVO filter, IProgressionModel progressionModel);
+
 	boolean isIndexing();
 
-	@Async("jobTaskExecutor")
-	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
-	Future<UpdateVesselSnapshotsResultVO> asyncIndexVesselSnapshots(VesselFilterVO filter,
-																	@Nullable IProgressionModel progressionModel);
 }

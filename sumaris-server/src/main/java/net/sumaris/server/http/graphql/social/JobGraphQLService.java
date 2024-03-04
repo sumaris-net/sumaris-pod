@@ -39,6 +39,7 @@ import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotJob;
 import net.sumaris.core.service.referential.LocationHierarchyJob;
+import net.sumaris.core.service.referential.taxon.TaxonGroupHierarchiesJob;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.Dates;
@@ -83,6 +84,7 @@ public class JobGraphQLService {
     private final VesselSnapshotJob vesselSnapshotJob;
 
     private final LocationHierarchyJob locationHierarchyJob;
+    private final TaxonGroupHierarchiesJob taxonGroupHierarchiesJob;
 
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
     @IsUser
@@ -208,7 +210,15 @@ public class JobGraphQLService {
         @GraphQLArgument(name = "issuer", description = "job issuer", defaultValue = JobVO.SYSTEM_ISSUER) String issuer,
         @GraphQLArgument(name = "params", description = "job parameters", defaultValue = GraphQLArgument.NULL) final Map<String, Object> params
     ) {
-        JobTypeEnum jobType = JobTypeEnum.valueOf(type);
+        JobTypeEnum jobType;
+        // Fix type
+        if ("SYS_P_FILL_LOCATION_HIERARCHY".equals(type)) {
+            jobType = JobTypeEnum.FILL_LOCATION_HIERARCHY;
+        } else if ("SYS_P_FILL_TAXON_GROUP_HIERARCHY".equals(type)) {
+            jobType = JobTypeEnum.FILL_TAXON_GROUP_HIERARCHY;
+        } else {
+            jobType = JobTypeEnum.valueOf(type);
+        }
 
         // Job issuer
         String userPubkey = this.authService.getAuthenticatedUser()
@@ -221,18 +231,20 @@ public class JobGraphQLService {
             throw new IllegalArgumentException(String.format("Invalid job issuer: '%s'", issuer));
         }
 
-        // Vessel snapshot indexation
-        if (jobType == JobTypeEnum.VESSEL_SNAPSHOTS_INDEXATION) {
-            String dateStr = MapUtils.getString(params, "minUpdateDate", null);
-            Date minUpdateDate = StringUtils.isNotBlank(dateStr) ? Dates.fromISODateTimeString(dateStr) : null;
-            return vesselSnapshotJob.indexVesselSnapshots(issuer, minUpdateDate);
+        switch (jobType) {
+            // Location hierarchy
+            case FILL_LOCATION_HIERARCHY:
+                return locationHierarchyJob.start(issuer);
+            // Taxon group hierarchy
+            case FILL_TAXON_GROUP_HIERARCHY:
+                return taxonGroupHierarchiesJob.start(issuer);
+            // Vessel snapshot indexation
+            case VESSEL_SNAPSHOTS_INDEXATION:
+                String dateStr = MapUtils.getString(params, "minUpdateDate", null);
+                Date minUpdateDate = StringUtils.isNotBlank(dateStr) ? Dates.fromISODateTimeString(dateStr) : null;
+                return vesselSnapshotJob.start(issuer, minUpdateDate);
+            default:
+                throw new SumarisTechnicalException("Unknown job type: " + type);
         }
-
-        // Update location hierarchy
-        if (jobType == JobTypeEnum.FILL_LOCATION_HIERARCHY) {
-            return locationHierarchyJob.updateLocationHierarchy(issuer);
-        }
-
-        throw new SumarisTechnicalException("Unknown job type: " + type);
     }
 }
