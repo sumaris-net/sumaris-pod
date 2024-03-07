@@ -1,7 +1,7 @@
 include:
   - project: Zenika/forge/ci-cd
     ref: main
-    file: /pipelines/java.yml
+    file: /pipelines/java-container-image.yml
 
 
 variables:
@@ -13,7 +13,6 @@ variables:
   IFREMER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
 
   ## Build
-  JAVA_BUILDER_BUILD_COMMAND: clean install -DskipTests
   JAVA_BUILDER_BUILD_IMAGE: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/maven:3.8.7-eclipse-temurin-17-alpine
   RUNNER_TAG: sih_public_runner
 
