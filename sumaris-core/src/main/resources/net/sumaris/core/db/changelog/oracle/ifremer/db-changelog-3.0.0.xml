@@ -166,5 +166,25 @@
     </insert>
   </changeSet>
 
+  <!-- Enable activity calendar menu (ACTIFLOT) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-409" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.ifremer.expectedResult}">${sqlCheck.ifremer.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">
+          SELECT COUNT(*) from SOFTWARE_PROPERTY where LABEL='sumaris.activityCalendar.enable' AND SOFTWARE_FK IN (SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')
+        </sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="SOFTWARE_PROPERTY_SEQ.nextval"/>
+      <column name="LABEL" value="sumaris.activityCalendar.enable"/>
+      <column name="NAME" value="true"/>
+      <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'OBSMER')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+    </insert>
+  </changeSet>
 
 </databaseChangeLog>
