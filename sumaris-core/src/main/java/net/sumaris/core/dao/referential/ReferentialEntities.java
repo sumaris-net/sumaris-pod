@@ -136,6 +136,7 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.samplingScheme");
         I18n.n("sumaris.persistence.table.samplingStrata");
         I18n.n("sumaris.persistence.table.samplingStrataMeasurement");
+        I18n.n("sumaris.persistence.table.denormalizedSamplingStrata");
 
 
     }
