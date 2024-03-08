@@ -48,15 +48,15 @@ public class OperationFetchOptions implements IDataFetchOptions {
     public static OperationFetchOptions clone(OperationFetchOptions options) {
         return options != null ? options.clone() : new OperationFetchOptions();
     }
+    public static OperationFetchOptions copy(IDataFetchOptions source) {
+        return DataFetchOptions.copy(source, OperationFetchOptions.builder().build());
+    }
 
     @Builder.Default
     private boolean withRecorderDepartment = true;
 
     @Builder.Default
     private boolean withRecorderPerson = true;
-
-    @Builder.Default
-    private boolean withObservers = true;
 
     @Builder.Default
     private boolean withChildrenEntities = false; // If true, enable other property (positions, fishing areas, batches, samples, etc.)

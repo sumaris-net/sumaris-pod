@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class DataFetchOptions implements IDataFetchOptions {
+public class DataFetchOptions implements IDataFetchOptions, IWithObserversFetchOptions {
 
     public static DataFetchOptions nullToEmpty(DataFetchOptions fetchOptions) {
         return fetchOptions == null ? new DataFetchOptions() : fetchOptions;
@@ -50,14 +50,19 @@ public class DataFetchOptions implements IDataFetchOptions {
             .withMeasurementValues(true)
             .build();
 
-    public static final DataFetchOptions copy(IDataFetchOptions other) {
-        return DataFetchOptions.builder()
-            .withRecorderDepartment(other.isWithRecorderDepartment())
-            .withRecorderPerson(other.isWithRecorderPerson())
-            .withObservers(other.isWithObservers())
-            .withChildrenEntities(other.isWithChildrenEntities())
-            .withMeasurementValues(other.isWithMeasurementValues())
-            .build();
+    public static DataFetchOptions copy(IDataFetchOptions source) {
+        return copy(source, DataFetchOptions.builder().build());
+    }
+
+    public static <T extends IDataFetchOptions > T copy(IDataFetchOptions source, T target) {
+        target.setWithRecorderDepartment(source.isWithRecorderDepartment());
+        target.setWithRecorderPerson(source.isWithRecorderPerson());
+        target.setWithChildrenEntities(source.isWithChildrenEntities());
+        target.setWithMeasurementValues(source.isWithMeasurementValues());
+        if (source instanceof IWithObserversFetchOptions ofo) {
+            ((IWithObserversFetchOptions)target).setWithObservers(ofo.isWithObservers());
+        }
+        return target;
     }
 
     @Builder.Default

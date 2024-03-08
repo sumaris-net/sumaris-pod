@@ -22,7 +22,7 @@
   -->
 <dataset>
   <DEPARTMENT ID="13" LABEL="SNPMEM" NAME="Comité National des pêches" SITE_URL="https://www.comite-peches.fr/"
-              LOCATION_FK="4"  STATUS_FK="1" CREATION_DATE="2021-11-18" UPDATE_DATE="2021-11-18"/>
+              LOCATION_FK="1"  STATUS_FK="1" CREATION_DATE="2021-11-18" UPDATE_DATE="2021-11-18"/>
 
   <!-- PIFIL Program -->
   <PROGRAM ID="60" LABEL="PIFIL" NAME="Programme de test des Pingers au filage" DESCRIPTION="Programme de test des Pingers au filage" STATUS_FK="1" CREATION_DATE="2019-02-15" UPDATE_DATE="2019-02-15" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>

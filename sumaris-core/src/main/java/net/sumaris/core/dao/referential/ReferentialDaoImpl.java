@@ -25,16 +25,23 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.samplingScheme.DenormalizedSamplingStrata;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -56,6 +63,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
@@ -78,6 +87,17 @@ import java.util.stream.Stream;
 public class ReferentialDaoImpl
     extends HibernateDaoSupport
     implements ReferentialDao {
+
+
+    private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
+    private final Map<Integer, String> acquisitionLevelLabelById = Maps.newConcurrentMap();
+
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        this.loadAcquisitionLevels();
+    }
+
 
     protected  <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
                                                                        IReferentialFilter filter,
@@ -495,6 +515,39 @@ public class ReferentialDaoImpl
         }
     }
 
+    @Override
+    public int getAcquisitionLevelIdByLabel(String label) {
+        Integer acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
+        if (acquisitionLevelId == null) {
+
+            // Try to reload
+            loadAcquisitionLevels();
+
+            // Retry to find it
+            acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
+            if (acquisitionLevelId == null) {
+                throw new DataIntegrityViolationException("Unknown acquisition level's label=" + label);
+            }
+        }
+
+        return acquisitionLevelId;
+    }
+
+    @Override
+    public String getAcquisitionLevelLabelById(int id) {
+        return acquisitionLevelLabelById.computeIfAbsent(id, (key) -> {
+            // Try to reload
+            loadAcquisitionLevels();
+
+            // Retry to find it
+            String label = acquisitionLevelLabelById.get(key);
+            if (label == null) {
+                throw new DataIntegrityViolationException("Unknown acquisition level's id=" + key);
+            }
+            return label;
+        });
+    }
+
     /* -- protected methods -- */
 
     protected ReferentialTypeVO getTypeByEntityName(final String entityName) {
@@ -841,20 +894,6 @@ public class ReferentialDaoImpl
         return typedQuery;
     }
 
-    private <T> TypedQuery<T> createFindByUniqueLabelQuery(Class<T> entityClass, String label) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<T> query = builder.createQuery(entityClass);
-        Root<T> root = query.from(entityClass);
-        query.select(root).distinct(true);
-
-        // Filter on text
-        ParameterExpression<String> labelParam = builder.parameter(String.class);
-        query.where(builder.equal(root.get(IItemReferentialEntity.Fields.LABEL), labelParam));
-
-        return getEntityManager().createQuery(query)
-            .setParameter(labelParam, label);
-    }
-
     protected String getTableName(String entityName) {
         return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));
     }
@@ -972,7 +1011,7 @@ public class ReferentialDaoImpl
 
     protected void copyProperties(final IReferentialEntity source, ReferentialVO target) {
 
-        // TODO use EntitiesUtils
+        // TODO use ReferentialEntities
         switch (source.getClass().getSimpleName()) {
             case Method.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.of(
@@ -986,6 +1025,39 @@ public class ReferentialDaoImpl
                     Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear())
                 ));
             }
+            case DenormalizedSamplingStrata.ENTITY_NAME -> {
+//                target.setProperties(ImmutableMap.<String, Object>builder()
+//                    .put(DenormalizedSamplingStrata.Fields.TAXON_GROUP_NAME, ((DenormalizedSamplingStrata)source).getTaxonGroupName())
+//                    // TODO continue ?
+//                    .build()
+//                );
+            }
         }
+    }
+
+    /* -- private functions -- */
+    private <T> TypedQuery<T> createFindByUniqueLabelQuery(Class<T> entityClass, String label) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<T> query = builder.createQuery(entityClass);
+        Root<T> root = query.from(entityClass);
+        query.select(root).distinct(true);
+
+        // Filter on text
+        ParameterExpression<String> labelParam = builder.parameter(String.class);
+        query.where(builder.equal(root.get(IItemReferentialEntity.Fields.LABEL), labelParam));
+
+        return getEntityManager().createQuery(query)
+            .setParameter(labelParam, label);
+    }
+    private synchronized void loadAcquisitionLevels() {
+        acquisitionLevelIdByLabel.clear();
+        acquisitionLevelLabelById.clear();
+
+        // Fill acquisition levels map
+        List<ReferentialVO> items = findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null, null);
+        items.forEach(item -> {
+            acquisitionLevelIdByLabel.put(item.getLabel(), item.getId());
+            acquisitionLevelLabelById.put(item.getId(), item.getLabel());
+        });
     }
 }

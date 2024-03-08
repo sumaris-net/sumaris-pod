@@ -151,7 +151,7 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, unless="#result == null")
     public Optional<ProgramVO> findVOById(Integer id) {
         return super.findVOById(id);
     }
@@ -546,6 +546,7 @@ public class ProgramRepositoryImpl
                 parent.setProperties(Lists.newArrayList());
             }
             final List<ProgramProperty> targetProperties = parent.getProperties();
+            targetProperties.clear();
 
             // Transform each entry into ProgramProperty
             source.keySet().stream()
@@ -566,7 +567,7 @@ public class ProgramRepositoryImpl
                     if (isNew) {
                         em.persist(prop);
                     } else {
-                        em.merge(prop);
+                        prop = em.merge(prop);
                     }
                     return prop;
                 })
@@ -574,7 +575,6 @@ public class ProgramRepositoryImpl
 
             // Remove old properties
             if (CollectionUtils.isNotEmpty(existingValues)) {
-                parent.getProperties().removeAll(existingValues);
                 existingValues.forEach(em::remove);
             }
 
@@ -619,7 +619,9 @@ public class ProgramRepositoryImpl
 
                 target.setPerson(personRepository.get(item.getPerson().getId()));
                 target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
-
+                if (item.getReferencePerson() != null) {
+                    target.setReferencePerson(personRepository.get(item.getReferencePerson().getId()));
+                }
                 return target;
             })
             .collect(Collectors.toList());
@@ -702,6 +704,16 @@ public class ProgramRepositoryImpl
                 target.setPrivilege(null);
             } else {
                 target.setPrivilege(getReference(ProgramPrivilege.class, privilegeId));
+            }
+        }
+
+        // Reference Person
+        Integer referencePersonId = source.getReferencePerson() != null ? source.getReferencePerson().getId() : null;
+        if (copyIfNull || referencePersonId != null) {
+            if (referencePersonId == null) {
+                target.setReferencePerson(null);
+            } else {
+                target.setReferencePerson(getReference(Person.class, referencePersonId));
             }
         }
     }

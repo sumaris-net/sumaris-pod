@@ -22,24 +22,31 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.referential.VesselType;
+import net.sumaris.core.util.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, Vessel>>
-        extends IEntitySpecifications<Integer, E> {
+public interface IWithVesselSpecifications<ID extends Serializable, E extends IWithVesselEntity<ID, Vessel>>
+        extends IEntitySpecifications<ID, E> {
 
     String VESSEL_ID_PARAM = "vesselId";
-
+    String VESSEL_IDS_PARAM = "vesselIds";
 
     default <T> Join<T, Vessel> composeVesselJoin(Root<T> root) {
         return Daos.composeJoin(root, IWithVesselEntity.Fields.VESSEL, JoinType.INNER);
@@ -86,5 +93,16 @@ public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, 
             return cb.equal(vessel.get(IEntity.Fields.ID), param);
         }).addBind(VESSEL_ID_PARAM, vesselId);
     }
+
+    default Specification<E> hasVesselIds(Integer[] vesselIds) {
+        if (ArrayUtils.isEmpty(vesselIds)) return null;
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, VESSEL_IDS_PARAM);
+            Join<E, Vessel> vessel = composeVesselJoin(root);
+            return cb.in(vessel.get(Vessel.Fields.ID)).value(param);
+        })
+        .addBind(VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
+    }
+
 
 }

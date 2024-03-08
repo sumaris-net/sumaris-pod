@@ -23,7 +23,6 @@ package net.sumaris.core.service.data;
  */
 
 
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.vo.data.MeasurementVO;
@@ -168,14 +167,24 @@ public class MeasurementServiceImpl implements MeasurementService {
 	}
 
 	@Override
-	public Map<Integer, String> getSurveyMeasurementsMap(int landingId) {
-		return measurementDao.getSurveyMeasurementsMap(landingId);
+	public Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId) {
+		return measurementDao.getLandingSurveyMeasurementsMap(landingId);
 	}
 
 
 	@Override
-	public Map<Integer, String> getSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
-		return measurementDao.getSurveyMeasurementsMap(landingId, pmfmIds);
+	public Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
+		return measurementDao.getLandingSurveyMeasurementsMap(landingId, pmfmIds);
+	}
+
+	@Override
+	public Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId) {
+		return measurementDao.getActivityCalendarMeasurementsMap(activityCalendarId);
+	}
+
+	@Override
+	public Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId) {
+		return measurementDao.getDailyActivityCalendarMeasurementsMap(dailyActivityCalendarId);
 	}
 
 	@Override
@@ -186,5 +195,15 @@ public class MeasurementServiceImpl implements MeasurementService {
 	@Override
 	public Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId) {
 		return measurementDao.getVesselFeaturesMeasurementsMap(vesselFeaturesId);
+	}
+
+	@Override
+	public Map<Integer, String> getVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId) {
+		return measurementDao.getVesselUseFeaturesMeasurementsMap(vesselUseFeaturesId);
+	}
+
+	@Override
+	public Map<Integer, String> getGearUseFeaturesMeasurementsMap(int gearUseFeaturesId) {
+		return measurementDao.getGearUseFeaturesMeasurementsMap(gearUseFeaturesId);
 	}
 }

@@ -54,5 +54,7 @@ public interface FishingAreaRepository
 
     List<FishingArea> getFishingAreaByOperationId(int operationId);
 
+    List<FishingArea> getFishingAreaByGearUseFeaturesId(int gearUseFeaturesId);
+
     void deleteAllByOperationId(int operationId);
 }

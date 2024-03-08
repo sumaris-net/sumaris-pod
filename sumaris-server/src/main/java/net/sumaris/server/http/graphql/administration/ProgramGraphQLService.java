@@ -285,6 +285,7 @@ public class ProgramGraphQLService {
     @GraphQLQuery(name = "pmfms", description = "Get strategy's pmfms")
     public List<PmfmStrategyVO> getPmfmsByStrategy(@GraphQLContext StrategyVO strategy) {
         if (strategy.getPmfms() != null) return strategy.getPmfms();
+        if (strategy.getId() == null) return null;
         return strategyService.findPmfmsByFilter(PmfmStrategyFilterVO.builder()
                 .strategyId(strategy.getId()).build(),
             PmfmStrategyFetchOptions.DEFAULT);
@@ -294,6 +295,7 @@ public class ProgramGraphQLService {
     public List<DenormalizedPmfmStrategyVO> getDenormalizedPmfmByStrategy(@GraphQLContext StrategyVO strategy,
                                                                           @GraphQLEnvironment ResolutionEnvironment env) {
         if (strategy.getDenormalizedPmfms() != null) return strategy.getDenormalizedPmfms();
+        if (strategy.getId() == null) return null;
         Set<String> fields = GraphQLUtils.fields(env);
         return strategyService.findDenormalizedPmfmsByFilter(PmfmStrategyFilterVO.builder().strategyId(strategy.getId()).build(),
             PmfmStrategyFetchOptions.builder()

@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.SaleFetchOptions;
 import net.sumaris.core.vo.data.SaleVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,18 +40,23 @@ import java.util.List;
 public interface SaleService {
 
 	@Transactional(readOnly = true)
-	List<SaleVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions);
+	List<SaleVO> getAllByTripId(int tripId, SaleFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<SaleVO> getAllByLandingId(int landingId, SaleFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	SaleVO get(int id);
 
 	@Transactional(readOnly = true)
-	SaleVO get(int id, DataFetchOptions fetchOptions);
+	SaleVO get(int id, SaleFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	int getProgramIdById(int id);
 
 	List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sources);
+
+	List<SaleVO> saveAllByLandingId(int landingId, List<SaleVO> sources);
 
 	SaleVO save(SaleVO sale);
 
@@ -60,4 +66,7 @@ public interface SaleService {
 
 	void delete(List<Integer> ids);
 
+	void fillVesselSnapshot(SaleVO target);
+
+	void fillVesselSnapshots(List<SaleVO> target);
 }

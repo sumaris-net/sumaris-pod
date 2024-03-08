@@ -55,6 +55,7 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     private Date startDate;
     private Date endDate;
     private Integer vesselId;
+    private Integer[] vesselIds;
     private Integer locationId;
     private Integer[] locationIds;
 

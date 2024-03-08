@@ -37,6 +37,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
@@ -51,7 +52,6 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -76,6 +76,8 @@ public class LandingServiceImpl implements LandingService {
     protected final MeasurementDao measurementDao;
 
     protected final SampleService sampleService;
+
+    protected final SaleService saleService;
 
     protected final OperationGroupService operationGroupService;
 
@@ -135,7 +137,7 @@ public class LandingServiceImpl implements LandingService {
                 TripVO trip = tripService.get(target.getTripId(), tripFetchOptions);
                 target.setTrip(trip);
 
-                // Optimization: avoid fetching expected sale (fix #IMAGINE-651)
+                // Optimization: avoid fetching sale and expected sale (fix #IMAGINE-651)
                 trip.setHasSales(false);
                 trip.setHasExpectedSales(false);
 
@@ -179,19 +181,19 @@ public class LandingServiceImpl implements LandingService {
         boolean isNew = source.getId() == null;
 
         // Save
-        LandingVO savedLanding = landingRepository.save(source);
+        LandingVO target = landingRepository.save(source);
 
         // Save children entities (measurement, etc.)
-        saveChildrenEntities(savedLanding);
+        saveChildrenEntities(target);
 
         // Publish event
         if (isNew) {
-            publisher.publishEvent(new EntityInsertEvent(savedLanding.getId(), Landing.class.getSimpleName(), savedLanding));
+            publisher.publishEvent(new EntityInsertEvent(target.getId(), Landing.class.getSimpleName(), target));
         } else {
-            publisher.publishEvent(new EntityUpdateEvent(savedLanding.getId(), Landing.class.getSimpleName(), savedLanding));
+            publisher.publishEvent(new EntityUpdateEvent(target.getId(), Landing.class.getSimpleName(), target));
         }
 
-        return savedLanding;
+        return target;
     }
 
     @Override
@@ -347,7 +349,7 @@ public class LandingServiceImpl implements LandingService {
             Map<Integer, String> surveyMeasurementMap = Beans.filterMap(source.getMeasurementValues(), pmfmId -> pmfmService.isSurveyPmfm(pmfmId));
             Map<Integer, String> landingMeasurementMap = Beans.filterMap(source.getMeasurementValues(), pmfmId -> !surveyMeasurementMap.containsKey(pmfmId));
             measurementDao.saveLandingMeasurementsMap(source.getId(), landingMeasurementMap);
-            measurementDao.saveSurveyMeasurementsMap(source.getId(), surveyMeasurementMap);
+            measurementDao.saveLandingSurveyMeasurementsMap(source.getId(), surveyMeasurementMap);
         } else {
             // Split survey and landing measurements
 
@@ -358,7 +360,7 @@ public class LandingServiceImpl implements LandingService {
             landingMeasurements.forEach(m -> fillDefaultProperties(source, m, LandingMeasurement.class));
             landingMeasurements = measurementDao.saveLandingMeasurements(source.getId(), landingMeasurements);
             surveyMeasurements.forEach(m -> fillDefaultProperties(source, m, SurveyMeasurement.class));
-            surveyMeasurements = measurementDao.saveSurveyMeasurements(source.getId(), surveyMeasurements);
+            surveyMeasurements = measurementDao.saveLandingSurveyMeasurements(source.getId(), surveyMeasurements);
 
             source.setMeasurements(ListUtils.union(landingMeasurements, surveyMeasurements));
         }
@@ -425,6 +427,14 @@ public class LandingServiceImpl implements LandingService {
             source.setSamples(samples);
         }
 
+        // Save sales
+        if (source.getSales() != null) {
+            source.getSales().forEach((SaleVO sale) -> fillDefaultProperties(source, sale));
+            source.setSales(saleService.saveAllByLandingId(source.getId(), source.getSales()));
+        }
+        else {
+            source.setHasSales(false);
+        }
     }
 
     protected void checkCanSave(final LandingVO source) {
@@ -481,6 +491,32 @@ public class LandingServiceImpl implements LandingService {
         if (trip.getVesselSnapshot() == null) {
             trip.setVesselSnapshot(parent.getVesselSnapshot());
         }
+        if (trip.getVesselId() == null) {
+            trip.setVesselId(parent.getVesselId());
+        }
+    }
+
+    protected void fillDefaultProperties(LandingVO parent, SaleVO sale) {
+        if (sale == null) return;
+
+        // Copy recorder department from the parent
+        DataBeans.setDefaultRecorderDepartment(sale, parent.getRecorderDepartment());
+        DataBeans.setDefaultRecorderPerson(sale, parent.getRecorderPerson());
+
+        if (sale.getProgram() == null) {
+            sale.setProgram(parent.getProgram());
+        }
+        if (sale.getVesselSnapshot() == null) {
+            sale.setVesselSnapshot(parent.getVesselSnapshot());
+        }
+        if (sale.getVesselId() == null) {
+            sale.setVesselId(parent.getVesselId());
+        }
+        if (sale.getSaleLocation() == null) {
+            sale.setSaleLocation(parent.getLocation());
+        }
+
+        sale.setLandingId(parent.getId());
     }
 
     /**

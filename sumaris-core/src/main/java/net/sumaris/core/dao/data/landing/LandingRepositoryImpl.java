@@ -111,6 +111,7 @@ public class LandingRepositoryImpl
             .and(hasLocationId(filter.getLocationId()))
             .and(inLocationIds(filter.getLocationIds()))
             .and(hasVesselId(filter.getVesselId()))
+            .and(hasVesselIds(filter.getVesselIds()))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))

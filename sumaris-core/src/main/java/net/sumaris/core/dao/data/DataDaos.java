@@ -162,11 +162,12 @@ public class DataDaos extends Daos {
                                                            IWithVesselEntity<T, Vessel> target,
                                                            boolean copyIfNull) {
         // Vessel
-        if (copyIfNull || (source.getVesselSnapshot() != null && source.getVesselSnapshot().getVesselId() != null)) {
-            if (source.getVesselSnapshot() == null || source.getVesselSnapshot().getVesselId() == null) {
+        Integer vesselId = source.getVesselId() != null ? source.getVesselId() : (source.getVesselSnapshot() != null ? source.getVesselSnapshot().getId() : null);
+        if (copyIfNull || vesselId != null) {
+            if (vesselId == null) {
                 target.setVessel(null);
             } else {
-                target.setVessel(load(entityManager, Vessel.class, source.getVesselSnapshot().getVesselId()));
+                target.setVessel(load(entityManager, Vessel.class, vesselId));
             }
         }
     }

@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>2.9.0-rc2-SNAPSHOT</version>
+  <version>2.9.0-rc3</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -85,8 +85,6 @@
 
     <!-- Project properties -->
     <javaVersion>17</javaVersion>
-    <!--<signatureArtifactId>java18</signatureArtifactId>
-    <signatureVersion>1.0</signatureVersion>-->
 
     <!-- Commons versions -->
     <hsqldb.version>2.4.1</hsqldb.version>
@@ -212,7 +210,7 @@
     <helperPluginVersion>2.3.2</helperPluginVersion>
 
     <!-- apache maven plugins version -->
-    <assemblyPluginVersion>3.3.0</assemblyPluginVersion>
+    <assemblyPluginVersion>3.6.0</assemblyPluginVersion>
     <compilerPluginVersion>3.10.1</compilerPluginVersion>
     <resourcesPluginVersion>3.3.0</resourcesPluginVersion>
     <jarPluginVersion>3.2.0</jarPluginVersion>
@@ -234,7 +232,7 @@
     <licensePluginVersion>1.13</licensePluginVersion>
     <execPluginVersion>1.6.0</execPluginVersion>
     <wagonPluginVersion>1.0</wagonPluginVersion>
-    <versionsPluginVersion>2.3</versionsPluginVersion>
+    <versionsPluginVersion>2.16.0</versionsPluginVersion>
     <findbugsPluginVersion>3.0.5</findbugsPluginVersion>
     <markdowndocPluginVersion>3.1.0_17</markdowndocPluginVersion>
 
@@ -1252,12 +1250,15 @@
           <version>${compilerPluginVersion}</version>
           <configuration>
             <optimize>true</optimize>
-            <release>${javaVersion}</release>
+            <source>${javaVersion}</source>
+            <target>${javaVersion}</target>
             <debug>true</debug>
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
               <arg>--enable-preview</arg>
+              <arg>-parameters</arg>
             </compilerArgs>
+            <testCompilerArgument>-parameters</testCompilerArgument>
             <annotationProcessorPaths>
               <path>
                 <groupId>org.projectlombok</groupId>

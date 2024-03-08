@@ -45,5 +45,6 @@ public class ProgramPersonVO implements Serializable, IUpdateDateEntity<Integer,
     private ReferentialVO location;
     private ReferentialVO privilege;
     private PersonVO person;
+    private PersonVO referencePerson;
 
 }

@@ -24,13 +24,12 @@ package net.sumaris.core.dao.data.vessel;
 
 import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.DataRepository;
-import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
@@ -40,6 +39,7 @@ import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,13 +55,12 @@ public interface VesselFeaturesSpecifications<
     E extends VesselFeatures,
     V extends IDataVO<Integer>,
     F extends VesselFilterVO,
-    O extends IFetchOptions
+    O extends IDataFetchOptions
     >
-    extends DataSpecifications<Integer, VesselFeatures>,
+    extends IDataSpecifications<Integer, VesselFeatures>,
     DataRepository<E, V, F, O>,
-    IWithVesselSpecifications<VesselFeatures> {
+    IWithVesselSpecifications<Integer, VesselFeatures> {
 
-    String VESSEL_ID_PARAM = "vesselId";
     String INCLUDED_VESSEL_IDS_PARAM = "includedVesselIds";
 
     String EXCLUDED_VESSEL_IDS_PARAM = "excludedVesselIds";
@@ -131,7 +130,7 @@ public interface VesselFeaturesSpecifications<
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, VESSEL_TYPE_IDS_PARAM);
                 return cb.in(Daos.composePath(root, StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_TYPE, VesselType.Fields.ID), JoinType.INNER)).value(param);
             })
-            .addBind(VESSEL_TYPE_IDS_PARAM, ImmutableList.copyOf(vesselTypeIds));
+            .addBind(VESSEL_TYPE_IDS_PARAM, Arrays.asList(vesselTypeIds));
     }
 
     default Specification<VesselFeatures> statusIds(List<Integer> statusIds) {
@@ -165,7 +164,7 @@ public interface VesselFeaturesSpecifications<
                         StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.PROGRAM, Program.Fields.ID)))
                     .value(param);
             })
-            .addBind(PROGRAM_IDS_PARAM, ImmutableList.copyOf(programIds));
+            .addBind(PROGRAM_IDS_PARAM, Arrays.asList(programIds));
     }
 
     default Specification<VesselFeatures> betweenFeaturesDate(Date startDate, Date endDate) {

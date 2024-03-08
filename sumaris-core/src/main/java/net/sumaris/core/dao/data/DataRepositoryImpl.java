@@ -33,6 +33,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -43,12 +44,11 @@ import net.sumaris.core.vo.administration.user.PersonFetchOptions;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.IWithObserversFetchOptions;
 import net.sumaris.core.vo.filter.IDataFilter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -69,7 +69,7 @@ import java.util.stream.Stream;
 @Slf4j
 public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V extends IDataVO<Integer>, F extends IDataFilter, O extends IDataFetchOptions>
     extends SumarisJpaRepositoryImpl<E, Integer, V>
-    implements DataRepository<E, V, F, O>, DataSpecifications<Integer, E> {
+    implements DataRepository<E, V, F, O>, IDataSpecifications<Integer, E> {
 
     protected static PersonFetchOptions PERSON_FETCH_OPTIONS = PersonFetchOptions.builder()
         .withDepartment(true)
@@ -317,8 +317,8 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         }
 
         // Observers
-        if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity) {
-            if (fetchOptions == null || fetchOptions.isWithObservers()) {
+        if (source instanceof IWithObserversEntity && target instanceof IWithObserversEntity && fetchOptions instanceof IWithObserversFetchOptions) {
+            if (((IWithObserversFetchOptions)fetchOptions).isWithObservers()) {
                 Set<Person> sourceObservers = ((IWithObserversEntity<Integer, Person>) source).getObservers();
                 if (CollectionUtils.isNotEmpty(sourceObservers)) {
                     Set<PersonVO> observers = sourceObservers.stream()

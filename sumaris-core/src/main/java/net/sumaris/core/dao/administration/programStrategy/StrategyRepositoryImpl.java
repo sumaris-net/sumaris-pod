@@ -37,9 +37,9 @@ import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
@@ -55,6 +55,7 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -640,14 +641,22 @@ public class StrategyRepositoryImpl
     protected void onBeforeSaveEntity(StrategyVO source, Strategy target, boolean isNew) {
         super.onBeforeSaveEntity(source, target, isNew);
 
-        // Verify label is unique by program
-        long count = this.findAll(StrategyFilterVO.builder()
-                        .programIds(new Integer[]{source.getProgramId()}).label(source.getLabel()).build())
-                .stream()
-                .filter(s -> isNew || !Objects.equals(s.getId(), source.getId()))
-                .count();
-        if (count > 0) {
-            throw new NotUniqueException("Strategy label already exists", List.of(source.getLabel()));
+        // Verify label is unique by program (if was set - in Adagio DB, the label can be null)
+        if (StringUtils.isNotBlank(source.getLabel())) {
+            long count = this.count(StrategyFilterVO.builder()
+                    .label(source.getLabel())
+                    .excludedIds(isNew ? null : new Integer[]{source.getId()})
+                    .programIds(new Integer[]{source.getProgramId()})
+                    .build());
+            if (count > 0) {
+                // Fix the label, by adding a suffix
+                if (isNew) {
+                    source.setLabel(source.getLabel() + "_2");
+                }
+                else {
+                    throw new NotUniqueException("Strategy label already exists in program", List.of(source.getLabel()));
+                }
+            }
         }
     }
 
@@ -830,8 +839,7 @@ public class StrategyRepositoryImpl
     }
 
 
-    protected List<AppliedPeriodVO> saveAppliedPeriodsByAppliedStrategyId(int appliedStrategyId, List<AppliedPeriodVO> sources) {
-        Preconditions.checkNotNull(sources);
+    protected List<AppliedPeriodVO> saveAppliedPeriodsByAppliedStrategyId(int appliedStrategyId, @NonNull List<AppliedPeriodVO> sources) {
 
         EntityManager em = getEntityManager();
 
@@ -867,7 +875,7 @@ public class StrategyRepositoryImpl
                 em.merge(target);
             }
             return target;
-        }).collect(Collectors.toList());
+        }).toList();
 
         parent.setAppliedPeriods(targets);
 
@@ -906,9 +914,10 @@ public class StrategyRepositoryImpl
         Preconditions.checkNotNull(fetchOptions);
         if (CollectionUtils.isEmpty(source.getPmfms())) return null;
 
-        return source.getPmfms()
-                .stream()
-                .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions))
+        return pmfmStrategyRepository.findByFilter(PmfmStrategyFilterVO.builder()
+                .strategyId(source.getId())
+                .build(), fetchOptions)
+            .stream()
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
@@ -928,8 +937,10 @@ public class StrategyRepositoryImpl
 
         // Applied inheritance:
         List<PmfmStrategy> pmfms = source.getPmfms();
-        List<DenormalizedPmfmStrategyVO> result = source.getPmfms().stream()
-                .flatMap(entity -> denormalizedPmfmStrategyRepository.toVOs(entity, fetchOptions))
+        List<DenormalizedPmfmStrategyVO> result = denormalizedPmfmStrategyRepository.findByFilter(PmfmStrategyFilterVO.builder()
+                .strategyId(source.getId())
+                .build(), fetchOptions)
+            .stream()
                 .filter(Objects::nonNull)
                 // Sort by acquisitionLevel and rankOrder
                 .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))

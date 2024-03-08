@@ -94,6 +94,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
             Assume.assumeNoException(e);
         }
 
+        assert savedVO != null;
         service.delete(savedVO.getId());
     }
     @Test
@@ -151,7 +152,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
                 .build();
 
         // children observed location must be controlled before validation
-        service.findAll(childrenFilter, Page.builder().build(), DataFetchOptions.MINIMAL)
+        service.findAll(childrenFilter, Page.builder().build(), ObservedLocationFetchOptions.MINIMAL)
                 .forEach(ol -> {
                     if (ol.getControlDate() == null) service.control(ol, null);
                     controlLandingsByObservedLocationId(ol.getId());
@@ -162,7 +163,7 @@ public class ObservedLocationServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(result.getValidationDate());
 
         // All subObservedLocation also must be validated
-        service.findAll(childrenFilter, Page.builder().build(), DataFetchOptions.MINIMAL)
+        service.findAll(childrenFilter, Page.builder().build(), ObservedLocationFetchOptions.MINIMAL)
                 .forEach(ol -> Assert.assertNotNull(ol.getValidationDate()));
     }
 

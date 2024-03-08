@@ -29,7 +29,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
 
-public interface ImageAttachmentSpecifications extends DataSpecifications<Integer, ImageAttachment> {
+public interface ImageAttachmentSpecifications extends IDataSpecifications<Integer, ImageAttachment> {
 
     default Specification<ImageAttachment> hasRecorderPersonId(Integer recorderPersonId) {
         if (recorderPersonId == null) return null;

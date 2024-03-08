@@ -92,6 +92,7 @@ public class TripRepositoryImpl
             .and(hasLocationIds(filter.getLocationIds()))
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasVesselId(filter.getVesselId()))
+            .and(hasVesselIds(filter.getVesselIds()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))

@@ -30,7 +30,8 @@ import java.util.Arrays;
 @EntityEnum(entity = Program.class, resolveAttributes = {Program.Fields.LABEL})
 public enum ProgramEnum implements Serializable {
 
-    SIH(0, "SIH");
+    SIH(0, "SIH"),
+    ;
 
     private Integer id;
     private String label;

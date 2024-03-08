@@ -37,8 +37,8 @@ public enum ProcessingTypeEnum implements Serializable {
     SIOP_VESSELS_IMPORTATION(3, "SIOP_VESSELS_IMPORTATION"),
     VESSEL_SNAPSHOTS_INDEXATION(4, "VESSEL_SNAPSHOTS_INDEXATION"),
 
-    SYS_P_FILL_LOCATION_HIERARCHY(49, "SYS_P_FILL_LOCATION_HIERARCHY"), // ID Harmonie
-    SYS_P_FILL_TAXON_GROUP_HIERARCHY(50, "SYS_P_FILL_TAXON_GROUP_HIERARCHY"), // ID Harmonie
+    FILL_LOCATION_HIERARCHY(49, "SYS_P_FILL_LOCATION_HIERARCHY"), // ID Harmonie
+    FILL_TAXON_GROUP_HIERARCHY(50, "SYS_P_FILL_TAXON_GROUP_HIERARCHY"), // ID Harmonie
 
     UNKNOWN(-1, "UNKNOWN")
     ;
@@ -55,10 +55,22 @@ public enum ProcessingTypeEnum implements Serializable {
             .findFirst();
     }
 
-    public static Optional<ProcessingTypeEnum> byLabelOrEmpty(@NonNull final String label) {
-        return Arrays.stream(values())
+    public static @NonNull Optional<ProcessingTypeEnum> byLabelOrName(@NonNull final String label) {
+        Optional<ProcessingTypeEnum> result = Arrays.stream(values())
             .filter(level -> label.equals(level.label))
             .findFirst();
+        if (result.isPresent()) return result;
+
+        // Try as name
+        return ProcessingTypeEnum.byName(label);
+    }
+
+    public static @NonNull Optional<ProcessingTypeEnum> byName(@NonNull final String name) {
+        try {
+            return Optional.of(ProcessingTypeEnum.valueOf(name));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     private Integer id;

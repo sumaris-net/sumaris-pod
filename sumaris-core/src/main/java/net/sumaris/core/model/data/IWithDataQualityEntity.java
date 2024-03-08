@@ -22,20 +22,35 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public interface IWithDataQualityEntity<ID extends Serializable>
-        extends IDataEntity<ID> {
+public interface IWithDataQualityEntity<ID extends Serializable, QF extends Serializable>
+        extends IEntity<ID> {
 
-    interface Fields extends IDataEntity.Fields {
-        String VALIDATION_DATE = "validationDate";
+    interface Fields extends IEntity.Fields {
+        String CONTROL_DATE = "controlDate";
+        String QUALIFICATION_DATE = "qualificationDate";
+        String QUALITY_FLAG = "qualityFlag";
+        String QUALIFICATION_COMMENTS = "qualificationComments";
     }
 
-    Date getValidationDate() ;
+    Date getControlDate();
 
-    void setValidationDate(Date validationDate);
+    void setControlDate(Date controlDate);
+
+    Date getQualificationDate();
+
+    void setQualificationDate(Date qualificationDate);
+
+    QF getQualityFlag();
+
+    void setQualityFlag(QF qualityFlag);
+
+    String getQualificationComments();
+
+    void setQualificationComments(String qualificationComments);
 }

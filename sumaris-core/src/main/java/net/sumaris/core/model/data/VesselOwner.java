@@ -33,7 +33,6 @@ import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
@@ -47,7 +46,7 @@ public class VesselOwner implements IEntity<Integer> {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(name = "registration_code", length = 40)
+    @Column(name = "registration_code", length = 40, nullable = false)
     private String registrationCode;
 
     @Column(name = "last_name", length = 100)

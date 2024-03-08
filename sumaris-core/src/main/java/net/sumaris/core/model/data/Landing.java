@@ -54,10 +54,11 @@ import java.util.Set;
     }
 )
 public class Landing implements IRootDataEntity<Integer>,
-        IWithObserversEntity<Integer, Person>,
-        IWithVesselEntity<Integer, Vessel>,
-        IWithSamplesEntity<Integer, Sample>,
-        IWithProductsEntity<Integer, Product> {
+    IWithObserversEntity<Integer, Person>,
+    IWithVesselEntity<Integer, Vessel>,
+    IWithSamplesEntity<Integer, Sample>,
+    IWithProductsEntity<Integer, Product>,
+    IWithSalesEntity<Integer, Sale> {
 
     public static final String GRAPH_LOCATION_AND_PROGRAM = "Landing.locationAndProgram";
 
@@ -139,6 +140,10 @@ public class Landing implements IRootDataEntity<Integer>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Product.class, mappedBy = Product.Fields.LANDING)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Product> products = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.LANDING)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<Sale> sales = new ArrayList<>();
 
     // FIXME when enable, LandginServiceImpl.findAllByObservedLocationId() always fetch expectedSale, but don't knwn shy
     // (see issue sumaris-pod #24)

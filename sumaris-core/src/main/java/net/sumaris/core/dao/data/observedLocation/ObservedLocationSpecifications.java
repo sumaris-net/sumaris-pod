@@ -22,14 +22,21 @@ package net.sumaris.core.dao.data.observedLocation;
  * #L%
  */
 
+import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.util.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ListJoin;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,6 +52,7 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
     String START_DATE_PARAM = "startDate";
     String END_DATE_PARAM = "endDate";
     String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
+    String LANDING_VESSEL_IDS_PARAM = "landingVesselIds";
 
     default Specification<ObservedLocation> hasLocationId(Integer locationId) {
         if (locationId == null) return null;
@@ -92,5 +100,20 @@ public interface ObservedLocationSpecifications extends RootDataSpecifications<O
         }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }
 
+    default Specification<ObservedLocation> hasLandingVesselIds(Integer... vesselIds) {
+        if (ArrayUtils.isEmpty(vesselIds)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, LANDING_VESSEL_IDS_PARAM);
+            ListJoin<ObservedLocation, Landing> landingsJoin = Daos.composeJoinList(root, StringUtils.doting(ObservedLocation.Fields.LANDINGS), JoinType.INNER);
+            Join<Landing, Vessel> vesselJoin = Daos.composeJoin(landingsJoin, Landing.Fields.VESSEL);
+
+            return cb.in(vesselJoin.get(IEntity.Fields.ID)).value(parameter);
+        }).addBind(LANDING_VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
+    }
 
 }

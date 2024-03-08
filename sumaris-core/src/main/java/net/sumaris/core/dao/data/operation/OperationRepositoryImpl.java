@@ -322,6 +322,7 @@ public class OperationRepositoryImpl
             .and(hasTripId(filter.getTripId()))
             .and(hasProgramLabel(filter.getProgramLabel()))
             .and(hasVesselId(filter.getVesselId()))
+            .and(hasVesselIds(filter.getVesselIds()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludeChildOperation(filter.getExcludeChildOperation()))

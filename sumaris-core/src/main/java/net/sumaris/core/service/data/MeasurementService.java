@@ -115,15 +115,26 @@ public interface MeasurementService {
     Map<Integer, String> getVesselFeaturesMeasurementsMap(int vesselFeaturesId);
 
     @Transactional(readOnly = true)
+    Map<Integer, String> getVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getGearUseFeaturesMeasurementsMap(int gearUseFeaturesId);
+
+    @Transactional(readOnly = true)
     Map<Integer, String> getLandingMeasurementsMap(int landingId);
 
     @Transactional(readOnly = true)
     Map<Integer, String> getLandingMeasurementsMap(int landingId, List<Integer> pmfmIds);
 
     @Transactional(readOnly = true)
-    Map<Integer, String> getSurveyMeasurementsMap(int landingId);
+    Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId);
 
     @Transactional(readOnly = true)
-    Map<Integer, String> getSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds);
+    Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds);
 
+    @Transactional(readOnly = true)
+    Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId);
+
+    @Transactional(readOnly = true)
+    Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId);
 }

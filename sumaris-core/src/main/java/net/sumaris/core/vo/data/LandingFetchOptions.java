@@ -39,13 +39,13 @@ public class LandingFetchOptions implements IDataFetchOptions {
     public static final LandingFetchOptions MINIMAL = LandingFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
-        .withObservers(false)
         .withVesselSnapshot(false)
         .build();
 
     public static final LandingFetchOptions FULL_GRAPH = LandingFetchOptions.builder()
         .withChildrenEntities(true)
         .withMeasurementValues(true)
+        .withSales(true)
         .withTrip(true)
         .withTripSales(true)
         .withTripExpectedSales(true)
@@ -62,13 +62,13 @@ public class LandingFetchOptions implements IDataFetchOptions {
     private boolean withRecorderPerson = true;
 
     @Builder.Default
-    private boolean withObservers = true;
-
-    @Builder.Default
     private boolean withChildrenEntities = false; // Important: should be disabled by default (see TripService or LandingService)
 
     @Builder.Default
     private boolean withMeasurementValues = false;
+
+    @Builder.Default
+    private boolean withSales = false;
 
     @Builder.Default
     private boolean withTrip = false;

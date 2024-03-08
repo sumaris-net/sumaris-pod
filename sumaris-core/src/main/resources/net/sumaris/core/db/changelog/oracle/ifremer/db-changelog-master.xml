@@ -44,6 +44,7 @@
   <include relativeToChangelogFile="true" file="../all/db-changelog-2.7.2.xml"/>
   <include relativeToChangelogFile="true" file="../all/db-changelog-2.8.0.xml"/>
   <include relativeToChangelogFile="true" file="db-changelog-2.8.0.xml"/>
+  <include relativeToChangelogFile="true" file="../all/db-changelog-2.9.0.xml"/>
 
   <!-- v3 = OBSMER version -->
   <include relativeToChangelogFile="true" file="../all/db-changelog-3.0.0.xml"/>

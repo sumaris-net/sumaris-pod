@@ -48,12 +48,14 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     IWithMeasurementValues {
 
     @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
     @ToString.Include
     private Integer rankOrder;
     @ToString.Include
     private ReferentialVO gear;
     private String comments;
+    @EqualsAndHashCode.Exclude
     private Date creationDate;
     @EqualsAndHashCode.Exclude
     private Date updateDate;

@@ -47,7 +47,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     NET_LENGTH(41, "NET_LENGTH"),
     DISCARD_OR_LANDING(90, "DISCARD_OR_LANDING"),
 
-    LANDING_CATEGORY(421, "LANDING_CATEGORY"),
+    LANDING_CATEGORY(436, "LANDING_CATEGORY"), // = PRODUCT_DESTINATION in Adagio
 
     CONVEYOR_BELT(20, "CONVEYOR_BELT"),
     NB_FISHERMEN(21, "NB_FISHERMEN"),
@@ -110,6 +110,8 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     IS_DEAD(94, "IS_DEAD"),
     DISCARD_REASON(95, "DISCARD_REASON"),
+    DISCARD_TYPE(408, "DISCARD_TYPE"),
+    IS_SAMPLING(409, "IS_SAMPLING"), // Lot est-il détaillé ou pas ?
     HAS_INDIVIDUAL_MEASURES(121, "HAS_INDIVIDUAL_MEASURES"),
 
     HULL_MATERIAL(440, "HULL_MATERIAL"), // Adagio HULL_MATERIAL (id=145)
@@ -143,8 +145,14 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     STRATEGY_LABEL(359, "STRATEGY_LABEL"),
 
     REFUSED_SURVEY(266, "REFUSED_SURVEY"),
-    GPS_USED(188, "GPS_USED")
+    GPS_USED(188, "GPS_USED"),
 
+    // Activity Calendar
+    DURATION_AT_SEA_DAYS(449, "DURATION_AT_SEA_DAYS"),
+    FISHING_DURATION_DAYS(450, "FISHING_DURATION_DAYS"),
+
+    SURVEY_QUALIFICATION(446, "SURVEY_QUALIFICATION"),
+    SURVEY_RELIABILITY(447, "SURVEY_QUALIFICATION"),
     ;
 
     public static PmfmEnum valueOf(final int id) {
