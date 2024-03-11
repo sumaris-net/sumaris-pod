@@ -291,6 +291,7 @@ public class ReferentialEntities {
 
         result.put(SamplingScheme.class.getSimpleName(), BeanUtils.getPropertyDescriptor(SamplingScheme.class, SamplingScheme.Fields.PROGRAM));
         result.put(SamplingStrata.class.getSimpleName(), BeanUtils.getPropertyDescriptor(SamplingStrata.class, SamplingStrata.Fields.SAMPLING_SCHEME));
+        result.put(DenormalizedSamplingStrata.class.getSimpleName(), BeanUtils.getPropertyDescriptor(DenormalizedSamplingStrata.class, DenormalizedSamplingStrata.Fields.PROGRAM));
 
         // TODO remove the following put ? Too many put for the same Program class
         result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.GEAR_CLASSIFICATION));

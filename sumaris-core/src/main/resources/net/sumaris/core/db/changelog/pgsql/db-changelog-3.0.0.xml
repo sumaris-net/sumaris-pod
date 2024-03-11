@@ -5,6 +5,19 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/pgsql/db-changelog-3.0.0.xml">
 
+
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-204">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="trip" columnName="sampling_strata_fk"/></not>
+    </preConditions>
+    <addColumn tableName="trip">
+      <column name="sampling_strata_fk" type="INT"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-205" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="trip" constraintName="trip_sampling_strata_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

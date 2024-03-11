@@ -39,12 +39,14 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
+import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -129,7 +131,6 @@ public class DataGraphQLService {
 
     private final EntityWatchService entityWatchService;
 
-
     private final ProductService productService;
 
     private final PacketService packetService;
@@ -145,6 +146,8 @@ public class DataGraphQLService {
     private final ProgramService programService;
     private final MetierRepository metierRepository;
 
+    private final ReferentialService referentialService;
+
     private boolean enableImageAttachments = false;
 
     private final TimeLog timeLog = new TimeLog(DataGraphQLService.class);
@@ -154,7 +157,7 @@ public class DataGraphQLService {
         this.enableImageAttachments = event.getConfiguration().enableDataImages();
     }
 
-    /* -- Trip -- */
+    /* -- Trips -- */
 
     @GraphQLQuery(name = "trips", description = "Search in trips")
     @Transactional(readOnly = true)
@@ -408,6 +411,16 @@ public class DataGraphQLService {
         fillTripFields(result, GraphQLUtils.fields(env));
 
         return result;
+    }
+
+    /* -- Metier -- */
+
+    @GraphQLQuery(name = "samplingStrata", description = "Get trip's sampling strata")
+    public ReferentialVO getTripSamplingStrata(@GraphQLContext TripVO trip) {
+        if (trip.getSamplingStrata() != null) return trip.getSamplingStrata();
+        if (trip.getSamplingStrataId() == null) return null;
+
+        return this.referentialService.get(SamplingStrata.class.getSimpleName(), trip.getSamplingStrataId());
     }
 
     /* -- Gears -- */
@@ -1902,6 +1915,7 @@ public class DataGraphQLService {
                 .withExpectedSales(fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
                         || fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID))
                 )
+                .withSamplingStrata(fields.contains(StringUtils.slashing(TripVO.Fields.SAMPLING_STRATA, IEntity.Fields.ID)))
                 .build();
     }
 

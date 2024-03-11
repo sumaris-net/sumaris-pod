@@ -68,6 +68,7 @@ public class ReferentialVO implements IReferentialVO<Integer>,
     @ToString.Include
     private String entityName;
 
+    @ToString.Exclude
     private Map<String, Object> properties;
 }
 

@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.location.Location;
@@ -164,6 +165,10 @@ public class Trip implements IRootDataEntity<Integer>,
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ScientificCruise.class)
     @JoinColumn(name = "scientific_cruise_fk")
     private ScientificCruise scientificCruise;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = SamplingStrata.class)
+    @JoinColumn(name = "sampling_strata_fk")
+    private SamplingStrata samplingStrata;
 
     public int hashCode() {
         return Objects.hash(id, vessel, program, departureDateTime);

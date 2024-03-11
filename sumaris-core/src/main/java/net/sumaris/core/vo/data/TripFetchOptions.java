@@ -39,6 +39,7 @@ public class TripFetchOptions implements IDataFetchOptions, IWithObserversFetchO
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withObservers(false)
+        .withSamplingStrata(false)
         .build();
 
     public static final TripFetchOptions FULL_GRAPH = TripFetchOptions.builder()
@@ -47,6 +48,7 @@ public class TripFetchOptions implements IDataFetchOptions, IWithObserversFetchO
         .withGears(true)
         .withSales(true)
         .withExpectedSales(true)
+        .withSamplingStrata(true)
         .build();
 
     @Builder.Default
@@ -84,4 +86,7 @@ public class TripFetchOptions implements IDataFetchOptions, IWithObserversFetchO
 
     @Builder.Default
     private boolean withProgram = true;
+
+    @Builder.Default
+    private boolean withSamplingStrata = false;
 }

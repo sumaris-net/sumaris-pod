@@ -725,6 +725,9 @@ public class ReferentialDaoImpl
         // Level Ids
         Predicate levelIdClause = null;
         ParameterExpression<Collection> levelIdsParam = null;
+        if (ArrayUtils.isEmpty(levelIds) && filter.getLevelId() != null) {
+            levelIds = new Integer[]{filter.getLevelId()};
+        }
         if (ArrayUtils.isNotEmpty(levelIds)) {
             levelIdsParam = builder.parameter(Collection.class);
             String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
@@ -1026,11 +1029,11 @@ public class ReferentialDaoImpl
                 ));
             }
             case DenormalizedSamplingStrata.ENTITY_NAME -> {
-//                target.setProperties(ImmutableMap.<String, Object>builder()
-//                    .put(DenormalizedSamplingStrata.Fields.TAXON_GROUP_NAME, ((DenormalizedSamplingStrata)source).getTaxonGroupName())
-//                    // TODO continue ?
-//                    .build()
-//                );
+                target.setProperties(ImmutableMap.<String, Object>builder()
+                    .put(DenormalizedSamplingStrata.Fields.SAMPLING_SCHEME_LABEL, ((DenormalizedSamplingStrata)source).getSamplingSchemeLabel())
+                    // TODO continue ?
+                    .build()
+                );
             }
         }
     }

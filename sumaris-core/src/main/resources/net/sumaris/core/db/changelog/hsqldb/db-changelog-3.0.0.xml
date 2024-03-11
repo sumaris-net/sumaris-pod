@@ -1051,7 +1051,17 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-203" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="taxon_group_strategy" constraintName="FKn0ls7id9yw6mp96w3iecpu6ly" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy" validate="true"/>
   </changeSet>
-
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-204">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="trip" columnName="sampling_strata_fk"/></not>
+    </preConditions>
+    <addColumn tableName="trip">
+      <column name="sampling_strata_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-205" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="trip" constraintName="trip_sampling_strata_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
+  </changeSet>
 
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200" runOnChange="true">
@@ -1065,6 +1075,7 @@
         - Rename some software properties;
         - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY;
         - Add missing delete cascade constrains, on STRATEGY_xxx tables;
+        - Add column TRIP.SAMPLING_STRATA_FK
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>

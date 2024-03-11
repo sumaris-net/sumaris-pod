@@ -34,6 +34,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 import java.util.List;
@@ -112,9 +113,13 @@ public class TripVO implements IRootDataVO<Integer>,
     @ToString.Exclude
     private ObservedLocationVO observedLocation;
 
+    private Integer scientificCruiseId;
     @ToString.Exclude
     private ScientificCruiseVO scientificCruise;
-    private Integer scientificCruiseId;
+
+    private Integer samplingStrataId;
+    @ToString.Exclude
+    private ReferentialVO samplingStrata;
 
     @Override
     @JsonIgnore
