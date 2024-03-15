@@ -25,6 +25,7 @@
   <!-- rename INDIVIDUAL_SEX by SEX-->
   <select alias="SEX" type="text">B.SEX</select>
 
+  <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
   <!-- reinsert last RDB fields, but after SEX -->
   <select alias="LENGTH_CLASS" type="number">B.LENGTH_CLASS</select>

@@ -671,6 +671,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // But group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
         xmlQuery.setGroup("taxon", this.enableSpeciesLengthTaxon(context));
 
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
 
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
