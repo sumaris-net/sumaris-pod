@@ -68,6 +68,7 @@
 
     <!-- other fields -->
     <select alias="INDIVIDUAL_SEX" group="sex" type="text">B.SEX</select>
+
     <injection name="afterSexInjection" type="select" group="injectionPoint"/>
 
     <injection name="pmfmsInjection" type="select" group="injectionPoint"/>
