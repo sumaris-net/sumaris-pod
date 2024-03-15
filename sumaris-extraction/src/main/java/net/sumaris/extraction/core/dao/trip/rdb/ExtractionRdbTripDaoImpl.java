@@ -718,7 +718,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 PmfmEnum.DISCARD_OR_LANDING.getId(),
                 PmfmEnum.BATCH_SORTING.getId(),
                 PmfmEnum.CATCH_WEIGHT.getId(),
-                PmfmEnum.DISCARD_WEIGHT.getId()
+                PmfmEnum.DISCARD_WEIGHT.getId(),
+                PmfmEnum.LANDING_CATEGORY.getId()
             )
             .addAll(getSizeCategoryPmfmIds())
             .build();
