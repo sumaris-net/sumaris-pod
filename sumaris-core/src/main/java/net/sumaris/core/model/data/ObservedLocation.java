@@ -114,7 +114,6 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     private QualityFlag qualityFlag;
 
     @Column(name = "start_date_time", nullable = false)
-    
     private Date startDateTime;
 
     @Column(name = "end_date_time", nullable = false)
@@ -122,7 +121,6 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
 
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
     @JoinColumn(name = "location_fk", nullable = false)
-    
     private Location location;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
