@@ -1062,6 +1062,14 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-205" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="trip" constraintName="trip_sampling_strata_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-206">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="activity_calendar" columnName="economic_survey"/></not>
+    </preConditions>
+    <addColumn tableName="activity_calendar">
+      <column name="economic_survey" type="BOOLEAN"/>
+    </addColumn>
+  </changeSet>
 
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200" runOnChange="true">

@@ -82,6 +82,9 @@ public class ActivityCalendar implements IRootDataEntity<Integer>,
     @Column(name = "direct_survey_investigation", nullable = false)
     private Boolean directSurveyInvestigation;
 
+    @Column(name = "economic_survey")
+    private Boolean economicSurvey;
+
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
