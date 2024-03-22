@@ -94,7 +94,7 @@ public interface BatchSpecifications extends IDataSpecifications<Integer, Batch>
 
     List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources);
 
-    List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources);
+    List<BatchVO> saveAllBySaleId(int saleId, List<BatchVO> sources);
 
     List<BatchVO> toFlatList(BatchVO source);
 
