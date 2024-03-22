@@ -36,7 +36,7 @@
   <PROGRAM2DEPARTMENT ID="110" PROGRAM_FK="110" DEPARTMENT_FK="13" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2023-12-14"/>
   <PROGRAM2DEPARTMENT ID="111" PROGRAM_FK="110" DEPARTMENT_FK="3"  PROGRAM_PRIVILEGE_FK="3" UPDATE_DATE="2023-12-14"/> <!-- Ifremer as Observers -->
 
-  <PROGRAM_PROPERTY ID="600" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2023-12-14" LABEL="sumaris.data.strategy.resolution" NAME="spatio-temporal"/>
+  <PROGRAM_PROPERTY ID="600" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2023-12-14" LABEL="sumaris.data.strategy.resolution" NAME="last"/> <!-- TODO spatio-temporal -->
   <PROGRAM_PROPERTY ID="601" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2023-12-14"  LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
   <PROGRAM_PROPERTY ID="602" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-03-19"  LABEL="sumaris.activityCalendar.vessel.country.id" NAME="1"/>
 

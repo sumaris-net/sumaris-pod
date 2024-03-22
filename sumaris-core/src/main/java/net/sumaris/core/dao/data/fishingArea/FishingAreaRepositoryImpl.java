@@ -206,7 +206,7 @@ public class FishingAreaRepositoryImpl
     public List<FishingAreaVO> saveAllByGearUseFeaturesId(int gearUseFeaturesId, List<FishingAreaVO> sources) {
 
         // Filter on non null objects
-        sources = sources.stream().filter(Objects::nonNull).toList();
+        sources = Beans.getStream(sources).filter(Objects::nonNull).toList();
 
         // Set parent link
         sources.forEach(fa -> {
