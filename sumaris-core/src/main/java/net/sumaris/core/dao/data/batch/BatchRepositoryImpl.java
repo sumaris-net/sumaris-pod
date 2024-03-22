@@ -213,7 +213,7 @@ public class BatchRepositoryImpl
     }
 
     @Override
-    public List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources) {
+    public List<BatchVO> saveAllBySaleId(int saleId, List<BatchVO> sources) {
         long startTime = System.currentTimeMillis();
         log.debug("Saving batches of Sale#{}... {hash_optimization: {}}", saleId, enableHashOptimization);
 
