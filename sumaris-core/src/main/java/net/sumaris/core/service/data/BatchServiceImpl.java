@@ -104,6 +104,27 @@ public class BatchServiceImpl implements BatchService {
 	}
 
 	@Override
+	public List<BatchVO> saveAllBySaleId(int saleId, List<BatchVO> sources) {
+
+		List<BatchVO> result = batchRepository.saveAllBySaleId(saleId, sources);
+
+		// Save measurements
+		saveMeasurements(result);
+
+		// Emit update event, on the catch batch
+		result.stream()
+				// Find the catch batch
+				.filter(b -> b.getParent() == null && b.getParentId() == null)
+				.findFirst()
+				// Transform to event
+				.map(catchBatch -> new EntityUpdateEvent(catchBatch.getId(), Batch.class.getSimpleName(), catchBatch))
+				// Publish
+				.ifPresent(publisher::publishEvent);
+
+		return result;
+	}
+
+	@Override
 	public BatchVO save(BatchVO batch) {
 		Preconditions.checkNotNull(batch);
 		Preconditions.checkArgument((batch.getOperation() != null && batch.getOperation().getId() != null) || batch.getOperationId() != null, "Missing batch.operation or batch.operationId");

@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -34,7 +35,9 @@ import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.filter.SaleFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,6 +55,8 @@ public class SaleServiceImpl implements SaleService {
 
 	protected final ProductService productService;
 
+	protected final BatchService batchService;
+
 	protected final VesselSnapshotService vesselSnapshotService;
 
 	@Override
@@ -59,7 +64,7 @@ public class SaleServiceImpl implements SaleService {
 		List<SaleVO> targets = saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
 
 		// Fill vessels
-		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) this.fillVesselSnapshots(targets);
+		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) this.fillVesselSnapshots(targets);
 
 		return targets;
 	}
@@ -190,10 +195,32 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		// Save produces
-		if (source.getProducts() != null) source.getProducts().forEach(product -> fillDefaultProperties(source, product));
-		source.setProducts(
-			productService.saveBySaleId(source.getId(), source.getProducts())
-		);
+		if (source.getProducts() != null) {
+			source.getProducts().forEach(product -> fillDefaultProperties(source, product));
+			source.setProducts(
+				productService.saveBySaleId(source.getId(), source.getProducts())
+			);
+		}
+
+		// Save batches
+		{
+			List<BatchVO> batches = getAllBatches(source);
+			batches = batchService.saveAllBySaleId(source.getId(), batches);
+
+			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
+			batches.forEach(batch -> {
+				// Set parentId (instead of parent object)
+				if (batch.getParentId() == null && batch.getParent() != null) {
+					batch.setParentId(batch.getParent().getId());
+				}
+				// Remove link parent/children
+				batch.setParent(null);
+				batch.setChildren(null);
+			});
+
+			source.setCatchBatch(null);
+			source.setBatches(batches);
+		}
 	}
 
 	protected void fillDefaultProperties(SaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
@@ -216,5 +243,57 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		product.setSaleId(parent.getId());
+	}
+
+	protected void fillDefaultProperties(SaleVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		batch.setSaleId(parent.getId());
+	}
+
+	protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		if (parent.getId() == null) {
+			// Need to be the parent object, when parent has not id yet (see issue #2)
+			batch.setParent(parent);
+		} else {
+			batch.setParentId(parent.getId());
+		}
+		batch.setSaleId(parent.getSaleId());
+	}
+
+	protected List<BatchVO> getAllBatches(SaleVO parent) {
+		BatchVO catchBatch = parent.getCatchBatch();
+		fillDefaultProperties(parent, catchBatch);
+		List<BatchVO> result = Lists.newArrayList();
+		addAllBatchesToList(catchBatch, result);
+		return result;
+	}
+
+	protected void addAllBatchesToList(final BatchVO batch, final List<BatchVO> result) {
+		if (batch == null) return;
+
+		// Add the batch itself
+		if (!result.contains(batch)) result.add(batch);
+
+		// Process children
+		if (CollectionUtils.isNotEmpty(batch.getChildren())) {
+			// Recursive call
+			batch.getChildren().forEach(child -> {
+				fillDefaultProperties(batch, child);
+				addAllBatchesToList(child, result);
+			});
+		}
 	}
 }

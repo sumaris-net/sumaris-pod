@@ -51,6 +51,8 @@ public interface BatchService {
 
 	List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources);
 
+	List<BatchVO> saveAllBySaleId(int saleId, List<BatchVO> sources);
+
 	@Transactional(readOnly = true)
 	BatchVO get(int id);
 
