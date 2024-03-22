@@ -24,6 +24,7 @@ package net.sumaris.core.dao.data.sale;
 
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
+import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.IWithSalesEntity;
@@ -39,6 +40,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.SaleFetchOptions;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.filter.SaleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,6 +65,9 @@ public class SaleRepositoryImpl
 
     @Autowired
     private PersonRepository personRepository;
+
+    @Autowired
+    private BatchRepository batchRepository;
 
     protected SaleRepositoryImpl(EntityManager entityManager) {
         super(Sale.class, SaleVO.class, entityManager);
@@ -97,6 +102,16 @@ public class SaleRepositoryImpl
                 PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
                 target.setRecorderPerson(recorderPerson);
             }
+        }
+
+        // Batches
+        if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithBatches())) {
+            target.setBatches(batchRepository.findAllVO(batchRepository.hasSaleId(source.getId()),
+                    BatchFetchOptions.builder()
+                            .withChildrenEntities(false) // Use flat list, not a tree
+                            .withRecorderDepartment(false)
+                            .withMeasurementValues(true)
+                            .build()));
         }
     }
 

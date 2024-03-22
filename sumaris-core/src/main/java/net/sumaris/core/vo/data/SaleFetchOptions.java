@@ -43,17 +43,23 @@ public class SaleFetchOptions implements IDataFetchOptions {
         .build();
 
     public static final SaleFetchOptions FULL_GRAPH = SaleFetchOptions.builder()
+        .withProgram(true)
         .withRecorderDepartment(true)
         .withRecorderPerson(true)
         .withVesselSnapshot(true)
         .withChildrenEntities(true)
         .withMeasurementValues(true)
         .withProducts(true)
+        .withBatches(true)
         .build();
 
     public static SaleFetchOptions copy(IDataFetchOptions source) {
         return DataFetchOptions.copy(source, SaleFetchOptions.builder().build());
     }
+
+
+    @Builder.Default
+    private boolean withProgram = false;
 
     @Builder.Default
     private boolean withVesselSnapshot = false;
@@ -72,4 +78,7 @@ public class SaleFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withProducts = false;
+
+    @Builder.Default
+    private boolean withBatches = false;
 }
