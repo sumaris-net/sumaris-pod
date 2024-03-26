@@ -57,6 +57,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     public ExtractionApaseDaoImpl() {
         super();
         this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format
+        this.enableSpeciesLengthSpeciesPmfmsInjection = false; // Avoid to add SL pmfm columns into the HL table
     }
 
     @Override
@@ -323,6 +324,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
             case "injectionRawSpeciesListTable":
             case "injectionSpeciesLengthTable":
             case "injectionSpeciesLengthPmfm":
+            case "injectionSpeciesLength_speciesPmfm":
                 return getQueryFullName(ApaseSpecification.FORMAT, ApaseSpecification.VERSION_1_0, queryName);
             default:
                 return super.getQueryFullName(context, queryName);
