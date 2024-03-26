@@ -32,6 +32,7 @@ import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.administration.samplingScheme.DenormalizedSamplingStrata;
 import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.location.Location;
@@ -39,6 +40,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
@@ -140,7 +142,10 @@ public class TripRepositoryImpl
         if (source.getSamplingStrata() != null) {
             target.setSamplingStrataId(source.getSamplingStrata().getId());
             if (fetchOptions != null && fetchOptions.isWithSamplingStrata()) {
-                ReferentialVO samplingStrata = referentialDao.get(SamplingStrata.class, source.getSamplingStrata().getId());
+                ReferentialVO samplingStrata = referentialDao.get(DenormalizedSamplingStrata.class, source.getSamplingStrata().getId(),
+                        ReferentialFetchOptions.builder()
+                                .withProperties(true) // Load sampling sheme label
+                                .build());
                 target.setSamplingStrata(samplingStrata);
             }
         }
