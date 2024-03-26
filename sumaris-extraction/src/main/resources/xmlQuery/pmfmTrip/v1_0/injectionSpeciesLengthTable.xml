@@ -39,4 +39,7 @@
   <from join="true" group="pmfms">INNER JOIN SORTING_MEASUREMENT_B SM ON SM.BATCH_FK = B.ID</from>
   <from join="true" group="pmfms">LEFT OUTER JOIN QUALITATIVE_VALUE QV ON QV.ID = SM.QUALITATIVE_VALUE_FK</from>
 
+  <!-- TODO extraction RTP weight ?-->
+  <!--  <from join="true" group="pmfms">LEFT OUTER JOIN QUANTIFICATION_MEASUREMENT_B QM ON QM.BATCH_FK = B.ID</from>-->
+
 </query>

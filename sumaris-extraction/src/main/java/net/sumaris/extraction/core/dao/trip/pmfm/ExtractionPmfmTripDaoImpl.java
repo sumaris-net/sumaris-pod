@@ -367,8 +367,10 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             // Excluded some pmfms (already extracted in the RDB format)
             ImmutableList.builder()
                 .add(PmfmEnum.DISCARD_OR_LANDING.getId(),
-                    PmfmEnum.SEX.getId())
-                .addAll(getSpeciesLengthPmfmIds()).build().toArray(Integer[]::new)
+                    PmfmEnum.SEX.getId(),
+                    PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId() // Exclude weight, because store in the QUANTIFICATION_MEASUREMENT table
+                )
+                .addAll(getSpeciesLengthPmfmIds()).build().toArray(new Integer[0])
         );
         boolean hasPmfmsColumnsInjected = StringUtils.isNotBlank(pmfmsColumns);
 
@@ -500,6 +502,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionSpeciesListTable_afterWeight":
             case "injectionSpeciesLength_speciesPmfm":
             case "injectionSpeciesLengthPmfm":
+            case "injectionSpeciesLengthWeightPmfm":
             case "injectionSpeciesLengthTable":
             case "injectionSpeciesLengthTaxon":
             case "createReleaseTable":
