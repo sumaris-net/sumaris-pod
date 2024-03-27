@@ -56,6 +56,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class VesselSnapshotRepositoryImpl
@@ -168,9 +169,11 @@ public class VesselSnapshotRepositoryImpl
         // Configure (set hints)
         configureQuery(query, fetchOptions);
 
-        return streamQuery(query)
-            .map(tuple -> toVO(tuple, fetchOptions, true))
-            .collect(Collectors.toList());
+        try (Stream<Tuple> stream = streamQuery(query)) {
+            return stream.map(tuple -> toVO(tuple, fetchOptions, true))
+                .toList();
+        }
+
     }
 
     @Override
