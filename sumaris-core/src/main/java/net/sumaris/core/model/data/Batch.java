@@ -25,12 +25,15 @@ package net.sumaris.core.model.data;
 import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.dao.technical.hibernate.identifier.SlaveSequenceIdGenerator;
 import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.id.enhanced.SequenceStyleGenerator;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -47,6 +50,7 @@ public class Batch implements IDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
     @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @GenericGenerator(name = "BATCH_SEQ", strategy = SlaveSequenceIdGenerator.STRATEGY)
     @EqualsAndHashCode.Include
     private Integer id;
 
