@@ -62,4 +62,9 @@ public class FishingAreaVO implements IEntity<Integer>, IValueObject<Integer> {
     @ToString.Exclude
     private GearUseFeaturesVO gearUseFeatures;
     private Integer gearUseFeaturesId;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private SaleVO sale;
+    private Integer saleId;
 }
