@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.sale;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.data.batch.BatchRepository;
+import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.IWithSalesEntity;
@@ -68,7 +69,8 @@ public class SaleRepositoryImpl
 
     @Autowired
     private BatchRepository batchRepository;
-
+    @Autowired
+    private FishingAreaRepository fishingAreaRepository;
     protected SaleRepositoryImpl(EntityManager entityManager) {
         super(Sale.class, SaleVO.class, entityManager);
     }
@@ -89,6 +91,13 @@ public class SaleRepositoryImpl
 
         // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
+
+        //  ObservedLocation
+        target.setObservedLocationId(source.getObservedLocation().getId());
+
+        // fishingArea
+        Integer saleId = source.getId();
+        target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasSaleId(saleId)));
 
         // Fetch children (default is false)
         if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {

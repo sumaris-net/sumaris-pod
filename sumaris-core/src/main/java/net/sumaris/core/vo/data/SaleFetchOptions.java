@@ -81,4 +81,6 @@ public class SaleFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withBatches = false;
+
+    private boolean withFishingAreas = false;
 }
