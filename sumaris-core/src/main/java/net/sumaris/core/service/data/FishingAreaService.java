@@ -50,4 +50,6 @@ public interface FishingAreaService {
 
     List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
 
+    List<FishingAreaVO> saveAllBySaleId(int saleId, List<FishingAreaVO> fishingAreas);
+
 }

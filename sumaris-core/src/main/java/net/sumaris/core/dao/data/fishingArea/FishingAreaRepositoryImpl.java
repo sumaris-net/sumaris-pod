@@ -216,6 +216,24 @@ public class FishingAreaRepositoryImpl
     }
 
     @Override
+    public List<FishingAreaVO> saveAllBySaleId(int saleId, @Nonnull List<FishingAreaVO> sources) {
+
+        // Filter on non null objects
+        sources = sources.stream().filter(Objects::nonNull).toList();
+
+        // Set parent link
+        sources.forEach(fa -> {
+            fa.setSaleId(saleId);
+            fa.setGearUseFeaturesId(null);
+        });
+
+        // Get existing fishing areas
+        Sale sale = getById(Sale.class, saleId);
+
+        return saveAllByList(sources, sale.getFishingAreas());
+    }
+
+    @Override
     public List<FishingAreaVO> saveAllByGearUseFeaturesId(int gearUseFeaturesId, List<FishingAreaVO> sources) {
 
         // Filter on non null objects

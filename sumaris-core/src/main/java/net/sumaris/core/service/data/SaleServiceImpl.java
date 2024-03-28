@@ -127,6 +127,9 @@ public class SaleServiceImpl implements SaleService {
 	public SaleVO save(SaleVO sale) {
 		checkSale(sale);
 
+		// Reset control date
+		sale.setControlDate(null);
+
 		SaleVO savedSale = saleRepository.save(sale);
 
 		saveChildrenEntities(savedSale);
