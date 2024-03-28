@@ -39,11 +39,13 @@ public class ObservedLocationFetchOptions implements IDataFetchOptions, IWithObs
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withObservers(false)
+        .withSamplingStrata(false)
         .build();
 
     public static final ObservedLocationFetchOptions FULL_GRAPH = ObservedLocationFetchOptions.builder()
         .withChildrenEntities(true)
         .withMeasurementValues(true)
+        .withSamplingStrata(true)
         .build();
 
     public static ObservedLocationFetchOptions copy(IDataFetchOptions source) {
@@ -73,4 +75,7 @@ public class ObservedLocationFetchOptions implements IDataFetchOptions, IWithObs
 
     @Builder.Default
     private boolean withProgram = true;
+
+    @Builder.Default
+    private boolean withSamplingStrata = false;
 }

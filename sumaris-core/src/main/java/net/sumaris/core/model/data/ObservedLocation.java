@@ -27,6 +27,7 @@ import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -142,6 +143,10 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
             inverseJoinColumns = {
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
     private Set<Person> observers = Sets.newHashSet();
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = SamplingStrata.class)
+    @JoinColumn(name = "sampling_strata_fk")
+    private SamplingStrata samplingStrata;
 
     public int hashCode() {
         return Objects.hash(id, program, startDateTime, location);
