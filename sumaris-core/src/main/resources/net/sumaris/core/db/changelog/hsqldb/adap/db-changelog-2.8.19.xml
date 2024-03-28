@@ -59,4 +59,14 @@
     </insert>
   </changeSet>
 
+  <!-- Fix bad RTP weight -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-401">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+      </and>
+    </preConditions>
+    <sqlFile path="db-changelog-2.8.19.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+  </changeSet>
+
 </databaseChangeLog>
