@@ -1027,7 +1027,7 @@
     </sql>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-199">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="pmfm_strategy2metier"/>
@@ -1082,8 +1082,8 @@
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="observed_location" constraintName="observed_location_sampling_stc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
 
-  <!-- update SYSTEM_VERSION -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200" runOnChange="true">
+  <!-- Update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-300" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
       <where>LABEL='3.0.0'</where>
     </delete>
