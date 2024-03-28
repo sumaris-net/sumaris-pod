@@ -1832,6 +1832,15 @@ public class DataGraphQLService {
         return landings;
     }
 
+    protected List<SaleVO> fillSalesFields(List<SaleVO> sales, Set<String> fields) {
+        // Add image if need
+        fillImages(sales, fields);
+
+        // Add vessel if need
+        vesselGraphQLService.fillVesselSnapshot(sales, fields);
+
+        return sales;
+    }
     protected ActivityCalendarVO fillActivityCalendarFields(ActivityCalendarVO activityCalendar, Set<String> fields) {
         // Add image if need
         fillImages(activityCalendar, fields);
@@ -1986,6 +1995,17 @@ public class DataGraphQLService {
             .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
             .withLandings(fields.contains(StringUtils.slashing(ObservedLocationVO.Fields.LANDINGS, IEntity.Fields.ID)))
             .build();
+    }
+
+    protected SaleFetchOptions getSaleFetchOptions(Set<String> fields) {
+        return SaleFetchOptions.builder()
+                .withProgram(fields.contains(StringUtils.slashing(SaleVO.Fields.PROGRAM, IEntity.Fields.ID)))
+                .withVesselSnapshot(fields.contains(StringUtils.slashing(SaleVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID)))
+                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+                .withMeasurementValues(fields.contains(SaleVO.Fields.MEASUREMENT_VALUES))
+                .withBatches(fields.contains(StringUtils.slashing(SaleVO.Fields.BATCHES, IEntity.Fields.ID)))
+                .build();
     }
 
     protected ActivityCalendarFetchOptions getActivityCalendarFetchOptions(Set<String> fields) {
