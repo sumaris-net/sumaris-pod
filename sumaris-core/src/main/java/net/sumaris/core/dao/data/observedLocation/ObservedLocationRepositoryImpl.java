@@ -24,12 +24,16 @@ package net.sumaris.core.dao.data.observedLocation;
 
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.data.ObservedLocation;
+import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.ObservedLocationFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -50,12 +54,16 @@ public class ObservedLocationRepositoryImpl
 
     private final LocationRepository locationRepository;
 
+    private final ReferentialDao referentialDao;
+
     @Autowired
     public ObservedLocationRepositoryImpl(EntityManager entityManager,
                                           LocationRepository locationRepository,
+                                          ReferentialDao referentialDao,
                                           GenericConversionService conversionService) {
         super(ObservedLocation.class, ObservedLocationVO.class, entityManager);
         this.locationRepository = locationRepository;
+        this.referentialDao = referentialDao;
         conversionService.addConverter(ObservedLocation.class, ObservedLocationVO.class, this::toVO);
     }
 
@@ -84,6 +92,15 @@ public class ObservedLocationRepositoryImpl
 
         // Location
         target.setLocation(locationRepository.toVO(source.getLocation()));
+
+        // Sampling strata
+        if (source.getSamplingStrata() != null) {
+            target.setSamplingStrataId(source.getSamplingStrata().getId());
+            if (fetchOptions != null && fetchOptions.isWithSamplingStrata()) {
+                ReferentialVO samplingStrata = referentialDao.get(SamplingStrata.class, source.getSamplingStrata().getId());
+                target.setSamplingStrata(samplingStrata);
+            }
+        }
     }
 
     @Override
@@ -103,6 +120,16 @@ public class ObservedLocationRepositoryImpl
                 target.setLocation(getReference(Location.class, source.getLocation().getId()));
             }
         }
+
+        // Sampling strata
+        Integer samplingStrataId = source.getSamplingStrata() != null ? source.getSamplingStrata().getId() : source.getSamplingStrataId();
+        if (copyIfNull || samplingStrataId != null) {
+            if (samplingStrataId == null) {
+                target.setSamplingStrata(null);
+            } else {
+                target.setSamplingStrata(getReference(SamplingStrata.class, samplingStrataId));
+            }
+        }
     }
 
     @Override
@@ -110,7 +137,7 @@ public class ObservedLocationRepositoryImpl
                                   @Nullable ObservedLocationFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
-        if (fetchOptions == null || fetchOptions.isWithLocations() || fetchOptions.isWithProgram()) {
+        if (fetchOptions == null || fetchOptions.isWithLocations() || fetchOptions.isWithProgram() || fetchOptions.isWithSamplingStrata()) {
             // Prepare load graph
             EntityManager em = getEntityManager();
             EntityGraph<?> entityGraph = em.getEntityGraph(ObservedLocation.GRAPH_LOCATION_AND_PROGRAM);
@@ -118,6 +145,10 @@ public class ObservedLocationRepositoryImpl
                 entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_PERSON);
             if (fetchOptions == null || fetchOptions.isWithRecorderDepartment())
                 entityGraph.addSubgraph(ObservedLocation.Fields.RECORDER_DEPARTMENT);
+
+            // Sampling strata
+            if (fetchOptions == null || fetchOptions.isWithSamplingStrata())
+                entityGraph.addSubgraph(Trip.Fields.SAMPLING_STRATA);
 
             // WARNING: should not enable this fetch, because page cannot be applied
             //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);
