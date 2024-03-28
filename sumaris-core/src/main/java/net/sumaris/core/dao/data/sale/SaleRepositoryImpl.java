@@ -34,13 +34,12 @@ import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.service.data.FishingAreaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.SaleFetchOptions;
-import net.sumaris.core.vo.data.SaleVO;
-import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.filter.SaleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -71,6 +70,10 @@ public class SaleRepositoryImpl
     private BatchRepository batchRepository;
     @Autowired
     private FishingAreaRepository fishingAreaRepository;
+
+    @Autowired
+    protected FishingAreaService fishingAreaService;
+
     protected SaleRepositoryImpl(EntityManager entityManager) {
         super(Sale.class, SaleVO.class, entityManager);
     }
@@ -183,6 +186,12 @@ public class SaleRepositoryImpl
             }
         }
 
+        // fishingAreas
+        if (source.getFishingAreas() != null) {
+            source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
+            fishingAreaService.saveAllBySaleId(source.getId(), source.getFishingAreas());
+        }
+
         // Landing
         Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
         if (copyIfNull || (landingId != null)) {
@@ -213,6 +222,11 @@ public class SaleRepositoryImpl
                 target.setSaleType(getReference(SaleType.class, source.getSaleType().getId()));
             }
         }
+    }
+
+    protected void fillDefaultProperties(SaleVO parent, FishingAreaVO fishingArea) {
+
+        fishingArea.setSaleId(parent.getId());
     }
 
     @Override
