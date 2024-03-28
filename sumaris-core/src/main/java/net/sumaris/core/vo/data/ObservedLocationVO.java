@@ -23,12 +23,14 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -64,6 +66,10 @@ public class ObservedLocationVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues; // observed_location_measurement
 
     private List<LandingVO> landings;
+
+    private Integer samplingStrataId;
+    @ToString.Exclude
+    private ReferentialVO samplingStrata;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

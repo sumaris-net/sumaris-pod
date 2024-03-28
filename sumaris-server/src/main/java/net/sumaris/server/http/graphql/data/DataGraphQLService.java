@@ -691,6 +691,14 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLQuery(name = "samplingStrata", description = "Get observed location's sampling strata")
+    public ReferentialVO getObservedLocationSamplingStrata(@GraphQLContext ObservedLocationVO observedLocationVO) {
+        if (observedLocationVO.getSamplingStrata() != null) return observedLocationVO.getSamplingStrata();
+        if (observedLocationVO.getSamplingStrataId() == null) return null;
+
+        return this.referentialService.get(SamplingStrata.class.getSimpleName(), observedLocationVO.getSamplingStrataId());
+    }
+
     /* -- Sales -- */
 
     @GraphQLQuery(name = "sales", description = "Get trip's sales")
@@ -1985,6 +1993,7 @@ public class DataGraphQLService {
             .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
             .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
             .withLandings(fields.contains(StringUtils.slashing(ObservedLocationVO.Fields.LANDINGS, IEntity.Fields.ID)))
+            .withSamplingStrata(fields.contains(StringUtils.slashing(ObservedLocationVO.Fields.SAMPLING_STRATA, IEntity.Fields.ID)))
             .build();
     }
 

@@ -930,11 +930,11 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-190" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="distance_to_coast_gradient_fk" baseTableName="regulation_area" constraintName="FKtrm3sls23dualytiv7io0eibd" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="distance_to_coast_gradient" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-191" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-191" failOnError="false">
     <addNotNullConstraint columnDataType="varchar(50)" columnName="table_name" tableName="extraction_product_table" validate="true"/>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-192" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-192" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="APPLIED_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -948,7 +948,7 @@
     </sql>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-193" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-193" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="PMFM_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -961,7 +961,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-194" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-194" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="APPLIED_PERIOD_APPLIED_STRATEGY_FKC"/>
     </preConditions>
@@ -974,7 +974,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-195" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-195" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="PMFM_STRATEGY2TAXON_GROUP_PMFM_STRATEGY_FKC"/>
     </preConditions>
@@ -987,7 +987,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-196" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-196" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="REFERENCE_TAXON_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -1000,7 +1000,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-197" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-197" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="PMFM_STRATEGY2GEAR_PMFM_STRATEGY_FKC"/>
     </preConditions>
@@ -1013,7 +1013,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-198" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-198" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="TAXON_GROUP_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -1027,7 +1027,7 @@
     </sql>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-200">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-200">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="pmfm_strategy2metier"/>
@@ -1042,16 +1042,16 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-201" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-201" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="pmfm_strategy_fk" baseTableName="pmfm_strategy2metier" constraintName="FKkpsf7mltd51yyyh6ypvg5vutm" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm_strategy" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-202" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-202" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="pmfm_strategy2metier" constraintName="FKkv3xicma1ub1ed01ekfeyvfqg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="metier" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-203" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-203" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="taxon_group_strategy" constraintName="FKn0ls7id9yw6mp96w3iecpu6ly" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-204">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-204">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="trip" columnName="sampling_strata_fk"/></not>
     </preConditions>
@@ -1059,7 +1059,7 @@
       <column name="sampling_strata_fk" type="integer"/>
     </addColumn>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1702663153103-205" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-205" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="trip" constraintName="trip_sampling_strata_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-206">
@@ -1069,6 +1069,17 @@
     <addColumn tableName="activity_calendar">
       <column name="economic_survey" type="BOOLEAN"/>
     </addColumn>
+  </changeSet>
+  <changeSet author="jv.famy@codra.fr" id="1694619259850-207">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="observed_location" columnName="sampling_strata_fk"/></not>
+    </preConditions>
+    <addColumn tableName="observed_location">
+      <column name="sampling_strata_fk" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="jv.famy@codra.fr" id="1694619259850-208" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="observed_location" constraintName="observed_location_sampling_stc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->
@@ -1091,6 +1102,7 @@
         - Rename some software properties;
         - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY;
         - Add missing delete cascade constrains, on STRATEGY_xxx tables;
+        - Add column OBSERVED_LOCATION.SAMPLING_STRATA_FK;
       </column>
     </insert>
   </changeSet>
