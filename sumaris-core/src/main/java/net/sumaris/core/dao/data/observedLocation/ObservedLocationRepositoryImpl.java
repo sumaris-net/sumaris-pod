@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
+import net.sumaris.core.model.administration.samplingScheme.DenormalizedSamplingStrata;
 import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Trip;
@@ -33,6 +34,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.ObservedLocationFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +99,10 @@ public class ObservedLocationRepositoryImpl
         if (source.getSamplingStrata() != null) {
             target.setSamplingStrataId(source.getSamplingStrata().getId());
             if (fetchOptions != null && fetchOptions.isWithSamplingStrata()) {
-                ReferentialVO samplingStrata = referentialDao.get(SamplingStrata.class, source.getSamplingStrata().getId());
+                ReferentialVO samplingStrata = referentialDao.get(DenormalizedSamplingStrata.class, source.getSamplingStrata().getId(),
+                        ReferentialFetchOptions.builder()
+                                .withProperties(true) // Load sampling scheme label
+                                .build());
                 target.setSamplingStrata(samplingStrata);
             }
         }
