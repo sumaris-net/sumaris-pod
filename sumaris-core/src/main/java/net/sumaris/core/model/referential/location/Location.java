@@ -40,7 +40,9 @@ import java.util.Date;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "location")
+@Table(name = "location", indexes = {
+    @Index(name = "location_label_idx", columnList = "label")
+})
 @Cacheable
 public class Location implements IItemReferentialEntity<Integer>, IWithValidityStatusEntity<Integer, ValidityStatus> {
 

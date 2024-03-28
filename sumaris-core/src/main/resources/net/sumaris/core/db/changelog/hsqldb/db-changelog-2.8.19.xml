@@ -5,6 +5,28 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
     logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.8.19.xml">
 
+  <!-- Add index on LOCATION.LABEL (need to fix ADAP RTP issue) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-001" failOnError="false">
+    <preConditions>
+      <not><indexExists tableName="location" indexName="location_label_idx"/></not>
+    </preConditions>
+    <createIndex tableName="location" indexName="location_label_idx">
+      <column name="label"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- Add missing index on USER_EVENT.RECIPIENT (was already defined in the @Entity annotation) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-002">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="user_event" indexName="user_event_recipient_idx" columnNames="source"/>
+      </not>
+    </preConditions>
+    <createIndex tableName="user_event" indexName="user_event_recipient_idx">
+      <column name="recipient"/>
+    </createIndex>
+  </changeSet>
+
   <!-- update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-200" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -14,12 +36,18 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">2.8.19</column>
       <column name="DESCRIPTION">
-        - Add new QualitativeValue enumeration in ADAP database
+        - Create index, on LOCATION.LABEL
+        - Create missing index, on USER_EVENT.RECIPIENT
+        - ADAP: Add an enumeration override in SOFTWARE_PROPERTIES
+        - ADAP: Fix RTP weights
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
-        - Add new QualitativeValue enumeration in ADAP database
+        - Create index, on LOCATION.LABEL
+        - Create missing index, on USER_EVENT.RECIPIENT
+        - ADAP: Add an enumeration override in SOFTWARE_PROPERTIES
+        - ADAP: Fix RTP weights
       </column>
     </insert>
   </changeSet>

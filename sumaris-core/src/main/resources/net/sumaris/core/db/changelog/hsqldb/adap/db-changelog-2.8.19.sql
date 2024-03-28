@@ -1,140 +1,96 @@
-
-DROP FUNCTION F_TO_RECTANGLE IF EXISTS;
-//
-
--- Convert lat/lon into ICES or CGPM rectangle
--- See doc: Locations.getRectangleLabelByLatLong()
-CREATE FUNCTION F_TO_RECTANGLE(lat DOUBLE, lon DOUBLE)
-    RETURNS VARCHAR(5)
-BEGIN ATOMIC
---$ ********************************************************************
---$
---$  MOD : F_TO_RECTANGLE
---$  ROL : Compute the statistical rectangle (ICES or CGPM)
---$  param :
---$    - LAT: latitude, in decimal degrees
---$    - LON: longitude, in decimal degrees
---$
---$  return : the rectangle label
---$
---$  example : select SIH2_ADAGIO_DBA.F_TO_RECTANGLE(47.6, -5.05) from STATUS where ID=1; -- 24E4
---$            select SIH2_ADAGIO_DBA.F_TO_RECTANGLE(42.27, 5.4) from STATUS where ID=1; -- M24C2
---$
---$ History :
---$  16/05/19 BL Creation (used by extraction - e.g. ICES RDB and COST formats)
---$
---$ ********************************************************************
-DECLARE nbdemidegreeLat, nbdemidegreeLong, rest INTEGER;
-DECLARE letter CHAR(1);
-
-IF (lat IS NULL OR lon IS NULL) THEN
-    RETURN NULL;
-END IF;
-
--- If position inside "Mediterranean and black sea" :
-IF  (((lon >= 0 AND lon < 42) AND (lat >= 30 AND lat < 47.5))
-    OR ((lon >= -6 AND lon < 0) AND (lat >= 35 AND lat < 40))) THEN
-
-    -- Number of rectangles, between the given latitude and 30°N :
-    SET nbdemidegreeLat = FLOOR(lat-30) * 2;
-
-    -- Number of rectangles, between the given longitude and 6°W :
-    SET nbdemidegreeLong = FLOOR(lon+6) * 2;
-
-    -- Letter change every 10 rectangles, starting with 'A' :
-    SET letter = CHAR(FLOOR(nbdemidegreeLong / 10) + 65);
-    SET rest = MOD(nbdemidegreeLong, 10);
-    RETURN CONCAT('M', nbdemidegreeLat, letter, rest);
-
-    -- If position inside "Atlantic (nord-east)" :
-ELSEIF ((lon >= -50 AND lon <= 70) AND (lat >= 36 AND lat <= 89)) THEN
-    SET nbdemidegreeLat = FLOOR((lat - 36) * 2) + 1;
-    SET nbdemidegreeLong = FLOOR(lon + 50);
-    SET letter = CHAR(FLOOR(nbdemidegreeLong / 10) + 65);
-    SET rest = MOD(nbdemidegreeLong, 10);
-    RETURN CONCAT(nbdemidegreeLat, letter, rest);
-END IF;
-
-RETURN NULL;
-END;
-//
-
--- Replace ALIVE with FRESH
-update SORTING_MEASUREMENT_B set QUALITATIVE_VALUE_FK=367 where SORTING_MEASUREMENT_B.BATCH_FK IS NOT NULL AND QUALITATIVE_VALUE_FK=368;
-
--- Replace DRESSING 'GTA' (Eviscéré et équeuté) with 'GUT' (Eviscéré)
-update SORTING_MEASUREMENT_B set QUALITATIVE_VALUE_FK=339 where SORTING_MEASUREMENT_B.BATCH_FK IS NOT NULL AND QUALITATIVE_VALUE_FK=338;
-
--- Create an index on LOCATION.LABEL + LOCATION_LEVEL
-drop index LOCATION_LABEL_IDX if exists;
-create index LOCATION_LABEL_IDX ON LOCATION(LABEL, LOCATION_LEVEL_FK);
-
-drop table TMP_BATCH IF EXISTS ;
+drop table TMP_BATCH if exists;
 drop sequence TMP_BATCH_SEQ IF EXISTS ;
 create sequence TMP_BATCH_SEQ AS INTEGER START WITH 1;
 create table TMP_BATCH AS (
-                              select
-                                  NEXT VALUE FOR TMP_BATCH_SEQ as ID,
-                                  T.ID as TRIP_FK,
-                                  O.ID as OPERATION_FK,
-                                  extract(year from O.END_DATE_TIME) as YEAR,
-                                  extract(month from O.END_DATE_TIME) as MONTH,
-                                  COALESCE(O.END_DATE_TIME, O.START_DATE_TIME) as DATE_TIME,
-                                  VP.LATITUDE,
-                                  VP.LONGITUDE,
-                                  L_RECT.ID RECTANGLE_FK,
-                                  L_RECT.LABEL RECTANGLE_LABEL,
-                                  TG.ID as TAXON_GROUP_FK,
-                                  TG.LABEL AS TAXON_GROUP_LABEL,
-                                  SPECIES_QM.ID as TAXON_GROUP_WEIGHT_MEASUREMENT_ID,
-                                  SPECIES_QM.PMFM_FK as TAXON_GROUP_WEIGHT_PMFM_FK,
-                                  SPECIES_QM.NUMERICAL_VALUE as TAXON_GROUP_WEIGHT,
-                                  SAMPLE_B.ID as SAMPLE_BATCH_FK,
-                                  SAMPLE_B.SAMPLING_RATIO as SAMPLING_RATIO,
-                                  SAMPLE_B.SAMPLING_RATIO_TEXT as SAMPLING_RATIO_TEXT,
-                                  SAMPLE_QM.ID as SAMPLE_WEIGHT_MEASUREMENT_ID,
-                                  SAMPLE_QM.PMFM_FK as SAMPLE_WEIGHT_PMFM_FK,
-                                  SAMPLE_QM.NUMERICAL_VALUE as SAMPLE_WEIGHT,
-                                  cast(null as DOUBLE) as NEW_SAMPLE_RTP_WEIGHT, -- Will be computed later
-                                  LENGTH_B.ID as LENGTH_BATCH_FK,
-                                  LENGTH_B.REFERENCE_TAXON_FK as REFERENCE_TAXON_FK,
-                                  TN.LABEL as REFERENCE_TAXON_LABEL,
-                                  LENGTH_QM.ID as RTP_MEASUREMENT_ID,
-                                  LENGTH_QM.NUMERICAL_VALUE as RTP_WEIGHT,
-                                  cast(null as DOUBLE) as NEW_RTP_WEIGHT, -- Will be computed later
-                                  LENGTH_PMFM.ID as LENGTH_PMFM_FK,
-                                  LENGTH_PMFM.PARAMETER_FK as LENGTH_PARAMETER_FK,
-                                  LENGTH_PMFM.UNIT_FK as LENGTH_UNIT_FK,
-                                  LENGTH_SM.NUMERICAL_VALUE as LENGTH_VALUE,
-                                  DRESSING_QV.ID as DRESSING_FK,
-                                  DRESSING_QV.LABEL as DRESSING_LABEL,
-                                  PRESERVATION_QV.ID as PRESERVATION_FK,
-                                  PRESERVATION_QV.LABEL as PRESERVATION_LABEL
-                              from
-                                  BATCH LENGTH_B
-                                      inner join QUANTIFICATION_MEASUREMENT_B LENGTH_QM on LENGTH_QM.BATCH_FK=LENGTH_B.ID AND LENGTH_QM.PMFM_FK=122 and LENGTH_QM.IS_REFERENCE_QUANTIFICATION=true-- RTP WEIGHT
-                                      inner join SORTING_MEASUREMENT_B LENGTH_SM on LENGTH_SM.BATCH_FK=LENGTH_B.ID AND LENGTH_SM.NUMERICAL_VALUE IS NOT NULL -- LENGTH_SM.PMFM_FK=81 -- LENGTH
-                                      inner join PMFM LENGTH_PMFM on LENGTH_PMFM.ID=LENGTH_SM.PMFM_FK
-                                      inner join OPERATION O on O.ID=LENGTH_B.OPERATION_FK
-                                      inner join TRIP T on T.ID=O.TRIP_FK
-                                      inner join VESSEL_POSITION VP ON VP.OPERATION_FK=O.ID and VP.DATE_TIME=O.END_DATE_TIME
-                                      inner join BATCH SAMPLE_B on SAMPLE_B.ID=LENGTH_B.PARENT_BATCH_FK
-                                      inner join BATCH LANDING_B on LANDING_B.ID=SAMPLE_B.PARENT_BATCH_FK
-                                      inner join SORTING_MEASUREMENT_B LANDING_SM on LANDING_SM.BATCH_FK=LANDING_B.ID AND LANDING_SM.QUALITATIVE_VALUE_FK=190 -- LANDING
-                                      inner join SORTING_MEASUREMENT_B DRESSING_B on DRESSING_B.BATCH_FK=LANDING_B.ID AND DRESSING_B.PMFM_FK=151 -- DRESSING
-                                      inner join QUALITATIVE_VALUE DRESSING_QV ON DRESSING_QV.ID=DRESSING_B.QUALITATIVE_VALUE_FK
-                                      inner join BATCH SPECIES_B on SPECIES_B.ID=LANDING_B.PARENT_BATCH_FK AND SPECIES_B.TAXON_GROUP_FK IS NOT NULL
-                                      inner join TAXON_NAME TN ON TN.REFERENCE_TAXON_FK=LENGTH_B.REFERENCE_TAXON_FK AND TN.IS_REFERENT=true
-                                      inner join TAXON_GROUP TG ON TG.ID=SPECIES_B.TAXON_GROUP_FK
-                                      left outer join LOCATION L_RECT ON L_RECT.LABEL = F_TO_RECTANGLE(VP.LATITUDE, VP.LONGITUDE) AND L_RECT.LOCATION_LEVEL_FK in (4,5) /*rect stat*/
-                                      left outer join QUANTIFICATION_MEASUREMENT_B SAMPLE_QM on SAMPLE_QM.BATCH_FK=SAMPLE_B.ID AND SAMPLE_QM.IS_REFERENCE_QUANTIFICATION=true --AND SAMPLE_QM.PMFM_FK in (91,92,93,123) -- SUM RTP WEIGHT
-                                      left outer join QUANTIFICATION_MEASUREMENT_B SPECIES_QM on SPECIES_QM.BATCH_FK=SPECIES_B.ID AND SPECIES_QM.IS_REFERENCE_QUANTIFICATION=true -- AND SPECIES_QM.PMFM_FK in (91,92,93) -- Total weight
-                                      left outer join SORTING_MEASUREMENT_B PRESERVATION_B on PRESERVATION_B.BATCH_FK=LANDING_B.ID AND PRESERVATION_B.PMFM_FK=150 -- PRESERVATION
-                                      left outer join QUALITATIVE_VALUE PRESERVATION_QV ON PRESERVATION_QV.ID=PRESERVATION_B.QUALITATIVE_VALUE_FK
-                              where LENGTH_B.LABEL LIKE 'SORTING_BATCH_INDIVIDUAL#%'
+    select NEXT VALUE FOR TMP_BATCH_SEQ                 as ID,
+         T.ID                                         as TRIP_FK,
+         O.ID                                         as OPERATION_FK,
+         extract(year from O.END_DATE_TIME)           as YEAR,
+         extract(month from O.END_DATE_TIME)          as MONTH,
+         O.END_DATE_TIME as DATE_TIME,
+         L_RECT.ID                                       RECTANGLE_FK,
+         L_RECT.LABEL                                    RECTANGLE_LABEL,
+         TG.ID                                        as TAXON_GROUP_FK,
+         TG.LABEL                                     AS TAXON_GROUP_LABEL,
+         LANDING_QM.ID                                as TOTAL_WEIGHT_MEASUREMENT_ID,
+         LANDING_QM.PMFM_FK                           as TOTAL_WEIGHT_PMFM_FK,
+         LANDING_QM.NUMERICAL_VALUE                   as TOTAL_WEIGHT,
+         SAMPLE_B.ID                                  as SAMPLE_BATCH_FK,
+         SAMPLE_B.SAMPLING_RATIO                      as SAMPLING_RATIO,
+         SAMPLE_B.SAMPLING_RATIO_TEXT                 as SAMPLING_RATIO_TEXT,
+         cast(null as DOUBLE)                         as NEW_SAMPLING_RATIO,      -- Will be computed later
+         cast(null as VARCHAR(50))                    as NEW_SAMPLING_RATIO_TEXT, -- Will be computed later
+         SAMPLE_QM.ID                                 as SAMPLE_WEIGHT_MEASUREMENT_ID,
+         SAMPLE_QM.PMFM_FK                            as SAMPLE_WEIGHT_PMFM_FK,
+         SAMPLE_QM.NUMERICAL_VALUE                    as SAMPLE_WEIGHT,
+         cast(null as DOUBLE)                         as OLD_SAMPLE_RTP_WEIGHT,   -- Will be computed later
+         cast(null as DOUBLE)                         as NEW_SAMPLE_WEIGHT,       -- Will be computed later
+         LENGTH_B.ID                                  as LENGTH_BATCH_FK,
+         LENGTH_B.REFERENCE_TAXON_FK                  as REFERENCE_TAXON_FK,
+         TN.LABEL                                     as REFERENCE_TAXON_LABEL,
+         LENGTH_QM.ID                                 as RTP_MEASUREMENT_ID,
+         LENGTH_QM.NUMERICAL_VALUE                    as RTP_WEIGHT,
+         cast(null as DOUBLE)                         as NEW_RTP_WEIGHT,          -- Will be computed later
+         LENGTH_PMFM.ID                               as LENGTH_PMFM_FK,
+         LENGTH_PMFM.PARAMETER_FK                     as LENGTH_PARAMETER_FK,
+         LENGTH_PMFM.UNIT_FK                          as LENGTH_UNIT_FK,
+         LENGTH_SM.NUMERICAL_VALUE                    as LENGTH_VALUE,
+         DRESSING_QV.ID                               as DRESSING_FK,
+         DRESSING_QV.LABEL                            as DRESSING_LABEL,
+         PRESERVATION_QV.ID                           as PRESERVATION_FK,
+         PRESERVATION_QV.LABEL                        as PRESERVATION_LABEL
+    from BATCH LENGTH_B
+           inner join QUANTIFICATION_MEASUREMENT_B LENGTH_QM
+                      on LENGTH_QM.BATCH_FK = LENGTH_B.ID AND LENGTH_QM.PMFM_FK = 122 -- RTP WEIGHT
+                          AND LENGTH_QM.IS_REFERENCE_QUANTIFICATION = true
+           inner join SORTING_MEASUREMENT_B LENGTH_SM on LENGTH_SM.BATCH_FK = LENGTH_B.ID AND
+                                                         LENGTH_SM.NUMERICAL_VALUE IS NOT NULL -- LENGTH_SM.PMFM_FK=81 -- LENGTH
+           inner join PMFM LENGTH_PMFM on LENGTH_PMFM.ID = LENGTH_SM.PMFM_FK
+           inner join OPERATION O on O.ID = LENGTH_B.OPERATION_FK
+           inner join TRIP T on T.ID = O.TRIP_FK
+           inner join BATCH SAMPLE_B on SAMPLE_B.ID = LENGTH_B.PARENT_BATCH_FK
+           inner join BATCH LANDING_B on LANDING_B.ID = SAMPLE_B.PARENT_BATCH_FK
+           inner join VESSEL_POSITION VP on VP.OPERATION_FK = O.ID and VP.DATE_TIME = O.END_DATE_TIME
+           inner join SORTING_MEASUREMENT_B LANDING_SM
+                      on LANDING_SM.BATCH_FK = LANDING_B.ID AND
+                         LANDING_SM.QUALITATIVE_VALUE_FK = 190 -- LANDING
+           inner join SORTING_MEASUREMENT_B DRESSING_B
+                      on DRESSING_B.BATCH_FK = LANDING_B.ID AND DRESSING_B.PMFM_FK = 151 -- DRESSING
+           inner join QUALITATIVE_VALUE DRESSING_QV
+                      ON DRESSING_QV.ID = DRESSING_B.QUALITATIVE_VALUE_FK
+           inner join BATCH SPECIES_B on SPECIES_B.ID = LANDING_B.PARENT_BATCH_FK AND
+                                         SPECIES_B.TAXON_GROUP_FK IS NOT NULL
+           inner join TAXON_NAME TN ON TN.REFERENCE_TAXON_FK = LENGTH_B.REFERENCE_TAXON_FK AND
+                                            TN.IS_REFERENT = true
+           inner join TAXON_GROUP TG ON TG.ID = SPECIES_B.TAXON_GROUP_FK
+           left outer join LOCATION L_RECT
+                           ON L_RECT.LABEL = F_TO_RECTANGLE(VP.LATITUDE, VP.LONGITUDE) AND
+                              L_RECT.LOCATION_LEVEL_FK in (4, 5) /*rect stat*/
+           left outer join QUANTIFICATION_MEASUREMENT_B SAMPLE_QM
+                           on SAMPLE_QM.BATCH_FK = SAMPLE_B.ID AND
+                              SAMPLE_QM.IS_REFERENCE_QUANTIFICATION =
+                              true --AND SAMPLE_QM.PMFM_FK in (91,92,93,123) -- SUM RTP WEIGHT
+           left outer join QUANTIFICATION_MEASUREMENT_B LANDING_QM
+                           on LANDING_QM.BATCH_FK = LANDING_B.ID AND
+                              LANDING_QM.IS_REFERENCE_QUANTIFICATION =
+                              true -- AND LANDING_QM.PMFM_FK in (91,92,93) -- Total weight
+           left outer join SORTING_MEASUREMENT_B PRESERVATION_B
+                           on PRESERVATION_B.BATCH_FK = LANDING_B.ID AND PRESERVATION_B.PMFM_FK = 150 -- PRESERVATION
+           left outer join QUALITATIVE_VALUE PRESERVATION_QV
+                           ON PRESERVATION_QV.ID = PRESERVATION_B.QUALITATIVE_VALUE_FK
+    where LENGTH_B.LABEL LIKE 'SORTING_BATCH_INDIVIDUAL#%'
 ) WITH DATA;
 
 create index TMP_BATCH_LENGTH_BATCH_FK ON TMP_BATCH(LENGTH_BATCH_FK);
+create index TMP_BATCH_SAMPLE_BATCH_FK ON TMP_BATCH(SAMPLE_BATCH_FK);
+create index TMP_BATCH_RTP_MEASUREMENT_ID ON TMP_BATCH(RTP_MEASUREMENT_ID);
+
+-- Replace PRESERVATION 'ALI - Alive' with 'FRE - Fresh'
+update TMP_BATCH set PRESERVATION_FK=367, PRESERVATION_LABEL='FRE' where PRESERVATION_FK=368;
+
+-- Replace DRESSING 'GTA - Eviscéré et équeuté' with 'GUT - Eviscéré'
+update TMP_BATCH set DRESSING_FK=339, DRESSING_LABEL='GUT' where DRESSING_FK=338;
+
 --select count(*) from TMP_BATCH;
 
 -- Analyse des poids de reference en doublon (RTP + standard)
@@ -196,13 +152,13 @@ create table TMP_RWC as (
                                        AND RWC.DRESSING_FK = T.DRESSING_FK
                                        AND RWC.PRESERVING_FK = T.PRESERVATION_FK
                                        AND RWC.LOCATION_FK = 1 /*FRA*/
-                                       AND RWC.STATUS_FK=1
+                                       AND RWC.STATUS_FK <> 0
                                      -- DEBUG
                                      --AND T.LENGTH_BATCH_FK=3369046
                                      ORDER BY RWC.START_DATE DESC
                                  )
 ) WITH DATA;
-create index TMP__RWC_LENGTH_BATCH_FK ON TMP_RWC(LENGTH_BATCH_FK);
+create index TMP_RWC_LENGTH_BATCH_FK ON TMP_RWC(LENGTH_BATCH_FK);
 
 -- Suppression des RWC en doublon (en gardant les plus récents)
 delete from TMP_RWC where ID IN (
@@ -249,7 +205,7 @@ create table TMP_RTP as (
                                        AND WLC.LOCATION_FK = LH.PARENT_LOCATION_FK
                                        AND WLC.LENGTH_PARAMETER_FK = T.LENGTH_PARAMETER_FK
                                        AND WLC.LENGTH_UNIT_FK = T.LENGTH_UNIT_FK
-                                       AND WLC.STATUS_FK = 1
+                                       AND WLC.STATUS_FK <> 0
                                        AND WLC.SEX_QUALITATIVE_VALUE_FK=9325 /*Non sexé*/
                                      -- DEBUG
                                      --AND T.LENGTH_BATCH_FK = 3369046
@@ -343,15 +299,16 @@ create table TMP_FIX_SAMPLE as (
 create index TMP_FIX_SAMPLE_BATCH_FK ON TMP_FIX_SAMPLE(SAMPLE_BATCH_FK);
 --select count(*) from TMP_FIX_SAMPLE; -- 1471
 
--- DEBUG - Nb poids échant avec delta >= 1g
-select count(distinct FIX_SAMPLE.SAMPLE_BATCH_FK), T.YEAR
-from TMP_FIX_SAMPLE FIX_SAMPLE inner join TMP_BATCH T on T.SAMPLE_BATCH_FK=FIX_SAMPLE.SAMPLE_BATCH_FK
-where ABS(FIX_SAMPLE.NEW_SAMPLE_RTP_WEIGHT - FIX_SAMPLE.OLD_SAMPLE_RTP_WEIGHT) >= 0.001
-group by T.YEAR
+-- Keep only samples that need to be fix
+DELETE from TMP_FIX_SAMPLE
+where
+    ABS(OLD_SAMPLE_RTP_WEIGHT - OLD_SAMPLE_WEIGHT) > 0.01 -- Samples NOT using the SUM(RTP)
+    OR ABS(NEW_SAMPLE_RTP_WEIGHT - OLD_SAMPLE_RTP_WEIGHT) < 0.001 -- Samples already using the correct weight (at 1g)
 ;
+--select count(*) from TMP_FIX_SAMPLE; -- 216 samples to fix
 
 -- DEBUG - reset previous computed weight
-UPDATE TMP_BATCH B set NEW_RTP_WEIGHT = null, NEW_SAMPLE_RTP_WEIGHT= null;
+UPDATE TMP_BATCH B set NEW_RTP_WEIGHT = null, NEW_SAMPLE_WEIGHT= null, NEW_SAMPLING_RATIO=null, NEW_SAMPLING_RATIO_TEXT=null, OLD_SAMPLE_RTP_WEIGHT=null;
 
 -- Fill NEW_RTP_WEIGHT
 UPDATE TMP_BATCH B set NEW_RTP_WEIGHT=(select FIX_INDIV.NEW_RTP_WEIGHT from TMP_FIX_INDIV FIX_INDIV where FIX_INDIV.LENGTH_BATCH_FK=B.LENGTH_BATCH_FK);
@@ -360,86 +317,118 @@ UPDATE TMP_BATCH B set NEW_RTP_WEIGHT=(select FIX_INDIV.NEW_RTP_WEIGHT from TMP_
 delete from TMP_BATCH where RTP_WEIGHT = NEW_RTP_WEIGHT; -- 2844 removed
 --select count(*) from TMP_BATCH; -- 19529
 
--- Fill NEW_SAMPLE_WEIGHT
---UPDATE TMP_BATCH T set NEW_SAMPLE_RTP_WEIGHT = null;
-UPDATE TMP_BATCH T set NEW_SAMPLE_RTP_WEIGHT = (select FIX_SAMPLE.NEW_SAMPLE_RTP_WEIGHT from TMP_FIX_SAMPLE FIX_SAMPLE where FIX_SAMPLE.SAMPLE_BATCH_FK=T.SAMPLE_BATCH_FK)
+-- Fill OLD_SAMPLE_RTP_WEIGHT, using the old/bad SUM(RTP)
+UPDATE TMP_BATCH T set OLD_SAMPLE_RTP_WEIGHT = (select FIX_SAMPLE.OLD_SAMPLE_RTP_WEIGHT from TMP_FIX_SAMPLE FIX_SAMPLE where FIX_SAMPLE.SAMPLE_BATCH_FK=T.SAMPLE_BATCH_FK)
 where T.SAMPLE_BATCH_FK in (select SAMPLE_BATCH_FK from TMP_FIX_SAMPLE);
 
--- UPDATE TMP_BATCH T set NEW_SAMPLE_RTP_WEIGHT = null
--- WHERE T.SAMPLING_RATIO <> 1
---   OR T.SAMPLING_RATIO_TEXT not like '%/'
--- Only computed sampling ratio
+-- Fill NEW_SAMPLE_WEIGHT, using the fixed SUM(RTP)
+UPDATE TMP_BATCH T set NEW_SAMPLE_WEIGHT = (select FIX_SAMPLE.NEW_SAMPLE_RTP_WEIGHT from TMP_FIX_SAMPLE FIX_SAMPLE where FIX_SAMPLE.SAMPLE_BATCH_FK=T.SAMPLE_BATCH_FK)
+where T.SAMPLE_BATCH_FK in (select SAMPLE_BATCH_FK from TMP_FIX_SAMPLE);
+
+-- Fill NEW_SAMPLING_RATIO and NEW_SAMPLING_RATIO_TEXT
+UPDATE TMP_BATCH T
+set NEW_SAMPLING_RATIO = ROUND(T.NEW_SAMPLE_WEIGHT / T.TOTAL_WEIGHT, 6),
+    NEW_SAMPLING_RATIO_TEXT = CAST(ROUND(T.NEW_SAMPLE_WEIGHT, 3) AS DECIMAL(18,3)) || '/' || CAST(ROUND(T.TOTAL_WEIGHT, 3) AS DECIMAL(18,3));
+
+-- Force NEW_SAMPLING_RATIO=1 and SAMPLE_WEIGHT=TOTAL_WEIGHT if computed sampling ratio > 1
+UPDATE TMP_BATCH T set NEW_SAMPLING_RATIO=1, NEW_SAMPLE_WEIGHT=T.TOTAL_WEIGHT, NEW_SAMPLING_RATIO_TEXT=T.TOTAL_WEIGHT || '/' || T.TOTAL_WEIGHT
+where
+   -- Poids saisi uniquement
+   T.TOTAL_WEIGHT_PMFM_FK in (91,92)
+   -- Taux 100% (calculé ou non) ou nouveau taux > 1
+   AND SAMPLING_RATIO = 1 OR (NEW_SAMPLING_RATIO >= 0.8 AND SAMPLING_RATIO >= 0.8);
+
+-- Keep existing sample weight + ratio, if was set manually (no row match this case, in dataset [2022-2023])
+UPDATE TMP_BATCH T set NEW_SAMPLE_WEIGHT=T.SAMPLE_WEIGHT, NEW_SAMPLING_RATIO=T.SAMPLING_RATIO, NEW_SAMPLING_RATIO_TEXT=T.SAMPLING_RATIO_TEXT where TOTAL_WEIGHT_PMFM_FK not in (91,92) OR SAMPLING_RATIO_TEXT not like '%/%';
+
+-- Create a table with all sample to update
+drop table TMP_SAMPLE if exists;
+create table TMP_SAMPLE AS (
+   select distinct
+       YEAR,
+       SAMPLE_BATCH_FK,
+       SAMPLING_RATIO,
+       SAMPLING_RATIO_TEXT,
+       NEW_SAMPLING_RATIO,
+       NEW_SAMPLING_RATIO_TEXT,
+       SAMPLE_WEIGHT,
+       NEW_SAMPLE_WEIGHT,
+       SAMPLE_WEIGHT_MEASUREMENT_ID
+   from TMP_BATCH T
+   where (NEW_SAMPLING_RATIO <> SAMPLING_RATIO OR NEW_SAMPLE_WEIGHT <> SAMPLE_WEIGHT)
+) WITH DATA;
+create index TMP_SAMPLE_BATCH_FK on TMP_SAMPLE(SAMPLE_BATCH_FK);
+create index TMP_SAMPLE_WEIGHT_MEASUREMENT_ID on TMP_SAMPLE(SAMPLE_WEIGHT_MEASUREMENT_ID);
+--select count(*) from TMP_SAMPLE; -- 197
+
+-- ---------------------------------------------------------------------------------------------------------------------
+-- MISE A JOUR DES BATCH
+-- ---------------------------------------------------------------------------------------------------------------------
+-- /!\ IMPORTANT: Mise à jour poids RTP individuel
+UPDATE QUANTIFICATION_MEASUREMENT_B QM
+set NUMERICAL_VALUE=(select NEW_RTP_WEIGHT from TMP_BATCH where RTP_MEASUREMENT_ID=QM.ID)
+where QM.ID in (select RTP_MEASUREMENT_ID from TMP_BATCH where NEW_RTP_WEIGHT IS NOT NULL);
+-- 19 529 rows affected
+
+-- /!\ IMPORTANT: Mise à jour des taux d'échantillonnage
+UPDATE BATCH S
+set SAMPLING_RATIO=(select NEW_SAMPLING_RATIO from TMP_SAMPLE where SAMPLE_BATCH_FK=S.ID),
+    SAMPLING_RATIO_TEXT=(select NEW_SAMPLING_RATIO_TEXT from TMP_SAMPLE where SAMPLE_BATCH_FK=S.ID),
+    HASH=null
+where S.ID in (select SAMPLE_BATCH_FK from TMP_SAMPLE where NEW_SAMPLING_RATIO IS NOT NULL AND NEW_SAMPLING_RATIO_TEXT IS NOT NULL);
+-- 197 rows affected
+
+-- /!\ IMPORTANT: Mise à jour des poids échantillonné
+UPDATE QUANTIFICATION_MEASUREMENT_B QM
+set NUMERICAL_VALUE=(select ROUND(NEW_SAMPLE_WEIGHT, 3) from TMP_SAMPLE where SAMPLE_WEIGHT_MEASUREMENT_ID=QM.ID)
+where QM.ID in (select SAMPLE_WEIGHT_MEASUREMENT_ID from TMP_SAMPLE where NEW_SAMPLE_WEIGHT IS NOT NULL);
+-- 197 rows affected
+
+-- ---------------------------------------------------------------------------------------------------------------------
+-- MISE A JOUR DES PARENTS (TRIP, OPERATION, CATCH_BATCH)
+-- ---------------------------------------------------------------------------------------------------------------------
+UPDATE BATCH set update_date=current_timestamp where BATCH.PARENT_BATCH_FK IS NULL AND OPERATION_FK in (select distinct OPERATION_FK from TMP_BATCH);
+UPDATE OPERATION set update_date=current_timestamp where ID in (select distinct OPERATION_FK from TMP_BATCH);
+UPDATE TRIP set update_date=current_timestamp where ID in (select distinct TRIP_FK from TMP_BATCH);
+
+-- FINAL COMMIT
+COMMIT;
+
+-- ---------------------------------------------------------------------------------------------------------------------
+-- DEBUG - Analyse, Comptage, etc
+-- ---------------------------------------------------------------------------------------------------------------------
+
+-- DEBUG: Stats sur les samples corrigés
+/*select
+    count(distinct SAMPLE_BATCH_FK),
+    min(ABS(NEW_SAMPLING_RATIO * 100 - SAMPLING_RATIO * 100)) as MIN_DELTA_SAMPLING_RATIO_PCT,
+    max(ABS(NEW_SAMPLING_RATIO * 100 - SAMPLING_RATIO * 100)) as MAX_DELTA_SAMPLING_RATIO_PCT,
+    min(ABS(NEW_SAMPLE_WEIGHT - SAMPLE_WEIGHT)) as MIN_DELTA_SAMPLE_WEIGHT,
+    max(ABS(NEW_SAMPLE_WEIGHT - SAMPLE_WEIGHT)) as MAX_DELTA_SAMPLE_WEIGHT,
+    sum(ABS(NEW_SAMPLE_WEIGHT - SAMPLE_WEIGHT)) as SUM_DELTA_SAMPLE_WEIGHT
+from TMP_SAMPLE;*/
 
 -- DEBUG
---select * from TMP_BATCH where LENGTH_BATCH_FK=3356032;
---select * from TMP_BATCH where SAMPLE_BATCH_FK=3356031;
---    AND T.SAMPLING_RATIO < 1 AND T.SAMPLING_RATIO_TEXT like '%/%' -- Only computed sampling ratio
+-- select * from TMP_BATCH where SAMPLE_BATCH_FK=3384031;
+-- select LENGTH_VALUE, RTP_WEIGHT, NEW_RTP_WEIGHT from TMP_BATCH where SAMPLE_BATCH_FK=3384031;
+-- select SAMPLING_RATIO, SAMPLE_WEIGHT, NEW_SAMPLE_WEIGHT from TMP_BATCH where SAMPLE_BATCH_FK=3384031;
+-- select * from TMP_FIX_SAMPLE where SAMPLE_BATCH_FK=3384031;
+-- select * from TMP_SAMPLE where SAMPLE_BATCH_FK=3384031;
 
 
---select RTP_WEIGHT, NEW_RTP_WEIGHT from TMP_BATCH where SAMPLE_BATCH_FK=3369045;
---select SAMPLING_RATIO, SAMPLE_WEIGHT, NEW_SAMPLE_WEIGHT from TMP_BATCH where SAMPLE_BATCH_FK=3369045;
+-- ---------------------------------------------------------------------------------------------------------------------
+-- CLEAN Clean up temporary objects
+-- ---------------------------------------------------------------------------------------------------------------------
 
--- Mise à jour poids RTP
-/*
-UPDATE QUANTIFICATION_MEASUREMENT_B QM set NUMERICAL_VALUE=
-    (select NEW_RTP_WEIGHT from TMP_BATCH where RTP_MEASUREMENT_ID=QM.ID)
-where QM.ID in (select RTP_MEASUREMENT_ID from TMP_BATCH where NEW_RTP_WEIGHT IS NOT NULL) AND QM.IS_REFERENCE_QUANTIFICATION=true;
-
-UPDATE QUANTIFICATION_MEASUREMENT_B QM set NUMERICAL_VALUE=
-    (select NEW_SAMPLE_WEIGHT from TMP_BATCH where SAMPLE_WEIGHT_MEASUREMENT_ID=QM.ID)
-where QM.ID in (select SAMPLE_WEIGHT_MEASUREMENT_ID from TMP_BATCH where NEW_SAMPLE_WEIGHT IS NOT NULL) AND QM.IS_REFERENCE_QUANTIFICATION=true;
-
-*/
-
-
-/*
-UPDATE QUANTIFICATION_MEASUREMENT_B QM set NUMERICAL_VALUE=
-                                               (select T.NEW_RTP_SAMPLE_WEIGHT from TMP_FIX_SAMPLE T where T.SAMPLE_BATCH_FK=QM.BATCH_FK)
-where QM.ID in (select TMP_BATCH.SAMPLE_WEIGHT_MEASUREMENT_ID from TMP_BATCH) AND QM.IS_REFERENCE_QUANTIFICATION=true;
-*/
-
-
--- DROP temporary tables + sequences
-/*
+-- DROP temporary tables
 drop table TMP_BATCH if exists;
+drop table TMP_SAMPLE if exists;
 drop table TMP_RWC if exists;
 drop table TMP_RTP if exists;
 drop table TMP_FIX_SAMPLE if exists;
 drop table TMP_FIX_INDIV if exists;
+
+-- DROP temporary sequences
 drop sequence TMP_BATCH_SEQ if exists;
 drop sequence TMP_RWC_SEQ if exists;
 drop sequence TMP_RTP_SEQ if exists;
-*/
-
--- Comptage des lignes impactées
--- select count(distinct T.TRIP_FK), T.YEAR TRIP_COUNT from TMP_BATCH T group by YEAR; -- 133 trips
--- select count(distinct T.OPERATION_FK), T.YEAR from TMP_BATCH T group by YEAR;-- 1203 OP
--- select count(distinct T.SAMPLE_BATCH_FK) TRIP_COUNT from TMP_BATCH T; -- 1471 Lots espèces
--- select
---     count(distinct T.LENGTH_BATCH_FK) LENGTH_BATCH_COUNT,
---     T.TAXON_GROUP_LABEL,
---     T.REFERENCE_TAXON_LABEL,
---     T.DRESSING_LABEL,
---     T.PRESERVATION_LABEL
--- from TMP_BATCH T
--- group by T.TAXON_GROUP_LABEL, T.REFERENCE_TAXON_LABEL, T.DRESSING_LABEL, T.PRESERVATION_LABEL;
-
-
--- Comptage des SAMPLE_BATCH où le delta avec l'ancien poids est > 1g
-/*select count(distinct FIX_SAMPLE.SAMPLE_BATCH_FK), T.YEAR
-from TMP_FIX_SAMPLE FIX_SAMPLE inner join TMP_BATCH T on T.SAMPLE_BATCH_FK=FIX_SAMPLE.SAMPLE_BATCH_FK
-where 1=1
-  AND ABS(FIX_SAMPLE.NEW_RTP_SAMPLE_WEIGHT - FIX_SAMPLE.OLD_RTP_SAMPLE_WEIGHT) > 0
-  --AND FIX_SAMPLE.NEW_SAMPLE_WEIGHT > FIX_SAMPLE.OLD_SAMPLE_WEIGHT
-  AND T.SAMPLING_RATIO < 1
-group by T.YEAR
-;*/
-
--- DEBUG
--- select * from TMP_BATCH where SAMPLE_BATCH_FK=3369045; -- Echant COD
--- select * from TMP_BATCH where LENGTH_BATCH_FK=3369046; -- Indiv de 70 cm
--- select * from TMP_RWC where LENGTH_BATCH_FK=3369046;
--- select * from TMP_RTP where LENGTH_BATCH_FK=3369046;
--- select * from TMP_FIX_INDIV where LENGTH_BATCH_FK=3369046;
--- select * from TMP_FIX_SAMPLE where SAMPLE_BATCH_FK=3369045;
---select * from TMP_BATCH where SAMPLE_BATCH_FK=3369045;
