@@ -812,7 +812,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                         .childLocationIds(options.getFishingAreaLocationIds())
                         .lengthPmfmIds(new Integer[]{measure.getPmfmId()})
                         .sexIds(sexId >= 0 ? new Integer[]{sexId} : null)
-                        .statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
+                        .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
                         .build())
                     .map(conversion -> weightLengthConversionService.computedWeight(conversion,
                             measure.getNumericalValue(), // Length
@@ -1307,7 +1307,7 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             .preservingIds(new Integer[]{preservationId})
             .locationIds(new Integer[]{options.getAliveWeightCountryLocationId()})
             .date(options.getDay())
-            .statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
+            .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
             .build());
 
         if (conversion.isEmpty()) {

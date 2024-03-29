@@ -142,6 +142,7 @@ public class WeightLengthConversionServiceImpl implements WeightLengthConversion
     }
 
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.WEIGHT_LENGTH_CONVERSION_FIRST_BY_FILTER, key = "#filter.hashCode()")
     public Optional<WeightLengthConversionVO> loadFirstByFilter(WeightLengthConversionFilterVO filter) {
         return loadFirstByFilter(filter, WeightLengthConversionFetchOptions.DEFAULT);
     }
@@ -217,6 +218,11 @@ public class WeightLengthConversionServiceImpl implements WeightLengthConversion
                         .multiply(new BigDecimal(lengthPrecision.toString()))
                         .multiply(lengthUnitConversion));
             }
+        } else {
+            // length += 0.5 * precision (Fix issue sumaris-app#522)
+            lengthDecimal = lengthDecimal.add(
+                new BigDecimal("0.5")
+                    .multiply(new BigDecimal(lengthPrecision.toString())));
         }
 
         // CoefA * length ^ CoefB

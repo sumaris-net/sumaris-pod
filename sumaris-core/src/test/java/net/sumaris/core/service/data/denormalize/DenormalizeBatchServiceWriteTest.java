@@ -26,9 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.TreeNodeEntities;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.BatchService;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -37,6 +41,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class DenormalizeBatchServiceWriteTest extends AbstractServiceTest{
