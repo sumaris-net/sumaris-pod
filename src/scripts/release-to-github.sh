@@ -33,16 +33,15 @@ if [[ "_$version" == "_" ]]; then
     exit 1
   fi
   echo "Project version (pom.xml): $version"
-  release_description=$2
 fi
 
 ###  get auth token
 if [[ "_${GITHUB_TOKEN}" == "_" ]]; then
     # Get it from user config dir
-    GITHUB_TOKEN=`cat ~/.config/${PROJECT_NAME}/.github`
+    GITHUB_TOKEN=$(cat ~/.config/${PROJECT_NAME}/.github)
 fi
-if [[ "_$GITHUB_TOKEN" != "_" ]]; then
-    GITHUT_AUTH="Authorization: token $GITHUB_TOKEN"
+if [[ "_${GITHUB_TOKEN}" != "_" ]]; then
+    GITHUT_AUTH="Authorization: token ${GITHUB_TOKEN}"
 else
     echo "ERROR: Unable to find github authentication token file: "
     echo " - You can create such a token at https://github.com/settings/tokens > 'Generate a new token'."
@@ -51,6 +50,7 @@ else
     exit 1
 fi
 
+### check arguments
 case "$task" in
   del)
     result=`curl -i "$REPO_API_URL/releases/tags/$version"`
@@ -59,39 +59,41 @@ case "$task" in
         echo "Deleting existing release..."
         curl -H ''"$GITHUT_AUTH"'' -XDELETE $release_url
     fi
+    exit 0;
   ;;
 
   pre|rel)
 
-    if [[ $1 = "pre" ]]; then
+    if [[ "${task}" = "pre" ]]; then
       prerelease="true"
     else
       prerelease="false"
     fi
 
-    description=`echo $release_description`
-    if [[ "_$description" = "_" ]]; then
+    # Compute description, if missing
+    description=$(echo $release_description) # force quote interpretation
+    if [[ "_${description}" == "_" ]]; then
         description="Release $version"
     fi
 
-    result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version"`
-    release_url=`echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+"`
+    result=$(curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version")
+    release_url=$(echo "$result" | grep -P "\"url\": \"[^\"]+" | grep -oP "https://[A-Za-z0-9/.-]+/releases/\d+")
     if [[ "_$release_url" != "_" ]]; then
-        echo "Deleting existing release... $release_url"
-        result=`curl -H ''"$GITHUT_AUTH"'' -s -XDELETE $release_url`
-        if [[ "_$result" != "_" ]]; then
-            error_message=`echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\""`
-            echo "Delete existing release failed with error $error_message"
-            exit 1
-        fi
+      echo "Deleting existing release... $release_url"
+      result=$(curl -H ''"$GITHUT_AUTH"'' -s -XDELETE $release_url)
+      if [[ "_$result" != "_" ]]; then
+          error_message=$(echo "$result" | grep -P "\"message\": \"[^\"]+" | grep -oP ": \"[^\"]+\"")
+        echo "Delete existing release failed with error $error_message"
+        exit 1
+      fi
     else
-        echo "Release not exists yet on github."
+      echo "Release not exists yet on github."
     fi
 
     echo "Creating new release..."
     echo " - tag: $version"
     echo " - description: $description"
-    result=`curl -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "master","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
+    result=`curl -X POST -H ''"$GITHUT_AUTH"'' -s $REPO_API_URL/releases -d '{"tag_name": "'"$version"'","target_commitish": "'"$branch"'","name": "'"$version"'","body": "'"$description"'","draft": false,"prerelease": '"$prerelease"'}'`
     upload_url=`echo "$result" | grep -P "\"upload_url\": \"[^\"]+"  | grep -oP "https://[A-Za-z0-9/.-]+"`
 
     if [[ "_$upload_url" = "_" ]]; then
@@ -102,7 +104,7 @@ case "$task" in
     fi
 
     ###  Sending files
-    echo "Uploading files to $upload_url ..."
+    echo "Uploading files to ${upload_url} ..."
 
     WAR_FILE="${PROJECT_DIR}/sumaris-server/target/sumaris-server-$version.war"
     if [[ ! -f "${WAR_FILE}" ]]; then
@@ -150,13 +152,12 @@ case "$task" in
     fi
 
     if [[ ${missing_file} == true ]]; then
-      echo "-----------------------------------------"
+      echo "-------------------------------------------"
       echo "ERROR: missing some artifacts (see logs)"
       echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${version}"
-      # Continue if error
       exit 1
     else
-      echo "-----------------------------------------"
+      echo "-------------------------------------------"
       echo "Successfully uploading files !"
       echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${version}"
       exit 0
