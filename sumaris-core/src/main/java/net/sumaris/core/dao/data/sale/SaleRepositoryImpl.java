@@ -45,6 +45,7 @@ import net.sumaris.core.vo.filter.SaleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -74,8 +75,9 @@ public class SaleRepositoryImpl
     @Autowired
     protected FishingAreaService fishingAreaService;
 
-    protected SaleRepositoryImpl(EntityManager entityManager) {
+    protected SaleRepositoryImpl(EntityManager entityManager, GenericConversionService conversionService) {
         super(Sale.class, SaleVO.class, entityManager);
+        conversionService.addConverter(Sale.class, SaleVO.class, this::toVO);
     }
 
     @Override

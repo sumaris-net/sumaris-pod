@@ -718,7 +718,42 @@ public class DataGraphQLService {
         if (landing.getId() == null) return null;
         return saleService.getAllByLandingId(landing.getId(), null);
     }
+    /* -- Sale -- */
+    @GraphQLQuery(name = "sale", description = "Get sale by id")
+    public SaleVO getSaleById(@GraphQLArgument(name = "id") int id,
+                              @GraphQLEnvironment ResolutionEnvironment env) {
 
+        SaleVO result = saleService.get(id, getSaleFetchOptions(GraphQLHelper.fields(env)));
+
+        // Check read access
+        dataAccessControlService.checkCanRead(result);
+
+        return result;
+    }
+    @GraphQLSubscription(name = "updateSale", description = "Subscribe to changes on an sale")
+    @IsUser
+    public Publisher<SaleVO> updateSale(@GraphQLNonNull @GraphQLArgument(name = "id") final int id,
+                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                        @GraphQLEnvironment() ResolutionEnvironment env) {
+
+        Preconditions.checkArgument(id >= 0, "Invalid id");
+        Set<String> fields = GraphQLUtils.fields(env);
+        return entityWatchService.watchEntity(Sale.class, SaleVO.class, id, minIntervalInSecond, true)
+                .toFlowable(BackpressureStrategy.LATEST)
+                .map(t -> fillSaleFields(t, fields));
+    }
+
+    @GraphQLMutation(name = "saveSales", description = "Create or update many sales")
+    @IsUser
+    public List<SaleVO> saveSales(@GraphQLNonNull @GraphQLArgument(name = "sales") List<SaleVO> sales,
+                                  @GraphQLEnvironment ResolutionEnvironment env) {
+        final List<SaleVO> result = saleService.save(sales);
+
+        // Fill expected fields
+        fillSalesFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
     @GraphQLQuery(name = "sale", description = "Get trip's unique sale")
     public SaleVO getUniqueSaleByTrip(@GraphQLContext TripVO trip) {
         // Optimization: avoid fetching sale when not need (fix #IMAGINE-651)
@@ -1826,6 +1861,12 @@ public class DataGraphQLService {
         }
 
         return landing;
+    }
+
+    protected SaleVO fillSaleFields(SaleVO sale, Set<String> fields) {
+        vesselGraphQLService.fillVesselSnapshot(sale, fields);
+        fillImages(sale, fields);
+        return sale;
     }
 
     protected List<LandingVO> fillLandingsFields(List<LandingVO> landings, Set<String> fields) {
