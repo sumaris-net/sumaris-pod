@@ -53,6 +53,8 @@ public class SaleServiceImpl implements SaleService {
 
 	protected final MeasurementDao measurementDao;
 
+	protected final FishingAreaService fishingAreaService;
+
 	protected final ProductService productService;
 
 	protected final BatchService batchService;
@@ -197,6 +199,12 @@ public class SaleServiceImpl implements SaleService {
 			source.setMeasurements(measurements);
 		}
 
+		// Fishing areas
+		if (source.getFishingAreas() != null) {
+			source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
+			fishingAreaService.saveAllBySaleId(source.getId(), source.getFishingAreas());
+		}
+
 		// Save produces
 		if (source.getProducts() != null) {
 			source.getProducts().forEach(product -> fillDefaultProperties(source, product));
@@ -206,8 +214,8 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		// Save batches
-		{
-			List<BatchVO> batches = getAllBatches(source);
+		List<BatchVO> batches = getAllBatches(source);
+		if (batches != null) {
 			batches = batchService.saveAllBySaleId(source.getId(), batches);
 
 			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
@@ -224,6 +232,7 @@ public class SaleServiceImpl implements SaleService {
 			source.setCatchBatch(null);
 			source.setBatches(batches);
 		}
+
 	}
 
 	protected void fillDefaultProperties(SaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
@@ -235,6 +244,10 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		measurement.setEntityName(entityClass.getSimpleName());
+	}
+
+	protected void fillDefaultProperties(SaleVO parent, FishingAreaVO fishingArea) {
+		fishingArea.setSaleId(parent.getId());
 	}
 
 	protected void fillDefaultProperties(SaleVO parent, ProductVO product) {
@@ -278,6 +291,8 @@ public class SaleServiceImpl implements SaleService {
 
 	protected List<BatchVO> getAllBatches(SaleVO parent) {
 		BatchVO catchBatch = parent.getCatchBatch();
+		if (catchBatch == null) return null;
+
 		fillDefaultProperties(parent, catchBatch);
 		List<BatchVO> result = Lists.newArrayList();
 		addAllBatchesToList(catchBatch, result);

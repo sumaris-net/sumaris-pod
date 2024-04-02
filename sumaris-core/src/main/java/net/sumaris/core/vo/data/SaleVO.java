@@ -27,7 +27,6 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
-import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -59,7 +58,6 @@ public class SaleVO implements IRootDataVO<Integer>,
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
     private ProgramVO program;
-    private Integer observedLocationId;
 
     private Integer vesselId;
     @ToString.Exclude
@@ -87,11 +85,9 @@ public class SaleVO implements IRootDataVO<Integer>,
 
     private List<FishingAreaVO> fishingAreas;
 
-    // FIXME to remove - not used by ObsVente
-    private List<SampleVO> samples;
-
     private BatchVO catchBatch;
     private List<BatchVO> batches;
+
     @Override
     public Date getVesselDateTime() {
         return startDateTime;
