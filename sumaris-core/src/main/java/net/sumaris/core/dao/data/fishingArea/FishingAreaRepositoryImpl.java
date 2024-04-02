@@ -158,6 +158,7 @@ public class FishingAreaRepositoryImpl
                 target.setOperation(getReference(Operation.class, operationId));
             }
         }
+
         // Sale
         Integer saleId = source.getSaleId() != null ? source.getSaleId() : (source.getSale() != null ? source.getSale().getId() : null);
         source.setSaleId(saleId);
@@ -168,6 +169,7 @@ public class FishingAreaRepositoryImpl
                 target.setSale(getReference(Sale.class, saleId));
             }
         }
+
         // Gear Use Features
         Integer gufId = source.getGearUseFeaturesId() != null ? source.getGearUseFeaturesId() : (source.getGearUseFeatures() != null ? source.getGearUseFeatures().getId() : null);
         source.setGearUseFeaturesId(gufId);

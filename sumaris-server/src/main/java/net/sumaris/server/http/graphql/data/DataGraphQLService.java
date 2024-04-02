@@ -724,6 +724,7 @@ public class DataGraphQLService {
 
         return result;
     }
+
     @GraphQLSubscription(name = "updateSale", description = "Subscribe to changes on an sale")
     @IsUser
     public Publisher<SaleVO> updateSale(@GraphQLNonNull @GraphQLArgument(name = "id") final int id,
@@ -1882,6 +1883,7 @@ public class DataGraphQLService {
 
         return sales;
     }
+
     protected ActivityCalendarVO fillActivityCalendarFields(ActivityCalendarVO activityCalendar, Set<String> fields) {
         // Add image if need
         fillImages(activityCalendar, fields);
@@ -1891,6 +1893,7 @@ public class DataGraphQLService {
 
         return activityCalendar;
     }
+
     protected List<ActivityCalendarVO> fillActivityCalendarsFields(List<ActivityCalendarVO> activityCalendars, Set<String> fields) {
         // Add image if need
         fillImages(activityCalendars, fields);
@@ -2045,6 +2048,8 @@ public class DataGraphQLService {
                 .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .withMeasurementValues(fields.contains(SaleVO.Fields.MEASUREMENT_VALUES))
+                .withFishingAreas(fields.contains(StringUtils.slashing(SaleVO.Fields.FISHING_AREAS, IEntity.Fields.ID)))
+                .withProducts(fields.contains(StringUtils.slashing(SaleVO.Fields.PRODUCTS, IEntity.Fields.ID)))
                 .withBatches(fields.contains(StringUtils.slashing(SaleVO.Fields.BATCHES, IEntity.Fields.ID)))
                 .build();
     }
