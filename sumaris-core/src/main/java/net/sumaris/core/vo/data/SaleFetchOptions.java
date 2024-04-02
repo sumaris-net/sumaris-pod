@@ -49,6 +49,7 @@ public class SaleFetchOptions implements IDataFetchOptions {
         .withVesselSnapshot(true)
         .withChildrenEntities(true)
         .withMeasurementValues(true)
+        .withFishingAreas(true)
         .withProducts(true)
         .withBatches(true)
         .build();

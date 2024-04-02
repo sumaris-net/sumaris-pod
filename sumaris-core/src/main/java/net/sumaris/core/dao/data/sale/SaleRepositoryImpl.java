@@ -34,12 +34,14 @@ import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.service.data.FishingAreaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.FishingAreaVO;
+import net.sumaris.core.vo.data.SaleFetchOptions;
+import net.sumaris.core.vo.data.SaleVO;
+import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.filter.SaleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -69,11 +71,9 @@ public class SaleRepositoryImpl
 
     @Autowired
     private BatchRepository batchRepository;
-    @Autowired
-    private FishingAreaRepository fishingAreaRepository;
 
     @Autowired
-    protected FishingAreaService fishingAreaService;
+    private FishingAreaRepository fishingAreaRepository;
 
     protected SaleRepositoryImpl(EntityManager entityManager, GenericConversionService conversionService) {
         super(Sale.class, SaleVO.class, entityManager);
@@ -97,12 +97,26 @@ public class SaleRepositoryImpl
         // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
 
-        //  ObservedLocation
-        target.setObservedLocationId(source.getObservedLocation().getId());
+        // Landing
+        Integer landingId = source.getLanding() != null ? source.getLanding().getId() : null;
+        if (landingId != null || copyIfNull) {
+            target.setLandingId(landingId);
+        }
 
-        // fishingArea
-        Integer saleId = source.getId();
-        target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasSaleId(saleId)));
+        // Fishing areas (default is false)
+        if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithFishingAreas())) {
+            target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasSaleId(source.getId())));
+        }
+
+        // Batches (default is false)
+        if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithBatches())) {
+            target.setBatches(batchRepository.findAllVO(batchRepository.hasSaleId(source.getId()),
+                    BatchFetchOptions.builder()
+                            .withChildrenEntities(false) // Use flat list, not a tree
+                            .withRecorderDepartment(false)
+                            .withMeasurementValues(true)
+                            .build()));
+        }
 
         // Fetch children (default is false)
         if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
@@ -116,16 +130,6 @@ public class SaleRepositoryImpl
                 PersonVO recorderPerson = personRepository.toVO(source.getRecorderPerson());
                 target.setRecorderPerson(recorderPerson);
             }
-        }
-
-        // Batches
-        if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithBatches())) {
-            target.setBatches(batchRepository.findAllVO(batchRepository.hasSaleId(source.getId()),
-                    BatchFetchOptions.builder()
-                            .withChildrenEntities(false) // Use flat list, not a tree
-                            .withRecorderDepartment(false)
-                            .withMeasurementValues(true)
-                            .build()));
         }
     }
 
@@ -188,12 +192,6 @@ public class SaleRepositoryImpl
             }
         }
 
-        // fishingAreas
-        if (source.getFishingAreas() != null) {
-            source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
-            fishingAreaService.saveAllBySaleId(source.getId(), source.getFishingAreas());
-        }
-
         // Landing
         Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
         if (copyIfNull || (landingId != null)) {
@@ -226,10 +224,6 @@ public class SaleRepositoryImpl
         }
     }
 
-    protected void fillDefaultProperties(SaleVO parent, FishingAreaVO fishingArea) {
-
-        fishingArea.setSaleId(parent.getId());
-    }
 
     @Override
     protected Specification<Sale> toSpecification(SaleFilterVO filter, SaleFetchOptions fetchOptions) {

@@ -153,11 +153,6 @@ public class Sale implements IRootDataEntity<Integer>,
     @ToString.Exclude
     private Landing landing;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObservedLocation.class)
-    @JoinColumn(name = "observed_location_fk")
-    @ToString.Exclude
-    private ObservedLocation observedLocation;
-
     @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.SALE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<FishingArea> fishingAreas = new ArrayList<>();
