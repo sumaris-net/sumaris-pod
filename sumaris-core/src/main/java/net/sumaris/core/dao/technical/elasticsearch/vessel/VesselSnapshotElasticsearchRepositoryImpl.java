@@ -33,6 +33,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
@@ -40,6 +41,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -70,6 +72,10 @@ public class VesselSnapshotElasticsearchRepositoryImpl
 
     private boolean enable = false;
 
+    @Value("${spring.elasticsearch.index.prefix}")
+    private String indexPrefix;
+    private String index;
+
     public VesselSnapshotElasticsearchRepositoryImpl(SumarisConfiguration configuration,
                                                      ElasticsearchRestTemplate elasticsearchRestTemplate,
                                                      ElasticsearchOperations operations) {
@@ -83,6 +89,8 @@ public class VesselSnapshotElasticsearchRepositoryImpl
     public void onConfigurationReady() {
         enableRegistrationCodeSearchAsPrefix = configuration.enableVesselRegistrationCodeSearchAsPrefix();
 
+        this.index = StringUtils.nullToEmpty(indexPrefix) + VesselSnapshotVO.INDEX;
+
         boolean enable = configuration.enableElasticsearch();
         if (this.enable != enable) {
             this.enable = enable && initIndex();
@@ -94,7 +102,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         if (!this.enable || !indexOperations.exists()) return -1L;
         NativeSearchQueryBuilder query= new NativeSearchQueryBuilder()
             .withQuery(QueryBuilders.matchAllQuery());
-        return elasticsearchRestTemplate.count(query.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
+        return elasticsearchRestTemplate.count(query.build(), VesselSnapshotVO.class, IndexCoordinates.of(this.index));
     }
 
     @Override
@@ -185,7 +193,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
             searchQuery.withPageable(pageable);
         }
 
-        try (SearchHitsIterator<VesselSnapshotVO> streamIte = elasticsearchRestTemplate.searchForStream(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
+        try (SearchHitsIterator<VesselSnapshotVO> streamIte = elasticsearchRestTemplate.searchForStream(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(this.index));
              Stream<SearchHit<VesselSnapshotVO>> stream = streamIte.stream()) {
             return stream.map(SearchHit::getContent).toList();
         }
@@ -199,7 +207,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder()
             .withQuery(query);
 
-        return elasticsearchRestTemplate.count(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
+        return elasticsearchRestTemplate.count(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(this.index));
     }
 
     @Override
