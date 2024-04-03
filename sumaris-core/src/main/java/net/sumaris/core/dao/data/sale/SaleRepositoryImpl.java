@@ -97,6 +97,12 @@ public class SaleRepositoryImpl
         // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
 
+        // Trip
+        Integer tripId = source.getTrip() != null ? source.getTrip().getId() : null;
+        if (tripId != null || copyIfNull) {
+            target.setTripId(tripId);
+        }
+
         // Landing
         Integer landingId = source.getLanding() != null ? source.getLanding().getId() : null;
         if (landingId != null || copyIfNull) {
@@ -183,7 +189,7 @@ public class SaleRepositoryImpl
 
         // Trip
         Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
-        if (copyIfNull || (tripId != null)) {
+        if (copyIfNull || tripId != null) {
             if (tripId == null) {
                 target.setTrip(null);
             }
@@ -194,7 +200,7 @@ public class SaleRepositoryImpl
 
         // Landing
         Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
-        if (copyIfNull || (landingId != null)) {
+        if (copyIfNull || landingId != null) {
             if (landingId == null) {
                 target.setLanding(null);
             }
