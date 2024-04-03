@@ -578,6 +578,15 @@ public class BatchRepositoryImpl
             }
         }
 
+        // Sale
+        if (copyIfNull || (saleId != null)) {
+            if (saleId == null) {
+                target.setSale(null);
+            } else {
+                target.setSale(getReference(Sale.class, saleId));
+            }
+        }
+
         // Taxon group
         if (copyIfNull || source.getTaxonGroup() != null) {
             if (source.getTaxonGroup() == null || source.getTaxonGroup().getId() == null) {
