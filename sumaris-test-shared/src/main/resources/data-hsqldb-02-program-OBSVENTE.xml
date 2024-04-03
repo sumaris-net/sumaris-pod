@@ -45,7 +45,7 @@
   <PROGRAM_PROPERTY ID="501" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.endDateTime.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="502" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.createVessel.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="503" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.createLanding.history.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="504" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.landing.editor" NAME="landing"/>
+  <PROGRAM_PROPERTY ID="504" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.landing.editor" NAME="sale"/>
   <PROGRAM_PROPERTY ID="505" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.landing.creationDate.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="506" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.landing.recorderPerson.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="507" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.landing.strategy.enable" NAME="false"/>
