@@ -36,6 +36,8 @@ public interface FishingAreaSpecifications {
 
     List<FishingAreaVO> saveAllByOperationId(int operationId, List<FishingAreaVO> fishingAreas);
 
+    List<FishingAreaVO> saveAllBySaleId(int saleId, List<FishingAreaVO> fishingAreas);
+
     List<FishingAreaVO> saveAllByGearUseFeaturesId(int gearUseFeaturesId, List<FishingAreaVO> fishingAreas);
 
     List<FishingAreaVO> findAllVO(Specification<FishingArea> spec);

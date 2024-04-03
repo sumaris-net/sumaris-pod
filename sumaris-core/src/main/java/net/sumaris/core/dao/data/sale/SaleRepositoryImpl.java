@@ -24,6 +24,8 @@ package net.sumaris.core.dao.data.sale;
 
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
+import net.sumaris.core.dao.data.batch.BatchRepository;
+import net.sumaris.core.dao.data.fishingArea.FishingAreaRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.IWithSalesEntity;
@@ -36,13 +38,16 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.FishingAreaVO;
 import net.sumaris.core.vo.data.SaleFetchOptions;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.data.TripVO;
+import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.filter.SaleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -64,8 +69,15 @@ public class SaleRepositoryImpl
     @Autowired
     private PersonRepository personRepository;
 
-    protected SaleRepositoryImpl(EntityManager entityManager) {
+    @Autowired
+    private BatchRepository batchRepository;
+
+    @Autowired
+    private FishingAreaRepository fishingAreaRepository;
+
+    protected SaleRepositoryImpl(EntityManager entityManager, GenericConversionService conversionService) {
         super(Sale.class, SaleVO.class, entityManager);
+        conversionService.addConverter(Sale.class, SaleVO.class, this::toVO);
     }
 
     @Override
@@ -84,6 +96,33 @@ public class SaleRepositoryImpl
 
         // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
+
+        // Trip
+        Integer tripId = source.getTrip() != null ? source.getTrip().getId() : null;
+        if (tripId != null || copyIfNull) {
+            target.setTripId(tripId);
+        }
+
+        // Landing
+        Integer landingId = source.getLanding() != null ? source.getLanding().getId() : null;
+        if (landingId != null || copyIfNull) {
+            target.setLandingId(landingId);
+        }
+
+        // Fishing areas (default is false)
+        if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithFishingAreas())) {
+            target.setFishingAreas(fishingAreaRepository.findAllVO(fishingAreaRepository.hasSaleId(source.getId())));
+        }
+
+        // Batches (default is false)
+        if (fetchOptions != null && (fetchOptions.isWithChildrenEntities() || fetchOptions.isWithBatches())) {
+            target.setBatches(batchRepository.findAllVO(batchRepository.hasSaleId(source.getId()),
+                    BatchFetchOptions.builder()
+                            .withChildrenEntities(false) // Use flat list, not a tree
+                            .withRecorderDepartment(false)
+                            .withMeasurementValues(true)
+                            .build()));
+        }
 
         // Fetch children (default is false)
         if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
@@ -150,7 +189,7 @@ public class SaleRepositoryImpl
 
         // Trip
         Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
-        if (copyIfNull || (tripId != null)) {
+        if (copyIfNull || tripId != null) {
             if (tripId == null) {
                 target.setTrip(null);
             }
@@ -161,7 +200,7 @@ public class SaleRepositoryImpl
 
         // Landing
         Integer landingId = source.getLandingId() != null ? source.getLandingId() : (source.getLanding() != null ? source.getLanding().getId() : null);
-        if (copyIfNull || (landingId != null)) {
+        if (copyIfNull || landingId != null) {
             if (landingId == null) {
                 target.setLanding(null);
             }
@@ -190,6 +229,7 @@ public class SaleRepositoryImpl
             }
         }
     }
+
 
     @Override
     protected Specification<Sale> toSpecification(SaleFilterVO filter, SaleFetchOptions fetchOptions) {

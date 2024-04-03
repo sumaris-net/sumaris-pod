@@ -30,6 +30,7 @@ import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -81,6 +82,11 @@ public class SaleVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues; // sale_measurement
 
     private List<ProductVO> products;
+
+    private List<FishingAreaVO> fishingAreas;
+
+    private BatchVO catchBatch;
+    private List<BatchVO> batches;
 
     @Override
     public Date getVesselDateTime() {

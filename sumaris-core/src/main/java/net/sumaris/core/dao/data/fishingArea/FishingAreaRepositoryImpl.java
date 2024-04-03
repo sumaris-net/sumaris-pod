@@ -31,6 +31,7 @@ import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.FishingArea;
 import net.sumaris.core.model.data.GearUseFeatures;
 import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.referential.DepthGradient;
 import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.NearbySpecificArea;
@@ -96,6 +97,9 @@ public class FishingAreaRepositoryImpl
         if (source.getOperation() != null)
             target.setOperationId(source.getOperation().getId());
 
+        if (source.getSale() != null)
+            target.setSaleId(source.getSale().getId());
+
         if (source.getGearUseFeatures() != null)
             target.setGearUseFeaturesId(source.getGearUseFeatures().getId());
     }
@@ -155,6 +159,17 @@ public class FishingAreaRepositoryImpl
             }
         }
 
+        // Sale
+        Integer saleId = source.getSaleId() != null ? source.getSaleId() : (source.getSale() != null ? source.getSale().getId() : null);
+        source.setSaleId(saleId);
+        if (copyIfNull || (saleId != null)) {
+            if (saleId == null) {
+                target.setSale(null);
+            } else {
+                target.setSale(getReference(Sale.class, saleId));
+            }
+        }
+
         // Gear Use Features
         Integer gufId = source.getGearUseFeaturesId() != null ? source.getGearUseFeaturesId() : (source.getGearUseFeatures() != null ? source.getGearUseFeatures().getId() : null);
         source.setGearUseFeaturesId(gufId);
@@ -200,6 +215,24 @@ public class FishingAreaRepositoryImpl
         Operation operation = getById(Operation.class, operationId);
 
         return saveAllByList(sources, operation.getFishingAreas());
+    }
+
+    @Override
+    public List<FishingAreaVO> saveAllBySaleId(int saleId, @Nonnull List<FishingAreaVO> sources) {
+
+        // Filter on non null objects
+        sources = sources.stream().filter(Objects::nonNull).toList();
+
+        // Set parent link
+        sources.forEach(fa -> {
+            fa.setSaleId(saleId);
+            fa.setGearUseFeaturesId(null);
+        });
+
+        // Get existing fishing areas
+        Sale sale = getById(Sale.class, saleId);
+
+        return saveAllByList(sources, sale.getFishingAreas());
     }
 
     @Override
