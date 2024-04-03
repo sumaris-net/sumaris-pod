@@ -65,16 +65,14 @@ public interface BatchSpecifications extends IDataSpecifications<Integer, Batch>
     default Specification<Batch> hasSaleId(Integer saleId) {
         if (saleId == null) return null;
 
-        BindableSpecification<Batch> specification = BindableSpecification.where((root, query, cb) -> {
+        return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, BatchVO.Fields.SALE_ID);
 
             // Sort by rank order
             query.orderBy(cb.asc(root.get(Batch.Fields.RANK_ORDER)));
 
             return cb.equal(root.get(Batch.Fields.SALE).get(IEntity.Fields.ID), param);
-        });
-        specification.addBind(BatchVO.Fields.SALE_ID, saleId);
-        return specification;
+        }).addBind(BatchVO.Fields.SALE_ID, saleId);
     }
 
     default Specification<Batch> addJoinFetch(BatchFetchOptions fetchOptions, boolean addQueryDistinct) {
