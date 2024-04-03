@@ -516,6 +516,7 @@ public class BatchRepositoryImpl
         // Get some parent ids
         Integer parentId = (source.getParent() != null ? source.getParent().getId() : source.getParentId());
         Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
+        Integer saleId = opeId == null ? (source.getSaleId() != null ? source.getSaleId() : (source.getSale() != null ? source.getSale().getId() : null)) : null;
 
         // Parent batch
         if (copyIfNull || (parentId != null)) {
@@ -540,13 +541,21 @@ public class BatchRepositoryImpl
                 //}
 
                 // Force same operation as parent (e.g. in case of bad batch tree copy)
-                opeId = parent.getOperation().getId();
+                if (parent.getOperation() != null) {
+                    opeId = parent.getOperation().getId();
+                    saleId = null;
+                }
+                if (parent.getSale() != null) {
+                    saleId = parent.getSale().getId();
+                    opeId = null;
+                }
             }
         }
 
         // /!\ IMPORTANT: update source's operationId and parentId, BEFORE calling hashCode()
         source.setParentId(parentId);
         source.setOperationId(opeId);
+        source.setSaleId(saleId);
         Integer newHash = source.hashCode();
 
         // If same hash, then skip (if allow)
