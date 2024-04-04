@@ -48,7 +48,7 @@
       <column name="entity_name" type="VARCHAR2(50)">
         <constraints nullable="false"/>
       </column>
-      <column name="content" type="VARCHAR2(4096)">
+      <column name="content" type="CLOB">
         <constraints nullable="false"/>
       </column>
       <column name="recorder_person_fk" type="NUMBER(10)">
