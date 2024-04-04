@@ -159,8 +159,8 @@ public interface VesselSnapshotElasticsearchSpecifications extends IVesselSnapsh
 
     default ElasticsearchSpecification<QueryBuilder> searchText(String[] searchAttributes, String searchText) {
         if (StringUtils.isBlank(searchText)) return null;
+        String escapedSearchText = ElasticsearchUtils.getEscapedSearchText(searchText, false);
         return () -> {
-            String escapedSearchText = ElasticsearchUtils.getEscapedSearchText(searchText, true);
             boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
 
             BoolQueryBuilder searchTextQuery = QueryBuilders.boolQuery().minimumShouldMatch(1);
@@ -168,14 +168,14 @@ public interface VesselSnapshotElasticsearchSpecifications extends IVesselSnapsh
 
             String[] attributes = ArrayUtils.isNotEmpty(searchAttributes) ? searchAttributes : DEFAULT_SEARCH_ATTRIBUTES;
             for (String attr : attributes) {
-                BoolQueryBuilder attrQuery = QueryBuilders.boolQuery() .minimumShouldMatch(searchWords.length);
+                BoolQueryBuilder attrQuery = QueryBuilders.boolQuery().minimumShouldMatch(searchWords.length);
                 for (int i = 0; i < searchWords.length; i++) {
                     String word = searchWords[i];
                     boolean isPrefixMatch = enableRegistrationCodeSearchAsPrefix && i == 0 && !attr.endsWith(VesselFeaturesVO.Fields.NAME);
                     boolean noWildcard = word.indexOf('*') == -1 && word.indexOf('?') == -1;
 
-                    if (isPrefixMatch && !noWildcard) {
-                        attrQuery.should(QueryBuilders.prefixQuery(attr, word));
+                    if (isPrefixMatch && noWildcard) {
+                        attrQuery.should(QueryBuilders.prefixQuery(attr, ElasticsearchUtils.trimWildcard(word)));
                     } else {
                         String pattern = (isPrefixMatch || word.startsWith("*") ? "" : "*") + word + "*";
                         attrQuery.should(QueryBuilders.wildcardQuery(attr, pattern));

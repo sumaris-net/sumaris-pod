@@ -187,4 +187,46 @@
     </insert>
   </changeSet>
 
+
+  <!-- add table named_filter-->
+  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-410">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="NAMED_FILTER_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="NAMED_FILTER_SEQ"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-411">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="named_filter"/></not>
+    </preConditions>
+    <createTable tableName="named_filter">
+      <column name="id" type="NUMBER(10)">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="named_filter_pk"/>
+      </column>
+      <column name="name" type="VARCHAR2(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="entity_name" type="VARCHAR2(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="content" type="CLOB">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_person_fk" type="NUMBER(10)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="recorder_department_fk" type="NUMBER(10)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    <addForeignKeyConstraint constraintName="named_filter_recorder_person_fkc" baseTableName="named_filter" baseColumnNames="recorder_person_fk" referencedTableName="person" referencedColumnNames="id" referencedTableSchemaName="sih2_adagio_dba"/>
+    <addForeignKeyConstraint constraintName="named_filter_recorder_department_fkc" baseTableName="named_filter" baseColumnNames="recorder_department_fk" referencedTableName="department" referencedColumnNames="id" referencedTableSchemaName="sih2_adagio_dba"/>
+  </changeSet>
+
 </databaseChangeLog>

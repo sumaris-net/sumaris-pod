@@ -44,10 +44,13 @@ import java.util.Map;
 @Setter
 @FieldNameConstants
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Document(indexName = VesselSnapshotVO.INDEX, createIndex = false)
+@Document(indexName = VesselSnapshotVO.INDEX_PREFIX_EL + VesselSnapshotVO.INDEX, createIndex = false)
 @Setting(settingPath = "settings/whitespace-analyzer.json")
 public class VesselSnapshotVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>, IRootDataVO<Integer> {
+
+    @GraphQLIgnore
+    public static final String INDEX_PREFIX_EL = "#{@environment.getProperty('spring.elasticsearch.index.prefix', '')}";
 
     @GraphQLIgnore
     public static final String INDEX = "vessel_snapshot";

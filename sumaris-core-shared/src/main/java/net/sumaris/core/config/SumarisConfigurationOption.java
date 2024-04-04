@@ -733,6 +733,14 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         false
     ),
 
+    ELASTICSEARCH_INDEX_PREFIX(
+        "spring.elasticsearch.index.prefix",
+        n("sumaris.config.option.spring.elasticsearch.index.prefix.description"),
+        "",
+        String.class,
+        false
+    ),
+
     ELASTICSEARCH_VESSEL_SNAPSHOT_ENABLED(
         "sumaris.elasticsearch.vessel.snapshot.enabled",
         n("sumaris.config.option.elasticsearch.vessel.snapshot.enabled.description"),

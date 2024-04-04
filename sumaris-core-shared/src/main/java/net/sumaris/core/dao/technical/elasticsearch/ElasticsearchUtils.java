@@ -24,6 +24,8 @@ package net.sumaris.core.dao.technical.elasticsearch;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
+
 public class ElasticsearchUtils {
 
     protected ElasticsearchUtils() {
@@ -40,9 +42,26 @@ public class ElasticsearchUtils {
         searchText = StringUtils.trimToNull(searchText);
         if (searchText == null) return null;
         return searchText.replaceAll("[*]+", "*") // group many '*' chars
-            .replaceAll("[*]+", " *") // Split wildcard using space
-            .replaceAll("^[*\\s]+", "") // Remove start wildcard (not need)
-            .replaceAll("[*\\s]+$", "") // Remove end wildcard (not need)
-            ;
+            .replaceAll("[*]+", "*") // Group wildcard
+            .replaceAll("[*\\s]+$", "") // Remove trailing wildcard
+            .trim();
+    }
+
+    public static String removeStartingWildcard(String searchText) {
+        searchText = StringUtils.trimToNull(searchText);
+        if (searchText == null) return null;
+        return searchText.replaceAll("^[*\\s]+", "");
+    }
+
+    public static String removeTrailingWildcard(@Nullable String searchText) {
+        if (searchText == null) return null;
+        return searchText.replaceAll("[*\\s]+$", "");
+    }
+
+    public static String trimWildcard(@Nullable String searchText) {
+        if (searchText == null) return null;
+        return searchText
+            .replaceAll("^[*\\s]+", "")
+            .replaceAll("[*\\s]+$", "");
     }
 }

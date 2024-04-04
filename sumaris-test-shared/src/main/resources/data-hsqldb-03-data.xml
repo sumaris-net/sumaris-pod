@@ -993,4 +993,11 @@
   <VESSEL_USE_MEASUREMENT ID="411" VESSEL_USE_FEATURES_FK="410" PMFM_FK="37" RANK_ORDER="1" NUMERICAL_VALUE="20" UPDATE_DATE="2023-12-18" RECORDER_DEPARTMENT_FK="3" QUALITY_FLAG_FK="0"/> <!-- Fishing duration  -->
   <VESSEL_USE_MEASUREMENT ID="412" VESSEL_USE_FEATURES_FK="410" PMFM_FK="21" RANK_ORDER="1" NUMERICAL_VALUE="1" UPDATE_DATE="2023-12-18" RECORDER_DEPARTMENT_FK="3" QUALITY_FLAG_FK="0"/> <!-- Nb fishermen  -->
 
+  <!-- *********************************** -->
+  <!--        Named filter                 -->
+  <!-- *********************************** -->
+
+<!--  <NAMED_FILTER ID="1" NAME="Program APASE" CONTENT='{"program":{"id":70,"updateDate":"2023-01-31T23:00:00.000Z","label":"APASE","name":"Projet de test de sélectivité sur les chaluts","description":"Web site: https://www.aglia.net","statusId":1},"observers":[null],"dataQualityStatus":null,"qualityFlagId":null,"hasScientificCruise":null,"hasObservedLocation":null}' RECORDER_PERSON_FK="5" CREATION_DATE="2024-03-12"/>-->
+
+
 </dataset>
