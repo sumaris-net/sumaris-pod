@@ -72,10 +72,10 @@ public class NamedFilterGraphQLService {
         return namedFilterService.findById(id, fetchOptions).orElse(null);
     }
 
-    @GraphQLQuery(name = "namedFilters", description = "Find NamedFilter by filter")
+    @GraphQLQuery(name = "namedFilters", description = "Find many named filters")
     @Transactional(readOnly = true)
     @IsUser
-    public List<NamedFilterVO> findAllNamedFilter(
+    public List<NamedFilterVO> findAllNamedFilters(
             @NonNull @GraphQLArgument(name = "filter") NamedFilterFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
@@ -91,6 +91,18 @@ public class NamedFilterGraphQLService {
         return namedFilterService.findAll(filter, offset, size, sort, sortDirection, fetchOptions);
     }
 
+
+    @GraphQLQuery(name = "namedFiltersCount", description = "Get named filters count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public long countNamedFilters(
+        @NonNull @GraphQLArgument(name = "filter") NamedFilterFilterVO filter
+    ) {
+        // Make sure filter is valid
+        sanitizeFilter(filter);
+        return namedFilterService.countByFilter(filter);
+    }
+
     @GraphQLMutation(name = "saveNamedFilter", description = "Save a NamedFilter")
     @IsUser
     public NamedFilterVO saveNamedFilter(
@@ -101,7 +113,7 @@ public class NamedFilterGraphQLService {
         return namedFilterService.save(namedFilter, saveOptions);
     }
 
-    @GraphQLMutation(name = "saveNamedFilters", description = "Save many NamedFilter")
+    @GraphQLMutation(name = "saveNamedFilters", description = "Save many named filters")
     @IsUser
     public List<NamedFilterVO> saveNamedFilters(
         @NonNull @GraphQLArgument(name = "namedFilters") List<NamedFilterVO> namedFilters,
@@ -114,7 +126,7 @@ public class NamedFilterGraphQLService {
         return namedFilterService.saveAll(namedFilters, saveOptions);
     }
 
-    @GraphQLMutation(name = "deleteNamedFilter", description = "Delete a NamedFilter by id")
+    @GraphQLMutation(name = "deleteNamedFilter", description = "Delete a named filter by id")
     @IsUser
     public void deleteNamedFilter(
             @GraphQLArgument(name = "id") Integer id)
@@ -122,7 +134,7 @@ public class NamedFilterGraphQLService {
         namedFilterService.delete(id);
     }
 
-    @GraphQLMutation(name = "deleteNamedFilter", description = "Delete many NamedFilters by ids")
+    @GraphQLMutation(name = "deleteNamedFilter", description = "Delete many named filters by ids")
     @IsUser
     public void deleteNamedFilter(
         @GraphQLArgument(name = "ids") List<Integer> ids) {
