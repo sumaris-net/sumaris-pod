@@ -35,11 +35,12 @@ import java.util.Optional;
 
 @Repository
 public interface NamedFilterRepository
-        extends SumarisJpaRepository<NamedFilter, Integer, NamedFilterVO>, NamedFilterSpecifications {
+        extends SumarisJpaRepository<NamedFilter, Integer, NamedFilterVO>,
+            NamedFilterSpecifications {
 
-    public Optional<NamedFilterVO> findById(int id, NamedFilterFetchOptions fetchOptions);
+    Optional<NamedFilterVO> findById(int id, NamedFilterFetchOptions fetchOptions);
 
-    public List<NamedFilterVO> findAll(
+    List<NamedFilterVO> findAll(
             NamedFilterFilterVO filter,
             int offset,
             int size,
@@ -47,4 +48,6 @@ public interface NamedFilterRepository
             SortDirection sortDirection,
             NamedFilterFetchOptions fetchOptions
             );
+
+    long count(NamedFilterFilterVO filter);
 }
