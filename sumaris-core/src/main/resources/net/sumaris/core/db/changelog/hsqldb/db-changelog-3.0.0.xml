@@ -1132,20 +1132,18 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">3.0.0</column>
       <column name="DESCRIPTION">
-        - Rename some software properties;
-        - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY;
-        - Add missing delete cascade constrains, on STRATEGY_xxx tables;
-        - Add column SAMPLING_STRATA_FK on OBSERVED_LOCATION and TRIP;
-        - Add Named Filter
+        - Rename software properties;
+        - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY, NAMED_FILTER;
+        - Add missing delete cascade constrains;
+        - Add column SAMPLING_STRATA_FK on tables;
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
         - Rename some software properties;
-        - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY;
+        - Add tables ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY, NAMED_FILTER;
         - Add missing delete cascade constrains, on STRATEGY_xxx tables;
         - Add column SAMPLING_STRATA_FK on OBSERVED_LOCATION and TRIP;
-        - Add Named Filter
       </column>
     </insert>
   </changeSet>
