@@ -31,6 +31,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 
 import javax.persistence.*;
@@ -51,21 +52,21 @@ public class NamedFilter implements IUpdateDateEntity<Integer, Date> {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
     private String name;
 
-    @Column(name="entity_name", nullable = false)
+    @Column(name="entity_name", nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
     private String entityName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 4096)
     private String content;
 
-    @ManyToOne
-    @JoinColumn(name = "recorder_person_fk", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorder_person_fk")
     private Person recorderPerson;
 
-    @ManyToOne
-    @JoinColumn(name = "recorder_department_fk", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recorder_department_fk")
     private Department recorderDepartment;
 
     @Column(name="update_date", nullable = false)
