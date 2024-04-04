@@ -25,6 +25,7 @@ package net.sumaris.core.dao.technical.namedFilter;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
+import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.technical.namedFilter.NamedFilter;
@@ -44,7 +45,7 @@ import java.util.stream.Stream;
 
 public class NamedFilterRepositoryImpl
         extends SumarisJpaRepositoryImpl<NamedFilter, Integer, NamedFilterVO>
-        implements NamedFilterSpecifications {
+        implements SumarisJpaRepository<NamedFilter, Integer, NamedFilterVO>, NamedFilterSpecifications {
 
     private final PersonRepository personRepository;
 
@@ -71,6 +72,10 @@ public class NamedFilterRepositoryImpl
         try (Stream<NamedFilter> stream = streamQuery(query)) {
             return stream.map(entity -> toVO(entity, fetchOptions)).toList();
         }
+    }
+
+    public long count(NamedFilterFilterVO filter) {
+        return count(toSpecification(filter));
     }
 
     public void deleteById(int id) {

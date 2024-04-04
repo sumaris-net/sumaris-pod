@@ -68,6 +68,10 @@ public class NamedFilterServiceImpl implements NamedFilterService {
                 fetchOptions);
     }
 
+    @Override
+    public long countByFilter(NamedFilterFilterVO filter) {
+        return namedFilterRepository.count(NamedFilterFilterVO.nullToEmpty(filter));
+    }
 
     @Override
     public NamedFilterVO save(NamedFilterVO source, NamedFilterSaveOptions options) {

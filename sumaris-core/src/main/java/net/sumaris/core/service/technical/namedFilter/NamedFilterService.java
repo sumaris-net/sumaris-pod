@@ -46,6 +46,9 @@ public interface NamedFilterService {
                                 SortDirection sortDirection,
                                 NamedFilterFetchOptions fetchOptions);
 
+    @Transactional(readOnly = true)
+    long countByFilter(NamedFilterFilterVO filter);
+
     NamedFilterVO save(NamedFilterVO source, NamedFilterSaveOptions options);
 
     List<NamedFilterVO> saveAll(List<NamedFilterVO> sources, NamedFilterSaveOptions options);
