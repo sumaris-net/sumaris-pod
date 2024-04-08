@@ -65,13 +65,13 @@ public class VesselSnapshotVO implements IDataVO<Integer>,
     @Field(type = FieldType.Text, fielddata = true)
     private String name;
 
-    @Field(type = FieldType.Text, fielddata = true, searchAnalyzer = "whitespace_analyzer")
+    @Field(type = FieldType.Text, fielddata = true, searchAnalyzer = "whitespace_analyzer", analyzer = "standard")
     private String exteriorMarking;
 
-    @Field(type = FieldType.Text, fielddata = true, searchAnalyzer = "whitespace_analyzer")
+    @Field(type = FieldType.Text, fielddata = true, searchAnalyzer = "whitespace_analyzer", analyzer = "standard")
     private String registrationCode;
 
-    @Field(type = FieldType.Text, fielddata = true, searchAnalyzer = "whitespace_analyzer")
+    @Field(type = FieldType.Text, fielddata = true, searchAnalyzer = "whitespace_analyzer", analyzer = "standard")
     private String intRegistrationCode;
 
     private Integer administrativePower;
