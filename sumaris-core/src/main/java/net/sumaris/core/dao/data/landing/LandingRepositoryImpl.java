@@ -163,6 +163,11 @@ public class LandingRepositoryImpl
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
         }
+
+        // Sale Ids
+        if (CollectionUtils.isNotEmpty(source.getSales())) {
+            target.setSaleIds(Beans.collectIds(source.getSales()));
+        }
     }
 
     @Override

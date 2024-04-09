@@ -77,6 +77,7 @@ public class LandingVO implements IRootDataVO<Integer>,
     @EqualsAndHashCode.Exclude
     private Boolean hasSales; // Optimization: allow to NOT fetch sales
     private List<SaleVO> sales;
+    private List<Integer> saleIds;
 
     // Not used in the App
     // and the association 'Landing.expectedSales' has been comment out (see issue sumaris-pod #24)
