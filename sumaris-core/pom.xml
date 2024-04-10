@@ -154,7 +154,7 @@
     </dependency>
     <dependency>
       <groupId>com.oracle.database.jdbc</groupId>
-      <artifactId>ojdbc10</artifactId>
+      <artifactId>ojdbc11</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -446,7 +446,7 @@
 
       <properties>
         <jdbc.url>jdbc:oracle:thin:@192.168.0.6:1521:ORCL</jdbc.url>
-        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc10/${ojdbc10.version}/ojdbc10-${ojdbc10.version}.jar</jdbc.driver.jar>
+        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc11/${ojdbc11.version}/ojdbc11-${ojdbc11.version}.jar</jdbc.driver.jar>
         <jdbc.username>SUMARIS_TU</jdbc.username>
         <jdbc.password>SUMARIS_TU</jdbc.password>
         <jdbc.schema>SUMARIS_TU</jdbc.schema>
@@ -459,7 +459,7 @@
       <dependencies>
         <dependency>
           <groupId>com.oracle.database.jdbc</groupId>
-          <artifactId>ojdbc10</artifactId>
+          <artifactId>ojdbc11</artifactId>
         </dependency>
       </dependencies>
     </profile>
