@@ -352,7 +352,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             return job;
         }
 
-        log.info("Cancelling job #{}... ({})", job.getId(), message);
+        log.debug("Cancelling job #{}... ({})", job.getId(), message);
 
         if (runningJobsById.containsKey(job.getId())) {
             // Cancel by Future
@@ -459,14 +459,14 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
 
         int jobId = progression.getId();
-        if (log.isDebugEnabled()) {
-            log.debug("Receiving job progression event for job {}", this.writeValueAsString(progression));
+        if (log.isTraceEnabled()) {
+            log.trace("Receiving job progression event for job {}", this.writeValueAsString(progression));
         }
 
         // Notify listeners
         List<Consumer<JobProgressionVO>> listeners = getProgressionListeners(jobId);
         if (CollectionUtils.isNotEmpty(listeners)) {
-            log.debug("Consume job progression event for job id={} (listener count: {}}", jobId, listeners.size());
+            log.trace("Consume job progression event for job id={} (listener count: {}}", jobId, listeners.size());
             listeners.forEach(listener -> listener.accept(progression));
         }
     }
