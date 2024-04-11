@@ -147,6 +147,16 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     REFUSED_SURVEY(266, "REFUSED_SURVEY"),
     GPS_USED(188, "GPS_USED"),
 
+    // ObsMer
+    EMV_CATEGORY(437, "EMV_CATEGORY"),
+
+    // ObsVente
+    PETS(502, "PETS"),
+
+    SALE_TYPE(503, "SALE_TYPE"),
+    IS_OBSERVED(510, "IS_OBSERVED"),
+    NON_OBSERVATION_REASON(511, "NON_OBSERVATION_REASON"),
+
     // Activity Calendar
     DURATION_AT_SEA_DAYS(449, "DURATION_AT_SEA_DAYS"),
     FISHING_DURATION_DAYS(450, "FISHING_DURATION_DAYS"),
