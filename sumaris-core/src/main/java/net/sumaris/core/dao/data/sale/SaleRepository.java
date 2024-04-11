@@ -27,6 +27,9 @@ import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.vo.data.SaleFetchOptions;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.filter.SaleFilterVO;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.Set;
 
 /**
  * @author peck7 on 01/09/2020.
@@ -34,4 +37,6 @@ import net.sumaris.core.vo.filter.SaleFilterVO;
 public interface SaleRepository
     extends RootDataRepository<Sale, SaleVO, SaleFilterVO, SaleFetchOptions>, SaleSpecifications {
 
+    @Query("select id from Sale where landing.id = ?1")
+    Set<Integer> getAllIdByLandingId(int landingId);
 }

@@ -29,6 +29,7 @@ import net.sumaris.core.vo.data.SaleVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author BLA
@@ -44,6 +45,9 @@ public interface SaleService {
 
 	@Transactional(readOnly = true)
 	List<SaleVO> getAllByLandingId(int landingId, SaleFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	Set<Integer> getAllIdByLandingId(int landingId);
 
 	@Transactional(readOnly = true)
 	SaleVO get(int id);
