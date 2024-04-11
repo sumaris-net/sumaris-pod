@@ -52,6 +52,8 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -60,6 +62,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service("landingService")
@@ -100,6 +103,9 @@ public class LandingServiceImpl implements LandingService {
        // Fill vessel snapshots
        if (fetchOptions == null || fetchOptions.isWithVesselSnapshot()) fillVesselSnapshots(landings);
 
+       // Fill sale ids
+       if (fetchOptions != null && fetchOptions.isWithSaleIds()) fillSaleIds(landings);
+
        return landings;
     }
 
@@ -118,14 +124,10 @@ public class LandingServiceImpl implements LandingService {
         LandingVO target = landingRepository.get(id, fetchOptions);
 
         // Fill vessel snapshot
-        if (fetchOptions.isWithVesselSnapshot()) fillVesselSnapshot(target);
+        if (fetchOptions.isWithVesselSnapshot() || fetchOptions.isWithChildrenEntities()) fillVesselSnapshot(target);
 
         // Fetch children (disabled by default)
         if (fetchOptions.isWithChildrenEntities()) {
-
-            if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
-                target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getDateTime())));
-            }
 
             Integer mainUndefinedOperationGroupId = null;
             if (target.getTripId() != null && fetchOptions.isWithTrip()) {
@@ -158,6 +160,9 @@ public class LandingServiceImpl implements LandingService {
             target.setMeasurements(measurementDao.getLandingMeasurements(id));
         }
 
+        // Sale ids
+        if (fetchOptions.isWithSaleIds()) fillSaleIds(target);
+
         return target;
     }
 
@@ -169,6 +174,20 @@ public class LandingServiceImpl implements LandingService {
 
     public void fillVesselSnapshots(List<LandingVO> target) {
         target.parallelStream().forEach(this::fillVesselSnapshot);
+    }
+
+
+    public void fillSaleIds(LandingVO target) {
+        if (target.getSales() != null) {
+            target.setSaleIds(Beans.collectIds(target.getSales()));
+        }
+        else {
+            target.setSaleIds(Beans.getList(saleService.getAllIdByLandingId(target.getId())));
+        }
+    }
+
+    public void fillSaleIds(List<LandingVO> target) {
+        target.parallelStream().forEach(this::fillSaleIds);
     }
 
     @Override

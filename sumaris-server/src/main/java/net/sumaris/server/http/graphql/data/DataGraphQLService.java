@@ -1981,6 +1981,7 @@ public class DataGraphQLService {
 
     protected LandingFetchOptions getLandingFetchOptions(Set<String> fields) {
         boolean withSales = fields.contains(StringUtils.slashing(LandingVO.Fields.SALES, IEntity.Fields.ID));
+        boolean withSaleIds = !withSales && fields.contains(LandingVO.Fields.SALE_IDS);
         boolean withTrip = fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, IEntity.Fields.ID));
         boolean withTripSale = withTrip && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALE, IEntity.Fields.ID))
                 || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALES, IEntity.Fields.ID));
@@ -1995,6 +1996,7 @@ public class DataGraphQLService {
 
         return LandingFetchOptions.builder()
             .withSales(withSales)
+            .withSaleIds(withSaleIds)
             .withTrip(withTrip)
             .withTripSales(withTripSale)
             .withTripExpectedSales(withTripExpectedSale)

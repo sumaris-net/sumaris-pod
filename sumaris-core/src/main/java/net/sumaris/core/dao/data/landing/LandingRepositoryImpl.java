@@ -163,16 +163,10 @@ public class LandingRepositoryImpl
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
         }
-
-        // Sale Ids
-        if (CollectionUtils.isNotEmpty(source.getSales())) {
-            target.setSaleIds(Beans.collectIds(source.getSales()));
-        }
     }
 
     @Override
     public void toEntity(LandingVO source, Landing target, boolean copyIfNull) {
-
         super.toEntity(source, target, copyIfNull);
 
         // Landing location

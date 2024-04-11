@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service("saleService")
@@ -79,6 +80,11 @@ public class SaleServiceImpl implements SaleService {
 		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) this.fillVesselSnapshots(targets);
 
 		return targets;
+	}
+
+	@Override
+	public Set<Integer> getAllIdByLandingId(int landingId) {
+		return saleRepository.getAllIdByLandingId(landingId);
 	}
 
 	@Override

@@ -46,6 +46,7 @@ public class LandingFetchOptions implements IDataFetchOptions {
         .withChildrenEntities(true)
         .withMeasurementValues(true)
         .withSales(true)
+        .withSaleIds(false) // Not need to be fetched, if sales exists
         .withTrip(true)
         .withTripSales(true)
         .withTripExpectedSales(true)
@@ -69,6 +70,9 @@ public class LandingFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withSales = false;
+
+    @Builder.Default
+    private boolean withSaleIds = false;
 
     @Builder.Default
     private boolean withTrip = false;
