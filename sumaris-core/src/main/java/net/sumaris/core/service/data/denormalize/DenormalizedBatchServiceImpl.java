@@ -28,9 +28,11 @@ import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.dao.data.batch.DenormalizedBatchRepository;
 import net.sumaris.core.dao.data.batch.InvalidSamplingBatchException;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -50,6 +52,7 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.SaleService;
+import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.service.referential.conversion.RoundWeightConversionService;
 import net.sumaris.core.service.referential.conversion.WeightLengthConversionService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
@@ -91,9 +94,13 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
 
     protected final DenormalizedBatchRepository denormalizedBatchRepository;
 
+    protected final MeasurementDao measurementDao;
+
     protected final BatchRepository batchRepository;
 
     protected final ProgramService programService;
+
+    protected final TripService tripService;
 
     protected final OperationService operationService;
 
@@ -141,6 +148,61 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
             }
         }
     }
+
+    @Override
+    public List<DenormalizedBatchVO> getAllByOperationId(int operationId) {
+        return getAllByOperationId(operationId, DenormalizedBatchFetchOptions.DEFAULT);
+    }
+
+    @Override
+    public List<DenormalizedBatchVO> getAllByOperationId(int operationId, @NonNull DenormalizedBatchFetchOptions fetchOptions) {
+        return denormalizedBatchRepository.findAll(DenormalizedBatchesFilterVO.builder()
+                        .operationId(operationId).build(),
+                fetchOptions);
+    }
+
+    @Override
+    public Optional<DenormalizedBatchVO> findById(int id, DenormalizedBatchFetchOptions fetchOptions) {
+        return denormalizedBatchRepository.findById(id, fetchOptions);
+    }
+
+    public List<DenormalizedBatchVO> findAll(
+            DenormalizedBatchesFilterVO filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection,
+            DenormalizedBatchFetchOptions fetchOptions) {
+        List<DenormalizedBatchVO> batches = denormalizedBatchRepository.findAll(
+                DenormalizedBatchesFilterVO.nullToEmpty(filter),
+                offset,
+                size,
+                sortAttribute,
+                sortDirection,
+                fetchOptions);
+
+        List<Integer> operationIds = new ArrayList<>();
+
+        // Measurement values
+        List<Integer> batchIds = Beans.collectIds(batches.stream().filter(batch -> batch.getMeasurementValues() == null).toList());
+        if (CollectionUtils.isNotEmpty(batchIds)) {
+            // We fetch only SortingMeasurement, because QuantificationMeasurement are already present inside attributes (weight, elevateWeight...)
+            Map<Integer, Map<Integer, String>> measurementValuesByBatchId = measurementDao.getBatchesSortingMeasurementsMap(batchIds);
+            batches.forEach(batch -> batch.setMeasurementValues(measurementValuesByBatchId.get(batch.getId())));
+        }
+
+        return batches;
+    }
+
+    @Override
+    public List<DenormalizedBatchVO> findAll(DenormalizedBatchesFilterVO filter, DenormalizedBatchFetchOptions fetchOptions) {
+        return denormalizedBatchRepository.findAll(filter, fetchOptions);
+    }
+
+    public long countByFilter(DenormalizedBatchesFilterVO filter) {
+        return denormalizedBatchRepository.count(filter);
+    }
+
 
     @Override
     public List<DenormalizedBatchVO> denormalize(@NonNull BatchVO catchBatch, @NonNull final DenormalizedBatchOptions options) {

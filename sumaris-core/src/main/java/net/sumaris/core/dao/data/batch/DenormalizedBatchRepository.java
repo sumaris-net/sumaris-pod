@@ -22,18 +22,41 @@
 
 package net.sumaris.core.dao.data.batch;
 
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.DenormalizedBatch;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchFetchOptions;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchesFilterVO;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface DenormalizedBatchRepository
         extends SumarisJpaRepository<DenormalizedBatch, Integer, DenormalizedBatchVO>,
     DenormalizedBatchSpecifications<DenormalizedBatch, DenormalizedBatchVO> {
+
+    Optional<DenormalizedBatchVO> findById(int id, DenormalizedBatchFetchOptions fetchOptions);
+
+    List<DenormalizedBatchVO> findAll(
+            DenormalizedBatchesFilterVO filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection,
+            DenormalizedBatchFetchOptions fetchOptions
+    );
+
+    List<DenormalizedBatchVO> findAll(
+            DenormalizedBatchesFilterVO filter,
+            DenormalizedBatchFetchOptions fetchOptions
+    );
+
+    long count(DenormalizedBatchesFilterVO filter);
 
     @Query("select id from DenormalizedBatch where operation.id = ?1")
     Set<Integer> getAllIdByOperationId(int operationId);

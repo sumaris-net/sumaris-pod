@@ -26,9 +26,12 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.DenormalizedBatch;
@@ -46,9 +49,7 @@ import net.sumaris.core.util.Numbers;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
-import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.batch.DenormalizedBatchSortingValueVO;
-import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.batch.*;
 import net.sumaris.core.vo.referential.ParameterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.PmfmValueType;
@@ -57,11 +58,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author peck7 on 09/06/2020.
@@ -71,8 +75,8 @@ public class DenormalizedBatchRepositoryImpl
     extends SumarisJpaRepositoryImpl<DenormalizedBatch, Integer, DenormalizedBatchVO>
     implements DenormalizedBatchSpecifications<DenormalizedBatch, DenormalizedBatchVO> {
 
-
     private final SumarisConfiguration config;
+    private final ReferentialDao referentialDao;
     private final PmfmRepository pmfmRepository;
     private final ParameterRepository parameterRepository;
 
@@ -84,6 +88,7 @@ public class DenormalizedBatchRepositoryImpl
 
     public DenormalizedBatchRepositoryImpl(EntityManager entityManager,
                                            SumarisConfiguration config,
+                                           ReferentialDao referentialDao,
                                            PmfmRepository pmfmRepository,
                                            ParameterRepository parameterRepository,
                                            TaxonNameRepository taxonNameRepository,
@@ -91,11 +96,43 @@ public class DenormalizedBatchRepositoryImpl
                                            ApplicationContext applicationContext) {
         super(DenormalizedBatch.class, entityManager);
         this.config = config;
+        this.referentialDao = referentialDao;
         this.pmfmRepository = pmfmRepository;
         this.parameterRepository = parameterRepository;
         this.taxonNameRepository = taxonNameRepository;
         this.sortingValueRepository = sortingValueRepository;
         this.applicationContext = applicationContext;
+    }
+
+    public Optional<DenormalizedBatchVO> findById(int id, DenormalizedBatchFetchOptions fetchOptions) {
+        return super.findById(id).map(entity -> toVO(entity, fetchOptions));
+    }
+
+    public List<DenormalizedBatchVO> findAll(DenormalizedBatchesFilterVO filter, DenormalizedBatchFetchOptions fetchOptions) {
+        return findAll(toSpecification(filter))
+                .stream()
+                .map(e -> this.toVO(e, fetchOptions))
+//                .sorted(Comparator.comparing(DenormalizedBatchVO::getOperationId).thenComparing(Comparator.comparing(DenormalizedBatchVO::getFlatRankOrder)))
+                .collect(Collectors.toList());
+    }
+
+    public List<DenormalizedBatchVO> findAll(
+            DenormalizedBatchesFilterVO filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection,
+            DenormalizedBatchFetchOptions fetchOptions
+    ) {
+        Specification<DenormalizedBatch> spec = filter != null ? toSpecification(filter) : null;
+        TypedQuery<DenormalizedBatch> query = getQuery(spec, offset, size, sortAttribute, sortDirection, getDomainClass());
+        try (Stream<DenormalizedBatch> stream = streamQuery(query)) {
+            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+        }
+    }
+
+    public long count(DenormalizedBatchesFilterVO filter) {
+        return count(toSpecification(filter));
     }
 
     @Override
@@ -105,13 +142,43 @@ public class DenormalizedBatchRepositoryImpl
 
     @Override
     public void toVO(DenormalizedBatch source, DenormalizedBatchVO target, boolean copyIfNull) {
+        toVO(source, target, DenormalizedBatchFetchOptions.DEFAULT, copyIfNull);
+    }
+
+    public void toVO(DenormalizedBatch source, DenormalizedBatchVO target, DenormalizedBatchFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, copyIfNull);
 
+        // Quality flag
+        target.setQualityFlagId(source.getQualityFlag().getId());
+
+        if (source.getTaxonGroup() != null) {
+            target.setTaxonGroup(referentialDao.toVO(source.getTaxonGroup()));
+        }
+
+        // Taxon name (from reference)
+        if (source.getReferenceTaxon() != null && source.getReferenceTaxon().getId() != null) {
+            target.setTaxonName(taxonNameRepository.findReferentByReferenceTaxonId(source.getReferenceTaxon().getId()).orElse(null));
+        }
+
+        // Sorting values
+        if (source.getSortingValues() != null) {
+            // As List
+            if (fetchOptions == null || fetchOptions.isWithChildrenEntities()) {
+                List<DenormalizedBatchSortingValueVO> sortingValues = source.getSortingValues()
+                        .stream()
+                        .map(sortingValue -> sortingValueRepository.toVO(sortingValue))
+                        .collect(Collectors.toList());
+                target.setSortingValues(sortingValues);
+            }
+        }
+
+        // Operation
         Integer operationId = source.getOperation() != null ? source.getOperation().getId() : null;
         if (copyIfNull || operationId != null) {
             target.setOperationId(operationId);
         }
 
+        // Sale
         Integer saleId = source.getSale() != null ? source.getSale().getId() : null;
         if (copyIfNull || saleId != null) {
             target.setSaleId(saleId);
@@ -121,6 +188,10 @@ public class DenormalizedBatchRepositoryImpl
         if (copyIfNull || parentId != null) {
             target.setParentId(parentId);
         }
+
+        // TODO handle from fetchOptions
+        // - withChildrenEntities
+        // - withMeasurementValues
     }
 
     @Override
@@ -358,7 +429,20 @@ public class DenormalizedBatchRepositoryImpl
         return target;
     }
 
+    public DenormalizedBatchVO toVO(DenormalizedBatch source, DenormalizedBatchFetchOptions fetchOptions) {
+        return this.toVO(source);
+    }
+
     /* -- protected methods -- */
+
+    protected Specification<DenormalizedBatch> toSpecification(DenormalizedBatchesFilterVO filter) {
+        // default specification
+        return BindableSpecification
+                .where(hasTripId(filter.getTripId()))
+                .and(hasOperationId(filter.getOperationId()))
+                .and(isLanding(filter.getIsLanding()))
+                .and(isDiscard(filter.getIsDiscard()));
+    }
 
     @Override
     public void copy(BatchVO source, DenormalizedBatchVO target, boolean copyIfNull) {

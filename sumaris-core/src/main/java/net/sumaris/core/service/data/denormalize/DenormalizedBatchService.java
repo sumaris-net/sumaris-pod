@@ -22,15 +22,15 @@
 
 package net.sumaris.core.service.data.denormalize;
 
-import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
-import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.batch.*;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author BLA
@@ -38,6 +38,33 @@ import java.util.List;
  */
 @Transactional
 public interface DenormalizedBatchService {
+
+	/**
+	 * Return the flat list of all denormalizedBatches (without parent/children filled, by only the parentId)
+	 * @param operationId
+	 * @return
+	 */
+	@Transactional(readOnly = true)
+	List<DenormalizedBatchVO> getAllByOperationId(int operationId);
+
+	@Transactional(readOnly = true)
+	List<DenormalizedBatchVO> getAllByOperationId(int operationId, DenormalizedBatchFetchOptions fetchOptions);
+
+	Optional<DenormalizedBatchVO> findById(int id, DenormalizedBatchFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<DenormalizedBatchVO> findAll(DenormalizedBatchesFilterVO filter,
+								int offset,
+								int size,
+								String sortAttribute,
+								SortDirection sortDirection,
+								DenormalizedBatchFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	long countByFilter(DenormalizedBatchesFilterVO filter);
+
+	@Transactional(readOnly = true)
+	List<DenormalizedBatchVO> findAll(DenormalizedBatchesFilterVO filter, DenormalizedBatchFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<DenormalizedBatchVO> denormalize(BatchVO catchBatch, @NotNull DenormalizedBatchOptions options);
