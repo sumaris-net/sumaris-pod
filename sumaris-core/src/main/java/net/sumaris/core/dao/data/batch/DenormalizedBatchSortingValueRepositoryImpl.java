@@ -23,6 +23,7 @@
 package net.sumaris.core.dao.data.batch;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.DenormalizedBatch;
 import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
@@ -31,6 +32,7 @@ import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.model.referential.pmfm.Unit;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchSortingValueVO;
+import net.sumaris.core.vo.referential.PmfmVO;
 
 import javax.persistence.EntityManager;
 
@@ -42,8 +44,14 @@ public class DenormalizedBatchSortingValueRepositoryImpl
     extends SumarisJpaRepositoryImpl<DenormalizedBatchSortingValue, Integer, DenormalizedBatchSortingValueVO>
     implements DenormalizedBatchSortingValueSpecifications<DenormalizedBatchSortingValue, DenormalizedBatchSortingValueVO> {
 
-    public DenormalizedBatchSortingValueRepositoryImpl(EntityManager entityManager) {
+    private final PmfmRepository pmfmRepository;
+
+    public DenormalizedBatchSortingValueRepositoryImpl(
+            EntityManager entityManager,
+            PmfmRepository pmfmRepository
+    ) {
         super(DenormalizedBatchSortingValue.class, entityManager);
+        this.pmfmRepository = pmfmRepository;
     }
 
     @Override
