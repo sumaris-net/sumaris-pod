@@ -66,7 +66,8 @@
         <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
       </and>
     </preConditions>
-    <sqlFile path="db-changelog-2.8.19.sql" relativeToChangelogFile="true" endDelimiter=";"/>
+    <sqlFile path="../db-create-procedures.sql" relativeToChangelogFile="true" endDelimiter="//" stripComments="true"/>
+    <sqlFile path="db-changelog-2.8.19.sql" relativeToChangelogFile="true" endDelimiter=";" stripComments="true"/>
   </changeSet>
 
 </databaseChangeLog>
