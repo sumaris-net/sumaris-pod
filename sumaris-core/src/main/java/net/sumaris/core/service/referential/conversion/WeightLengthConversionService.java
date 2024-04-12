@@ -64,7 +64,6 @@ public interface WeightLengthConversionService {
     @Transactional(readOnly = true)
     Optional<WeightLengthConversionVO> loadFirstByFilter(WeightLengthConversionFilterVO filter, @Nullable WeightLengthConversionFetchOptions fetchOptions);
 
-
     List<WeightLengthConversionVO> saveAll(List<WeightLengthConversionVO> source);
 
     void deleteAllById(List<Integer> ids);
