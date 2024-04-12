@@ -709,6 +709,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected Set<Integer> getSpeciesListExcludedPmfmIds() {
         return ImmutableSet.<Integer>builder()
+            // Excluded all Pmfms used by the COMMERCIAL_SIZE_CATEGORY column
+            .addAll(getSizeCategoryPmfmIds())
+            // Excluded other Pmfms used elsewhere
             .add(
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
@@ -720,7 +723,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 PmfmEnum.CATCH_WEIGHT.getId(),
                 PmfmEnum.DISCARD_WEIGHT.getId()
             )
-            .addAll(getSizeCategoryPmfmIds())
             .build();
     }
 

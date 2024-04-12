@@ -89,7 +89,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
         }
     }
 
-
     public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.PMFM_TRIP);
     }
@@ -345,6 +344,16 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"), "afterSexInjection");
 
+        // Insert species Pmfms (from the SL table)
+        injectPmfmColumns(context, xmlQuery,
+            getTripProgramLabels(context),
+            AcquisitionLevelEnum.SORTING_BATCH,
+            "injectionSpeciesLength_speciesPmfm",
+            "afterSexInjection",
+            // Excluded PMFM (already exists as RDB format columns)
+            getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
+        );
+
         // Add pmfm columns
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
             getTripProgramLabels(context),
@@ -485,6 +494,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionSpeciesListPmfm":
             case "injectionSpeciesListTable_afterSpecies":
             case "injectionSpeciesListTable_afterWeight":
+            case "injectionSpeciesLength_speciesPmfm":
             case "injectionSpeciesLengthPmfm":
             case "injectionSpeciesLengthTable":
             case "injectionSpeciesLengthTaxon":
