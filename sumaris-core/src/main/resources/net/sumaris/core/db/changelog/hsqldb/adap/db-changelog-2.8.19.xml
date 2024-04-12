@@ -1,0 +1,62 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/all/db-changelog-2.8.19.xml">
+
+  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+  <property name="sqlCheck.adap.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ADAP-MER'"/>
+  <property name="sqlCheck.adap.expectedResult" value="1"/>
+
+  <preConditions onFail="WARN" onFailMessage="Database instance is not a ADAP database instance! Do not include this changelog file in the master file">
+    <or>
+      <!-- Test if database is empty -->
+      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+      <!-- OR if expected production database -->
+      <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+    </or>
+  </preConditions>
+
+  <!-- Add enumeration for Qualitative value for preservation 'ALI - Alive'  -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-400" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.adap.expectedResult}">${sqlCheck.adap.sql}</sqlCheck>
+        <sqlCheck expectedResult="1">SELECT count(*) FROM qualitative_value WHERE label='ALI' AND status_fk=1</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="SOFTWARE_PROPERTY">
+      <column name="ID" valueComputed="NEXT VALUE FOR SOFTWARE_PROPERTY_SEQ"/>
+      <column name="LABEL">sumaris.enumeration.QualitativeValue.PRESERVATION_ALIVE.id</column>
+      <column name="NAME" valueComputed="(SELECT TO_CHAR(ID) FROM qualitative_value WHERE label='ALI' AND status_fk=1)"/>
+      <column name="SOFTWARE_FK" valueComputed="(SELECT ID FROM SOFTWARE WHERE LABEL = 'ADAP')"/>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>
