@@ -196,6 +196,10 @@ public interface VesselSnapshotElasticsearchSpecifications extends IVesselSnapsh
                                    @Nullable Page page,
                                    @Nullable VesselFetchOptions fetchOptions);
 
+    org.springframework.data.domain.Page<VesselSnapshotVO> findAllAsPage(@NonNull VesselFilterVO filter,
+                                                                         @Nullable Page page,
+                                                                         @Nullable VesselFetchOptions fetchOptions);
+
     long count();
 
     long count(@NonNull VesselFilterVO filter);

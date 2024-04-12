@@ -35,12 +35,10 @@ import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.elasticsearch.vessel.VesselSnapshotElasticsearchRepository;
-import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
-import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -49,20 +47,23 @@ import net.sumaris.core.vo.data.vessel.UpdateVesselSnapshotsResultVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.nuiton.i18n.I18n;
 import org.nuiton.util.TimeLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
-import java.util.*;
-import java.util.concurrent.Future;
-
-import static org.nuiton.i18n.I18n.t;
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service("vesselSnapshotService")
 @RequiredArgsConstructor
@@ -81,17 +82,37 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 	private boolean indexing = false;
 	private boolean elasticsearchIndexationReady = false;
 
+	private final CacheManager cacheManager;
+	private Cache countByFilterCache = null;
+
 	private final TimeLog timeLog = new TimeLog(VesselSnapshotServiceImpl.class, 500, 1000);
 
 	@Autowired
 	public VesselSnapshotServiceImpl(SumarisConfiguration configuration,
 									 VesselSnapshotRepository repository,
 									 ProgramRepository programRepository,
-									 Optional<VesselSnapshotElasticsearchRepository> elasticsearchRepository) {
+									 Optional<VesselSnapshotElasticsearchRepository> elasticsearchRepository,
+									 Optional<CacheManager> cacheManager) {
 		this.configuration = configuration;
 		this.repository = repository;
 		this.programRepository = programRepository;
 		this.elasticsearchRepository = elasticsearchRepository.orElse(null);
+		this.cacheManager = cacheManager.orElse(null);
+	}
+
+	@PostConstruct
+	public void init() {
+		if (cacheManager != null) {
+			this.countByFilterCache = cacheManager.getCache(CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER);
+		}
+	}
+
+	@Override
+	public List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
+										  int offset, int size,
+										  String sortAttribute, SortDirection sortDirection,
+										  VesselFetchOptions fetchOptions) {
+		return this.findAll(filter, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
 	}
 
 	@Override
@@ -102,7 +123,14 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		long startTime = TimeLog.getTime();
 		try {
 			if (isElasticsearchEnableAndReady()) {
-                return elasticsearchRepository.findAll(filter, page, fetchOptions);
+				// Execute ES search
+				org.springframework.data.domain.Page<VesselSnapshotVO> result = elasticsearchRepository.findAllAsPage(filter, page, fetchOptions);
+
+				// Put the total into the cache
+				if (this.countByFilterCache != null) this.countByFilterCache.put(filter.hashCode(), result.getTotalElements());
+				//this.putCountByFilterInCache(filter, result.getTotalElements());
+
+				return result.getContent();
 			}
 			return repository.findAll(filter, page, fetchOptions);
 		}
@@ -111,24 +139,9 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		}
 	}
 
+
 	@Override
-	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOTS_BY_FILTER)
-	public List<VesselSnapshotVO> findAll(@NonNull VesselFilterVO filter,
-										   int offset, int size,
-										   String sortAttribute, SortDirection sortDirection,
-										   VesselFetchOptions fetchOptions) {
-		long startTime = TimeLog.getTime();
-		try {
-			if (isElasticsearchEnableAndReady()) {
-				return elasticsearchRepository.findAll(filter, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
-			}
-			return repository.findAll(filter, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
-		}
-		finally {
-			timeLog.log(startTime, "findAll");
-		}
-	}
-	@Override
+	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, key = "#filter.hashCode()")
 	public Long countByFilter(@NonNull VesselFilterVO filter) {
 		long startTime = TimeLog.getTime();
 		try {
@@ -142,7 +155,18 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		}
 	}
 
+	@Caching(
+		put = {
+			@CachePut(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, key = "#filter.hashCode()")
+		}
+	)
+	public long putCountByFilterInCache(VesselFilterVO filter, Long total) {
+		return total;
+	}
+
+
 	@Override
+	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE)
 	public VesselSnapshotVO getByIdAndDate(final int vesselId, @Nullable Date date) {
 
 		long startTime = TimeLog.getTime();
@@ -354,4 +378,5 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 	private boolean isElasticsearchEnableAndReady() {
 		return this.elasticsearchRepository != null && this.elasticsearchIndexationReady;
 	}
+
 }

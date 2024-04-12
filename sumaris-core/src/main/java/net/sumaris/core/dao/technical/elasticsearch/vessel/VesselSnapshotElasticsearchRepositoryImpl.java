@@ -43,6 +43,7 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.*;
@@ -182,21 +183,35 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         checkEnable();
 
         QueryBuilder query = createQuery(toSpecification(filter));
-        NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder()
-            .withQuery(query);
+        Pageable pageable = page != null ? Pageables.create(page.getOffset(), page.getSize(),
+            page.getSortDirection(),
+            IEntity.Fields.ID.equals(page.getSortBy()) ? VesselSnapshotVO.Fields.VESSEL_ID : page.getSortBy()
+        ) : Pageable.unpaged();
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(query)
+            .withPageable(pageable)
+            .build();
 
-        if (page != null) {
-            Pageable pageable = Pageables.create(page.getOffset(), page.getSize(),
-                page.getSortDirection(),
-                IEntity.Fields.ID.equals(page.getSortBy()) ? VesselSnapshotVO.Fields.VESSEL_ID : page.getSortBy()
-                );
-            searchQuery.withPageable(pageable);
-        }
+        SearchHits<VesselSnapshotVO> hits = elasticsearchRestTemplate.search(searchQuery, VesselSnapshotVO.class, IndexCoordinates.of(this.index));
+        return hits.get().map(SearchHit::getContent).toList();
+    }
 
-        try (SearchHitsIterator<VesselSnapshotVO> streamIte = elasticsearchRestTemplate.searchForStream(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(this.index));
-             Stream<SearchHit<VesselSnapshotVO>> stream = streamIte.stream()) {
-            return stream.map(SearchHit::getContent).toList();
-        }
+    @Override
+    public org.springframework.data.domain.Page<VesselSnapshotVO> findAllAsPage(@NonNull VesselFilterVO filter, @Nullable Page page, @Nullable VesselFetchOptions fetchOptions) {
+        checkEnable();
+
+        QueryBuilder query = createQuery(toSpecification(filter));
+        Pageable pageable = page != null ? Pageables.create(page.getOffset(), page.getSize(),
+            page.getSortDirection(),
+            IEntity.Fields.ID.equals(page.getSortBy()) ? VesselSnapshotVO.Fields.VESSEL_ID : page.getSortBy()
+        ) : Pageable.unpaged();
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(query)
+            .withPageable(pageable)
+            .build();
+
+        SearchHits<VesselSnapshotVO> hits = elasticsearchRestTemplate.search(searchQuery, VesselSnapshotVO.class, IndexCoordinates.of(this.index));
+        return new PageImpl<>(hits.get().map(SearchHit::getContent).toList(), pageable, hits.getTotalHits());
     }
 
     @Override
