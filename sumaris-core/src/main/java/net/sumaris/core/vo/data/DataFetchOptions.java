@@ -59,7 +59,7 @@ public class DataFetchOptions implements IDataFetchOptions, IWithObserversFetchO
         target.setWithRecorderPerson(source.isWithRecorderPerson());
         target.setWithChildrenEntities(source.isWithChildrenEntities());
         target.setWithMeasurementValues(source.isWithMeasurementValues());
-        if (source instanceof IWithObserversFetchOptions ofo) {
+        if (source instanceof IWithObserversFetchOptions ofo && target instanceof IWithObserversFetchOptions) {
             ((IWithObserversFetchOptions)target).setWithObservers(ofo.isWithObservers());
         }
         return target;

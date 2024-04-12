@@ -413,8 +413,6 @@ public class DataGraphQLService {
         return result;
     }
 
-    /* -- Metier -- */
-
     @GraphQLQuery(name = "samplingStrata", description = "Get trip's sampling strata")
     public ReferentialVO getTripSamplingStrata(@GraphQLContext TripVO trip) {
         if (trip.getSamplingStrata() != null) return trip.getSamplingStrata();
@@ -1841,6 +1839,7 @@ public class DataGraphQLService {
 
         return activityCalendar;
     }
+
     protected List<ActivityCalendarVO> fillActivityCalendarsFields(List<ActivityCalendarVO> activityCalendars, Set<String> fields) {
         // Add image if need
         fillImages(activityCalendars, fields);
