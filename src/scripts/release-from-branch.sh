@@ -74,18 +74,13 @@ echo "---- Generate DB [OK]"
 echo ""
 
 echo "---- Push changes to branch..."
-cd ${PROJECT_DIR}
+cd ${PROJECT_DIR} || exit 1
 git commit -a -m "Release $version\n$release_description" && git status
-git checkout "${branch}"
-[[ $? -ne 0 ]] && exit 1
-git merge --no-ff --no-edit -m "[skip ci] Release ${version}" "release/${version}"
-[[ $? -ne 0 ]] && exit 1
-git tag -a "${version}" -m "${version}"
-[[ $? -ne 0 ]] && exit 1
-git push origin "${branch}"
-[[ $? -ne 0 ]] && exit 1
-git push origin "refs/tags/${version}"
-[[ $? -ne 0 ]] && exit 1
+git checkout "${branch}" || exit 1
+git merge --no-ff --no-edit -m "[skip ci] Release ${version}" "release/${version}" || exit 1
+git tag -a "${version}" -m "${version}" || exit 1
+git push origin "${branch}" || exit 1
+git push origin "refs/tags/${version}" || exit 1
 
 echo "---- Push changes to branch [OK]"
 echo ""
