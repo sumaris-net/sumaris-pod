@@ -367,7 +367,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             // Excluded some pmfms (already extracted in the RDB format)
             ImmutableList.builder()
                 .add(PmfmEnum.DISCARD_OR_LANDING.getId(),
-                    PmfmEnum.SEX.getId())
+                    PmfmEnum.SEX.getId(),
+                    PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId() // Exclude weight, because store in the QUANTIFICATION_MEASUREMENT table
+                )
                 .addAll(getSpeciesLengthPmfmIds()).build().toArray(Integer[]::new)
         );
         boolean hasPmfmsColumnsInjected = StringUtils.isNotBlank(pmfmsColumns);
