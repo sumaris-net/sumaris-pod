@@ -31,14 +31,19 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
+import net.sumaris.core.model.referential.ProcessingType;
+import net.sumaris.core.model.referential.ProcessingTypeEnum;
 import net.sumaris.core.model.referential.VesselTypeEnum;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
+import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.Dates;
@@ -60,6 +65,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -80,6 +86,8 @@ public class VesselSnapshotJob {
 
 	private final JobExecutionService jobExecutionService;
 
+	private final ReferentialService referentialService;
+
 	private final JobService jobService;
 
 	@Value("${sumaris.elasticsearch.vessel.snapshot.scheduling.nbYears:-1}")
@@ -90,13 +98,18 @@ public class VesselSnapshotJob {
 	private List<Integer> vesselTypeIds;
 
 	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-	public void onConfigurationReady(ConfigurationEvent event) {
+	public void onConfigurationReady() {
 
 		boolean enable = configuration.enableElasticsearchVesselSnapshot() && configuration.enableJobs();
 
-		if (this.enable != enable) {
-			this.enable = enable;
+		// Check Processing type exists (force disabled if not)
+		if (this.enable != enable && enable && !checkProcessingTypeExists()) {
+			enable = false;
+		}
 
+		if (this.enable != enable) {
+
+			this.enable = enable;
 			this.vesselTypeIds = configuration.getDataVesselTypeIds();
 
 			// Init or refresh data
@@ -107,7 +120,7 @@ public class VesselSnapshotJob {
 	}
 
 
-	@Scheduled(cron = "${sumaris.elasticsearch.vessel.snapshot.scheduling.cron:0 0 * * * ?}") // Hourly by default
+	@Scheduled(cron = "${sumaris.elasticsearch.vessel.snapshot.scheduling.cron:0 0 * * * ?}") // Daily by default
 	public void schedule() {
 		if (!enable) return; // Skip
 
@@ -265,5 +278,19 @@ public class VesselSnapshotJob {
 		if (job == null) return Optional.empty();
 		VesselFilterVO filter = jobExecutionService.readConfiguration(job, VesselFilterVO.class);
 		return Optional.ofNullable(filter);
+	}
+
+	protected boolean checkProcessingTypeExists() {
+		try {
+			this.referentialService.findByUniqueLabel(
+				ProcessingType.class.getSimpleName(),
+				JobTypeEnum.VESSEL_SNAPSHOTS_INDEXATION.name());
+			return true;
+		}
+		catch (DataNotFoundException e) {
+			log.error(I18n.t("sumaris.elasticsearch.vessel.snapshot.disabled",
+				I18n.t("sumaris.error.processingType.notFound", JobTypeEnum.VESSEL_SNAPSHOTS_INDEXATION.name())));
+			return false;
+		}
 	}
 }

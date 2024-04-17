@@ -56,5 +56,7 @@ public class LocationFilterVO implements IReferentialFilter {
     @Deprecated
     private String levelLabel;
 
-    private Integer[] ancestorIds; // Allow to use location hierarchy
+    // Allow to use location hierarchy
+    private Integer[] ancestorIds;
+    private Integer[] descendantIds;
 }

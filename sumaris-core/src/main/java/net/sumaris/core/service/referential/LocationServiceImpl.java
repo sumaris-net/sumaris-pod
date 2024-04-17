@@ -56,6 +56,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.nuiton.i18n.I18n;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;

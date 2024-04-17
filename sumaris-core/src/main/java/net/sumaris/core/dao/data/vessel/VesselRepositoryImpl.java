@@ -297,7 +297,7 @@ public class VesselRepositoryImpl
         }
 
         // Vessel registration period
-        if (hasRegistrationPeriodTuple && (fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod() && fetchOptions != null)) {
+        if (hasRegistrationPeriodTuple && (fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod())) {
             VesselRegistrationPeriod sourceRegistrationPeriod = source.get(2, VesselRegistrationPeriod.class);
             if (copyIfNull || sourceRegistrationPeriod != null) {
                 target.setVesselRegistrationPeriod(vesselRegistrationPeriodRepository.toVO(sourceRegistrationPeriod));

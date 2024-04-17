@@ -270,7 +270,6 @@ public interface VesselFeaturesSpecifications<
         }).addBind(REGISTRATION_LOCATION_ID_PARAM, registrationLocationId);
     }
 
-
     default Specification<VesselFeatures> basePortLocation(Integer basePortLocationId) {
         if (basePortLocationId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {

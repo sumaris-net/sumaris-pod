@@ -118,6 +118,14 @@ public interface VesselSnapshotElasticsearchSpecifications extends IVesselSnapsh
             ScoreMode.None);
     }
 
+    default ElasticsearchSpecification<QueryBuilder> countryRegistrationLocation(Integer countryRegistrationLocationId) {
+        if (countryRegistrationLocationId == null) return null;
+        return () -> QueryBuilders.nestedQuery(
+            VesselSnapshotVO.Fields.COUNTRY_REGISTRATION_LOCATION,
+            QueryBuilders.termQuery(StringUtils.doting(VesselSnapshotVO.Fields.COUNTRY_REGISTRATION_LOCATION, ReferentialVO.Fields.ID), countryRegistrationLocationId),
+            ScoreMode.None);
+    }
+
     default ElasticsearchSpecification<QueryBuilder> basePortLocation(Integer basePortLocationId) {
         if (basePortLocationId == null) return null;
         return () -> QueryBuilders.nestedQuery(

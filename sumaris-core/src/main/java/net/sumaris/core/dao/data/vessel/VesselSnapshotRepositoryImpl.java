@@ -36,15 +36,21 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.service.referential.LocationService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -68,7 +74,6 @@ public class VesselSnapshotRepositoryImpl
     private final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
     private final LocationRepository locationRepository;
     private final ReferentialDao referentialDao;
-
     protected boolean enableRegistrationCodeSearchAsPrefix;
     protected boolean enableAdagioOptimization;
     protected String adagioSchema;
@@ -317,7 +322,7 @@ public class VesselSnapshotRepositoryImpl
         }
 
         // Registration period
-        if (fetchOptions.isWithVesselRegistrationPeriod()) {
+        if (fetchOptions.isWithVesselRegistrationPeriod() || fetchOptions.isWithCountryRegistration()) {
             if (registrationPeriod != null) {
                 // Registration code
                 target.setRegistrationCode(registrationPeriod.getRegistrationCode());
@@ -325,11 +330,31 @@ public class VesselSnapshotRepositoryImpl
                 // International registration code
                 target.setIntRegistrationCode(registrationPeriod.getIntRegistrationCode());
 
-                // Registration location
                 if (registrationLocation != null) {
+                    // Registration location
                     LocationVO location = locationRepository.toVO(registrationLocation);
                     if (copyIfNull || location != null) {
                         target.setRegistrationLocation(location);
+                    }
+
+                    // Country registration location
+                    if (fetchOptions.isWithCountryRegistration()) {
+                        if ((location == null && copyIfNull) || (location != null && LocationLevelEnum.COUNTRY.getId().equals(location.getLevelId()))) {
+                            target.setCountryRegistrationLocation(location);
+                        }
+                        else {
+                            // Find country
+                            List<LocationVO> countryLocations = locationRepository.findAll(LocationFilterVO.builder()
+                                .levelIds(new Integer[]{LocationLevelEnum.COUNTRY.getId()})
+                                .descendantIds(new Integer[]{registrationLocation.getId()})
+                                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+                                .build(), Page.create(0,2, null, null), null);
+                            if (CollectionUtils.size(countryLocations) == 1) {
+                                target.setCountryRegistrationLocation(countryLocations.get(0));
+                            } else if (copyIfNull) {
+                                target.setCountryRegistrationLocation(null);
+                            }
+                        }
                     }
                 }
             }
@@ -339,6 +364,8 @@ public class VesselSnapshotRepositoryImpl
                 target.setRegistrationLocation(null);
             }
         }
+
+
     }
 
     @Override

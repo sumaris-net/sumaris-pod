@@ -26,6 +26,8 @@ import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.referential.ReferentialRepository;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.elasticsearch.ElasticsearchSpecification;
@@ -33,10 +35,12 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -58,7 +62,6 @@ import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Slf4j
 public class VesselSnapshotElasticsearchRepositoryImpl
@@ -68,6 +71,8 @@ public class VesselSnapshotElasticsearchRepositoryImpl
     protected final ElasticsearchRestTemplate elasticsearchRestTemplate;
 
     protected final IndexOperations indexOperations;
+
+    protected final LocationRepository locationRepository;
 
     private boolean enableRegistrationCodeSearchAsPrefix = true;
 
@@ -79,10 +84,12 @@ public class VesselSnapshotElasticsearchRepositoryImpl
 
     public VesselSnapshotElasticsearchRepositoryImpl(SumarisConfiguration configuration,
                                                      ElasticsearchRestTemplate elasticsearchRestTemplate,
-                                                     ElasticsearchOperations operations) {
+                                                     ElasticsearchOperations operations,
+                                                     LocationRepository locationRepository) {
         this.configuration = configuration;
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
         this.indexOperations = operations.indexOps(VesselSnapshotVO.class);
+        this.locationRepository = locationRepository;
     }
 
     @PostConstruct
@@ -241,6 +248,17 @@ public class VesselSnapshotElasticsearchRepositoryImpl
 
     protected ElasticsearchSpecification<QueryBuilder> toSpecification(@NonNull VesselFilterVO filter) {
 
+        // If the registrationLocation is a country, use a specific filter
+        Integer registrationLocationId = filter.getRegistrationLocationId();
+        Integer countryRegistrationLocationId = null;
+        if (registrationLocationId != null) {
+            LocationVO registrationLocation = locationRepository.get(registrationLocationId);
+            if (LocationLevelEnum.COUNTRY.getId().equals(registrationLocation.getLevelId())) {
+                countryRegistrationLocationId = registrationLocationId;
+                registrationLocationId = null;
+            }
+        }
+
         return ElasticsearchSpecification.bool()
             // IDs
             .filter(vesselFeaturesId(filter.getVesselFeaturesId()))
@@ -251,7 +269,8 @@ public class VesselSnapshotElasticsearchRepositoryImpl
             .filter(vesselTypeId(filter.getVesselTypeId()))
             .filter(vesselTypeIds(filter.getVesselTypeIds()))
             // by locations
-            .filter(registrationLocation(filter.getRegistrationLocationId()))
+            .filter(registrationLocation(registrationLocationId))
+            .filter(countryRegistrationLocation(countryRegistrationLocationId))
             .filter(basePortLocation(filter.getBasePortLocationId()))
             // by Status
             .filter(hasStatusIds(filter.getStatusIds()))

@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base Repository class for Referential entities
@@ -101,9 +102,11 @@ public abstract class ReferentialRepositoryImpl<
         // Add hints
         configureQuery(query, page, fetchOptions);
 
-        return streamQuery(query)
-            .map(entity -> toVO(entity, fetchOptions))
-            .collect(Collectors.toList());
+        try (Stream<E> stream = streamQuery(query)) {
+            return stream
+                .map(entity -> toVO(entity, fetchOptions))
+                .toList();
+        }
     }
 
     @Override
@@ -244,6 +247,11 @@ public abstract class ReferentialRepositoryImpl<
     @Override
     public V toVO(E source) {
         return toVO(source, null);
+    }
+
+    @Override
+    public void toVO(E source, V target, boolean copyIfNull) {
+        toVO(source, target, (O)null, copyIfNull);
     }
 
     protected V toVO(E source, O fetchOptions) {

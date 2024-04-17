@@ -35,6 +35,8 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @NoArgsConstructor
 public class ReferentialFetchOptions implements IFetchOptions {
 
+    public static final ReferentialFetchOptions DEFAULT = ReferentialFetchOptions.builder().build();
+
     @Builder.Default
     private boolean withProperties = false;
 }

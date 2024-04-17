@@ -232,6 +232,24 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getLocationCountryId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1; // FRA
+			case 1:
+				return 2; // GBR
+			case 2:
+				return 3; // BEL
+			case 3:
+				return 4; // SEY
+
+			default:
+				return 1;
+
+		}
+	}
+
 	public String[] getRectangleLabels() {
 		return new String[]{"65F1", "65F2", "65F3", "65F4","65F5"};
 	}

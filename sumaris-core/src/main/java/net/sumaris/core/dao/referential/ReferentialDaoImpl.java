@@ -276,14 +276,6 @@ public class ReferentialDaoImpl
         }
     }
 
-    public void clearCache() {
-        log.debug("Cleaning all referential cache...");
-
-        ReferentialEntities.ROOT_CLASSES.stream()
-            .map(Class::getSimpleName)
-            .forEach(this::clearCache);
-    }
-
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true, condition = "#entityName == 'Person'"),
@@ -300,8 +292,9 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, allEntries = true, condition = "#entityName == 'ProgramPrivilege'"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, allEntries = true, condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, allEntries = true, condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_FILTER, allEntries = true, condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'ReferenceTaxon'"),
@@ -311,6 +304,14 @@ public class ReferentialDaoImpl
     })
     public void clearCache(String entityName) {
         log.debug("Cleaning {}'s cache...", entityName);
+    }
+
+    public void clearCache() {
+        log.debug("Cleaning all referential cache...");
+
+        ReferentialEntities.ROOT_CLASSES.stream()
+            .map(Class::getSimpleName)
+            .forEach(this::clearCache);
     }
 
     @Caching(evict = {
@@ -330,8 +331,9 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#id", condition = "#entityName == 'ProgramPrivilege'"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id", condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_FILTER, allEntries = true, condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'ReferenceTaxon'"),
@@ -350,9 +352,12 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#id", condition = "#entityName == 'ProgramPrivilege'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id", condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id", condition = "#entityName == 'TaxonomicLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'TaxonGroup'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, key = "#id", condition = "#entityName == 'Gear'")
     })
     public void delete(final String entityName, int id) {
@@ -430,8 +435,9 @@ public class ReferentialDaoImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID,  key = "#source.id", condition = "#source.entityName == 'ProgramPrivilege'"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#source.id", condition = "#source.entityName == 'Location'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#source.id", condition = "#source.entityName == 'Location'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#source.entityName == 'Location'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#source.entityName == 'TaxonName' || #source.entityName == 'TaxonGroup'"),

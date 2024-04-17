@@ -29,6 +29,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.LocationVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -43,22 +44,43 @@ import java.util.List;
  */
 public interface LocationSpecifications extends ReferentialSpecifications<Integer, Location> {
 
-    String PARAMETER_ANCESTOR_IDS = "ancestorId";
+    String PARAMETER_ANCESTOR_IDS = "ancestorIds";
+    String PARAMETER_DESCENDANT_IDS = "descendantIds";
 
     default Specification<Location> hasAncestors(Integer... ancestorIds) {
         if (ArrayUtils.isEmpty(ancestorIds)) return null;
 
         return BindableSpecification.where((root, query, builder) -> {
 
+            query.distinct(true);
+
             Root<LocationHierarchy> lhRoot = query.from(LocationHierarchy.class);
-            ParameterExpression<Collection> ancestorIdsParam = builder.parameter(Collection.class, PARAMETER_ANCESTOR_IDS);
+            ParameterExpression<Collection> param = builder.parameter(Collection.class, PARAMETER_ANCESTOR_IDS);
             return builder.and(
                 builder.equal(root, lhRoot.get(LocationHierarchy.Fields.CHILD_LOCATION)),
                 builder.in(
                     Daos.composePath(lhRoot, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID)))
-                    .value(ancestorIdsParam)
+                    .value(param)
                 );
         }).addBind(PARAMETER_ANCESTOR_IDS, Arrays.asList(ancestorIds));
+    }
+
+    default Specification<Location> hasDescendants(Integer... descendantIds) {
+        if (ArrayUtils.isEmpty(descendantIds)) return null;
+
+        return BindableSpecification.where((root, query, builder) -> {
+
+            query.distinct(true);
+
+            Root<LocationHierarchy> lhRoot = query.from(LocationHierarchy.class);
+            ParameterExpression<Collection> param = builder.parameter(Collection.class, PARAMETER_DESCENDANT_IDS);
+            return builder.and(
+                builder.equal(root, lhRoot.get(LocationHierarchy.Fields.PARENT_LOCATION)),
+                builder.in(
+                        Daos.composePath(lhRoot, StringUtils.doting(LocationHierarchy.Fields.CHILD_LOCATION, Location.Fields.ID)))
+                    .value(param)
+            );
+        }).addBind(PARAMETER_DESCENDANT_IDS, Arrays.asList(descendantIds));
     }
 
     boolean hasAssociation(int childLocationId, int parentLocationId);
