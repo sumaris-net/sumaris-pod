@@ -82,6 +82,8 @@ public class VesselSnapshotVO implements IDataVO<Integer>,
     private LocationVO basePortLocation;
     @Field(type = FieldType.Nested)
     private LocationVO registrationLocation;
+    @Field(type = FieldType.Nested)
+    private LocationVO countryRegistrationLocation;
     @Field(type = FieldType.Text, index = false)
     private String comments;
 

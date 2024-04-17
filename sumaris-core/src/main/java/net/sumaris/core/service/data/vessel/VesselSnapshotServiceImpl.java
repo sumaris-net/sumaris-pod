@@ -128,7 +128,6 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 				// Put the total into the cache
 				if (this.countByFilterCache != null) this.countByFilterCache.put(filter.hashCode(), result.getTotalElements());
-				//this.putCountByFilterInCache(filter, result.getTotalElements());
 
 				return result.getContent();
 			}
@@ -269,6 +268,8 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 			VesselFetchOptions fetchOptions = VesselFetchOptions.builder()
 				.withBasePortLocation(true)
+				.withVesselRegistrationPeriod(true)
+				.withCountryRegistration(true)
 				.build();
 			long offset = 0;
 			int pageSize = 10000;

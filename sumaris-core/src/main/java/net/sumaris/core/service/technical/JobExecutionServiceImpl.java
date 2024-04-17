@@ -257,7 +257,7 @@ public class JobExecutionServiceImpl implements JobExecutionService {
         }
     }
 
-    @Scheduled(cron = "${sumaris.job.service.clean.hourly.cron:0 0 * * * ?}")
+    @Scheduled(cron = "${sumaris.job.service.clean.hourly.cron:0 0 * * * ?}") // Daily by default
     public void cleanJobs() {
 
         // Get pending or running jobs started 24 hours ago

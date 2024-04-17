@@ -514,6 +514,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
         CriteriaQuery<E> criteriaQuery = builder.createQuery(domainClass);
         Root<E> root = criteriaQuery.from(domainClass);
+        criteriaQuery.select(root);
 
         Predicate predicate = spec != null ? spec.toPredicate(root, criteriaQuery, builder) : null;
         if (predicate != null) criteriaQuery.where(predicate);

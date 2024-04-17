@@ -77,7 +77,7 @@ public class TaxonGroupHierarchiesJob {
 		}
 	}
 
-	@Scheduled(cron = "${sumaris.referential.taxonGroup.hierarchy.scheduling.cron:0 0 * * * ?}") // Hourly by default
+	@Scheduled(cron = "${sumaris.referential.taxonGroup.hierarchy.scheduling.cron:0 0 * * * ?}") // Daily by default
 	public void schedule() {
 		if (!enable) return; // Skip
 		start(JobVO.SYSTEM_ISSUER);
