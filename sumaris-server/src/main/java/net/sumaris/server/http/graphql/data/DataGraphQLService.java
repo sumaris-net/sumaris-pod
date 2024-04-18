@@ -2119,7 +2119,8 @@ public class DataGraphQLService {
                 .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
         filter.setProgramIds(programIds);
 
-        if (programIds == DataAccessControlService.NO_ACCESS_FAKE_IDS) return filter; // No Access
+        // Stop here if user has no access
+        if (programIds == DataAccessControlService.NO_ACCESS_FAKE_IDS) return filter;
 
         // Limit on own data
         if (!dataAccessControlService.canUserAccessNotSelfData()) {
@@ -2133,6 +2134,7 @@ public class DataGraphQLService {
         if (!dataAccessControlService.canDepartmentAccessNotSelfData(depId)) {
             filter.setRecorderDepartmentId(depId);
         }
+
         return filter;
     }
 
