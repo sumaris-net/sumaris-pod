@@ -1,4 +1,4 @@
-package net.sumaris.core.model.referential;
+package net.sumaris.core.model.data.vessel;
 
 /*-
  * #%L
@@ -24,36 +24,36 @@ package net.sumaris.core.model.referential;
 
 import lombok.NonNull;
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.referential.VesselType;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = VesselType.class, configAttributes = {VesselType.Fields.ID}, resolveAttributes = {VesselType.Fields.ID, VesselType.Fields.LABEL})
-public enum VesselTypeEnum implements Serializable {
+@EntityEnum(entity = Vessel.class, configAttributes = {Vessel.Fields.ID}, resolveAttributes = {Vessel.Fields.ID})
+public enum VesselEnum implements Serializable {
 
-    UNKNOWN(0, "UNK"),
-    FISHING_VESSEL(1, "FISHING_VESSEL"),
-    SCIENTIFIC_RESEARCH_VESSEL(2, "SCIENTIFIC")
+    UNKNOWN(5, "UNK"),
     ;
 
-    public static VesselTypeEnum valueOf(final int id) {
+    public static VesselEnum valueOf(final int id) {
         return Arrays.stream(values())
             .filter(enumValue -> enumValue.id == id)
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown VesselTypeEnum: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("Unknown VesselEnum: " + id));
     }
 
-    public static VesselTypeEnum byLabel(@NonNull final String label) {
+    public static VesselEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
             .filter(level -> label.equals(level.label))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown VesselTypeEnum: " + label));
+            .orElseThrow(() -> new IllegalArgumentException("Unknown VesselEnum: " + label));
     }
 
     private Integer id;
     private String label;
 
-    VesselTypeEnum(Integer id, String label) {
+    VesselEnum(Integer id, String label) {
         this.id = id;
         this.label = label;
     }
