@@ -21,6 +21,11 @@
   ~ #L%
   -->
 <dataset>
+  <PERSON ID="11" FIRST_NAME="Début" LAST_NAME="Calendrier" EMAIL="debut.calendrier@ifremer.fr" EMAIL_MD5="aa1090351001b7c466c7944384b8cdbf"  PUBKEY="EzvEdaQwEtzpLPddXUvTPVi8e9817YSTR3bUFdZ7uNzm" DEPARTMENT_FK="3" STATUS_FK="1" CREATION_DATE="2024-04-19" UPDATE_DATE="2024-04-19"/>
+  <PERSON2USER_PROFILE PERSON_FK="11" USER_PROFILE_FK="2"/> <!-- User -->
+
+  <PERSON ID="12" FIRST_NAME="Fin" LAST_NAME="Calendrier" EMAIL="fin.calendrier@ifremer.fr" EMAIL_MD5="8b40dd99b1eea7e10f7adb2400910b7b"  PUBKEY="CaUPhuiTq9Sidqb4FQJkfjEL3iLF8Wk5fLvfQGpYw2Rs" DEPARTMENT_FK="3" STATUS_FK="1" CREATION_DATE="2024-04-19" UPDATE_DATE="2024-04-19"/>
+  <PERSON2USER_PROFILE PERSON_FK="12" USER_PROFILE_FK="2"/> <!-- User -->
 
   <!-- SIH-ACTIFLOT Program -->
   <PROGRAM ID="110" LABEL="SIH-ACTIFLOT" NAME="Activité des flottilles" DESCRIPTION="Recensement annuel de l'activité des navires en termes de métiers pratiqués. Cette enquête concerne en priorité les navires de pêche français inscrits au registre de la flotte de pêche européenne."
@@ -32,6 +37,11 @@
   <PROGRAM2PERSON ID="112" PROGRAM_FK="110" PERSON_FK="7" PROGRAM_PRIVILEGE_FK="4" UPDATE_DATE="2023-11-22"/> <!-- viewer -->
   <PROGRAM2PERSON ID="113" PROGRAM_FK="110" PERSON_FK="8" PROGRAM_PRIVILEGE_FK="4" UPDATE_DATE="2023-11-22"/> <!-- validator -->
   <PROGRAM2PERSON ID="114" PROGRAM_FK="110" PERSON_FK="9" PROGRAM_PRIVILEGE_FK="4" UPDATE_DATE="2023-11-22"/> <!-- qualifier -->
+
+  <!-- Observers sharing a calendar on 2 QIM -->
+  <PROGRAM2PERSON ID="115" PROGRAM_FK="110" PERSON_FK="11" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2023-11-22" LOCATION_FK="43"/> <!-- BR Brest / Start of 2023 for Navire 6 -->
+  <PROGRAM2PERSON ID="116" PROGRAM_FK="110" PERSON_FK="12" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2023-11-22" LOCATION_FK="44"/> <!-- BL Boulogne / End of 2023 for Navire 6  -->
+
 
   <PROGRAM2DEPARTMENT ID="110" PROGRAM_FK="110" DEPARTMENT_FK="13" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2023-12-14"/>
   <PROGRAM2DEPARTMENT ID="111" PROGRAM_FK="110" DEPARTMENT_FK="3"  PROGRAM_PRIVILEGE_FK="3" UPDATE_DATE="2023-12-14"/> <!-- Ifremer as Observers -->
