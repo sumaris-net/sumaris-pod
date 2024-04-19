@@ -65,6 +65,8 @@
   <PROGRAM_PROPERTY ID="521" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.endDate.required" NAME="true"/>
   <PROGRAM_PROPERTY ID="522" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.sale.batch.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="523" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="524" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.observedLocation.control.enable" NAME="true"/>
+
 
   <!-- strategies -->
   <STRATEGY ID="100" PROGRAM_FK="100" LABEL="OBSVENTE-2023" NAME="OBSVENTE démarrage le 01/11/2023" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
