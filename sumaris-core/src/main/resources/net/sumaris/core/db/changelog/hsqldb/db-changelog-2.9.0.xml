@@ -51,6 +51,13 @@
         </createIndex>
     </changeSet>
 
+    <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-007">
+        <preConditions onFail="MARK_RAN">
+            <not><sequenceExists sequenceName="WEIGHT_LENGTH_CONVERSION_SEQ"/></not>
+        </preConditions>
+        <createSequence sequenceName="WEIGHT_LENGTH_CONVERSION_SEQ" incrementBy="1" startValue="1"/>
+    </changeSet>
+
     <!-- update SYSTEM_VERSION -->
     <changeSet author="maxime.demarest@e-is.pro" id="1702548457172-200" runOnChange="true">
         <delete tableName="SYSTEM_VERSION">
