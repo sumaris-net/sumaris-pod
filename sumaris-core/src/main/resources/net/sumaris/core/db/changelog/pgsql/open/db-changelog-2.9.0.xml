@@ -1,0 +1,68 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/postgresql/open/db-changelog-2.9.0.xml">
+
+  <property name="sqlCheck.empty.sql" value="SELECT count(*) FROM STATUS"/>
+  <property name="sqlCheck.open.sql" value="SELECT COUNT(*) FROM PROGRAM WHERE LABEL = 'ACOST'"/>
+  <property name="sqlCheck.open.expectedResult" value="1"/>
+
+  <preConditions onFail="WARN"
+                 onFailMessage="Database instance is not an OPEN database instance ! Do not include this changelog file in the master file">
+    <or>
+      <!-- Test if database is empty -->
+      <sqlCheck expectedResult="0">${sqlCheck.empty.sql}</sqlCheck>
+      <!-- OR if expected production database -->
+      <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+    </or>
+  </preConditions>
+
+  <!-- Insert taxon_group_historical_record -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-400" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.open.expectedResult}">${sqlCheck.open.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM taxon_group_historical_record where REFERENCE_TAXON_FK in (select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='RJE')</sqlCheck>
+      </and>
+    </preConditions>
+
+    <!-- RJE Raie mêlée -->
+    <insert tableName="taxon_group_historical_record">
+      <column name="ID" valueComputed="nextval('taxon_group_historical_rec_seq')"/>
+      <column name="START_DATE">1970-01-01 00:00:00</column>
+      <column name="TAXON_GROUP_FK"
+              valueComputed="(select max(id) from TAXON_GROUP WHERE LABEL='RJE' and TAXON_GROUP_TYPE_FK=2)"/>
+      <column name="REFERENCE_TAXON_FK"
+              valueComputed="(select max(reference_taxon_fk) from taxon_name WHERE is_referent=true AND LABEL='RJE')"/>
+    </insert>
+    <sql endDelimiter=";">
+      UPDATE TAXON_GROUP SET update_date=current_timestamp WHERE LABEL='RJE' and TAXON_GROUP_TYPE_FK=2;
+
+      commit;
+    </sql>
+  </changeSet>
+</databaseChangeLog>
