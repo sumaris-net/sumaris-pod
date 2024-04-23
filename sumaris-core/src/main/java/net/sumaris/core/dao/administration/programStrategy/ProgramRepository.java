@@ -25,10 +25,10 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,23 +42,47 @@ public interface ProgramRepository
     extends ReferentialRepository<Integer, Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
     ProgramSpecifications {
 
-    String findIdsByUserIdQuery = "select distinct(PROGRAM.id) " +
-            "           from PERSON P," +
-            "                PROGRAM" +
-            "                   left join PROGRAM2DEPARTMENT P2D on PROGRAM.ID = P2D.PROGRAM_FK" +
-            "                   left join PROGRAM2PERSON P2P on PROGRAM.ID = P2P.PROGRAM_FK" +
-            "           where P.ID = :id " +
-            "               AND (P2D.DEPARTMENT_FK = P.DEPARTMENT_FK OR P2P.PERSON_FK = :id)" +
-            "       union" +
-            "           select distinct(PROGRAM_FK)" +
-            "           from STRATEGY" +
-            "               inner join STRATEGY2DEPARTMENT S2D on STRATEGY.ID = S2D.STRATEGY_FK" +
-            "               inner join PERSON P on S2D.DEPARTMENT_FK = P.DEPARTMENT_FK" +
-            "           where p.ID = :id";
-    @Query(value = findIdsByUserIdQuery, nativeQuery = true)
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, key="#p0", unless="#result==null")
-    List<Integer> getProgramIdsByUserId(@Param("id") int id);
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key="#p0", unless="#result==null")
+    default List<Integer> getReadableProgramIdsByUserId(int userId) {
+        return getProgramIdsByUserIdAndPrivilegeIds(userId, null);
+    }
 
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key="#p0", condition = "programPrivilegeIds!=null && programPrivilegeIds.size() == ", unless="#result==null")
+    default List<Integer> getWritableProgramIdsByUserId(int userId) {
+        return getProgramIdsByUserIdAndPrivilegeIds(userId, ProgramPrivilegeUtils.getWriteIds());
+    }
+
+    @Query(value = "select distinct PROGRAM.id" +
+        "   from PERSON P," +
+        "       PROGRAM" +
+        "           left join PROGRAM2DEPARTMENT P2D on PROGRAM.ID = P2D.PROGRAM_FK" +
+        "           left join PROGRAM2PERSON P2P on PROGRAM.ID = P2P.PROGRAM_FK" +
+        "   where P.ID = :userId " +
+        "       AND (P2D.DEPARTMENT_FK = P.DEPARTMENT_FK OR P2P.PERSON_FK = :userId)" +
+        "       AND (:programPrivilegeIds is NULL OR P2D.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds))" +
+        " union" +
+        "   select distinct STRATEGY.PROGRAM_FK" +
+        "   from STRATEGY" +
+        "       inner join STRATEGY2DEPARTMENT S2D on STRATEGY.ID = S2D.STRATEGY_FK" +
+        "       inner join PERSON P on S2D.DEPARTMENT_FK = P.DEPARTMENT_FK " +
+        "   where p.ID = :userId " +
+        "       AND (:programPrivilegeIds is NULL OR S2D.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds))", nativeQuery = true)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID,  key="#p0", condition = "programPrivilegeIds==null", unless="#result==null")
+    List<Integer> getProgramIdsByUserIdAndPrivilegeIds(@Param("userId") int userId, @Param("programPrivilegeIds") List<Integer> programPrivilegeIds);
+
+    @Query(value = "select distinct COALESCE(P2D.LOCATION_FK, -1) AS LOCATION_FK" +
+        "   from PERSON P inner join PROGRAM2DEPARTMENT P2D on P2D.DEPARTMENT_FK = P.DEPARTMENT_FK" +
+        "   where" +
+        "       P.ID = :userId" +
+        "       AND P2D.PROGRAM_FK in (:programIds)" +
+        " union" +
+        "   select distinct COALESCE(P2P.LOCATION_FK, -1) AS LOCATION_FK" +
+        "   from PROGRAM2PERSON P2P" +
+        "   where" +
+        "       P2P.PERSON_FK = :userId" +
+        "       AND P2P.PROGRAM_FK in (:programIds)", nativeQuery = true)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, key="#p0", condition = "programPrivilegeIds==null", unless="#result==null")
+    List<Integer> getProgramLocationIdsByUserId(@Param("userId") int userId, @Param("programIds") Integer[] programIds);
 
 //    @Query(value = "select distinct pp from Program p inner join p.persons p2p inner join p2p.privilege pp where p.id=:id and p2p.person.id=:personId")
 //    List<ReferentialVO> getAllPrivilegesByUserId(@Param("id") int id, @Param("personId") int personId);

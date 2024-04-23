@@ -51,11 +51,11 @@ public class ProgramRepositoryReadTest extends AbstractDaoTest {
     }
 
     @Test
-    public void getProgramIdByUserId() {
+    public void getReadableProgramIdsByUserId() {
 
         // user demo
         {
-            List<Integer> ids = repository.getProgramIdsByUserId(2);
+            List<Integer> ids = repository.getReadableProgramIdsByUserId(2);
             assertNotNull(ids);
             assertTrue(ids.size() > 0);
 
@@ -66,11 +66,48 @@ public class ProgramRepositoryReadTest extends AbstractDaoTest {
 
         // user inactive
         {
-            List<Integer> ids = repository.getProgramIdsByUserId(4);
+            List<Integer> ids = repository.getReadableProgramIdsByUserId(4);
             assertNotNull(ids);
             assertEquals(0, ids.size());
         }
 
+    }
+
+    @Test
+    public void getProgramLocationIdsByUserId() {
+
+        // Viewer (all locations)
+        {
+            int userIdBR = 11;
+            List<Integer> programIds = repository.getReadableProgramIdsByUserId(userIdBR);
+            List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userIdBR, programIds.toArray(Integer[]::new));
+            assertNotNull(locationIds);
+            assertFalse(locationIds.isEmpty());
+
+            assertTrue(locationIds.contains(43));
+        }
+
+        // Observer with right on BR - Brest
+        {
+            int userIdBR = 11;
+            List<Integer> programIds = repository.getReadableProgramIdsByUserId(userIdBR);
+            List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userIdBR, programIds.toArray(Integer[]::new));
+            assertNotNull(locationIds);
+            assertFalse(locationIds.isEmpty());
+
+            assertTrue(locationIds.contains(43));
+        }
+
+        // Observer with right on BL - Boulogne
+        {
+            int userIdBL = 12;
+            List<Integer> programIds = repository.getReadableProgramIdsByUserId(userIdBL);
+            List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userIdBL, programIds.toArray(Integer[]::new));
+            assertNotNull(locationIds);
+            assertFalse(locationIds.isEmpty());
+
+            assertTrue(locationIds.contains(44));
+        }
     }
 
 //    @Test

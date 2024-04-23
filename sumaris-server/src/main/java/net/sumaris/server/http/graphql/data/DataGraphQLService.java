@@ -1288,7 +1288,7 @@ public class DataGraphQLService {
                 ActivityCalendarVO.class).getContent();
         }
 
-        filter = fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
+        filter = fillActivityCalendarFilter(filter);
         Set<String> fields = GraphQLUtils.fields(env);
         ActivityCalendarFetchOptions fetchOptions = getActivityCalendarFetchOptions(fields);
 
@@ -1319,7 +1319,7 @@ public class DataGraphQLService {
             return trashService.count(ActivityCalendar.class.getSimpleName());
         }
 
-        filter = fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
+        filter = fillActivityCalendarFilter(filter);
 
         return activityCalendarService.countByFilter(filter);
     }
@@ -2133,6 +2133,47 @@ public class DataGraphQLService {
         Integer depId = user.getDepartment().getId();
         if (!dataAccessControlService.canDepartmentAccessNotSelfData(depId)) {
             filter.setRecorderDepartmentId(depId);
+        }
+
+        return filter;
+    }
+
+    protected ActivityCalendarFilterVO fillActivityCalendarFilter(ActivityCalendarFilterVO filter) {
+
+        boolean hasRecorderPersonId = filter != null && filter.getRecorderPersonId() != null;
+        boolean hasRecorderDepartmentId = filter != null && filter.getRecorderDepartmentId() != null;
+
+        // Default rules
+        filter = this.fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
+
+        // Limit to user program's locations
+        if (filter.getProgramIds() != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
+
+            // Get authorized location ids
+            Integer[] registrationLocationIds = dataAccessControlService.getAuthorizedLocationIds(
+                filter.getProgramIds(),
+                filter.getRegistrationLocationId() != null
+                    ? new Integer[]{filter.getRegistrationLocationId()}
+                    : filter.getRegistrationLocationIds())
+                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+
+            // Has access to some locations
+            if (registrationLocationIds != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
+                filter.setRegistrationLocationId(null);
+                filter.setRegistrationLocationIds(registrationLocationIds);
+                // Reset the recorder limitation, if was not set by the user himself
+                if (!hasRecorderPersonId) filter.setRecorderPersonId(null);
+                if (!hasRecorderDepartmentId) filter.setRecorderDepartmentId(null);
+            }
+            // No access to any location
+            else {
+                // Convert filter to use a fake recorder person id.
+                // (optimize the query, using a simple predicate)
+                filter.setRegistrationLocationId(null);
+                filter.setRegistrationLocationIds(null);
+                filter.setRecorderPersonId(DataAccessControlService.NO_ACCESS_FAKE_ID);
+                filter.setRecorderDepartmentId(null);
+            }
         }
 
         return filter;

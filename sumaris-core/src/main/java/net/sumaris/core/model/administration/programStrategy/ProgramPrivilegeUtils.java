@@ -22,38 +22,18 @@
 
 package net.sumaris.core.model.administration.programStrategy;
 
-import java.io.Serializable;
+import com.google.common.collect.ImmutableList;
 
-public enum ProgramPrivilegeEnum implements Serializable {
+public class ProgramPrivilegeUtils {
 
-
-    MANAGER(1),
-    OBSERVER(2),
-    VIEWER(3),
-    VALIDATOR(4),
-    QUALIFIER(5);
-
-    private int id;
-
-    ProgramPrivilegeEnum(int id) {
-        this.id = id;
+    protected ProgramPrivilegeUtils() {
+        // Helper class
     }
 
-    /**
-     * Returns the database row id
-     *
-     * @return int the id
-     */
-    public int getId()
-    {
-        return this.id;
-    }
-
-
-    public static ProgramPrivilegeEnum valueOf(final int id) {
-        for (ProgramPrivilegeEnum v: values()) {
-            if (v.id == id) return v;
-        }
-        throw new IllegalArgumentException("Unknown ProgramPrivilegeEnum: " + id);
+    public static ImmutableList<Integer> getWriteIds() {
+        return ImmutableList.of(ProgramPrivilegeEnum.MANAGER.getId(),
+            ProgramPrivilegeEnum.OBSERVER.getId(),
+            ProgramPrivilegeEnum.VALIDATOR.getId(),
+            ProgramPrivilegeEnum.QUALIFIER.getId());
     }
 }
