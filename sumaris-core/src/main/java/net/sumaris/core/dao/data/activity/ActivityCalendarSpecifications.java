@@ -110,4 +110,5 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
             }
         };
     }
+
 }

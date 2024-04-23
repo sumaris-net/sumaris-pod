@@ -51,6 +51,7 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
 
     private Integer vesselId;
     private Integer[] vesselIds;
+    private Integer registrationLocationId;
     private Integer[] registrationLocationIds;
     private Integer[] basePortLocationIds;
 
@@ -66,11 +67,10 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
 
     @Override
     public Integer getLocationId() {
-        return null;
+        return registrationLocationId;
     }
-
     @Override
     public void setLocationId(Integer locationId) {
-
+        this.registrationLocationId = locationId;
     }
 }

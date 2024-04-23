@@ -87,7 +87,9 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
         String PROGRAM_BY_LABEL_AND_OPTIONS = "net.sumaris.core.dao.administration.programStrategy.programByLabelAndOptions";
-        String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
+        String PROGRAM_IDS_BY_READ_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
+        String PROGRAM_IDS_BY_WRITE_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserIdAndPrivilege";
+        String PROGRAM_LOCATION_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programLocationIdsByUserId";
 
         String PROGRAM_PRIVILEGES_BY_PERSON_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegesByPersonId";
 
@@ -193,7 +195,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL_AND_OPTIONS, SimpleKey.class, ProgramVO.class, 100);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, SimpleKey.class, ProgramPrivilegeEnum.class, 500);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
-            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_READ_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_WRITE_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, Integer.class, ReferentialVO.class,500);
 
             // Strategy
