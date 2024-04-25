@@ -178,6 +178,7 @@ public abstract class RootDataRepositoryImpl<
     protected Specification<E> toSpecification(F filter, O fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
                 .and(hasRecorderPersonId(filter.getRecorderPersonId()))
+                // Program
                 .and(hasProgramLabel(filter.getProgramLabel()))
                 .and(hasProgramIds(filter.getProgramIds()));
     }

@@ -65,12 +65,11 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
-    @Override
-    public Integer getLocationId() {
-        return registrationLocationId;
-    }
-    @Override
     public void setLocationId(Integer locationId) {
         this.registrationLocationId = locationId;
+    }
+
+    public Integer getLocationId() {
+        return this.registrationLocationId;
     }
 }

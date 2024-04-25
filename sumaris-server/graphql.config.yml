@@ -1,4 +1,4 @@
-schema: src/schema.graphql
+schema: src/test/resources/graphql/schema.graphql
 extensions:
   endpoints:
     Default GraphQL Endpoint:

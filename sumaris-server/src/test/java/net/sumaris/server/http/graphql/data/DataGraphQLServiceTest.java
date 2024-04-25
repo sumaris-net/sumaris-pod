@@ -22,15 +22,17 @@ package net.sumaris.server.http.graphql.data;
  * #L%
  */
 
+import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
+import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import net.sumaris.server.DatabaseFixtures;
 import net.sumaris.server.DatabaseResource;
 import net.sumaris.server.http.graphql.AbstractGraphQLServiceTest;
-import net.sumaris.server.util.security.AuthTokenVO;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
+import java.util.ArrayList;
 
 @Slf4j
 public class DataGraphQLServiceTest extends AbstractGraphQLServiceTest {
@@ -38,11 +40,51 @@ public class DataGraphQLServiceTest extends AbstractGraphQLServiceTest {
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
+    @Autowired
+    protected DatabaseFixtures fixtures;
+
+    @Before
+    public void setUp() throws Exception {
+        super.setUp();
+    }
+
     @Test
     public void findAllActivityCalendars() {
 
-         Object list = getResponse("activityCalendars", Object.class);
+        Integer activityCalendarProgramId = fixtures.getActivityCalendarProgram().getId();
+        Integer[] registrationLocationIds = fixtures.getRegistrationLocationIdsForSharedActivityCalendar();
+        Assume.assumeTrue(registrationLocationIds.length == 2);
 
+        // First user
+        {
+            Assume.assumeTrue(authenticate("debut.calendrier@ifremer.fr", "demo"));
+
+            ActivityCalendarFilterVO filter = ActivityCalendarFilterVO.builder()
+                .programIds(new Integer[]{activityCalendarProgramId})
+                .registrationLocationId(registrationLocationIds[0])
+                .build();
+            ArrayList<ActivityCalendarVO> list = getResponse("activityCalendars", ArrayList.class, ActivityCalendarVO.class, asObjectNode(
+                ImmutableMap.<String, Object>builder()
+                    .put("filter", filter)
+                    .build()));
+            Assert.assertEquals(1, list.size());
+        }
+
+        // Second user
+        {
+            Assume.assumeTrue(authenticate("fin.calendrier@ifremer.fr", "demo"));
+
+            ActivityCalendarFilterVO filter = ActivityCalendarFilterVO.builder()
+                .registrationLocationId(registrationLocationIds[1])
+                .programIds(new Integer[]{activityCalendarProgramId})
+                .build();
+            ArrayList<ActivityCalendarVO> list = getResponse("activityCalendars", ArrayList.class, ActivityCalendarVO.class, asObjectNode(
+                ImmutableMap.<String, Object>builder()
+                    .put("filter", filter)
+                    .build()));
+            Assert.assertNotNull(list);
+            Assert.assertEquals(1, list.size());
+        }
     }
 
 }

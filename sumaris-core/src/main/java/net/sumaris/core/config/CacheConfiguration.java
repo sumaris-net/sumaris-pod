@@ -197,6 +197,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
             Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_READ_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
             Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_WRITE_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_LOCATION_IDS_BY_USER_ID, SimpleKey.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, Integer.class, ReferentialVO.class,500);
 
             // Strategy

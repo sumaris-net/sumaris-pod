@@ -78,7 +78,7 @@ public class DailyActivityCalendarRepositoryImpl
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationId(filter.getLocationId()))
             .and(hasLocationIds(filter.getLocationIds()))
-            .and(hasVesselId(filter.getVesselId()))
+            .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             ;

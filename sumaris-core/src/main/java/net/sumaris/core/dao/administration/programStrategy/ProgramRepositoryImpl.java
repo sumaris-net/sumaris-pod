@@ -277,6 +277,8 @@ public class ProgramRepositoryImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, allEntries = true)
     })
@@ -291,6 +293,8 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#source.id", condition = "#source.id != null")
         },
@@ -366,6 +370,8 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#id", condition = "#id != null")
         }

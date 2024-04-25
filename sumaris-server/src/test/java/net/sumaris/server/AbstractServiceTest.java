@@ -23,6 +23,7 @@
 package net.sumaris.server;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.util.crypto.KeyPair;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -58,10 +59,18 @@ public abstract class AbstractServiceTest {
     @Autowired
     private AuthenticationFilter authenticationFilter;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     @Before
     public void setUp() throws Exception {
         // Wait configuration service (e.g. enumeration override)
         long counter = 0;
+        while (!configurationService.isReady()) {
+            if (counter % 3 == 0) log.debug("Waiting configuration to be ready...");
+            Thread.sleep(1000);
+            counter++;
+        }
         while (!authenticationFilter.isReady()) {
             if (counter % 3 == 0) log.debug("Waiting authentication filter to be ready...");
             Thread.sleep(1000);

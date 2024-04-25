@@ -26,9 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -78,35 +76,44 @@ public class ProgramRepositoryReadTest extends AbstractDaoTest {
 
         // Viewer (all locations)
         {
-            int userIdBR = 11;
-            List<Integer> programIds = repository.getReadableProgramIdsByUserId(userIdBR);
-            List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userIdBR, programIds.toArray(Integer[]::new));
-            assertNotNull(locationIds);
-            assertFalse(locationIds.isEmpty());
-
-            assertTrue(locationIds.contains(43));
+            int userId = 7;
+            List<Integer> programIds = repository.getReadableProgramIdsByUserId(userId);
+            programIds.forEach(programId -> {
+                List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userId, programId);
+                assertNotNull(locationIds);
+                assertFalse(locationIds.isEmpty());
+                assertTrue(locationIds.contains(null));
+            });
         }
 
-        // Observer with right on BR - Brest
+        // Activity calendar
         {
-            int userIdBR = 11;
-            List<Integer> programIds = repository.getReadableProgramIdsByUserId(userIdBR);
-            List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userIdBR, programIds.toArray(Integer[]::new));
-            assertNotNull(locationIds);
-            assertFalse(locationIds.isEmpty());
+            // ACTIFLOT - Observer with right on BR - Brest
+            {
+                int userId = 11;
+                List<Integer> programIds = repository.getReadableProgramIdsByUserId(userId);
+                Assume.assumeNotNull(programIds);
+                Assume.assumeTrue(programIds.contains(fixtures.getActivityCalendarProgram().getId()));
 
-            assertTrue(locationIds.contains(43));
-        }
+                List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userId, fixtures.getActivityCalendarProgram().getId());
+                assertNotNull(locationIds);
+                assertFalse(locationIds.isEmpty());
+                assertTrue(locationIds.contains(43)); // BR - Brest
+            }
 
-        // Observer with right on BL - Boulogne
-        {
-            int userIdBL = 12;
-            List<Integer> programIds = repository.getReadableProgramIdsByUserId(userIdBL);
-            List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userIdBL, programIds.toArray(Integer[]::new));
-            assertNotNull(locationIds);
-            assertFalse(locationIds.isEmpty());
+            // ACTIFLOT - Observer with right on BL - Boulogne
+            {
+                int userId = 12;
+                List<Integer> programIds = repository.getReadableProgramIdsByUserId(userId);
+                Assume.assumeNotNull(programIds);
+                Assume.assumeTrue(programIds.contains(fixtures.getActivityCalendarProgram().getId()));
 
-            assertTrue(locationIds.contains(44));
+                List<Integer> locationIds = repository.getProgramLocationIdsByUserId(userId, fixtures.getActivityCalendarProgram().getId());
+                assertNotNull(locationIds);
+                assertFalse(locationIds.isEmpty());
+
+                assertTrue(locationIds.contains(44)); // BL - Boulogne
+            }
         }
     }
 

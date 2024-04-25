@@ -81,10 +81,11 @@ public class GearUseFeaturesRepositoryImpl
             .and(id(filter.getGearUseFeaturesId(), Integer.class))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
-            // Program and vessel
+            // Program
             .and(hasProgramLabel(filter.getProgramLabel()))
             .and(hasProgramIds(filter.getProgramIds()))
-            .and(hasVesselId(filter.getVesselId()))
+            // Vessel
+            .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             // Parent
             .and(hasActivityCalendarId(filter.getActivityCalendarId()))
             .and(hasDailyActivityCalendarId(filter.getDailyActivityCalendarId()))

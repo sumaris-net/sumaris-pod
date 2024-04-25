@@ -102,7 +102,7 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing>,
         }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
-    default Specification<Landing> inLocationIds(Integer... locationIds) {
+    default Specification<Landing> hasLocationIds(Integer... locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, LOCATION_IDS_PARAM);

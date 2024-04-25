@@ -64,6 +64,11 @@ public class TestConfiguration extends net.sumaris.core.test.TestConfiguration {
     public static final String I18N_BUNDLE_NAME = MODULE_NAME + "-i18n";
 
     @Bean
+    public DatabaseFixtures databaseFixtures() {
+        return new DatabaseFixtures();
+    }
+
+    @Bean
     public static GraphQLTestTemplate graphQLTestTemplate(ResourceLoader resourceLoader, TestRestTemplate restTemplate, ObjectMapper objectMapper) {
         return new GraphQLTestTemplate(resourceLoader, restTemplate, "/graphql", objectMapper);
     }
