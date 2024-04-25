@@ -38,7 +38,6 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.FishingAreaVO;
 import net.sumaris.core.vo.data.SaleFetchOptions;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.data.TripVO;
@@ -235,7 +234,7 @@ public class SaleRepositoryImpl
     protected Specification<Sale> toSpecification(SaleFilterVO filter, SaleFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             // Location
-            .and(hasSaleLocation(filter.getLocationId()))
+            .and(hasSaleLocationIds(filter.getLocationId() != null ? new Integer[]{filter.getLocationId()} : filter.getLocationIds()))
             // Parent
             .and(hasTripId(filter.getTripId()))
             .and(hasLandingId(filter.getLandingId()))

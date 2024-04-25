@@ -48,6 +48,7 @@ import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
+import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -76,7 +77,6 @@ import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.technical.EntityWatchService;
 import net.sumaris.server.service.technical.TrashService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.nuiton.util.TimeLog;
 import org.reactivestreams.Publisher;
 import org.springframework.context.event.EventListener;
@@ -435,7 +435,7 @@ public class DataGraphQLService {
                                                   @GraphQLEnvironment ResolutionEnvironment env) {
         Preconditions.checkNotNull(filter, "Missing filter");
         Preconditions.checkArgument(filter.getVesselId() != null || filter.getParentGearId() != null
-            || ArrayUtils.isNotEmpty(filter.getVesselIds()), "Missing 'filter.vesselId', 'filter.vesselIds' or 'filter.parentGearId'");
+            || org.apache.commons.lang3.ArrayUtils.isNotEmpty(filter.getVesselIds()), "Missing 'filter.vesselId', 'filter.vesselIds' or 'filter.parentGearId'");
         Page page = Page.builder().offset(offset)
                 .size(size)
                 .sortBy(sort)
@@ -2087,7 +2087,7 @@ public class DataGraphQLService {
         }
 
         // Replace programLabel by ID
-        if (StringUtils.isNotBlank(filter.getProgramLabel()) && ArrayUtils.isEmpty(filter.getProgramIds())) {
+        if (StringUtils.isNotBlank(filter.getProgramLabel()) && org.apache.commons.lang3.ArrayUtils.isEmpty(filter.getProgramIds())) {
             // Use optional, to avoid error when programLabel not found (e.g. when changing pod in the App settings)
             Integer[] programIds = this.programService.findIdByLabel(filter.getProgramLabel())
                 .map(programId -> new Integer[]{programId})
@@ -2150,17 +2150,16 @@ public class DataGraphQLService {
         if (filter.getProgramIds() != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
 
             // Get authorized location ids
-            Integer[] registrationLocationIds = dataAccessControlService.getAuthorizedLocationIds(
+            Object test = ArrayUtils.<Integer>concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds());
+            Integer[] locationIds = dataAccessControlService.getAuthorizedLocationIds(
                 filter.getProgramIds(),
-                filter.getRegistrationLocationId() != null
-                    ? new Integer[]{filter.getRegistrationLocationId()}
-                    : filter.getRegistrationLocationIds())
+                ArrayUtils.concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds()))
                 .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
 
             // Has access to some locations
-            if (registrationLocationIds != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
+            if (locationIds != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
                 filter.setRegistrationLocationId(null);
-                filter.setRegistrationLocationIds(registrationLocationIds);
+                filter.setRegistrationLocationIds(locationIds);
                 // Reset the recorder limitation, if was not set by the user himself
                 if (!hasRecorderPersonId) filter.setRecorderPersonId(null);
                 if (!hasRecorderDepartmentId) filter.setRecorderDepartmentId(null);

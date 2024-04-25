@@ -1,12 +1,12 @@
-query ActivityCalendars($filter: ActivityCalendarFilterVO){
-    data: activityCalendars(filter: $filter) {
+query ActivityCalendars($filter: ActivityCalendarFilterVOInput){
+    activityCalendars(filter: $filter) {
         __typename
         id
         year
         recorderPerson {
             __typename
             id
-            lastname
+            lastName
             firstName
             updateDate
         }

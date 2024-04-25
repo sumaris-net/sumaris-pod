@@ -75,13 +75,12 @@ public class ActivityCalendarRepositoryImpl
     public Specification<ActivityCalendar> toSpecification(ActivityCalendarFilterVO filter, ActivityCalendarFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(id(filter.getActivityCalendarId(), Integer.class))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasRegistrationLocationIds(filter.getRegistrationLocationIds()))
-            .and(hasBasePortLocationIds(filter.getBasePortLocationIds()))
-            .and(hasVesselId(filter.getVesselId()))
-            .and(hasVesselIds(filter.getVesselIds()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
+            .and(hasRegistrationLocationIds(concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds())))
+            .and(hasBasePortLocationIds(filter.getBasePortLocationIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             ;

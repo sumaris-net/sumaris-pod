@@ -22,14 +22,12 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.VesselType;
-import net.sumaris.core.util.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -57,12 +55,20 @@ public interface IWithVesselSpecifications<ID extends Serializable, E extends IW
     }
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Join<T, Vessel> vessel, CriteriaBuilder cb, Expression<Date> dateExpression, JoinType joinType) {
+        return composeVrpJoinBetweenDate(vessel, cb, dateExpression, dateExpression, joinType);
+    }
+
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoinBetweenDate(Join<T, Vessel> vessel, CriteriaBuilder cb,
+                                                                                     Expression<Date> startDateExpression,
+                                                                                     Expression<Date> endDateExpression,
+                                                                                     JoinType joinType) {
         ListJoin<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoinList(vessel, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, joinType);
-        if (vrp.getOn() == null && dateExpression != null) {
+        if (vrp.getOn() == null && startDateExpression != null) {
+            if (endDateExpression == null) endDateExpression = startDateExpression;
             Predicate vrpCondition = cb.not(
                 cb.or(
-                    cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), dateExpression),
-                    cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), dateExpression)
+                    cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDateExpression),
+                    cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDateExpression)
                 )
             );
             vrp.on(vrpCondition);

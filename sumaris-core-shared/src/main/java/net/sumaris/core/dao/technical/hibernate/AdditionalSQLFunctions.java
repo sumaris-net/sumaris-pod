@@ -41,6 +41,7 @@ public enum AdditionalSQLFunctions {
     add_days("add_day", new SQLFunctionTemplate(StandardBasicTypes.DATE, "?1 + INTERVAL '?2' DAY")),
 
     first_day_of_year("first_day_of_year", new SQLFunctionTemplate(StandardBasicTypes.DATE, "TO_DATE('' || ?1, 'YY')")),
+    last_day_of_year("last_day_of_year", new SQLFunctionTemplate(StandardBasicTypes.DATE, "TO_DATE('31/12/' || ?1, 'DD/MM/YY')")),
     ;
 
     private SQLFunction function;

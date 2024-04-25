@@ -27,23 +27,21 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.ForbiddenException;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeUtils;
+import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.security.AuthService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -167,9 +165,9 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     }
 
     @Override
-    public Optional<Integer[]> getAuthorizedLocationIds(Integer[] programIds, Integer[] locationIds) {
+    public Optional<Integer[]> getAuthorizedLocationIds(@NonNull Integer[] programIds, Integer[] locationIds) {
         // Admin
-        if (authService.isAdmin()) return Optional.of(locationIds);
+        if (authService.isAdmin()) return Optional.of(ArrayUtils.nullToEmpty(locationIds));
 
         // Other user
         return authService.getAuthenticatedUserId()
@@ -177,23 +175,30 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     }
 
     @Override
-    public Optional<Integer[]> getAuthorizedLocationIdsByUserId(int userId, Integer[] programIds, Integer[] locationIds) {
-        List<Integer> userLocationIds = programRepository.getProgramLocationIdsByUserId(userId, programIds);
+    public Optional<Integer[]> getAuthorizedLocationIdsByUserId(int userId, @NonNull Integer[] programIds, Integer[] locationIds) {
+
+        // Get intersection of all program's location ids
+        Collection<Integer> userLocationIds = null;
+        for (Integer programId: programIds) {
+            List<Integer> programLocationIds = programRepository.getProgramLocationIdsByUserId(userId, programId);
+            userLocationIds = userLocationIds == null ? programLocationIds : CollectionUtils.intersection(userLocationIds, programLocationIds);
+        }
 
         // User cannot access any locations
         if (CollectionUtils.isEmpty(userLocationIds)) return Optional.empty(); // No access
 
-        // User can access to all locations
+        // User can access to all locations (when LOCATION_FK is null, in PROGRAM2PERSON or PROGRAM2DEPARTMENT)
         if (CollectionUtils.containsAny(userLocationIds, (Integer)null)) {
             // Should return a NOT empty value
-            return Optional.of(locationIds != null ? locationIds : new Integer[0]);
+            return Optional.of(ArrayUtils.nullToEmpty(locationIds));
         }
 
-        // Intersection between expected and authorized
-        Collection<Integer> intersection = CollectionUtils.intersection(
+        // If expected locations, then intersection between expected and authorized
+        // Else return all authorized
+        Collection<Integer> intersection = ArrayUtils.isNotEmpty(locationIds) ? CollectionUtils.intersection(
             ImmutableList.copyOf(locationIds),
             userLocationIds
-        );
+        ) : userLocationIds;
 
         return CollectionUtils.isEmpty(intersection)
             ? Optional.empty() // No access, if intersection is empty
@@ -208,7 +213,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     @Override
     public List<Integer> getAuthorizedProgramIdsByUserId(int userId) {
-        return programRepository.getProgramIdsByUserIdAndPrivilegeIds(userId, null /*= ALL */);
+        return programRepository.getProgramIdsByUserIdAndPrivilegeIds(userId, true /*any privilege */, null );
     }
 
     /* -- protected functions -- */

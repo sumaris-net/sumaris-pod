@@ -51,6 +51,7 @@ public class GearUseFeaturesFilterVO implements IDataFilter, IVesselFilter {
 
 
     private Integer vesselId;
+    private Integer[] vesselIds;
 
     private Integer metierId;
     private Integer[] metierIds;

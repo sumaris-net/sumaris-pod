@@ -1,0 +1,9 @@
+query Configuration($inherited: Boolean) {
+    configuration(inherited: $inherited) {
+        __typename
+        id
+        label
+        name
+        properties
+    }
+}

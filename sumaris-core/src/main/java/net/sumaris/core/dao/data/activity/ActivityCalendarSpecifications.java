@@ -46,11 +46,15 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
-        Expression<Date> firstDayOfYear = cb.function(AdditionalSQLFunctions.first_day_of_year.name(),
+        Expression<Date> startDate = cb.function(AdditionalSQLFunctions.first_day_of_year.name(),
             Date.class,
             root.get(ActivityCalendar.Fields.YEAR)
         );
-        return composeVrpJoin(vessel, cb, firstDayOfYear);
+        Expression<Date> endDate = cb.function(AdditionalSQLFunctions.last_day_of_year.name(),
+            Date.class,
+            root.get(ActivityCalendar.Fields.YEAR)
+        );
+        return composeVrpJoinBetweenDate(vessel, cb, startDate, endDate, JoinType.LEFT);
     }
 
     default <T> ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<T> root, CriteriaBuilder cb) {

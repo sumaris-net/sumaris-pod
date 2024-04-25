@@ -23,13 +23,19 @@ package net.sumaris.core.dao.data.sale;
  */
 
 import net.sumaris.core.dao.data.RootDataSpecifications;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Sale;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.SaleVO;
+import net.sumaris.core.vo.filter.SaleFilterVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -57,12 +63,12 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
         }).addBind(LANDING_ID_PARAM, landingId);
     }
 
-    default Specification<Sale> hasSaleLocation(Integer locationId) {
-        if (locationId == null) return null;
+    default Specification<Sale> hasSaleLocationIds(Integer[] locationIds) {
+        if (ArrayUtils.isEmpty(locationIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, TRIP_ID_PARAM);
-            return cb.equal(root.get(Sale.Fields.SALE_LOCATION).get(IEntity.Fields.ID), param);
-        }).addBind(LOCATION_ID_PARAM, locationId);
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, SaleFilterVO.Fields.LOCATION_IDS);
+            return Daos.composePath(root, StringUtils.doting(Sale.Fields.SALE_LOCATION, IEntity.Fields.ID)).in(param);
+        }).addBind(SaleFilterVO.Fields.LOCATION_IDS, Arrays.asList(locationIds));
     }
 
     List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sales);

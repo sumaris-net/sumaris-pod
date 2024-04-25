@@ -23,6 +23,7 @@ package net.sumaris.server.http.graphql;
  * #L%
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -33,6 +34,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.technical.ConfigurationVO;
 import net.sumaris.server.AbstractServiceTest;
 import net.sumaris.server.util.security.AuthTokenVO;
 import org.junit.Assert;
@@ -40,10 +42,9 @@ import org.junit.Ignore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotNull;
@@ -97,7 +98,7 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
 
         boolean auth = getResponse("authenticate", Boolean.class, variables);
         if (auth) {
-            addGraphQLHeader(HttpHeaders.AUTHORIZATION, "token " + token);
+            withGraphQLHeader(HttpHeaders.AUTHORIZATION, "token " + token);
         } else {
             clearGraphQLHeaders();
         }
@@ -106,6 +107,10 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
 
     protected void clearGraphQLHeaders() {
         graphQLTestTemplate.withClearHeaders();
+    }
+
+    protected void withGraphQLHeader(String name, String value) {
+        graphQLTestTemplate.withClearHeaders().withAdditionalHeader(name, value);
     }
 
     protected void addGraphQLHeader(String name, String value) {
@@ -120,6 +125,10 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
         return getResponse(queryName, queryName, responseClass, null, variables);
     }
 
+    protected <R, T> R getResponse(String queryName, Class<R> responseClass, Class<T> responseCollectionType, ObjectNode variables) throws SumarisTechnicalException {
+        return getResponse(queryName, queryName, responseClass, responseCollectionType, variables);
+    }
+
     protected <R, T> R getResponse(String queryName, Class<R> responseClass, Class<T> responseCollectionType, ObjectNode variables, String... fragmentNames) throws SumarisTechnicalException {
         return getResponse(queryName, queryName, responseClass, responseCollectionType, variables, fragmentNames);
     }
@@ -132,7 +141,10 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
         assertNotNull(responseClass);
         assertTrue(responseCollectionType == null || Collection.class.isAssignableFrom(responseClass));
         String queryResource = getResourcePath(resourceName);
-        List<String> fragmentResources = fragmentNames != null ? Arrays.stream(fragmentNames).map(this::getResourcePath).collect(Collectors.toList()) : null;
+        List<String> fragmentResources = fragmentNames != null ? Arrays.stream(fragmentNames)
+            .filter(Objects::nonNull)
+            .map(this::getResourcePath)
+            .toList() : null;
 
         // add missing variables
         if (variables != null) {
@@ -169,7 +181,7 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
                 ((Collection) collectionResult).addAll(
                     ((Collection<?>) result).stream()
                         .map(o -> assertDoesNotThrow(() -> objectMapper.treeToValue(objectMapper.valueToTree(o), responseCollectionType)))
-                        .collect(Collectors.toList())
+                        .toList()
                 );
                 return collectionResult;
             }
@@ -180,5 +192,31 @@ public class AbstractGraphQLServiceTest extends AbstractServiceTest {
 
     private String getResourcePath(String resourceName) {
         return String.format(RESOURCE_PATTERN, resourceName);
+    }
+
+    protected ObjectNode asObjectNode(Map<String, Object> aMap) {
+        ObjectNode variables = objectMapper.createObjectNode();
+
+        try {
+            for (Map.Entry<String, Object> entry : aMap.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof Integer integer) {
+                    variables.put(entry.getKey(), integer);
+                } else if (value instanceof Double aDouble) {
+                    variables.put(entry.getKey(), aDouble);
+                } else if (value instanceof String string) {
+                    variables.put(entry.getKey(), string);
+                } else {
+                    JsonNode jsonNode = objectMapper.readTree(objectMapper.writeValueAsBytes(entry.getValue()));
+                    variables.putIfAbsent(entry.getKey(), jsonNode);
+                }
+            }
+            return variables;
+        } catch (IOException err) {
+            throw new RuntimeException(err);
+        }
+    }
+    protected ConfigurationVO loadConfiguration() {
+        return getResponse("configuration", ConfigurationVO.class);
     }
 }

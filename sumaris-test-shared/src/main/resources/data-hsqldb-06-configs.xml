@@ -40,6 +40,7 @@
     <SOFTWARE_PROPERTY ID="29" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-22" LABEL="sumaris.data.accessNotSelfData.department.ids" NAME="2"/>
     <SOFTWARE_PROPERTY ID="30" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-07" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="31" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2024-02-15" LABEL="sumaris.activityCalendar.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="32" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2024-04-24" LABEL="sumaris.referential.vessel.registration.location.level.ids" NAME="1,8"/>
 
     <!-- ****** ADAP properties ****** -->
 

@@ -35,7 +35,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.ObjectUtils;
@@ -131,7 +130,7 @@ public class Beans {
         if (array == null) {
             return Stream.empty();
         }
-        return Arrays.stream(array);
+        return ArrayUtils.stream(array);
     }
 
     /**
@@ -301,7 +300,7 @@ public class Beans {
      * @return a {@link Map} object.
      */
     public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(V... entities) {
-        return transformCollection(Arrays.asList(entities), IEntity::getId);
+        return transformCollection(ArrayUtils.asList(entities), IEntity::getId);
     }
 
     /**
@@ -527,15 +526,15 @@ public class Beans {
             cache.put(target.getClass(), ignoredProperties);
         }
 
-        BeanUtils.copyProperties(source, target, ArrayUtils.addAll(ignoredProperties, exceptProperties));
+        BeanUtils.copyProperties(source, target, org.apache.commons.lang3.ArrayUtils.addAll(ignoredProperties, exceptProperties));
     }
 
     public static boolean beanIsEmpty(Object bean, String... ignoredAttributes) {
         if (bean == null)
             return true;
 
-        return Arrays.stream(bean.getClass().getDeclaredFields())
-            .filter(field -> !ArrayUtils.contains(ignoredAttributes, field.getName()))
+        return ArrayUtils.stream(bean.getClass().getDeclaredFields())
+            .filter(field -> !org.apache.commons.lang3.ArrayUtils.contains(ignoredAttributes, field.getName()))
             .allMatch(field -> ObjectUtils.isEmpty((Object) getProperty(bean, field.getName())));
     }
 
