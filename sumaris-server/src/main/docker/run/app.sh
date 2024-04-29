@@ -22,15 +22,16 @@
 # L%
 #
 
-APP_NAME=sumaris
-BASEDIR=/app
-LOG_DIR=/app/logs
-LOG_FILENAME="${APP_NAME}-pod.log"
-TNS_ADMIN=/home/tnsnames
+[[ "_${APP_NAME}" != "_" ]] APP_NAME=sumaris
+[[ "_${BASEDIR}" != "_" ]] BASEDIR=/app
+[[ "_${LOG_DIR}" != "_" ]] LOG_DIR=/app/logs
+[[ "_${LOG_FILENAME}" != "_" ]] LOG_FILENAME="${APP_NAME}-pod.log"
+[[ "_${TNS_ADMIN}" != "_" ]] TNS_ADMIN=/home/tnsnames
 JAVA_OPTS="${JAVA_OPTS} --enable-preview" # Fix Java 17 error
+JAVA_OPTS="${JAVA_OPTS} -Dsumaris.name=${APP_NAME}"
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.basedir=${BASEDIR}"
-JAVA_OPTS="${JAVA_OPTS} -Dspring.config.location=file:${BASEDIR}/config/"
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.log.file=${LOG_DIR}/${LOG_FILENAME}"
+JAVA_OPTS="${JAVA_OPTS} -Dspring.config.location=file:${BASEDIR}/config/"
 JAVA_OPTS="${JAVA_OPTS} -Doracle.net.tns_admin=${TNS_ADMIN}"
 JAVA_OPTS="${JAVA_OPTS} -Doracle.jdbc.timezoneAsRegion=false"
 [[ "_${PROFILES}" != "_" ]] && JAVA_OPTS="${JAVA_OPTS} -Dspring.profiles.active=${PROFILES}"
