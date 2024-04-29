@@ -22,11 +22,11 @@
 # L%
 #
 
-if [[ "_${APP_NAME}" != "_" ]]; then APP_NAME=sumaris; fi
-if [[ "_${BASEDIR}" != "_" ]]; then BASEDIR=/app; fi
-if [[ "_${LOG_DIR}" != "_" ]]; then LOG_DIR=/app/logs; fi
-if [[ "_${LOG_FILENAME}" != "_" ]]; then LOG_FILENAME="${APP_NAME}-pod.log"; fi
-if [[ "_${TNS_ADMIN}" != "_" ]]; then TNS_ADMIN=/home/tnsnames; fi
+[[ "_${APP_NAME}" != "_" ]] && APP_NAME=sumaris
+[[ "_${BASEDIR}" != "_" ]] && BASEDIR=/app
+[[ "_${LOG_DIR}" != "_" ]] && LOG_DIR=/app/logs
+[[ "_${LOG_FILENAME}" != "_" ]] && LOG_FILENAME="${APP_NAME}-pod.log"
+[[ "_${TNS_ADMIN}" != "_" ]] && TNS_ADMIN=/home/tnsnames
 JAVA_OPTS="${JAVA_OPTS} --enable-preview" # Fix Java 17 error
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.name=${APP_NAME}"
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.basedir=${BASEDIR}"
