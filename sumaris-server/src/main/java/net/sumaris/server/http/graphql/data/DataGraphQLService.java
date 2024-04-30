@@ -46,6 +46,7 @@ import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
+import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.ArrayUtils;
@@ -58,8 +59,7 @@ import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
 import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
-import net.sumaris.core.vo.data.batch.BatchFetchOptions;
-import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.data.batch.*;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.*;
@@ -116,6 +116,8 @@ public class DataGraphQLService {
     private final SampleService sampleService;
 
     private final BatchService batchService;
+
+    private final DenormalizedBatchService denormalizedBatchService;
 
     private final MeasurementService measurementService;
 
@@ -1070,6 +1072,27 @@ public class DataGraphQLService {
                 .withMeasurementValues(fields.contains(BatchVO.Fields.MEASUREMENT_VALUES))
                 .withChildrenEntities(false)
                 .build());
+    }
+
+    /* -- DenormalizedBatch -- */
+
+    @GraphQLQuery(name = "denormalizedBatches", description = "Get denormalized batches")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<DenormalizedBatchVO> findAllDenormalizedBatches(@GraphQLArgument(name = "filter") DenormalizedBatchesFilterVO filter,
+                                                                @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                                @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                                @GraphQLArgument(name = "sortBy") String sort,
+                                                                @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction,
+                                                                @GraphQLEnvironment ResolutionEnvironment env) {
+        SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
+        Set<String> fields = GraphQLUtils.fields(env);
+
+        DenormalizedBatchFetchOptions fetchOptions = DenormalizedBatchFetchOptions.builder()
+                .withChildrenEntities(fields.contains(StringUtils.slashing(DenormalizedBatchVO.Fields.SORTING_VALUES, DenormalizedBatchSortingValueVO.Fields.ID)))
+                .withMeasurementValues(fields.contains(DenormalizedBatchVO.Fields.MEASUREMENT_VALUES))
+                .build();
+        return denormalizedBatchService.findAll(filter, offset, size, sort, sortDirection, fetchOptions);
     }
 
     /* -- Landings -- */

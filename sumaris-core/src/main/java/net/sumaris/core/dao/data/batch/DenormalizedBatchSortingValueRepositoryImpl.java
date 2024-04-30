@@ -42,7 +42,9 @@ public class DenormalizedBatchSortingValueRepositoryImpl
     extends SumarisJpaRepositoryImpl<DenormalizedBatchSortingValue, Integer, DenormalizedBatchSortingValueVO>
     implements DenormalizedBatchSortingValueSpecifications<DenormalizedBatchSortingValue, DenormalizedBatchSortingValueVO> {
 
-    public DenormalizedBatchSortingValueRepositoryImpl(EntityManager entityManager) {
+    public DenormalizedBatchSortingValueRepositoryImpl(
+            EntityManager entityManager
+    ) {
         super(DenormalizedBatchSortingValue.class, entityManager);
     }
 
