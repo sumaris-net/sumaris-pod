@@ -109,7 +109,7 @@ public class DenormalizedBatchVO
     private SaleVO sale;
     private Integer saleId;
 
-    private List<DenormalizedBatchSortingValueVO> sortingValues = Lists.newArrayList();
+    private List<DenormalizedBatchSortingValueVO> sortingValues;
     private Map<Integer, String> measurementValues;
 
     @JsonIgnore

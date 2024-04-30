@@ -181,13 +181,11 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
                 sortDirection,
                 fetchOptions);
 
-        List<Integer> operationIds = new ArrayList<>();
-
         // Measurement values
-        List<Integer> batchIds = Beans.collectIds(batches.stream().filter(batch -> batch.getMeasurementValues() == null).toList());
-        if (CollectionUtils.isNotEmpty(batchIds)) {
+        List<Integer> batchIdsWithNullMeasurementValues = Beans.collectIds(batches.stream().filter(batch -> batch.getMeasurementValues() == null).toList());
+        if (CollectionUtils.isNotEmpty(batchIdsWithNullMeasurementValues)) {
             // We fetch only SortingMeasurement, because QuantificationMeasurement are already present inside attributes (weight, elevateWeight...)
-            Map<Integer, Map<Integer, String>> measurementValuesByBatchId = measurementDao.getBatchesSortingMeasurementsMap(batchIds);
+            Map<Integer, Map<Integer, String>> measurementValuesByBatchId = measurementDao.getBatchesSortingMeasurementsMap(batchIdsWithNullMeasurementValues);
             batches.forEach(batch -> batch.setMeasurementValues(measurementValuesByBatchId.get(batch.getId())));
         }
 

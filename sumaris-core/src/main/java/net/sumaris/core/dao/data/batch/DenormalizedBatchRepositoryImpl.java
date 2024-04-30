@@ -423,14 +423,14 @@ public class DenormalizedBatchRepositoryImpl
 
     @Override
     public DenormalizedBatchVO toVO(DenormalizedBatch source) {
-        if (source == null) return null;
-        DenormalizedBatchVO target = createVO();
-        toVO(source, target, true);
-        return target;
+        return this.toVO(source, DenormalizedBatchFetchOptions.DEFAULT);
     }
 
     public DenormalizedBatchVO toVO(DenormalizedBatch source, DenormalizedBatchFetchOptions fetchOptions) {
-        return this.toVO(source);
+        if (source == null) return null;
+        DenormalizedBatchVO target = createVO();
+        toVO(source, target, fetchOptions, true);
+        return target;
     }
 
     /* -- protected methods -- */
@@ -440,6 +440,7 @@ public class DenormalizedBatchRepositoryImpl
         return BindableSpecification
                 .where(hasTripId(filter.getTripId()))
                 .and(hasOperationId(filter.getOperationId()))
+                .and(hasSaleId(filter.getSaleId()))
                 .and(isLanding(filter.getIsLanding()))
                 .and(isDiscard(filter.getIsDiscard()));
     }
