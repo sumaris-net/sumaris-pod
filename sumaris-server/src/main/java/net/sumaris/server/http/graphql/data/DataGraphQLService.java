@@ -47,6 +47,8 @@ import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
 import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
+import net.sumaris.core.service.data.denormalize.DenormalizedTripResultVO;
+import net.sumaris.core.service.data.denormalize.DenormalizedTripService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.Beans;
@@ -81,6 +83,7 @@ import org.nuiton.util.TimeLog;
 import org.reactivestreams.Publisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -116,6 +119,8 @@ public class DataGraphQLService {
     private final SampleService sampleService;
 
     private final BatchService batchService;
+
+    private final DenormalizedTripService denormalizedTripService;
 
     private final DenormalizedBatchService denormalizedBatchService;
 
@@ -1075,6 +1080,15 @@ public class DataGraphQLService {
     }
 
     /* -- DenormalizedBatch -- */
+
+
+    @GraphQLQuery(name = "denormalizeTrip", description = "Check if trip has been denormalized or not")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED) // Avoid transaction timeout
+    @IsUser
+    public DenormalizedTripResultVO denormalizeTrip(@GraphQLArgument(name = "id") int tripId) {
+        return denormalizedTripService.denormalizeById(tripId);
+    }
+
 
     @GraphQLQuery(name = "denormalizedBatches", description = "Get denormalized batches")
     @Transactional(readOnly = true)

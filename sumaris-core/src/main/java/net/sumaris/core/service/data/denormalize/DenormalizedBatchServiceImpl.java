@@ -379,13 +379,17 @@ public class DenormalizedBatchServiceImpl implements DenormalizedBatchService {
     protected DenormalizedBatchOptions createOptionsByProgram(@NonNull ProgramVO program) {
         Preconditions.checkNotNull(program.getProperties());
 
+        Integer taxonGroupTypeId = Optional.ofNullable(program.getTaxonGroupTypeId())
+                .orElse(TaxonGroupTypeEnum.FAO.getId());
+
         // Get ids of taxon group without weight
         String taxonGroupsNoWeight = Optional.ofNullable(Programs.getProperty(program, ProgramPropertyEnum.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT)).orElse("");
         Integer[] taxonGroupIdsNoWeight = Arrays.stream(taxonGroupsNoWeight.split(","))
             .map(String::trim)
             .map(label -> taxonGroupService.findAllByFilter(ReferentialFilterVO.builder()
                 .label(label)
-                .levelIds(new Integer[]{TaxonGroupTypeEnum.FAO.getId()})
+                .levelIds(new Integer[]{taxonGroupTypeId})
+                    // FIXME: if taxon group was disabled, will not get it. => should filter on {ENABLED, DISABLED} and sort by statusId:desc to get ENABLED first
                 .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
                 .build()).stream().findFirst())
             .filter(Optional::isPresent)
