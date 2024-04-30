@@ -39,6 +39,7 @@ import net.sumaris.core.vo.referential.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @ToString(onlyExplicitlyIncluded = true)
@@ -108,7 +109,8 @@ public class DenormalizedBatchVO
     private SaleVO sale;
     private Integer saleId;
 
-    private List<DenormalizedBatchSortingValueVO> sortingValues = Lists.newArrayList();
+    private List<DenormalizedBatchSortingValueVO> sortingValues;
+    private Map<Integer, String> measurementValues;
 
     @JsonIgnore
     public void addSortingValue(@NonNull DenormalizedBatchSortingValueVO sv) {

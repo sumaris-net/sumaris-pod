@@ -25,7 +25,6 @@ package net.sumaris.core.model.data;
 import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
