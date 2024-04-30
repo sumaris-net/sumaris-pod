@@ -22,11 +22,11 @@
 # L%
 #
 
-[[ "_${APP_NAME}" != "_" ]] && APP_NAME=sumaris
-[[ "_${BASEDIR}" != "_" ]] && BASEDIR=/app
-[[ "_${LOG_DIR}" != "_" ]] && LOG_DIR=/app/logs
-[[ "_${LOG_FILENAME}" != "_" ]] && LOG_FILENAME="${APP_NAME}-pod.log"
-[[ "_${TNS_ADMIN}" != "_" ]] && TNS_ADMIN=/home/tnsnames
+[[ "_${APP_NAME}" == "_" ]] && APP_NAME=sumaris
+[[ "_${BASEDIR}" == "_" ]] && BASEDIR=/app
+[[ "_${LOG_DIR}" == "_" ]] && LOG_DIR=/app/logs
+[[ "_${LOG_FILENAME}" == "_" ]] && LOG_FILENAME="${APP_NAME}-pod.log"
+[[ "_${TNS_ADMIN}" == "_" ]] && TNS_ADMIN=/home/tnsnames
 JAVA_OPTS="${JAVA_OPTS} --enable-preview" # Fix Java 17 error
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.name=${APP_NAME}"
 JAVA_OPTS="${JAVA_OPTS} -Dsumaris.basedir=${BASEDIR}"
@@ -46,4 +46,4 @@ ARGS=
 
 echo "*** Starting ${APP_NAME}-pod - args: ${ARGS} - profiles: ${PROFILES} ***"
 
-java ${JAVA_OPTS} -server -jar ${BASEDIR}/app.war ${ARGS}
+echo java ${JAVA_OPTS} -server -jar ${BASEDIR}/app.war ${ARGS}
