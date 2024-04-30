@@ -46,4 +46,4 @@ ARGS=
 
 echo "*** Starting ${APP_NAME}-pod - args: ${ARGS} - profiles: ${PROFILES} ***"
 
-echo java ${JAVA_OPTS} -server -jar ${BASEDIR}/app.war ${ARGS}
+java ${JAVA_OPTS} -server -jar ${BASEDIR}/app.war ${ARGS}
