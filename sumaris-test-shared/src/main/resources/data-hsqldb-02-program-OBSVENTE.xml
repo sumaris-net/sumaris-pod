@@ -59,13 +59,15 @@
   <PROGRAM_PROPERTY ID="515" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.report.enable" NAME="true"/> <!-- DEV only - not in production -->
   <PROGRAM_PROPERTY ID="516" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
   <PROGRAM_PROPERTY ID="517" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.data.strategy.resolution" NAME="last"/>
-  <PROGRAM_PROPERTY ID="518" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.i18nSuffix" NAME="SALE_OBSERVATION."/>
+  <PROGRAM_PROPERTY ID="518" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.i18nSuffix" NAME="OBSERVED_SALE."/>
   <PROGRAM_PROPERTY ID="519" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.strategyCard.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="520" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.samplingStrata.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="521" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14"  LABEL="sumaris.observedLocation.endDate.required" NAME="true"/>
   <PROGRAM_PROPERTY ID="522" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.sale.batch.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="523" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="524" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.observedLocation.control.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="524" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.trip.operation.batch.measure.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="525" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.trip.operation.batch.measure.individualCountOnly.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="526" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03"  LABEL="sumaris.observedLocation.control.enable" NAME="true"/>
 
 
   <!-- strategies -->
