@@ -76,6 +76,8 @@
   <PROGRAM_PROPERTY ID="437" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.report.form.logo.head.right.url" NAME="/assets/img/logo/logo-obsmer-square.png"/>
   <PROGRAM_PROPERTY ID="438" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.gears.columns.pmfmIds" NAME="3"/> <!-- always show SMALLER_MESH_GAUGE -->
   <PROGRAM_PROPERTY ID="439" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.gears.columns.pmfm.hideIfEmpty" NAME="true"/>
+  <PROGRAM_PROPERTY ID="440" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
+  <PROGRAM_PROPERTY ID="441" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
 
 
   <!-- strategies -->
