@@ -47,6 +47,8 @@ import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
 import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
+import net.sumaris.core.service.data.denormalize.DenormalizedTripResultVO;
+import net.sumaris.core.service.data.denormalize.DenormalizedTripService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.ArrayUtils;
@@ -81,6 +83,7 @@ import org.nuiton.util.TimeLog;
 import org.reactivestreams.Publisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -116,6 +119,8 @@ public class DataGraphQLService {
     private final SampleService sampleService;
 
     private final BatchService batchService;
+
+    private final DenormalizedTripService denormalizedTripService;
 
     private final DenormalizedBatchService denormalizedBatchService;
 
@@ -437,7 +442,7 @@ public class DataGraphQLService {
                                                   @GraphQLEnvironment ResolutionEnvironment env) {
         Preconditions.checkNotNull(filter, "Missing filter");
         Preconditions.checkArgument(filter.getVesselId() != null || filter.getParentGearId() != null
-            || org.apache.commons.lang3.ArrayUtils.isNotEmpty(filter.getVesselIds()), "Missing 'filter.vesselId', 'filter.vesselIds' or 'filter.parentGearId'");
+            || ArrayUtils.isNotEmpty(filter.getVesselIds()), "Missing 'filter.vesselId', 'filter.vesselIds' or 'filter.parentGearId'");
         Page page = Page.builder().offset(offset)
                 .size(size)
                 .sortBy(sort)
@@ -1075,6 +1080,15 @@ public class DataGraphQLService {
     }
 
     /* -- DenormalizedBatch -- */
+
+
+    @GraphQLQuery(name = "denormalizeTrip", description = "Check if trip has been denormalized or not")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED) // Avoid transaction timeout
+    @IsUser
+    public DenormalizedTripResultVO denormalizeTrip(@GraphQLArgument(name = "id") int tripId) {
+        return denormalizedTripService.denormalizeById(tripId);
+    }
+
 
     @GraphQLQuery(name = "denormalizedBatches", description = "Get denormalized batches")
     @Transactional(readOnly = true)
@@ -2110,7 +2124,7 @@ public class DataGraphQLService {
         }
 
         // Replace programLabel by ID
-        if (StringUtils.isNotBlank(filter.getProgramLabel()) && org.apache.commons.lang3.ArrayUtils.isEmpty(filter.getProgramIds())) {
+        if (StringUtils.isNotBlank(filter.getProgramLabel()) && ArrayUtils.isEmpty(filter.getProgramIds())) {
             // Use optional, to avoid error when programLabel not found (e.g. when changing pod in the App settings)
             Integer[] programIds = this.programService.findIdByLabel(filter.getProgramLabel())
                 .map(programId -> new Integer[]{programId})

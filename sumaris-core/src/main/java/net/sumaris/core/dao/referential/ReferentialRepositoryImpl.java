@@ -72,8 +72,11 @@ public abstract class ReferentialRepositoryImpl<
     ReferentialRepository<ID, E, V, F, O>,
     ReferentialSpecifications<ID, E> {
 
+    protected final String entityName;
+
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
+        this.entityName = domainClass.getSimpleName();
     }
 
     @Override
@@ -264,6 +267,7 @@ public abstract class ReferentialRepositoryImpl<
     protected void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
         target.setStatusId(source.getStatus().getId());
+        target.setEntityName(entityName);
     }
 
     @Override

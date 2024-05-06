@@ -50,4 +50,8 @@ public interface IReferentialVO<ID extends Serializable> extends IUpdateDateEnti
     Date getCreationDate();
 
     void setCreationDate(Date creationDate);
+
+    String getEntityName();
+
+    void setEntityName(String entityName);
 }

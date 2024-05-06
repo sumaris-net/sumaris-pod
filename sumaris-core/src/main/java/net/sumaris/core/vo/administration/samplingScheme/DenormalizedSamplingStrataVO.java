@@ -71,4 +71,6 @@ public class DenormalizedSamplingStrataVO implements IReferentialVO<Integer> {
 
     private Integer observationLocationId;
     private ReferentialVO observationLocation;
+
+    private String entityName = "SamplingStrata";
 }

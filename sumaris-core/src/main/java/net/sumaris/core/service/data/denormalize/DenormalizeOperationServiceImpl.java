@@ -100,7 +100,7 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
 
         operationFilter = operationFilter.clone();
 
-        // Slip operation ids, if too many
+        // Split operation ids, if too many
         Integer[] operationIds = operationFilter.getIncludedIds();
         if (ArrayUtils.getLength(operationIds) > 500) {
             int pageSize = 500;

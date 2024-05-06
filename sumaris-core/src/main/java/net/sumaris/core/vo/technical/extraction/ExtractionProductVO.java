@@ -165,4 +165,5 @@ public class ExtractionProductVO implements IReferentialVO<Integer>,
         return result;
     }
 
+    private String entityName = "ExtractionProduct";
 }

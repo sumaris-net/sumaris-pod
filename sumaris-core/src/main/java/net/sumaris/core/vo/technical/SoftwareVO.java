@@ -44,4 +44,5 @@ public class SoftwareVO implements IReferentialVO<Integer>{
 
     private Map<String, String> properties;
 
+    private String entityName = "Software";
 }

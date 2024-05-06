@@ -62,4 +62,6 @@ public class StrategyVO implements IReferentialVO<Integer>{
     private List<Integer> taxonNameIds;
     private List<TaxonNameStrategyVO> taxonNames;
 
+
+    private String entityName = "Strategy";
 }
