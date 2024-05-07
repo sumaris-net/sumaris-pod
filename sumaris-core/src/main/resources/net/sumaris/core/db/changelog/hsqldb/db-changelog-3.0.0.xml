@@ -17,17 +17,17 @@
     </preConditions>
     <createSequence sequenceName="DAILY_ACTIVITY_CALENDAR_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-003">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-003" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <not><sequenceExists sequenceName="GEAR_USE_FEATURE_SEQ"/></not>
+      <not><sequenceExists sequenceName="GEAR_USE_FEATURES_SEQ"/></not>
     </preConditions>
-    <createSequence sequenceName="GEAR_USE_FEATURE_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="GEAR_USE_FEATURES_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-004">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-004" runOnChange="true">
     <preConditions onFail="MARK_RAN">
-      <not><sequenceExists sequenceName="VESSEL_USE_FEATURE_SEQ"/></not>
+      <not><sequenceExists sequenceName="VESSEL_USE_FEATURES_SEQ"/></not>
     </preConditions>
-    <createSequence sequenceName="VESSEL_USE_FEATURE_SEQ" incrementBy="50" startValue="1000"/>
+    <createSequence sequenceName="VESSEL_USE_FEATURES_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-005">
     <preConditions onFail="MARK_RAN">
