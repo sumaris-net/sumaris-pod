@@ -45,6 +45,7 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
 
     private Date startDate;
     private Date endDate;
+    private Integer year;
 
     private String programLabel;
     private Integer[] programIds;

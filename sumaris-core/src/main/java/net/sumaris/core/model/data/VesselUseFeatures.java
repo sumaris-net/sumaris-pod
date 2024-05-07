@@ -45,8 +45,8 @@ import java.util.List;
 public class VesselUseFeatures implements IUseFeaturesEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_USE_FEATURE_SEQ")
-    @SequenceGenerator(name = "VESSEL_USE_FEATURE_SEQ", sequenceName="VESSEL_USE_FEATURE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_USE_FEATURES_SEQ")
+    @SequenceGenerator(name = "VESSEL_USE_FEATURES_SEQ", sequenceName="VESSEL_USE_FEATURES_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 

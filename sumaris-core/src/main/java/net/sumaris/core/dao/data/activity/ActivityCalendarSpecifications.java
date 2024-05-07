@@ -88,6 +88,14 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
         }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds));
     }
 
+    default Specification<ActivityCalendar> atYear(Integer year) {
+        if (year == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, ActivityCalendarFilterVO.Fields.YEAR);
+            return cb.equal(root.get(ActivityCalendar.Fields.YEAR), param);
+        }).addBind(ActivityCalendar.Fields.YEAR, year);
+    }
+
     default Specification<ActivityCalendar> betweenDate(Date startDate, Date endDate) {
         if (startDate == null && endDate == null) return null;
         return (root, query, cb) -> {

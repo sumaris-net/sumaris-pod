@@ -47,8 +47,8 @@ import java.util.List;
 public class GearUseFeatures implements IUseFeaturesEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_USE_FEATURE_SEQ")
-    @SequenceGenerator(name = "GEAR_USE_FEATURE_SEQ", sequenceName="GEAR_USE_FEATURE_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_USE_FEATURES_SEQ")
+    @SequenceGenerator(name = "GEAR_USE_FEATURES_SEQ", sequenceName="GEAR_USE_FEATURES_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
