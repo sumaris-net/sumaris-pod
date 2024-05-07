@@ -89,12 +89,20 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     @Override
     public List<ActivityCalendarVO> findAll(ActivityCalendarFilterVO filter, int offset, int size, String sortAttribute,
                                             SortDirection sortDirection, ActivityCalendarFetchOptions fetchOptions) {
-        return repository.findAll(ActivityCalendarFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+        List<ActivityCalendarVO> result = repository.findAll(ActivityCalendarFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+
+        fillVOs(result, fetchOptions);
+
+        return result;
     }
 
     @Override
     public List<ActivityCalendarVO> findAll(@Nullable ActivityCalendarFilterVO filter, @Nullable Page page, ActivityCalendarFetchOptions fetchOptions) {
-        return repository.findAll(ActivityCalendarFilterVO.nullToEmpty(filter), page, fetchOptions);
+        List<ActivityCalendarVO> result = repository.findAll(ActivityCalendarFilterVO.nullToEmpty(filter), page, fetchOptions);
+
+        fillVOs(result, fetchOptions);
+
+        return result;
     }
 
     @Override
@@ -123,23 +131,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
 
         // Load features
         if (fetchOptions.isWithChildrenEntities()) {
-            DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
-
-            // Vessel use features
-            {
-                List<VesselUseFeaturesVO> vesselUseFeatures = vesselUseFeaturesRepository.findAll(VesselUseFeaturesFilterVO.builder()
-                    .activityCalendarId(id)
-                    .build(), childrenFetchOptions);
-                target.setVesselUseFeatures(vesselUseFeatures);
-            }
-
-            // Gear use features
-            {
-                List<GearUseFeaturesVO> gearUseFeatures = gearUseFeaturesRepository.findAll(GearUseFeaturesFilterVO.builder()
-                    .activityCalendarId(id)
-                    .build(), childrenFetchOptions);
-                target.setGearUseFeatures(gearUseFeatures);
-            }
+            fillChildrenEntities(target, fetchOptions);
         }
 
         return target;
@@ -149,6 +141,24 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     public int getProgramIdById(int id) {
         return repository.getProgramIdById(id);
     }
+
+    public void fillVOs(List<ActivityCalendarVO> targets, ActivityCalendarFetchOptions fetchOptions) {
+
+        if (fetchOptions.isWithVesselSnapshot()) {
+            fillVesselSnapshots(targets);
+        }
+
+        // Measurements
+        if (fetchOptions.isWithMeasurementValues()) {
+            targets.forEach(target -> target.setMeasurementValues(measurementDao.getActivityCalendarMeasurementsMap(target.getId())));
+        }
+
+        // Load features
+        if (fetchOptions.isWithChildrenEntities()) {
+            fillChildrenEntities(targets, fetchOptions);
+        }
+    }
+
 
     public void fillVesselSnapshot(ActivityCalendarVO target) {
         Integer year = target.getYear();
@@ -164,8 +174,33 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         }
     }
 
-    public void fillVesselSnapshots(List<ActivityCalendarVO> target) {
-        target.parallelStream().forEach(this::fillVesselSnapshot);
+    public void fillVesselSnapshots(List<ActivityCalendarVO> targets) {
+        targets.parallelStream().forEach(this::fillVesselSnapshot);
+    }
+
+
+    public void fillChildrenEntities(ActivityCalendarVO target, ActivityCalendarFetchOptions fetchOptions) {
+        DataFetchOptions childrenFetchOptions = DataFetchOptions.copy(fetchOptions);
+
+        // Vessel use features
+        {
+            List<VesselUseFeaturesVO> vesselUseFeatures = vesselUseFeaturesRepository.findAll(VesselUseFeaturesFilterVO.builder()
+                    .activityCalendarId(target.getId())
+                    .build(), childrenFetchOptions);
+            target.setVesselUseFeatures(vesselUseFeatures);
+        }
+
+        // Gear use features
+        {
+            List<GearUseFeaturesVO> gearUseFeatures = gearUseFeaturesRepository.findAll(GearUseFeaturesFilterVO.builder()
+                    .activityCalendarId(target.getId())
+                    .build(), childrenFetchOptions);
+            target.setGearUseFeatures(gearUseFeatures);
+        }
+    }
+
+    public void fillChildrenEntities(List<ActivityCalendarVO> targets, ActivityCalendarFetchOptions fetchOptions) {
+        targets.parallelStream().forEach(target -> this.fillChildrenEntities(target, fetchOptions));
     }
 
     @Override
