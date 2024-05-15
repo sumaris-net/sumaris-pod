@@ -68,7 +68,6 @@ import java.io.IOException;
     }
 )
 @EnableWebSocket
-@EnableCaching
 @Slf4j
 @Profile("!test")
 public class Application extends SpringBootServletInitializer {

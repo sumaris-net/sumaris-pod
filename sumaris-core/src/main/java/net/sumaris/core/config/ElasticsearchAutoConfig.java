@@ -55,7 +55,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 
 @Configuration(proxyBeanMethods = false)
-@Order(1)
+@Order(2)
 @RequiredArgsConstructor
 @EnableConfigurationProperties({ElasticsearchProperties.class})
 @ConditionalOnProperty(name = "spring.elasticsearch.enabled", havingValue = "true")

@@ -37,20 +37,27 @@ import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.*;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.ExpiryPolicyBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.ehcache.jsr107.Eh107Configuration;
 import org.hibernate.cache.jcache.ConfigSettings;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.Date;
 
 @Configuration(proxyBeanMethods = false)
+@EnableCaching
 @ConditionalOnClass({javax.cache.Cache.class, org.ehcache.Cache.class, javax.cache.CacheManager.class})
 @ConditionalOnProperty(
     prefix = "spring",
@@ -59,6 +66,7 @@ import java.util.Date;
     matchIfMissing = true
 )
 @Slf4j
+@AutoConfigureBefore(JpaAutoConfiguration.class)
 public class CacheConfiguration extends CachingConfigurerSupport {
 
     public interface Names {
@@ -93,7 +101,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
 
         String PROGRAM_PRIVILEGES_BY_PERSON_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegesByPersonId";
 
-        String PROGRAM_ACQUISITION_LEVELS_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programAcquisitionLevelById";
+        String PROGRAM_ACQUISITION_LEVELS_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programAcquisitionLevelsById";
 
         // Program privilege
         String PROGRAM_PRIVILEGE_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegeById";
@@ -150,9 +158,24 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String MAIN_UNDEFINED_OPERATION_GROUP_BY_TRIP_ID = "net.sumaris.core.dao.data.operation.mainUndefinedOperationGroupId";
 
     }
+    private static final int TIME_TO_LIVE_SECONDS = 240;
+    private static final int MAX_ELEMENTS_DEFAULT = 200;
+    // Create this configuration as a bean so that it is used to customize automatically created caches
+    @Bean
+    public javax.cache.configuration.Configuration<Object, Object> jcacheConfiguration() {
+        final org.ehcache.config.CacheConfiguration<Object, Object> cacheConfiguration =
+            CacheConfigurationBuilder
+                .newCacheConfigurationBuilder(Object.class, Object.class, ResourcePoolsBuilder.heap(MAX_ELEMENTS_DEFAULT))
+                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(TIME_TO_LIVE_SECONDS)))
+                .build();
+        return Eh107Configuration.fromEhcacheCacheConfiguration(
+            cacheConfiguration
+        );
+    }
+
 
     @Bean
-    @ConditionalOnBean({javax.cache.CacheManager.class})
+    //@ConditionalOnBean({javax.cache.CacheManager.class})
     public HibernatePropertiesCustomizer hibernatePropertiesCustomizer(javax.cache.CacheManager cacheManager) {
         return hibernateProperties -> hibernateProperties.put(ConfigSettings.CACHE_MANAGER, cacheManager);
     }
@@ -161,9 +184,11 @@ public class CacheConfiguration extends CachingConfigurerSupport {
     public JCacheManagerCustomizer cacheManagerCustomizer(SumarisConfiguration config) {
 
         return cacheManager -> {
-            log.info("Starting cache manager {{}} on {{}}",
+            log.info("Starting cache manager {{}} on {{}} - {} statistics",
                 cacheManager.getClass().getSimpleName(),
-                config.getCacheDirectory());
+                config.getCacheDirectory(),
+                config.enableCacheStatistics() ? "with" : "no"
+                );
 
             log.info("Adding {Core} caches...");
             // Referential
@@ -199,6 +224,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_WRITE_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
             Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_LOCATION_IDS_BY_USER_ID, SimpleKey.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, Integer.class, ReferentialVO.class,500);
+            cacheManager.enableStatistics(Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, true);
 
             // Strategy
             Caches.createCollectionHeapCache(cacheManager, Names.STRATEGIES_BY_FILTER, StrategyVO.class, CacheTTL.DEFAULT.asDuration(), 100);
@@ -246,6 +272,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
 
         };
     }
+
 
 
 }

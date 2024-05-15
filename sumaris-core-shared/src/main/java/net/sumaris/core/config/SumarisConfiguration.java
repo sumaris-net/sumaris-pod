@@ -830,11 +830,20 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     /**
      * Is spring cache enabled ?
-     * @return
+     * @return true is enabled
      */
     public boolean enableCache() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.CACHE_ENABLED.getKey());
     }
+
+    /**
+     * Is spring cache statistics enabled ?
+     * @return true is enabled
+     */
+    public boolean enableCacheStatistics() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.CACHE_STATISTICS_ENABLED.getKey());
+    }
+
 
     /**
      * <p>getLiquibaseDiffTypes.</p>

@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableJpaRepositories(basePackages = {
 	"net.sumaris.core.dao"
 })
-@Order(0)
+@Order(1)
 public class JpaAutoConfiguration {
 
 
