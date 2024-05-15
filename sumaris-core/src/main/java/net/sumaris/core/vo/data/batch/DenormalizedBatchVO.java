@@ -114,7 +114,10 @@ public class DenormalizedBatchVO
 
     @JsonIgnore
     public void addSortingValue(@NonNull DenormalizedBatchSortingValueVO sv) {
-        getSortingValues().add(sv);
+        if (sortingValues == null) {
+            sortingValues = Lists.newArrayList();
+        }
+        sortingValues.add(sv);
         sv.setBatch(this);
     }
 
