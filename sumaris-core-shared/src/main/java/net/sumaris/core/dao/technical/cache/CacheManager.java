@@ -26,11 +26,16 @@ import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import javax.cache.Cache;
 import java.util.Map;
 import java.util.Optional;
@@ -43,14 +48,29 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class CacheManager implements ICacheManager {
 
+    private final SumarisConfiguration configuration;
+
     private final Optional<javax.cache.CacheManager> cacheManager;
 
     private final Map<String, com.google.common.cache.Cache<String, Object>> internalCaches = Maps.newConcurrentMap();
+
+    private boolean enableStats = false;
 
     public Map<String, Map<String, Long>> getCacheStats() {
        return cacheManager.map(Caches::getStatistics).orElseGet(Maps::newHashMap);
     }
 
+    @PostConstruct
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady() {
+        boolean enableStats = configuration.enableCacheStatistics();
+        if (this.enableStats != enableStats) {
+            this.enableStats = enableStats;
+            enableAllStatistics(enableStats);
+        }
+    }
+
+    @Override
     public boolean clearAllCaches() {
         log.info("Clearing caches...");
 
@@ -79,6 +99,7 @@ public class CacheManager implements ICacheManager {
         return true;
     }
 
+    @Override
     public boolean clearCache(@NonNull String name) {
         if (cacheManager.isEmpty()) return false;
 
@@ -153,4 +174,18 @@ public class CacheManager implements ICacheManager {
                         .build());
     }
 
+    private void enableAllStatistics(boolean enable) {
+        if (cacheManager.isEmpty()) return;
+
+        javax.cache.CacheManager cm = cacheManager.get();
+        String action = enable ? "enabling" : "disabling";
+        try {
+            log.info("{}} cache statistics...", StringUtils.capitalize(action));
+            cm.getCacheNames().forEach(cacheName -> {
+                cm.enableStatistics(cacheName, enable);
+            });
+        } catch (RuntimeException e) {
+            log.error("Error while {} cache statistics", action, e);
+        }
+    }
 }
