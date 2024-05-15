@@ -36,6 +36,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -123,10 +124,21 @@ public interface MetierSpecifications
         .addBind(EXCLUDED_TRIP_ID_PARAMETER, filter.getExcludedTripId());
     }
 
+    default List<MetierVO> findByFilter(
+            IReferentialFilter filter,
+            int offset,
+            int size,
+            String sortAttribute,
+            SortDirection sortDirection) {
+        return findByFilter(filter, offset, size, sortAttribute, sortDirection, ReferentialFetchOptions.DEFAULT);
+    }
+
     List<MetierVO> findByFilter(
             IReferentialFilter filter,
             int offset,
             int size,
             String sortAttribute,
-            SortDirection sortDirection);
+            SortDirection sortDirection,
+            ReferentialFetchOptions fetchOptions);
+
 }

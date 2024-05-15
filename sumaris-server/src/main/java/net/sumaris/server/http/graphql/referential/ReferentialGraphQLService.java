@@ -54,7 +54,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -124,19 +123,24 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
             @GraphQLEnvironment() ResolutionEnvironment env) {
 
+        Set<String> fields = GraphQLUtils.fields(env);
+        ReferentialFetchOptions fetchOptions = ReferentialFetchOptions.builder()
+                .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
+                .build();
 
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
         if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
             return metierRepository.findByFilter(
                     MetierFilterVO.nullToEmpty(filter),
-                    offset, size, sort,
-                    SortDirection.valueOf(direction.toUpperCase()));
+                    offset == null ? 0 : offset,
+                    size == null ? 1000 : size,
+                    sort == null ? ReferentialVO.Fields.LABEL : sort,
+                    SortDirection.fromString(direction, SortDirection.ASC), fetchOptions);
         }
 
         // Restrict access
         restrictFilter(entityName, filter);
 
-        Set<String> fields = GraphQLUtils.fields(env);
 
         return referentialService.findByFilter(entityName,
                 ReferentialFilterVO.nullToEmpty(filter),
@@ -144,9 +148,7 @@ public class ReferentialGraphQLService {
                 size == null ? 1000 : size,
                 sort == null ? ReferentialVO.Fields.LABEL : sort,
                 SortDirection.fromString(direction, SortDirection.ASC),
-                ReferentialFetchOptions.builder()
-                    .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
-                    .build()
+                fetchOptions
             );
     }
 

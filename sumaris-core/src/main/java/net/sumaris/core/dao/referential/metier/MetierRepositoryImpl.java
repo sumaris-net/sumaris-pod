@@ -22,12 +22,10 @@ package net.sumaris.core.dao.referential.metier;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
-import lombok.NonNull;
+import com.google.common.collect.ImmutableMap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -40,8 +38,6 @@ import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -54,8 +50,8 @@ import java.util.stream.Stream;
 
 
 public class MetierRepositoryImpl
-    extends ReferentialRepositoryImpl<Integer, Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
-    implements MetierSpecifications {
+        extends ReferentialRepositoryImpl<Integer, Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
+        implements MetierSpecifications {
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -73,7 +69,8 @@ public class MetierRepositoryImpl
             int offset,
             int size,
             String sortAttribute,
-            SortDirection sortDirection) {
+            SortDirection sortDirection,
+            ReferentialFetchOptions fetchOptions) {
 
         // Prepare query parameters
         String searchJoinClass = StringUtils.capitalize(filter.getSearchJoin());
@@ -93,37 +90,37 @@ public class MetierRepositoryImpl
         // Create the query
         TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, sort);
 
-        try (Stream<Metier> stream = query.setFirstResult((int)offset).setMaxResults(size).getResultStream()) {
+        try (Stream<Metier> stream = query.setFirstResult((int) offset).setMaxResults(size).getResultStream()) {
             return stream
-                .map(source -> {
-                    MetierVO target = this.toVO(source);
+                    .map(source -> {
+                        MetierVO target = this.toVO(source, fetchOptions);
 
-                    if (enableSearchOnJoin) {
-                        // Copy join search to label/name
-                        Object joinSource = Beans.getProperty(source, searchJoinProperty);
-                        if (joinSource instanceof IItemReferentialEntity) {
-                            target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.LABEL));
-                            target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.NAME));
+                        if (enableSearchOnJoin) {
+                            // Copy join search to label/name
+                            Object joinSource = Beans.getProperty(source, searchJoinProperty);
+                            if (joinSource instanceof IItemReferentialEntity) {
+                                target.setLabel(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.LABEL));
+                                target.setName(Beans.getProperty(joinSource, IItemReferentialEntity.Fields.NAME));
+                            }
+
+                            if (joinSource instanceof TaxonGroup) {
+                                TaxonGroup tg = (TaxonGroup) joinSource;
+                                target.getTaxonGroup().setLevelId(tg.getTaxonGroupType().getId());
+                            }
+
+                            // Override the entityName, to make sure client cache will NOT mixed Metier and Metier+searchJoin
+                            target.setEntityName(target.getEntityName() + searchJoinClass);
+
                         }
 
-                        if (joinSource instanceof TaxonGroup) {
-                            TaxonGroup tg = (TaxonGroup) joinSource;
-                            target.getTaxonGroup().setLevelId(tg.getTaxonGroupType().getId());
-                        }
-
-                        // Override the entityName, to make sure client cache will NOT mixed Metier and Metier+searchJoin
-                        target.setEntityName(target.getEntityName() + searchJoinClass);
-
-                    }
-                    return target;
-                })
-                // If join search: sort using a comparator (sort was skipped in query)
-                .sorted(sortingOutsideQuery ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
-                .collect(Collectors.toList());
+                        //
+                        return target;
+                    })
+                    // If join search: sort using a comparator (sort was skipped in query)
+                    .sorted(sortingOutsideQuery ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
+                    .collect(Collectors.toList());
         }
     }
-
-
 
     @Override
     public void toVO(Metier source, MetierVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
@@ -139,12 +136,18 @@ public class MetierRepositoryImpl
         if (source.getTaxonGroup() != null || copyIfNull) {
             if (source.getTaxonGroup() == null) {
                 target.setTaxonGroup(null);
-            }
-            else {
+            } else {
                 target.setTaxonGroup(taxonGroupRepository.toVO(source.getTaxonGroup()));
             }
         }
 
+        // Properties (e.g. when called from referential graphql service
+        if (fetchOptions != null && fetchOptions.isWithProperties()) {
+            target.setProperties(ImmutableMap.of(
+                    MetierVO.Fields.GEAR, target.getGear(),
+                    MetierVO.Fields.TAXON_GROUP, target.getTaxonGroup())
+            );
+        }
     }
 
     /* -- protected method -- */
@@ -152,9 +155,9 @@ public class MetierRepositoryImpl
     @Override
     protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(alreadyPracticedMetier(filter))
-            .and(inGearIds(filter))
-            .and(inTaxonGroupTypeIds(filter));
+                .and(alreadyPracticedMetier(filter))
+                .and(inGearIds(filter))
+                .and(inTaxonGroupTypeIds(filter));
     }
 
     private Specification<Metier> alreadyPracticedMetier(IReferentialFilter filter) {
