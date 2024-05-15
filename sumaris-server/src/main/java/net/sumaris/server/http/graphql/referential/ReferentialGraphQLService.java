@@ -154,6 +154,12 @@ public class ReferentialGraphQLService {
     @Transactional(readOnly = true)
     public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
                                      @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+
+        // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
+        if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
+            return metierRepository.count(MetierFilterVO.nullToEmpty(filter));
+        }
+
         // Restrict access to program
         restrictFilter(entityName, filter);
 
