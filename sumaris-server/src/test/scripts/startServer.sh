@@ -16,9 +16,11 @@ PROJECT_ROOT=$(cd ${PROJECT_DIR}/.. && pwd)
 HOME=`eval echo "~$USER"`
 APP_BASEDIR="${PROJECT_ROOT}/.local"
 LOG_DIR="${APP_BASEDIR}/log/sumaris-pod.log"
-DB_URL="jdbc:hsqldb:hsql://localhost/sumaris"
+#DB_URL="jdbc:hsqldb:hsql://localhost/sumaris"
+DB_URL="jdbc:hsqldb:file:${PROJECT_ROOT}/sumaris-core/target/db-server/sumaris"
 CONFIG_DIR="${PROJECT_ROOT}/.local/config"
 PROFILE="hsqldb,$1"
+JVM_MAX_MEMORY=1024m
 
 echo "Project root: ${PROJECT_ROOT}"
 mkdir -p ${APP_BASEDIR}
@@ -45,7 +47,7 @@ WAR_FILE="target/sumaris-server-*.war"
 
 JAVA_OPTS=""
 JAVA_OPTS="$JAVA_OPTS --enable-preview"
-JAVA_OPTS="$JAVA_OPTS -Xms512m -Xmx1024m"
+JAVA_OPTS="$JAVA_OPTS -Xms${JVM_MAX_MEMORY} -Xmx${JVM_MAX_MEMORY}"
 JAVA_OPTS="$JAVA_OPTS -Dspring.main.banner-mode=off"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${APP_BASEDIR}"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${LOG_DIR}"
