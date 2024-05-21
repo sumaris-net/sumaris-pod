@@ -35,6 +35,8 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -61,13 +63,14 @@ public class VesselRegistrationPeriodRepositoryImpl
     }
 
     @Override
-    public Specification<VesselRegistrationPeriod> toSpecification(VesselFilterVO filter) {
+    public Specification<VesselRegistrationPeriod> toSpecification(VesselRegistrationFilterVO filter) {
         return BindableSpecification.where(vesselId(filter.getVesselId()))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
+                .and(registrationLocationIds(filter.getRegistrationLocationIds()))
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()));
     }
 
     @Override
-    public List<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Page page) {
+    public List<VesselRegistrationPeriodVO> findAll(VesselRegistrationFilterVO filter, Page page) {
 
         TypedQuery<VesselRegistrationPeriod> query = getQuery(toSpecification(filter), page, VesselRegistrationPeriod.class);
 

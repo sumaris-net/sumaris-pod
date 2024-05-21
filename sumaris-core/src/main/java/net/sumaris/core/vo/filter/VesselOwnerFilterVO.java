@@ -38,16 +38,23 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldNameConstants
-public class VesselRegistrationFilterVO implements IVesselFilter {
+public class VesselOwnerFilterVO implements IVesselFilter {
 
-    public static VesselRegistrationFilterVO nullToEmpty(VesselRegistrationFilterVO f) {
-        return f != null ? f : new VesselRegistrationFilterVO();
+    public static VesselOwnerFilterVO nullToEmpty(VesselOwnerFilterVO f) {
+        return f != null ? f : new VesselOwnerFilterVO();
     }
 
-    private Integer vesselId;
-    private Integer[] registrationLocationIds;
+    private String programLabel;
+    private Integer[] programIds;
 
+    private String searchText;
+    private String searchAttribute;
+    private String[] searchAttributes;
+
+    private Integer vesselId;
+    private Integer vesselOwnerId;
     private Date startDate;
     private Date endDate;
-
 }
+
+

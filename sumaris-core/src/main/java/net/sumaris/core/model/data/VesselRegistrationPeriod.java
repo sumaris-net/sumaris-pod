@@ -44,7 +44,6 @@ public class VesselRegistrationPeriod implements IWithVesselEntity<Integer, Vess
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_REGISTRATION_PERIOD_SEQ")
     @SequenceGenerator(name = "VESSEL_REGISTRATION_PERIOD_SEQ", sequenceName="VESSEL_REGISTRATION_PERIOD_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -70,7 +69,7 @@ public class VesselRegistrationPeriod implements IWithVesselEntity<Integer, Vess
     @ToString.Exclude
     private Vessel vessel;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "registration_location_fk", nullable = false)
     private Location registrationLocation;
 

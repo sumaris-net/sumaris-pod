@@ -37,7 +37,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_owner")
-public class VesselOwner implements IEntity<Integer> {
+public class VesselOwner implements IEntity<Integer>, IWithProgramEntity<Integer, Program> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_OWNER_SEQ")

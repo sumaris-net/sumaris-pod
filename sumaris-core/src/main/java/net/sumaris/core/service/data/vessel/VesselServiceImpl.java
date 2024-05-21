@@ -28,9 +28,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
+import net.sumaris.core.dao.data.vessel.VesselOwnerPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
 import net.sumaris.core.dao.data.vessel.VesselRepository;
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.util.Beans;
@@ -38,6 +40,8 @@ import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -58,6 +62,8 @@ public class VesselServiceImpl implements VesselService {
 	protected final VesselFeaturesRepository vesselFeaturesRepository;
 
 	protected final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
+
+	protected final VesselOwnerPeriodRepository vesselOwnerPeriodRepository;
 
 	protected final MeasurementDao measurementDao;
 
@@ -97,8 +103,25 @@ public class VesselServiceImpl implements VesselService {
 	@Override
 	public List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page) {
 		return vesselRegistrationPeriodRepository.findAll(
-			VesselFilterVO.builder().vesselId(vesselId).build(),
+			VesselRegistrationFilterVO.builder()
+					.vesselId(vesselId)
+					.build(),
 			page);
+	}
+
+	@Override
+	public List<VesselOwnerPeriodVO> findOwnerPeriodsByFilter(VesselOwnerFilterVO filter, Page page) {
+		return vesselOwnerPeriodRepository.findAll(filter, page);
+	}
+
+	@Override
+	public List<VesselOwnerPeriodVO> findOwnerPeriodsByVesselId(int vesselId, Page page) {
+		return vesselOwnerPeriodRepository.findAll(
+				VesselOwnerFilterVO.builder()
+						.vesselId(vesselId)
+						.programLabel(ProgramEnum.SIH.getLabel())
+						.build(),
+				page);
 	}
 
 	@Override

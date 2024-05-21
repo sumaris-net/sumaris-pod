@@ -25,45 +25,9 @@ package net.sumaris.core.vo.filter;
 import java.io.Serializable;
 
 /**
- * @author peck7 on 28/08/2020.
+ * @author blavenie
  */
-public interface IReferentialFilter extends Serializable, ISearchTextFilter {
-
-    Integer getId();
-
-    void setId(Integer id);
-
-    String getLabel();
-
-    void setLabel(String label);
-
-    String getName();
-
-    void setName(String name);
-
-    Integer[] getStatusIds();
-
-    void setStatusIds(Integer[] statusIds);
-
-    Integer[] getLevelIds();
-
-    void setLevelIds(Integer[] levelIds);
-
-    @Deprecated
-    Integer getLevelId();
-
-    @Deprecated
-    void setLevelId(Integer levelId);
-
-    String[] getLevelLabels();
-
-    void setLevelLabels(String[] LevelLabels);
-
-    @Deprecated
-    String getLevelLabel();
-
-    @Deprecated
-    void setLevelLabel(String LevelLabel);
+public interface ISearchTextFilter extends Serializable {
 
     String getSearchJoin();
 
@@ -81,11 +45,4 @@ public interface IReferentialFilter extends Serializable, ISearchTextFilter {
 
     void setSearchAttribute(String searchAttribute);
 
-    Integer[] getIncludedIds();
-
-    void setIncludedIds(Integer[] includedIds);
-
-    Integer[] getExcludedIds();
-
-    void setExcludedIds(Integer[] excludedIds);
 }

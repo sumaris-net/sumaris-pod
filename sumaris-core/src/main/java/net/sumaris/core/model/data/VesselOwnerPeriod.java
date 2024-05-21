@@ -24,6 +24,7 @@ package net.sumaris.core.model.data;
 
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.IEntity;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -31,32 +32,45 @@ import java.util.Date;
 
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_owner_period")
-public class VesselOwnerPeriod implements Serializable {
+public class VesselOwnerPeriod implements IEntity<VesselOwnerPeriodId> {
+    public static interface Fields extends IEntity.Fields {
+        String VESSEL = "vessel";
+        String VESSEL_OWNER = "vesselOwner";
+        String START_DATE = "startDate";
+        String END_DATE = "startDate";
+    }
 
-    @Id
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "vessel_fk", nullable = false)
-    @EqualsAndHashCode.Include
+    @EmbeddedId
+    private VesselOwnerPeriodId id;
+
+    @MapsId("vesselId")
+    @ManyToOne(fetch = FetchType.LAZY)
     private Vessel vessel;
 
-    @Id
+    @MapsId("vesselOwnerId")
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "vessel_owner_fk", nullable = false)
-    @EqualsAndHashCode.Include
     private VesselOwner vesselOwner;
-
-    @Id
-    @Column(name = "start_date", nullable = false)
-    @Temporal(TemporalType.DATE)
-    @EqualsAndHashCode.Include
-    private Date startDate;
 
     @Column(name = "end_date")
     @Temporal(TemporalType.DATE)
     private Date endDate;
 
+
+    public Date getStartDate() {
+        // check if id is null to avoid NullPointerException
+        if (id == null) {
+            return null;
+        }
+        return id.getStartDate();
+    }
+
+    public void setStartDate(Date startDate) {
+        if (id == null) {
+            id = new VesselOwnerPeriodId();
+        }
+        id.setStartDate(startDate);
+    }
 }

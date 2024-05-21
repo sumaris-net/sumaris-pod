@@ -28,8 +28,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.data.IWithProgramEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
@@ -48,7 +50,7 @@ import java.util.Date;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Document(indexName = VesselOwnerVO.INDEX, createIndex = false)
 @Setting(settingPath = "settings/whitespace-analyzer.json")
-public class VesselOwnerVO {
+public class VesselOwnerVO implements IValueObject<Integer>, IWithProgramEntity<Integer, ProgramVO> {
 
     @GraphQLIgnore
     public static final String INDEX = "vessel_owner";

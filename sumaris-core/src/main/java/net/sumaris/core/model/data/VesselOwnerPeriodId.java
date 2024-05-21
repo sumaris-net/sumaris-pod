@@ -1,10 +1,10 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.model.data;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2019 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,32 +22,33 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
+import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
- */
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@Embeddable
+@Getter
+@Setter
+@EqualsAndHashCode
 @FieldNameConstants
-public class VesselRegistrationFilterVO implements IVesselFilter {
+@NoArgsConstructor
+@AllArgsConstructor
+public class VesselOwnerPeriodId implements Serializable {
 
-    public static VesselRegistrationFilterVO nullToEmpty(VesselRegistrationFilterVO f) {
-        return f != null ? f : new VesselRegistrationFilterVO();
-    }
-
+    @Column(name = "vessel_fk")
     private Integer vesselId;
-    private Integer[] registrationLocationIds;
 
+    @Column(name = "vessel_owner_fk")
+    private Integer vesselOwnerId;
+
+    @Column(name = "start_date")
+    @Temporal(TemporalType.DATE)
     private Date startDate;
-    private Date endDate;
 
+    public VesselOwnerPeriodId copy() {
+        return new VesselOwnerPeriodId(this.getVesselId(), this.getVesselOwnerId(), this.getStartDate());
+    }
 }

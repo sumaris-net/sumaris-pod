@@ -45,11 +45,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public interface ReferentialSpecifications<ID extends Serializable, E extends IReferentialWithStatusEntity<ID>>
-    extends IEntityWithStatusSpecifications<ID, E> {
-
+    extends IEntityWithStatusSpecifications<ID, E>,
+        ISearchTextSpecifications<ID, E> {
 
     String LEVEL_LABEL_PARAMETER = "levelLabel";
-    String SEARCH_TEXT_PARAMETER = "searchText";
 
     default Specification<E> hasId(Integer id) {
         if (id == null) return null;
@@ -107,76 +106,6 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
                     }).addBind(LEVEL_LABEL_PARAMETER, Arrays.asList(levelLabels))
             )
         .orElse(null);
-    }
-
-    default Specification<E> searchOrJoinSearchText(IReferentialFilter filter) {
-        String searchJoinProperty = StringUtils.uncapitalize(filter.getSearchJoin());
-        if (StringUtils.isNotBlank(searchJoinProperty)) {
-            return joinSearchText(searchJoinProperty, filter.getSearchAttribute(), filter.getSearchText());
-        } else {
-            return searchText(
-                StringUtils.isNotBlank(filter.getSearchAttribute()) ? ArrayUtils.toArray(filter.getSearchAttribute()) : null,
-                filter.getSearchText());
-        }
-    }
-
-    default Specification<E> searchText(String[] searchAttributes, String searchText) {
-        return searchText(searchAttributes, searchText, false);
-    }
-
-    default Specification<E> searchText(String[] searchAttributes, String searchText, boolean searchAny) {
-        if (StringUtils.isBlank(searchText)) return null;
-        return BindableSpecification.<E>where((root, query, cb) -> {
-            ParameterExpression<String> searchTextParam = cb.parameter(String.class, SEARCH_TEXT_PARAMETER);
-            if (ArrayUtils.isNotEmpty(searchAttributes)) {
-                // search on all attributes
-                List<Predicate> predicates = Arrays.stream(searchAttributes).map(searchAttribute -> cb.like(
-                        cb.upper(Daos.composePath(root, searchAttribute)),
-                        searchTextParam,
-                        Daos.LIKE_ESCAPE_CHAR)
-                    ).collect(Collectors.toList());
-                // One predicate
-                if (predicates.size() == 1) return predicates.get(0);
-                // Many predicates (use OR operator)
-                return cb.or(
-                    predicates.toArray(new Predicate[predicates.size()])
-                );
-            }
-            // Search on label+name only
-            return cb.or(
-                cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
-                cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), cb.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
-            );
-        })
-            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText.toUpperCase(), searchAny));
-    }
-
-    default Specification<E> joinSearchText(String joinProperty, String searchAttribute, String searchText) {
-        if (StringUtils.isBlank(searchText)) return null;
-        Preconditions.checkArgument(StringUtils.isNotBlank(joinProperty), "'joinProperty' cannot be empty");
-        return BindableSpecification.<E>where((root, query, cb) -> {
-            ParameterExpression<String> searchTextParam = cb.parameter(String.class, SEARCH_TEXT_PARAMETER);
-
-            // Avoid duplication, for 'one to many' join
-            if (shouldQueryDistinct(joinProperty)) {
-                query.distinct(true);
-            }
-
-            // Get the class join, using properties
-            Join<Object, Object> join = Daos.composeJoin(root, joinProperty, JoinType.INNER);
-
-            // Search on given attribute
-            if (StringUtils.isNotBlank(searchAttribute)) {
-                return cb.like(cb.upper(join.get(searchAttribute)), searchTextParam, Daos.LIKE_ESCAPE_CHAR);
-            }
-
-            // Search on label+name
-            return cb.or(
-                cb.like(cb.upper(join.get(IItemReferentialEntity.Fields.LABEL)), searchTextParam, Daos.LIKE_ESCAPE_CHAR),
-                cb.like(cb.upper(join.get(IItemReferentialEntity.Fields.NAME)), cb.concat("%", searchTextParam), Daos.LIKE_ESCAPE_CHAR)
-            );
-        })
-            .addBind(SEARCH_TEXT_PARAMETER, Daos.getEscapedSearchText(searchText.toUpperCase()));
     }
 
     default Specification<E> inSearchJoinLevelIds(String searchJoin, Integer... joinLevelIds) {
