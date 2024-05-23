@@ -121,16 +121,7 @@ public class VesselGraphQLService {
         // Compute fetch options
         VesselFetchOptions fetchOptions = getSnapshotFetchOptions(GraphQLUtils.fields(env));
 
-        return vesselSnapshotService.findAll(
-                filter,
-                Page.builder()
-                    .offset(offset)
-                    .size(size)
-                    .sortBy(sort)
-                    .sortDirection(SortDirection.fromString(direction))
-                    .build(),
-                fetchOptions
-            );
+        return vesselSnapshotService.findAll(filter, offset, size, sort, SortDirection.fromString(direction), fetchOptions);
     }
 
     @GraphQLQuery(name = "vesselSnapshotsCount", description = "Get total vessel snapshots count")

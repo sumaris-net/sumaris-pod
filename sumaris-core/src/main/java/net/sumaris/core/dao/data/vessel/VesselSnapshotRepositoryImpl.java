@@ -112,7 +112,8 @@ public class VesselSnapshotRepositoryImpl
                                           @Nullable Page page,
                                           @Nullable VesselFetchOptions fetchOptions) {
 
-        CriteriaBuilder cb = this.getEntityManager().getCriteriaBuilder();
+        EntityManager em = this.getEntityManager();
+        CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Tuple> criteriaQuery = cb.createTupleQuery();
 
         Root<VesselFeatures> root = criteriaQuery.from(VesselFeatures.class);
@@ -140,7 +141,7 @@ public class VesselSnapshotRepositoryImpl
         // Add sorting
         addSorting(criteriaQuery, root, cb, page);
 
-        TypedQuery<Tuple> query = getEntityManager().createQuery(criteriaQuery);
+        TypedQuery<Tuple> query = em.createQuery(criteriaQuery);
 
         // Bind parameters
         applyBindings(query, spec);
@@ -181,7 +182,7 @@ public class VesselSnapshotRepositoryImpl
             .and(programLabel(filter.getProgramLabel()))
             .and(programIds(filter.getProgramIds()))
             // Dates
-            .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
+            //.and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
             .and(newerThan(filter.getMinUpdateDate()))
             // Text
