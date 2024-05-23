@@ -74,8 +74,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
         VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
             .vesselId(vesselId)
             .programLabel(ProgramEnum.SIH.getLabel())
-            // FIXME
-            //.startDate(now).endDate(now)
+            .startDate(now).endDate(now)
             .build();
         List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
 
@@ -106,6 +105,58 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
 
     @Test
     public void findByFilter_withProgram() {
+        Integer vesselId = fixtures.getVesselId(0);
+
+        // Get invalid program label
+        {
+            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+                    .vesselId(vesselId)
+                    .programLabel("FAKE")
+                    .build();
+            List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+            Assert.assertNotNull(result);
+            Assert.assertEquals(0, result.size());
+        }
+
+        // Get valid program label
+        {
+            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+                    .vesselId(vesselId)
+                    .programLabel(ProgramEnum.SIH.getLabel())
+                    .build();
+            List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+            Assert.assertNotNull(result);
+            Assert.assertFalse(result.isEmpty());
+        }
+
+
+        // Get invalid program ids
+        {
+            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+                    .vesselId(vesselId)
+                    .programIds(new Integer[]{-9999})
+                    .build();
+            List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+            Assert.assertNotNull(result);
+            Assert.assertTrue(result.isEmpty());
+        }
+
+        // Get valid program ids
+        {
+            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+                    .vesselId(vesselId)
+                    .programIds(new Integer[]{ProgramEnum.SIH.getId()})
+                    .build();
+            List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+            Assert.assertNotNull(result);
+            Assert.assertFalse(result.isEmpty());
+        }
+
+    }
+
+
+    @Test
+    public void findByFilter_withDate() {
         Integer vesselId = fixtures.getVesselId(0);
 
         VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()

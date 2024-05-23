@@ -40,7 +40,7 @@ public class VesselOwnerPeriod implements IEntity<VesselOwnerPeriodId> {
         String VESSEL = "vessel";
         String VESSEL_OWNER = "vesselOwner";
         String START_DATE = "startDate";
-        String END_DATE = "startDate";
+        String END_DATE = "endDate";
     }
 
     @EmbeddedId

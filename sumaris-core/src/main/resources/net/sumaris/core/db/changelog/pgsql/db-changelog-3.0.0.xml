@@ -1123,6 +1123,19 @@
 		<addForeignKeyConstraint constraintName="named_filter_recorder_department_fkc" baseTableName="named_filter" baseColumnNames="recorder_department_fk" referencedTableName="department" referencedColumnNames="id"/>
 	</changeSet>
 
+  <!-- Add index on VESSEL_OPWNER.REGISTRATION_CODE-->
+  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-011">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <not><indexExists indexName="IX_VESSEL_OWNER_REG_CODE"/></not>
+        <tableExists tableName="VESSEL_OWNER"/>
+      </and>
+    </preConditions>
+    <sql endDelimiter=";">
+      create index IX_VESSEL_OWNER_REG_CODE on VESSEL_OWNER(REGISTRATION_CODE);
+    </sql>
+  </changeSet>
+
   <!-- Update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-300" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

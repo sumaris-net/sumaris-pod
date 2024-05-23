@@ -87,7 +87,7 @@ public class VesselOwnerPeriodRepositoryImpl
 
         Specification<VesselOwnerPeriod> specification = vesselId(vesselId).and(atDate(date));
         TypedQuery<VesselOwnerPeriod> query = getQuery(specification, 0, 1, StringUtils.doting(VesselOwnerPeriod.Fields.ID, VesselOwnerPeriodId.Fields.START_DATE), SortDirection.DESC, VesselOwnerPeriod.class);
-        try (Stream<VesselOwnerPeriod> stream = query.getResultStream()) {
+        try (Stream<VesselOwnerPeriod> stream = streamQuery(query)) {
             Optional<VesselOwnerPeriod> result = stream.findFirst();
 
             // Nothing found: retry without a date, if not already the case

@@ -36,7 +36,10 @@ import java.util.Date;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "vessel_owner")
+@Table(name = "vessel_owner",
+        indexes =
+        @Index(name="ix_vessel_owner_reg_code", columnList = "registration_code")
+)
 public class VesselOwner implements IEntity<Integer>, IWithProgramEntity<Integer, Program> {
 
     @Id

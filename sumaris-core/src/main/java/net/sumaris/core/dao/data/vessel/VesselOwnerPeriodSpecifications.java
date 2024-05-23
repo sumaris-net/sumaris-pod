@@ -101,7 +101,7 @@ public interface VesselOwnerPeriodSpecifications {
                 return cb.not(
                     cb.or(
                         cb.lessThan(Daos.nvlEndDate(root.get(VesselOwnerPeriod.Fields.END_DATE), cb, getDatabaseType()), startDate),
-                        cb.greaterThan(Daos.composePath(root, StringUtils.doting(VesselOwnerPeriod.Fields.ID, VesselOwnerPeriodId.Fields.START_DATE)), endDate)
+                        cb.greaterThan(root.get(StringUtils.doting(VesselOwnerPeriod.Fields.ID, VesselOwnerPeriodId.Fields.START_DATE)), endDate)
                     )
                 );
             }
