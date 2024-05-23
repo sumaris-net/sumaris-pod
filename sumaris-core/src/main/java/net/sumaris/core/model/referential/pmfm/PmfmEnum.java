@@ -110,7 +110,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     IS_DEAD(94, "IS_DEAD"),
     DISCARD_REASON(95, "DISCARD_REASON"),
-    DISCARD_TYPE(408, "DISCARD_TYPE"),
+    DISCARD_TYPE(408, "DISCARD_TYPE"), // Nature du rejet - Adagio id=288
     IS_SAMPLING(409, "IS_SAMPLING"), // Lot est-il détaillé ou pas ?
     HAS_INDIVIDUAL_MEASURES(121, "HAS_INDIVIDUAL_MEASURES"),
 
@@ -124,10 +124,10 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     CONTROL_TYPE(130, "CONTROL_TYPE"),
 
-    SIZE_UNLI_CAT(141, "SIZE_UNLI_CAT"),
+    SIZE_UNLI_CAT(141, "SIZE_UNLI_CAT"), // Catégorie de tri terrain - Adagio id=
     PRESERVATION(150, "PRESERVATION"),
     DRESSING(151, "DRESSING"),
-    SIZE_CATEGORY(174, "SIZE_CATEGORY"),
+    SIZE_CATEGORY(174, "SIZE_CATEGORY"), // Adagio SIZE_SORTING_CAT
     TRAWL_SIZE_CAT(418, "TRAWL_SIZE_CAT"),
     PACKAGING(177, "PACKAGING"),
 

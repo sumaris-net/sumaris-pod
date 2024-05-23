@@ -30,6 +30,69 @@
   <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
   <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-  <!-- TODO -->
-
+  <!-- Add ACQUISITION_LEVEL need by activity calendar    -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-400" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM ACQUISITION_LEVEL where label='ACTIVITY_CALENDAR'</sqlCheck>
+      </and>
+    </preConditions>
+      <insert tableName="acquisition_level">
+        <column name="ID" valueComputed="NEXT VALUE FOR acquisition_level_seq"/>
+        <column name="LABEL">ACTIVITY_CALENDAR</column>
+        <column name="NAME">Activity calendar</column>
+        <column name="STATUS_FK" valueNumeric="1"/>
+        <column name="CREATION_DATE" valueComputed="sysdate" />
+        <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      </insert>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-401" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM ACQUISITION_LEVEL where label='MONTHLY_ACTIVITY'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="acquisition_level">
+      <column name="ID" valueComputed="NEXT VALUE FOR acquisition_level_seq"/>
+      <column name="LABEL">MONTHLY_ACTIVITY</column>
+      <column name="NAME">Activity calendar - month</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-402" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM ACQUISITION_LEVEL where label='ACTIVITY_CALENDAR_GEAR_USE_FEATURES'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="acquisition_level">
+      <column name="ID" valueComputed="NEXT VALUE FOR acquisition_level_seq"/>
+      <column name="LABEL">ACTIVITY_CALENDAR_GEAR_USE_FEATURES</column>
+      <column name="NAME">Activity calendar - Gear use features</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-403" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
+        <sqlCheck expectedResult="0">SELECT count(*) FROM ACQUISITION_LEVEL where label='ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES'</sqlCheck>
+      </and>
+    </preConditions>
+    <insert tableName="acquisition_level">
+      <column name="ID" valueComputed="NEXT VALUE FOR acquisition_level_seq"/>
+      <column name="LABEL">ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES</column>
+      <column name="NAME">Activity calendar - Gear physical features</column>
+      <column name="STATUS_FK" valueNumeric="1"/>
+      <column name="CREATION_DATE" valueComputed="sysdate" />
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+    </insert>
+  </changeSet>
 </databaseChangeLog>
