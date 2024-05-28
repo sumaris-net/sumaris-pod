@@ -79,4 +79,6 @@ public class ProgramVO implements IReferentialVO<Integer>{
 
     // readonly
     private String[] privileges;
+
+    private String entityName = "Program";
 }

@@ -31,7 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class TripFetchOptions implements IDataFetchOptions {
+public class TripFetchOptions implements IDataFetchOptions, IWithObserversFetchOptions {
 
     public static final TripFetchOptions DEFAULT = TripFetchOptions.builder().build();
 
@@ -39,6 +39,7 @@ public class TripFetchOptions implements IDataFetchOptions {
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
         .withObservers(false)
+        .withSamplingStrata(false)
         .build();
 
     public static final TripFetchOptions FULL_GRAPH = TripFetchOptions.builder()
@@ -47,10 +48,11 @@ public class TripFetchOptions implements IDataFetchOptions {
         .withGears(true)
         .withSales(true)
         .withExpectedSales(true)
+        .withSamplingStrata(true)
         .build();
 
     @Builder.Default
-    private boolean withVesselSnaphost = true;
+    private boolean withVesselSnapshot = true;
 
     @Builder.Default
     private boolean withRecorderDepartment = true;
@@ -84,4 +86,7 @@ public class TripFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withProgram = true;
+
+    @Builder.Default
+    private boolean withSamplingStrata = false;
 }

@@ -41,11 +41,13 @@ public class PmfmAppliedStrategy implements Serializable {
     @Id
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "applied_strategy_fk", nullable = false)
+    @EqualsAndHashCode.Include
     private AppliedStrategy appliedStrategy;
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pmfm_fk", nullable = false)
+    @EqualsAndHashCode.Include
     private Pmfm pmfm;
 
 }

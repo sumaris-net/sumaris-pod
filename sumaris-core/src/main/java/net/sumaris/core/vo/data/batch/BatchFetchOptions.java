@@ -22,14 +22,19 @@
 
 package net.sumaris.core.vo.data.batch;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 
 @Data
-@Builder
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder(toBuilder = true)
 public class BatchFetchOptions implements IDataFetchOptions {
 
     public static final BatchFetchOptions DEFAULT = BatchFetchOptions.builder().build();
@@ -44,12 +49,12 @@ public class BatchFetchOptions implements IDataFetchOptions {
     private boolean withMeasurementValues = false;
 
     @Override
-    public boolean isWithObservers() {
+    public boolean isWithRecorderPerson() {
         return false;
     }
 
     @Override
-    public boolean isWithRecorderPerson() {
-        return false;
+    public void setWithRecorderPerson(boolean withRecorderPerson) {
+        // Nothing
     }
 }

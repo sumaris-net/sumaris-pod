@@ -74,6 +74,10 @@ public class DatabaseFixtures {
 		};
 	}
 
+	public Integer getScientificVesselId() {
+		return 4;
+	}
+
 	public String getVesselRegistrationCode(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
@@ -191,6 +195,17 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getActivityCalendarId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1; // on vessel 1
+
+			default:
+				return 1;
+		}
+	}
+
 	/* -- Referential -- */
 
 	public Integer getGearId(int index) {
@@ -217,8 +232,38 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getLocationCountryId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 1; // FRA
+			case 1:
+				return 2; // GBR
+			case 2:
+				return 3; // BEL
+			case 3:
+				return 4; // SEY
+
+			default:
+				return 1;
+
+		}
+	}
+
 	public String[] getRectangleLabels() {
 		return new String[]{"65F1", "65F2", "65F3", "65F4","65F5"};
+	}
+
+	public int getRectangleId(int index) {
+        return switch (index) {
+            case 0 -> 110;  // 65F1
+            case 1 -> 111; // 65F2
+            case 2 -> 112; // 65F3
+            case 3 -> 113; // 65F4
+            case 4 -> 114; // 65F5
+
+            default -> 110;
+        };
 	}
 
 	public Integer getDepartmentId(int index) {
@@ -294,10 +339,25 @@ public class DatabaseFixtures {
 			case 0:
 				return 5;
 			case 1:
-				return 6;
+				return 17;
 
 			default:
-				return 1;
+				return 38;
+		}
+	}
+
+	public Integer getMetierIdForFPO(int index) {
+		Preconditions.checkArgument(index >= 0);
+		switch (index) {
+			case 0:
+				return 6;
+			case 1:
+				return 16;
+			case 2:
+				return 55;
+
+			default:
+				return 92;
 		}
 	}
 
@@ -351,6 +411,28 @@ public class DatabaseFixtures {
 		program.setLabel("APASE");
 		return program;
 	}
+
+	public ProgramVO getActivityCalendarProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(110);
+		program.setLabel("SIH-ACTIFLOT");
+		return program;
+	}
+
+	public ProgramVO getActivityCalendarPredocProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(111);
+		program.setLabel("SIH-ACTIPRED");
+		return program;
+	}
+
+	public ProgramVO getDailyActivityCalendarProgram() {
+		ProgramVO program = new ProgramVO();
+		program.setId(30);
+		program.setLabel("SIH-OBSDEB");
+		return program;
+	}
+
 
 	/* -- PMFM -- */
 

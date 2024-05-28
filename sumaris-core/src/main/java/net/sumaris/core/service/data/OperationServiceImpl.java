@@ -288,7 +288,6 @@ public class OperationServiceImpl implements OperationService {
         {
 
             List<BatchVO> batches = getAllBatches(source);
-            batches.forEach(b -> fillDefaultProperties(source, b));
             batches = batchService.saveAllByOperationId(source.getId(), batches);
 
             // Transform saved batches into flat list (e.g. to be used as graphQL query response)
@@ -307,12 +306,9 @@ public class OperationServiceImpl implements OperationService {
         }
 
         // Save Fishing areas
-        {
-            if (source.getFishingAreas() != null) {
-
-                source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
-                fishingAreaService.saveAllByOperationId(source.getId(), source.getFishingAreas());
-            }
+        if (source.getFishingAreas() != null) {
+            source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
+            fishingAreaService.saveAllByOperationId(source.getId(), source.getFishingAreas());
         }
 
     }
@@ -392,7 +388,6 @@ public class OperationServiceImpl implements OperationService {
     }
 
     protected void fillDefaultProperties(OperationVO parent, FishingAreaVO fishingArea) {
-
         fishingArea.setOperationId(parent.getId());
     }
 

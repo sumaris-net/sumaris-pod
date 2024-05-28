@@ -22,7 +22,7 @@ package net.sumaris.core.dao.data.batch;
  * #L%
  */
 
-import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Batch;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author peck7 on 30/03/2020.
  */
-public interface BatchSpecifications extends DataSpecifications<Integer, Batch> {
+public interface BatchSpecifications extends IDataSpecifications<Integer, Batch> {
 
     String DEFAULT_ROOT_BATCH_LABEL = "CATCH_BATCH";
 
@@ -65,16 +65,14 @@ public interface BatchSpecifications extends DataSpecifications<Integer, Batch> 
     default Specification<Batch> hasSaleId(Integer saleId) {
         if (saleId == null) return null;
 
-        BindableSpecification<Batch> specification = BindableSpecification.where((root, query, cb) -> {
+        return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, BatchVO.Fields.SALE_ID);
 
             // Sort by rank order
             query.orderBy(cb.asc(root.get(Batch.Fields.RANK_ORDER)));
 
             return cb.equal(root.get(Batch.Fields.SALE).get(IEntity.Fields.ID), param);
-        });
-        specification.addBind(BatchVO.Fields.SALE_ID, saleId);
-        return specification;
+        }).addBind(BatchVO.Fields.SALE_ID, saleId);
     }
 
     default Specification<Batch> addJoinFetch(BatchFetchOptions fetchOptions, boolean addQueryDistinct) {
@@ -94,7 +92,7 @@ public interface BatchSpecifications extends DataSpecifications<Integer, Batch> 
 
     List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources);
 
-    List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources);
+    List<BatchVO> saveAllBySaleId(int saleId, List<BatchVO> sources);
 
     List<BatchVO> toFlatList(BatchVO source);
 

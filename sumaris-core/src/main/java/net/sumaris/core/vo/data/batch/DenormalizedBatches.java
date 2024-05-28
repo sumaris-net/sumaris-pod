@@ -86,7 +86,7 @@ public class DenormalizedBatches {
     public static boolean hasSortingValue(DenormalizedBatchVO b, boolean includeInheritedValues) {
         if (CollectionUtils.isEmpty(b.getSortingValues())) return false;
         return b.getSortingValues().stream()
-                .anyMatch(sv -> includeInheritedValues ? true : !sv.getIsInherited());
+                .anyMatch(sv -> includeInheritedValues || !sv.getIsInherited());
     }
 
     public static boolean isParentOfSamplingBatch(DenormalizedBatchVO b) {

@@ -72,6 +72,8 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
     private static final String ST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ST_SHEET_NAME + "_%s";
     private static final String RL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + RL_SHEET_NAME + "_%s";
 
+    protected boolean enableSpeciesLengthSpeciesPmfmsInjection = true;
+
     public ExtractionPmfmTripDaoImpl() {
         super();
         // Hide RECORD_TYPE columns
@@ -88,7 +90,6 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             LiveExtractionTypeEnum.PMFM_TRIP.setSheetNames(PmfmTripSpecification.SHEET_NAMES_DEBUG);
         }
     }
-
 
     public Set<IExtractionType<?, ?>> getManagedTypes() {
         return ImmutableSet.of(LiveExtractionTypeEnum.PMFM_TRIP);
@@ -345,6 +346,18 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
 
         xmlQuery.injectQuery(getXMLQueryURL(context, "injectionSpeciesLengthTable"), "afterSexInjection");
 
+        // Insert species Pmfms (from the SL table) - only if enable in format (true by default, but false for APASE)
+        if (this.enableSpeciesLengthSpeciesPmfmsInjection) {
+            injectPmfmColumns(context, xmlQuery,
+                getTripProgramLabels(context),
+                AcquisitionLevelEnum.SORTING_BATCH,
+                "injectionSpeciesLength_speciesPmfm",
+                "afterSexInjection",
+                // Excluded PMFM (already exists as RDB format columns)
+                getSpeciesListExcludedPmfmIds().toArray(new Integer[0])
+            );
+        }
+
         // Add pmfm columns
         String pmfmsColumns = injectPmfmColumns(context, xmlQuery,
             getTripProgramLabels(context),
@@ -354,7 +367,9 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             // Excluded some pmfms (already extracted in the RDB format)
             ImmutableList.builder()
                 .add(PmfmEnum.DISCARD_OR_LANDING.getId(),
-                    PmfmEnum.SEX.getId())
+                    PmfmEnum.SEX.getId(),
+                    PmfmEnum.BATCH_CALCULATED_WEIGHT_LENGTH.getId() // Exclude weight, because store in the QUANTIFICATION_MEASUREMENT table
+                )
                 .addAll(getSpeciesLengthPmfmIds()).build().toArray(Integer[]::new)
         );
         boolean hasPmfmsColumnsInjected = StringUtils.isNotBlank(pmfmsColumns);
@@ -485,6 +500,7 @@ public class ExtractionPmfmTripDaoImpl<C extends ExtractionPmfmTripContextVO, F 
             case "injectionSpeciesListPmfm":
             case "injectionSpeciesListTable_afterSpecies":
             case "injectionSpeciesListTable_afterWeight":
+            case "injectionSpeciesLength_speciesPmfm":
             case "injectionSpeciesLengthPmfm":
             case "injectionSpeciesLengthTable":
             case "injectionSpeciesLengthTaxon":

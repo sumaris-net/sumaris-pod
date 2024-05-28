@@ -42,20 +42,23 @@ import java.util.List;
 public interface ObservedLocationService {
 
 	@Transactional(readOnly = true)
-	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, DataFetchOptions fetchOptions);
+	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, ObservedLocationFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
 	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size);
 
 	@Transactional(readOnly = true)
 	List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
-									 SortDirection sortDirection, DataFetchOptions fetchOptions);
+									 SortDirection sortDirection, ObservedLocationFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
-	Long count(ObservedLocationFilterVO filter);
+	Long countByFilter(ObservedLocationFilterVO filter);
 
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id);
+
+	@Transactional(readOnly = true)
+	ObservedLocationVO get(int id, ObservedLocationFetchOptions fetchOptions);
 
 	ObservedLocationVO save(ObservedLocationVO data, @Nullable ObservedLocationSaveOptions options);
 

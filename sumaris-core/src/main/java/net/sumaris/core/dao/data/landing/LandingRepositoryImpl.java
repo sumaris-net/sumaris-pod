@@ -29,7 +29,6 @@ import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.*;
@@ -108,9 +107,8 @@ public class LandingRepositoryImpl
             .and(hasTripId(filter.getTripId()))
             .and(hasObserverPersonIds(filter))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasLocationId(filter.getLocationId()))
-            .and(inLocationIds(filter.getLocationIds()))
-            .and(hasVesselId(filter.getVesselId()))
+            .and(hasLocationIds(concat(filter.getLocationId(), filter.getLocationIds())))
+            .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
@@ -166,7 +164,6 @@ public class LandingRepositoryImpl
 
     @Override
     public void toEntity(LandingVO source, Landing target, boolean copyIfNull) {
-
         super.toEntity(source, target, copyIfNull);
 
         // Landing location

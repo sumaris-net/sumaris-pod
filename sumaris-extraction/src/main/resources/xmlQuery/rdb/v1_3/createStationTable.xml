@@ -70,16 +70,24 @@
         ELSE null END
       )
     </select>
-    <select alias="FISHING_VALIDITY" type="text" group="!tripProgress,agg">
+    <select alias="FISHING_VALIDITY" type="text" group="!tripProgress,adagio,agg">
+      MAX(CASE TO_NUMBER(O.QUALITY_FLAG_FK)
+      WHEN &amp;badQualityFlagId THEN UPPER('I')
+      WHEN &amp;incompleteQualityFlagId THEN UPPER('I')
+      WHEN &amp;missingQualityFlagId THEN UPPER('I')
+      ELSE UPPER('V')
+      END)
+    </select>
+    <select alias="FISHING_VALIDITY" type="text" group="!tripProgress,!adagio,agg">
       MAX(CASE O.QUALITY_FLAG_FK
-        WHEN &amp;badQualityFlagId THEN UPPER('I')
-        WHEN &amp;incompleteQualityFlagId THEN UPPER('I')
-        WHEN &amp;missingQualityFlagId THEN UPPER('I')
-        ELSE UPPER('V')
+      WHEN &amp;badQualityFlagId THEN UPPER('I')
+      WHEN &amp;incompleteQualityFlagId THEN UPPER('I')
+      WHEN &amp;missingQualityFlagId THEN UPPER('I')
+      ELSE UPPER('V')
       END)
     </select>
     <select alias="AGGREGATION_LEVEL" type="text">UPPER('H')</select>
-    <select alias="CATCH_REGISTRATION" type="text">'All'</select><!-- TODO : check batch lan/dis -->
+    <select alias="CATCH_REGISTRATION" type="text">'All'</select><!-- TODO : check batch lan/dis using DenormalizedOperation - see issue sumaris-app#553 -->
     <select alias="SPECIES_REGISTRATION" type="text">'Par'</select><!-- TODO : check batch exhaustiveness -->
     <select alias="DATE" type="text" group="date,agg">MAX(TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'YYYY-MM-DD'))</select>
     <select alias="TIME" type="text" group="time,agg">MAX(TO_CHAR(COALESCE(O.FISHING_START_DATE_TIME, O.START_DATE_TIME), 'HH24:MI'))</select>

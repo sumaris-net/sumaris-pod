@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base Repository class for Referential entities
@@ -71,8 +72,11 @@ public abstract class ReferentialRepositoryImpl<
     ReferentialRepository<ID, E, V, F, O>,
     ReferentialSpecifications<ID, E> {
 
+    protected final String entityName;
+
     public ReferentialRepositoryImpl(Class<E> domainClass, Class<V> voClass, EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
+        this.entityName = domainClass.getSimpleName();
     }
 
     @Override
@@ -101,9 +105,11 @@ public abstract class ReferentialRepositoryImpl<
         // Add hints
         configureQuery(query, page, fetchOptions);
 
-        return streamQuery(query)
-            .map(entity -> toVO(entity, fetchOptions))
-            .collect(Collectors.toList());
+        try (Stream<E> stream = streamQuery(query)) {
+            return stream
+                .map(entity -> toVO(entity, fetchOptions))
+                .toList();
+        }
     }
 
     @Override
@@ -246,6 +252,11 @@ public abstract class ReferentialRepositoryImpl<
         return toVO(source, null);
     }
 
+    @Override
+    public void toVO(E source, V target, boolean copyIfNull) {
+        toVO(source, target, (O)null, copyIfNull);
+    }
+
     protected V toVO(E source, O fetchOptions) {
         if (source == null) return null;
         V target = createVO();
@@ -256,6 +267,7 @@ public abstract class ReferentialRepositoryImpl<
     protected void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
         target.setStatusId(source.getStatus().getId());
+        target.setEntityName(entityName);
     }
 
     @Override

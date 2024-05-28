@@ -26,6 +26,8 @@ import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.dao.referential.ReferentialRepository;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.elasticsearch.ElasticsearchSpecification;
@@ -33,14 +35,19 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.referential.LocationVO;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.*;
@@ -55,7 +62,6 @@ import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Slf4j
 public class VesselSnapshotElasticsearchRepositoryImpl
@@ -66,22 +72,32 @@ public class VesselSnapshotElasticsearchRepositoryImpl
 
     protected final IndexOperations indexOperations;
 
+    protected final LocationRepository locationRepository;
+
     private boolean enableRegistrationCodeSearchAsPrefix = true;
 
     private boolean enable = false;
 
+    @Value("${spring.elasticsearch.index.prefix}")
+    private String indexPrefix;
+    private String index;
+
     public VesselSnapshotElasticsearchRepositoryImpl(SumarisConfiguration configuration,
                                                      ElasticsearchRestTemplate elasticsearchRestTemplate,
-                                                     ElasticsearchOperations operations) {
+                                                     ElasticsearchOperations operations,
+                                                     LocationRepository locationRepository) {
         this.configuration = configuration;
         this.elasticsearchRestTemplate = elasticsearchRestTemplate;
         this.indexOperations = operations.indexOps(VesselSnapshotVO.class);
+        this.locationRepository = locationRepository;
     }
 
     @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         enableRegistrationCodeSearchAsPrefix = configuration.enableVesselRegistrationCodeSearchAsPrefix();
+
+        this.index = StringUtils.nullToEmpty(indexPrefix) + VesselSnapshotVO.INDEX;
 
         boolean enable = configuration.enableElasticsearch();
         if (this.enable != enable) {
@@ -94,7 +110,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         if (!this.enable || !indexOperations.exists()) return -1L;
         NativeSearchQueryBuilder query= new NativeSearchQueryBuilder()
             .withQuery(QueryBuilders.matchAllQuery());
-        return elasticsearchRestTemplate.count(query.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
+        return elasticsearchRestTemplate.count(query.build(), VesselSnapshotVO.class, IndexCoordinates.of(this.index));
     }
 
     @Override
@@ -174,21 +190,35 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         checkEnable();
 
         QueryBuilder query = createQuery(toSpecification(filter));
-        NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder()
-            .withQuery(query);
+        Pageable pageable = page != null ? Pageables.create(page.getOffset(), page.getSize(),
+            page.getSortDirection(),
+            IEntity.Fields.ID.equals(page.getSortBy()) ? VesselSnapshotVO.Fields.VESSEL_ID : page.getSortBy()
+        ) : Pageable.unpaged();
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(query)
+            .withPageable(pageable)
+            .build();
 
-        if (page != null) {
-            Pageable pageable = Pageables.create(page.getOffset(), page.getSize(),
-                page.getSortDirection(),
-                IEntity.Fields.ID.equals(page.getSortBy()) ? VesselSnapshotVO.Fields.VESSEL_ID : page.getSortBy()
-                );
-            searchQuery.withPageable(pageable);
-        }
+        SearchHits<VesselSnapshotVO> hits = elasticsearchRestTemplate.search(searchQuery, VesselSnapshotVO.class, IndexCoordinates.of(this.index));
+        return hits.get().map(SearchHit::getContent).toList();
+    }
 
-        try (SearchHitsIterator<VesselSnapshotVO> streamIte = elasticsearchRestTemplate.searchForStream(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
-             Stream<SearchHit<VesselSnapshotVO>> stream = streamIte.stream()) {
-            return stream.map(SearchHit::getContent).toList();
-        }
+    @Override
+    public org.springframework.data.domain.Page<VesselSnapshotVO> findAllAsPage(@NonNull VesselFilterVO filter, @Nullable Page page, @Nullable VesselFetchOptions fetchOptions) {
+        checkEnable();
+
+        QueryBuilder query = createQuery(toSpecification(filter));
+        Pageable pageable = page != null ? Pageables.create(page.getOffset(), page.getSize(),
+            page.getSortDirection(),
+            IEntity.Fields.ID.equals(page.getSortBy()) ? VesselSnapshotVO.Fields.VESSEL_ID : page.getSortBy()
+        ) : Pageable.unpaged();
+        NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+            .withQuery(query)
+            .withPageable(pageable)
+            .build();
+
+        SearchHits<VesselSnapshotVO> hits = elasticsearchRestTemplate.search(searchQuery, VesselSnapshotVO.class, IndexCoordinates.of(this.index));
+        return new PageImpl<>(hits.get().map(SearchHit::getContent).toList(), pageable, hits.getTotalHits());
     }
 
     @Override
@@ -199,7 +229,7 @@ public class VesselSnapshotElasticsearchRepositoryImpl
         NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder()
             .withQuery(query);
 
-        return elasticsearchRestTemplate.count(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(VesselSnapshotVO.INDEX));
+        return elasticsearchRestTemplate.count(searchQuery.build(), VesselSnapshotVO.class, IndexCoordinates.of(this.index));
     }
 
     @Override
@@ -218,6 +248,17 @@ public class VesselSnapshotElasticsearchRepositoryImpl
 
     protected ElasticsearchSpecification<QueryBuilder> toSpecification(@NonNull VesselFilterVO filter) {
 
+        // If the registrationLocation is a country, use a specific filter
+        Integer registrationLocationId = filter.getRegistrationLocationId();
+        Integer countryRegistrationLocationId = null;
+        if (registrationLocationId != null) {
+            LocationVO registrationLocation = locationRepository.get(registrationLocationId);
+            if (LocationLevelEnum.COUNTRY.getId().equals(registrationLocation.getLevelId())) {
+                countryRegistrationLocationId = registrationLocationId;
+                registrationLocationId = null;
+            }
+        }
+
         return ElasticsearchSpecification.bool()
             // IDs
             .filter(vesselFeaturesId(filter.getVesselFeaturesId()))
@@ -228,7 +269,8 @@ public class VesselSnapshotElasticsearchRepositoryImpl
             .filter(vesselTypeId(filter.getVesselTypeId()))
             .filter(vesselTypeIds(filter.getVesselTypeIds()))
             // by locations
-            .filter(registrationLocation(filter.getRegistrationLocationId()))
+            .filter(registrationLocation(registrationLocationId))
+            .filter(countryRegistrationLocation(countryRegistrationLocationId))
             .filter(basePortLocation(filter.getBasePortLocationId()))
             // by Status
             .filter(hasStatusIds(filter.getStatusIds()))

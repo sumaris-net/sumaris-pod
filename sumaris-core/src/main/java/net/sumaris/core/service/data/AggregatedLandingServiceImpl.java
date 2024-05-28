@@ -35,10 +35,7 @@ import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
-import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.DataBeans;
-import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.*;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
@@ -66,7 +63,6 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         .withVesselSnapshot(true)
         .withRecorderDepartment(true)
         .withRecorderPerson(true)
-        .withObservers(false)
         .withChildrenEntities(false)
         .build();
 
@@ -130,11 +126,11 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            DataFetchOptions.copy(defaultLandingFetchOptions));
+            ObservedLocationFetchOptions.copy(defaultLandingFetchOptions));
 
         ConcurrentHashMap<VesselSnapshotVO, Map<Date, List<LandingVO>>> landingsByBateByVessel = new ConcurrentHashMap<>();
         observedLocations
-//            .parallelStream() // Warning: Can cause concurrent exceptions on landingsByBateByVessel.computeIfAbsent
+            //.parallelStream() // Warning: Can cause concurrent exceptions on landingsByBateByVessel.computeIfAbsent
             .forEach(observedLocation -> {
 
             List<LandingVO> landings = landingService.findAll(LandingFilterVO.builder().observedLocationId(observedLocation.getId()).build(),
@@ -205,7 +201,8 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
     @Override
     public List<AggregatedLandingVO> saveAll(AggregatedLandingFilterVO filter, List<AggregatedLandingVO> aggregatedLandings) {
 
-        long start = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
+        if (log.isDebugEnabled()) log.debug("Saving aggregated landings...");
 
         Preconditions.checkNotNull(filter);
         Preconditions.checkNotNull(filter.getObservedLocationId());
@@ -256,7 +253,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            DataFetchOptions.copy(defaultLandingFetchOptions));
+            ObservedLocationFetchOptions.copy(defaultLandingFetchOptions));
 
         // Create observed location if missing
         Set<Date> existingDates = observedLocations.stream().map(ObservedLocationVO::getStartDateTime)
@@ -338,7 +335,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Saving done in %s ms", System.currentTimeMillis() - start));
+            log.debug("Saving aggregated landings [OK] in {}", TimeUtils.printDurationFrom(startTime));
         }
 
         return aggregatedLandings;
@@ -371,7 +368,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .endDate(endDate)
                 .build(),
             0, 1000, null, null,
-            DataFetchOptions.copy(defaultLandingFetchOptions));
+            ObservedLocationFetchOptions.copy(defaultLandingFetchOptions));
 
         observedLocations.forEach(observedLocation -> vesselIds.forEach(vesselId -> {
             landingService.deleteAllByFilter(LandingFilterVO.builder()
@@ -760,7 +757,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         if (landing.getMeasurementValues() == null) {
             Map<Integer, String> result = new HashMap<>();
             Optional.ofNullable(measurementDao.getLandingMeasurementsMap(landing.getId())).ifPresent(result::putAll);
-            Optional.ofNullable(measurementDao.getSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
+            Optional.ofNullable(measurementDao.getLandingSurveyMeasurementsMap(landing.getId())).ifPresent(result::putAll);
             landing.setMeasurementValues(result);
         }
     }

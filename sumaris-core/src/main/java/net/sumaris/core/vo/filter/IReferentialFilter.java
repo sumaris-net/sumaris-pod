@@ -27,7 +27,7 @@ import java.io.Serializable;
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface IReferentialFilter extends Serializable {
+public interface IReferentialFilter extends Serializable, ISearchTextFilter {
 
     Integer getId();
 

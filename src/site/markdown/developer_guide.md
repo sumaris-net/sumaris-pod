@@ -15,7 +15,7 @@ Here are the generation constraints for a class and UML modeling:
   - Use @EqualsAndHashCode.Include on the primary key.
   - Use the @Table annotation to define the table name using lowercase words separated by underscores (snake_case).
   - Use "_fk" for foreign keys.
-  - Use sequences for @Id, with a name prefixed with "_seq".
+  - Use database sequence as @Id generator, with suffix "_seq".
   - All columns are required (nullable = false).
   - Ignore import generation.
 

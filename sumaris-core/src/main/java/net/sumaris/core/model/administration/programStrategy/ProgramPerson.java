@@ -64,7 +64,6 @@ public class ProgramPerson implements IUpdateDateEntity<Integer, Date> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PROGRAM2PERSON_SEQ")
     @SequenceGenerator(name = "PROGRAM2PERSON_SEQ", sequenceName="PROGRAM2PERSON_SEQ", allocationSize = IReferentialEntity.SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

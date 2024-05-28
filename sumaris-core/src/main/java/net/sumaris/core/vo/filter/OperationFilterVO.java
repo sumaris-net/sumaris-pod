@@ -47,6 +47,7 @@ public class OperationFilterVO implements IDataFilter {
     private Integer tripId;
     private Integer recorderDepartmentId;
     private Integer vesselId;
+    private Integer[] vesselIds;
     private Integer[] physicalGearIds;
     private String programLabel;
     private Integer[] includedIds;

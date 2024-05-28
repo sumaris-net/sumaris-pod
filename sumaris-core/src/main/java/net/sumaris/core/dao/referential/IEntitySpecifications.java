@@ -27,11 +27,13 @@ import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.util.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.criteria.ParameterExpression;
 import java.io.Serializable;
+import net.sumaris.core.util.ArrayUtils;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -68,7 +70,7 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_IDS_PARAMETER);
                 return cb.in(root.get(IEntity.Fields.ID)).value(param);
             })
-            .addBind(INCLUDED_IDS_PARAMETER, Arrays.asList(includedIds));
+            .addBind(INCLUDED_IDS_PARAMETER, ArrayUtils.asList(includedIds));
     }
 
     default Specification<E> excludedIds(ID... excludedIds) {
@@ -91,7 +93,7 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
                     cb.in(root.get(IEntity.Fields.ID)).value(param)
                 );
             })
-            .addBind(EXCLUDED_IDS_PARAMETER, Arrays.asList(excludedIds));
+            .addBind(EXCLUDED_IDS_PARAMETER, ArrayUtils.asList(excludedIds));
     }
 
     default Specification<E> withPropertyValue(String propertyName, Class<?> propertyClass, Object value) {
@@ -102,6 +104,11 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
                 return cb.equal(Daos.composePath(root, propertyName), parameter);
             })
             .addBind(parameterName, value);
+    }
+
+    @Nullable
+    default Integer[] concat(@Nullable Integer value, @Nullable Integer[] values) {
+        return ArrayUtils.concat(value, values);
     }
 
     DatabaseType getDatabaseType();

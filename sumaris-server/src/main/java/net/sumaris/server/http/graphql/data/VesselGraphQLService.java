@@ -28,7 +28,6 @@ import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
@@ -41,10 +40,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
-import net.sumaris.core.vo.filter.IRootDataFilter;
-import net.sumaris.core.vo.filter.VesselFeaturesFilterVO;
-import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
+import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
@@ -53,6 +49,7 @@ import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -124,16 +121,7 @@ public class VesselGraphQLService {
         // Compute fetch options
         VesselFetchOptions fetchOptions = getSnapshotFetchOptions(GraphQLUtils.fields(env));
 
-        return vesselSnapshotService.findAll(
-                filter,
-                Page.builder()
-                    .offset(offset)
-                    .size(size)
-                    .sortBy(sort)
-                    .sortDirection(SortDirection.fromString(direction))
-                    .build(),
-                fetchOptions
-            );
+        return vesselSnapshotService.findAll(filter, offset, size, sort, SortDirection.fromString(direction), fetchOptions);
     }
 
     @GraphQLQuery(name = "vesselSnapshotsCount", description = "Get total vessel snapshots count")
@@ -202,6 +190,34 @@ public class VesselGraphQLService {
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
         return vesselService.findRegistrationPeriodsByVesselId(vesselId, Page.create(offset, size, sort, SortDirection.fromString(direction)));
+    }
+
+
+    @GraphQLQuery(name = "vesselOwnerHistory", description = "Get vessel owner history")
+    @Transactional(readOnly = true)
+    @IsUser
+    public List<VesselOwnerPeriodVO> getOwnerPeriodsByVesselId(
+            @GraphQLArgument(name = "vesselId") Integer vesselId,
+            @GraphQLArgument(name = "filter") VesselOwnerFilterVO filter,
+            @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+            @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+            @GraphQLArgument(name = "sortBy", defaultValue = VesselOwnerPeriodVO.Fields.START_DATE) String sort,
+            @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLEnvironment ResolutionEnvironment env) {
+
+        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
+        Preconditions.checkNotNull(vesselId);
+
+        // Make sure to limit access to SIH data
+        if (filter == null || (filter.getProgramLabel() == null && ArrayUtils.isEmpty(filter.getProgramIds()))) {
+            filter = VesselOwnerFilterVO.builder()
+                    .vesselId(vesselId)
+                    .programLabel(ProgramEnum.SIH.getLabel())
+                    .build();
+        }
+
+        return vesselService.findOwnerPeriodsByFilter(filter,
+                Page.create(offset, size, sort, SortDirection.fromString(direction)));
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
@@ -304,6 +320,7 @@ public class VesselGraphQLService {
             .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
             .build();
     }
+
 
     /**
      * If need, restrict vessel program (to SIH), and dates (to today)

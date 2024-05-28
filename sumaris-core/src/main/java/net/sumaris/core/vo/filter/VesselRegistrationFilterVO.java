@@ -28,6 +28,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.Date;
+
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
  */
@@ -43,5 +45,9 @@ public class VesselRegistrationFilterVO implements IVesselFilter {
     }
 
     private Integer vesselId;
+    private Integer[] registrationLocationIds;
+
+    private Date startDate;
+    private Date endDate;
 
 }

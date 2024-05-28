@@ -22,7 +22,6 @@ package net.sumaris.core.service.data.vessel;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,30 +31,48 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.exception.SumarisBusinessException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IProgressionModel;
+import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
+import net.sumaris.core.model.referential.ProcessingType;
+import net.sumaris.core.model.referential.ProcessingTypeEnum;
 import net.sumaris.core.model.referential.VesselTypeEnum;
+import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
+import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.data.vessel.UpdateVesselSnapshotsResultVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.technical.job.JobFilterVO;
 import net.sumaris.core.vo.technical.job.JobVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Future;
+
+import static org.nuiton.i18n.I18n.t;
 
 @Component("vesselSnapshotJob")
 @RequiredArgsConstructor
@@ -69,6 +86,8 @@ public class VesselSnapshotJob {
 
 	private final JobExecutionService jobExecutionService;
 
+	private final ReferentialService referentialService;
+
 	private final JobService jobService;
 
 	@Value("${sumaris.elasticsearch.vessel.snapshot.scheduling.nbYears:-1}")
@@ -79,26 +98,30 @@ public class VesselSnapshotJob {
 	private List<Integer> vesselTypeIds;
 
 	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-	public void onConfigurationReady(ConfigurationEvent event) {
+	public void onConfigurationReady() {
 
 		boolean enable = configuration.enableElasticsearchVesselSnapshot() && configuration.enableJobs();
 
+		// Check Processing type exists (force disabled if not)
+		if (this.enable != enable && enable && !checkProcessingTypeExists()) {
+			enable = false;
+		}
 
 		if (this.enable != enable) {
-			this.enable = enable;
 
+			this.enable = enable;
 			this.vesselTypeIds = configuration.getDataVesselTypeIds();
 
 			// Init or refresh data
 			if (enable) {
-				indexVesselSnapshots();
+				schedule();
 			}
 		}
 	}
 
 
-	@Scheduled(cron = "${sumaris.elasticsearch.vessel.snapshot.scheduling.cron:0 0 * * * ?}") // Hourly by default
-	public void indexVesselSnapshots() {
+	@Scheduled(cron = "${sumaris.elasticsearch.vessel.snapshot.scheduling.cron:0 0 * * * ?}") // Daily by default
+	public void schedule() {
 		if (!enable) return; // Skip
 
 		getLastSuccessJob()
@@ -123,14 +146,14 @@ public class VesselSnapshotJob {
 					}
 				}
 
-				indexVesselSnapshots(JobVO.SYSTEM_ISSUER, currentFilter);
+				start(JobVO.SYSTEM_ISSUER, currentFilter);
 			},
 			// First load
-			() -> indexVesselSnapshots(JobVO.SYSTEM_ISSUER, (Date)null));
+			() -> start(JobVO.SYSTEM_ISSUER, (Date)null));
 
 	}
 
-	public JobVO indexVesselSnapshots(@NonNull String issuer, Date minUpdateDate) {
+	public JobVO start(@NonNull String issuer, Date minUpdateDate) {
 		VesselFilterVO filter = createFilter();
 
 		// Compute vessel min update date (= max(update_date))
@@ -138,12 +161,12 @@ public class VesselSnapshotJob {
 			filter.setMinUpdateDate(minUpdateDate);
 		}
 
-		return indexVesselSnapshots(issuer, filter);
+		return start(issuer, filter);
 	}
 
 	/* -- protected functions -- */
 
-	protected JobVO indexVesselSnapshots(@NonNull String issuer, @NonNull VesselFilterVO filter) {
+	protected JobVO start(@NonNull String issuer, @NonNull VesselFilterVO filter) {
 		if (!enable) throw new SumarisTechnicalException("Elasticsearch indexation has been disabled"); // Skip
 		if (service.isIndexing()) throw new SumarisTechnicalException("Elasticsearch indexation already running");
 
@@ -164,9 +187,48 @@ public class VesselSnapshotJob {
 		// Execute importJob by JobService (async)
 		jobExecutionService.run(job,
 			() -> filter,
-			(progression) -> service.asyncIndexVesselSnapshots(filter, progression));
+			(progression) -> this.asyncExecute(filter, progression));
 
 		return job;
+	}
+
+
+	@Async("jobTaskExecutor")
+	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
+	public Future<UpdateVesselSnapshotsResultVO> asyncExecute(@NonNull VesselFilterVO filter,
+															  @Nullable IProgressionModel progression) {
+
+		if (progression == null) {
+			ProgressionModel progressionModel = new ProgressionModel();
+			progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, (event) -> {
+				if (event.getNewValue() != null) log.debug(event.getNewValue().toString());
+			});
+			progression = progressionModel;
+		}
+
+		UpdateVesselSnapshotsResultVO result = UpdateVesselSnapshotsResultVO.builder()
+			.build();
+		try {
+			service.indexVesselSnapshots(result, filter, progression);
+
+			// Set result status
+			result.setStatus(result.hasError() ? JobStatusEnum.ERROR : JobStatusEnum.SUCCESS);
+
+		} catch (SumarisBusinessException e) {
+
+			result.setMessage(t("sumaris.job.error.detail", ExceptionUtils.getStackTrace(e)));
+
+			// Set failed status
+			result.setStatus(JobStatusEnum.ERROR);
+		} catch (Throwable e) {
+			log.error("Error while indexing vessel snapshots: {}", e.getMessage(), e);
+
+			result.setMessage(t("sumaris.job.error.detail", ExceptionUtils.getStackTrace(e)));
+
+			// Set failed status
+			result.setStatus(JobStatusEnum.FATAL);
+		}
+		return new AsyncResult<>(result);
 	}
 
 	protected VesselFilterVO createFilter() {
@@ -216,5 +278,19 @@ public class VesselSnapshotJob {
 		if (job == null) return Optional.empty();
 		VesselFilterVO filter = jobExecutionService.readConfiguration(job, VesselFilterVO.class);
 		return Optional.ofNullable(filter);
+	}
+
+	protected boolean checkProcessingTypeExists() {
+		try {
+			this.referentialService.findByUniqueLabel(
+				ProcessingType.class.getSimpleName(),
+				JobTypeEnum.VESSEL_SNAPSHOTS_INDEXATION.name());
+			return true;
+		}
+		catch (DataNotFoundException e) {
+			log.error(I18n.t("sumaris.elasticsearch.vessel.snapshot.disabled",
+				I18n.t("sumaris.error.processingType.notFound", JobTypeEnum.VESSEL_SNAPSHOTS_INDEXATION.name())));
+			return false;
+		}
 	}
 }

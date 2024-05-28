@@ -188,19 +188,25 @@ public class PmfmRepositoryImpl
 
         // Qualitative values: from pmfm first, or (if empty) from parameter
         if (fetchOptions == null || fetchOptions.isWithQualitativeValue()) {
-            if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
-                List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
+            // Fetch QV (only if need - to avoid a select on QUALITATIVE_VALUE)
+            if (type == PmfmValueType.QUALITATIVE_VALUE) {
+                if (CollectionUtils.isNotEmpty(source.getQualitativeValues())) {
+                    List<ReferentialVO> qualitativeValues = source.getQualitativeValues()
                         .stream()
                         .map(referentialDao::toVO)
-                        .collect(Collectors.toList());
-                target.setQualitativeValues(qualitativeValues);
-            } else if ((fetchOptions == null || fetchOptions.isWithInheritance()) // load parameter qv list is fetch option allows it
+                        .toList();
+                    target.setQualitativeValues(qualitativeValues);
+                } else if ((fetchOptions == null || fetchOptions.isWithInheritance()) // load parameter qv list is fetch option allows it
                     && CollectionUtils.isNotEmpty(parameter.getQualitativeValues())) {
-                List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
+                    List<ReferentialVO> qualitativeValues = parameter.getQualitativeValues()
                         .stream()
                         .map(referentialDao::toVO)
-                        .collect(Collectors.toList());
-                target.setQualitativeValues(qualitativeValues);
+                        .toList();
+                    target.setQualitativeValues(qualitativeValues);
+                }
+            }
+            else {
+                target.setQualitativeValues(null);
             }
         }
 

@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationAssociation;
@@ -38,6 +39,7 @@ import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -64,6 +66,22 @@ public class LocationRepositoryImpl
     }
 
     @Override
+    public List<LocationVO> findAll(LocationFilterVO filter) {
+        return super.findAll(filter, ReferentialFetchOptions.DEFAULT);
+    }
+
+    @Override
+    public List<LocationVO> findAll(LocationFilterVO filter, ReferentialFetchOptions fetchOptions) {
+        return super.findAll(filter, (Page)null, fetchOptions);
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER)
+    public List<LocationVO> findAll(LocationFilterVO filter, Page page, ReferentialFetchOptions fetchOptions) {
+        return super.findAll(filter, page, fetchOptions);
+    }
+
+    @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, unless = "#result==null")
     public LocationVO get(Integer id) {
         return super.get(id);
@@ -74,6 +92,7 @@ public class LocationRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(inLevelIds(Location.class, filter.getLevelIds()))
             .and(hasAncestors(filter.getAncestorIds()))
+            .and(hasDescendants(filter.getDescendantIds()))
             ;
     }
 
@@ -136,6 +155,23 @@ public class LocationRepositoryImpl
     }
 
     /* -- protected functions -- */
+
+    @Override
+    public LocationVO toVO(Location source) {
+        return super.toVO(source);
+    }
+
+    @Override
+    protected void toVO(Location source, LocationVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
+        super.toVO(source, target, fetchOptions, copyIfNull);
+
+        // Level id
+        if (source.getLocationLevel() != null) {
+            target.setLevelId(source.getLocationLevel().getId());
+        } else if (copyIfNull) {
+            target.setLevelId(null);
+        }
+    }
 
     protected void doUpdateLocationHierarchy() {
         long startTime = System.currentTimeMillis();

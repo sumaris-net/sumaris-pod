@@ -33,10 +33,13 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -47,9 +50,16 @@ public interface PhysicalGearSpecifications extends RootDataSpecifications<Physi
         if (vesselId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, PhysicalGearFilterVO.Fields.VESSEL_ID);
-            Join<PhysicalGear, Vessel> vesselJoin = Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL));
-            return cb.equal(vesselJoin.get(Vessel.Fields.ID), param);
+            return cb.equal(Daos.composePath(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL, Vessel.Fields.ID)), param);
         }).addBind(PhysicalGearFilterVO.Fields.VESSEL_ID, vesselId);
+    }
+
+    default Specification<PhysicalGear> hasVesselIds(Integer[] vesselIds) {
+        if (ArrayUtils.isEmpty(vesselIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, PhysicalGearFilterVO.Fields.VESSEL_IDS);
+            return cb.in(Daos.composeJoin(root, StringUtils.doting(PhysicalGear.Fields.TRIP, Trip.Fields.VESSEL, Vessel.Fields.ID))).value(param);
+        }).addBind(PhysicalGearFilterVO.Fields.VESSEL_IDS, Arrays.asList(vesselIds));
     }
 
     default Specification<PhysicalGear> hasTripId(Integer tripId) {

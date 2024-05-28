@@ -84,4 +84,5 @@ public class RuleVO implements IEntity<Integer>, IReferentialVO<Integer>, ITreeN
             && CollectionUtils.isEmpty(children);
     }
 
+    private String entityName = "Rule";
 }

@@ -1,5 +1,5 @@
 query {
-    authChallenge{
+    authChallenge {
         challenge
         pubkey
         signature

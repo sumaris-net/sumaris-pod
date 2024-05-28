@@ -83,7 +83,7 @@ echo ""
 
 echo "---- Removing local release branch ..."
 echo ""
-git branch -d "release/$version"
+git branch -d "release/$version" || true
 # NOTE: can fail, but continu
 
 echo "---- Uploading artifacts to Github..."
@@ -92,7 +92,8 @@ echo ""
 # Pause (wait propagation to from gitlab to github)
 echo " Waiting 40s, for propagation to github..." && sleep 40s
 
-. ${PROJECT_DIR}/src/scripts/release-to-github.sh $task $version ''"$release_description"''
+# Uploading artifacts to github
+. ${PROJECT_DIR}/src/scripts/release-to-github.sh $task $version ''"$release_description"'' 'master'
 [[ $? -ne 0 ]] && exit 1
 
 echo "---- Uploading artifacts to Github [OK]"

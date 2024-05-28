@@ -24,10 +24,7 @@ package net.sumaris.core.vo.data;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -36,17 +33,21 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 
 import java.util.Date;
 
-@Setter
-@Getter
+@Data
 @EqualsAndHashCode
 @FieldNameConstants
+@ToString(onlyExplicitlyIncluded = true)
 @Slf4j
 public class ImageAttachmentVO implements IDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO> {
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
     private String comments;
+    @EqualsAndHashCode.Exclude
     private Date creationDate;
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;

@@ -36,7 +36,8 @@ public enum QualitativeValueEnum implements Serializable, IEntityEnum {
     SORTING_UNSORTED(392, "NONE"), // Adagio => 2146
     DRESSING_WHOLE(381, "WHL"), // Entier - Adagio => 139
     DRESSING_GUTTED(381, "GUT"), // Eviscéré - Adagio => 120
-    PRESERVATION_FRESH(332, "FRE"),
+    PRESERVATION_FRESH(332, "FRE"), // Frais - Adagio => 142
+    PRESERVATION_ALIVE(338, "ALI"), // Vivant - Adagio => 148
     SIZE_CATEGORY_NONE(435, "UNS"),
 
     /*PACKAGING*/

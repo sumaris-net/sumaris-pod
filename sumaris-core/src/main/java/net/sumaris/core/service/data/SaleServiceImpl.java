@@ -24,22 +24,25 @@ package net.sumaris.core.service.data;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sale.SaleRepository;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.SaleMeasurement;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.filter.SaleFilterVO;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service("saleService")
@@ -51,48 +54,57 @@ public class SaleServiceImpl implements SaleService {
 
 	protected final MeasurementDao measurementDao;
 
+	protected final FishingAreaService fishingAreaService;
+
 	protected final ProductService productService;
+
+	protected final BatchService batchService;
 
 	protected final VesselSnapshotService vesselSnapshotService;
 
 	@Override
-	public List<SaleVO> getAllByTripId(int tripId, DataFetchOptions fetchOptions) {
-		List<SaleVO> sales = saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
+	public List<SaleVO> getAllByTripId(int tripId, SaleFetchOptions fetchOptions) {
+		List<SaleVO> targets = saleRepository.findAll(SaleFilterVO.builder().tripId(tripId).build(), fetchOptions);
 
-		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
-			sales.forEach(sale -> {
-				if (sale.getVesselId() != null && sale.getVesselSnapshot() == null) {
-					VesselSnapshotVO vessel = vesselSnapshotService.getByIdAndDate(sale.getVesselId(), sale.getStartDateTime());
-					sale.setVesselSnapshot(vessel);
-				}
-			});
-		}
+		// Fill vessels
+		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) this.fillVesselSnapshots(targets);
 
-		return sales;
+		return targets;
+	}
+
+	@Override
+	public List<SaleVO> getAllByLandingId(int landingId, SaleFetchOptions fetchOptions) {
+		List<SaleVO> targets = saleRepository.findAll(SaleFilterVO.builder().landingId(landingId).build(), fetchOptions);
+
+		// Fill vessel snapshots
+		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) this.fillVesselSnapshots(targets);
+
+		return targets;
+	}
+
+	@Override
+	public Set<Integer> getAllIdByLandingId(int landingId) {
+		return saleRepository.getAllIdByLandingId(landingId);
 	}
 
 	@Override
 	public SaleVO get(int saleId) {
-		return get(saleId, null);
+		return get(saleId, SaleFetchOptions.DEFAULT);
 	}
 
 	@Override
-	public SaleVO get(int saleId, DataFetchOptions fetchOptions) {
-		SaleVO sale = saleRepository.get(saleId, fetchOptions);
+	public SaleVO get(int saleId, SaleFetchOptions fetchOptions) {
+		SaleVO target = saleRepository.get(saleId, fetchOptions);
 
-		if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
-			if (sale.getVesselId() != null && sale.getVesselSnapshot() == null) {
-				VesselSnapshotVO vessel = vesselSnapshotService.getByIdAndDate(sale.getVesselId(), sale.getStartDateTime());
-				sale.setVesselSnapshot(vessel);
-			}
-		}
+		// Fill vessel snapshot
+		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) fillVesselSnapshot(target);
 
-		return sale;
+		return target;
 	}
 
 	@Override
 	public int getProgramIdById(int id) {
-		return saleRepository.get(id, DataFetchOptions.MINIMAL).getProgram().getId();
+		return saleRepository.get(id, SaleFetchOptions.MINIMAL).getProgram().getId();
 	}
 
 	@Override
@@ -108,8 +120,23 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	@Override
+	public List<SaleVO> saveAllByLandingId(int landingId, List<SaleVO> sources) {
+		Preconditions.checkNotNull(sources);
+		sources.forEach(this::checkSale);
+
+		List<SaleVO> saved = saleRepository.saveAllByLandingId(landingId, sources);
+
+		saved.forEach(this::saveChildrenEntities);
+
+		return saved;
+	}
+
+	@Override
 	public SaleVO save(SaleVO sale) {
 		checkSale(sale);
+
+		// Reset control date
+		sale.setControlDate(null);
 
 		SaleVO savedSale = saleRepository.save(sale);
 
@@ -140,6 +167,18 @@ public class SaleServiceImpl implements SaleService {
 				.forEach(this::delete);
 	}
 
+	@Override
+	public void fillVesselSnapshot(SaleVO target) {
+		if (target.getVesselId() != null && target.getVesselSnapshot() == null) {
+			target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(target.getVesselDateTime())));
+		}
+	}
+
+	@Override
+	public void fillVesselSnapshots(List<SaleVO> target) {
+		target.parallelStream().forEach(this::fillVesselSnapshot);
+	}
+
 	/* -- protected methods -- */
 
 	protected void checkSale(final SaleVO source) {
@@ -166,11 +205,40 @@ public class SaleServiceImpl implements SaleService {
 			source.setMeasurements(measurements);
 		}
 
+		// Fishing areas
+		if (source.getFishingAreas() != null) {
+			source.getFishingAreas().forEach(fishingArea -> fillDefaultProperties(source, fishingArea));
+			fishingAreaService.saveAllBySaleId(source.getId(), source.getFishingAreas());
+		}
+
 		// Save produces
-		if (source.getProducts() != null) source.getProducts().forEach(product -> fillDefaultProperties(source, product));
-		source.setProducts(
-			productService.saveBySaleId(source.getId(), source.getProducts())
-		);
+		if (source.getProducts() != null) {
+			source.getProducts().forEach(product -> fillDefaultProperties(source, product));
+			source.setProducts(
+				productService.saveBySaleId(source.getId(), source.getProducts())
+			);
+		}
+
+		// Save batches
+		List<BatchVO> batches = getAllBatches(source);
+		if (batches != null) {
+			batches = batchService.saveAllBySaleId(source.getId(), batches);
+
+			// Transform saved batches into flat list (e.g. to be used as graphQL query response)
+			batches.forEach(batch -> {
+				// Set parentId (instead of parent object)
+				if (batch.getParentId() == null && batch.getParent() != null) {
+					batch.setParentId(batch.getParent().getId());
+				}
+				// Remove link parent/children
+				batch.setParent(null);
+				batch.setChildren(null);
+			});
+
+			source.setCatchBatch(null);
+			source.setBatches(batches);
+		}
+
 	}
 
 	protected void fillDefaultProperties(SaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
@@ -184,6 +252,10 @@ public class SaleServiceImpl implements SaleService {
 		measurement.setEntityName(entityClass.getSimpleName());
 	}
 
+	protected void fillDefaultProperties(SaleVO parent, FishingAreaVO fishingArea) {
+		fishingArea.setSaleId(parent.getId());
+	}
+
 	protected void fillDefaultProperties(SaleVO parent, ProductVO product) {
 		if (product == null) return;
 
@@ -193,5 +265,59 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		product.setSaleId(parent.getId());
+	}
+
+	protected void fillDefaultProperties(SaleVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		batch.setSaleId(parent.getId());
+	}
+
+	protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
+		if (batch == null) return;
+
+		// Copy recorder department from the parent
+		if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
+			batch.setRecorderDepartment(parent.getRecorderDepartment());
+		}
+
+		if (parent.getId() == null) {
+			// Need to be the parent object, when parent has not id yet (see issue #2)
+			batch.setParent(parent);
+		} else {
+			batch.setParentId(parent.getId());
+		}
+		batch.setSaleId(parent.getSaleId());
+	}
+
+	protected List<BatchVO> getAllBatches(SaleVO parent) {
+		BatchVO catchBatch = parent.getCatchBatch();
+		if (catchBatch == null) return null;
+
+		fillDefaultProperties(parent, catchBatch);
+		List<BatchVO> result = Lists.newArrayList();
+		addAllBatchesToList(catchBatch, result);
+		return result;
+	}
+
+	protected void addAllBatchesToList(final BatchVO batch, final List<BatchVO> result) {
+		if (batch == null) return;
+
+		// Add the batch itself
+		if (!result.contains(batch)) result.add(batch);
+
+		// Process children
+		if (CollectionUtils.isNotEmpty(batch.getChildren())) {
+			// Recursive call
+			batch.getChildren().forEach(child -> {
+				fillDefaultProperties(batch, child);
+				addAllBatchesToList(child, result);
+			});
+		}
 	}
 }

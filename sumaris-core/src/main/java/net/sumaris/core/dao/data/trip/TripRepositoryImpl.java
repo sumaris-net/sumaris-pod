@@ -25,20 +25,23 @@ package net.sumaris.core.dao.data.trip;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.data.landing.LandingRepository;
+import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.administration.samplingScheme.DenormalizedSamplingStrata;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.TripFetchOptions;
 import net.sumaris.core.vo.data.TripVO;
 import net.sumaris.core.vo.filter.TripFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,17 +66,20 @@ public class TripRepositoryImpl
     private final LocationRepository locationRepository;
     private final LandingRepository landingRepository;
 
+    private final ReferentialDao referentialDao;
+
     private boolean enableVesselRegistrationNaturalOrder;
 
     @Autowired
     public TripRepositoryImpl(EntityManager entityManager,
                               LocationRepository locationRepository,
                               LandingRepository landingRepository,
-                              SumarisConfiguration configuration,
+                              ReferentialDao referentialDao,
                               GenericConversionService conversionService) {
         super(Trip.class, TripVO.class, entityManager);
         this.locationRepository = locationRepository;
         this.landingRepository = landingRepository;
+        this.referentialDao = referentialDao;
         conversionService.addConverter(Trip.class, TripVO.class, this::toVO);
     }
 
@@ -87,13 +93,12 @@ public class TripRepositoryImpl
     public Specification<Trip> toSpecification(TripFilterVO filter, TripFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(id(filter.getTripId(), Integer.class))
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasLocationId(filter.getLocationId()))
-            .and(hasLocationIds(filter.getLocationIds()))
-            .and(hasObservedLocationId(filter.getObservedLocationId()))
-            .and(hasVesselId(filter.getVesselId()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasLocationIds(concat(filter.getLocationId(), filter.getLocationIds())))
+            .and(hasObservedLocationId(filter.getObservedLocationId()))
+            .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
@@ -130,6 +135,18 @@ public class TripRepositoryImpl
         if (source.getScientificCruise() != null) {
             target.setScientificCruiseId(source.getScientificCruise().getId());
         }
+
+        // Sampling strata
+        if (source.getSamplingStrata() != null) {
+            target.setSamplingStrataId(source.getSamplingStrata().getId());
+            if (fetchOptions != null && fetchOptions.isWithSamplingStrata()) {
+                ReferentialVO samplingStrata = referentialDao.get(DenormalizedSamplingStrata.class, source.getSamplingStrata().getId(),
+                        ReferentialFetchOptions.builder()
+                                .withProperties(true) // Load sampling sheme label
+                                .build());
+                target.setSamplingStrata(samplingStrata);
+            }
+        }
     }
 
     @Override
@@ -152,6 +169,16 @@ public class TripRepositoryImpl
                 target.setReturnLocation(null);
             } else {
                 target.setReturnLocation(getReference(Location.class, source.getReturnLocation().getId()));
+            }
+        }
+
+        // Sampling strata
+        Integer samplingStrataId = source.getSamplingStrata() != null ? source.getSamplingStrata().getId() : source.getSamplingStrataId();
+        if (copyIfNull || samplingStrataId != null) {
+            if (samplingStrataId == null) {
+                target.setSamplingStrata(null);
+            } else {
+                target.setSamplingStrata(getReference(SamplingStrata.class, samplingStrataId));
             }
         }
     }
@@ -240,7 +267,7 @@ public class TripRepositoryImpl
     protected void configureQuery(TypedQuery<Trip> query, @Nullable TripFetchOptions fetchOptions) {
         super.configureQuery(query, fetchOptions);
 
-        if (fetchOptions == null || fetchOptions.isWithLocations() || fetchOptions.isWithProgram()) {
+        if (fetchOptions == null || fetchOptions.isWithLocations() || fetchOptions.isWithProgram() || fetchOptions.isWithSamplingStrata()) {
             // Prepare load graph
             EntityManager em = getEntityManager();
             EntityGraph<?> entityGraph = em.getEntityGraph(Trip.GRAPH_LOCATIONS_AND_PROGRAM);
@@ -248,6 +275,10 @@ public class TripRepositoryImpl
                 entityGraph.addSubgraph(Trip.Fields.RECORDER_PERSON);
             if (fetchOptions == null || fetchOptions.isWithRecorderDepartment())
                 entityGraph.addSubgraph(Trip.Fields.RECORDER_DEPARTMENT);
+
+            // Sampling strata
+            if (fetchOptions == null || fetchOptions.isWithSamplingStrata())
+                entityGraph.addSubgraph(Trip.Fields.SAMPLING_STRATA);
 
             // WARNING: should not enable this fetch, because page cannot be applied
             //if (fetchOptions.isWithObservers()) entityGraph.addSubgraph(Trip.Fields.OBSERVERS);

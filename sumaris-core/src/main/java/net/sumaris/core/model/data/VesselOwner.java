@@ -33,12 +33,14 @@ import java.util.Date;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "vessel_owner")
-public class VesselOwner implements IEntity<Integer> {
+@Table(name = "vessel_owner",
+        indexes =
+        @Index(name="ix_vessel_owner_reg_code", columnList = "registration_code")
+)
+public class VesselOwner implements IEntity<Integer>, IWithProgramEntity<Integer, Program> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_OWNER_SEQ")
@@ -47,7 +49,7 @@ public class VesselOwner implements IEntity<Integer> {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @Column(name = "registration_code", length = 40)
+    @Column(name = "registration_code", length = 40, nullable = false)
     private String registrationCode;
 
     @Column(name = "last_name", length = 100)

@@ -37,9 +37,9 @@ import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.NotUniqueException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
@@ -55,6 +55,7 @@ import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.LocationFilterVO;
+import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -82,8 +83,8 @@ import java.util.stream.Stream;
  */
 @Slf4j
 public class StrategyRepositoryImpl
-        extends ReferentialRepositoryImpl<Integer, Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
-        implements StrategySpecifications {
+    extends ReferentialRepositoryImpl<Integer, Strategy, StrategyVO, StrategyFilterVO, StrategyFetchOptions>
+    implements StrategySpecifications {
 
     private final ReferentialDao referentialDao;
 
@@ -142,13 +143,15 @@ public class StrategyRepositoryImpl
 
     @Override
     @Caching(
-            evict = {
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#source.id", condition = "#source.id != null"),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#source.programId", condition = "#source.programId != null")
-            }
+        evict = {
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#source.id", condition = "#source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#source.programId", condition = "#source.programId != null")
+        }
     )
     public StrategyVO save(StrategyVO source) {
         Preconditions.checkNotNull(source);
@@ -165,15 +168,17 @@ public class StrategyRepositoryImpl
 
     @Override
     @Caching(
-            evict = {
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#programId", condition = "#programId != null")
-            }
+        evict = {
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#programId", condition = "#programId != null")
+        }
     )
     public List<StrategyVO> saveByProgramId(int programId, List<StrategyVO> sources) {
         Preconditions.checkNotNull(sources);
@@ -205,15 +210,15 @@ public class StrategyRepositoryImpl
 
     @Override
     @Caching(
-            evict = {
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#id", condition = "#id != null"),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
-                    @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, allEntries = true)
-            }
+        evict = {
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_ID, key = "#id", condition = "#id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGY_BY_LABEL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.DENORMALIZED_PMFM_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, allEntries = true)
+        }
     )
     public void deleteById(Integer id) {
         super.deleteById(id);
@@ -230,13 +235,13 @@ public class StrategyRepositoryImpl
         Join<Gear, Strategy> gearInnerJoin = root.joinList(Gear.Fields.STRATEGIES, JoinType.INNER);
 
         query.select(root)
-                .where(
-                        builder.and(
-                                // strategy
-                                builder.equal(gearInnerJoin.get(Strategy.Fields.ID), strategyIdParam),
-                                // Status (temporary or valid)
-                                builder.in(root.get(Gear.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
-                        ));
+            .where(
+                builder.and(
+                    // strategy
+                    builder.equal(gearInnerJoin.get(Strategy.Fields.ID), strategyIdParam),
+                    // Status (temporary or valid)
+                    builder.in(root.get(Gear.Fields.STATUS).get(Status.Fields.ID)).value(ImmutableList.of(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+                ));
 
         // Sort by label
         query.orderBy(builder.asc(root.get(Gear.Fields.LABEL)));
@@ -285,21 +290,21 @@ public class StrategyRepositoryImpl
         ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
 
         query.select(root.get(Strategy.Fields.LABEL))
-                .where(
-                        builder.and(
-                                // Program
-                                builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
-                                // Label
-                                builder.like(root.get(Strategy.Fields.LABEL), prefix.concat("%"))
-                        ));
+            .where(
+                builder.and(
+                    // Program
+                    builder.equal(root.get(Strategy.Fields.PROGRAM).get(Program.Fields.ID), programIdParam),
+                    // Label
+                    builder.like(root.get(Strategy.Fields.LABEL), prefix.concat("%"))
+                ));
 
         String result = getEntityManager()
-                .createQuery(query)
-                .setParameter(programIdParam, programId)
-                .getResultStream()
-                .max(String::compareTo)
-                .map(source -> StringUtils.removeStart(source, prefix))
-                .orElse("0");
+            .createQuery(query)
+            .setParameter(programIdParam, programId)
+            .getResultStream()
+            .max(String::compareTo)
+            .map(source -> StringUtils.removeStart(source, prefix))
+            .orElse("0");
 
         if (!StringUtils.isNumeric(result)) {
             throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on strategy", prefix.concat(result)));
@@ -337,40 +342,40 @@ public class StrategyRepositoryImpl
         Join<Sample, SampleMeasurement> sampleMeasurementJoin = root.joinList(Sample.Fields.MEASUREMENTS, JoinType.INNER);
 
         Expression<String> lpadValue = cb.function(AdditionalSQLFunctions.lpad.name(), String.class,
-                cb.substring(
-                        sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE),
-                        prefix.length() + 1
-                ),
-                lpadSizeParam,
-                lpadFillParam
+            cb.substring(
+                sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE),
+                prefix.length() + 1
+            ),
+            lpadSizeParam,
+            lpadFillParam
         );
 
         query.select(lpadValue)
-                .where(
-                        cb.and(
-                                // Sample measurement: select Pmfm = Tag id
-                                cb.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
-                                cb.like(sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagLikeParam),
-                                // Sample measurement: select Pmfm = Strategy label
-                                cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
-                                cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
-                        ))
-                .orderBy(cb.desc(lpadValue));
+            .where(
+                cb.and(
+                    // Sample measurement: select Pmfm = Tag id
+                    cb.equal(sampleMeasurementJoin.get(SampleMeasurement.Fields.PMFM).get(IEntity.Fields.ID), tagIdPmfmIdParam),
+                    cb.like(sampleMeasurementJoin.get(SampleMeasurement.Fields.ALPHANUMERICAL_VALUE), tagLikeParam),
+                    // Sample measurement: select Pmfm = Strategy label
+                    cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.PMFM).get(IEntity.Fields.ID), strategyPmfmIdParam),
+                    cb.equal(landingMeasurementJoin.get(LandingMeasurement.Fields.ALPHANUMERICAL_VALUE), strategyLabelParam)
+                ))
+            .orderBy(cb.desc(lpadValue));
 
         List<String> results = em
-                .createQuery(query)
-                .setParameter(tagIdPmfmIdParam, PmfmEnum.TAG_ID.getId())
-                .setParameter(tagLikeParam, prefix + "%")
-                .setParameter(lpadSizeParam, nbDigit)
-                .setParameter(lpadFillParam, "0")
-                .setParameter(strategyPmfmIdParam, PmfmEnum.STRATEGY_LABEL.getId())
-                .setParameter(strategyLabelParam, strategyLabel)
-                .setMaxResults(10).getResultList();
+            .createQuery(query)
+            .setParameter(tagIdPmfmIdParam, PmfmEnum.TAG_ID.getId())
+            .setParameter(tagLikeParam, prefix + "%")
+            .setParameter(lpadSizeParam, nbDigit)
+            .setParameter(lpadFillParam, "0")
+            .setParameter(strategyPmfmIdParam, PmfmEnum.STRATEGY_LABEL.getId())
+            .setParameter(strategyLabelParam, strategyLabel)
+            .setMaxResults(10).getResultList();
 
         String result = results.stream()
-                .filter(StringUtils::isNumeric)
-                .findFirst()
-                .orElse("0");
+            .filter(StringUtils::isNumeric)
+            .findFirst()
+            .orElse("0");
 
         if (!StringUtils.isNumeric(result)) {
             throw new SumarisTechnicalException(String.format("Unable to increment label '%s' on sample", prefix.concat(result)));
@@ -382,7 +387,7 @@ public class StrategyRepositoryImpl
 
     @Override
     public List<StrategyVO> findNewerByProgramId(final int programId, final Date updateDate, final StrategyFetchOptions fetchOptions) {
-        try (Stream<Strategy> stream =  streamAll(
+        try (Stream<Strategy> stream = streamAll(
             BindableSpecification.where(hasProgramIds(programId))
                 .and(newerThan(updateDate)))) {
             return stream.map(entity -> toVO(entity, fetchOptions)).toList();
@@ -403,7 +408,7 @@ public class StrategyRepositoryImpl
             Root<Program2Location> root = query.from(Program2Location.class);
             query.where(cb.equal(root.get(Program2Location.Fields.PROGRAM), strategy.getProgram()));
             em.createQuery(query).getResultStream().forEach(p2l ->
-                    programLocations.putIfAbsent(p2l.getLocation().getId(), p2l));
+                programLocations.putIfAbsent(p2l.getLocation().getId(), p2l));
         }
 
         // Get existing strategy locations
@@ -413,27 +418,27 @@ public class StrategyRepositoryImpl
             Root<Strategy> root = query.from(Strategy.class);
             Join<Strategy, AppliedStrategy> appliedStrategyInnerJoin = root.joinList(Strategy.Fields.APPLIED_STRATEGIES, JoinType.INNER);
             query.select(appliedStrategyInnerJoin.get(AppliedStrategy.Fields.LOCATION))
-                    .where(cb.equal(root.get(Strategy.Fields.PROGRAM), strategy.getProgram()));
+                .where(cb.equal(root.get(Strategy.Fields.PROGRAM), strategy.getProgram()));
             em.createQuery(query).getResultStream().forEach(l ->
-                    strategyLocations.putIfAbsent(l.getId(), l));
+                strategyLocations.putIfAbsent(l.getId(), l));
         }
 
         // Persist new entities
         strategyLocations.values()
-                .stream()
-                .filter(location -> !programLocations.containsKey(location.getId()))
-                .forEach(location -> {
-                    Program2Location p2l = new Program2Location();
-                    p2l.setProgram(strategy.getProgram());
-                    p2l.setLocation(location);
-                    em.persist(p2l);
-                });
+            .stream()
+            .filter(location -> !programLocations.containsKey(location.getId()))
+            .forEach(location -> {
+                Program2Location p2l = new Program2Location();
+                p2l.setProgram(strategy.getProgram());
+                p2l.setLocation(location);
+                em.persist(p2l);
+            });
 
         // Remove unused entities
         programLocations.values()
-                .stream()
-                .filter(p2l -> !strategyLocations.containsKey(p2l.getLocation().getId()))
-                .forEach(em::remove);
+            .stream()
+            .filter(p2l -> !strategyLocations.containsKey(p2l.getLocation().getId()))
+            .forEach(em::remove);
     }
 
     @Override
@@ -451,10 +456,10 @@ public class StrategyRepositoryImpl
 
         // Gears
         List<Integer> gearIds = CollectionUtils.isNotEmpty(source.getGearIds()) ?
-                source.getGearIds() :
-                (CollectionUtils.isNotEmpty(source.getGears()) ?
-                        Beans.collectIds(source.getGears()) :
-                        null);
+            source.getGearIds() :
+            (CollectionUtils.isNotEmpty(source.getGears()) ?
+                Beans.collectIds(source.getGears()) :
+                null);
         if (copyIfNull || CollectionUtils.isNotEmpty(gearIds)) {
             target.getGears().clear();
             if (CollectionUtils.isNotEmpty(gearIds)) {
@@ -475,7 +480,7 @@ public class StrategyRepositoryImpl
 
         // Remember existing entities
         Map<Integer, TaxonGroupStrategy> sourcesToRemove = Beans.splitByProperty(parent.getTaxonGroups(),
-                TaxonGroupStrategy.Fields.TAXON_GROUP + "." + TaxonGroup.Fields.ID);
+            TaxonGroupStrategy.Fields.TAXON_GROUP + "." + TaxonGroup.Fields.ID);
 
         // Save each taxon group strategy
         Beans.getList(sources).forEach(source -> {
@@ -517,12 +522,12 @@ public class StrategyRepositoryImpl
 
         // Remember existing entities
         Map<Integer, ReferenceTaxonStrategy> sourcesToRemove = Beans.splitByProperty(parent.getReferenceTaxons(),
-                ReferenceTaxonStrategy.Fields.REFERENCE_TAXON + "." + ReferenceTaxon.Fields.ID);
+            ReferenceTaxonStrategy.Fields.REFERENCE_TAXON + "." + ReferenceTaxon.Fields.ID);
 
         // Save each reference taxon strategy
         Beans.getStream(sources).forEach(source -> {
             Integer referenceTaxonId = source.getReferenceTaxonId() != null ? source.getReferenceTaxonId() :
-                    (source.getTaxonName() != null ? source.getTaxonName().getReferenceTaxonId() : null);
+                (source.getTaxonName() != null ? source.getTaxonName().getReferenceTaxonId() : null);
 
             if (referenceTaxonId == null) {
                 referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
@@ -559,20 +564,20 @@ public class StrategyRepositoryImpl
         final Strategy parent = getById(Strategy.class, strategyId);
 
         saveChildren(
-                sources,
-                parent.getAppliedStrategies(),
-                AppliedStrategy.class,
-                (source, target, copyIfNull) -> {
-                    source.setStrategyId(parent.getId());
-                    target.setStrategy(parent);
+            sources,
+            parent.getAppliedStrategies(),
+            AppliedStrategy.class,
+            (source, target, copyIfNull) -> {
+                source.setStrategyId(parent.getId());
+                target.setStrategy(parent);
 
-                    // Location
-                    Integer locationId = source.getLocation() != null ? source.getLocation().getId() : null;
-                    if (copyIfNull || locationId != null) {
-                        target.setLocation(locationId != null ? getReference(Location.class, locationId) : null);
-                    }
-                },
-                parent);
+                // Location
+                Integer locationId = source.getLocation() != null ? source.getLocation().getId() : null;
+                if (copyIfNull || locationId != null) {
+                    target.setLocation(locationId != null ? getReference(Location.class, locationId) : null);
+                }
+            },
+            parent);
 
         // Save applied periods
         sources.forEach(source -> saveAppliedPeriodsByAppliedStrategyId(source.getId(), source.getAppliedPeriods()));
@@ -587,11 +592,11 @@ public class StrategyRepositoryImpl
         final Strategy parent = getById(Strategy.class, strategyId);
 
         return saveChildren(
-                sources,
-                parent.getDepartments(),
-                StrategyDepartment.class,
-                (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, parent, copyIfNull),
-                parent);
+            sources,
+            parent.getDepartments(),
+            StrategyDepartment.class,
+            (source, target, copyIfNull) -> this.toDepartmentEntity(source, target, parent, copyIfNull),
+            parent);
     }
 
 
@@ -605,10 +610,10 @@ public class StrategyRepositoryImpl
     @Override
     public boolean hasDepartmentPrivilege(int strategyId, int departmentId, ProgramPrivilegeEnum privilege) {
         return getEntityManager().createNamedQuery("StrategyDepartment.count", Long.class)
-                .setParameter("strategyId", strategyId)
-                .setParameter("departmentId", departmentId)
-                .setParameter("privilegeId", privilege.getId())
-                .getSingleResult() > 0;
+            .setParameter("strategyId", strategyId)
+            .setParameter("departmentId", departmentId)
+            .setParameter("privilegeId", privilege.getId())
+            .getSingleResult() > 0;
     }
 
     @Override
@@ -640,14 +645,21 @@ public class StrategyRepositoryImpl
     protected void onBeforeSaveEntity(StrategyVO source, Strategy target, boolean isNew) {
         super.onBeforeSaveEntity(source, target, isNew);
 
-        // Verify label is unique by program
-        long count = this.findAll(StrategyFilterVO.builder()
-                        .programIds(new Integer[]{source.getProgramId()}).label(source.getLabel()).build())
-                .stream()
-                .filter(s -> isNew || !Objects.equals(s.getId(), source.getId()))
-                .count();
-        if (count > 0) {
-            throw new NotUniqueException("Strategy label already exists", List.of(source.getLabel()));
+        // Verify label is unique by program (if was set - in Adagio DB, the label can be null)
+        if (StringUtils.isNotBlank(source.getLabel())) {
+            long count = this.count(StrategyFilterVO.builder()
+                .label(source.getLabel())
+                .excludedIds(isNew ? null : new Integer[]{source.getId()})
+                .programIds(new Integer[]{source.getProgramId()})
+                .build());
+            if (count > 0) {
+                // Fix the label, by adding a suffix
+                if (isNew) {
+                    source.setLabel(source.getLabel() + "_2");
+                } else {
+                    throw new NotUniqueException("Strategy label already exists in program", List.of(source.getLabel()));
+                }
+            }
         }
     }
 
@@ -665,15 +677,15 @@ public class StrategyRepositoryImpl
         Specification<Strategy> specification = super.toSpecification(filter, fetchOptions);
         if (filter.getId() != null) return specification;
         return specification
-                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-                .and(hasAnalyticReferences(filter.getAnalyticReferences()))
-                .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
-                .and(hasDepartmentIds(filter.getDepartmentIds()))
-                .and(hasLocationIds(filter.getLocationIds()))
-                .and(hasParameterIds(filter.getParameterIds()))
-                .and(hasPeriods(filter.getPeriods()))
-                .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()))
-                .and(newerThan(filter.getMinUpdateDate()))
+            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasAnalyticReferences(filter.getAnalyticReferences()))
+            .and(hasReferenceTaxonIds(filter.getReferenceTaxonIds()))
+            .and(hasDepartmentIds(filter.getDepartmentIds()))
+            .and(hasLocationIds(filter.getLocationIds()))
+            .and(hasParameterIds(filter.getParameterIds()))
+            .and(hasPeriods(filter.getPeriods()))
+            .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevels()))
+            .and(newerThan(filter.getMinUpdateDate()))
             ;
     }
 
@@ -689,10 +701,10 @@ public class StrategyRepositoryImpl
         // Gears
         if (opts.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
             List<ReferentialVO> gears = source.getGears()
-                    .stream()
-                    .map(referentialDao::toVO)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                .stream()
+                .map(referentialDao::toVO)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
             target.setGears(gears);
         }
 
@@ -731,107 +743,106 @@ public class StrategyRepositoryImpl
         if (CollectionUtils.isEmpty(source.getReferenceTaxons())) return null;
 
         return source.getReferenceTaxons()
-                .stream()
-                // Sort by priority level (or if not set, by id)
-                .sorted(Comparator.comparingInt(item -> item.getPriorityLevel() != null ?
-                        item.getPriorityLevel() :
-                        item.getReferenceTaxon().getId()))
-                .map(item -> {
-                    TaxonNameStrategyVO target = new TaxonNameStrategyVO();
-                    target.setStrategyId(source.getId());
+            .stream()
+            // Sort by priority level (or if not set, by id)
+            .sorted(Comparator.comparingInt(item -> item.getPriorityLevel() != null ?
+                item.getPriorityLevel() :
+                item.getReferenceTaxon().getId()))
+            .map(item -> {
+                TaxonNameStrategyVO target = new TaxonNameStrategyVO();
+                target.setStrategyId(source.getId());
 
-                    // Priority level
-                    target.setPriorityLevel(item.getPriorityLevel());
+                // Priority level
+                target.setPriorityLevel(item.getPriorityLevel());
 
-                    // Taxon name
-                    taxonNameRepository.findReferentByReferenceTaxonId(item.getReferenceTaxon().getId())
-                            .ifPresent(taxonName -> {
-                                target.setTaxonName(taxonName);
-                                target.setReferenceTaxonId(taxonName.getReferenceTaxonId());
-                                target.setIsReferent(taxonName.getIsReferent());
-                            });
-                    return target;
-                })
-                .filter(target -> target.getTaxonName() != null)
-                .collect(Collectors.toList());
+                // Taxon name
+                taxonNameRepository.findReferentByReferenceTaxonId(item.getReferenceTaxon().getId())
+                    .ifPresent(taxonName -> {
+                        target.setTaxonName(taxonName);
+                        target.setReferenceTaxonId(taxonName.getReferenceTaxonId());
+                        target.setIsReferent(taxonName.getIsReferent());
+                    });
+                return target;
+            })
+            .filter(target -> target.getTaxonName() != null)
+            .collect(Collectors.toList());
     }
 
     protected List<TaxonGroupStrategyVO> getTaxonGroupStrategies(Strategy source) {
         if (CollectionUtils.isEmpty(source.getTaxonGroups())) return null;
         return source.getTaxonGroups()
-                .stream()
-                // Sort by priority level (or if not set, by id)
-                .sorted(Comparator.comparingInt((item) -> item.getPriorityLevel() != null ?
-                        item.getPriorityLevel() :
-                        item.getTaxonGroup().getId()))
-                .map(item -> {
-                    TaxonGroupStrategyVO target = new TaxonGroupStrategyVO();
-                    target.setStrategyId(source.getId());
+            .stream()
+            // Sort by priority level (or if not set, by id)
+            .sorted(Comparator.comparingInt((item) -> item.getPriorityLevel() != null ?
+                item.getPriorityLevel() :
+                item.getTaxonGroup().getId()))
+            .map(item -> {
+                TaxonGroupStrategyVO target = new TaxonGroupStrategyVO();
+                target.setStrategyId(source.getId());
 
-                    // Priority level
-                    target.setPriorityLevel(item.getPriorityLevel());
+                // Priority level
+                target.setPriorityLevel(item.getPriorityLevel());
 
-                    // Taxon group
-                    TaxonGroupVO tg = new TaxonGroupVO();
-                    Beans.copyProperties(item.getTaxonGroup(), tg);
-                    tg.setStatusId(item.getTaxonGroup().getStatus().getId());
-                    target.setTaxonGroup(tg);
+                // Taxon group
+                TaxonGroupVO tg = new TaxonGroupVO();
+                Beans.copyProperties(item.getTaxonGroup(), tg);
+                tg.setStatusId(item.getTaxonGroup().getStatus().getId());
+                target.setTaxonGroup(tg);
 
-                    return target;
-                })
-                .collect(Collectors.toList());
+                return target;
+            })
+            .collect(Collectors.toList());
     }
 
     protected List<AppliedStrategyVO> getAppliedStrategies(final Strategy source) {
         if (CollectionUtils.isEmpty(source.getAppliedStrategies())) return null;
 
         Integer[] locationIds = source.getAppliedStrategies()
-                .stream().map(AppliedStrategy::getLocation)
-                .filter(Objects::nonNull)
-                .map(Location::getId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toArray(Integer[]::new);
+            .stream().map(AppliedStrategy::getLocation)
+            .filter(Objects::nonNull)
+            .map(Location::getId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toArray(Integer[]::new);
         Map<Integer, LocationVO> locationsById = Beans.splitById(
-                locationRepository.findAll(LocationFilterVO.builder().includedIds(locationIds).build()));
+            locationRepository.findAll(LocationFilterVO.builder().includedIds(locationIds).build()));
 
         return Beans.getStream(source.getAppliedStrategies())
-                // Sort by id (this is need for IMAGINE, as the first AppliedStrategy holds AppliedPeriod)
-                .sorted(Comparator.comparingInt(AppliedStrategy::getId))
-                .map(item -> {
-                    final AppliedStrategyVO target = new AppliedStrategyVO();
-                    target.setId(item.getId());
-                    target.setStrategyId(source.getId());
+            // Sort by id (this is need for IMAGINE, as the first AppliedStrategy holds AppliedPeriod)
+            .sorted(Comparator.comparingInt(AppliedStrategy::getId))
+            .map(item -> {
+                final AppliedStrategyVO target = new AppliedStrategyVO();
+                target.setId(item.getId());
+                target.setStrategyId(source.getId());
 
-                    if (item.getLocation() != null) {
-                        target.setLocation(locationsById.get(item.getLocation().getId()));
-                    }
+                if (item.getLocation() != null) {
+                    target.setLocation(locationsById.get(item.getLocation().getId()));
+                }
 
-                    // AppliedPeriod
-                    if (CollectionUtils.isNotEmpty(item.getAppliedPeriods())) {
-                        List<AppliedPeriodVO> targetAppliedPeriods = Beans.getStream(item.getAppliedPeriods())
-                                .map(sourceAppliedPeriod -> {
-                                    AppliedPeriodVO targetAppliedPeriod = new AppliedPeriodVO();
-                                    Beans.copyProperties(sourceAppliedPeriod, targetAppliedPeriod);
+                // AppliedPeriod
+                if (CollectionUtils.isNotEmpty(item.getAppliedPeriods())) {
+                    List<AppliedPeriodVO> targetAppliedPeriods = Beans.getStream(item.getAppliedPeriods())
+                        .map(sourceAppliedPeriod -> {
+                            AppliedPeriodVO targetAppliedPeriod = new AppliedPeriodVO();
+                            Beans.copyProperties(sourceAppliedPeriod, targetAppliedPeriod);
 
-                                    // Convert date to have a timezone (see issue sumaris-app#500)
-                                    targetAppliedPeriod.setStartDate(Dates.resetTime(targetAppliedPeriod.getStartDate(), this.dbTimeZone));
-                                    targetAppliedPeriod.setEndDate(Dates.resetTime(targetAppliedPeriod.getEndDate(), this.dbTimeZone));
+                            // Convert date to have a timezone (see issue sumaris-app#500)
+                            targetAppliedPeriod.setStartDate(Dates.resetTime(targetAppliedPeriod.getStartDate(), this.dbTimeZone));
+                            targetAppliedPeriod.setEndDate(Dates.resetTime(targetAppliedPeriod.getEndDate(), this.dbTimeZone));
 
-                                    targetAppliedPeriod.setAppliedStrategyId(target.getId());
-                                    return targetAppliedPeriod;
-                                }).collect(Collectors.toList());
-                        target.setAppliedPeriods(targetAppliedPeriods);
-                    }
+                            targetAppliedPeriod.setAppliedStrategyId(target.getId());
+                            return targetAppliedPeriod;
+                        }).collect(Collectors.toList());
+                    target.setAppliedPeriods(targetAppliedPeriods);
+                }
 
-                    return target;
-                })
-                .collect(Collectors.toList());
+                return target;
+            })
+            .collect(Collectors.toList());
     }
 
 
-    protected List<AppliedPeriodVO> saveAppliedPeriodsByAppliedStrategyId(int appliedStrategyId, List<AppliedPeriodVO> sources) {
-        Preconditions.checkNotNull(sources);
+    protected List<AppliedPeriodVO> saveAppliedPeriodsByAppliedStrategyId(int appliedStrategyId, @NonNull List<AppliedPeriodVO> sources) {
 
         EntityManager em = getEntityManager();
 
@@ -867,7 +878,7 @@ public class StrategyRepositoryImpl
                 em.merge(target);
             }
             return target;
-        }).collect(Collectors.toList());
+        }).toList();
 
         parent.setAppliedPeriods(targets);
 
@@ -881,38 +892,39 @@ public class StrategyRepositoryImpl
     protected List<StrategyDepartmentVO> getDepartments(Strategy source) {
         if (CollectionUtils.isEmpty(source.getDepartments())) return null;
         return source.getDepartments()
-                .stream()
-                // Sort by id
-                .sorted(Comparator.comparingInt(StrategyDepartment::getId))
-                .map(item -> {
-                    StrategyDepartmentVO target = new StrategyDepartmentVO();
-                    target.setId(item.getId());
-                    target.setUpdateDate(item.getUpdateDate());
-                    target.setStrategyId(source.getId());
+            .stream()
+            // Sort by id
+            .sorted(Comparator.comparingInt(StrategyDepartment::getId))
+            .map(item -> {
+                StrategyDepartmentVO target = new StrategyDepartmentVO();
+                target.setId(item.getId());
+                target.setUpdateDate(item.getUpdateDate());
+                target.setStrategyId(source.getId());
 
-                    if (item.getLocation() != null) {
-                        target.setLocation(locationRepository.get(item.getLocation().getId()));
-                    }
+                if (item.getLocation() != null) {
+                    target.setLocation(locationRepository.get(item.getLocation().getId()));
+                }
 
-                    target.setDepartment(departmentRepository.get(item.getDepartment().getId()));
-                    target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
+                target.setDepartment(departmentRepository.get(item.getDepartment().getId()));
+                target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
 
-                    return target;
-                })
-                .collect(Collectors.toList());
+                return target;
+            })
+            .collect(Collectors.toList());
     }
 
     protected List<PmfmStrategyVO> getPmfms(Strategy source, PmfmStrategyFetchOptions fetchOptions) {
         Preconditions.checkNotNull(fetchOptions);
         if (CollectionUtils.isEmpty(source.getPmfms())) return null;
 
-        return source.getPmfms()
-                .stream()
-                .map(ps -> pmfmStrategyRepository.toVO(ps, fetchOptions))
-                .filter(Objects::nonNull)
-                // Sort by acquisitionLevel and rankOrder
-                .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
-                .collect(Collectors.toList());
+        return pmfmStrategyRepository.findByFilter(PmfmStrategyFilterVO.builder()
+                .strategyId(source.getId())
+                .build(), fetchOptions)
+            .stream()
+            .filter(Objects::nonNull)
+            // Sort by acquisitionLevel and rankOrder
+            .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
+            .collect(Collectors.toList());
     }
 
     /**
@@ -928,12 +940,14 @@ public class StrategyRepositoryImpl
 
         // Applied inheritance:
         List<PmfmStrategy> pmfms = source.getPmfms();
-        List<DenormalizedPmfmStrategyVO> result = source.getPmfms().stream()
-                .flatMap(entity -> denormalizedPmfmStrategyRepository.toVOs(entity, fetchOptions))
-                .filter(Objects::nonNull)
-                // Sort by acquisitionLevel and rankOrder
-                .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
-                .collect(Collectors.toList());
+        List<DenormalizedPmfmStrategyVO> result = denormalizedPmfmStrategyRepository.findByFilter(PmfmStrategyFilterVO.builder()
+                .strategyId(source.getId())
+                .build(), fetchOptions)
+            .stream()
+            .filter(Objects::nonNull)
+            // Sort by acquisitionLevel and rankOrder
+            .sorted(Comparator.comparing(ps -> String.format("%s#%s", ps.getAcquisitionLevel(), ps.getRankOrder())))
+            .collect(Collectors.toList());
         return result;
     }
 

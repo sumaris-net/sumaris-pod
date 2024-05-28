@@ -58,7 +58,6 @@ public class OriginItemType implements IItemReferentialEntity<Integer> {
     private Date updateDate;
 
     @Column(nullable = false, length = LENGTH_LABEL)
-    
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)

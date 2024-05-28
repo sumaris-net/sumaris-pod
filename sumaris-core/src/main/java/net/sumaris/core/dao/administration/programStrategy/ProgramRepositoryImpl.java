@@ -151,7 +151,7 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID)
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, unless="#result == null")
     public Optional<ProgramVO> findVOById(Integer id) {
         return super.findVOById(id);
     }
@@ -276,7 +276,9 @@ public class ProgramRepositoryImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, allEntries = true)
     })
@@ -290,7 +292,9 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.label != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#source.id", condition = "#source.id != null")
         },
@@ -365,7 +369,9 @@ public class ProgramRepositoryImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, allEntries = true),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, key = "#id", condition = "#id != null")
         }
@@ -546,6 +552,7 @@ public class ProgramRepositoryImpl
                 parent.setProperties(Lists.newArrayList());
             }
             final List<ProgramProperty> targetProperties = parent.getProperties();
+            targetProperties.clear();
 
             // Transform each entry into ProgramProperty
             source.keySet().stream()
@@ -566,7 +573,7 @@ public class ProgramRepositoryImpl
                     if (isNew) {
                         em.persist(prop);
                     } else {
-                        em.merge(prop);
+                        prop = em.merge(prop);
                     }
                     return prop;
                 })
@@ -574,7 +581,6 @@ public class ProgramRepositoryImpl
 
             // Remove old properties
             if (CollectionUtils.isNotEmpty(existingValues)) {
-                parent.getProperties().removeAll(existingValues);
                 existingValues.forEach(em::remove);
             }
 
@@ -619,7 +625,9 @@ public class ProgramRepositoryImpl
 
                 target.setPerson(personRepository.get(item.getPerson().getId()));
                 target.setPrivilege(programPrivilegeRepository.get(item.getPrivilege().getId()));
-
+                if (item.getReferencePerson() != null) {
+                    target.setReferencePerson(personRepository.get(item.getReferencePerson().getId()));
+                }
                 return target;
             })
             .collect(Collectors.toList());
@@ -702,6 +710,16 @@ public class ProgramRepositoryImpl
                 target.setPrivilege(null);
             } else {
                 target.setPrivilege(getReference(ProgramPrivilege.class, privilegeId));
+            }
+        }
+
+        // Reference Person
+        Integer referencePersonId = source.getReferencePerson() != null ? source.getReferencePerson().getId() : null;
+        if (copyIfNull || referencePersonId != null) {
+            if (referencePersonId == null) {
+                target.setReferencePerson(null);
+            } else {
+                target.setReferencePerson(getReference(Person.class, referencePersonId));
             }
         }
     }

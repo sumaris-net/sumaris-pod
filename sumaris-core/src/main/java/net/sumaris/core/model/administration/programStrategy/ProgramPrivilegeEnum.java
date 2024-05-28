@@ -26,6 +26,7 @@ import java.io.Serializable;
 
 public enum ProgramPrivilegeEnum implements Serializable {
 
+
     MANAGER(1),
     OBSERVER(2),
     VIEWER(3),

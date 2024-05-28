@@ -36,9 +36,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Objects;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class LocationServiceReadTest extends AbstractServiceTest {
 
@@ -64,7 +64,7 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 		LocationVO existingLocation = service.get(fixtures.getLocationPortId(0));
 		Assume.assumeNotNull(existingLocation);
 		Assume.assumeNotNull(existingLocation.getName());
-		Assume.assumeTrue(existingLocation.getStatusId() == StatusEnum.ENABLE.getId());
+		Assume.assumeTrue(Objects.equals(existingLocation.getStatusId(), StatusEnum.ENABLE.getId()));
 
 		LocationFilterVO filter = LocationFilterVO.builder()
 			.statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
@@ -79,4 +79,47 @@ public class LocationServiceReadTest extends AbstractServiceTest {
 		assertEquals(existingLocation.getId(), match.getId());
 	}
 
+	@Test
+	public void findByFilterDescendants() {
+		LocationVO portLocation = service.get(fixtures.getLocationPortId(0));
+		Assume.assumeNotNull(portLocation);
+		Assume.assumeNotNull(portLocation.getName());
+		Assume.assumeTrue(Objects.equals(portLocation.getStatusId(), StatusEnum.ENABLE.getId()));
+
+		LocationFilterVO filter = LocationFilterVO.builder()
+			.statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
+			.levelIds(new Integer[]{LocationLevelEnum.COUNTRY.getId()})
+			.descendantIds(new Integer[]{portLocation.getId()})
+			.build();
+
+		List<LocationVO> matches = service.findByFilter(filter);
+		assertNotNull(matches);
+		assertEquals(1, matches.size());
+		LocationVO match = matches.get(0);
+		assertEquals("FRA", match.getLabel());
+	}
+
+
+	@Test
+	public void findByFilterAncestors() {
+		LocationVO countryLocation = service.get(fixtures.getLocationCountryId(0)); // FRA
+		Assume.assumeNotNull(countryLocation);
+		Assume.assumeNotNull(countryLocation.getName());
+		Assume.assumeTrue(Objects.equals(countryLocation.getStatusId(), StatusEnum.ENABLE.getId()));
+
+		LocationFilterVO filter = LocationFilterVO.builder()
+			.statusIds(new Integer[]{StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()})
+			.levelIds(new Integer[]{LocationLevelEnum.HARBOUR.getId()})
+			.ancestorIds(new Integer[]{countryLocation.getId()})
+			.build();
+
+		List<LocationVO> matches = service.findByFilter(filter);
+		assertNotNull(matches);
+		assertTrue(matches.size() > 10);
+		matches.forEach(portLocation -> {
+			assertNotNull(portLocation);
+			assertNotNull(portLocation.getLabel());
+			assertTrue(portLocation.getLabel().startsWith("FR")); // FR port
+		});
+	}
 }

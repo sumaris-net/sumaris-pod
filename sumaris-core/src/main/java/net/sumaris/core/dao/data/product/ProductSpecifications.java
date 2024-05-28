@@ -22,7 +22,7 @@ package net.sumaris.core.dao.data.product;
  * #L%
  */
 
-import net.sumaris.core.dao.data.DataSpecifications;
+import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.Product;
@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * @author peck7 on 30/03/2020.
  */
-public interface ProductSpecifications extends DataSpecifications<Integer, Product> {
+public interface ProductSpecifications extends IDataSpecifications<Integer, Product> {
 
     String LANDING_ID_PARAM = "landingId";
     String OPERATION_ID_PARAM = "operationId";

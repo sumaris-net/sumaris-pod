@@ -22,14 +22,21 @@
 
 package net.sumaris.core.dao.data.batch;
 
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.DenormalizedBatch;
+import net.sumaris.core.model.data.Operation;
+import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
+import net.sumaris.core.vo.data.batch.DenormalizedBatchesFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.List;
 
@@ -57,6 +64,18 @@ public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V 
         return specification;
     }
 
+    default Specification<E> hasTripId(Integer tripId) {
+        if (tripId == null) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, cb) -> {
+            Join<DenormalizedBatch, Trip> tripJoin = Daos.composeJoin(root, StringUtils.doting(DenormalizedBatch.Fields.OPERATION, Operation.Fields.TRIP), JoinType.LEFT);
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, DenormalizedBatchesFilterVO.Fields.TRIP_ID);
+            query.orderBy(cb.asc(Daos.composePath(root, StringUtils.doting(DenormalizedBatch.Fields.OPERATION, IEntity.Fields.ID))), cb.asc(root.get(DenormalizedBatch.Fields.FLAT_RANK_ORDER)));
+            return cb.equal(tripJoin.get(IEntity.Fields.ID), param);
+        });
+        specification.addBind(DenormalizedBatchesFilterVO.Fields.TRIP_ID, tripId);
+        return specification;
+    }
+
     default Specification<E> hasSaleId(Integer saleId) {
         if (saleId == null) return null;
 
@@ -69,6 +88,26 @@ public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V 
             return cb.equal(root.get(DenormalizedBatch.Fields.SALE).get(IEntity.Fields.ID), param);
         });
         specification.addBind(DenormalizedBatchVO.Fields.SALE_ID, saleId);
+        return specification;
+    }
+
+    default Specification<E> isLanding(Boolean isLanding) {
+        if (isLanding == null) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Boolean> param = cb.parameter(Boolean.class, DenormalizedBatchVO.Fields.IS_LANDING);
+            return cb.equal(root.get(DenormalizedBatch.Fields.IS_LANDING), param);
+        });
+        specification.addBind(DenormalizedBatchVO.Fields.IS_LANDING, isLanding);
+        return specification;
+    }
+
+    default Specification<E> isDiscard(Boolean isDiscard) {
+        if (isDiscard == null) return null;
+        BindableSpecification<E> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Boolean> param = cb.parameter(Boolean.class, DenormalizedBatchVO.Fields.IS_DISCARD);
+            return cb.equal(root.get(DenormalizedBatch.Fields.IS_DISCARD), param);
+        });
+        specification.addBind(DenormalizedBatchVO.Fields.IS_DISCARD, isDiscard);
         return specification;
     }
 

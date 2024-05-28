@@ -1,0 +1,21 @@
+query ActivityCalendars($filter: ActivityCalendarFilterVOInput){
+    activityCalendars(filter: $filter) {
+        __typename
+        id
+        year
+        recorderPerson {
+            __typename
+            id
+            lastName
+            firstName
+            updateDate
+        }
+        recorderDepartment {
+            __typename
+            id
+            label
+            name
+            updateDate
+        }
+    }
+}

@@ -45,11 +45,13 @@ public class SaleFilterVO implements IRootDataFilter {
     private Date endDate;
     private String programLabel;
     private Integer locationId;
+    private Integer[] locationIds;
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
     // Parent
     private Integer tripId;
+    private Integer landingId;
     private Integer[] programIds;
 
     // Quality

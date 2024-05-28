@@ -36,6 +36,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.IWithBatchesEntity;
@@ -187,7 +188,7 @@ public class BatchRepositoryImpl
     public List<BatchVO> saveAllByOperationId(int operationId, List<BatchVO> sources) {
 
         long startTime = System.currentTimeMillis();
-        log.debug("Saving operation {id: {}} batches... {hash_optimization: {}}", operationId, enableHashOptimization);
+        log.debug("Saving batches of Operation#{}... {hash_optimization: {}}", operationId, enableHashOptimization);
 
         // Load parent entity
         Operation parent = getById(Operation.class, operationId);
@@ -206,15 +207,15 @@ public class BatchRepositoryImpl
             //entityManager.clear();
         }
 
-        if (log.isDebugEnabled()) log.debug("Saving operation {id: {}} batches [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
+        if (log.isDebugEnabled()) log.debug("Saving batches of Operation#{} [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
 
         return sources;
     }
 
     @Override
-    public List<BatchVO> saveBySaleId(int saleId, List<BatchVO> sources) {
+    public List<BatchVO> saveAllBySaleId(int saleId, List<BatchVO> sources) {
         long startTime = System.currentTimeMillis();
-        log.debug("Saving sale {id: {}} batches... {hash_optimization: {}}", saleId, enableHashOptimization);
+        log.debug("Saving batches of Sale#{}... {hash_optimization: {}}", saleId, enableHashOptimization);
 
         // Load parent entity
         Sale parent = getById(Sale.class, saleId);
@@ -233,7 +234,7 @@ public class BatchRepositoryImpl
             //entityManager.clear();
         }
 
-        if (log.isDebugEnabled()) log.debug("Saving sale {id: {}} batches [OK] in {}", saleId, TimeUtils.printDurationFrom(startTime));
+        if (log.isDebugEnabled()) log.debug("Saving batches of Sale#{} [OK] in {}", saleId, TimeUtils.printDurationFrom(startTime));
 
         return sources;
     }
@@ -341,13 +342,13 @@ public class BatchRepositoryImpl
 
                 // If skipped, all children are also skipped
                 if (skip) {
-                    streamRecursiveChildren(source)
+                    TreeNodeEntities.streamAllChildren(source)
                             .map(BatchVO::getId)
                             .forEach(sourcesIdsToSkip::add);
                 }
             }
             if (skip && trace) {
-                log.trace("Skip batch {id: {}, label: '{}'}", source.getId(), source.getLabel());
+                log.trace("Skip save {}", source);
             }
             return !skip;
         })
@@ -515,6 +516,7 @@ public class BatchRepositoryImpl
         // Get some parent ids
         Integer parentId = (source.getParent() != null ? source.getParent().getId() : source.getParentId());
         Integer opeId = source.getOperationId() != null ? source.getOperationId() : (source.getOperation() != null ? source.getOperation().getId() : null);
+        Integer saleId = opeId == null ? (source.getSaleId() != null ? source.getSaleId() : (source.getSale() != null ? source.getSale().getId() : null)) : null;
 
         // Parent batch
         if (copyIfNull || (parentId != null)) {
@@ -539,13 +541,21 @@ public class BatchRepositoryImpl
                 //}
 
                 // Force same operation as parent (e.g. in case of bad batch tree copy)
-                opeId = parent.getOperation().getId();
+                if (parent.getOperation() != null) {
+                    opeId = parent.getOperation().getId();
+                    saleId = null;
+                }
+                if (parent.getSale() != null) {
+                    saleId = parent.getSale().getId();
+                    opeId = null;
+                }
             }
         }
 
         // /!\ IMPORTANT: update source's operationId and parentId, BEFORE calling hashCode()
         source.setParentId(parentId);
         source.setOperationId(opeId);
+        source.setSaleId(saleId);
         Integer newHash = source.hashCode();
 
         // If same hash, then skip (if allow)
@@ -565,6 +575,15 @@ public class BatchRepositoryImpl
                 target.setOperation(null);
             } else {
                 target.setOperation(getReference(Operation.class, opeId));
+            }
+        }
+
+        // Sale
+        if (copyIfNull || (saleId != null)) {
+            if (saleId == null) {
+                target.setSale(null);
+            } else {
+                target.setSale(getReference(Sale.class, saleId));
             }
         }
 
@@ -634,14 +653,6 @@ public class BatchRepositoryImpl
         source.setParent(null);
         source.setChildren(null);
     }
-
-    protected Stream<BatchVO> streamRecursiveChildren(BatchVO source) {
-        if (CollectionUtils.isEmpty(source.getChildren())) {
-            return Stream.empty();
-        }
-        return source.getChildren().stream().flatMap(c -> Stream.concat(Stream.of(c), streamRecursiveChildren(c)));
-    }
-
 
     protected void fillRecursiveChildren(BatchVO source, List<BatchVO> sources) {
         source.setChildren(fillRecursiveChildren(source.getId(), sources));

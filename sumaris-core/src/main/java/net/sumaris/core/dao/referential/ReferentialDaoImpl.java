@@ -25,16 +25,23 @@ package net.sumaris.core.dao.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
+import net.sumaris.core.event.config.ConfigurationEvent;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.ITreeNodeEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
+import net.sumaris.core.model.administration.samplingScheme.DenormalizedSamplingStrata;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -56,6 +63,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
@@ -78,6 +87,17 @@ import java.util.stream.Stream;
 public class ReferentialDaoImpl
     extends HibernateDaoSupport
     implements ReferentialDao {
+
+
+    private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
+    private final Map<Integer, String> acquisitionLevelLabelById = Maps.newConcurrentMap();
+
+
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady(ConfigurationEvent event) {
+        this.loadAcquisitionLevels();
+    }
+
 
     protected  <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
                                                                        IReferentialFilter filter,
@@ -256,14 +276,6 @@ public class ReferentialDaoImpl
         }
     }
 
-    public void clearCache() {
-        log.debug("Cleaning all referential cache...");
-
-        ReferentialEntities.ROOT_CLASSES.stream()
-            .map(Class::getSimpleName)
-            .forEach(this::clearCache);
-    }
-
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true, condition = "#entityName == 'Person'"),
@@ -280,8 +292,9 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, allEntries = true, condition = "#entityName == 'ProgramPrivilege'"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, allEntries = true, condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, allEntries = true, condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_FILTER, allEntries = true, condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'ReferenceTaxon'"),
@@ -291,6 +304,14 @@ public class ReferentialDaoImpl
     })
     public void clearCache(String entityName) {
         log.debug("Cleaning {}'s cache...", entityName);
+    }
+
+    public void clearCache() {
+        log.debug("Cleaning all referential cache...");
+
+        ReferentialEntities.ROOT_CLASSES.stream()
+            .map(Class::getSimpleName)
+            .forEach(this::clearCache);
     }
 
     @Caching(evict = {
@@ -310,8 +331,9 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL_AND_OPTIONS, allEntries = true, condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#id", condition = "#entityName == 'ProgramPrivilege'"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id", condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_FILTER, allEntries = true, condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'ReferenceTaxon'"),
@@ -330,9 +352,12 @@ public class ReferentialDaoImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#id", condition = "#entityName == 'Program'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#id", condition = "#entityName == 'ProgramPrivilege'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, allEntries = true, condition = "#entityName == 'LocationLevel'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#id", condition = "#entityName == 'Location'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Location'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_ID, key = "#id", condition = "#entityName == 'TaxonName'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.TAXONONOMIC_LEVEL_BY_ID, key = "#id", condition = "#entityName == 'TaxonomicLevel'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#entityName == 'TaxonName' || #entityName == 'TaxonGroup'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, key = "#id", condition = "#entityName == 'Gear'")
     })
     public void delete(final String entityName, int id) {
@@ -410,8 +435,9 @@ public class ReferentialDaoImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID,  key = "#source.id", condition = "#source.entityName == 'ProgramPrivilege'"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#source.id", condition = "#source.entityName == 'Location'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#source.id", condition = "#source.entityName == 'Location'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#source.entityName == 'Location'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAME_BY_TAXON_REFERENCE_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENCE_TAXON_ID_BY_TAXON_NAME_ID, allEntries = true, condition = "#source.entityName == 'TaxonName'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.TAXON_NAMES_BY_TAXON_GROUP_ID, allEntries = true, condition = "#source.entityName == 'TaxonName' || #source.entityName == 'TaxonGroup'"),
@@ -493,6 +519,39 @@ public class ReferentialDaoImpl
             log.error("Error while getting max(updateDate) from " + entityName, e);
             return null;
         }
+    }
+
+    @Override
+    public int getAcquisitionLevelIdByLabel(String label) {
+        Integer acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
+        if (acquisitionLevelId == null) {
+
+            // Try to reload
+            loadAcquisitionLevels();
+
+            // Retry to find it
+            acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
+            if (acquisitionLevelId == null) {
+                throw new DataIntegrityViolationException("Unknown acquisition level's label=" + label);
+            }
+        }
+
+        return acquisitionLevelId;
+    }
+
+    @Override
+    public String getAcquisitionLevelLabelById(int id) {
+        return acquisitionLevelLabelById.computeIfAbsent(id, (key) -> {
+            // Try to reload
+            loadAcquisitionLevels();
+
+            // Retry to find it
+            String label = acquisitionLevelLabelById.get(key);
+            if (label == null) {
+                throw new DataIntegrityViolationException("Unknown acquisition level's id=" + key);
+            }
+            return label;
+        });
     }
 
     /* -- protected methods -- */
@@ -672,6 +731,9 @@ public class ReferentialDaoImpl
         // Level Ids
         Predicate levelIdClause = null;
         ParameterExpression<Collection> levelIdsParam = null;
+        if (ArrayUtils.isEmpty(levelIds) && filter.getLevelId() != null) {
+            levelIds = new Integer[]{filter.getLevelId()};
+        }
         if (ArrayUtils.isNotEmpty(levelIds)) {
             levelIdsParam = builder.parameter(Collection.class);
             String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
@@ -841,20 +903,6 @@ public class ReferentialDaoImpl
         return typedQuery;
     }
 
-    private <T> TypedQuery<T> createFindByUniqueLabelQuery(Class<T> entityClass, String label) {
-        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<T> query = builder.createQuery(entityClass);
-        Root<T> root = query.from(entityClass);
-        query.select(root).distinct(true);
-
-        // Filter on text
-        ParameterExpression<String> labelParam = builder.parameter(String.class);
-        query.where(builder.equal(root.get(IItemReferentialEntity.Fields.LABEL), labelParam));
-
-        return getEntityManager().createQuery(query)
-            .setParameter(labelParam, label);
-    }
-
     protected String getTableName(String entityName) {
         return I18n.t("sumaris.persistence.table." + entityName.substring(0, 1).toLowerCase() + entityName.substring(1));
     }
@@ -972,7 +1020,7 @@ public class ReferentialDaoImpl
 
     protected void copyProperties(final IReferentialEntity source, ReferentialVO target) {
 
-        // TODO use EntitiesUtils
+        // TODO use ReferentialEntities
         switch (source.getClass().getSimpleName()) {
             case Method.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.of(
@@ -986,6 +1034,39 @@ public class ReferentialDaoImpl
                     Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear())
                 ));
             }
+            case DenormalizedSamplingStrata.ENTITY_NAME -> {
+                target.setProperties(ImmutableMap.<String, Object>builder()
+                    .put(DenormalizedSamplingStrata.Fields.SAMPLING_SCHEME_LABEL, ((DenormalizedSamplingStrata)source).getSamplingSchemeLabel())
+                    // TODO continue ?
+                    .build()
+                );
+            }
         }
+    }
+
+    /* -- private functions -- */
+    private <T> TypedQuery<T> createFindByUniqueLabelQuery(Class<T> entityClass, String label) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<T> query = builder.createQuery(entityClass);
+        Root<T> root = query.from(entityClass);
+        query.select(root).distinct(true);
+
+        // Filter on text
+        ParameterExpression<String> labelParam = builder.parameter(String.class);
+        query.where(builder.equal(root.get(IItemReferentialEntity.Fields.LABEL), labelParam));
+
+        return getEntityManager().createQuery(query)
+            .setParameter(labelParam, label);
+    }
+    private synchronized void loadAcquisitionLevels() {
+        acquisitionLevelIdByLabel.clear();
+        acquisitionLevelLabelById.clear();
+
+        // Fill acquisition levels map
+        List<ReferentialVO> items = findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null, null);
+        items.forEach(item -> {
+            acquisitionLevelIdByLabel.put(item.getLabel(), item.getId());
+            acquisitionLevelLabelById.put(item.getId(), item.getLabel());
+        });
     }
 }

@@ -104,4 +104,10 @@ public class FishingAreaServiceImpl implements FishingAreaService {
         Preconditions.checkNotNull(fishingAreas);
         return fishingAreaRepository.saveAllByOperationId(operationId, fishingAreas);
     }
+
+    @Override
+    public List<FishingAreaVO> saveAllBySaleId(int saleId, List<FishingAreaVO> fishingAreas) {
+        Preconditions.checkNotNull(fishingAreas);
+        return fishingAreaRepository.saveAllBySaleId(saleId, fishingAreas);
+    }
 }

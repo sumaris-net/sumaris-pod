@@ -40,14 +40,14 @@ public enum VesselTypeEnum implements Serializable {
         return Arrays.stream(values())
             .filter(enumValue -> enumValue.id == id)
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + id));
+            .orElseThrow(() -> new IllegalArgumentException("Unknown VesselTypeEnum: " + id));
     }
 
     public static VesselTypeEnum byLabel(@NonNull final String label) {
         return Arrays.stream(values())
             .filter(level -> label.equals(level.label))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown LocationLevelEnum: " + label));
+            .orElseThrow(() -> new IllegalArgumentException("Unknown VesselTypeEnum: " + label));
     }
 
     private Integer id;

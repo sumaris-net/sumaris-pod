@@ -60,6 +60,7 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class VesselRepositoryImpl
@@ -140,9 +141,10 @@ public class VesselRepositoryImpl
         query.setFirstResult((int)page.getOffset());
         query.setMaxResults(page.getSize());
 
-        return streamQuery(query)
-            .map(tuple -> toVO(tuple, fetchRegistrationPeriod, fetchOptions, true))
-            .collect(Collectors.toList());
+        try (Stream<Tuple> stream = streamQuery(query)) {
+            return stream.map(tuple -> toVO(tuple, fetchRegistrationPeriod, fetchOptions, true))
+                .toList();
+        }
     }
 
     @Override
@@ -295,7 +297,7 @@ public class VesselRepositoryImpl
         }
 
         // Vessel registration period
-        if (hasRegistrationPeriodTuple && (fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod() && fetchOptions != null)) {
+        if (hasRegistrationPeriodTuple && (fetchOptions == null || fetchOptions.isWithVesselRegistrationPeriod())) {
             VesselRegistrationPeriod sourceRegistrationPeriod = source.get(2, VesselRegistrationPeriod.class);
             if (copyIfNull || sourceRegistrationPeriod != null) {
                 target.setVesselRegistrationPeriod(vesselRegistrationPeriodRepository.toVO(sourceRegistrationPeriod));

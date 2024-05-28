@@ -29,7 +29,7 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.cruise.ScientificCruise;
+import net.sumaris.core.model.data.ScientificCruise;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.Date;
 
 public interface TripSpecifications extends RootDataSpecifications<Trip>,
-    IWithVesselSpecifications<Trip>,
+    IWithVesselSpecifications<Integer, Trip>,
     IWithObserversSpecifications<Trip> {
 
     String LOCATION_ID_PARAM = "locationId";

@@ -24,13 +24,15 @@ package net.sumaris.core.dao.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -62,7 +64,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -118,9 +119,17 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Landing
         result.put(LandingMeasurement.class, BeanUtils.getPropertyDescriptor(LandingMeasurement.class, LandingMeasurement.Fields.LANDING));
-
-        // Survey
         result.put(SurveyMeasurement.class, BeanUtils.getPropertyDescriptor(SurveyMeasurement.class, SurveyMeasurement.Fields.LANDING));
+
+        // Activity calendar
+        result.put(SurveyMeasurement.class, BeanUtils.getPropertyDescriptor(SurveyMeasurement.class, SurveyMeasurement.Fields.ACTIVITY_CALENDAR));
+        result.put(SurveyMeasurement.class, BeanUtils.getPropertyDescriptor(SurveyMeasurement.class, SurveyMeasurement.Fields.DAILY_ACTIVITY_CALENDAR));
+
+        // Vessel use features
+        result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.Fields.VESSEL_USE_FEATURES));
+
+        // Gear use features
+        result.put(GearUseMeasurement.class, BeanUtils.getPropertyDescriptor(GearUseMeasurement.class, GearUseMeasurement.Fields.GEAR_USE_FEATURES));
 
         return result;
     }
@@ -359,7 +368,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> getSurveyMeasurements(int landingId) {
+    public List<MeasurementVO> getLandingSurveyMeasurements(int landingId) {
         return getMeasurementsByParentId(SurveyMeasurement.class,
             MeasurementVO.class,
             SurveyMeasurement.Fields.LANDING,
@@ -369,7 +378,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public Map<Integer, String> getSurveyMeasurementsMap(int landingId) {
+    public Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId) {
         return getMeasurementsMapByParentId(SurveyMeasurement.class,
             SurveyMeasurement.Fields.LANDING,
             landingId,
@@ -378,7 +387,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public Map<Integer, String> getSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
+    public Map<Integer, String> getLandingSurveyMeasurementsMap(int landingId, List<Integer> pmfmIds) {
         return getMeasurementsMapByParentId(SurveyMeasurement.class,
             SurveyMeasurement.Fields.LANDING,
             landingId,
@@ -423,6 +432,36 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
             expectedSaleId,
             null
         );
+    }
+
+    @Override
+    public Map<Integer, String> getActivityCalendarMeasurementsMap(int activityCalendarId) {
+        return getMeasurementsMapByParentId(SurveyMeasurement.class,
+            SurveyMeasurement.Fields.ACTIVITY_CALENDAR,
+            activityCalendarId,
+            null
+        );
+    }
+
+    @Override
+    public Map<Integer, String> saveActivityCalendarMeasurementsMap(int activityCalendarId, Map<Integer, String> sources) {
+        ActivityCalendar parent = getById(ActivityCalendar.class, activityCalendarId);
+        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> getDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId) {
+        return getMeasurementsMapByParentId(SurveyMeasurement.class,
+            SurveyMeasurement.Fields.DAILY_ACTIVITY_CALENDAR,
+            dailyActivityCalendarId,
+            null
+        );
+    }
+
+    @Override
+    public Map<Integer, String> saveDailyActivityCalendarMeasurementsMap(int dailyActivityCalendarId, Map<Integer, String> sources) {
+        DailyActivityCalendar parent = getById(DailyActivityCalendar.class, dailyActivityCalendarId);
+        return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override
@@ -559,13 +598,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
-    public List<MeasurementVO> saveSurveyMeasurements(int landingId, List<MeasurementVO> sources) {
+    public List<MeasurementVO> saveLandingSurveyMeasurements(int landingId, List<MeasurementVO> sources) {
         Landing parent = getById(Landing.class, landingId);
         return saveMeasurements(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
 
     @Override
-    public Map<Integer, String> saveSurveyMeasurementsMap(int landingId, Map<Integer, String> sources) {
+    public Map<Integer, String> saveLandingSurveyMeasurementsMap(int landingId, Map<Integer, String> sources) {
         Landing parent = getById(Landing.class, landingId);
         return saveMeasurementsMap(SurveyMeasurement.class, sources, parent.getSurveyMeasurements(), parent);
     }
@@ -702,6 +741,36 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 vesselFeaturesId,
                 null
         );
+    }
+
+    @Override
+    public Map<Integer, String> getVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId) {
+        return getMeasurementsMapByParentId(VesselUseMeasurement.class,
+            VesselUseMeasurement.Fields.VESSEL_USE_FEATURES,
+            vesselUseFeaturesId,
+            null
+        );
+    }
+
+    @Override
+    public Map<Integer, String> getGearUseFeaturesMeasurementsMap(int gearUseFeaturesId) {
+        return getMeasurementsMapByParentId(GearUseMeasurement.class,
+            GearUseMeasurement.Fields.GEAR_USE_FEATURES,
+            gearUseFeaturesId,
+            null
+        );
+    }
+
+    @Override
+    public Map<Integer, String> saveVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId, Map<Integer, String> sources) {
+        VesselUseFeatures parent = getById(VesselUseFeatures.class, vesselUseFeaturesId);
+        return saveMeasurementsMap(VesselUseMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveGearUseFeaturesMeasurementsMap(int gearUseFeaturesId, Map<Integer, String> sources) {
+        GearUseFeatures parent = getById(GearUseFeatures.class, gearUseFeaturesId);
+        return saveMeasurementsMap(GearUseMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
@@ -902,28 +971,29 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         MutableShort rankOrder = new MutableShort(1);
         Date previousUpdateDate = null;
 
-        for (Integer pmfmId: sources.keySet()) {
-            String value = sources.get(pmfmId);
+        if (sources != null) {
+            for (Integer pmfmId : sources.keySet()) {
+                String value = sources.get(pmfmId);
 
-            if (StringUtils.isBlank(value)) continue; // Skip if blank value
+                if (StringUtils.isBlank(value)) continue; // Skip if blank value
 
-            final PmfmVO pmfm = getPmfm(pmfmId);
+                final PmfmVO pmfm = getPmfm(pmfmId);
 
-            // Compute update date (once)
-            previousUpdateDate = previousUpdateDate != null ? previousUpdateDate : getDatabaseCurrentTimestamp();
+                // Compute update date (once)
+                previousUpdateDate = previousUpdateDate != null ? previousUpdateDate : getDatabaseCurrentTimestamp();
 
-            // Split when many values (e.g. '<value1>|<value2>')
-            if (value.indexOf(MEASUREMENTS_MAP_VALUE_SEPARATOR) != -1) {
-                Iterable<String> values = Splitter.on(MEASUREMENTS_MAP_VALUE_SEPARATOR)
-                    .trimResults().omitEmptyStrings().split(value);
-                for (String aValue: values) {
+                // Split when many values (e.g. '<value1>|<value2>')
+                if (value.indexOf(MEASUREMENTS_MAP_VALUE_SEPARATOR) != -1) {
+                    Iterable<String> values = Splitter.on(MEASUREMENTS_MAP_VALUE_SEPARATOR)
+                        .trimResults().omitEmptyStrings().split(value);
+                    for (String aValue : values) {
+                        saveMeasurementValue(em, pmfm, entityClass, parent, previousUpdateDate,
+                            aValue, rankOrder, existingSources, sourcesToRemove);
+                    }
+                } else {
                     saveMeasurementValue(em, pmfm, entityClass, parent, previousUpdateDate,
-                        aValue, rankOrder, existingSources, sourcesToRemove);
+                        value, rankOrder, existingSources, sourcesToRemove);
                 }
-            }
-            else {
-                saveMeasurementValue(em, pmfm, entityClass, parent, previousUpdateDate,
-                    value, rankOrder, existingSources, sourcesToRemove);
             }
         }
 
@@ -963,18 +1033,18 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         // Rank order
-        if (entity instanceof ISortedMeasurementEntity) {
-            ((ISortedMeasurementEntity) entity).setRankOrder(rankOrder.getValue());
+        if (entity instanceof ISortedMeasurementEntity sm) {
+            sm.setRankOrder(rankOrder.getValue());
             rankOrder.increment();
         }
 
         // Is reference ?
-        if (entity instanceof IQuantifiedMeasurementEntity) {
+        if (entity instanceof IQuantifiedMeasurementEntity qm) {
             boolean isReference = rankOrder.shortValue() == 1;
-            ((IQuantifiedMeasurementEntity) entity).setIsReferenceQuantification(isReference);
+            qm.setIsReferenceQuantification(isReference);
             if (!isReference) {
                 // Use rankOrder as subgroup
-                ((IQuantifiedMeasurementEntity) entity).setSubgroupNumber(rankOrder.getValue());
+                qm.setSubgroupNumber(rankOrder.getValue());
                 rankOrder.increment();
             }
         }

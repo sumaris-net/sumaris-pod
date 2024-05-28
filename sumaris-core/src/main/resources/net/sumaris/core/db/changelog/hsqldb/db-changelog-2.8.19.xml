@@ -1,0 +1,76 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ #%L
+  ~ SUMARiS
+  ~ %%
+  ~ Copyright (C) 2019 SUMARiS Consortium
+  ~ %%
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public
+  ~ License along with this program.  If not, see
+  ~ <http://www.gnu.org/licenses/gpl-3.0.html>.
+  ~ #L%
+  -->
+
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-2.8.19.xml">
+
+  <!-- Add index on LOCATION.LABEL (need to fix ADAP RTP issue) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-001" failOnError="false">
+    <preConditions>
+      <not><indexExists tableName="location" indexName="location_label_idx"/></not>
+    </preConditions>
+    <createIndex tableName="location" indexName="location_label_idx">
+      <column name="label"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- Add missing index on USER_EVENT.RECIPIENT (was already defined in the @Entity annotation) -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-002">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="user_event" indexName="user_event_recipient_idx" columnNames="source"/>
+      </not>
+    </preConditions>
+    <createIndex tableName="user_event" indexName="user_event_recipient_idx">
+      <column name="recipient"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- update SYSTEM_VERSION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496726000-200" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='2.8.19'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">2.8.19</column>
+      <column name="DESCRIPTION">
+        - Create index, on LOCATION.LABEL
+        - Create missing index, on USER_EVENT.RECIPIENT
+        - ADAP: Add an enumeration override in SOFTWARE_PROPERTIES
+        - ADAP: Fix RTP weights
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Create index, on LOCATION.LABEL
+        - Create missing index, on USER_EVENT.RECIPIENT
+        - ADAP: Add an enumeration override in SOFTWARE_PROPERTIES
+        - ADAP: Fix RTP weights
+      </column>
+    </insert>
+  </changeSet>
+</databaseChangeLog>

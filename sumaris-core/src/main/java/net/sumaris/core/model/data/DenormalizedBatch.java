@@ -206,7 +206,7 @@ public class DenormalizedBatch  implements IEntity<Integer> {
     @JoinColumn(name = "reference_taxon_fk")
     private ReferenceTaxon referenceTaxon;
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatch.class, mappedBy = Fields.PARENT, cascade = CascadeType.REMOVE)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = DenormalizedBatch.class, mappedBy = Fields.PARENT, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<DenormalizedBatch> children = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -22,24 +22,29 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 
 /**
  * @author peck7 on 28/08/2020.
  */
-public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, Vessel>>
-        extends IEntitySpecifications<Integer, E> {
+public interface IWithVesselSpecifications<ID extends Serializable, E extends IWithVesselEntity<ID, Vessel>>
+        extends IEntitySpecifications<ID, E> {
 
     String VESSEL_ID_PARAM = "vesselId";
-
+    String VESSEL_IDS_PARAM = "vesselIds";
 
     default <T> Join<T, Vessel> composeVesselJoin(Root<T> root) {
         return Daos.composeJoin(root, IWithVesselEntity.Fields.VESSEL, JoinType.INNER);
@@ -50,12 +55,20 @@ public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, 
     }
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Join<T, Vessel> vessel, CriteriaBuilder cb, Expression<Date> dateExpression, JoinType joinType) {
+        return composeVrpJoinBetweenDate(vessel, cb, dateExpression, dateExpression, joinType);
+    }
+
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoinBetweenDate(Join<T, Vessel> vessel, CriteriaBuilder cb,
+                                                                                     Expression<Date> startDateExpression,
+                                                                                     Expression<Date> endDateExpression,
+                                                                                     JoinType joinType) {
         ListJoin<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoinList(vessel, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, joinType);
-        if (vrp.getOn() == null && dateExpression != null) {
+        if (vrp.getOn() == null && startDateExpression != null) {
+            if (endDateExpression == null) endDateExpression = startDateExpression;
             Predicate vrpCondition = cb.not(
                 cb.or(
-                    cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), dateExpression),
-                    cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), dateExpression)
+                    cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDateExpression),
+                    cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDateExpression)
                 )
             );
             vrp.on(vrpCondition);
@@ -86,5 +99,16 @@ public interface IWithVesselSpecifications<E extends IWithVesselEntity<Integer, 
             return cb.equal(vessel.get(IEntity.Fields.ID), param);
         }).addBind(VESSEL_ID_PARAM, vesselId);
     }
+
+    default Specification<E> hasVesselIds(Integer[] vesselIds) {
+        if (ArrayUtils.isEmpty(vesselIds)) return null;
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, VESSEL_IDS_PARAM);
+            Join<E, Vessel> vessel = composeVesselJoin(root);
+            return cb.in(vessel.get(Vessel.Fields.ID)).value(param);
+        })
+        .addBind(VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
+    }
+
 
 }

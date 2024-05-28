@@ -205,7 +205,11 @@
     <include relativeToChangelogFile="true" file="db-changelog-2.8.13.xml"/>
     <include relativeToChangelogFile="true" file="all/db-changelog-2.8.13.xml"/>
 
+    <include relativeToChangelogFile="true" file="db-changelog-2.8.19.xml"/>
+    <include relativeToChangelogFile="true" file="adap/db-changelog-2.8.19.xml"/>
+
     <include relativeToChangelogFile="true" file="db-changelog-2.9.0.xml"/>
+    <include relativeToChangelogFile="true" file="all/db-changelog-2.9.0.xml"/>
 
     <include relativeToChangelogFile="true" file="db-changelog-3.0.0.xml"/>
     <include relativeToChangelogFile="true" file="all/db-changelog-3.0.0.xml"/>

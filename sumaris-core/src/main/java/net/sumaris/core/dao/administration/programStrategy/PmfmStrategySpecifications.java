@@ -31,6 +31,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -96,7 +97,7 @@ public interface PmfmStrategySpecifications {
         }).addBind(STRATEGY_ID_PARAM, strategyId);
     }
 
-    default Specification<PmfmStrategy> toSpecification(PmfmStrategyFilterVO filter) {
+    default Specification<PmfmStrategy> toSpecification(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
         return BindableSpecification
             .where(hasProgramId(filter.getProgramId()))
             .and(inProgramLabels(filter.getProgramLabels()))

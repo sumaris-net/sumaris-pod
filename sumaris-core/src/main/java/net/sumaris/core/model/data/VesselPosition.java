@@ -43,7 +43,6 @@ public class VesselPosition implements IDataEntity<Integer>, IPosition {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VESSEL_POSITION_SEQ")
     @SequenceGenerator(name = "VESSEL_POSITION_SEQ", sequenceName="VESSEL_POSITION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

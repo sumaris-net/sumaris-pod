@@ -23,6 +23,8 @@ package net.sumaris.core.model.data;
  */
 
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 

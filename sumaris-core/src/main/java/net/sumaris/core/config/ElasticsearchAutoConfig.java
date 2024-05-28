@@ -74,7 +74,7 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
   public RestHighLevelClient restHighLevelClient(RestClient restClient) {
     log.info("Starting Elastisearch client on {}", restClient.getNodes().stream().map(Node::getHost).toList());
     RestHighLevelClient client = new RestHighLevelClientBuilder(restClient)
-        //.setApiCompatibilityMode(true)
+        //.setApiCompatibilityMode(true) // Not need on standard ES cluster (e.g. Ifremer)
         .build();
     return client;
   }
@@ -92,10 +92,16 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
               .builder()
               .connectedTo(nodes);
 
+      // Enable basic auth
       if (StringUtils.isNotBlank(properties.getUsername())) {
         clientConfiguration.withBasicAuth(properties.getUsername(), properties.getPassword());
       }
 
+      // Enable SSL
+      boolean useSsl = useSsl(properties);
+      if (useSsl) {
+        clientConfiguration.usingSsl();
+      }
     }
 
     // Default configuration (use localhost)
@@ -140,5 +146,18 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
         })
         .filter(StringUtils::isNotBlank)
         .toArray(String[]::new);
+  }
+
+  private boolean useSsl(ElasticsearchProperties properties) {
+    return Beans.getStream(properties.getUris())
+            .anyMatch(uriStr -> {
+              try {
+                URI uri = new URI(uriStr);
+                int port = uri.getPort();
+                return port == 443 || "https".equals(uri.getScheme());
+              } catch (URISyntaxException e) {
+                return false;
+              }
+            });
   }
 }

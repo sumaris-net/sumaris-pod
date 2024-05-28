@@ -24,6 +24,7 @@ package net.sumaris.core.vo.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
@@ -59,6 +60,7 @@ public class LandingVO implements IRootDataVO<Integer>,
     private PersonVO recorderPerson;
 
     private Integer vesselId;
+    @ToString.Exclude
     private VesselSnapshotVO vesselSnapshot;
 
     private Date dateTime;
@@ -66,8 +68,16 @@ public class LandingVO implements IRootDataVO<Integer>,
     private Integer rankOrder;
 
     private Set<PersonVO> observers;
+
+    @EqualsAndHashCode.Exclude
+    private Boolean hasSamples; // Optimization: allow to NOT fetch samples
     private List<SampleVO> samples;
     private Integer samplesCount;
+
+    @EqualsAndHashCode.Exclude
+    private Boolean hasSales; // Optimization: allow to NOT fetch sales
+    private List<SaleVO> sales;
+    private List<Integer> saleIds;
 
     // Not used in the App
     // and the association 'Landing.expectedSales' has been comment out (see issue sumaris-pod #24)

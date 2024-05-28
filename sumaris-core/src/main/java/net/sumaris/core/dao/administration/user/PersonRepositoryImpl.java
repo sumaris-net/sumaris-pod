@@ -187,7 +187,8 @@ public class PersonRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, key = "#source.id", condition = "#source != null && #source.id != null")
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#source.id", condition = "#source != null && #source.id != null")
         },
         put = {
             @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
@@ -260,7 +261,9 @@ public class PersonRepositoryImpl
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_USER_ID, key = "#id")
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#id"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true)
     })
     public void deleteById(Integer id) {
         super.deleteById(id);

@@ -51,6 +51,17 @@ public interface IRootDataFilter extends IDataFilter {
 
     void setLocationId(Integer locationId);
 
+    default Integer[] getLocationIds() {
+        Integer locationId = getLocationId();
+        return (locationId != null) ? new Integer[]{locationId} : null;
+    }
+
+    default void setLocationIds(Integer[] locationIds) {
+        if (locationIds != null && locationIds.length == 1) {
+            this.setLocationId(locationIds[0]);
+        }
+    }
+
     DataQualityStatusEnum[] getDataQualityStatus();
 
     void setDataQualityStatus(DataQualityStatusEnum[] dataQualityStatus);

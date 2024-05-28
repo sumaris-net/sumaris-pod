@@ -75,7 +75,7 @@ public class Sale implements IRootDataEntity<Integer>,
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
-    @Column(length = 2000)
+    @Column(length = IDataEntity.LENGTH_COMMENTS)
     private String comments;
 
     @Column(name = "control_date")
@@ -148,8 +148,12 @@ public class Sale implements IRootDataEntity<Integer>,
     @ToString.Exclude
     private Trip trip;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObservedLocation.class)
-    @JoinColumn(name = "observed_location_fk")
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Landing.class)
+    @JoinColumn(name = "landing_fk")
     @ToString.Exclude
-    private ObservedLocation observedLocation;
+    private Landing landing;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.SALE)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<FishingArea> fishingAreas = new ArrayList<>();
 }

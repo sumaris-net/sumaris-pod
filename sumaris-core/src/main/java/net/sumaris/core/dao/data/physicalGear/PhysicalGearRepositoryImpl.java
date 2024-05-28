@@ -31,6 +31,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.data.IWithGearsEntity;
 import net.sumaris.core.model.data.PhysicalGear;
 import net.sumaris.core.model.data.Trip;
@@ -86,6 +87,7 @@ public class PhysicalGearRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasVesselId(filter.getVesselId()))
+            .and(hasVesselIds(filter.getVesselIds()))
             // Trip
             .and(hasTripId(filter.getTripId()))
             .and(excludeTripId(filter.getExcludeTripId()))
@@ -228,7 +230,7 @@ public class PhysicalGearRepositoryImpl
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         if (debugTime != 0L)
-            log.debug(String.format("Saving trip {id:%s} physical gears... {hash_optimization:%s}", tripId, enableHashOptimization));
+            log.debug("Saving physical gears of Trip#{}... {hash_optimization: {}}", tripId, enableHashOptimization);
 
         // Load parent entity
         Trip parent = getById(Trip.class, tripId);
@@ -240,7 +242,6 @@ public class PhysicalGearRepositoryImpl
             source.setProgram(parentProgram);
         });
 
-
         // Save all, by parent
         boolean dirty = saveAllByParent(parent, sources, idsToRemoveLater);
 
@@ -250,7 +251,7 @@ public class PhysicalGearRepositoryImpl
         }
 
         if (debugTime != 0L)
-            log.debug("Saving trip {id:{}} physical gears [OK] in {}", tripId, TimeUtils.printDurationFrom(debugTime));
+            log.debug("Saving physical gears of Trip#{} [OK] in {}", tripId, TimeUtils.printDurationFrom(debugTime));
 
         return sources;
     }
@@ -361,8 +362,9 @@ public class PhysicalGearRepositoryImpl
 
         // Stop here (without change on the update_date)
         if (skipSave) {
-            // Flag as same hash
-            source.addFlag(ValueObjectFlags.SAME_HASH);
+            // Mark as same hash (current item and all children)
+            TreeNodeEntities.streamAll(source).forEach(vo -> vo.addFlag(ValueObjectFlags.SAME_HASH));
+
             return source;
         }
 

@@ -57,9 +57,9 @@ public interface IWithObserversSpecifications<E extends IWithObserversEntity<Int
             // Avoid duplicated entries (because of join)
             if (ArrayUtils.getLength(observerPersonIds) > 1) query.distinct(true);
 
-            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
             return cb.in(Daos.composeJoin(root, observersPropertyPath).get(IEntity.Fields.ID))
-                .value(parameter);
+                .value(param);
         }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }
 }

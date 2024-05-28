@@ -36,7 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class I18nUtil extends org.nuiton.i18n.I18nUtil {
@@ -49,7 +51,7 @@ public class I18nUtil extends org.nuiton.i18n.I18nUtil {
 
     public static Optional<Locale> findI18nLocale(@NonNull String localeStr) {
         // try full match (with country)
-        Locale result = Arrays.stream(I18n.getStore().getLanguages())
+        Locale result = ArrayUtils.stream(I18n.getStore().getLanguages())
                 .map(I18nLanguage::getLocale)
                 .filter(l -> localeStr.equalsIgnoreCase(l.toString()))
                 .findFirst().orElse(null);
@@ -58,7 +60,7 @@ public class I18nUtil extends org.nuiton.i18n.I18nUtil {
         // retry without country
         if (localeStr.indexOf('_') == 2) {
             final String language = localeStr.substring(0 ,2);
-            result = Arrays.stream(I18n.getStore().getLanguages())
+            result = ArrayUtils.stream(I18n.getStore().getLanguages())
                     .map(I18nLanguage::getLocale)
                     .filter(l -> language.equalsIgnoreCase(l.getLanguage()))
                     .findFirst().orElse(null);
@@ -74,7 +76,7 @@ public class I18nUtil extends org.nuiton.i18n.I18nUtil {
         List<Locale> locales = ImmutableList.copyOf(I18nUtil.parseLocales(str));
 
         // Find on locales (with country)
-        Locale result = Arrays.stream(I18n.getStore().getLocales())
+        Locale result = ArrayUtils.stream(I18n.getStore().getLocales())
                 .filter(locales::contains)
                 .findFirst().orElse(null);
         if (result != null) return Optional.of(result);
@@ -83,7 +85,7 @@ public class I18nUtil extends org.nuiton.i18n.I18nUtil {
         List<String> languages = locales.stream()
                 .map(Locale::getLanguage) // Extract 2 first characters
                 .collect(Collectors.toList());
-        result = Arrays.stream(I18n.getStore().getLocales())
+        result = java.util.Arrays.stream(I18n.getStore().getLocales())
                 .filter(l -> languages.contains(l.getLanguage()))
                 .findFirst().orElse(null);
         if (result != null) return Optional.of(result);

@@ -36,12 +36,35 @@ import java.util.stream.Stream;
 public class TreeNodeEntities {
 
     public static <T extends ITreeNodeEntity<? extends Serializable, T>> List<T> treeAsList(T rootNode) {
-        return streamAll(rootNode).collect(Collectors.toList());
+        return streamAll(rootNode).toList();
     }
 
+    /**
+     * Stream all nodes in a tree, recursively (from root to leafs).
+     * @param rootNode
+     * @return
+     * @param <T> tree class
+     */
     public static <T extends ITreeNodeEntity<? extends Serializable, T>> Stream<T> streamAll(T rootNode) {
         Stream.Builder<T> result = Stream.<T>builder();
         appendToStream(rootNode, result);
+        return result.build();
+    }
+
+    /**
+     * Stream all children nodes in a tree, recursively (from root's children to leafs).<br/>
+     * Same as streamAll(), but WITHOUT adding the input node
+     * @param node
+     * @return
+     * @param <T> tree class
+     */
+    public static <T extends ITreeNodeEntity<? extends Serializable, T>> Stream<T> streamAllChildren(T node) {
+        Stream.Builder<T> result = Stream.<T>builder();
+
+        // Process children
+        if (node != null && CollectionUtils.isNotEmpty(node.getChildren())) {
+            node.getChildren().forEach(child -> appendToStream(child, result));
+        }
         return result.build();
     }
 

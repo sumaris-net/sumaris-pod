@@ -30,20 +30,6 @@
   <property name="sqlCheck.not_empty.sql" value="SELECT COUNT(*) FROM STATUS WHERE ID=1"/>
   <property name="sqlCheck.not_empty.expectedResult" value="1"/>
 
-  <!-- Rename some config options -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-300" runOnChange="true">
-    <preConditions onFail="MARK_RAN">
-      <and>
-        <sqlCheck expectedResult="${sqlCheck.not_empty.expectedResult}">${sqlCheck.not_empty.sql}</sqlCheck>
-        <not>
-          <sqlCheck expectedResult="0">select count(*) from SOFTWARE_PROPERTY where label ='sumaris.vessel.filter.registrationCountry.Id'</sqlCheck>
-        </not>
-      </and>
-    </preConditions>
-    <sql endDelimiter=";">
-      update SOFTWARE_PROPERTY set label='sumaris.vessel.filter.registrationCountry.id' where label='sumaris.vessel.filter.registrationCountry.Id';
-      commit;
-    </sql>
-  </changeSet>
+  <!-- TODO -->
 
 </databaseChangeLog>

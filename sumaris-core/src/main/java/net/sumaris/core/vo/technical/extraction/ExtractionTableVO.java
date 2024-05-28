@@ -67,4 +67,6 @@ public class ExtractionTableVO implements IReferentialVO<Integer> {
     public String getSheetName() {
         return label;
     }
+
+    private String entityName = "ExtractionTable";
 }

@@ -62,6 +62,7 @@ public class AuthGraphQLServiceTest extends AbstractGraphQLServiceTest {
         // Authenticate with good credential
         assertTrue(authenticate("admin@sumaris.net", "admin"));
         assertTrue(authenticate("demo@sumaris.net", "demo"));
+        assertTrue(authenticate("obs@sumaris.net", "demo"));
     }
 
     @Test
@@ -69,7 +70,7 @@ public class AuthGraphQLServiceTest extends AbstractGraphQLServiceTest {
         // Authenticate with empty or bad credential
         assertFalse(authenticate("admin@sumaris.net", "bad"));
         assertFalse(authenticate("demo@sumaris.net", "null"));
-
+        assertFalse(authenticate("obs@sumaris.net", ""));
     }
 
     @Test

@@ -671,6 +671,8 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         // But group can be enabled by subsclasses (e.g. see PMFM_TRIP format)
         xmlQuery.setGroup("taxon", this.enableSpeciesLengthTaxon(context));
 
+        // Always disable injectionPoint group to avoid injection point staying on final xml query (if not used to inject pmfm)
+        xmlQuery.setGroup("injectionPoint", false);
 
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
@@ -707,6 +709,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     protected Set<Integer> getSpeciesListExcludedPmfmIds() {
         return ImmutableSet.<Integer>builder()
+            // Excluded all Pmfms used by the COMMERCIAL_SIZE_CATEGORY column
+            .addAll(getSizeCategoryPmfmIds())
+            // Excluded other Pmfms used elsewhere
             .add(
                 PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(),
                 PmfmEnum.BATCH_MEASURED_WEIGHT.getId(),
@@ -716,9 +721,9 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
                 PmfmEnum.DISCARD_OR_LANDING.getId(),
                 PmfmEnum.BATCH_SORTING.getId(),
                 PmfmEnum.CATCH_WEIGHT.getId(),
-                PmfmEnum.DISCARD_WEIGHT.getId()
+                PmfmEnum.DISCARD_WEIGHT.getId(),
+                PmfmEnum.LANDING_CATEGORY.getId()
             )
-            .addAll(getSizeCategoryPmfmIds())
             .build();
     }
 

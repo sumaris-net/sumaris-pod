@@ -55,7 +55,11 @@
     <select alias="LANDING_CATEGORY" type="text" group="agg">
       MAX(
         CASE
-          WHEN SM.PMFM_FK = &amp;landingCategoryPmfmId THEN QV.LABEL
+          WHEN SM.PMFM_FK = &amp;landingCategoryPmfmId AND QV.LABEL IS NOT NULL THEN
+            CASE QV.LABEL
+              WHEN 'HCN' THEN 'HUC'
+              ELSE QV.LABEL
+            END
           WHEN SPECIE_B.IS_LANDING=true THEN '&amp;defaultLandingCategory'
           ELSE NULL
         END
@@ -86,7 +90,7 @@
     <select alias="WEIGHT" type="number" group="weight,agg">MAX(SPECIE_B.ELEVATE_WEIGHT)</select>
     <select alias="SUBSAMPLE_WEIGHT" type="number" group="agg"><![CDATA[
      MAX(CASE
-        WHEN SAMPLING_B.SAMPLING_RATIO IS NULL THEN SPECIE_B.ELEVATE_WEIGHT
+        WHEN SAMPLING_B.SAMPLING_RATIO IS NULL AND SAMPLING_B.ELEVATE_INDIVIDUAL_COUNT IS NOT NULL THEN SPECIE_B.ELEVATE_WEIGHT
         WHEN SAMPLING_B.SAMPLING_RATIO > 0 THEN SPECIE_B.ELEVATE_WEIGHT * SAMPLING_B.SAMPLING_RATIO
         ELSE NULL
       END)

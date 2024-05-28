@@ -39,7 +39,6 @@ import java.util.List;
 
 @Getter
 @Setter
-
 @FieldNameConstants
 @Entity
 public class Batch implements IDataEntity<Integer>,
@@ -48,7 +47,6 @@ public class Batch implements IDataEntity<Integer>,
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_SEQ")
     @SequenceGenerator(name = "BATCH_SEQ", sequenceName="BATCH_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -143,9 +141,5 @@ public class Batch implements IDataEntity<Integer>,
     @JoinColumn(name = "sale_fk")
     private Sale sale;
 
-    // TODO: add location (for fishing area - need for sale)
-    //@ManyToOne(fetch = FetchType.LAZY, targetEntity = Location.class)
-    //@JoinColumn(name = "location_fk")
-    //private Location location;
 
 }

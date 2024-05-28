@@ -50,7 +50,7 @@ public class DevicePosition implements IDataEntity<Integer> {
     private Integer id;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false)
+    @Column(name = "date_time", nullable = false)
     private Date dateTime;
 
     @Column(nullable = false)
@@ -59,7 +59,7 @@ public class DevicePosition implements IDataEntity<Integer> {
     @Column(nullable = false)
     private Double longitude;
 
-    @Column(nullable = false)
+    @Column(name = "object_id", nullable = false)
     private Integer objectId;
 
     @ManyToOne
@@ -74,27 +74,27 @@ public class DevicePosition implements IDataEntity<Integer> {
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
+    @Column(name="update_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false)
     private Date updateDate;
 
+    @Column(name="creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(nullable = false)
     private Date creationDate;
 
-    @Column(name="control_date", nullable = true)
+    @Column(name="control_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name="validation_date", nullable = true)
+    @Column(name="validation_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date validationDate;
 
-    @Column(name="qualification_date", nullable = true)
+    @Column(name="qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = LENGTH_COMMENTS, nullable = true)
+    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
     private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)

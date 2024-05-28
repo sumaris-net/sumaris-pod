@@ -64,11 +64,10 @@ public class TranscribingItem implements IItemReferentialEntity<Integer>  {
     @Column(name = "object_id")
     private Integer objectId;
 
-    @Column(nullable = false, length = LENGTH_LABEL)
-    
+    @Column(nullable = false) // length = 255
     private String label;
 
-    @Column(nullable = false, length = LENGTH_NAME)
+    @Column(length = LENGTH_NAME) // Not mandatory in Adagio DB
     private String name;
 
     private String description;

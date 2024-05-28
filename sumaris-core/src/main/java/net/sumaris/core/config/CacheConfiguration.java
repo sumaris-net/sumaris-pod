@@ -81,11 +81,15 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String LOCATION_LEVEL_BY_LABEL = "net.sumaris.core.dao.referential.location.locationLevelByLabel";
         String LOCATION_BY_ID = "net.sumaris.core.dao.referential.location.locationById";
 
+        String LOCATIONS_BY_FILTER = "net.sumaris.core.dao.referential.location.locationsByFilter";
+
         // Program
         String PROGRAM_BY_ID = "net.sumaris.core.dao.administration.programStrategy.programById";
         String PROGRAM_BY_LABEL = "net.sumaris.core.dao.administration.programStrategy.programByLabel";
         String PROGRAM_BY_LABEL_AND_OPTIONS = "net.sumaris.core.dao.administration.programStrategy.programByLabelAndOptions";
-        String PROGRAM_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
+        String PROGRAM_IDS_BY_READ_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserId";
+        String PROGRAM_IDS_BY_WRITE_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programIdsByUserIdAndPrivilege";
+        String PROGRAM_LOCATION_IDS_BY_USER_ID = "net.sumaris.core.dao.administration.programStrategy.programLocationIdsByUserId";
 
         String PROGRAM_PRIVILEGES_BY_PERSON_ID = "net.sumaris.core.dao.administration.programStrategy.programPrivilegesByPersonId";
 
@@ -180,6 +184,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Location
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_LEVEL_BY_LABEL, String.class, ReferentialVO.class, 600);
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_BY_ID, Integer.class, LocationVO.class, 2000);
+            Caches.createCollectionHeapCache(cacheManager, Names.LOCATIONS_BY_FILTER, LocationVO.class, CacheTTL.DEFAULT.asDuration(), 100);
 
             // Gear
             Caches.createHeapCache(cacheManager, Names.GEAR_BY_ID, Integer.class, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 300);
@@ -190,15 +195,17 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_BY_LABEL_AND_OPTIONS, SimpleKey.class, ProgramVO.class, 100);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PROGRAM_PRIVILEGES_BY_PERSON_ID, SimpleKey.class, ProgramPrivilegeEnum.class, 500);
             Caches.createEternalHeapCache(cacheManager, Names.PROGRAM_PRIVILEGE_BY_ID, Integer.class, ReferentialVO.class, 10);
-            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_READ_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_IDS_BY_WRITE_USER_ID, Integer.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PROGRAM_LOCATION_IDS_BY_USER_ID, SimpleKey.class, Integer.class, CacheTTL.MEDIUM.asDuration(), 500);
             Caches.createEternalCollectionHeapCache(cacheManager, Names.PROGRAM_ACQUISITION_LEVELS_BY_ID, Integer.class, ReferentialVO.class,500);
 
             // Strategy
             Caches.createCollectionHeapCache(cacheManager, Names.STRATEGIES_BY_FILTER, StrategyVO.class, CacheTTL.DEFAULT.asDuration(), 100);
             Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_ID, Integer.class, StrategyVO.class, CacheTTL.LONG.asDuration(), 500);
             Caches.createHeapCache(cacheManager, Names.STRATEGY_BY_LABEL, String.class, StrategyVO.class, CacheTTL.LONG.asDuration(), 500);
-            Caches.createCollectionHeapCache(cacheManager, Names.PMFM_STRATEGIES_BY_FILTER, PmfmStrategyVO.class, CacheTTL.DEFAULT.asDuration(), 500);
-            Caches.createCollectionHeapCache(cacheManager, Names.DENORMALIZED_PMFM_BY_FILTER, DenormalizedPmfmStrategyVO.class, CacheTTL.DEFAULT.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.PMFM_STRATEGIES_BY_FILTER, PmfmStrategyVO.class, CacheTTL.LONG.asDuration(), 500);
+            Caches.createCollectionHeapCache(cacheManager, Names.DENORMALIZED_PMFM_BY_FILTER, DenormalizedPmfmStrategyVO.class, CacheTTL.LONG.asDuration(), 500);
 
             // Pmfm
             Caches.createEternalHeapCache(cacheManager, Names.PMFM_BY_ID, Integer.class, PmfmVO.class, 600);

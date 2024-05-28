@@ -57,6 +57,7 @@ public class ExtractionApaseDaoImpl<C extends ExtractionApaseContextVO, F extend
     public ExtractionApaseDaoImpl() {
         super();
         this.enableRecordTypeColumn = false; // No RECORD_TYPE in this format
+        this.enableSpeciesLengthSpeciesPmfmsInjection = false; // Avoid to add SL pmfm columns into the HL table
     }
 
     @Override

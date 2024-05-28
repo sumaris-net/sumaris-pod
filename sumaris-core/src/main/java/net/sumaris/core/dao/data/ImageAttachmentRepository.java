@@ -26,6 +26,7 @@ import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -43,4 +44,9 @@ public interface ImageAttachmentRepository
 
     @Query("from ImageAttachment where objectId=:objectId and objectType.id=:objectTypeId")
     List<ImageAttachment> findAllByObject(@Param("objectId") int objectId, @Param("objectTypeId") int objectTypeId);
+
+    @Query("update ImageAttachment t set t.comments = :comments where t.id = :id")
+    @Modifying
+    int updateComments(@Param("id") int id, @Param("comments") String comments);
+
 }

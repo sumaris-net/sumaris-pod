@@ -77,4 +77,6 @@ public class AggregationStrataVO implements IReferentialVO<Integer> {
     public void setLabel(String label) {
         this.sheetName = label;
     }
+
+    private String entityName = "AggregationStrata";
 }

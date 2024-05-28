@@ -29,21 +29,16 @@ import java.io.Serializable;
 import java.util.Date;
 
 public interface IRootDataEntity<ID extends Serializable>
-        extends IDataEntity<ID>,
-        IWithRecorderPersonEntity<ID, Person>,
-        IWithDataQualityEntity<ID> {
+        extends IValidatableDataEntity<ID>,
+            IWithProgramEntity<ID, Program>,
+            IWithRecorderPersonEntity<ID, Person> {
 
-    interface Fields extends IDataEntity.Fields,
-        IWithDataQualityEntity.Fields,
+    interface Fields extends IValidatableDataEntity.Fields,
+        IWithProgramEntity.Fields,
         IWithRecorderPersonEntity.Fields {
-        String PROGRAM = "program";
         String CREATION_DATE = "creationDate";
         String COMMENTS = "comments";
     }
-
-    Program getProgram();
-
-    void setProgram(Program program);
 
     Date getCreationDate() ;
 

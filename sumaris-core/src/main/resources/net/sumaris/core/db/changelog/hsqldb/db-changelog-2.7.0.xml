@@ -7,7 +7,7 @@
 
 
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-1" runOnChange="true">
-    <preConditions>
+    <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="SCIENTIFIC_CRUISE_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="50" sequenceName="SCIENTIFIC_CRUISE_SEQ" startValue="1"/>

@@ -28,26 +28,35 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public interface VesselRegistrationPeriodSpecifications {
-
-    String VESSEL_ID_PARAM = "vesselId";
 
     default Specification<VesselRegistrationPeriod> vesselId(Integer vesselId) {
         if (vesselId == null) return null;
         BindableSpecification<VesselRegistrationPeriod> specification = BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, VesselRegistrationFilterVO.Fields.VESSEL_ID);
             return cb.equal(root.get(VesselRegistrationPeriod.Fields.VESSEL).get(Vessel.Fields.ID), param);
         });
-        specification.addBind(VESSEL_ID_PARAM, vesselId);
+        specification.addBind(VesselRegistrationFilterVO.Fields.VESSEL_ID, vesselId);
+        return specification;
+    }
+
+    default Specification<VesselRegistrationPeriod> registrationLocationIds(Integer[] registrationIds) {
+        if (ArrayUtils.isEmpty(registrationIds)) return null;
+        BindableSpecification<net.sumaris.core.model.data.VesselRegistrationPeriod> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, VesselRegistrationFilterVO.Fields.REGISTRATION_LOCATION_IDS);
+            return cb.equal(root.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION).get(Vessel.Fields.ID), param);
+        });
+        specification.addBind(VesselRegistrationFilterVO.Fields.REGISTRATION_LOCATION_IDS, Arrays.asList(registrationIds));
         return specification;
     }
 
@@ -83,11 +92,11 @@ public interface VesselRegistrationPeriodSpecifications {
 
     Optional<VesselRegistrationPeriodVO> findLastByVesselId(int vesselId);
 
-    Specification<VesselRegistrationPeriod> toSpecification(VesselFilterVO filter);
+    Specification<VesselRegistrationPeriod> toSpecification(VesselRegistrationFilterVO filter);
 
     Optional<VesselRegistrationPeriod> findByVesselIdAndDate(int vesselId, Date date);
 
-    List<VesselRegistrationPeriodVO> findAll(VesselFilterVO filter, Page page);
+    List<VesselRegistrationPeriodVO> findAll(VesselRegistrationFilterVO filter, Page page);
 
     DatabaseType getDatabaseType();
 }

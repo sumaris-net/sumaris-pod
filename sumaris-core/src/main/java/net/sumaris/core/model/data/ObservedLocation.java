@@ -27,6 +27,7 @@ import lombok.*;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
+import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.referential.QualityFlag;
@@ -114,7 +115,6 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     private QualityFlag qualityFlag;
 
     @Column(name = "start_date_time", nullable = false)
-    
     private Date startDateTime;
 
     @Column(name = "end_date_time", nullable = false)
@@ -122,16 +122,11 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
 
     @ManyToOne(fetch = FetchType.EAGER, targetEntity = Location.class)
     @JoinColumn(name = "location_fk", nullable = false)
-    
     private Location location;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Program.class)
     @JoinColumn(name = "program_fk", nullable = false)
     private Program program;
-
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.OBSERVED_LOCATION)
-    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<Sale> sales = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Landing.class, mappedBy = Landing.Fields.OBSERVED_LOCATION)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
@@ -148,6 +143,10 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
             inverseJoinColumns = {
                     @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
     private Set<Person> observers = Sets.newHashSet();
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = SamplingStrata.class)
+    @JoinColumn(name = "sampling_strata_fk")
+    private SamplingStrata samplingStrata;
 
     public int hashCode() {
         return Objects.hash(id, program, startDateTime, location);

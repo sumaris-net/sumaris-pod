@@ -54,15 +54,14 @@ public class VesselFetchOptions implements IDataFetchOptions {
     private boolean withVesselRegistrationPeriod = true;
 
     @Builder.Default
+    private boolean withCountryRegistration = false;
+
+    @Builder.Default
     private boolean withBasePortLocation = false;
 
     @Builder.Default
     private boolean withMeasurementValues = false;
 
-    @Override
-    public boolean isWithObservers() {
-        return false;
-    }
 
 
 }

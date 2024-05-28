@@ -23,15 +23,11 @@ package net.sumaris.core.dao.administration.programStrategy;
  */
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.event.config.ConfigurationEvent;
-import net.sumaris.core.event.config.ConfigurationReadyEvent;
-import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.PmfmStrategy;
 import net.sumaris.core.model.administration.programStrategy.Strategy;
@@ -45,28 +41,29 @@ import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.jpa.QueryHints;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
+import javax.persistence.Subgraph;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 public class PmfmStrategyRepositoryImpl
     extends SumarisJpaRepositoryImpl<PmfmStrategy, Integer, PmfmStrategyVO>
         implements PmfmStrategyRepository {
-
-    private final Map<String, Integer> acquisitionLevelIdByLabel = Maps.newConcurrentMap();
-    private final Map<Integer, String> acquisitionLevelLabelById = Maps.newConcurrentMap();
 
 
     private final ReferentialDao referentialDao;
@@ -81,21 +78,18 @@ public class PmfmStrategyRepositoryImpl
         this.pmfmRepository = pmfmRepository;
     }
 
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.loadAcquisitionLevels();
-    }
-
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PMFM_STRATEGIES_BY_FILTER)
     public List<PmfmStrategyVO> findByFilter(PmfmStrategyFilterVO filter, PmfmStrategyFetchOptions fetchOptions) {
-        return findAll(toSpecification(filter),
-                Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER)
-            )
-                .stream()
-                .map(entity -> toVO(entity, fetchOptions))
-                //.sorted(Comparator.comparing(ps -> String.format("%s#%s#%s", ps.getStrategyId(), ps.getAcquisitionLevel(), ps.getRankOrder())))
-                .collect(Collectors.toList());
+        Specification<PmfmStrategy> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
+        TypedQuery<PmfmStrategy> query = getQuery(spec, getDomainClass(), Sort.by(PmfmStrategy.Fields.STRATEGY, PmfmStrategy.Fields.ACQUISITION_LEVEL, PmfmStrategy.Fields.RANK_ORDER));
+
+        // Add hints
+        configureQuery(query, fetchOptions);
+
+        try (Stream<PmfmStrategy> stream = streamQuery(query)) {
+            return stream.map(entity -> toVO(entity, fetchOptions)).toList();
+        }
     }
 
     @Override
@@ -140,7 +134,7 @@ public class PmfmStrategyRepositoryImpl
 
         // Acquisition Level
         if (source.getAcquisitionLevel() != null) {
-            target.setAcquisitionLevel(getAcquisitionLevelLabelById(source.getAcquisitionLevel().getId()));
+            target.setAcquisitionLevel(referentialDao.getAcquisitionLevelLabelById(source.getAcquisitionLevel().getId()));
         }
 
         // Gears
@@ -277,7 +271,7 @@ public class PmfmStrategyRepositoryImpl
         String acquisitionLevel = source.getAcquisitionLevel();
         if (copyIfNull || acquisitionLevel != null) {
             if (acquisitionLevel != null) {
-                target.setAcquisitionLevel(getReference(AcquisitionLevel.class, getAcquisitionLevelIdByLabel(acquisitionLevel)));
+                target.setAcquisitionLevel(getReference(AcquisitionLevel.class, referentialDao.getAcquisitionLevelIdByLabel(acquisitionLevel)));
             }
             else {
                 target.setAcquisitionLevel(null);
@@ -309,56 +303,20 @@ public class PmfmStrategyRepositoryImpl
         }
     }
 
-    /* -- protected methods -- */
+    protected void configureQuery(TypedQuery<PmfmStrategy> query, @Nullable PmfmStrategyFetchOptions fetchOptions) {
+        if (fetchOptions != null && fetchOptions.isWithPmfms()) {
+            // Prepare load graph
+            EntityManager em = getEntityManager();
+            EntityGraph<?> entityGraph = em.getEntityGraph(PmfmStrategy.GRAPH_PMFM);
 
+            Subgraph<Pmfm> pmfmSubGraph = entityGraph.addSubgraph(PmfmStrategy.Fields.PMFM);
+            pmfmSubGraph.addSubgraph(Pmfm.Fields.PARAMETER);
+            pmfmSubGraph.addSubgraph(Pmfm.Fields.MATRIX);
+            pmfmSubGraph.addSubgraph(Pmfm.Fields.FRACTION);
+            pmfmSubGraph.addSubgraph(Pmfm.Fields.METHOD);
+            pmfmSubGraph.addSubgraph(Pmfm.Fields.UNIT);
 
-    private void loadAcquisitionLevels() {
-        acquisitionLevelIdByLabel.clear();
-        acquisitionLevelLabelById.clear();
-
-        // Fill acquisition levels map
-        List<ReferentialVO> items = referentialDao.findByFilter(AcquisitionLevel.class.getSimpleName(), new ReferentialFilterVO(), 0, 1000, null, null, null);
-        items.forEach(item -> {
-            acquisitionLevelIdByLabel.put(item.getLabel(), item.getId());
-            acquisitionLevelLabelById.put(item.getId(), item.getLabel());
-        });
-    }
-    private int getAcquisitionLevelIdByLabel(String label) {
-        Integer acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
-        if (acquisitionLevelId == null) {
-
-            // Try to reload
-            synchronized (this) {
-                loadAcquisitionLevels();
-            }
-
-            // Retry to find it
-            acquisitionLevelId = acquisitionLevelIdByLabel.get(label);
-            if (acquisitionLevelId == null) {
-                throw new DataIntegrityViolationException("Unknown acquisition level's label=" + label);
-            }
+            query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
         }
-
-        return acquisitionLevelId;
     }
-
-    private String getAcquisitionLevelLabelById(int id) {
-        String label = acquisitionLevelLabelById.get(id);
-        if (label == null) {
-
-            // Try to reload
-            synchronized (this) {
-                loadAcquisitionLevels();
-            }
-
-            // Retry to find it
-            label = acquisitionLevelLabelById.get(id);
-            if (label == null) {
-                throw new DataIntegrityViolationException("Unknown acquisition level's id=" + id);
-            }
-        }
-
-        return label;
-    }
-
 }

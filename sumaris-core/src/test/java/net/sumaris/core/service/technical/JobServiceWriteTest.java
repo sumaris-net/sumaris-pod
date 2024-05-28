@@ -23,18 +23,15 @@
 package net.sumaris.core.service.technical;
 
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.referential.ProcessingTypeEnum;
 import net.sumaris.core.model.social.SystemRecipientEnum;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
+import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.vo.technical.job.JobVO;
-import org.junit.*;
-import org.junit.runners.MethodSorters;
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 
 public class JobServiceWriteTest extends AbstractServiceTest{
@@ -108,7 +105,7 @@ public class JobServiceWriteTest extends AbstractServiceTest{
     private JobVO createJob(String issuer) {
         return JobVO.builder()
             .name("Extraction test job")
-            .type(ProcessingTypeEnum.SIOP_VESSELS_IMPORTATION.getLabel())
+            .type(JobTypeEnum.SIOP_VESSELS_IMPORTATION.name())
             .issuer(issuer)
             .status(JobStatusEnum.PENDING)
             .build();

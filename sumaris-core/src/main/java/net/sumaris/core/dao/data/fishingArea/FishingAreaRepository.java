@@ -51,8 +51,22 @@ public interface FishingAreaRepository
         return specification;
     }
 
+    default Specification<FishingArea> hasSaleId(Integer saleId) {
+        if (saleId == null) return null;
+        BindableSpecification<FishingArea> specification = BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, FishingAreaVO.Fields.SALE_ID);
 
+            return cb.or(
+                    cb.isNull(param),
+                    cb.equal(root.get(FishingArea.Fields.SALE).get(IEntity.Fields.ID), param)
+            );
+        });
+        specification.addBind(FishingAreaVO.Fields.SALE_ID, saleId);
+        return specification;
+    }
     List<FishingArea> getFishingAreaByOperationId(int operationId);
+
+    List<FishingArea> getFishingAreaByGearUseFeaturesId(int gearUseFeaturesId);
 
     void deleteAllByOperationId(int operationId);
 }

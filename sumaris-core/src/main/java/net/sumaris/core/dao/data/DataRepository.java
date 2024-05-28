@@ -25,7 +25,10 @@ package net.sumaris.core.dao.data;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
+import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.data.IDataEntity;
+import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IDataVO;
 import net.sumaris.core.vo.filter.IDataFilter;
 import org.springframework.data.domain.Page;
@@ -43,7 +46,7 @@ public interface DataRepository<
     E extends IDataEntity<Integer>,
     V extends IDataVO<Integer>,
     F extends IDataFilter,
-    O extends IFetchOptions
+    O extends IDataFetchOptions
     >
     extends SumarisJpaRepository<E, Integer, V> {
 
@@ -103,23 +106,11 @@ public interface DataRepository<
 
     V control(V vo);
 
-    default Date control(Integer id, Date updateDate) {
-        V vo = get(id);
-        vo = control(vo);
-        return vo.getUpdateDate();
-    }
-
     V validate(V vo);
-
-    //Date validate(Integer id, Date updateDate);
 
     V unValidate(V vo);
 
-    //Date unValidate(Integer id, Date updateDate);
-
     V qualify(V vo);
-
-    //Date qualify(Integer id, Date updateDate);
 
     V toVO(E source, O fetchOptions);
 
