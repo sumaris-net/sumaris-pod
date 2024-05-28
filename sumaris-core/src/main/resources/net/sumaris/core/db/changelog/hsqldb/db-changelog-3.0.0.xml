@@ -1161,14 +1161,4 @@
       </column>
     </insert>
   </changeSet>
-
-  <changeSet author="m.facorat@codra.fr" id="1694619259850-301">
-    <preConditions onFail="MARK_RAN">
-      <not><columnExists tableName="vessel_features" columnName="is_fpc"/></not>
-    </preConditions>
-    <addColumn tableName="vessel_features">
-      <column name="is_fpc" type="BOOLEAN"/>
-    </addColumn>
-  </changeSet>
-
 </databaseChangeLog>

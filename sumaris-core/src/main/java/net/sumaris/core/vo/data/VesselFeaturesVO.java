@@ -55,7 +55,6 @@ public class VesselFeaturesVO implements IRootDataVO<Integer>,
     private Double grossTonnageGt;
     private Integer constructionYear;
     private String ircs;
-    private Boolean isFpc;
 
     private ReferentialVO hullMaterial;
     private LocationVO basePortLocation;
