@@ -372,8 +372,9 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         Preconditions.checkNotNull(source.getDirectSurveyInvestigation(), "Missing directSurveyInvestigation");
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
-        Preconditions.checkNotNull(source.getVesselSnapshot(), "Missing vesselSnapshot");
-        Preconditions.checkNotNull(source.getVesselSnapshot().getVesselId(), "Missing vesselSnapshot.id");
+
+        Integer vesselId = source.getVesselId() != null ? source.getVesselId() : (source.getVesselSnapshot() != null ? source.getVesselSnapshot().getVesselId() : null);
+        Preconditions.checkNotNull(vesselId, "Missing vesselId or vesselSnapshot.id");
     }
 
 

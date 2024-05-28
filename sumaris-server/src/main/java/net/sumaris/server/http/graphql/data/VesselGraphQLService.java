@@ -35,6 +35,7 @@ import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -254,13 +255,10 @@ public class VesselGraphQLService {
     }
 
     public <T extends IWithVesselSnapshotEntity<?, VesselSnapshotVO>> void fillVesselSnapshot(T bean, Set<String> fields) {
-        // Add vessel if need
-        VesselSnapshotVO result = bean.getVesselSnapshot();
-
         // Fetch (if need)
-        if (result == null && bean.getVesselId() != null && hasVesselFeaturesField(fields)) {
-            result = vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime()));
-            bean.setVesselSnapshot(result);
+        Integer vesselId = bean.getVesselId() != null ? bean.getVesselId() : (bean.getVesselSnapshot() != null ? bean.getVesselSnapshot().getVesselId() : null);
+        if (vesselId != null && hasVesselFeaturesField(fields) && VesselSnapshotVO.isEmpty(bean.getVesselSnapshot(), VesselSnapshotVO.Fields.VESSEL_ID)) {
+            bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(vesselId, Dates.resetTime(bean.getVesselDateTime())));
         }
     }
 
@@ -268,8 +266,9 @@ public class VesselGraphQLService {
         // Add vessel if need
         if (hasVesselFeaturesField(fields)) {
             beans.parallelStream().forEach(bean -> {
-                if (bean.getVesselId() != null && bean.getVesselSnapshot() == null) {
-                    bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(bean.getVesselId(), Dates.resetTime(bean.getVesselDateTime())));
+                Integer vesselId = bean.getVesselId() != null ? bean.getVesselId() : (bean.getVesselSnapshot() != null ? bean.getVesselSnapshot().getVesselId() : null);
+                if (vesselId != null && VesselSnapshotVO.isEmpty(bean.getVesselSnapshot(), VesselSnapshotVO.Fields.VESSEL_ID)) {
+                    bean.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(vesselId, Dates.resetTime(bean.getVesselDateTime())));
                 }
             });
         }

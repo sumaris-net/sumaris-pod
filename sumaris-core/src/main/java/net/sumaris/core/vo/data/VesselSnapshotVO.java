@@ -28,6 +28,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.util.ArrayUtils;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -54,6 +56,10 @@ public class VesselSnapshotVO implements IDataVO<Integer>,
 
     @GraphQLIgnore
     public static final String INDEX = "vessel_snapshot";
+
+    public static boolean isEmpty(VesselSnapshotVO bean, String... ignoredProperties) {
+        return Beans.beanIsEmpty(bean, ignoredProperties);
+    }
 
     @Id
     private Integer vesselFeaturesId; // = VesselFeatures.ID = the unique key used by ElasticSearch indexation
