@@ -160,6 +160,10 @@ public class VesselFeatures implements IDataEntity<Integer>,
     @Column(name = "ircs", length = 10)
     private String ircs;
 
+
+    @Column(name="is_fpc")
+    private Boolean isFpc;
+
     /**
      * Matériaux de la coque (ex : Bois, Métal, Plastique, etc). cf PMFM "HULL_MATERIAL".
      */

@@ -1802,6 +1802,14 @@ public class DataGraphQLService {
         return imageService.getImagesForObject(sample.getId(), ObjectTypeEnum.SAMPLE);
     }
 
+    @GraphQLQuery(name = "images", description = "Get activity calendar's images")
+    public List<ImageAttachmentVO> getActivityCalendarImages(@GraphQLContext ActivityCalendarVO activityCalendar) {
+        if (activityCalendar.getImages() != null) return activityCalendar.getImages();
+        if (activityCalendar.getId() == null || !this.enableImageAttachments) return null;
+
+        return imageService.getImagesForObject(activityCalendar.getId(), ObjectTypeEnum.ACTIVITY_CALENDAR);
+    }
+
     @GraphQLQuery(name = "images", description = "Search filter")
     @IsUser
     public List<ImageAttachmentVO> findImagesByFilter(@GraphQLArgument(name = "filter") ImageAttachmentFilterVO filter,
@@ -2106,6 +2114,7 @@ public class DataGraphQLService {
             .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
             .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
             .withMeasurementValues(fields.contains(ActivityCalendarVO.Fields.MEASUREMENT_VALUES))
+            .withImages(this.enableImageAttachments && fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.IMAGES, IEntity.Fields.ID)))
             .withChildrenEntities(fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.VESSEL_USE_FEATURES, IEntity.Fields.ID))
                 || fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.GEAR_USE_FEATURES, IEntity.Fields.ID)))
             .build();
