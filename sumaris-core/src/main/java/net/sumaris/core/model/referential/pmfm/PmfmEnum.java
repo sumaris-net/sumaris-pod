@@ -163,6 +163,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     SURVEY_QUALIFICATION(446, "SURVEY_QUALIFICATION"),
     SURVEY_RELIABILITY(447, "SURVEY_QUALIFICATION"),
+    AUCTION_HABIT(451, "AUCTION_HABIT"),
     ;
 
     public static PmfmEnum valueOf(final int id) {
