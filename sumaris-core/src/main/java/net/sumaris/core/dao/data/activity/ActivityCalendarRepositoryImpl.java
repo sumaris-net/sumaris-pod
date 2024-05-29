@@ -104,12 +104,12 @@ public class ActivityCalendarRepositoryImpl
     public void toVO(ActivityCalendar source, ActivityCalendarVO target, ActivityCalendarFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
-        Integer ActivityCalendarId = source.getId();
+        Integer activityCalendarId = source.getId();
 
         // Fetch images
-        if (this.enableImageAttachments && fetchOptions != null && fetchOptions.isWithImages() && ActivityCalendarId != null) {
+        if (this.enableImageAttachments && fetchOptions != null && fetchOptions.isWithImages() && activityCalendarId != null) {
             List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
-                    .objectId(ActivityCalendarId)
+                    .objectId(activityCalendarId)
                     .objectTypeId(ObjectTypeEnum.ACTIVITY_CALENDAR.getId())
                     .build(), ImageAttachmentFetchOptions.MINIMAL);
             target.setImages(images);

@@ -35,7 +35,6 @@ import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -56,7 +55,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @GraphQLApi
