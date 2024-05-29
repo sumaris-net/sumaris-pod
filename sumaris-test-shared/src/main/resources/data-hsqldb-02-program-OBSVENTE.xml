@@ -71,6 +71,7 @@
   <PROGRAM_PROPERTY ID="527" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
   <PROGRAM_PROPERTY ID="528" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="529" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.samplingRatio.format" NAME="1/w"/>
+  <PROGRAM_PROPERTY ID="530" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.landing.topPmfmIds" NAME="503"/> <!-- SALE_TYPE -->
 
 
   <!-- strategies -->
