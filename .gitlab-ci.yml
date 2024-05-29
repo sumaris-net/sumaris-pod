@@ -32,6 +32,7 @@ variables:
     APP_CORE_MODULE: sumaris-core
     APP_DB_MODULE: sumaris-db
     APP_WAR_MODULE: sumaris-server
+    ARTIFACT_DB_FILE: "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-*.zip"
     ARTIFACT_WAR_FILE: "${APP_WAR_MODULE}/target/*.war"
     ARTIFACT_CONFIG_FILES: "${APP_WAR_MODULE}/target/classes/*.properties"
     ENV_FILE: target/variables.env
@@ -198,16 +199,22 @@ sonarqube:
     - MVN_OPTS="${MVN_OPTS} -DreleaseVersion=${RELEASE_VERSION}"
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
-    - mvn clean package --batch-mode -DskipTests -DperformRelease -Phsqldb -Denv=hsqldb
+    - mvn clean install --batch-mode -DskipTests -DperformRelease -Phsqldb
+    - echo "Generating DB..."
+    - mvn -Prun,hsqldb --batch-mode --quiet -DskipTests -pl ${APP_CORE_MODULE}
+    - zip -q -r "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${CI_COMMIT_TAG}.zip" target/db
     - echo "Deploy binaries to package registry"
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
     - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout --non-recursive)
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - echo "Pushing changes to upstream"
     - git diff --cached
     - git commit -am "[CI] release performed" || echo "Nothing to commit, continue"
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
+    - echo "-- Generated DB files:"
+    - ls -la ${ARTIFACT_DB_FILE}
     - echo "-- Generated WAR files:"
     - ls -la ${ARTIFACT_WAR_FILE}
     - echo "-- Generated config files:"
@@ -215,6 +222,7 @@ sonarqube:
     - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
+      - ${ARTIFACT_DB_FILE}
       - ${ARTIFACT_WAR_FILE}
       - ${ARTIFACT_CONFIG_FILES}
       # FIXME: BLA - comment out to avoid an error "Request Entity Too Large"
@@ -240,14 +248,19 @@ release:tags:
   script:
     - echo "Performing release..."
     - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${CI_COMMIT_TAG}"
-    - mvn clean package --batch-mode -DskipTests -DperformRelease -Phsqldb
-    - echo "Deploy binaries to package registry"
+    - mvn clean install --batch-mode -DskipTests -DperformRelease -Phsqldb
+    - echo "Generating DB..."
+    - mvn -Prun,hsqldb --batch-mode --quiet -DskipTests -pl ${APP_CORE_MODULE}
+    - zip -q -r "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${CI_COMMIT_TAG}.zip" target/db
+    - echo "Deploy binaries to package registry..."
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
     - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout --non-recursive)
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
   artifacts:
     paths:
+      - ${ARTIFACT_DB_FILE}
       - ${ARTIFACT_WAR_FILE}
       - ${ARTIFACT_CONFIG_FILES}
       # FIXME: BLA - comment out to avoid an error "Request Entity Too Large"
