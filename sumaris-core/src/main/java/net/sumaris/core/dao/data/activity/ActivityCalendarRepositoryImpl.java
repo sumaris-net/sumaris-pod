@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.activity;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -33,10 +34,16 @@ import net.sumaris.core.model.data.ActivityCalendar;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -50,13 +57,19 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class ActivityCalendarRepositoryImpl
         extends RootDataRepositoryImpl<ActivityCalendar, ActivityCalendarVO, ActivityCalendarFilterVO, ActivityCalendarFetchOptions>
         implements ActivityCalendarSpecifications {
 
+    @Autowired
+    private ImageAttachmentRepository imageAttachmentRepository;
+
     private boolean enableVesselRegistrationNaturalOrder;
+
+    private boolean enableImageAttachments;
 
     @Autowired
     public ActivityCalendarRepositoryImpl(EntityManager entityManager,
@@ -90,6 +103,18 @@ public class ActivityCalendarRepositoryImpl
     @Override
     public void toVO(ActivityCalendar source, ActivityCalendarVO target, ActivityCalendarFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
+
+        Integer activityCalendarId = source.getId();
+
+        // Fetch images
+        if (this.enableImageAttachments && fetchOptions != null && fetchOptions.isWithImages() && activityCalendarId != null) {
+            List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
+                    .objectId(activityCalendarId)
+                    .objectTypeId(ObjectTypeEnum.ACTIVITY_CALENDAR.getId())
+                    .build(), ImageAttachmentFetchOptions.MINIMAL);
+            target.setImages(images);
+        }
+
 
     }
 

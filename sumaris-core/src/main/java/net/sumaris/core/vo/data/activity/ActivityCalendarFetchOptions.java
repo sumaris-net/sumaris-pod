@@ -44,6 +44,7 @@ public class ActivityCalendarFetchOptions implements IDataFetchOptions {
     public static final ActivityCalendarFetchOptions FULL_GRAPH = ActivityCalendarFetchOptions.builder()
         .withChildrenEntities(true)
         .withMeasurementValues(true)
+        .withImages(true)
         .build();
 
     @Builder.Default
@@ -63,4 +64,7 @@ public class ActivityCalendarFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withProgram = true;
+
+    @Builder.Default
+    private boolean withImages = false;
 }

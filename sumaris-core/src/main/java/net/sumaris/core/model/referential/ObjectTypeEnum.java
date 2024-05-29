@@ -35,7 +35,9 @@ public enum ObjectTypeEnum implements Serializable {
     SAMPLE(2, "SAMPLE"),
     FISHING_TRIP(3,"FISHING_TRIP"),
     LANDING(4,"LANDING"),
-    OBSERVED_LOCATION(5,"OBSERVED_LOCATION")
+    OBSERVED_LOCATION(5,"OBSERVED_LOCATION"),
+    BATCH(6,"BATCH"),
+    ACTIVITY_CALENDAR(7,"ACTIVITY_CALENDAR")
     ;
 
     public static ObjectTypeEnum valueOf(final int id) {

@@ -41,13 +41,12 @@ variables:
 # ---------------------------------------------------------------
 .configure-git-template: &git-setup
   before_script:
-    - echo "fetch origin"
+    - echo "fetch origin using token --${CI_ACCESS_TOKEN}--"
     - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
     - git fetch origin
   tags: [sih_public_runner]
-
 
 .docker:
     image: docker:latest
@@ -63,13 +62,12 @@ variables:
 # ---------------------------------------------------------------
 # Build jobs
 # ---------------------------------------------------------------
-
 .build:
     stage: build
     tags: [sih_public_runner]
     script:
         - echo "Building from sources..."
-        - mvn clean install -s ./ci_settings.xml -DskipTests
+        - mvn clean package -DskipTests
     after_script:
         # Get project version
         - mkdir -p target
@@ -156,7 +154,7 @@ test:
     rules:
       - if: $CI_COMMIT_TAG
         when: never
-      - if: '$CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH =~ /^imagine/ || $CI_COMMIT_BRANCH =~ /^feature/'
+      - if: '$CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH =~ /^feature/ || $CI_COMMIT_BRANCH =~ /^features/'
         when: manual
     allow_failure: true
 

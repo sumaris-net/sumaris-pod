@@ -28,13 +28,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.*;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.util.Date;
 import java.util.List;
@@ -54,6 +58,10 @@ public class VesselSnapshotVO implements IDataVO<Integer>,
 
     @GraphQLIgnore
     public static final String INDEX = "vessel_snapshot";
+
+    public static boolean isEmpty(VesselSnapshotVO bean, String... ignoredProperties) {
+        return Beans.beanIsEmpty(bean, ignoredProperties);
+    }
 
     @Id
     private Integer vesselFeaturesId; // = VesselFeatures.ID = the unique key used by ElasticSearch indexation
