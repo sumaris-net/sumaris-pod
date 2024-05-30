@@ -42,7 +42,7 @@ variables:
 # ---------------------------------------------------------------
 .configure-git-template: &git-setup
   before_script:
-    - echo "fetch origin using token --${CI_ACCESS_TOKEN}--"
+    - echo "Fetching origin..."
     - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
