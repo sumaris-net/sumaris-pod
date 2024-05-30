@@ -367,10 +367,12 @@ docker:release:tags:
       - git submodule foreach git fetch origin
       - git submodule foreach git pull
   script:
-      - echo "---- Generating SVG, from '*.plantuml' files..."
-      - git submodule foreach ./generate.sh || true
-      - echo "---- Generating Maven site..."
-      - mvn site -s ./ci_settings.xml -q -Phsqldb -DperformRelease
+    - echo "---- Generating SVG (e.g.PlantUML files) ..."
+    - git submodule foreach ./plantuml.sh svg || true
+    - echo "---- Cleaning sub modules..."
+    - git submodule foreach rm -rf node_modules || true
+    - echo "---- Generating Maven site..."
+    - mvn site -s ./ci_settings.xml -q -Phsqldb -DperformRelease
   after_script:
       - mv target/site public
   allow_failure: true

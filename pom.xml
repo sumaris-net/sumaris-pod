@@ -226,7 +226,7 @@
     <javadocPluginVersion>3.5.0</javadocPluginVersion>
     <releasePluginVersion>3.0.1</releasePluginVersion>
     <deployPluginVersion>3.0.0</deployPluginVersion>
-    <doxiaModuleMarkdownVersion>1.12.0</doxiaModuleMarkdownVersion>
+    <doxiaModuleMarkdownVersion>2.0.0-M12</doxiaModuleMarkdownVersion>
 
     <!-- codehaus mojo or other plugins -->
     <licensePluginVersion>1.13</licensePluginVersion>
@@ -1444,6 +1444,11 @@
               <artifactId>doxia-module-markdown</artifactId>
               <version>${doxiaModuleMarkdownVersion}</version>
             </dependency>
+<!--            <dependency>-->
+<!--              <groupId>com.vladsch.flexmark</groupId>-->
+<!--              <artifactId>flexmark-all</artifactId>-->
+<!--              <version>0.64.8</version>-->
+<!--            </dependency>-->
           </dependencies>
         </plugin>
 
@@ -1952,6 +1957,7 @@
                   <goal>execute</goal>
                 </goals>
                 <configuration>
+                  <continueExecuting>true</continueExecuting>
                   <properties>
                     <property>
                       <name>project.build.directory</name>
