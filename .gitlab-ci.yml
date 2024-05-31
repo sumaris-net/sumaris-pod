@@ -338,8 +338,6 @@ docker:develop:
     needs: [build]
     variables:
         IMAGE_TAG: 'develop'
-        IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
-        IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
     only:
         - develop
 
