@@ -1249,7 +1249,6 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${compilerPluginVersion}</version>
           <configuration>
-            <optimize>true</optimize>
             <source>${javaVersion}</source>
             <target>${javaVersion}</target>
             <debug>true</debug>
