@@ -96,6 +96,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Physical Gear
         result.put(PhysicalGearMeasurement.class, BeanUtils.getPropertyDescriptor(PhysicalGearMeasurement.class, PhysicalGearMeasurement.Fields.PHYSICAL_GEAR));
+        // Physical Gear
+        result.put(PhysicalGearMeasurement.class, BeanUtils.getPropertyDescriptor(PhysicalGearMeasurement.class, PhysicalGearMeasurement.Fields.PHYSICAL_GEAR));
 
         // Operation
         result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.Fields.OPERATION));
@@ -130,6 +132,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Gear use features
         result.put(GearUseMeasurement.class, BeanUtils.getPropertyDescriptor(GearUseMeasurement.class, GearUseMeasurement.Fields.GEAR_USE_FEATURES));
+
+        // Gear physical features
+        result.put(GearPhysicalMeasurement.class, BeanUtils.getPropertyDescriptor(GearPhysicalMeasurement.class, GearPhysicalMeasurement.Fields.GEAR_PHYSICAL_FEATURES));
 
         return result;
     }
@@ -762,6 +767,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public Map<Integer, String> getGearPhysicalFeaturesMeasurementsMap(int gearPhysicalFeaturesId) {
+        return getMeasurementsMapByParentId(GearPhysicalMeasurement.class,
+            GearPhysicalMeasurement.Fields.GEAR_PHYSICAL_FEATURES,
+            gearPhysicalFeaturesId,
+            null
+        );
+    }
+
+    @Override
     public Map<Integer, String> saveVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId, Map<Integer, String> sources) {
         VesselUseFeatures parent = getById(VesselUseFeatures.class, vesselUseFeaturesId);
         return saveMeasurementsMap(VesselUseMeasurement.class, sources, parent.getMeasurements(), parent);
@@ -771,6 +785,12 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     public Map<Integer, String> saveGearUseFeaturesMeasurementsMap(int gearUseFeaturesId, Map<Integer, String> sources) {
         GearUseFeatures parent = getById(GearUseFeatures.class, gearUseFeaturesId);
         return saveMeasurementsMap(GearUseMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveGearPhysicalFeaturesMeasurementsMap(int gearPhysicalFeaturesId, Map<Integer, String> sources) {
+        GearPhysicalFeatures parent = getById(GearPhysicalFeatures.class, gearPhysicalFeaturesId);
+        return saveMeasurementsMap(GearPhysicalMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
@@ -1409,6 +1429,17 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // If gear use measurement
         else if (target instanceof GearUseMeasurement) {
+            // Operation
+            if (parentClass.isAssignableFrom(Operation.class)) {
+                if (parentId == null) {
+                    ((GearUseMeasurement) target).setOperation(null);
+                } else {
+                    ((GearUseMeasurement) target).setOperation(getReference(Operation.class, parentId));
+                }
+            }
+        }
+
+        else if (target instanceof GearPhysicalMeasurement) {
             // Operation
             if (parentClass.isAssignableFrom(Operation.class)) {
                 if (parentId == null) {

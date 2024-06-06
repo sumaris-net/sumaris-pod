@@ -1,8 +1,12 @@
-/*
+package net.sumaris.core.dao.data.vessel;
+
+import net.sumaris.core.model.data.GearPhysicalFeatures;
+
+/*-
  * #%L
- * SUMARiS
+ * SUMARiS:: Core
  * %%
- * Copyright (C) 2019 SUMARiS Consortium
+ * Copyright (C) 2024 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -20,27 +24,17 @@
  * #L%
  */
 
-package net.sumaris.core.vo.data;
+import net.sumaris.core.vo.data.DataFetchOptions;
+import net.sumaris.core.vo.data.GearPhysicalFeaturesVO;
+import net.sumaris.core.vo.filter.GearPhysicalFeaturesFilterVO;
+import org.springframework.stereotype.Repository;
 
-import lombok.*;
-import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+@Repository("gearPhysicalFeaturesRepository")
+public interface GearPhysicalFeaturesRepository
+    extends
+        UseFeaturesRepository<GearPhysicalFeatures, GearPhysicalFeaturesVO, GearPhysicalFeaturesFilterVO, DataFetchOptions>,
+        GearPhysicalFeaturesSpecifications
+{
 
-@Data
-@FieldNameConstants
-@EqualsAndHashCode
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataOriginVO {
 
-    private String acquisitionLevel;
-
-    @EqualsAndHashCode.Exclude
-    private ProgramVO program;
-    private Integer programId;
-
-    private Integer vesselUseFeaturesId;
-    private Integer gearUseFeaturesId;
-    private Integer gearPhysicalFeaturesId;
 }

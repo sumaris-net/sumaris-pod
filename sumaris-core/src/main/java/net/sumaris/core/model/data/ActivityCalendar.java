@@ -139,4 +139,8 @@ public class ActivityCalendar implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<GearUseFeatures> gearUseFeatures = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = GearPhysicalFeatures.Fields.ACTIVITY_CALENDAR)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<GearPhysicalFeatures> gearPhysicalFeatures = new ArrayList<>();
+
 }
