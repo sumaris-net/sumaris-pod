@@ -34,7 +34,6 @@ import javax.persistence.criteria.ParameterExpression;
 import java.io.Serializable;
 import net.sumaris.core.util.ArrayUtils;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 public interface IEntitySpecifications<ID extends Serializable, E extends IEntity<ID>> {
