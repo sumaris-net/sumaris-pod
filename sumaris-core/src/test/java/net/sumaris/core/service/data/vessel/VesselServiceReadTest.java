@@ -39,10 +39,12 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.elasticsearch.ElasticsearchResource;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -198,6 +200,26 @@ public class VesselServiceReadTest extends AbstractServiceTest{
         VesselVO result = service.get(fixtures.getVesselId(0));
 
         AssertVessel.assertValid(result);
+    }
+
+    @Test
+    public void findRegistrationPeriodsByFilter() {
+
+        int year = 2023;
+        Date startDate = Dates.getFirstDayOfYear(year);
+        Date endDate = Dates.getLastSecondOfYear(year);
+        int vesselId = fixtures.getVesselWithManyRegistrationLocations();
+        VesselRegistrationFilterVO filter = VesselRegistrationFilterVO.builder()
+                .vesselId(vesselId)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+        List<VesselRegistrationPeriodVO> result = service.findRegistrationPeriodsByFilter(filter, null);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(2, result.size());
+
+        Assert.assertEquals(1, result.stream().filter((period) -> period.getEndDate() == null).count());
+        Assert.assertEquals(1, result.stream().filter((period) -> period.getEndDate() != null).count());
     }
 
     /* -- protected -- */

@@ -24,6 +24,7 @@ package net.sumaris.server.http.graphql.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
@@ -39,6 +40,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
@@ -49,10 +51,12 @@ import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
 import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
 import net.sumaris.core.service.data.denormalize.DenormalizedTripResultVO;
 import net.sumaris.core.service.data.denormalize.DenormalizedTripService;
+import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -145,6 +149,8 @@ public class DataGraphQLService {
     private final FishingAreaService fishingAreaService;
 
     private final AuthService authService;
+
+    private final VesselService vesselService;
 
     private final VesselGraphQLService vesselGraphQLService;
 
@@ -1942,6 +1948,38 @@ public class DataGraphQLService {
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(activityCalendar, fields);
 
+        // Add authorized locations (if need)
+        if (fields.contains(StringUtils.doting(ActivityCalendarVO.Fields.VESSEL_REGISTRATION_PERIODS_BY_PRIVILEGES))) {
+            Date startDate = Dates.getFirstDayOfYear(activityCalendar.getYear());
+            Date endDate = Dates.getLastSecondOfYear(activityCalendar.getYear());
+            List<VesselRegistrationPeriodVO> registrationPeriods = vesselService.findRegistrationPeriodsByFilter(VesselRegistrationFilterVO.builder().vesselId(activityCalendar.getVesselId())
+                            .startDate(startDate)
+                            .endDate(endDate)
+                            .build(),
+                    Page.create(0, 50, VesselRegistrationPeriodVO.Fields.START_DATE, SortDirection.ASC)
+            );
+
+            Integer[] registrationLocationIds = Beans.collectDistinctProperties(registrationPeriods, StringUtils.doting(VesselRegistrationPeriodVO.Fields.REGISTRATION_LOCATION, IEntity.Fields.ID))
+                    .toArray(Integer[]::new);
+
+            Set<Integer> authorizedLocationIds = dataAccessControlService.getAuthorizedLocationIds(
+                    new Integer[]{activityCalendar.getProgram().getId()},
+                    registrationLocationIds).map(ArrayUtils::asSet)
+                    .orElseThrow(UnauthorizedException::new) // TODO check if works in App, and if Forbidden is better (in app)
+                    ;
+
+            Map<ProgramPrivilegeEnum, List<VesselRegistrationPeriodVO>> vesselRegistrationPeriodsByPrivilege = ImmutableMap.of(
+                    ProgramPrivilegeEnum.OBSERVER, registrationPeriods.stream()
+                            .filter(vrp -> authorizedLocationIds.contains(vrp.getRegistrationLocation().getId()))
+                            .toList(),
+                    ProgramPrivilegeEnum.VIEWER, registrationPeriods.stream()
+                            .filter(vrp -> !authorizedLocationIds.contains(vrp.getRegistrationLocation().getId()))
+                            .toList()
+            );
+
+            activityCalendar.setVesselRegistrationPeriodsByPrivileges(vesselRegistrationPeriodsByPrivilege);
+        }
+
         return activityCalendar;
     }
 
@@ -2196,7 +2234,6 @@ public class DataGraphQLService {
         if (filter.getProgramIds() != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
 
             // Get authorized location ids
-            Object test = ArrayUtils.<Integer>concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds());
             Integer[] locationIds = dataAccessControlService.getAuthorizedLocationIds(
                 filter.getProgramIds(),
                 ArrayUtils.concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds()))

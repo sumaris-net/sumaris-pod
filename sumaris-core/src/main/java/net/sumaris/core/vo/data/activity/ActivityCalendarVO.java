@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -81,6 +82,8 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     private List<GearPhysicalFeaturesVO> gearPhysicalFeatures;
 
     private List<ImageAttachmentVO> images;
+
+    private Map<ProgramPrivilegeEnum, List<VesselRegistrationPeriodVO>> vesselRegistrationPeriodsByPrivileges;
 
     @Override
     @JsonIgnore

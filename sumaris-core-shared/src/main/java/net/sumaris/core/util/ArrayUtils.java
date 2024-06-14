@@ -24,7 +24,10 @@ package net.sumaris.core.util;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
@@ -60,6 +63,12 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
     @SuppressWarnings("varargs")
     public static <T> List<T> asList(T... values) {
         return java.util.Arrays.asList(values);
+    }
+
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public static <T> Set<T> asSet(T... values) {
+        return Arrays.stream(values).collect(Collectors.toSet());
     }
 
     public static <T> Stream<T> stream(T[] array) {
