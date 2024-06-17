@@ -97,6 +97,8 @@ public class ActivityCalendarRepositoryImpl
             .and(hasBasePortLocationIds(filter.getBasePortLocationIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            .and(hasDirectSurveyInvestigation(filter.getDirectSurveyInvestigation()))
+            .and(hasEconomicSurvey(filter.getEconomicSurvey()))
             ;
     }
 
