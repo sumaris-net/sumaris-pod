@@ -157,6 +157,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     SALE_TYPE(503, "SALE_TYPE"),
     IS_OBSERVED(510, "IS_OBSERVED"),
     NON_OBSERVATION_REASON(511, "NON_OBSERVATION_REASON"),
+    TAXON_GROUP_ID(513, "TAXON_GROUP_ID"),
 
     // Activity Calendar
     AUCTION_HABIT(451, "AUCTION_HABIT"),
