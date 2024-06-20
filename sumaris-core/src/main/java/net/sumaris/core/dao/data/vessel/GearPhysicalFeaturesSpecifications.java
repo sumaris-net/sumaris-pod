@@ -41,7 +41,6 @@ public interface GearPhysicalFeaturesSpecifications
 {
     String METIER_IDS_PARAM = "metierIds";
     String GEAR_IDS_PARAM = "gearIds";
-    String TRIP_IDS_PARAM = "tripIds";
 
     default Specification<GearPhysicalFeatures> hasMetierId(Integer metierId) {
         if (metierId == null) return null;
@@ -68,20 +67,6 @@ public interface GearPhysicalFeaturesSpecifications
             return root.get(GearPhysicalFeatures.Fields.GEAR).get(IEntity.Fields.ID).in(param);
         }).addBind(GEAR_IDS_PARAM, Arrays.asList(gearIds));
     }
-
-    default Specification<GearPhysicalFeatures> hasTripId(Integer tripId) {
-        if (tripId == null) return null;
-        return hasTripIds(new Integer[]{tripId});
-    }
-
-    default Specification<GearPhysicalFeatures> hasTripIds(Integer[] tripIds) {
-        if (ArrayUtils.isEmpty(tripIds)) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Collection> param = cb.parameter(Collection.class, TRIP_IDS_PARAM);
-            return root.get(GearPhysicalFeatures.Fields.TRIP).get(IEntity.Fields.ID).in(param);
-        }).addBind(TRIP_IDS_PARAM, Arrays.asList(tripIds));
-    }
-
 
     default Specification<GearPhysicalFeatures> hasActivityCalendarId(Integer activityCalendarId) {
         return hasParentId(activityCalendarId, StringUtils.doting(GearPhysicalFeatures.Fields.ACTIVITY_CALENDAR, IEntity.Fields.ID));
