@@ -73,7 +73,7 @@ public class GearPhysicalFeatures implements IUseFeaturesEntity {
     private Metier metier;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "gear_fk")
+    @JoinColumn(name = "gear_fk", nullable = false)
     private Gear gear;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -109,10 +109,6 @@ public class GearPhysicalFeatures implements IUseFeaturesEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vessel_fk", nullable = false)
     private Vessel vessel;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trip_fk", nullable = false)
-    private Trip trip;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quality_flag_fk", nullable = false)

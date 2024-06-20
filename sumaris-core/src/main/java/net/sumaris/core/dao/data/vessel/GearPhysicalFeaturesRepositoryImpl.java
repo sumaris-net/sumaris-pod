@@ -93,9 +93,6 @@ public class GearPhysicalFeaturesRepositoryImpl
             // Gear
             .and(hasGearId(filter.getGearId()))
             .and(hasGearIds(filter.getGearIds()))
-            // Trip
-            .and(hasTripId(filter.getTripId()))
-            .and(hasTripIds(filter.getTripIds()))
             // Quality
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
@@ -111,15 +108,12 @@ public class GearPhysicalFeaturesRepositoryImpl
             target.setMetier(metierRepository.toVO(source.getMetier()));
         }
 
-        if (source.getTrip() != null) {
-            target.setTrip(tripRepository.toVO(source.getTrip()));
-        }
-
         // Gear
         if (source.getGear() != null) {
             target.setGear(referentialDao.toVO(source.getGear()));
         }
 
+        // Other Gear
         if (source.getOtherGear() != null) {
             target.setOtherGear(referentialDao.toVO(source.getOtherGear()));
         }
@@ -129,11 +123,6 @@ public class GearPhysicalFeaturesRepositoryImpl
             target.setMeasurementValues(measurementDao.getGearPhysicalFeaturesMeasurementsMap(source.getId()));
         }
 
-        if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
-
-            // Origins
-            target.setDataOrigins(toOriginVOs(source.getOrigins()));
-        }
 
         // Activity Calendar
         if (copyIfNull || source.getActivityCalendar() != null) {
@@ -143,6 +132,13 @@ public class GearPhysicalFeaturesRepositoryImpl
             else {
                 target.setActivityCalendarId(source.getActivityCalendar().getId());
             }
+        }
+
+        // Children entities
+        if (fetchOptions != null && fetchOptions.isWithChildrenEntities()) {
+
+            // Origins
+            target.setDataOrigins(toOriginVOs(source.getOrigins()));
         }
 
     }
@@ -191,16 +187,6 @@ public class GearPhysicalFeaturesRepositoryImpl
             }
             else {
                 target.setActivityCalendar(getReference(ActivityCalendar.class, source.getActivityCalendarId()));
-            }
-        }
-
-        Integer tripId = source.getTrip() != null ? source.getTrip().getId() : null;
-        if (copyIfNull || tripId != null) {
-            if (tripId == null) {
-                target.setTrip(null);
-            }
-            else {
-                target.setTrip(getReference(Trip.class, tripId));
             }
         }
 

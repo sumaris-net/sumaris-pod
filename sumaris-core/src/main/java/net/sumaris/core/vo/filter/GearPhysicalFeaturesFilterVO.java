@@ -51,9 +51,6 @@ public class GearPhysicalFeaturesFilterVO implements IDataFilter, IVesselFilter 
 
     private Integer vesselId;
     private Integer[] vesselIds;
-    
-    private Integer tripId;
-    private Integer[] tripIds;
 
     private Integer metierId;
     private Integer[] metierIds;

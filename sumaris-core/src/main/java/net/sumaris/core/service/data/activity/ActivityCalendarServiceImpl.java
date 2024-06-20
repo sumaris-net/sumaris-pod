@@ -97,6 +97,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableTrash = configuration.enableEntityTrash();
+        this.enableImageAttachments = configuration.enableDataImages();
     }
 
     @Override
@@ -250,7 +251,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         }
 
         // Save images
-        saveImageAttachments(target);
+        if (enableImageAttachments) saveImageAttachments(target);
 
         return target;
     }
@@ -454,6 +455,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             gpf.setActivityCalendarId(parent.getId());
         }
     }
+
     private void saveImageAttachments(ActivityCalendarVO activityCalendar) {
         List<Integer> existingIdsToRemove = imageAttachmentRepository.getIdsFromObject(activityCalendar.getId(), ObjectTypeEnum.ACTIVITY_CALENDAR.getId());
         Beans.getStream(activityCalendar.getImages())

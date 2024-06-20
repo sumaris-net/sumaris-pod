@@ -1182,8 +1182,6 @@
       </column>
       <column name="comments" type="VARCHAR(2000)">
       </column>
-      <column name="trip_fk" type="INT">
-      </column>
       <column name="gear_fk" type="INT">
         <constraints nullable="false"/>
       </column>
@@ -1218,9 +1216,6 @@
   </changeSet>
   <changeSet author="maxime.demarst@e-is.pro" id="1717428673-026" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_metier_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="metier" validate="true"/>
-  </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-027" failOnError="false">
-    <addForeignKeyConstraint baseColumnNames="trip_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_trip_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="trip" validate="true"/>
   </changeSet>
 
   <changeSet author="maxime.demarst@e-is.pro" id="1717428673-100">

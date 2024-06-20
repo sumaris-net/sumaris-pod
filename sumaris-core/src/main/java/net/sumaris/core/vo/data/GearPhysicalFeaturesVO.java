@@ -54,7 +54,6 @@ public class GearPhysicalFeaturesVO implements IUseFeaturesVO {
     private ReferentialVO gear;
     private ReferentialVO otherGear;
     private Map<Integer, String> measurementValues;
-    private TripVO trip;
     private List<DataOriginVO> dataOrigins;
 
     private String comments;

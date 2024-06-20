@@ -96,8 +96,6 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
         // Physical Gear
         result.put(PhysicalGearMeasurement.class, BeanUtils.getPropertyDescriptor(PhysicalGearMeasurement.class, PhysicalGearMeasurement.Fields.PHYSICAL_GEAR));
-        // Physical Gear
-        result.put(PhysicalGearMeasurement.class, BeanUtils.getPropertyDescriptor(PhysicalGearMeasurement.class, PhysicalGearMeasurement.Fields.PHYSICAL_GEAR));
 
         // Operation
         result.put(VesselUseMeasurement.class, BeanUtils.getPropertyDescriptor(VesselUseMeasurement.class, VesselUseMeasurement.Fields.OPERATION));
@@ -1425,6 +1423,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     ((VesselUseMeasurement) target).setOperation(getReference(Operation.class, parentId));
                 }
             }
+
+            // VesselUseFeatures
+            else if (parentClass.isAssignableFrom(VesselUseFeatures.class)) {
+                if (parentId == null) {
+                    ((VesselUseMeasurement) target).setVesselUseFeatures(null);
+                } else {
+                    ((VesselUseMeasurement) target).setVesselUseFeatures(getReference(VesselUseFeatures.class, parentId));
+                }
+            }
         }
 
         // If gear use measurement
@@ -1437,15 +1444,25 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     ((GearUseMeasurement) target).setOperation(getReference(Operation.class, parentId));
                 }
             }
+
+            // GearUseFeatures
+            else if (parentClass.isAssignableFrom(GearUseFeatures.class)) {
+                if (parentId == null) {
+                    ((GearUseMeasurement) target).setGearUseFeatures(null);
+                } else {
+                    ((GearUseMeasurement) target).setGearUseFeatures(getReference(GearUseFeatures.class, parentId));
+                }
+            }
         }
 
+        // If gear physical measurement
         else if (target instanceof GearPhysicalMeasurement) {
-            // Operation
-            if (parentClass.isAssignableFrom(Operation.class)) {
+            // GearPhysicalFeatures
+            if (parentClass.isAssignableFrom(GearPhysicalFeatures.class)) {
                 if (parentId == null) {
-                    ((GearUseMeasurement) target).setOperation(null);
+                    ((GearPhysicalMeasurement) target).setGearPhysicalFeatures(null);
                 } else {
-                    ((GearUseMeasurement) target).setOperation(getReference(Operation.class, parentId));
+                    ((GearPhysicalMeasurement) target).setGearPhysicalFeatures(getReference(GearPhysicalFeatures.class, parentId));
                 }
             }
         }
