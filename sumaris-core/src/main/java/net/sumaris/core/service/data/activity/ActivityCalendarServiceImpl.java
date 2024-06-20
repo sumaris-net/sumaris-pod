@@ -54,8 +54,10 @@ import net.sumaris.core.vo.data.VesselUseFeaturesVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import net.sumaris.core.vo.filter.GearPhysicalFeaturesFilterVO;
 import net.sumaris.core.vo.filter.GearUseFeaturesFilterVO;
 import net.sumaris.core.vo.filter.VesselUseFeaturesFilterVO;
+import net.sumaris.core.dao.data.vessel.GearPhysicalFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.GearUseFeaturesRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +85,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     private final VesselSnapshotService vesselSnapshotService;
     private final VesselUseFeaturesRepository vesselUseFeaturesRepository;
     private final GearUseFeaturesRepository gearUseFeaturesRepository;
+    private final GearPhysicalFeaturesRepository gearPhysicalFeaturesRepository;
     private boolean enableImageAttachments;
 
     @Autowired
@@ -94,6 +97,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableTrash = configuration.enableEntityTrash();
+        this.enableImageAttachments = configuration.enableDataImages();
     }
 
     @Override
@@ -207,6 +211,14 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
                     .build(), childrenFetchOptions);
             target.setGearUseFeatures(gearUseFeatures);
         }
+
+        // Gear physical features
+        {
+            List<GearPhysicalFeaturesVO> gearPhysicalFeatures = gearPhysicalFeaturesRepository.findAll(GearPhysicalFeaturesFilterVO.builder()
+                    .activityCalendarId(target.getId())
+                    .build(), childrenFetchOptions);
+            target.setGearPhysicalFeatures(gearPhysicalFeatures);
+        }
     }
 
     public void fillChildrenEntities(List<ActivityCalendarVO> targets, ActivityCalendarFetchOptions fetchOptions) {
@@ -239,7 +251,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         }
 
         // Save images
-        saveImageAttachments(target);
+        if (enableImageAttachments) saveImageAttachments(target);
 
         return target;
     }
@@ -401,6 +413,14 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             source.setGearUseFeatures(gearUseFeatures);
         }
 
+        // Save gear physical features
+        {
+            List<GearPhysicalFeaturesVO> gearPhysicalFeatures = Beans.getList(source.getGearPhysicalFeatures());
+            gearPhysicalFeatures.forEach(guf -> fillDefaultProperties(source, guf));
+            gearPhysicalFeatures = gearPhysicalFeaturesRepository.saveAllByActivityCalendarId(source.getId(), gearPhysicalFeatures);
+            source.setGearPhysicalFeatures(gearPhysicalFeatures);
+        }
+
     }
 
     protected void fillDefaultProperties(ActivityCalendarVO parent, IUseFeaturesVO source) {
@@ -431,7 +451,11 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         else if (source instanceof GearUseFeaturesVO guf) {
             guf.setActivityCalendarId(parent.getId());
         }
+        else if (source instanceof GearPhysicalFeaturesVO gpf) {
+            gpf.setActivityCalendarId(parent.getId());
+        }
     }
+
     private void saveImageAttachments(ActivityCalendarVO activityCalendar) {
         List<Integer> existingIdsToRemove = imageAttachmentRepository.getIdsFromObject(activityCalendar.getId(), ObjectTypeEnum.ACTIVITY_CALENDAR.getId());
         Beans.getStream(activityCalendar.getImages())

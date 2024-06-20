@@ -1090,10 +1090,10 @@
     <createSequence sequenceName="NAMED_FILTER_SEQ"/>
   </changeSet>
   <changeSet author="maxime.demarst@e-is.pro" id="1709805852-010">
-	  <preConditions onFail="MARK_RAN">
-		  <not><tableExists tableName="named_filter"/></not>
-	  </preConditions>
-	  <createTable tableName="named_filter">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="named_filter"/></not>
+    </preConditions>
+    <createTable tableName="named_filter">
       <column name="id" type="INT">
         <constraints nullable="false" primaryKey="true" primaryKeyName="named_filter_pk"/>
       </column>
@@ -1106,22 +1106,22 @@
       <column name="content" type="TEXT">
         <constraints nullable="false"/>
       </column>
-			<column name="recorder_person_fk" type="INT">
-			  <constraints nullable="true"/>
-			</column>
-			<column name="recorder_department_fk" type="INT">
-		    <constraints nullable="true"/>
-			</column>
+      <column name="recorder_person_fk" type="INT">
+        <constraints nullable="true"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="true"/>
+      </column>
       <column name="update_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
       <column name="creation_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
-		</createTable>
-		<addForeignKeyConstraint constraintName="named_filter_recorder_person_fkc" baseTableName="named_filter" baseColumnNames="recorder_person_fk" referencedTableName="person" referencedColumnNames="id"/>
-		<addForeignKeyConstraint constraintName="named_filter_recorder_department_fkc" baseTableName="named_filter" baseColumnNames="recorder_department_fk" referencedTableName="department" referencedColumnNames="id"/>
-	</changeSet>
+    </createTable>
+    <addForeignKeyConstraint constraintName="named_filter_recorder_person_fkc" baseTableName="named_filter" baseColumnNames="recorder_person_fk" referencedTableName="person" referencedColumnNames="id"/>
+    <addForeignKeyConstraint constraintName="named_filter_recorder_department_fkc" baseTableName="named_filter" baseColumnNames="recorder_department_fk" referencedTableName="department" referencedColumnNames="id"/>
+  </changeSet>
 
   <!-- Add index on VESSEL_OPWNER.REGISTRATION_CODE-->
   <changeSet author="maxime.demarst@e-is.pro" id="1709805852-011">
@@ -1136,6 +1136,172 @@
     </sql>
   </changeSet>
 
+  <!-- add table physical gear feature -->
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-000">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="GEAR_PHYSICAL_FEATURES_SEQ"/></not>
+    </preConditions>
+    <createSequence sequenceName="GEAR_PHYSICAL_FEATURES_SEQ" incrementBy="50" startValue="1000"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-010">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="gear_physical_features"/></not>
+    </preConditions>
+    <createTable tableName="gear_physical_features">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="gear_physical_features_pk"/>
+      </column>
+      <column name="start_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="end_date" type="TIMESTAMP">
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="control_date" type="TIMESTAMP">
+      </column>
+      <column name="validation_date" type="TIMESTAMP">
+      </column>
+      <column name="qualification_date" type="TIMESTAMP">
+      </column>
+      <column name="qualification_comments" type="VARCHAR(255)">
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="vessel_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="comments" type="VARCHAR(2000)">
+      </column>
+      <column name="gear_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="rank_order" type="SMALLINT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="other_gear_fk" type="INT">
+      </column>
+      <column name="activity_calendar_fk" type="INT">
+      </column>
+      <column name="metier_fk" type="INT">
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-020" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_vessel_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-021" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_quality_flag_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-022" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_program_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-023" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="gear_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_gear_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-024" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="other_gear_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_other_gear_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-025" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_activity_calendar_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-026" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_metier_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="metier" validate="true"/>
+  </changeSet>
+
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-100">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-110">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="gear_physical_measurement"/></not>
+    </preConditions>
+    <createTable tableName="gear_physical_measurement">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="gear_physical_measurement_pk"/>
+      </column>
+      <column name="alphanumerical_value" type="VARCHAR(40)"/>
+      <column name="comments" type="VARCHAR(2000)"/>
+      <column name="control_date" type="TIMESTAMP"/>
+      <column name="digit_count" type="INT"/>
+      <column name="numerical_value" type="DOUBLE"/>
+      <column name="precision_value" type="DOUBLE"/>
+      <column name="qualification_comments" type="VARCHAR(2000)"/>
+      <column name="qualification_date" type="TIMESTAMP"/>
+      <column name="rank_order" type="SMALLINT"/>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="pmfm_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qualitative_value_fk" type="INT"/>
+      <column name="quality_flag_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="recorder_department_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="gear_physical_features_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-120" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_pmfm_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-121" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_qualitative_value_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-122" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_quality_flag_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-123" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_recorder_department_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="recorder_department" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-124" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="gear_physical_features_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_gear_physical_features_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear_physical_features" validate="true"/>
+  </changeSet>
+
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-200">
+    <preConditions onFail="MARK_RAN">
+      <not><sequenceExists sequenceName="GEAR_PHYSICAL_FEATURES_ORIGIN_SEQ"/></not>
+    </preConditions>
+    <createSequence incrementBy="50" sequenceName="GEAR_PHYSICAL_FEATURES_ORIGIN_SEQ" startValue="1"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-210" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="gear_physical_features_origin"/></not>
+    </preConditions>
+    <createTable tableName="gear_physical_features_origin">
+      <column name="gear_physical_features_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="program_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="acquisition_level_fk" type="INT"/>
+    </createTable>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-220" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="gear_physical_features_fk" baseTableName="gear_physical_features_origin" constraintName="gear_physical_features_origin_gear_physical_features_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear_physical_features" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-221" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="gear_physical_features_origin" constraintName="gear_physical_features_origin_program_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-222" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="acquisition_level_fk" baseTableName="gear_physical_features_origin" constraintName="gear_physical_features_origin_acquisition_level_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="acquisition_level" validate="true"/>
+  </changeSet>
+
   <!-- Update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-300" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -1146,7 +1312,7 @@
       <column name="LABEL">3.0.0</column>
       <column name="DESCRIPTION">
         - Rename software properties;
-        - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY, NAMED_FILTER;
+        - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY, NAMED_FILTER, GEAR_PHYSICAL_FEATURES;
         - Add missing delete cascade constrains;
         - Add column SAMPLING_STRATA_FK;
       </column>

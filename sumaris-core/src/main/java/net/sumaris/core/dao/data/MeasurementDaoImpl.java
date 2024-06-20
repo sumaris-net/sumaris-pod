@@ -131,6 +131,9 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         // Gear use features
         result.put(GearUseMeasurement.class, BeanUtils.getPropertyDescriptor(GearUseMeasurement.class, GearUseMeasurement.Fields.GEAR_USE_FEATURES));
 
+        // Gear physical features
+        result.put(GearPhysicalMeasurement.class, BeanUtils.getPropertyDescriptor(GearPhysicalMeasurement.class, GearPhysicalMeasurement.Fields.GEAR_PHYSICAL_FEATURES));
+
         return result;
     }
 
@@ -762,6 +765,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     @Override
+    public Map<Integer, String> getGearPhysicalFeaturesMeasurementsMap(int gearPhysicalFeaturesId) {
+        return getMeasurementsMapByParentId(GearPhysicalMeasurement.class,
+            GearPhysicalMeasurement.Fields.GEAR_PHYSICAL_FEATURES,
+            gearPhysicalFeaturesId,
+            null
+        );
+    }
+
+    @Override
     public Map<Integer, String> saveVesselUseFeaturesMeasurementsMap(int vesselUseFeaturesId, Map<Integer, String> sources) {
         VesselUseFeatures parent = getById(VesselUseFeatures.class, vesselUseFeaturesId);
         return saveMeasurementsMap(VesselUseMeasurement.class, sources, parent.getMeasurements(), parent);
@@ -771,6 +783,12 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     public Map<Integer, String> saveGearUseFeaturesMeasurementsMap(int gearUseFeaturesId, Map<Integer, String> sources) {
         GearUseFeatures parent = getById(GearUseFeatures.class, gearUseFeaturesId);
         return saveMeasurementsMap(GearUseMeasurement.class, sources, parent.getMeasurements(), parent);
+    }
+
+    @Override
+    public Map<Integer, String> saveGearPhysicalFeaturesMeasurementsMap(int gearPhysicalFeaturesId, Map<Integer, String> sources) {
+        GearPhysicalFeatures parent = getById(GearPhysicalFeatures.class, gearPhysicalFeaturesId);
+        return saveMeasurementsMap(GearPhysicalMeasurement.class, sources, parent.getMeasurements(), parent);
     }
 
     @Override
@@ -1405,6 +1423,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     ((VesselUseMeasurement) target).setOperation(getReference(Operation.class, parentId));
                 }
             }
+
+            // VesselUseFeatures
+            else if (parentClass.isAssignableFrom(VesselUseFeatures.class)) {
+                if (parentId == null) {
+                    ((VesselUseMeasurement) target).setVesselUseFeatures(null);
+                } else {
+                    ((VesselUseMeasurement) target).setVesselUseFeatures(getReference(VesselUseFeatures.class, parentId));
+                }
+            }
         }
 
         // If gear use measurement
@@ -1415,6 +1442,27 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                     ((GearUseMeasurement) target).setOperation(null);
                 } else {
                     ((GearUseMeasurement) target).setOperation(getReference(Operation.class, parentId));
+                }
+            }
+
+            // GearUseFeatures
+            else if (parentClass.isAssignableFrom(GearUseFeatures.class)) {
+                if (parentId == null) {
+                    ((GearUseMeasurement) target).setGearUseFeatures(null);
+                } else {
+                    ((GearUseMeasurement) target).setGearUseFeatures(getReference(GearUseFeatures.class, parentId));
+                }
+            }
+        }
+
+        // If gear physical measurement
+        else if (target instanceof GearPhysicalMeasurement) {
+            // GearPhysicalFeatures
+            if (parentClass.isAssignableFrom(GearPhysicalFeatures.class)) {
+                if (parentId == null) {
+                    ((GearPhysicalMeasurement) target).setGearPhysicalFeatures(null);
+                } else {
+                    ((GearPhysicalMeasurement) target).setGearPhysicalFeatures(getReference(GearPhysicalFeatures.class, parentId));
                 }
             }
         }

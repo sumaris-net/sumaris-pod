@@ -62,9 +62,6 @@ public class PhysicalGear implements IRootDataEntity<Integer>,
     @Column(length = LENGTH_COMMENTS)
     private String comments;
 
-    //@Column
-    //private Integer hash;
-
     /* -- Quality insurance -- */
 
     @Column(name = "creation_date", nullable = false)
