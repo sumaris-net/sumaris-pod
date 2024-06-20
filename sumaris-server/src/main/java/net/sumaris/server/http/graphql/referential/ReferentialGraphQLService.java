@@ -37,6 +37,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.taxon.TaxonGroupService;
+import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.vo.filter.MetierFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.*;
@@ -48,7 +49,6 @@ import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityWatchService;
-import org.apache.commons.lang3.ArrayUtils;
 import org.reactivestreams.Publisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -129,7 +129,7 @@ public class ReferentialGraphQLService {
                 .build();
 
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
-        if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
+        if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
             return metierRepository.findByFilter(
                     MetierFilterVO.nullToEmpty(filter),
                     offset == null ? 0 : offset,
@@ -158,7 +158,7 @@ public class ReferentialGraphQLService {
                                      @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
 
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
-        if (Metier.class.getSimpleName().equalsIgnoreCase(entityName)) {
+        if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
             return metierRepository.count(MetierFilterVO.nullToEmpty(filter));
         }
 
@@ -287,19 +287,18 @@ public class ReferentialGraphQLService {
     protected void restrictFilter(@NonNull String entityName, @NonNull ReferentialFilterVO filter) {
 
         // Program
-        if (Program.class.getSimpleName().equalsIgnoreCase(entityName)) {
-
-            Integer[] programIds = filter.getId() != null ? new Integer[]{filter.getId()} : filter.getIncludedIds();
-
-            // Limit to authorized ids
-            Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIds(programIds)
-                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+        if (entityName.equalsIgnoreCase(Program.ENTITY_NAME)) {
+            Integer[] programIds = ArrayUtils.concat(filter.getId(), filter.getIncludedIds());
 
             // Reset id, as it has been deprecated
             if (filter.getId() != null) {
                 filter.setId(null);
                 GraphQLHelper.logDeprecatedUse(authService, "ReferentialFilterVO.id", "1.24.0");
             }
+
+            // Limit to authorized ids
+            Integer[] authorizedProgramIds = dataAccessControlService.getAuthorizedProgramIds(programIds)
+                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
 
             // Apply limitations
             filter.setIncludedIds(authorizedProgramIds);

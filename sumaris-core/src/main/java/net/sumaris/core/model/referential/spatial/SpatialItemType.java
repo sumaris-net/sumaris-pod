@@ -1,10 +1,10 @@
-package net.sumaris.core.model.referential;
+package net.sumaris.core.model.referential.spatial;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * Copyright (C) 2018 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,35 +22,52 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
+import net.sumaris.core.model.referential.ObjectType;
+import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
 import java.util.Date;
 
 /**
- * @author peck7 on 08/06/2020.
+ * Type de régionalisation d'une liste du référentiel.
+ *
+ * <p>Il peut y avoir plusieurs types de régionalisation pour une meme liste (pour un meme OBJECT_TYPE_FK).</p>
+ *
+ * <p>Par exemple : <ul>
+ *     <li>Régionalisation des gradients de profondeur (utile pour les Antilles)</li>
+ * </ul>
+ * </p>
+ *
  */
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "distance_to_coast_gradient")
-public class DistanceToCoastGradient implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
+@Table(name = "spatial_item_type")
+public class SpatialItemType implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
+
+    public static final String ENTITY_NAME = "SpatialItemType";
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "distance_to_coast_gradient_seq")
-    @SequenceGenerator(name = "distance_to_coast_gradient_seq", sequenceName="distance_to_coast_gradient_seq", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SPATIAL_ITEM_TYPE_SEQ")
+    @SequenceGenerator(name = "SPATIAL_ITEM_TYPE_SEQ", sequenceName="SPATIAL_ITEM_TYPE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_fk", nullable = false)
     private Status status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "object_type_fk", nullable = false)
+    private ObjectType objectType;
 
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -60,8 +77,7 @@ public class DistanceToCoastGradient implements IItemReferentialEntity<Integer>,
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateDate;
 
-    @Column(nullable = false, length = LENGTH_LABEL)
-    
+    @Column(length = LENGTH_LABEL)
     private String label;
 
     @Column(nullable = false, length = LENGTH_NAME)
@@ -71,7 +87,4 @@ public class DistanceToCoastGradient implements IItemReferentialEntity<Integer>,
 
     @Column(length = LENGTH_COMMENTS)
     private String comments;
-
-    @Column(name = "rank_order", nullable = false)
-    private Integer rankOrder;
 }

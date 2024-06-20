@@ -88,4 +88,5 @@ public interface IReferentialFilter extends Serializable, ISearchTextFilter {
     Integer[] getExcludedIds();
 
     void setExcludedIds(Integer[] excludedIds);
+
 }

@@ -31,10 +31,12 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.spatial.SpatialItemTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import org.apache.commons.lang3.ArrayUtils;
@@ -122,6 +124,11 @@ public interface MetierSpecifications
         .addBind(VESSEL_ID_PARAMETER, filter.getVesselId())
         .addBind(PROGRAM_LABEL_PARAMETER, filter.getProgramLabel())
         .addBind(EXCLUDED_TRIP_ID_PARAMETER, filter.getExcludedTripId());
+    }
+
+    default Specification<Metier> inLocationIds(IReferentialFilter filter) {
+        if (!(filter instanceof ReferentialFilterVO metierFilter)) return null;
+        return inLocationIds(SpatialItemTypeEnum.METIER.getId(), metierFilter.getLocationIds());
     }
 
     default List<MetierVO> findByFilter(

@@ -28,6 +28,7 @@ import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.spatial.SpatialItemTypeEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
