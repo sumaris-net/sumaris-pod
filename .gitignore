@@ -20,6 +20,7 @@ buildNumber.properties
 .jpb/
 .mvn/
 .mvn/jvm.config
+**.sw[a-z]
 
 # SUMARiS specific ignore path
 sumaris.log.file_IS_UNDEFINED

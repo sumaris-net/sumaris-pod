@@ -77,6 +77,9 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     @EqualsAndHashCode.Exclude
     private List<GearUseFeaturesVO> gearUseFeatures;
 
+    @EqualsAndHashCode.Exclude
+    private List<GearPhysicalFeaturesVO> gearPhysicalFeatures;
+
     private List<ImageAttachmentVO> images;
 
     @Override
