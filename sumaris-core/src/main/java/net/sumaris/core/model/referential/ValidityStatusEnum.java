@@ -31,7 +31,7 @@ import java.util.Arrays;
 /**
  * Validity Status
  *
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @EntityEnum(entity = ValidityStatus.class, resolveAttributes = {IEntity.Fields.ID})
 public enum ValidityStatusEnum implements Serializable {

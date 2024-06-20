@@ -24,7 +24,10 @@ package net.sumaris.core.model;
 
 import net.sumaris.core.util.Beans;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
@@ -51,5 +54,16 @@ public abstract class Entities {
     public static <T extends IUpdateDateEntity<?, ?>> void clearIdAndUpdateDate(T entity) {
         entity.setId(null);
         entity.setUpdateDate(null);
+    }
+
+    public static <T extends IEntity<?>> boolean hasIdGenerator(Class<T> entityClass) {
+        for (Field field : entityClass.getDeclaredFields()) {
+            Id id = field.getAnnotation(Id.class);
+            if (id != null) {
+                GeneratedValue generatedValue = field.getAnnotation(GeneratedValue.class);
+                return generatedValue != null;
+            }
+        }
+        return false;
     }
 }

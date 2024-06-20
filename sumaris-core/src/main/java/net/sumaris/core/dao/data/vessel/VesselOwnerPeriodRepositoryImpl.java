@@ -22,9 +22,8 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
@@ -49,13 +48,18 @@ public class VesselOwnerPeriodRepositoryImpl
     extends SumarisJpaRepositoryImpl<VesselOwnerPeriod, VesselOwnerPeriodId, VesselOwnerPeriodVO>
     implements VesselOwnerPeriodSpecifications {
 
+    private final VesselRepository vesselRepository;
     private final VesselOwnerRepository vesselOwnerRepository;
 
     @Autowired
     public VesselOwnerPeriodRepositoryImpl(EntityManager entityManager,
+                                           VesselRepository vesselRepository,
                                            VesselOwnerRepository vesselOwnerRepository) {
         super(VesselOwnerPeriod.class, VesselOwnerPeriodVO.class, entityManager);
+        this.vesselRepository = vesselRepository;
         this.vesselOwnerRepository = vesselOwnerRepository;
+        this.setCheckUpdateDate(false);
+        this.setHasIdGenerator(false);
     }
 
     @Override
@@ -101,15 +105,29 @@ public class VesselOwnerPeriodRepositoryImpl
 
     @Override
     public void toVO(VesselOwnerPeriod source, VesselOwnerPeriodVO target, boolean copyIfNull) {
+        Preconditions.checkNotNull(source.getVessel());
+        Preconditions.checkNotNull(source.getVesselOwner());
+        Preconditions.checkNotNull(source.getStartDate());
+
         super.toVO(source, target, copyIfNull);
 
+        // Id
+        VesselOwnerPeriodId id = source.getId() != null ? source.getId() : VesselOwnerPeriodId.builder()
+                .startDate(source.getStartDate())
+                .vessel(source.getVessel().getId())
+                .vesselOwner(source.getVesselOwner().getId())
+                .build();
+        if (id != null || copyIfNull) {
+            target.setId(id);
+        }
+
         // Vessel
-        if (source.getId() != null || copyIfNull) {
-            if (source.getId() == null) {
-                target.setId(null);
+        if (source.getVessel() != null || copyIfNull) {
+            if (source.getVessel() == null) {
+                target.setVessel(null);
             }
             else {
-                target.setId(source.getId().copy());
+                target.setVessel(vesselRepository.toVO(source.getVessel()));
             }
         }
 
@@ -122,6 +140,16 @@ public class VesselOwnerPeriodRepositoryImpl
     @Override
     public void toEntity(VesselOwnerPeriodVO source, VesselOwnerPeriod target, boolean copyIfNull) {
         super.toEntity(source, target, copyIfNull);
+//
+//        // Id
+//        Integer vesselId = source.getVesselId() != null ? source.getVesselId() : (source.getVessel() != null ? source.getVessel().getId() : null);
+//        if (copyIfNull || vesselId != null) {
+//            if (vesselId == null ) {
+//                target.setVessel(null);
+//            } else {
+//                target.setVessel(getReference(Vessel.class, vesselId));
+//            }
+//        }
 
         // Vessel
         Integer vesselId = source.getVesselId() != null ? source.getVesselId() : (source.getVessel() != null ? source.getVessel().getId() : null);
@@ -148,9 +176,9 @@ public class VesselOwnerPeriodRepositoryImpl
     protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<VesselOwnerPeriod> root, CriteriaBuilder cb, String property) {
 
         // Rename sort on 'startDate' into 'id.startDate'
-        if (property == null || property.endsWith(VesselOwnerPeriod.Fields.START_DATE)) {
-            property = StringUtils.doting(VesselOwnerPeriod.Fields.ID, VesselOwnerPeriod.Fields.START_DATE);
-        }
+//        if (property == null || property.endsWith(VesselOwnerPeriod.Fields.START_DATE)) {
+//            property = StringUtils.doting(VesselOwnerPeriod.Fields.ID, VesselOwnerPeriod.Fields.START_DATE);
+//        }
 
         return super.toSortExpressions(query, root, cb, property);
     }

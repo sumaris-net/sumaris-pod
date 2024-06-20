@@ -88,6 +88,15 @@ public class DatabaseFixtures {
 		}
 	}
 
+	public Integer getVesselOwnerId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		return switch (index) {
+			case 0 -> 1;
+			case 1 -> 2;
+			default -> 2;
+		};
+	}
+
 	public Integer getTripId(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {

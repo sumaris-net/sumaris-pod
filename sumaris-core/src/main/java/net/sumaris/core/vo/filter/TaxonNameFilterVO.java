@@ -26,7 +26,7 @@ import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Data
 @FieldNameConstants

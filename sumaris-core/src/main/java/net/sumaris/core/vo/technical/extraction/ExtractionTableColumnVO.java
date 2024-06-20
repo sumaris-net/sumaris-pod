@@ -29,7 +29,7 @@ import net.sumaris.core.model.IEntity;
 import java.util.List;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Data
 @FieldNameConstants

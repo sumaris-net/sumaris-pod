@@ -31,7 +31,7 @@ import net.sumaris.core.vo.referential.IReferentialVO;
 import java.util.Date;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
