@@ -50,7 +50,8 @@ import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.regulation.Corpus;
 import net.sumaris.core.model.referential.regulation.CorpusType;
 import net.sumaris.core.model.referential.regulation.Fishery;
-import net.sumaris.core.model.referential.regulation.MinimumSizeAllowed;
+import net.sumaris.core.model.referential.spatial.SpatialItem;
+import net.sumaris.core.model.referential.spatial.SpatialItemType;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
 import net.sumaris.core.model.referential.taxon.TaxonName;
@@ -137,8 +138,9 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.samplingStrata");
         I18n.n("sumaris.persistence.table.samplingStrataMeasurement");
         I18n.n("sumaris.persistence.table.denormalizedSamplingStrata");
-
-
+        // Spatial
+        I18n.n("sumaris.persistence.table.spatialItemType");
+        I18n.n("sumaris.persistence.table.spatialItem");
     }
 
     public static final List<Class<? extends IReferentialEntity>> ROOT_CLASSES = ImmutableList.of(
@@ -204,6 +206,9 @@ public class ReferentialEntities {
                 SamplingStrata.class,
                 DenormalizedSamplingStrata.class,
 
+                // Spatial
+                SpatialItemType.class,
+
                 // Technical
                 SystemVersion.class,
                 OriginItemType.class,
@@ -214,7 +219,8 @@ public class ReferentialEntities {
 
     public static final List<Class<? extends IReferentialEntity<?>>> SUB_CLASSES = ImmutableList.of(
         WeightLengthConversion.class,
-        RoundWeightConversion.class
+        RoundWeightConversion.class,
+        SpatialItem.class
     );
 
     public static final List<Class<? extends Serializable>> CLASSES = ImmutableList.<Class<? extends Serializable>>builder()
@@ -236,16 +242,21 @@ public class ReferentialEntities {
         ExtractionProductTable.class,
         // Software
         Software.class,
-        // Technical
-        SystemVersion.class,
-        UnitConversion.class,
-        // Sampling scheme
-        SamplingScheme.class,
-        SamplingStrata.class,
         // Corpus
         CorpusType.class,
         Corpus.class,
-        Fishery.class
+        Fishery.class,
+        // Sampling scheme
+        SamplingScheme.class,
+        SamplingStrata.class,
+        // Spatial
+        SpatialItemType.class,
+        SpatialItem.class,
+        // Technical
+        SystemVersion.class,
+        UnitConversion.class,
+        ProcessingFrequency.class,
+        ObjectType.class
     );
 
     public static final Collection<String> LAST_UPDATE_DATE_ENTITY_NAMES = Stream.concat(
@@ -296,6 +307,10 @@ public class ReferentialEntities {
         // TODO remove the following put ? Too many put for the same Program class
         result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.GEAR_CLASSIFICATION));
         result.put(Program.class.getSimpleName(), BeanUtils.getPropertyDescriptor(Program.class, Program.Fields.TAXON_GROUP_TYPE));
+
+        // Spatial
+        result.put(SpatialItemType.class.getSimpleName(), BeanUtils.getPropertyDescriptor(SpatialItemType.class, SpatialItemType.Fields.OBJECT_TYPE));
+        result.put(SpatialItem.class.getSimpleName(), BeanUtils.getPropertyDescriptor(SpatialItem.class, SpatialItem.Fields.SPATIAL_ITEM_TYPE));
 
         return result;
     }

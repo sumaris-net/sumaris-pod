@@ -37,7 +37,17 @@ public enum ObjectTypeEnum implements Serializable {
     LANDING(4,"LANDING"),
     OBSERVED_LOCATION(5,"OBSERVED_LOCATION"),
     BATCH(6,"BATCH"),
-    ACTIVITY_CALENDAR(7,"ACTIVITY_CALENDAR")
+    ACTIVITY_CALENDAR(7,"ACTIVITY_CALENDAR"),
+
+    // Need for Spatial item type
+    DEPTH_GRADIENT(8, "DEPTH_GRADIENT"),
+    NEARBY_SPECIFIC_AREA(9, "NEARBY_SPECIFIC_AREA"),
+    DISTANCE_TO_COAST_GRADIENT(10, "DISTANCE_TO_COAST_GRADIENT"),
+    TAXON_GROUP(11, "TAXON_GROUP"),
+    GEAR(12, "GEAR"),
+    METIER(13, "METIER"),
+    LOCATION(14, "LOCATION"),
+    GROUPING(15, "GROUPING")
     ;
 
     public static ObjectTypeEnum valueOf(final int id) {

@@ -158,26 +158,24 @@ public class MetierRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
                 .and(alreadyPracticedMetier(filter))
                 .and(inGearIds(filter))
+                .and(inLocationIds(filter))
                 .and(inTaxonGroupTypeIds(filter));
     }
 
     private Specification<Metier> alreadyPracticedMetier(IReferentialFilter filter) {
-        if (!(filter instanceof MetierFilterVO)) return null;
-        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+        if (!(filter instanceof MetierFilterVO metierFilter)) return null;
 
         return alreadyPracticedMetier(metierFilter);
     }
 
     private Specification<Metier> inGearIds(IReferentialFilter filter) {
-        if (!(filter instanceof MetierFilterVO)) return null;
-        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+        if (!(filter instanceof MetierFilterVO metierFilter)) return null;
 
         return inGearIds(metierFilter.getGearIds());
     }
 
     private Specification<Metier> inTaxonGroupTypeIds(IReferentialFilter filter) {
-        if (!(filter instanceof MetierFilterVO)) return null;
-        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+        if (!(filter instanceof MetierFilterVO metierFilter)) return null;
 
         return inTaxonGroupTypeIds(metierFilter.getTaxonGroupTypeIds());
     }

@@ -1,4 +1,4 @@
-package net.sumaris.core.model.referential.location;
+package net.sumaris.core.model.referential.spatial;
 
 /*-
  * #%L
@@ -26,47 +26,39 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Date;
 
+/**
+ * Présence d'un élément d'une liste du référentiel sur une ou plusieurs zones géographiques.
+ *
+ * Une ou plusieurs géométries (ponctuelle, linéaire ou polygonale) peuvent être définies afin de géolocaliser un des éléments d'une liste.
+ *
+ * Une procédure stockée sous Oracle permet la mise à jour d'un lien vers le référentiel des lieux (table SPATIAL_ITEM2LOCATION) à partir des géométries définies.
+ */
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Cacheable
-@Table(name="location_association")
-@IdClass(LocationAssociationId.class)
-public class LocationAssociation implements Serializable {
+@Table(name = "spatial_item2location")
+@IdClass(SpatialItem2LocationId.class)
+public class SpatialItem2Location implements Serializable {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_location_fk")
+    @JoinColumn(name = "spatial_item_fk")
     @EqualsAndHashCode.Include
-    private Location parentLocation;
+    private SpatialItem spatialItem;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "child_location_fk")
+    @JoinColumn(name = "location_fk")
     @EqualsAndHashCode.Include
-    private Location childLocation;
+    private Location location;
 
-    /**
-     * Ratio de couverture (en surface) du lieu fils par rapport au lieu père. La valeur doit etre
-     * supérieure strictement à 0 et inférieur ou égale à 1.
-     * Un Lieu qui a un ratio de surface de 1 n'a donc qu'un seul lieu père direct. Un lieu qui a un
-     * ratio de surface inférieur à 1 peu avoir potentiellement plusieurs lieux pères directs.
-     * @return this.childSurfaceRatio Double
-     */
-    @Column(name = "child_surface_ratio", nullable = false)
-    private Double childSurfaceRatio = 1d;
-
-    @Column(name = "is_main_association")
-    private Boolean isMainAssociation;
-
-    @Column(name = "update_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updateDate;
+    @Column(name = "localized_name")
+    private String localizedName;
 }

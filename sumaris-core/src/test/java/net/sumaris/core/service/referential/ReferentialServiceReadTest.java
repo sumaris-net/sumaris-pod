@@ -24,6 +24,7 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.ReferentialEntities;
+import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -198,10 +199,10 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByUniqueLabel() {
-        ReferentialVO ref = service.findByUniqueLabel(SaleType.class.getSimpleName(), "Fish auction");
-        Assert.assertNotNull(ref);
-        Assert.assertNotNull(ref.getId());
-        Assert.assertEquals(1, ref.getId().intValue());
+        ReferentialVO item = service.findByUniqueLabel(SaleType.class.getSimpleName(), "Fish auction");
+        Assert.assertNotNull(item);
+        Assert.assertNotNull(item.getId());
+        Assert.assertEquals(1, item.getId().intValue());
 
         try {
             service.findByUniqueLabel(SaleType.class.getSimpleName(), "ZZZ");
@@ -209,6 +210,21 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         } catch (Exception e) {
             Assert.assertNotNull(e);
         }
+    }
+
+    @Test
+    public void findByLocationIds() {
+        String entityName = DistanceToCoastGradient.class.getSimpleName();
+        Long countAll = service.countByFilter(entityName, null);
+
+        int rectangle = fixtures.getRectangleId(0); // 65F1
+        List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{rectangle})
+                .build(), 0, 100);
+        Assert.assertNotNull(items);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(items));
+        Assert.assertTrue(CollectionUtils.size(items) < countAll);
+
     }
 
 }
