@@ -61,8 +61,11 @@ public class ReferentialFilterVO implements IReferentialFilter {
     private Integer[] includedIds;
     private Integer[] excludedIds;
 
+    private Integer[] locationIds;
+
     @Deprecated
     private Integer levelId;
     @Deprecated
     private String levelLabel;
+
 }

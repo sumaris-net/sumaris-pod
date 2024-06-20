@@ -29,7 +29,6 @@ import java.io.Serializable;
 
 @Getter
 @Setter
-
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 public class LocationAssociationId implements Serializable {

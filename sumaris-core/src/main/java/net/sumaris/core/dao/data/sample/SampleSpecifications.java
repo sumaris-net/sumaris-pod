@@ -72,7 +72,7 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         return BindableSpecification.where((root, query, cb) -> {
             query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
             ParameterExpression<Integer> param = cb.parameter(Integer.class, LandingVO.Fields.OBSERVED_LOCATION_ID);
-            Root<ObservedLocation> observedLocationFrom = query.from(ObservedLocation.class);
+            Root<ObservedLocation> observedLocationFrom = Daos.getRoot(query, ObservedLocation.class);
             ListJoin<ObservedLocation, Landing> landingsJoin = Daos.composeJoinList(observedLocationFrom, StringUtils.doting(ObservedLocation.Fields.LANDINGS), JoinType.INNER);
             Join<Landing, Trip> tripJoin = Daos.composeJoin(landingsJoin, StringUtils.doting(Landing.Fields.TRIP), JoinType.LEFT);
             ListJoin<Trip, Operation> operationsTrip = Daos.composeJoinList(tripJoin, Trip.Fields.OPERATIONS, JoinType.LEFT);
@@ -92,7 +92,7 @@ public interface SampleSpecifications extends RootDataSpecifications<Sample> {
         return BindableSpecification.where((root, query, cb) -> {
             query.orderBy(cb.asc(root.get(Sample.Fields.RANK_ORDER)));
             ParameterExpression<Collection> param = cb.parameter(Collection.class, OBSERVED_LOCATION_IDS);
-            Root<ObservedLocation> observedLocationFrom = query.from(ObservedLocation.class);
+            Root<ObservedLocation> observedLocationFrom = Daos.getRoot(query, ObservedLocation.class);
             ListJoin<ObservedLocation, Landing> landingsJoin = Daos.composeJoinList(observedLocationFrom, StringUtils.doting(ObservedLocation.Fields.LANDINGS), JoinType.INNER);
             Join<Landing, Trip> tripJoin = Daos.composeJoin(landingsJoin, StringUtils.doting(Landing.Fields.TRIP), JoinType.LEFT);
             ListJoin<Trip, Operation> operationsTrip = Daos.composeJoinList(tripJoin, Trip.Fields.OPERATIONS, JoinType.LEFT);

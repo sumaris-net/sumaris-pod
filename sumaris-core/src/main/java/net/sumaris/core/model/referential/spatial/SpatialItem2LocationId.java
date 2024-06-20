@@ -1,10 +1,10 @@
-package net.sumaris.core.vo.filter;
+package net.sumaris.core.model.referential.spatial;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,28 +22,19 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
-import java.util.Date;
+import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class MetierFilterVO extends ReferentialFilterVO {
-
-    public static MetierFilterVO nullToEmpty(MetierFilterVO filter) {
-        return filter == null ? new MetierFilterVO() : filter;
-    }
-
-    // options used for predocumentation
-    private Date startDate;
-    private Date endDate;
-    private Integer vesselId;
-    private String programLabel;
-    private Integer excludedTripId; // optional
-    private Integer[] gearIds;
-    private Integer[] taxonGroupTypeIds; // optional
+public class SpatialItem2LocationId implements Serializable {
+    private int spatialItem;
+    private int location;
 }

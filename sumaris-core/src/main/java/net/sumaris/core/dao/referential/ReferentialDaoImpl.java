@@ -714,7 +714,7 @@ public class ReferentialDaoImpl
         return createFilteredQuery(builder, entityClass, query, root, filter);
     }
 
-    protected <R,T> TypedQuery<R> createFilteredQuery(CriteriaBuilder builder,
+    protected <R,T> TypedQuery<R> createFilteredQuery(CriteriaBuilder cb,
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
                                                        Root<? extends T> root,
@@ -735,10 +735,10 @@ public class ReferentialDaoImpl
             levelIds = new Integer[]{filter.getLevelId()};
         }
         if (ArrayUtils.isNotEmpty(levelIds)) {
-            levelIdsParam = builder.parameter(Collection.class);
+            levelIdsParam = cb.parameter(Collection.class);
             String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
             if (levelPropertyName != null) {
-                levelIdClause = builder.in(root.get(levelPropertyName).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
+                levelIdClause = cb.in(root.get(levelPropertyName).get(IReferentialEntity.Fields.ID)).value(levelIdsParam);
             } else {
                 log.warn(String.format("Trying to request  on level, but no level found for entity {%s}", entityClass.getSimpleName()));
             }
@@ -748,10 +748,10 @@ public class ReferentialDaoImpl
         Predicate levelLabelClause = null;
         ParameterExpression<Collection> levelLabelsParam = null;
         if (ArrayUtils.isNotEmpty(levelLabels)) {
-            levelLabelsParam = builder.parameter(Collection.class);
+            levelLabelsParam = cb.parameter(Collection.class);
             String levelPropertyName = ReferentialEntities.getLevelPropertyName(entityClass.getSimpleName()).orElse(null);
             if (levelPropertyName != null) {
-                levelLabelClause = builder.in(root.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL)).value(levelLabelsParam);
+                levelLabelClause = cb.in(root.get(levelPropertyName).get(IItemReferentialEntity.Fields.LABEL)).value(levelLabelsParam);
             } else {
                 log.warn(String.format("Trying to request on level, but no level found for entity {%s}", entityClass.getSimpleName()));
             }
@@ -761,73 +761,73 @@ public class ReferentialDaoImpl
         Predicate idClause = null;
         ParameterExpression<Integer> idParam = null;
         if (filter.getId() != null) {
-            idParam = builder.parameter(Integer.class);
-            idClause = builder.equal(root.get(IItemReferentialEntity.Fields.ID), idParam);
+            idParam = cb.parameter(Integer.class);
+            idClause = cb.equal(root.get(IItemReferentialEntity.Fields.ID), idParam);
         }
 
         // Filter on label
         Predicate labelClause = null;
         ParameterExpression<String> labelParam = null;
         if (StringUtils.isNotBlank(filter.getLabel())) {
-            labelParam = builder.parameter(String.class);
-            labelClause = builder.equal(builder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(labelParam));
+            labelParam = cb.parameter(String.class);
+            labelClause = cb.equal(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), cb.upper(labelParam));
         }
 
         // Filter on search text
-        ParameterExpression<String> searchAsPrefixParam = builder.parameter(String.class);
-        ParameterExpression<String> searchAnyMatchParam = builder.parameter(String.class);
+        ParameterExpression<String> searchAsPrefixParam = cb.parameter(String.class);
+        ParameterExpression<String> searchAnyMatchParam = cb.parameter(String.class);
         Predicate searchTextClause = null;
         if (labelClause == null && searchText != null) {
             // Search on the given search attribute, if exists
             if (StringUtils.isNotBlank(searchAttribute) && BeanUtils.getPropertyDescriptor(entityClass, searchAttribute) != null) {
-                searchTextClause = builder.or(
-                    builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(Daos.composePath(root, searchAttribute)), builder.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR)
+                searchTextClause = cb.or(
+                    cb.isNull(searchAnyMatchParam),
+                    cb.like(cb.upper(Daos.composePath(root, searchAttribute)), cb.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             } else if (IItemReferentialEntity.class.isAssignableFrom(entityClass)) {
                 // Search on label+name
-                searchTextClause = builder.or(
-                    builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR),
-                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam), Daos.LIKE_ESCAPE_CHAR)
+                searchTextClause = cb.or(
+                    cb.isNull(searchAnyMatchParam),
+                    cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), cb.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR),
+                    cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), cb.upper(searchAnyMatchParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.Fields.LABEL) != null) {
                 // Search on label
-                searchTextClause = builder.or(
-                    builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.LABEL)), builder.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR)
+                searchTextClause = cb.or(
+                    cb.isNull(searchAnyMatchParam),
+                    cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.LABEL)), cb.upper(searchAsPrefixParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             } else if (BeanUtils.getPropertyDescriptor(entityClass, IItemReferentialEntity.Fields.NAME) != null) {
                 // Search on name
-                searchTextClause = builder.or(
-                    builder.isNull(searchAnyMatchParam),
-                    builder.like(builder.upper(root.get(IItemReferentialEntity.Fields.NAME)), builder.upper(searchAnyMatchParam), Daos.LIKE_ESCAPE_CHAR)
+                searchTextClause = cb.or(
+                    cb.isNull(searchAnyMatchParam),
+                    cb.like(cb.upper(root.get(IItemReferentialEntity.Fields.NAME)), cb.upper(searchAnyMatchParam), Daos.LIKE_ESCAPE_CHAR)
                 );
             }
         }
 
         // Filter on status
-        ParameterExpression<Collection> statusIdsParam = builder.parameter(Collection.class);
+        ParameterExpression<Collection> statusIdsParam = cb.parameter(Collection.class);
         Predicate statusIdsClause = null;
         if (ArrayUtils.isNotEmpty(statusIds) && IWithStatusEntity.class.isAssignableFrom(entityClass)) {
-            statusIdsClause = builder.in(root.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
+            statusIdsClause = cb.in(root.get(IWithStatusEntity.Fields.STATUS).get(IEntity.Fields.ID)).value(statusIdsParam);
         }
 
         // Included Ids
         Predicate includedClause = null;
         ParameterExpression<Collection> includedIdsParam = null;
         if (ArrayUtils.isNotEmpty(includedIds)) {
-            includedIdsParam = builder.parameter(Collection.class);
-            includedClause = builder.in(root.get(IEntity.Fields.ID)).value(includedIdsParam);
+            includedIdsParam = cb.parameter(Collection.class);
+            includedClause = cb.in(root.get(IEntity.Fields.ID)).value(includedIdsParam);
         }
 
         // Excluded Ids
         Predicate excludedClause = null;
         ParameterExpression<Collection> excludedIdsParam = null;
         if (ArrayUtils.isNotEmpty(excludedIds)) {
-            excludedIdsParam = builder.parameter(Collection.class);
-            excludedClause = builder.not(
-                builder.in(root.get(IEntity.Fields.ID)).value(excludedIdsParam)
+            excludedIdsParam = cb.parameter(Collection.class);
+            excludedClause = cb.not(
+                cb.in(root.get(IEntity.Fields.ID)).value(excludedIdsParam)
             );
         }
 
@@ -837,25 +837,25 @@ public class ReferentialDaoImpl
             whereClause = levelIdClause;
         }
         if (levelLabelClause != null) {
-            whereClause = (whereClause == null) ? levelLabelClause : builder.and(whereClause, levelLabelClause);
+            whereClause = (whereClause == null) ? levelLabelClause : cb.and(whereClause, levelLabelClause);
         }
         if (idClause != null) {
-            whereClause = (whereClause == null) ? idClause : builder.and(whereClause, idClause);
+            whereClause = (whereClause == null) ? idClause : cb.and(whereClause, idClause);
         }
         if (labelClause != null) {
-            whereClause = (whereClause == null) ? labelClause : builder.and(whereClause, labelClause);
+            whereClause = (whereClause == null) ? labelClause : cb.and(whereClause, labelClause);
         } else if (searchTextClause != null) {
-            whereClause = (whereClause == null) ? searchTextClause : builder.and(whereClause, searchTextClause);
+            whereClause = (whereClause == null) ? searchTextClause : cb.and(whereClause, searchTextClause);
         }
 
         if (statusIdsClause != null) {
-            whereClause = (whereClause == null) ? statusIdsClause : builder.and(whereClause, statusIdsClause);
+            whereClause = (whereClause == null) ? statusIdsClause : cb.and(whereClause, statusIdsClause);
         }
         if (includedIdsParam != null) {
-            whereClause = (whereClause == null) ? includedClause : builder.and(whereClause, includedClause);
+            whereClause = (whereClause == null) ? includedClause : cb.and(whereClause, includedClause);
         }
         if (excludedIdsParam != null) {
-            whereClause = (whereClause == null) ? excludedClause : builder.and(whereClause, excludedClause);
+            whereClause = (whereClause == null) ? excludedClause : cb.and(whereClause, excludedClause);
         }
 
         // Delegate to visitor
