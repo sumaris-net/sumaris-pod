@@ -23,6 +23,7 @@
 
 package net.sumaris.core.vo.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -67,6 +68,10 @@ public class GearPhysicalFeaturesVO implements IUseFeaturesVO {
     private String qualificationComments;
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
+
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private int flags = 0;
 
     /* -- link to parent -- */
 

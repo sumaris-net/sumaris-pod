@@ -144,8 +144,10 @@ public class GearPhysicalFeaturesRepositoryImpl
     }
 
     @Override
-    public void toEntity(GearPhysicalFeaturesVO source, GearPhysicalFeatures target, boolean copyIfNull) {
-        super.toEntity(source, target, copyIfNull);
+    public boolean toEntity(GearPhysicalFeaturesVO source, GearPhysicalFeatures target, boolean copyIfNull, boolean allowSkipSameHash) {
+        if (super.toEntity(source, target, copyIfNull, allowSkipSameHash)) {
+            return true;
+        }
 
         // Metier
         Integer metierId = source.getMetier() != null ? source.getMetier().getId() : null;
@@ -190,13 +192,15 @@ public class GearPhysicalFeaturesRepositoryImpl
             }
         }
 
+        return false;
     }
 
     @Override
     public List<GearPhysicalFeaturesVO> saveAllByActivityCalendarId(int parentId, @NonNull List<GearPhysicalFeaturesVO> sources) {
         ActivityCalendar parent = getById(ActivityCalendar.class, parentId);
         sources.forEach(source -> source.setActivityCalendarId(parentId));
-        return this.saveAllByList(parent.getGearPhysicalFeatures(), sources);
+        boolean dirty = this.saveAllByList(parent.getGearPhysicalFeatures(), sources);
+        return sources;
     }
 
     /* -- protected functions -- */
