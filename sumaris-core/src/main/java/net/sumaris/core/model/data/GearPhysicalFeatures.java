@@ -41,7 +41,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode
 @FieldNameConstants
 @Entity
 @Table(name = "gear_physical_features")
@@ -50,7 +50,7 @@ public class GearPhysicalFeatures implements IUseFeaturesEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "GEAR_PHYSICAL_FEATURES_SEQ")
     @SequenceGenerator(name = "GEAR_PHYSICAL_FEATURES_SEQ", sequenceName="GEAR_PHYSICAL_FEATURES_SEQ", allocationSize = IDataEntity.SEQUENCE_ALLOCATION_SIZE)
-    @EqualsAndHashCode.Include
+    @EqualsAndHashCode.Exclude
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -100,10 +100,12 @@ public class GearPhysicalFeatures implements IUseFeaturesEntity {
 
     @Column(name = "creation_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @EqualsAndHashCode.Exclude
     private Date creationDate;
 
     @Column(name = "update_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -122,6 +124,9 @@ public class GearPhysicalFeatures implements IUseFeaturesEntity {
 
     @Transient
     private Department recorderDepartment; // Missing in DB, but expected by IDataEntity
+
+    @Column(name = "hash")
+    private Integer hash;
 
     /* -- parent entity -- */
 

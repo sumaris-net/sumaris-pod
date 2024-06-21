@@ -125,6 +125,9 @@ public class GearUseFeatures implements IUseFeaturesEntity {
     @Transient
     private Department recorderDepartment; // Missing in DB, but expected by IDataEntity
 
+    @Column(name = "hash")
+    private Integer hash;
+
     /* -- parent entity -- */
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = ActivityCalendar.class )

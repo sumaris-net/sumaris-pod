@@ -22,6 +22,7 @@
 
 package net.sumaris.core.vo.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -36,8 +37,10 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class GearUseFeaturesVO implements IUseFeaturesVO {
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private Date startDate;
     private Date endDate;
@@ -58,7 +61,9 @@ public class GearUseFeaturesVO implements IUseFeaturesVO {
 
     private String comments;
 
+    @EqualsAndHashCode.Exclude
     private Date creationDate;
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Integer qualityFlagId;
@@ -72,6 +77,10 @@ public class GearUseFeaturesVO implements IUseFeaturesVO {
 
     private Integer activityCalendarId;
     private Integer dailyActivityCalendarId;
+
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    private int flags = 0;
 
     public String toString() {
         return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);

@@ -38,6 +38,7 @@ public interface IUseFeaturesEntity extends
         String END_DATE = "endDate";
         String START_DATE = "startDate";
         String CREATION_DATE = "creationDate";
+        String HASH = "hash";
     }
 
     Date getStartDate();
@@ -51,4 +52,8 @@ public interface IUseFeaturesEntity extends
     Date getCreationDate();
 
     void setCreationDate(Date creationDate);
+
+    Integer getHash();
+
+    void setHash(Integer hash);
 }
