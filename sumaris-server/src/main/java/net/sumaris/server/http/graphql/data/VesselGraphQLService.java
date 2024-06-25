@@ -209,14 +209,13 @@ public class VesselGraphQLService {
 
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
+        filter = VesselOwnerFilterVO.nullToEmpty(filter);
+        filter.setVesselId(vesselId);
 
         // Make sure to limit access to SIH data
-       if (filter == null || (filter.getProgramLabel() == null && ArrayUtils.isEmpty(filter.getProgramIds()))) {
-           filter = VesselOwnerFilterVO.builder()
-                   .vesselId(vesselId)
-                   .programLabel(ProgramEnum.SIH.getLabel())
-                   .build();
-       }
+        if (filter == null || (filter.getProgramLabel() == null && ArrayUtils.isEmpty(filter.getProgramIds()))) {
+           filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        }
 
         return vesselService.findOwnerPeriodsByFilter(filter,
                 Page.create(offset, size, sort, SortDirection.fromString(direction)));
