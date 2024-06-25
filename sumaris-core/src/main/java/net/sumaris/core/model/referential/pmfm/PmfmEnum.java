@@ -152,11 +152,11 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     EMV_CATEGORY(437, "EMV_CATEGORY"),
 
     // ObsVente
-    PETS(502, "PETS"),
-
-    SALE_TYPE(503, "SALE_TYPE"),
+    HAS_PETS(502, "HAS_PETS"),
+    SALE_TYPE_ID(503, "SALE_TYPE_ID"),
     IS_OBSERVED(510, "IS_OBSERVED"),
     NON_OBSERVATION_REASON(511, "NON_OBSERVATION_REASON"),
+    SPECIES_LIST_ORIGIN(512, "SPECIES_LIST_ORIGIN"),
     TAXON_GROUP_ID(513, "TAXON_GROUP_ID"),
 
     // Activity Calendar
