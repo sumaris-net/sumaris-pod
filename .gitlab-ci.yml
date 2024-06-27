@@ -15,6 +15,15 @@ stages:
     - publish
     - docs
 
+workflow:
+  rules:
+    - changes:
+        - '.gitlab-ci.yml'
+        - '*/src/*'
+        - '*/src/**/*'
+        - 'pom.xml'
+        - '*/pom.xml'
+
 # ---------------------------------------------------------------
 # Global variables
 # ---------------------------------------------------------------
@@ -124,10 +133,17 @@ build:env:
       # Build and push the CI image
       - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
       - docker push ${CI_BUILD_IMAGE}
-    only:
-      - develop
-      - /^feature\/.*/
-      - /^features\/.*/
+    rules:
+      - if: '$CI_COMMIT_BRANCH == "develop"'
+        changes:
+        - '.gitlab-ci.yml'
+        - '${APP_WAR_MODULE}/src/main/docker/build/Dockerfile'
+        - '${APP_WAR_MODULE}/src/main/docker/run/alpine/Dockerfile'
+        - 'pom.xml'
+        - '*/pom.xml'
+      - if: '$CI_COMMIT_BRANCH =~ /^features?\/.*/ || $CI_MERGE_REQUEST_ID'
+        when: manual
+      - when: never
 
 # ---------------------------------------------------------------
 # Tests jobs
