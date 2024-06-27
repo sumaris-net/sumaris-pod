@@ -122,6 +122,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 										  VesselFetchOptions fetchOptions) {
 		long startTime = TimeLog.getTime();
 		try {
+			// Use ES repo, if enabled (and ready)
 			if (isElasticsearchEnableAndReady()) {
 				// Execute ES search
 				org.springframework.data.domain.Page<VesselSnapshotVO> result = elasticsearchRepository.findAllAsPage(filter, page, fetchOptions);
@@ -131,6 +132,8 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 				return result.getContent();
 			}
+
+			// Use JPA repo
 			return repository.findAll(filter, page, fetchOptions);
 		}
 		finally {

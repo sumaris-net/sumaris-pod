@@ -29,12 +29,15 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
+import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -49,12 +52,13 @@ import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -74,6 +78,14 @@ public class VesselGraphQLService {
     private final VesselSnapshotService vesselSnapshotService;
 
     private final AuthService authService;
+
+    private Integer[] vesselTypeIds;
+
+    @PostConstruct
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady() {
+        this.vesselTypeIds = configuration.getDataVesselTypeIds().toArray(Integer[]::new);
+    }
 
     /* -- Vessel -- */
 
@@ -320,16 +332,31 @@ public class VesselGraphQLService {
             .build();
     }
 
-
     /**
      * If need, restrict vessel program (to SIH), and dates (to today)
      */
     protected VesselFilterVO fillVesselFilterDefaults(VesselFilterVO filter) {
         filter = VesselFilterVO.nullToEmpty(filter);
 
+        boolean isAdmin = authService.isAdmin();
+
         // Filter on SIH program, when empty or not an admin
-        if (StringUtils.isBlank(filter.getProgramLabel()) || !authService.isAdmin()) {
+        // (an admin can access to any other programs)
+        if (StringUtils.isBlank(filter.getProgramLabel()) || !isAdmin) {
             filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        }
+
+        // Filter on vesselTypeIds (if configured)
+        if (ArrayUtils.isNotEmpty(vesselTypeIds)) {
+            Integer[] userVesselTypesIds = ArrayUtils.concat(filter.getVesselTypeId(), filter.getVesselTypeIds());
+
+            // Limit if empty or not an admin
+            // (an admin can access to any other vessel types)
+            if (ArrayUtils.isEmpty(userVesselTypesIds) || !isAdmin) {
+                Integer[] intersection = ArrayUtils.intersectionSkipEmpty(vesselTypeIds, userVesselTypesIds);
+                filter.setVesselTypeIds(intersection);
+                filter.setVesselTypeId(null);
+            }
         }
 
         // If expected a date: use today (at 0h0min)

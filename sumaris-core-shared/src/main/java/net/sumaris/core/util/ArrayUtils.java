@@ -22,8 +22,11 @@
 
 package net.sumaris.core.util;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -36,7 +39,7 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
     @Nullable
     @SuppressWarnings("varargs")
     public static Integer[] concat(@Nullable Integer value, @Nullable Integer[] values) {
-        return ArrayUtils.concat(value, values, Integer[].class);
+        return concat(value, values, Integer[].class);
     }
 
     @Nullable
@@ -54,6 +57,27 @@ public class ArrayUtils extends org.apache.commons.lang3.ArrayUtils {
             result[0] = value;
             return result;
         }
+    }
+
+    public static Integer[] intersection(Integer[] ...arrays) {
+        return intersection(Integer[].class, false, arrays);
+    }
+
+    public static Integer[] intersectionSkipEmpty(Integer[] ...arrays) {
+        return intersection(Integer[].class, true, arrays);
+    }
+
+    @SafeVarargs
+    public static <T> T[] intersection(Class<T[]> type, boolean skipEmpty, T[] ...arrays) {
+        Collection<T> resultList = null;
+        for (T[] values: arrays) {
+            if (!skipEmpty || isNotEmpty(values)) {
+                resultList = resultList == null ? asList(values) : CollectionUtils.intersection(asList(values), resultList);
+            }
+        }
+        if (resultList == null) return null;
+        T[] result = type.cast(Array.newInstance(type.getComponentType(), resultList.size()));
+        return resultList.toArray(result);
     }
 
     @SafeVarargs
