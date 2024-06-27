@@ -119,11 +119,6 @@ public interface VesselFeaturesSpecifications<
             .addBind(EXCLUDED_VESSEL_IDS_PARAM, vesselIds);
     }
 
-    default Specification<VesselFeatures> vesselTypeId(Integer vesselTypeId) {
-        if (vesselTypeId == null) return null;
-        return vesselTypeIds(vesselTypeId);
-    }
-
     default Specification<VesselFeatures> vesselTypeIds(Integer... vesselTypeIds) {
         if (ArrayUtils.isEmpty(vesselTypeIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {

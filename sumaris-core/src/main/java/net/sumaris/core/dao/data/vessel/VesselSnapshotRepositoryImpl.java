@@ -171,8 +171,7 @@ public class VesselSnapshotRepositoryImpl
             .and(includedVesselIds(filter.getIncludedIds()))
             .and(excludedVesselIds(filter.getExcludedIds()))
             // Type
-            .and(vesselTypeId(filter.getVesselTypeId()))
-            .and(vesselTypeIds(filter.getVesselTypeIds()))
+            .and(vesselTypeIds(concat(filter.getVesselTypeId(), filter.getVesselTypeIds())))
             // by locations
             .and(registrationLocation(filter.getRegistrationLocationId()))
             .and(basePortLocation(filter.getBasePortLocationId()))
