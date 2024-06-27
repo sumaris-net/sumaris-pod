@@ -134,16 +134,6 @@ build:feature:
     - /^features\/.*/
   when: manual
 
-failsafe-build:
-    extends: .build
-    stage: alt_build
-    when: on_failure
-    only:
-      - develop
-      - /^feature\/.*/
-      - /^features\/.*/
-
-
 # ---------------------------------------------------------------
 # Tests jobs
 # ---------------------------------------------------------------
