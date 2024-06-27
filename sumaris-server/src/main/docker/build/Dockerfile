@@ -14,6 +14,7 @@ RUN du -s `find $MAVEN_LOCAL_REPO -maxdepth 3 | egrep -v "^\.$"` > /tmp/after.tx
 RUN diff /tmp/before.txt /tmp/after.txt || true
 # install system required libraries
 RUN apk update && \
-    apk add git
+    apk add git && \
+    apk add zip
 ENV MAVEN_LOCAL_REPO=$MAVEN_LOCAL_REPO
 WORKDIR /build
