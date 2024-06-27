@@ -138,7 +138,6 @@ build:env:
         changes:
         - '.gitlab-ci.yml'
         - '${APP_WAR_MODULE}/src/main/docker/build/Dockerfile'
-        - '${APP_WAR_MODULE}/src/main/docker/run/alpine/Dockerfile'
         - 'pom.xml'
         - '*/pom.xml'
       - if: '$CI_COMMIT_BRANCH =~ /^features?\/.*/ || $CI_MERGE_REQUEST_ID'
