@@ -276,10 +276,6 @@ release:tags:
     - tags
   when: manual
 
-failsafe-release:
-    extends: .release
-    needs: [failsafe-build]
-
 gitlab-release:
     stage: release
     tags: [sih_public_runner]
