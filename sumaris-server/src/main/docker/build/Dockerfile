@@ -13,7 +13,7 @@ RUN mvn clean -q
 RUN du -s `find $MAVEN_LOCAL_REPO -maxdepth 3 | egrep -v "^\.$"` > /tmp/after.txt
 RUN diff /tmp/before.txt /tmp/after.txt || true
 # install system required libraries
-RUN apt update && \
-    apt -y install git
+RUN apk update && \
+    apk add git
 ENV MAVEN_LOCAL_REPO=$MAVEN_LOCAL_REPO
 WORKDIR /build
