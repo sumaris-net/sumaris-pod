@@ -44,6 +44,9 @@ public class ProgramSaveOptions implements ISaveOptions {
     private Boolean withStrategies = false;
 
     @Builder.Default
-    private Boolean withDepartmentsAndPersons = true;
+    private Boolean withDepartments = true;
+
+    @Builder.Default
+    private Boolean withPersons = true;
 
 }
