@@ -22,6 +22,7 @@
 
 package net.sumaris.core.model.data;
 
+import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +38,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -58,7 +60,9 @@ import java.util.List;
 public class ActivityCalendar implements IRootDataEntity<Integer>,
     IWithVesselEntity<Integer, Vessel>,
     IWithVesselUseFeaturesEntity<Integer, VesselUseFeatures>,
-    IWithGearUseFeaturesEntity<Integer, GearUseFeatures> {
+    IWithGearUseFeaturesEntity<Integer, GearUseFeatures>,
+    IWithObserversEntity<Integer, Person> {
+
 
     static {
         I18n.n("sumaris.persistence.table.activityCalendar");
@@ -143,4 +147,11 @@ public class ActivityCalendar implements IRootDataEntity<Integer>,
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<GearPhysicalFeatures> gearPhysicalFeatures = new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.EAGER, targetEntity = Person.class)
+    @Cascade(org.hibernate.annotations.CascadeType.DETACH)
+    @JoinTable(name = "activity_calendar2person", joinColumns = {
+            @JoinColumn(name = "activity_calendar_fk", nullable = false, updatable = false) },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
+    private Set<Person> observers = Sets.newHashSet();
 }

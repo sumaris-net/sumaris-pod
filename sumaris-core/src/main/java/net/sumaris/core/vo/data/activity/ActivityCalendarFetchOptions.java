@@ -27,18 +27,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.sumaris.core.vo.data.IDataFetchOptions;
+import net.sumaris.core.vo.data.IWithObserversFetchOptions;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
-public class ActivityCalendarFetchOptions implements IDataFetchOptions {
+public class ActivityCalendarFetchOptions implements IDataFetchOptions, IWithObserversFetchOptions {
 
     public static final ActivityCalendarFetchOptions DEFAULT = ActivityCalendarFetchOptions.builder().build();
 
     public static final ActivityCalendarFetchOptions MINIMAL = ActivityCalendarFetchOptions.builder()
         .withRecorderDepartment(false)
         .withRecorderPerson(false)
+        .withObservers(false)
         .build();
 
     public static final ActivityCalendarFetchOptions FULL_GRAPH = ActivityCalendarFetchOptions.builder()
@@ -67,4 +69,7 @@ public class ActivityCalendarFetchOptions implements IDataFetchOptions {
 
     @Builder.Default
     private boolean withImages = false;
+
+    @Builder.Default
+    private boolean withObservers = true;
 }

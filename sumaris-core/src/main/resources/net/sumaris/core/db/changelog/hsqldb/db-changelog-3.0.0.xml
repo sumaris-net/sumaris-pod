@@ -1303,6 +1303,20 @@
     <addForeignKeyConstraint baseColumnNames="acquisition_level_fk" baseTableName="gear_physical_features_origin" constraintName="gear_physical_features_origin_acquisition_level_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="acquisition_level" validate="true"/>
   </changeSet>
 
+  <changeSet author="maxime.demarst@e-is.pro" id="1719931834-001" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="activity_calendar2person"/></not>
+    </preConditions>
+    <createTable tableName="activity_calendar2person">
+      <column name="activity_calendar_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="person_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
   <!-- Update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-300" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">

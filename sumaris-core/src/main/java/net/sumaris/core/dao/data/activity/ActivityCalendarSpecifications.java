@@ -43,6 +43,7 @@ import java.util.Date;
 public interface ActivityCalendarSpecifications extends RootDataSpecifications<ActivityCalendar>,
     IWithVesselSpecifications<Integer, ActivityCalendar> {
 
+    String OBSERVER_PERSON_IDS_PARAM = "observerPersonIds";
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
@@ -136,6 +137,20 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
                 return cb.lessThanOrEqualTo(root.get(ActivityCalendar.Fields.YEAR), endYear);
             }
         };
+    }
+
+    default Specification<ActivityCalendar> hasObserverPersonIds(Integer... observerPersonIds) {
+        if (ArrayUtils.isEmpty(observerPersonIds)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, OBSERVER_PERSON_IDS_PARAM);
+            return cb.in(Daos.composeJoin(root, ObservedLocation.Fields.OBSERVERS).get(IEntity.Fields.ID))
+                    .value(parameter);
+        }).addBind(OBSERVER_PERSON_IDS_PARAM, Arrays.asList(observerPersonIds));
     }
 
 }
