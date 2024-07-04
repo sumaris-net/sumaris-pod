@@ -49,10 +49,12 @@ public class VesselOwnerPeriod implements IEntity<VesselOwnerPeriodId> {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vessel_fk", nullable = false)
     private Vessel vessel;
 
     @Id
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "vessel_owner_fk", nullable = false)
     private VesselOwner vesselOwner;
 
     @Id
