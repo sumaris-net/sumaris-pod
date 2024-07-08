@@ -187,15 +187,14 @@
     </insert>
   </changeSet>
 
-
   <!-- add table named_filter-->
-  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-410">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-154">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="NAMED_FILTER_SEQ"/></not>
     </preConditions>
     <createSequence sequenceName="NAMED_FILTER_SEQ"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-411">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-155">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="named_filter"/></not>
     </preConditions>

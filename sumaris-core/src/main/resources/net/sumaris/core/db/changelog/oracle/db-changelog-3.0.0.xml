@@ -28,13 +28,13 @@
   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/oracle/db-changelog-2.7.2.xml">
 
   <!-- add table named_filter-->
-  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-206">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-154">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="NAMED_FILTER_SEQ"/></not>
     </preConditions>
     <createSequence sequenceName="NAMED_FILTER_SEQ"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-010">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-155">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="named_filter"/></not>
     </preConditions>
@@ -68,4 +68,24 @@
     <addForeignKeyConstraint constraintName="named_filter_recorder_department_fkc" baseTableName="named_filter" baseColumnNames="recorder_department_fk" referencedTableName="department" referencedColumnNames="id"/>
   </changeSet>
 
+  <!-- Add table ACTIVITY_CALENDAR2PERSON -->
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-178" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="activity_calendar2person"/></not>
+    </preConditions>
+    <createTable tableName="activity_calendar2person">
+      <column name="activity_calendar_fk" type="NUMBER">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="activity_calendar2person_pk"/>
+      </column>
+      <column name="person_fk" type="NUMBER">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="activity_calendar2person_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-179" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="activity_calendar2person" constraintName="act_cal2person_act_cal_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-180" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="activity_calendar2person" constraintName="act_cal2person_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
+  </changeSet>
 </databaseChangeLog>
