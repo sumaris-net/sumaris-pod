@@ -88,6 +88,21 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
         }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds));
     }
 
+    default Specification<ActivityCalendar> hasDirectSurveyInvestigation(Boolean directSurveyInvestigation) {
+        if (directSurveyInvestigation == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Boolean> param = cb.parameter(Boolean.class, ActivityCalendar.Fields.DIRECT_SURVEY_INVESTIGATION);
+            return cb.equal(root.get(ActivityCalendar.Fields.DIRECT_SURVEY_INVESTIGATION), param);
+        }).addBind(ActivityCalendar.Fields.DIRECT_SURVEY_INVESTIGATION, directSurveyInvestigation);
+    }
+    
+    default Specification<ActivityCalendar> hasEconomicSurvey(Boolean economicSurvey) {
+        if (economicSurvey == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Boolean> param = cb.parameter(Boolean.class, ActivityCalendar.Fields.ECONOMIC_SURVEY);
+            return cb.equal(root.get(ActivityCalendar.Fields.ECONOMIC_SURVEY), param);
+        }).addBind(ActivityCalendar.Fields.ECONOMIC_SURVEY, economicSurvey);
+    }
     default Specification<ActivityCalendar> atYear(Integer year) {
         if (year == null) return null;
         return BindableSpecification.where((root, query, cb) -> {

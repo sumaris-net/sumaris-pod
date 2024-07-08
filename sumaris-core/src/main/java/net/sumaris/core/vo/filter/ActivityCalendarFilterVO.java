@@ -66,6 +66,9 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
+    private Boolean directSurveyInvestigation;
+    private Boolean economicSurvey;
+
     public void setLocationId(Integer locationId) {
         this.registrationLocationId = locationId;
     }
