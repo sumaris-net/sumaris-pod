@@ -21,7 +21,7 @@
         </preConditions>
         <createTable tableName="program_property">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="program_propertyPK"/>
+                <constraints primaryKey="true" primaryKeyName="program_property_pk"/>
             </column>
             <column name="creation_date" type="TIMESTAMP">
                 <constraints nullable="false"/>

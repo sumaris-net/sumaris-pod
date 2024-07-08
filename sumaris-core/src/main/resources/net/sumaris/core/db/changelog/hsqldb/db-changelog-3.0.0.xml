@@ -413,56 +413,56 @@
     <addUniqueConstraint columnNames="vessel_fk, program_fk, start_date, end_date" constraintName="daily_activity_calendar_unique_key" tableName="daily_activity_calendar"/>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-122">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-070">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="CORPUS_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="1" sequenceName="CORPUS_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-123">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-071">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="FISHERY_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="1" sequenceName="FISHERY_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-124">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-072">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="MINIMUM_SIZE_ALLOWED_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="1" sequenceName="MINIMUM_SIZE_ALLOWED_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-125">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-073">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="REGULATION_AREA_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="1" sequenceName="REGULATION_AREA_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-126">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-074">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="SAMPLING_SCHEME_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="50" sequenceName="SAMPLING_SCHEME_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-127">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-075">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="SAMPLING_STRATA_MEASUREMENT_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="50" sequenceName="SAMPLING_STRATA_MEASUREMENT_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-128">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-076">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="SAMPLING_STRATA_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="50" sequenceName="SAMPLING_STRATA_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-129">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-078">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="corpus_type_seq"/></not>
     </preConditions>
     <createSequence incrementBy="1" sequenceName="corpus_type_seq" startValue="1"/>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-130">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-079">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="corpus"/></not>
     </preConditions>
@@ -492,7 +492,7 @@
       <column name="comments" type="VARCHAR(2000)"/>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-131">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-080">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="corpus2fishery"/></not>
     </preConditions>
@@ -505,7 +505,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-132">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-081">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="corpus_type"/></not>
     </preConditions>
@@ -530,7 +530,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-133">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-082">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="denormalized_sampling_strata"/></not>
     </preConditions>
@@ -546,21 +546,21 @@
       <column name="start_date" type="TIMESTAMP"/>
       <column name="end_date" type="TIMESTAMP"/>
       <column name="comments" type="VARCHAR(2000)"/>
-      <column name="areaName" type="VARCHAR(150)"/>
-      <column name="gearMeshRange" type="VARCHAR(100)"/>
+      <column name="area_name" type="VARCHAR(150)"/>
+      <column name="gear_mesh_range" type="VARCHAR(100)"/>
       <column name="metier" type="VARCHAR(255)"/>
-      <column name="observationLocationComments" type="VARCHAR(100)"/>
-      <column name="samplingSchemeDescription" type="VARCHAR(255)"/>
-      <column name="samplingSchemeLabel" type="VARCHAR(50)">
+      <column name="observation_location_comments" type="VARCHAR(100)"/>
+      <column name="sampling_scheme_description" type="VARCHAR(255)"/>
+      <column name="sampling_scheme_label" type="VARCHAR(50)">
         <constraints nullable="false"/>
       </column>
-      <column name="samplingSchemeName" type="VARCHAR(100)">
+      <column name="sampling_scheme_name" type="VARCHAR(100)">
         <constraints nullable="false"/>
       </column>
-      <column name="samplingStrategy" type="VARCHAR(100)"/>
-      <column name="subAreaLocationIds" type="VARCHAR(255)"/>
-      <column name="taxonGroupName" type="VARCHAR(100)"/>
-      <column name="vesselLengthRange" type="VARCHAR(100)"/>
+      <column name="sampling_strategy" type="VARCHAR(100)"/>
+      <column name="sub_area_location_ids" type="VARCHAR(255)"/>
+      <column name="taxon_group_name" type="VARCHAR(100)"/>
+      <column name="vessel_length_range" type="VARCHAR(100)"/>
       <column name="department_fk" type="INT"/>
       <column name="observation_location_fk" type="INT"/>
       <column name="person_fk" type="INT"/>
@@ -578,7 +578,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-134">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-083">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="fishery"/></not>
     </preConditions>
@@ -603,7 +603,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-135">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-084">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="minimum_size_allowed"/></not>
     </preConditions>
@@ -626,7 +626,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-136">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-085">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="minimum_size_allowed2location"/></not>
     </preConditions>
@@ -639,7 +639,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-137">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-086">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="regulation_area"/></not>
     </preConditions>
@@ -657,7 +657,7 @@
       <column name="grouping_fk" type="INT"/>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-138">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-087">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="regulation_area2reg_location"/></not>
     </preConditions>
@@ -670,7 +670,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-139">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-088">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="sampling_scheme"/></not>
     </preConditions>
@@ -698,7 +698,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-140">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-089">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="sampling_strata"/></not>
     </preConditions>
@@ -733,7 +733,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-141">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-090">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="sampling_strata2fishery"/></not>
     </preConditions>
@@ -746,7 +746,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-142">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-091">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="sampling_strata2grouping"/></not>
     </preConditions>
@@ -759,7 +759,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-143">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-092">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="sampling_strata_measurement"/></not>
     </preConditions>
@@ -792,7 +792,7 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-144">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-093">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="sale" columnName="landing_fk"/></not>
     </preConditions>
@@ -801,140 +801,140 @@
     </addColumn>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-148" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-094" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="fishery_fk" baseTableName="regulation_area" constraintName="FK1ktb44jkq86c82jm0rvqynbro" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="fishery" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-149" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-095" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="sampling_strata" constraintName="FK1stln5nw5q6v906md4abv0rxd" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-150" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-096" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="sampling_strata_measurement" constraintName="FK21q4diy3vchqm0tnysm2yac9i" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-151" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-097" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="observation_location_fk" baseTableName="denormalized_sampling_strata" constraintName="FK2kslcm2a5myuab87rvdhntvc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-152" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-098" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="grouping_fk" baseTableName="regulation_area" constraintName="FK2rip7qifodab17eo4lyse2rf6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-153" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-099" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="corpus_type" constraintName="FK3ca19bft58od6x78otle5fmnj" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-154" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-100" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="grouping_fk" baseTableName="sampling_strata2grouping" constraintName="FK3cj18shb36fwh50w2m5e3tbc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="grouping" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-155" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-101" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="fishery_fk" baseTableName="corpus2fishery" constraintName="FK3ymooyay21gu6oqt1wk49n3pu" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="fishery" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-156" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-102" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="department_fk" baseTableName="sampling_strata" constraintName="FK42tt5f883sl3sursv8mdenwk3" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-157" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-103" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="device_position" constraintName="FK4yoflk4mhn2oj50pwaouak7x6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-158" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-104" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="nearby_specific_area_fk" baseTableName="regulation_area" constraintName="FK5gcqasdeyeogv8g2dsysey15p" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="nearby_specific_area" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-159" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-105" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="corpus_fk" baseTableName="minimum_size_allowed" constraintName="FK6h0w607todi8re9p5r1pqe3i6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="corpus" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-160" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-106" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_scheme_fk" baseTableName="sampling_strata" constraintName="FK6haggjqshl7ppuijeak5861jn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_scheme" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-161" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-107" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="landing_fk" baseTableName="sale" constraintName="FK6np2cldpug2ill9v15fcndf1f" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="landing" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-162" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-108" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="corpus" constraintName="FK74ajoxgxnwwq6onojj4e8u3s6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-163" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-109" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="regulation_area" constraintName="FK7kk97jmtrjplvuus83h2nlt1w" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-164" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-110" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="corpus_fk" baseTableName="corpus2fishery" constraintName="FK7wd55oybwv3j9o47ld4xsehdi" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="corpus" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-165" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-111" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="sampling_scheme" constraintName="FK9ge7up5tlae5uavnialng4ubb" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-166" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-112" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="taxon_group_fk" baseTableName="minimum_size_allowed" constraintName="FKa6ypluwd7hcd77lma9rjuh780" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="taxon_group" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-167" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-113" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="observation_location_fk" baseTableName="sampling_strata" constraintName="FKal4hrigst4khccj21ympowsj8" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-168" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-114" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="regulation_area2reg_location" constraintName="FKamo78ayue0b130vcnr6nuptaj" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-169" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-115" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="department_fk" baseTableName="denormalized_sampling_strata" constraintName="FKc1pe0f8auf6yt2hvbmv2x416x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-170" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-116" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="sampling_strata2grouping" constraintName="FKcatsgfu7vdy13kxfhyah1n9jc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-171" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-117" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="sampling_strata_measurement" constraintName="FKcxhiebakypxk3iwayjxhj33ig" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-172" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-118" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="location_fk" baseTableName="minimum_size_allowed2location" constraintName="FKeal44awsbthsmcsoqolbcwu73" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="location" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-173" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-119" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="denormalized_sampling_strata" constraintName="FKegxi2js4x6n6rsfp4ta2y9q30" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-174" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-120" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="regulation_area_fk" baseTableName="regulation_area2reg_location" constraintName="FKfsiefw42xwnn39at1hyxtygvn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="regulation_area" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-175" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-121" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="sampling_strata_measurement" constraintName="FKgc6ecj5lljxi5iaihu4cvh9nv" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-176" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-122" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="size_unit_fk" baseTableName="minimum_size_allowed" constraintName="FKgmus0ms5xttqpfu2cqpj75wej" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="unit" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-177" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-123" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="denormalized_sampling_strata" constraintName="FKictun4ht4l0dgq1haioqtihal" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-178" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-124" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="fishery" constraintName="FKk173130s13o5tu1dq6dt5vxr0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-179" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-125" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="scientific_cruise" constraintName="FKke4e7129nt8vmojlce8s68o5x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-180" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-126" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="sampling_strata_measurement" constraintName="FKkuc3t3axtlgimqw3x3n9bxb4r" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-181" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-127" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="fishery_fk" baseTableName="sampling_strata2fishery" constraintName="FKly9bv6oktpi9od8888m078d4m" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="fishery" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-182" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-128" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="sampling_strata" constraintName="FKm4uixwln41b3obxs9dm2gw9yn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-183" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-129" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="sampling_strata_measurement" constraintName="FKn54h0mr278r6kaabu0si2d2jk" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-184" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-130" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="minimum_size_allowed_fk" baseTableName="minimum_size_allowed2location" constraintName="FKnlt667cih61mbr8h1lg94lcjd" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="minimum_size_allowed" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-185" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-131" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="depth_gradient_fk" baseTableName="regulation_area" constraintName="FKoc073dieb71dw5rwglnum9msr" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="depth_gradient" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-186" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-132" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="denormalized_sampling_strata" constraintName="FKov2cbys98oxj6hr12d24ctbn" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-187" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-133" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="sampling_strata2fishery" constraintName="FKp49w9xclbktiha6dxmfh2wnur" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-188" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-134" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="sampling_scheme" constraintName="FKpkk5yiwlc2pw5wwt4utsoe3a4" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-189" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-135" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="corpus_type_fk" baseTableName="corpus" constraintName="FKqxvge39syr75pt2tun82henn6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="corpus_type" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-190" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-136" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="distance_to_coast_gradient_fk" baseTableName="regulation_area" constraintName="FKtrm3sls23dualytiv7io0eibd" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="distance_to_coast_gradient" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-191" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-137" failOnError="false">
     <addNotNullConstraint columnDataType="varchar(50)" columnName="table_name" tableName="extraction_product_table" validate="true"/>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-192" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-138" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="APPLIED_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -948,7 +948,7 @@
     </sql>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-193" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-139" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="PMFM_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -961,7 +961,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-194" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-140" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="APPLIED_PERIOD_APPLIED_STRATEGY_FKC"/>
     </preConditions>
@@ -974,7 +974,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-195" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-141" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="PMFM_STRATEGY2TAXON_GROUP_PMFM_STRATEGY_FKC"/>
     </preConditions>
@@ -987,7 +987,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-196" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-142" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="REFERENCE_TAXON_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -1000,7 +1000,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-197" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-143" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="PMFM_STRATEGY2GEAR_PMFM_STRATEGY_FKC"/>
     </preConditions>
@@ -1013,7 +1013,7 @@
             ON DELETE CASCADE;
     </sql>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-198" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-144" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <foreignKeyConstraintExists foreignKeyName="TAXON_GROUP_STRATEGY_STRATEGY_FKC"/>
     </preConditions>
@@ -1027,7 +1027,7 @@
     </sql>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-199">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-145">
     <preConditions onFail="MARK_RAN">
       <not>
         <tableExists tableName="pmfm_strategy2metier"/>
@@ -1042,16 +1042,16 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-201" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-146" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="pmfm_strategy_fk" baseTableName="pmfm_strategy2metier" constraintName="FKkpsf7mltd51yyyh6ypvg5vutm" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm_strategy" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-202" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-147" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="pmfm_strategy2metier" constraintName="FKkv3xicma1ub1ed01ekfeyvfqg" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="metier" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-203" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-148" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="taxon_group_strategy" constraintName="FKn0ls7id9yw6mp96w3iecpu6ly" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="strategy" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-204">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-149">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="trip" columnName="sampling_strata_fk"/></not>
     </preConditions>
@@ -1059,10 +1059,10 @@
       <column name="sampling_strata_fk" type="integer"/>
     </addColumn>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-205" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-150" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="trip" constraintName="trip_sampling_strata_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-206">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-151">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="activity_calendar" columnName="economic_survey"/></not>
     </preConditions>
@@ -1070,7 +1070,7 @@
       <column name="economic_survey" type="BOOLEAN"/>
     </addColumn>
   </changeSet>
-  <changeSet author="jv.famy@codra.fr" id="1694619259850-207">
+  <changeSet author="jv.famy@codra.fr" id="1694619259850-152">
     <preConditions onFail="MARK_RAN">
       <not><columnExists tableName="observed_location" columnName="sampling_strata_fk"/></not>
     </preConditions>
@@ -1078,18 +1078,18 @@
       <column name="sampling_strata_fk" type="integer"/>
     </addColumn>
   </changeSet>
-  <changeSet author="jv.famy@codra.fr" id="1694619259850-208" failOnError="false">
+  <changeSet author="jv.famy@codra.fr" id="1694619259850-153" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="observed_location" constraintName="observed_location_sampling_stc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
 
   <!-- add table named_filter-->
-  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-209">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-154">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="NAMED_FILTER_SEQ"/></not>
     </preConditions>
     <createSequence sequenceName="NAMED_FILTER_SEQ"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-010">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-155">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="named_filter"/></not>
     </preConditions>
@@ -1124,8 +1124,8 @@
   </changeSet>
 
 
-  <!-- Add index on VESSEL_OPWNER.REGISTRATION_CODE-->
-  <changeSet author="maxime.demarst@e-is.pro" id="1709805852-011">
+  <!-- Add index on VESSEL_OWNER.REGISTRATION_CODE-->
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-156">
     <preConditions onFail="MARK_RAN">
       <and>
         <not><indexExists indexName="IX_VESSEL_OWNER_REG_CODE"/></not>
@@ -1138,13 +1138,13 @@
   </changeSet>
 
   <!-- add table physical gear feature -->
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-000">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-157">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="GEAR_PHYSICAL_FEATURES_SEQ"/></not>
     </preConditions>
     <createSequence sequenceName="GEAR_PHYSICAL_FEATURES_SEQ" incrementBy="50" startValue="1000"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-010">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-158">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="gear_physical_features"/></not>
     </preConditions>
@@ -1196,35 +1196,35 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-020" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-159" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="vessel_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_vessel_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="vessel" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-021" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-160" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_quality_flag_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-022" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-161" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_program_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-023" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-162" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="gear_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_gear_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-024" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-163" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="other_gear_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_other_gear_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-025" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-164" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_activity_calendar_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-026" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-165" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_metier_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="metier" validate="true"/>
   </changeSet>
 
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-100">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-166">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="50" sequenceName="PHYSICAL_GEAR_MEASUREMENT_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-110">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-167">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="gear_physical_measurement"/></not>
     </preConditions>
@@ -1257,29 +1257,29 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-120" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-168" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="pmfm_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_pmfm_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="pmfm" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-121" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-169" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_qualitative_value_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-122" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-170" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="quality_flag_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_quality_flag_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="quality_flag" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-123" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-171" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_recorder_department_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="recorder_department" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-124" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-172" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="gear_physical_features_fk" baseTableName="gear_physical_measurement" constraintName="gear_physical_measurement_gear_physical_features_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear_physical_features" validate="true"/>
   </changeSet>
 
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-200">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-173">
     <preConditions onFail="MARK_RAN">
       <not><sequenceExists sequenceName="GEAR_PHYSICAL_FEATURES_ORIGIN_SEQ"/></not>
     </preConditions>
     <createSequence incrementBy="50" sequenceName="GEAR_PHYSICAL_FEATURES_ORIGIN_SEQ" startValue="1"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-210" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-174" failOnError="false">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="gear_physical_features_origin"/></not>
     </preConditions>
@@ -1293,14 +1293,35 @@
       <column name="acquisition_level_fk" type="INT"/>
     </createTable>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-220" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-175" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="gear_physical_features_fk" baseTableName="gear_physical_features_origin" constraintName="gear_physical_features_origin_gear_physical_features_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="gear_physical_features" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-221" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-176" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="gear_physical_features_origin" constraintName="gear_physical_features_origin_program_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="program" validate="true"/>
   </changeSet>
-  <changeSet author="maxime.demarst@e-is.pro" id="1717428673-222" failOnError="false">
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-177" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="acquisition_level_fk" baseTableName="gear_physical_features_origin" constraintName="gear_physical_features_origin_acquisition_level_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="acquisition_level" validate="true"/>
+  </changeSet>
+
+  <!-- Add table ACTIVITY_CALENDAR2PERSON -->
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-178" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="activity_calendar2person"/></not>
+    </preConditions>
+    <createTable tableName="activity_calendar2person">
+      <column name="activity_calendar_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="activity_calendar2person_pk"/>
+      </column>
+      <column name="person_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="activity_calendar2person_pk"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-179" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="activity_calendar_fk" baseTableName="activity_calendar2person" constraintName="act_cal2person_act_cal_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="activity_calendar" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-180" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="activity_calendar2person" constraintName="act_cal2person_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
   </changeSet>
 
   <!-- Update SYSTEM_VERSION -->
@@ -1311,19 +1332,20 @@
     <insert tableName="SYSTEM_VERSION">
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">3.0.0</column>
-      <column name="DESCRIPTION">
-        - Rename software properties;
-        - Add table ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY, NAMED_FILTER, GEAR_PHYSICAL_FEATURES;
+      <column name="DESCRIPTION" >
+        - Add some tables for ACTIVITY_CALENDAR;
+        - Add column SAMPLING_STRATA_FK;
+        - Rename some software properties;
         - Add missing delete cascade constrains;
-        - Add column SAMPLING_STRATA_FK on tables;
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
-        - Rename some software properties;
-        - Add tables ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY, NAMED_FILTER;
-        - Add missing delete cascade constrains, on STRATEGY_xxx tables;
+        - Add tables ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, ACTIVITY_CALENDAR2PERSON, GEAR_PHYSICAL_FEATURES ;
+        - Add tables CORPUS, FISHERY, NAMED_FILTER;
         - Add column SAMPLING_STRATA_FK on OBSERVED_LOCATION and TRIP;
+        - Rename some software properties;
+        - Add missing delete cascade constrains, on STRATEGY_xxx tables;
       </column>
     </insert>
   </changeSet>

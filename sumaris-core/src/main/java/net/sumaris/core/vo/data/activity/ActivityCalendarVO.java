@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -38,12 +39,14 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @FieldNameConstants
 public class ActivityCalendarVO implements IRootDataVO<Integer>,
+    IWithObserversEntity<Integer, PersonVO>,
     IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>,
-    IWithMeasurementValues {
+    IWithMeasurementValues{
 
     private Integer id;
     private Integer year;
@@ -62,6 +65,7 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     private String qualificationComments;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
+    private Set<PersonVO> observers;
 
     private Integer vesselId;
     @ToString.Exclude

@@ -43,13 +43,13 @@
     <createSequence sequenceName="EXTRACTION_PRODUCT_STRATA_SEQ"/>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-10">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1571215715501-10" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not><tableExists tableName="extraction_product_strata"/></not>
     </preConditions>
     <createTable tableName="extraction_product_strata">
       <column name="id" type="INT">
-        <constraints primaryKey="true" primaryKeyName="extraction_product_strataPK"/>
+        <constraints primaryKey="true" primaryKeyName="extraction_product_strata_pk"/>
       </column>
       <column name="creation_date" type="TIMESTAMP">
         <constraints nullable="false"/>

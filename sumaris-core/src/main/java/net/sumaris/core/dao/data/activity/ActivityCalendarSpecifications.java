@@ -43,7 +43,6 @@ import java.util.Date;
 public interface ActivityCalendarSpecifications extends RootDataSpecifications<ActivityCalendar>,
     IWithVesselSpecifications<Integer, ActivityCalendar> {
 
-
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
         Expression<Date> startDate = cb.function(AdditionalSQLFunctions.first_day_of_year.name(),
@@ -103,6 +102,7 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
             return cb.equal(root.get(ActivityCalendar.Fields.ECONOMIC_SURVEY), param);
         }).addBind(ActivityCalendar.Fields.ECONOMIC_SURVEY, economicSurvey);
     }
+
     default Specification<ActivityCalendar> atYear(Integer year) {
         if (year == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
@@ -136,6 +136,20 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
                 return cb.lessThanOrEqualTo(root.get(ActivityCalendar.Fields.YEAR), endYear);
             }
         };
+    }
+
+    default Specification<ActivityCalendar> hasObserverPersonIds(Integer... observerPersonIds) {
+        if (ArrayUtils.isEmpty(observerPersonIds)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+
+            // Avoid duplicated entries (because of inner join)
+            query.distinct(true);
+
+            ParameterExpression<Collection> parameter = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.OBSERVER_PERSON_IDS);
+            return cb.in(Daos.composeJoin(root, ObservedLocation.Fields.OBSERVERS).get(IEntity.Fields.ID))
+                    .value(parameter);
+        }).addBind(ActivityCalendarFilterVO.Fields.OBSERVER_PERSON_IDS, Arrays.asList(observerPersonIds));
     }
 
 }
