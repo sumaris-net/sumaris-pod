@@ -46,7 +46,6 @@ public class QualitativeValue implements IItemReferentialEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "QUALITATIVE_VALUE_SEQ")
     @SequenceGenerator(name = "QUALITATIVE_VALUE_SEQ", sequenceName="QUALITATIVE_VALUE_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 

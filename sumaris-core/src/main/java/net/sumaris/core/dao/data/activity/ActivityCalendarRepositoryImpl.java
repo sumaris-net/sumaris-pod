@@ -35,7 +35,6 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
-import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -43,7 +42,6 @@ import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -57,7 +55,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 public class ActivityCalendarRepositoryImpl
@@ -99,6 +96,7 @@ public class ActivityCalendarRepositoryImpl
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(hasDirectSurveyInvestigation(filter.getDirectSurveyInvestigation()))
             .and(hasEconomicSurvey(filter.getEconomicSurvey()))
+            .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             ;
     }
 

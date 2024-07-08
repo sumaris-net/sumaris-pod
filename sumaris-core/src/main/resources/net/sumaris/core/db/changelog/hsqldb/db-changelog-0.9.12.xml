@@ -117,7 +117,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-16">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-16" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="landing_measurement"/>
@@ -125,7 +125,7 @@
         </preConditions>
         <createTable tableName="landing_measurement">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="landing_measurementPK"/>
+                <constraints primaryKey="true" primaryKeyName="landing_measurement_pk"/>
             </column>
             <column name="alphanumerical_value" type="VARCHAR(40)"/>
             <column name="comments" type="VARCHAR(2000)"/>
@@ -154,7 +154,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-17">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1554300066176-17" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="observed_location"/>
@@ -162,7 +162,7 @@
         </preConditions>
         <createTable tableName="observed_location">
             <column name="id" type="INT">
-                <constraints primaryKey="true" primaryKeyName="observed_locationPK"/>
+                <constraints primaryKey="true" primaryKeyName="observed_location_pk"/>
             </column>
             <column name="comments" type="VARCHAR(2000)"/>
             <column name="control_date" type="TIMESTAMP"/>
