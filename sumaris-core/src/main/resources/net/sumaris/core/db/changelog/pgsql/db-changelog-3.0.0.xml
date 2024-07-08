@@ -546,21 +546,21 @@
       <column name="start_date" type="TIMESTAMP"/>
       <column name="end_date" type="TIMESTAMP"/>
       <column name="comments" type="VARCHAR(2000)"/>
-      <column name="areaName" type="VARCHAR(150)"/>
-      <column name="gearMeshRange" type="VARCHAR(100)"/>
+      <column name="area_name" type="VARCHAR(150)"/>
+      <column name="gear_mesh_range" type="VARCHAR(100)"/>
       <column name="metier" type="VARCHAR(255)"/>
-      <column name="observationLocationComments" type="VARCHAR(100)"/>
-      <column name="samplingSchemeDescription" type="VARCHAR(255)"/>
-      <column name="samplingSchemeLabel" type="VARCHAR(50)">
+      <column name="observation_location_comments" type="VARCHAR(100)"/>
+      <column name="sampling_scheme_description" type="VARCHAR(255)"/>
+      <column name="sampling_scheme_label" type="VARCHAR(50)">
         <constraints nullable="false"/>
       </column>
-      <column name="samplingSchemeName" type="VARCHAR(100)">
+      <column name="sampling_scheme_name" type="VARCHAR(100)">
         <constraints nullable="false"/>
       </column>
-      <column name="samplingStrategy" type="VARCHAR(100)"/>
-      <column name="subAreaLocationIds" type="VARCHAR(255)"/>
-      <column name="taxonGroupName" type="VARCHAR(100)"/>
-      <column name="vesselLengthRange" type="VARCHAR(100)"/>
+      <column name="sampling_strategy" type="VARCHAR(100)"/>
+      <column name="sub_area_location_ids" type="VARCHAR(255)"/>
+      <column name="taxon_group_name" type="VARCHAR(100)"/>
+      <column name="vessel_length_range" type="VARCHAR(100)"/>
       <column name="department_fk" type="INT"/>
       <column name="observation_location_fk" type="INT"/>
       <column name="person_fk" type="INT"/>
