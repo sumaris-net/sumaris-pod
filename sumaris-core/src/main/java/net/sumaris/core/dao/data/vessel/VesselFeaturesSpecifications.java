@@ -328,18 +328,20 @@ public interface VesselFeaturesSpecifications<
         return findByVesselIdAndDate(vesselId, date, null);
     }
 
+    @SuppressWarnings("unchecked")
     default Optional<V> findByVesselIdAndDate(int vesselId, Date date, O fetchOptions) {
         F filter = (F)VesselFilterVO.builder()
             .vesselId(vesselId)
             .startDate(date)
+            .endDate(date)
             .build();
-        List<V> result = findAll((F)filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
+        List<V> result = findAll((F)filter, 0, 5, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
 
         // No result for this date:
         // => retry without date (should return the last features and period)
         if (result.isEmpty() && date != null) {
             filter.setDate(null);
-            result = findAll(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
+            result = findAll(filter, 0, 5, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
         }
         if (result.isEmpty()) {
             return Optional.empty();

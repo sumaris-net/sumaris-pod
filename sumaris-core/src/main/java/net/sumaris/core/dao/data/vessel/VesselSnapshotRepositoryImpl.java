@@ -134,7 +134,7 @@ public class VesselSnapshotRepositoryImpl
         criteriaQuery.multiselect(selection).distinct(true);
 
         // Apply specification
-        Specification<VesselFeatures> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
+        Specification<VesselFeatures> spec = toSpecification(filter, fetchOptions);
         Predicate predicate = spec != null ? spec.toPredicate(root, criteriaQuery, cb) : null;
         if (predicate != null) criteriaQuery.where(predicate);
 
