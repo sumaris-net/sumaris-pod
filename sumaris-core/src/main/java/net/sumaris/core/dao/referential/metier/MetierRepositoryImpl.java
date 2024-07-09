@@ -22,7 +22,6 @@ package net.sumaris.core.dao.referential.metier;
  * #L%
  */
 
-import com.google.common.collect.ImmutableMap;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -31,6 +30,7 @@ import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.MapUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
@@ -143,9 +143,10 @@ public class MetierRepositoryImpl
 
         // Properties (e.g. when called from referential graphql service
         if (fetchOptions != null && fetchOptions.isWithProperties()) {
-            target.setProperties(ImmutableMap.of(
-                    MetierVO.Fields.GEAR, target.getGear(),
-                    MetierVO.Fields.TAXON_GROUP, target.getTaxonGroup())
+            target.setProperties(MapUtils.of(
+                            MetierVO.Fields.GEAR, target.getGear(),
+                            MetierVO.Fields.TAXON_GROUP, target.getTaxonGroup()
+                        )
             );
         }
     }
