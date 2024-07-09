@@ -55,6 +55,10 @@ public enum QualitativeValueEnum implements Serializable, IEntityEnum {
 
     // SEX
     SEX_UNSEXED(188, "NS"), // Adagio => 302
+
+    SURVEY_QUALIFICATION_DIRECT(586, "DIR"),
+    SPECIES_LIST_ORIGIN_RANDOM(660, "RANDOM"),
+    SPECIES_LIST_ORIGIN_PETS(661, "PETS")
     ;
 
     public static QualitativeValueEnum valueOf(final int id) {

@@ -155,7 +155,7 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         ActivityCalendarVO calendar = DataTestUtils.createActivityCalendar(fixtures, year);
 
         calendar.setMeasurementValues(ImmutableMap.of(
-            PmfmEnum.SURVEY_QUALIFICATION.getId(), "591", // Directe
+            PmfmEnum.SURVEY_QUALIFICATION.getId(), "586", // Directe
             PmfmEnum.SURVEY_RELIABILITY.getId(), "600" // Fiable
         ));
 
