@@ -177,14 +177,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     public void fillVesselSnapshot(ActivityCalendarVO target) {
         Integer year = target.getYear();
         if (year != null && target.getVesselId() != null && target.getVesselSnapshot() == null) {
-
-            try {
-                String dateStr = String.format("%s-01-01", StringUtils.leftPad(year.toString(), 4, "0"));
-                Date vesselDate = Dates.resetTime(Dates.parseDate(dateStr, "yyyy-MM-dd"));
-                target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), vesselDate));
-            } catch (ParseException e) {
-                throw new SumarisTechnicalException(e.getMessage(), e);
-            }
+            target.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(target.getVesselId(), Dates.resetTime(Dates.getFirstDayOfYear(year))));
         }
     }
 

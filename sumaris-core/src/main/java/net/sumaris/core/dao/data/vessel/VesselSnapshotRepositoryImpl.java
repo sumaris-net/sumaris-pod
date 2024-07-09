@@ -181,7 +181,7 @@ public class VesselSnapshotRepositoryImpl
             .and(programLabel(filter.getProgramLabel()))
             .and(programIds(filter.getProgramIds()))
             // Dates
-            //.and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
+            .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
             .and(newerThan(filter.getMinUpdateDate()))
             // Text

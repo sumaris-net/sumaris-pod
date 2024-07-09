@@ -141,7 +141,7 @@ public class VesselGraphQLService {
     @GraphQLQuery(name = "vesselSnapshotsCount", description = "Get total vessel snapshots count")
     @Transactional(readOnly = true)
     @IsUser
-    public long countVesselSnapshots(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
+    public Long countVesselSnapshots(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
         // Add restriction to filter (e.g. program=SIH)
         // and fill (or fix) dates
         filter = fillVesselFilterDefaults(filter);

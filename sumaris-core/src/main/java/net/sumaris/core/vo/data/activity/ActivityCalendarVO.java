@@ -29,6 +29,7 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -89,6 +90,8 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     @Override
     @JsonIgnore
     public Date getVesselDateTime() {
+        // Use the first day of the year
+        if (this.year != null) return Dates.getFirstDayOfYear(this.year);
         return null;
     }
 
