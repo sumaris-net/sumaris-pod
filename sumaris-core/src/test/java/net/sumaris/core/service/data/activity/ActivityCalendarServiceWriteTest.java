@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.DataTestUtils;
 import net.sumaris.core.util.Beans;
@@ -134,7 +135,11 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
     @Test
     public void saveUnchanged() {
         int activityCalendarId = 1;
+
+        // Fetch and re-save (to force hash computation)
         ActivityCalendarVO data = service.get(activityCalendarId, ActivityCalendarFetchOptions.FULL_GRAPH);
+        data = service.save(data);
+
         Date maxUpdateDate = Dates.max(
                 Beans.getStream(data.getVesselUseFeatures()).map(VesselUseFeaturesVO::getUpdateDate).max(Dates::compare).orElse(null),
                 Beans.getStream(data.getGearUseFeatures()).map(GearUseFeaturesVO::getUpdateDate).max(Dates::compare).orElse(null)
@@ -189,7 +194,7 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         ActivityCalendarVO calendar = DataTestUtils.createActivityCalendar(fixtures, year);
 
         calendar.setMeasurementValues(ImmutableMap.of(
-            PmfmEnum.SURVEY_QUALIFICATION.getId(), "586", // Directe
+            PmfmEnum.SURVEY_QUALIFICATION.getId(), QualitativeValueEnum.SURVEY_QUALIFICATION_DIRECT.getId().toString(), // Directe
             PmfmEnum.SURVEY_RELIABILITY.getId(), "600" // Fiable
         ));
 
