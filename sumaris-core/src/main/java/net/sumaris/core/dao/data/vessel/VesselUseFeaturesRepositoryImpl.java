@@ -111,9 +111,8 @@ public class VesselUseFeaturesRepositoryImpl
 
 
     public boolean toEntity(VesselUseFeaturesVO source, VesselUseFeatures target, boolean copyIfNull, boolean allowSkipSameHash) {
-        if (super.toEntity(source, target, copyIfNull, allowSkipSameHash)) {
-            return true;
-        }
+        boolean sameHash = super.toEntity(source, target, copyIfNull, allowSkipSameHash);
+        if (sameHash) return true;
 
         // Location
         Integer basePortLocationId = source.getBasePortLocation() != null ? source.getBasePortLocation().getId() : null;

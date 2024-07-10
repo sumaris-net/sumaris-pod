@@ -416,12 +416,13 @@ public class BatchRepositoryImpl
         onBeforeSaveEntity(source, entity, isNew);
 
         // VO -> Entity
-        boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
+        boolean sameHash = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
-        // Stop here (without change on the update_date)
-        if (skipSave) {
+        if (sameHash) {
             // Flag as same hash
             source.addFlag(ValueObjectFlags.SAME_HASH);
+
+            // Stop here (without change on the update_date)
             return source;
         }
 

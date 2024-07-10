@@ -103,17 +103,26 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
         toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
     }
 
+    /**
+     *
+     * @param source
+     * @param target
+     * @param copyIfNull
+     * @param allowSkipSameHash
+     * @return true if same hash
+     */
     public boolean toEntity(V source, E target, boolean copyIfNull, boolean allowSkipSameHash) {
         // Compute source hash
         Integer newHash = source.hashCode();
 
         // If same hash, then skip (if allow)
         if (allowSkipSameHash && Objects.equals(target.getHash(), newHash)) {
-            return true; // Skip
+            return true; // Same hash
         }
 
         super.toEntity(source, target, copyIfNull);
 
+        // Update hash
         target.setHash(newHash);
 
         // Program
@@ -281,11 +290,13 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
         onBeforeSaveEntity(source, entity, isNew);
 
         // VO -> Entity
-        boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
+        boolean sameHash = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
-        // Stop here (without change on the update_date)
-        if (skipSave) {
+        if (sameHash) {
+            // Flag as same hash
             source.addFlag(ValueObjectFlags.SAME_HASH);
+
+            // Stop here (without change on the update_date)
             return source;
         }
 

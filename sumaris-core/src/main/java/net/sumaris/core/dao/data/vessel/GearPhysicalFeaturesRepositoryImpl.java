@@ -145,9 +145,8 @@ public class GearPhysicalFeaturesRepositoryImpl
 
     @Override
     public boolean toEntity(GearPhysicalFeaturesVO source, GearPhysicalFeatures target, boolean copyIfNull, boolean allowSkipSameHash) {
-        if (super.toEntity(source, target, copyIfNull, allowSkipSameHash)) {
-            return true;
-        }
+        boolean sameHash = super.toEntity(source, target, copyIfNull, allowSkipSameHash);
+        if (sameHash) return true;
 
         // Metier
         Integer metierId = source.getMetier() != null ? source.getMetier().getId() : null;
