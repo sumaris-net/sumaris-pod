@@ -1082,6 +1082,23 @@
     <addForeignKeyConstraint baseColumnNames="sampling_strata_fk" baseTableName="observed_location" constraintName="observed_location_sampling_stc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="sampling_strata" validate="true"/>
   </changeSet>
 
+  <changeSet author="maxime.demarest@e-is.pro" id="1718811002-001" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="vessel_use_features" columnName="hash"/></not>
+    </preConditions>
+    <addColumn tableName="vessel_use_features">
+      <column name="hash" type="integer"/>
+    </addColumn>
+  </changeSet>
+  <changeSet author="maxime.demarest@e-is.pro" id="1718811002-002" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="gear_use_features" columnName="hash"/></not>
+    </preConditions>
+    <addColumn tableName="gear_use_features">
+      <column name="hash" type="integer"/>
+    </addColumn>
+  </changeSet>
+
   <!-- add table named_filter-->
   <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-154">
     <preConditions onFail="MARK_RAN">
@@ -1216,6 +1233,14 @@
   </changeSet>
   <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-165" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="gear_physical_features" constraintName="gear_physical_features_metier_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="metier" validate="true"/>
+  </changeSet>
+  <changeSet author="maxime.demarest@e-is.pro" id="1718811002-003" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="gear_physical_features" columnName="hash"/></not>
+    </preConditions>
+    <addColumn tableName="gear_physical_features">
+      <column name="hash" type="integer"/>
+    </addColumn>
   </changeSet>
 
   <changeSet author="maxime.demarst@e-is.pro" id="1694619259850-166">

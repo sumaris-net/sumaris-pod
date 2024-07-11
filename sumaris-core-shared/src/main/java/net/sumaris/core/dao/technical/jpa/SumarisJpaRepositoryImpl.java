@@ -164,7 +164,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         this.lockForUpdateMode = lockForUpdateMode;
     }
 
-    public boolean getPublishEvent() {
+    public boolean isPublishEvent() {
         return publishEvent;
     }
 

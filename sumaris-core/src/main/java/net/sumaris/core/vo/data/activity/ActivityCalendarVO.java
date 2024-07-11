@@ -44,11 +44,13 @@ import java.util.Set;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class ActivityCalendarVO implements IRootDataVO<Integer>,
     IWithObserversEntity<Integer, PersonVO>,
     IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>,
     IWithMeasurementValues{
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private Integer year;
     private Integer[] registrationLocationIds;
@@ -57,7 +59,9 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     private Boolean economicSurvey;
     private String comments;
 
+    @EqualsAndHashCode.Exclude
     private Date creationDate;
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
@@ -86,6 +90,9 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     private List<GearPhysicalFeaturesVO> gearPhysicalFeatures;
 
     private List<ImageAttachmentVO> images;
+
+    @EqualsAndHashCode.Exclude
+    private List<ActivityCalendarVesselRegistrationPeriodVO> vesselRegistrationPeriods;
 
     @Override
     @JsonIgnore
