@@ -82,14 +82,22 @@ public class CryptoServiceImpl implements CryptoService {
     public byte[] getSeed(String salt, String password, int N, int r, int p) {
         try {
             byte[] seed = SCrypt.scrypt(
-                    CryptoUtils.decodeAscii(password),
-                    CryptoUtils.decodeAscii(salt),
+                    CryptoUtils.decodeUTF8(password),
+                    CryptoUtils.decodeUTF8(salt),
                     N, r, p, SEED_BYTES);
             return seed;
         } catch (GeneralSecurityException e) {
             throw new SumarisTechnicalException(
                     "Unable to salt password, using Scrypt library", e);
         }
+    }
+
+    @Override
+    public String getPubkey(String salt, String password) {
+        byte[] seed = getSeed(salt, password);
+        KeyPair keyPair = getKeyPairFromSeed(seed);
+        byte[] pubkey = keyPair.getPubKey();
+        return CryptoUtils.encodeBase58(pubkey);
     }
 
     @Override

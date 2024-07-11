@@ -52,6 +52,15 @@ public interface CryptoService {
     KeyPair getKeyPair(String salt, String password);
 
     /**
+     * Returns the pubkey generated from salt and password.
+     *
+     * @param salt
+     * @param password
+     * @return pubkey (base58 encoded)
+     */
+    String getPubkey(String salt, String password);
+
+    /**
      * Returns a new signing key pair generated from salt and password.
      * The salt and password must contain enough entropy to be secure.
      *
