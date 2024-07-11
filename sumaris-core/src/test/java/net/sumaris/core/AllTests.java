@@ -30,15 +30,15 @@ import net.sumaris.core.dao.data.*;
 import net.sumaris.core.dao.referential.*;
 import net.sumaris.core.dao.technical.extraction.ExtractionProductRepositoryWriteTest;
 import net.sumaris.core.dao.technical.schema.DatabaseSchemaDaoTest;
+import net.sumaris.core.service.administration.*;
+import net.sumaris.core.service.technical.crypto.CryptoServiceTest;
+import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.vessel.VesselServiceWriteTest;
+import net.sumaris.core.service.referential.*;
 import net.sumaris.core.service.technical.ConfigurationServiceTest;
 import net.sumaris.core.service.technical.FileImportServiceTest;
-import net.sumaris.core.service.administration.*;
-import net.sumaris.core.service.data.*;
-import net.sumaris.core.service.referential.*;
 import net.sumaris.core.service.technical.SoftwareServiceTest;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaServiceTest;
-import net.sumaris.core.util.crypto.CryptoUtilsTest;
 import net.sumaris.core.util.crypto.MD5UtilTest;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
@@ -108,9 +108,9 @@ import org.junit.runners.Suite;
     ConfigurationServiceTest.class,
     SoftwareServiceTest.class,
     FileImportServiceTest.class,
+    CryptoServiceTest.class,
 
     // Util
-    CryptoUtilsTest.class,
     MD5UtilTest.class,
     MiscTest.class
 })

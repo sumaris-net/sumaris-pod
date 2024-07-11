@@ -1,4 +1,4 @@
-package net.sumaris.core.service.schema;
+package net.sumaris.core.service.technical.schema;
 
 /*-
  * #%L

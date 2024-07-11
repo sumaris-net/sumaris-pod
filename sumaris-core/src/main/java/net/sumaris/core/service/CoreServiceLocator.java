@@ -29,7 +29,7 @@ import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.data.OperationService;
 import net.sumaris.core.service.data.TripService;
 import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
+import net.sumaris.core.service.technical.schema.DatabaseSchemaService;
 import net.sumaris.core.service.technical.SoftwareService;
 
 /**

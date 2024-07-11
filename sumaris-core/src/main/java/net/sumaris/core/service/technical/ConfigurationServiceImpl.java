@@ -42,7 +42,7 @@ import net.sumaris.core.exception.DenyDeletionException;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.annotation.EntityEnum;
 import net.sumaris.core.model.annotation.EntityEnums;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
+import net.sumaris.core.service.technical.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.referential.IReferentialVO;

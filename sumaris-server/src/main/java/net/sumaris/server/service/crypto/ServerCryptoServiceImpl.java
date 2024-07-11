@@ -23,7 +23,8 @@ package net.sumaris.server.service.crypto;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.service.crypto.CryptoService;
+import net.sumaris.core.service.technical.crypto.CryptoService;
+import net.sumaris.core.service.technical.crypto.CryptoServiceImpl;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.util.crypto.KeyPair;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -34,7 +35,7 @@ import org.springframework.util.StringUtils;
 
 @Service("serverCryptoService")
 @Slf4j
-public class ServerCryptoServiceImpl extends net.sumaris.core.service.crypto.CryptoServiceImpl implements ServerCryptoService {
+public class ServerCryptoServiceImpl extends CryptoServiceImpl implements ServerCryptoService {
 
     private final SumarisServerConfiguration config;
 

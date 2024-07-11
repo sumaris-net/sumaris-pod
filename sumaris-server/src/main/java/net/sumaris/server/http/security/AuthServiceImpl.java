@@ -213,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
             if (StringUtils.isBlank(password)) throw new BadCredentialsException("Blank password");
 
             // Generate the pubkey
-            String pubkey = CryptoUtils.encodeBase58(cryptoService.getKeyPair(username, password).getPubKey());
+            String pubkey = cryptoService.getPubkey(username, password);
 
             // Update the database pubkey, if need
             boolean pubkeyChanged = !Objects.equals(pubkey, user.getPubkey());

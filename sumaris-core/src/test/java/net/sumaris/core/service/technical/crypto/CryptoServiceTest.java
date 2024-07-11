@@ -1,4 +1,4 @@
-package net.sumaris.core.util.crypto;
+package net.sumaris.core.service.technical.crypto;
 
 /*-
  * #%L
@@ -25,11 +25,23 @@ package net.sumaris.core.util.crypto;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class CryptoUtilsTest {
+public class CryptoServiceTest {
+
+    private CryptoService service = new CryptoServiceImpl();
 
     @Test
-    public void md5Hex() {
+    public void getPubkey() {
+        // Basic (ascii) password
+        {
+            String pubkey = service.getPubkey("abc", "def");
+            Assert.assertEquals("G2CBgZBPLe6FSFUgpx2Jf1Aqsgta6iib3vmDRA1yLiqU", pubkey);
+        }
 
+        // UTF8 password (issue sumaris-app#626)
+        {
+            String pubkey = service.getPubkey("&é\"'(-è_çà)=$*ù!:;,<", "~#{[|`\\^@]}£µ%§/.?>");
+            Assert.assertEquals("6uHuoNJ5LMh2P1AKMoSD8HsH6UEEjXqDPyisdufirR5Q", pubkey);
+        }
     }
 
 
