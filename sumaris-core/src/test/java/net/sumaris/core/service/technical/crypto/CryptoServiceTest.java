@@ -27,7 +27,7 @@ import org.junit.Test;
 
 public class CryptoServiceTest {
 
-    private CryptoService service = new CryptoServiceImpl();
+    private final CryptoService service = new CryptoServiceImpl();
 
     @Test
     public void getPubkey() {
@@ -37,11 +37,30 @@ public class CryptoServiceTest {
             Assert.assertEquals("G2CBgZBPLe6FSFUgpx2Jf1Aqsgta6iib3vmDRA1yLiqU", pubkey);
         }
 
-        // UTF8 password (issue sumaris-app#626)
+        // Password with '_'
         {
-            String pubkey = service.getPubkey("&é\"'(-è_çà)=$*ù!:;,<", "~#{[|`\\^@]}£µ%§/.?>");
+            String pubkey = service.getPubkey("abc_", "def_");
+            Assert.assertEquals("H8TUJWwvntrJpWFeouQyAFx6oEQRauE9mpiPCvvsUpZT", pubkey);
+        }
+
+        // Password with '＿'
+        {
+            String pubkey = service.getPubkey("abc＿", "def＿");
+            Assert.assertEquals("7UngWTjRr2DqmqoXRoF9Ywt6F1jomNjc3UoAM2Jv8cYL", pubkey);
+        }
+
+        // UTF8 characters (see issue sumaris-app#626)
+        String specialCharacters1 = "&é\"'(-è_çà)=$*ù!:;,<";
+        String specialCharacters2 = "~#{[|`\\^@]}£µ%§/.?>";
+        {
+            String pubkey = service.getPubkey(specialCharacters1, specialCharacters2);
             Assert.assertEquals("6uHuoNJ5LMh2P1AKMoSD8HsH6UEEjXqDPyisdufirR5Q", pubkey);
         }
+        {
+            String pubkey = service.getPubkey(specialCharacters2, specialCharacters1);
+            Assert.assertEquals("DhTeDxvVoCAVp3vykkbrDqYezrPorhP9e34djVVWKGds", pubkey);
+        }
+
     }
 
 
