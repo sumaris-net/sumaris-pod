@@ -42,12 +42,12 @@ public class VesselRegistrationPeriodVO implements IEntity<Integer>, IValueObjec
     @EqualsAndHashCode.Exclude
     private Integer id;
 
+    private Date startDate;
+    private Date endDate;
+
     private String registrationCode;
     private String intRegistrationCode;
     private LocationVO registrationLocation;
-
-    private Date startDate;
-    private Date endDate;
 
     private Integer qualityFlagId;
 

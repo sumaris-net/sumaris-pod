@@ -32,10 +32,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.data.ActivityCalendar;
-import net.sumaris.core.model.data.DailyActivityCalendar;
-import net.sumaris.core.model.data.GearUseFeatures;
-import net.sumaris.core.model.data.GearUseFeaturesOrigin;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
@@ -156,8 +153,9 @@ public class GearUseFeaturesRepositoryImpl
     }
 
     @Override
-    public void toEntity(GearUseFeaturesVO source, GearUseFeatures target, boolean copyIfNull) {
-        super.toEntity(source, target, copyIfNull);
+    public boolean toEntity(GearUseFeaturesVO source, GearUseFeatures target, boolean copyIfNull, boolean allowSkipSameHash) {
+        boolean sameHash = super.toEntity(source, target, copyIfNull, allowSkipSameHash);
+        if (sameHash) return true;
 
         // Metier
         Integer metierId = source.getMetier() != null ? source.getMetier().getId() : null;
@@ -211,20 +209,24 @@ public class GearUseFeaturesRepositoryImpl
                 target.setDailyActivityCalendar(getReference(DailyActivityCalendar.class, source.getDailyActivityCalendarId()));
             }
         }
+
+        return false;
     }
 
     @Override
     public List<GearUseFeaturesVO> saveAllByActivityCalendarId(int parentId, @NonNull List<GearUseFeaturesVO> sources) {
         ActivityCalendar parent = getById(ActivityCalendar.class, parentId);
         sources.forEach(source -> source.setActivityCalendarId(parentId));
-        return this.saveAllByList(parent.getGearUseFeatures(), sources);
+        boolean dirty = this.saveAllByList(parent.getGearUseFeatures(), sources);
+        return sources;
     }
 
     @Override
     public List<GearUseFeaturesVO> saveAllByDailyActivityCalendarId(int parentId, @NonNull List<GearUseFeaturesVO> sources) {
         DailyActivityCalendar parent = getById(DailyActivityCalendar.class, parentId);
         sources.forEach(source -> source.setDailyActivityCalendarId(parentId));
-        return this.saveAllByList(parent.getGearUseFeatures(), sources);
+        boolean dirty = this.saveAllByList(parent.getGearUseFeatures(),  sources);
+        return sources;
     }
 
     /* -- protected functions -- */

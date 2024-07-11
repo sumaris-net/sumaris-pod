@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.administration.programStrategy;
+package net.sumaris.core.vo.data.activity;
 
 /*-
  * #%L
@@ -23,18 +23,12 @@ package net.sumaris.core.vo.administration.programStrategy;
  */
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 
 @Data
 @FieldNameConstants
-@EqualsAndHashCode(callSuper = true)
-public class ProgramPrivilegeVO extends ReferentialVO {
+public class ActivityCalendarVesselRegistrationPeriodVO extends VesselRegistrationPeriodVO {
 
-    public ProgramPrivilegeVO() {
-        this.setEntityName(ProgramPrivilege.class.getSimpleName());
-    }
-
+    private boolean readonly = false;
 }

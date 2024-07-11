@@ -492,13 +492,13 @@ public class SampleRepositoryImpl
         onBeforeSaveEntity(source, entity, isNew);
 
         // VO -> Entity
-        boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
+        boolean sameHash = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
-        // Stop here (without change on the update_date)
-        if (skipSave) {
+        if (sameHash) {
             // Mark as same hash (current item and all children)
             TreeNodeEntities.streamAll(source).forEach(vo -> vo.addFlag(ValueObjectFlags.SAME_HASH));
 
+            // Stop here (without change on the update_date)
             return source;
         }
 

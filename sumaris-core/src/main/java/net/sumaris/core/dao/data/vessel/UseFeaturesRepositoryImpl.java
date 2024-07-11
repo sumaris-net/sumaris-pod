@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 import net.sumaris.core.vo.data.IUseFeaturesVO;
@@ -48,7 +50,9 @@ import org.springframework.data.repository.NoRepositoryBean;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.*;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @NoRepositoryBean
 @Slf4j
@@ -67,6 +71,8 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
 
     private boolean enableVesselRegistrationNaturalOrder;
 
+    protected boolean enableHashOptimization = false;
+
     protected UseFeaturesRepositoryImpl(Class<E> domainClass, Class<V> voClass,
                                      EntityManager entityManager) {
         super(domainClass, voClass, entityManager);
@@ -77,6 +83,7 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
     public void onConfigurationReady() {
         this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
         conversionService.addConverter(getDomainClass(), getVOClass(), this::toVO);
+        this.enableHashOptimization = getConfig().enableVesselUseFeaturesHashOptimization();
     }
 
     @Override
@@ -92,9 +99,31 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
         target.setVesselId(source.getVessel() != null ? source.getVessel().getId() : null);
     }
 
-    @Override
     public void toEntity(V source, E target, boolean copyIfNull) {
+        toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
+    }
+
+    /**
+     *
+     * @param source
+     * @param target
+     * @param copyIfNull
+     * @param allowSkipSameHash
+     * @return true if same hash
+     */
+    public boolean toEntity(V source, E target, boolean copyIfNull, boolean allowSkipSameHash) {
+        // Compute source hash
+        Integer newHash = source.hashCode();
+
+        // If same hash, then skip (if allow)
+        if (allowSkipSameHash && Objects.equals(target.getHash(), newHash)) {
+            return true; // Same hash
+        }
+
         super.toEntity(source, target, copyIfNull);
+
+        // Update hash
+        target.setHash(newHash);
 
         // Program
         Integer programId = source.getProgram() != null ? source.getProgram().getId() : null;
@@ -117,6 +146,7 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
             }
         }
 
+        return false;
     }
 
 
@@ -196,21 +226,107 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
 
     }
 
-    protected List<V> saveAllByList(List<E> targets,
+    protected boolean saveAllByList(List<E> targets,
                                     List<V> sources) {
-
+        final boolean trace = log.isTraceEnabled();
         List<Integer> remoteIds = Beans.collectIds(targets);
+        // Get current update date
+        Date newUpdateDate = getDatabaseCurrentDate();
 
-        List<V> savedTargets = sources.stream().map(vuf -> {
-            boolean isNew = vuf.getId() == null;
-            if (!isNew) remoteIds.remove(vuf.getId());
-            return save(vuf);
-        }).toList();
+        long updatesCount = sources.stream().map((source) -> {
+            boolean isNew = source.getId() == null;
+            if (!isNew) {
+                remoteIds.remove(source.getId());
+            }
+
+            // TODO Reuse existing entity from target
+            V savedEntity = optimizedSave(source, false, newUpdateDate);
+            boolean skip = source.hasFlag(ValueObjectFlags.SAME_HASH); // !Objects.equals(source.getUpdateDate(), newUpdateDate);
+
+            if (skip && trace) {
+                log.trace("Skip save {}", source);
+            }
+
+            return !skip;
+        })
+        // Count updates
+        .filter(Boolean::booleanValue).count();
+
+        boolean dirty = updatesCount > 0;
 
         if (CollectionUtils.isNotEmpty(remoteIds)) {
             this.deleteAllById(remoteIds);
+            dirty = true;
         }
 
-        return savedTargets;
+        return dirty;
+    }
+
+    protected V optimizedSave(V source,
+                              boolean checkUpdateDate,
+                              Date newUpdateDate) {
+        Preconditions.checkNotNull(source);
+        EntityManager em = getEntityManager();
+
+        E entity = null;
+        if (source.getId() != null) {
+            entity = findById(source.getId()).orElse(null);
+        }
+
+        boolean isNew = (entity == null);
+        if (isNew) {
+            entity = createEntity();
+            source.setId(null); // Make sure to not re-affect the ID
+        }
+
+        if (!isNew && checkUpdateDate) {
+            // Check update date
+            Daos.checkUpdateDateForUpdate(source, entity);
+
+            // Lock entityName
+            //lockForUpdate(entity);
+        }
+
+        onBeforeSaveEntity(source, entity, isNew);
+
+        // VO -> Entity
+        boolean sameHash = toEntity(source, entity, true, !isNew && enableHashOptimization);
+
+        if (sameHash) {
+            // Flag as same hash
+            source.addFlag(ValueObjectFlags.SAME_HASH);
+
+            // Stop here (without change on the update_date)
+            return source;
+        }
+
+        // Remove same hash flag
+        source.removeFlag(ValueObjectFlags.SAME_HASH);
+
+        // Update update_dt
+        entity.setUpdateDate(newUpdateDate);
+        source.setUpdateDate(newUpdateDate);
+
+        // Save entity
+        if (isNew) {
+            // Set creation date
+            entity.setCreationDate(newUpdateDate);
+        }
+
+        // Workaround, to be sure to have a creation_date
+        else if (entity.getCreationDate() == null) {
+            log.warn("Updating {} without creation_date!", entity);
+            entity.setCreationDate(newUpdateDate);
+            source.setCreationDate(newUpdateDate);
+        }
+
+        E savedEntity = save(entity);
+
+        // Update VO
+        onAfterSaveEntity(source, savedEntity, isNew);
+
+        if (isPublishEvent()) publishSaveEvent(source, isNew);
+
+        return source;
     }
 }

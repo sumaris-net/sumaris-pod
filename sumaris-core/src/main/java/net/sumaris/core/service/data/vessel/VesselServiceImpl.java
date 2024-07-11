@@ -110,6 +110,11 @@ public class VesselServiceImpl implements VesselService {
 	}
 
 	@Override
+	public List<VesselRegistrationPeriodVO> findRegistrationPeriodsByFilter(VesselRegistrationFilterVO filter, Page page) {
+		return vesselRegistrationPeriodRepository.findAll(filter, page);
+	}
+
+	@Override
 	public List<VesselOwnerPeriodVO> findOwnerPeriodsByFilter(VesselOwnerFilterVO filter, Page page) {
 		return vesselOwnerPeriodRepository.findAll(filter, page);
 	}
