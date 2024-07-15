@@ -39,6 +39,7 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
@@ -71,6 +72,7 @@ import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
@@ -156,9 +158,11 @@ public class DataGraphQLService {
     private final DataAccessControlService dataAccessControlService;
 
     private final ProgramService programService;
+
     private final MetierRepository metierRepository;
 
     private final ReferentialService referentialService;
+    private final SumarisServerConfiguration configuration;
 
     private boolean enableImageAttachments = false;
 
@@ -2229,6 +2233,12 @@ public class DataGraphQLService {
 
         // Limit to user program's locations
         if (filter.getProgramIds() != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
+
+            // Fill default programs
+            if (ArrayUtils.isEmpty(filter.getProgramIds()) && StringUtils.isEmpty(filter.getProgramLabel())
+                && ProgramEnum.SIH_ACTIFLOT.getId() != -1) {
+                filter.setProgramLabel(ProgramEnum.SIH_ACTIFLOT.getLabel());
+            }
 
             // Get authorized location ids
             Integer[] locationIds = dataAccessControlService.getAuthorizedLocationIds(

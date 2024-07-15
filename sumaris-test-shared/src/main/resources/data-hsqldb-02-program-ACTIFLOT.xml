@@ -51,6 +51,8 @@
   <PROGRAM_PROPERTY ID="601" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2023-12-14"  LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
   <PROGRAM_PROPERTY ID="602" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-03-19"  LABEL="sumaris.activityCalendar.vessel.country.id" NAME="1"/>
   <PROGRAM_PROPERTY ID="603" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-03-19"  LABEL="sumaris.activityCalendar.metier.taxonGroupType.ids" NAME="4"/> <!-- National metier -->
+  <PROGRAM_PROPERTY ID="604" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-07-15"  LABEL="sumaris.activityCalendar.predoc.program.labels" NAME="SIH-ACTIPRED"/>
+
 
   <!-- strategies -->
   <STRATEGY ID="110" PROGRAM_FK="110" LABEL="ACTIFLOT-2023" NAME="ACTIFLOT démarrage le 01/01/2023" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>

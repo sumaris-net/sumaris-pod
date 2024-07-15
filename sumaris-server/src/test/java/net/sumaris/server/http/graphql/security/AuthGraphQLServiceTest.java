@@ -63,6 +63,8 @@ public class AuthGraphQLServiceTest extends AbstractGraphQLServiceTest {
         assertTrue(authenticate("admin@sumaris.net", "admin"));
         assertTrue(authenticate("demo@sumaris.net", "demo"));
         assertTrue(authenticate("obs@sumaris.net", "demo"));
+        assertTrue(authenticate("debut.calendrier@ifremer.fr", "demo"));
+        assertTrue(authenticate("fin.calendrier@ifremer.fr", "demo"));
     }
 
     @Test
