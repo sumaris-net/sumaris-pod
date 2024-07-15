@@ -57,9 +57,6 @@ public class SampleMeasurement implements ISortedMeasurementEntity {
     @JoinColumn(name = "recorder_department_fk", nullable = false)
     private Department recorderDepartment;
 
-    @Column(length = LENGTH_COMMENTS)
-    private String comments;
-
     @Column(name="control_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
