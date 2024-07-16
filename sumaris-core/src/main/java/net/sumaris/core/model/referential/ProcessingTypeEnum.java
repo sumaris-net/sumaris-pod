@@ -35,30 +35,31 @@ public enum ProcessingTypeEnum implements Serializable {
     DENORMALIZE_BATCH(1, "DENORMALIZE_BATCH"),
     SUMARIS_EXTRACTION(2, "SUMARIS_EXTRACTION"),
     SIOP_VESSELS_IMPORTATION(3, "SIOP_VESSELS_IMPORTATION"),
+
+    SIOP_ACTIVITY_CALENDARS_IMPORTATION(5, "SIOP_ACTIVITY_CALENDARS_IMPORTATION"),
     VESSEL_SNAPSHOTS_INDEXATION(4, "VESSEL_SNAPSHOTS_INDEXATION"),
 
     FILL_LOCATION_HIERARCHY(49, "SYS_P_FILL_LOCATION_HIERARCHY"), // ID Harmonie
     FILL_TAXON_GROUP_HIERARCHY(50, "SYS_P_FILL_TAXON_GROUP_HIERARCHY"), // ID Harmonie
 
-    UNKNOWN(-1, "UNKNOWN")
-    ;
+    UNKNOWN(-1, "UNKNOWN");
 
     public static Optional<ProcessingTypeEnum> byId(final int id) {
         return Arrays.stream(values())
-            .filter(enumValue -> enumValue.id == id)
-            .findFirst();
+                .filter(enumValue -> enumValue.id == id)
+                .findFirst();
     }
 
     public static Optional<ProcessingTypeEnum> byLabel(@NonNull final String label) {
         return Arrays.stream(values())
-            .filter(level -> label.equals(level.label))
-            .findFirst();
+                .filter(level -> label.equals(level.label))
+                .findFirst();
     }
 
     public static @NonNull Optional<ProcessingTypeEnum> byLabelOrName(@NonNull final String label) {
         Optional<ProcessingTypeEnum> result = Arrays.stream(values())
-            .filter(level -> label.equals(level.label))
-            .findFirst();
+                .filter(level -> label.equals(level.label))
+                .findFirst();
         if (result.isPresent()) return result;
 
         // Try as name
