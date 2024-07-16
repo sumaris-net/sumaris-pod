@@ -22,7 +22,6 @@
 
 package net.sumaris.importation.server.graphql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.GraphQLArgument;
 import io.leangen.graphql.annotations.GraphQLQuery;
@@ -34,9 +33,10 @@ import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.job.JobVO;
+import net.sumaris.importation.core.service.activitycalendar.SiopActivityCalendarImportService;
+import net.sumaris.importation.core.service.activitycalendar.vo.SiopActivityImportCalendarContextVO;
 import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
-import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportResultVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
@@ -57,6 +57,7 @@ import static org.nuiton.i18n.I18n.t;
 public class VesselImportGraphQLService {
 
     private final SiopVesselImportService siopVesselImportService;
+    private final SiopActivityCalendarImportService siopActivityCalendarImportService;
     private final Optional<JobExecutionService> jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
     private final IFileController fileController;
@@ -76,7 +77,7 @@ public class VesselImportGraphQLService {
         if (!securityContext.isAdmin()) throw new UnauthorizedException();
 
         JobExecutionService jobExecutionService = this.jobExecutionService
-            .orElseThrow(() -> new SumarisTechnicalException("Unable to import vessels: job service has been disabled"));
+                .orElseThrow(() -> new SumarisTechnicalException("Unable to import vessels: job service has been disabled"));
 
 
         File inputFile = fileController.getUserUploadFile(fileName);
@@ -86,19 +87,51 @@ public class VesselImportGraphQLService {
 
         PersonVO user = securityContext.getAuthenticatedUser().get();
         JobVO job = JobVO.builder()
-            .type(JobTypeEnum.SIOP_VESSELS_IMPORTATION.name())
-            .name(t("sumaris.import.vessel.siop.job.name", fileName))
-            .issuer(user.getPubkey())
-            .build();
+                .type(JobTypeEnum.SIOP_VESSELS_IMPORTATION.name())
+                .name(t("sumaris.import.vessel.siop.job.name", fileName))
+                .issuer(user.getPubkey())
+                .build();
         SiopVesselImportContextVO context = SiopVesselImportContextVO.builder()
-            .recorderPersonId(user.getId())
-            .processingFile(inputFile)
-            .build();
+                .recorderPersonId(user.getId())
+                .processingFile(inputFile)
+                .build();
 
         // Execute importJob by JobService (async)
         return jobExecutionService.run(job,
-            () -> context,
-            (progression) -> siopVesselImportService.asyncImportFromFile(context, progression));
+                () -> context,
+                (progression) -> siopVesselImportService.asyncImportFromFile(context, progression));
+    }
+
+    @GraphQLQuery(name = "importSiopActivityCalendars", description = "Import activity calendar from a SIOP file")
+    public JobVO importSiopActivityCalendars(@GraphQLArgument(name = "fileName") String fileName) {
+        Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
+
+        if (!securityContext.isAdmin()) throw new UnauthorizedException();
+
+        JobExecutionService jobExecutionService = this.jobExecutionService
+                .orElseThrow(() -> new SumarisTechnicalException("Unable to import activity calendar: job service has been disabled"));
+
+
+        File inputFile = fileController.getUserUploadFile(fileName);
+        if (!inputFile.exists() || !inputFile.isFile()) {
+            throw new SumarisTechnicalException("File not found, or invalid");
+        }
+
+        PersonVO user = securityContext.getAuthenticatedUser().get();
+        JobVO job = JobVO.builder()
+                .type(JobTypeEnum.SIOP_ACTIVITY_CALENDAR_IMPORTATION.name())
+                .name(t("sumaris.import.activity_calendar.siop.job.name", fileName))
+                .issuer(user.getPubkey())
+                .build();
+        SiopActivityImportCalendarContextVO context = SiopActivityImportCalendarContextVO.builder()
+                .recorderPersonId(user.getId())
+                .processingFile(inputFile)
+                .build();
+
+        // Execute importJob by JobService (async)
+        return jobExecutionService.run(job,
+                () -> context,
+                (progression) -> siopActivityCalendarImportService.asyncImportFromFile(context, progression));
     }
 
 }
