@@ -11,7 +11,7 @@ import net.sumaris.core.vo.technical.job.IJobResultVO;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SiopActivityCalendarImportResultVO implements IJobResultVO {
+public class ListActivityCalendarImportResultVO implements IJobResultVO {
     private Integer inserts;
     private Integer updates;
     private Integer disables;

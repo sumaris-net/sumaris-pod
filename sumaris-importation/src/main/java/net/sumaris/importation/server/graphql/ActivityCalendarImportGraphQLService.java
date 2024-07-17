@@ -29,13 +29,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.job.JobVO;
-import net.sumaris.importation.core.service.activitycalendar.SiopActivityCalendarImportService;
-import net.sumaris.importation.core.service.activitycalendar.vo.SiopActivityCalendarImportResultVO;
-import net.sumaris.importation.core.service.activitycalendar.vo.SiopActivityImportCalendarContextVO;
+import net.sumaris.importation.core.service.activitycalendar.ListActivityCalendarImportService;
+import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityImportCalendarContextVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
@@ -55,7 +55,7 @@ import static org.nuiton.i18n.I18n.t;
 @Slf4j
 public class ActivityCalendarImportGraphQLService {
 
-    private final SiopActivityCalendarImportService siopActivityCalendarImportService;
+    private final ListActivityCalendarImportService listActivityCalendarImportService;
     private final Optional<JobExecutionService> jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
     private final IFileController fileController;
@@ -69,8 +69,8 @@ public class ActivityCalendarImportGraphQLService {
     }
 
 
-    @GraphQLQuery(name = "importSiopActivityCalendars", description = "Import activity calendar from a SIOP file")
-    public JobVO importSiopActivityCalendars(@GraphQLArgument(name = "fileName") String fileName) {
+    @GraphQLQuery(name = "importListActivityCalendars", description = "Import activity calendar from a LIST file")
+    public JobVO importListActivityCalendars(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
         if (!securityContext.isAdmin()) throw new UnauthorizedException();
@@ -86,21 +86,22 @@ public class ActivityCalendarImportGraphQLService {
 
         PersonVO user = securityContext.getAuthenticatedUser().get();
         JobVO job = JobVO.builder()
-                .type(JobTypeEnum.SIOP_ACTIVITY_CALENDARS_IMPORTATION.name())
-                .name(t("sumaris.import.activity_calendar.siop.job.name", fileName))
+                .type(JobTypeEnum.LIST_ACTIVITY_CALENDARS_IMPORTATION.name())
+                .name(t("sumaris.import.activity_calendar.list.job.name", fileName))
                 .issuer(user.getPubkey())
                 .build();
 
-        SiopActivityImportCalendarContextVO context = SiopActivityImportCalendarContextVO.builder()
+        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
                 .recorderPersonId(user.getId())
                 .processingFile(inputFile)
                 .build();
 
+        job.setStatus(JobStatusEnum.SUCCESS);
 
         // Execute importJob by JobService (async)
         return jobExecutionService.run(job,
                 () -> context,
-                (progression) -> siopActivityCalendarImportService.asyncImportFromFile(context, progression));
+                (progression) -> listActivityCalendarImportService.asyncImportFromFile(context, progression));
     }
 
 }
