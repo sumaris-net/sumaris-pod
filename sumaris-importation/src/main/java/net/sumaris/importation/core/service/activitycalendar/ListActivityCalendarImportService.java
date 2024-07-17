@@ -1,9 +1,8 @@
 package net.sumaris.importation.core.service.activitycalendar;
 
 import net.sumaris.core.model.IProgressionModel;
-import net.sumaris.importation.core.service.activitycalendar.vo.SiopActivityImportCalendarContextVO;
-import net.sumaris.importation.core.service.activitycalendar.vo.SiopActivityCalendarImportResultVO;
-import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
+import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityImportCalendarContextVO;
+import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityCalendarImportResultVO;
 import org.springframework.scheduling.annotation.Async;
 
 import javax.annotation.Nullable;
@@ -11,7 +10,7 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.concurrent.Future;
 
-public interface SiopActivityCalendarImportService {
+public interface ListActivityCalendarImportService {
 
 
     /**
@@ -23,10 +22,10 @@ public interface SiopActivityCalendarImportService {
      * @throws IOException
      */
     @Transactional
-    SiopActivityCalendarImportResultVO importFromFile(SiopActivityImportCalendarContextVO context, @Nullable IProgressionModel progressionModel) throws IOException;
+    ListActivityCalendarImportResultVO importFromFile(ListActivityImportCalendarContextVO context, @Nullable IProgressionModel progressionModel) throws IOException;
 
 
     @Async("jobTaskExecutor")
-    Future<SiopActivityCalendarImportResultVO> asyncImportFromFile(SiopActivityImportCalendarContextVO context,
+    Future<ListActivityCalendarImportResultVO> asyncImportFromFile(ListActivityImportCalendarContextVO context,
                                                                    @Nullable IProgressionModel progressionModel);
 }

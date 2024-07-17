@@ -9,7 +9,7 @@ import java.io.File;
 
 @Data
 @Builder
-public class SiopActivityImportCalendarContextVO {
+public class ListActivityImportCalendarContextVO {
     @NonNull
     private Integer recorderPersonId;
 
@@ -20,5 +20,5 @@ public class SiopActivityImportCalendarContextVO {
     @NonNull
     @Builder.Default
     @JsonIgnore
-    private SiopActivityCalendarImportResultVO result = new SiopActivityCalendarImportResultVO();
+    private ListActivityCalendarImportResultVO result = new ListActivityCalendarImportResultVO();
 }
