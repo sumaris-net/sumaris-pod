@@ -23,20 +23,17 @@
 package net.sumaris.importation.service.activitycalendar;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
-import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.VesselFeaturesVO;
-import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.importation.DatabaseResource;
+import net.sumaris.importation.core.service.activitycalendar.ListActivityCalendarImportService;
+import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityImportCalendarContextVO;
 import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.service.AbstractServiceTest;
@@ -44,8 +41,7 @@ import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
-import java.util.Date;
-import java.util.List;
+
 
 @Slf4j
 public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
@@ -60,10 +56,10 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
     private PersonService personService = null;
 
     @Autowired
-    private VesselService vesselService = null;
+    private ConfigurationService configurationService;
 
     @Autowired
-    private ConfigurationService configurationService;
+    private ListActivityCalendarImportService listActivityCalendarImportService;
 
     @Before
     public void setup() {
@@ -73,56 +69,24 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
     @Test
     public void loadFromFile() {
-        String basePath = "src/test/data/vessel/";
-        File file = new File(basePath, "vessels-siop.csv");
+        String basePath = "src/test/data/activity-calendar/";
+        File file = new File(basePath, "activity-calendars-list.csv");
         assertLoadFromFile(file);
     }
-
+    
     @Test
-    public void loadFromFileWithBOM() {
-        String basePath = "src/test/data/vessel/";
-        File file = new File(basePath, "vessels-siop-bom.csv");
+    public void testImportListActivityCalendars() {
+        String fileName = "activity-calendars-list.csv";
+        String basePath = "src/test/data/activity-calendar/";
+        File file = new File(basePath, fileName);
 
-        assertLoadFromFile(file);
+        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+                .recorderPersonId(1)
+                .processingFile(file)
+                .build();
+
+        listActivityCalendarImportService.asyncImportFromFile(context, null);
     }
-
-    @Test
-    @Ignore
-    public void loadFromProductionFile() {
-        String basePath = System.getProperty("user.home") + "/Documents/adap/data/vessels";
-        File file = new File(basePath, "bateaux_09_11_2022.csv");
-
-        assertLoadFromFile(file);
-    }
-
-    @Test
-    public void loadFile_issueDuplicatedVesselFeatures() {
-        String basePath = "src/test/data/vessel/";
-        File file = new File(basePath, "vessels-siop-bom.csv");
-
-        assertLoadFromFile(file);
-        assertLoadFromFile(file);
-
-        List<VesselFeaturesVO> features = vesselService.findFeaturesByVesselId(1, Page.builder().build(), DataFetchOptions.builder().build());
-        List<Date> featuresEndDates = features.stream().map(VesselFeaturesVO::getEndDate).toList();
-        List<Date> featuresEndDatesDuplicatedRemoved = featuresEndDates.stream().distinct().toList();
-        Assert.assertEquals(featuresEndDates.size(), featuresEndDatesDuplicatedRemoved.size());
-    }
-
-    @Test
-    public void loadFile_issueDuplicatedVesselRegistrationPeriod() {
-        String basePath = "src/test/data/vessel/";
-        File file = new File(basePath, "vessels-siop-bom.csv");
-
-        assertLoadFromFile(file);
-        assertLoadFromFile(file);
-
-        List<VesselRegistrationPeriodVO> registrationPeriod = vesselService.findRegistrationPeriodsByVesselId(1, Page.builder().build());
-        List<Date> registrationPeriodEndDates = registrationPeriod.stream().map(VesselRegistrationPeriodVO::getEndDate).toList();
-        List<Date> registrationPeriodEndDatesDuplicatedRemoved = registrationPeriodEndDates.stream().distinct().toList();
-        Assert.assertEquals(registrationPeriodEndDates.size(), registrationPeriodEndDatesDuplicatedRemoved.size());
-    }
-
     /* -- internal -- */
 
     private void assertLoadFromFile(File file) {

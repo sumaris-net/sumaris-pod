@@ -96,8 +96,6 @@ public class ActivityCalendarImportGraphQLService {
                 .processingFile(inputFile)
                 .build();
 
-        job.setStatus(JobStatusEnum.SUCCESS);
-
         // Execute importJob by JobService (async)
         return jobExecutionService.run(job,
                 () -> context,
