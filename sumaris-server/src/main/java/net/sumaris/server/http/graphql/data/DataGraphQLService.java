@@ -2228,17 +2228,17 @@ public class DataGraphQLService {
         boolean hasRecorderPersonId = filter != null && filter.getRecorderPersonId() != null;
         boolean hasRecorderDepartmentId = filter != null && filter.getRecorderDepartmentId() != null;
 
+        // Fill default programs
+        if (ArrayUtils.isEmpty(filter.getProgramIds()) && StringUtils.isEmpty(filter.getProgramLabel())
+                && ProgramEnum.SIH_ACTIFLOT.getId() != -1) {
+            filter.setProgramLabel(ProgramEnum.SIH_ACTIFLOT.getLabel());
+        }
+
         // Default rules
         filter = this.fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
 
         // Limit to user program's locations
         if (filter.getProgramIds() != DataAccessControlService.NO_ACCESS_FAKE_IDS) {
-
-            // Fill default programs
-            if (ArrayUtils.isEmpty(filter.getProgramIds()) && StringUtils.isEmpty(filter.getProgramLabel())
-                && ProgramEnum.SIH_ACTIFLOT.getId() != -1) {
-                filter.setProgramLabel(ProgramEnum.SIH_ACTIFLOT.getLabel());
-            }
 
             // Get authorized location ids
             Integer[] locationIds = dataAccessControlService.getAuthorizedLocationIds(
