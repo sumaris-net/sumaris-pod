@@ -5,6 +5,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -20,6 +22,7 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Dates;
@@ -27,17 +30,16 @@ import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
-import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
-import net.sumaris.core.vo.data.vessel.VesselRegistrationPeriodFetchOptions;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
-import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityCalendarImportResultVO;
 import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityImportCalendarContextVO;
 import net.sumaris.importation.core.util.csv.CSVFileReader;
+import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
 import org.springframework.context.ApplicationContext;
@@ -73,12 +75,6 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
             .put("IMMATRICULATION", StringUtils.doting(VesselRegistrationPeriod.Fields.REGISTRATION_CODE))
             .build();
 
-
-    protected Map<Integer, LocationVO> locationByFilterCache = Maps.newConcurrentMap();
-
-
-    protected final static LocationVO UNRESOLVED_LOCATION = new LocationVO();
-
     protected static final Date DEFAULT_START_DATE = Dates.safeParseDate("01/01/1990", INPUT_DATE_PATTERNS);
     protected static final String DEFAULT_REGISTRATION_COUNTRY_LABEL = "FRA";
 
@@ -91,7 +87,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
     protected final ActivityCalendarService activityCalendarService;
 
-    protected final VesselRegistrationPeriodRepositoryImpl vesselRegistrationPeriodService;
+    protected final VesselSnapshotService VesselSnapshotService;
 
     protected final PersonService personService;
 
@@ -123,69 +119,127 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
             PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
 
-            String uniqueKeyPropertyName = StringUtils.doting(
-                    ActivityCalendarVO.Fields.VESSEL_ID, VesselOwnerVO.Fields.REGISTRATION_CODE
-            );
 
-            Date startDate = Dates.resetTime(new Date());
             File tempFile = null;
+
 
             try {
                 tempFile = prepareFile(context.getProcessingFile());
 
                 Set<String> includedHeaders = new HashSet<>(headerReplacements.values());
-
                 // Do load
                 try (CSVFileReader reader = new CSVFileReader(tempFile, true, true, Charsets.UTF_8.name())) {
+                    List<Map<String, String>> rows = readRows(reader, includedHeaders);
 
-                    Map<String, Integer> existingActivityCalendars = collectExistingActivityCalendars();
-//                    Set<String> processedKeys = Sets.newHashSet();
+                    //Get all year in csv
+                    Set<String> yearsSet = rows.stream()
+                            .map(row -> row.get(ActivityCalendarVO.Fields.YEAR))
+                            .collect(Collectors.toSet());
+                    Set<String> processedKeys = Sets.newHashSet();
+
+                    // Get all existing activity calendars for the years
+                    Map<String, Integer> existingActivityCalendars = collectExistingActivityCalendars(yearsSet);
+
 
                     MutableShort inserts = new MutableShort(0);
                     MutableShort updates = new MutableShort(0);
-                    MutableShort disables = new MutableShort(0);
                     MutableShort errors = new MutableShort(0);
                     MutableShort warnings = new MutableShort(0);
                     MutableShort rowCounter = new MutableShort(1);
                     List<String> messages = new ArrayList<>();
 
-                    List<Map<String, String>> rows = readRows(reader, includedHeaders);
+                    // Get all VesselSnapshots
+                    List<VesselSnapshotVO> vesselSnapshots = collectingVesselSnapshot();
 
-                    Set<String> yearsSet = rows.stream()
-                            .map(row -> row.get(ActivityCalendarVO.Fields.YEAR))
-                            .collect(Collectors.toSet());
-
-                    Map<Integer, String> vesselIdByYearRegistrationCode = getVesselIdByYearRegistrationCode(yearsSet);
-
-
-                    List<ActivityCalendarVO> activityCalendarsr = rows.stream()
-                            .map(r -> toVO(r, vesselIdByYearRegistrationCode))
+                    // Convert csv calendar to vo
+                    List<ActivityCalendarVO> activityCalendars = rows.stream()
+                            .map(activityCalendar -> toVO(activityCalendar, vesselSnapshots))
                             .toList();
 
 
-                    System.out.println("activityCalendar: " + activityCalendarsr);
+                    for (ActivityCalendarVO activityCalendar : activityCalendars) {
 
-                    for (ActivityCalendarVO activityCalendar : activityCalendarsr) {
+                        try {
+                            String uniqueKey = null;
+                            List<VesselSnapshotVO> vesselSnapshotFilteredById = vesselSnapshots.stream()
+                                    .filter(vessel -> vessel.getId().equals(activityCalendar.getVesselId()))
+                                    .toList();
 
+                            if (!vesselSnapshotFilteredById.isEmpty()) {
+                                uniqueKey = activityCalendar.getYear().toString() + '.' + vesselSnapshots.stream().filter(vessel -> vessel.getId().equals(activityCalendar.getVesselId())).findFirst().get().getRegistrationCode();
+                            }
+
+                            Integer existingId = existingActivityCalendars.get(uniqueKey);
+
+                            fillActivityCalendar(activityCalendar, recorderPerson);
+
+                            if (activityCalendar.getVesselId() == null) {
+                                //TODO MFA Error L'immatriculation du navire n'est pas trouvée (indiquer une erreur)
+                                warnings.increment();
+                                String message = String.format("Invalid row #%s: Ship registration not found ", rowCounter);
+                                messages.add(message);
+                                log.warn(message);
+                            }
+                            //  Check if it has already been executed
+                            else if (processedKeys.contains(uniqueKey)) {
+                                warnings.increment();
+                                String message = String.format("Invalid row #%s: duplicated value . Skipping", rowCounter);
+                                messages.add(message);
+                                log.warn(message);
+                            }
+                            // Check if already exist in database
+                            else if (existingId != null) {
+                                activityCalendar.setId(existingId);
+                                boolean updated = update(activityCalendar);
+                                if (updated) updates.increment();
+                            }
+                            // Check if the vessel is in the BAD period
+                            else if (uniqueKey != null && activityCalendar.getVesselId() != null && !checkVesselPeriod(vesselSnapshotFilteredById, activityCalendar.getYear())) {
+                                //TODO MFA pas la bonne periode
+                            } else {
+                                //TODO MFA STANDARD ADD NEW
+                                insert(activityCalendar);
+                                inserts.increment();
+                            }
+                            processedKeys.add(uniqueKey);
+                        } catch (Exception e) {
+                            log.error(e.getMessage(), e);
+                            errors.increment();
+                            messages.add(t("sumaris.import.job.error.row", rowCounter.getValue(), e.getMessage()));
+                        } finally {
+                            rowCounter.increment();
+                        }
 
                     }
 
+                    // Update result
+                    result.setInserts(inserts.intValue());
+                    result.setUpdates(updates.intValue());
+                    result.setWarnings(warnings.intValue());
+                    result.setErrors(errors.intValue());
+
+                    
+                    progressionModel.setCurrent(progressionModel.getTotal());
+
+                    return result;
                 }
 
 
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 throw new SumarisTechnicalException(e);
+
+            } finally {
+                Files.deleteQuietly(tempFile);
+                Files.deleteTemporaryFiles(context.getProcessingFile());
+                progressionModel.setCurrent(progressionModel.getTotal());
             }
-
-
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new SumarisTechnicalException(e);
+        } finally {
+            running = false;
         }
 
-        return null;
     }
+
 
     @Override
     public Future<ListActivityCalendarImportResultVO> asyncImportFromFile(ListActivityImportCalendarContextVO context, @Nullable IProgressionModel progressionModel) {
@@ -231,8 +285,6 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
             }
             Files.replaceAllInHeader(inputFile, tempFile, exactHeaderReplacements);
 
-            // Replace in lines
-            //Files.replaceAll(tempFile, linesReplacements, 1, -1/*all rows*/);
 
             return tempFile;
         } catch (IOException e) {
@@ -246,26 +298,40 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         }
     }
 
-    protected <T> Map<T, Integer> collectExistingActivityCalendars() {
-        Page page = Page.builder()
-                .offset(0)
-                .size(100)
-                .sortBy(ActivityCalendarVO.Fields.ID)
-                .build();
-        boolean fetchMore;
-        Map<T, Integer> result = Maps.newHashMap();
-        do {
-            List<ActivityCalendarVO> activityCalendars = activityCalendarService.findAll(
-                    ActivityCalendarFilterVO.builder()
-                            .build(),
-                    page, ActivityCalendarFetchOptions.builder()
-                            .build()
-            );
+    //TODO MFA TU VAS PEUT ÊTRE DEVOIR RETOURNER LES CALENDRIERS COMPLETS À CAUSE DE LA GESTION DES DROITS.
+    protected Map<String, Integer> collectExistingActivityCalendars(Set<String> years) {
+        Map<String, Integer> result = new HashMap<>();
 
-            fetchMore = activityCalendars.size() >= page.getSize();
-            page.setOffset(page.getOffset() + page.getSize());
-        } while (fetchMore);
+        for (String year : years) {
+            Page page = Page.builder()
+                    .offset(0)
+                    .size(100)
+                    .sortBy(ActivityCalendarVO.Fields.ID)
+                    .build();
+            boolean fetchMore;
 
+            do {
+                List<ActivityCalendarVO> activityCalendars = activityCalendarService.findAll(
+                        ActivityCalendarFilterVO.builder()
+                                .programLabel(ProgramEnum.SIH_ACTIFLOT.getLabel())
+                                .year(Integer.parseInt(year))
+                                .build(),
+                        page, ActivityCalendarFetchOptions.builder().withVesselSnapshot(true).build()
+                );
+
+                activityCalendars.forEach(calendar -> {
+                    try {
+                        result.put(calendar.getYear().toString() + '.' + calendar.getVesselSnapshot().getRegistrationCode(), calendar.getId());
+
+                    } catch (NestedNullException ne) {
+                        // Skip entries with nested null exceptions
+                    }
+                });
+
+                fetchMore = activityCalendars.size() >= page.getSize();
+                page.setOffset(page.getOffset() + page.getSize());
+            } while (fetchMore);
+        }
         return result;
     }
 
@@ -302,7 +368,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         return rows;
     }
 
-    protected ActivityCalendarVO toVO(Map<String, String> source, Map<Integer, String> vesselIdByYearRegistrationCode) {
+    protected ActivityCalendarVO toVO(Map<String, String> source, List<VesselSnapshotVO> vessel) {
         ActivityCalendarVO target = new ActivityCalendarVO();
 
         //year
@@ -326,57 +392,75 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         //qualityFlagId
         target.setQualityFlagId(StatusEnum.ENABLE.getId());
 
-        // Program
+        //program
         ProgramVO program = new ProgramVO();
         program.setId(ProgramEnum.SIH_ACTIFLOT.getId());
         program.setLabel(ProgramEnum.SIH_ACTIFLOT.getLabel());
         target.setProgram(program);
 
-        //veselId
-        Integer vesselId = getKeyByValue(vesselIdByYearRegistrationCode, source.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE));
-        target.setVesselId(vesselId);
-
+        //vesselId
+        List<VesselSnapshotVO> voList = vesselFilterByRegistrationCode(vessel, source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE));
+        if (voList != null && !voList.isEmpty()) {
+            target.setVesselId(voList.get(0).getId());
+        }
 
         return target;
     }
 
-    protected Map<Integer, String> getVesselIdByYearRegistrationCode(Set<String> years) {
-//        Set<Integer> yearsIntSet = years.stream()
-//                .map(Integer::parseInt)
-//                .collect(Collectors.toSet());
+    protected void fillActivityCalendar(@NonNull ActivityCalendarVO target, @NonNull PersonVO person) {
+        // Fill recorder department
+        if (target.getRecorderDepartment() == null) {
+            target.setRecorderDepartment(person.getDepartment());
+        }
 
-        Map<Integer, String> vesselIAndYearRegistrationCode = new HashMap<>();
+        // Fill recorder department
+        if (target.getRecorderPerson() == null) {
+            target.setRecorderPerson(person);
+        }
+    }
 
+
+    protected List<VesselSnapshotVO> collectingVesselSnapshot() {
         Page page = Page.builder()
                 .offset(0)
                 .size(100)
                 .sortBy(ActivityCalendarVO.Fields.ID)
                 .sortDirection(SortDirection.DESC)
                 .build();
-        List<VesselRegistrationPeriodVO> vesselRegistrationPeriods = vesselRegistrationPeriodService.findAll(
-                VesselRegistrationFilterVO.builder()
-                        .build(),
-                page, VesselRegistrationPeriodFetchOptions.builder()
-                        .withVesselFeatures(true)
-                        .build()
-        );
-        // Étape 4 : Traiter les résultats
-
-
-        vesselRegistrationPeriods.forEach(vesselRegistrationPeriodVO -> {
-            vesselIAndYearRegistrationCode.put(vesselRegistrationPeriodVO.getVessel().getId(), vesselRegistrationPeriodVO.getRegistrationCode());
-        });
-
-        return vesselIAndYearRegistrationCode;
-
+        return VesselSnapshotService.findAll(VesselFilterVO.builder()
+                .build(), page, VesselFetchOptions.DEFAULT);
     }
 
-    protected Integer getKeyByValue(Map<Integer, String> map, String valueToFind) {
-        for (Map.Entry<Integer, String> entry : map.entrySet()) {
-            if (valueToFind.equals(entry.getValue())) {
-                return entry.getKey();
+    protected ActivityCalendarVO insert(ActivityCalendarVO source) {
+        return activityCalendarService.save(source);
+    }
+
+    protected boolean update(ActivityCalendarVO source) {
+        Preconditions.checkNotNull(source.getId());
+        activityCalendarService.save(source);
+        return true;
+    }
+
+    protected List<VesselSnapshotVO> vesselFilterByRegistrationCode(List<VesselSnapshotVO> vessels, String registrationCode) {
+        List<VesselSnapshotVO> filteredVessels = vessels.stream()
+                .filter(vessel -> registrationCode.equals(vessel.getRegistrationCode()))
+                .collect(Collectors.toList());
+
+        return filteredVessels.isEmpty() ? null : filteredVessels;
+    }
+
+    protected boolean checkVesselPeriod(List<VesselSnapshotVO> vessels, Integer year) {
+
+        Date startOfYear = Dates.getFirstDayOfYear(year);
+
+        for (VesselSnapshotVO vessel : vessels) {
+            Date startDate = vessel.getStartDate();
+            Date endDate = vessel.getEndDate();
+
+            if (Dates.isBetween(startOfYear, startDate, endDate)) {
+                return true;
             }
         }
-        return null;
+        return false;
     }
 }
