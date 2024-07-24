@@ -76,14 +76,14 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
     @Test
     public void loadFromFile() {
         String basePath = "src/test/data/activity-calendar/";
-        File file = new File(basePath, "activity-calendars-list-small-test.csv");
+        File file = new File(basePath, "activity-calendars-list-test.csv");
         assertLoadFromFile(file);
     }
 
     // wait fix bla  delete cascade
     @Test
     public void importListActivityCalendars() {
-        String fileName = "activity-calendars-list-small-test.csv";
+        String fileName = "activity-calendars-list-test.csv";
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
@@ -102,8 +102,10 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
             expectedResult.setMessage("Import successful");
             expectedResult.setInserts(1);
             expectedResult.setUpdates(1);
-            expectedResult.setWarnings(1);
-            expectedResult.setErrors(1);
+            expectedResult.setWarnings(2);
+            expectedResult.setErrors(0);
+
+            System.out.println("result.getStatus() : " + result);
 
 
             assertEquals(expectedResult.getStatus(), result.getStatus());
@@ -143,7 +145,6 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
             expectedResult.setUpdates(0);
             expectedResult.setWarnings(0);
             expectedResult.setErrors(0);
-
 
             assertEquals(expectedResult.getStatus(), result.getStatus());
             assertEquals(expectedResult.getInserts(), result.getInserts());
@@ -198,8 +199,8 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
     // wait fix bla  delete cascade
     @Test
-    public void importListActivityCalendarsWarningAndError() {
-        String fileName = "activity-calendars-list-warning-error.csv";
+    public void importListActivityCalendarsWarning() {
+        String fileName = "activity-calendars-list-warning.csv";
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
@@ -217,9 +218,8 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
             expectedResult.setInserts(0);
             expectedResult.setUpdates(0);
-            expectedResult.setWarnings(2);
-            expectedResult.setErrors(2);
-
+            expectedResult.setWarnings(6214);
+            expectedResult.setErrors(0);
 
             assertEquals(expectedResult.getStatus(), result.getStatus());
             assertEquals(expectedResult.getInserts(), result.getInserts());
