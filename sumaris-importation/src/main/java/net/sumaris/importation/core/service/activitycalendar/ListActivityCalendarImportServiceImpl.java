@@ -10,7 +10,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepositoryImpl;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -25,7 +24,6 @@ import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.referential.LocationService;
 import net.sumaris.core.service.referential.ReferentialService;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
@@ -59,14 +57,6 @@ import static org.nuiton.i18n.I18n.t;
 @RequiredArgsConstructor
 @Slf4j
 public class ListActivityCalendarImportServiceImpl implements ListActivityCalendarImportService {
-    protected final static String LABEL_NAME_SEPARATOR_REGEXP = "[ \t]+-[ \t]+";
-
-    private final VesselRegistrationPeriodRepositoryImpl vesselRegistrationPeriodRepository;
-
-    protected static final String[] INPUT_DATE_PATTERNS = new String[]{
-            "dd/MM/yyyy"
-    };
-
     protected static final Map<String, String> headerReplacements = ImmutableMap.<String, String>builder()
             // Siop vessel synonyms (for LPDB)
             .put("ANN.E[.]DE[.]R.F.RENCE", StringUtils.doting(ActivityCalendarVO.Fields.YEAR))
@@ -74,10 +64,6 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
             .put("ENQUETE_ECONOMIQUE", StringUtils.doting(ActivityCalendarVO.Fields.ECONOMIC_SURVEY))
             .put("IMMATRICULATION", StringUtils.doting(VesselRegistrationPeriod.Fields.REGISTRATION_CODE))
             .build();
-
-    protected static final Date DEFAULT_START_DATE = Dates.safeParseDate("01/01/1990", INPUT_DATE_PATTERNS);
-    protected static final String DEFAULT_REGISTRATION_COUNTRY_LABEL = "FRA";
-
 
     protected final SumarisConfiguration config;
 
@@ -137,9 +123,17 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                             .collect(Collectors.toSet());
                     Set<String> processedKeys = Sets.newHashSet();
 
-                    // Get all existing activity calendars for the years
-                    Map<String, Integer> existingActivityCalendars = collectExistingActivityCalendars(yearsSet);
+                    List<ActivityCalendarVO> existingActivityCalendarsVO = collectExistingActivityCalendars(yearsSet);
 
+                    Map<String, Integer> existingActivityCalendars = new HashMap<>();
+                    existingActivityCalendarsVO.forEach(calendar -> {
+                        try {
+                            existingActivityCalendars.put(calendar.getYear().toString() + '.' + calendar.getVesselSnapshot().getRegistrationCode(), calendar.getId());
+
+                        } catch (NestedNullException ne) {
+                            // Skip entries with nested null exceptions
+                        }
+                    });
 
                     MutableShort inserts = new MutableShort(0);
                     MutableShort updates = new MutableShort(0);
@@ -161,22 +155,26 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
                         try {
                             String uniqueKey = null;
+                            // Get vessel snapshot by id
                             List<VesselSnapshotVO> vesselSnapshotFilteredById = vesselSnapshots.stream()
                                     .filter(vessel -> vessel.getId().equals(activityCalendar.getVesselId()))
                                     .toList();
 
+                            // Fill unique key for the calendar (year + registration code)
                             if (!vesselSnapshotFilteredById.isEmpty()) {
                                 uniqueKey = activityCalendar.getYear().toString() + '.' + vesselSnapshots.stream().filter(vessel -> vessel.getId().equals(activityCalendar.getVesselId())).findFirst().get().getRegistrationCode();
                             }
 
+                            // Get the ID if it exists
                             Integer existingId = existingActivityCalendars.get(uniqueKey);
 
+                            // Fill recorder department and person
                             fillActivityCalendar(activityCalendar, recorderPerson);
 
+                            //  Check if is valid calendar
                             if (activityCalendar.getVesselId() == null) {
-                                //TODO MFA Error L'immatriculation du navire n'est pas trouvée (indiquer une erreur)
                                 warnings.increment();
-                                String message = String.format("Invalid row #%s: Ship registration not found ", rowCounter);
+                                String message = String.format("Invalid row #%s: Ship not found ", rowCounter);
                                 messages.add(message);
                                 log.warn(message);
                             }
@@ -190,14 +188,17 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                             // Check if already exist in database
                             else if (existingId != null) {
                                 activityCalendar.setId(existingId);
-                                boolean updated = update(activityCalendar);
+                                boolean updated = update(activityCalendar, existingActivityCalendarsVO.stream().filter(calendar -> calendar.getId().equals(existingId)).findFirst().get());
                                 if (updated) updates.increment();
                             }
                             // Check if the vessel is in the BAD period
-                            else if (uniqueKey != null && activityCalendar.getVesselId() != null && !checkVesselPeriod(vesselSnapshotFilteredById, activityCalendar.getYear())) {
-                                //TODO MFA pas la bonne periode
+                            else if (!checkVesselPeriod(vesselSnapshotFilteredById, activityCalendar.getYear())) {
+                                warnings.increment();
+                                String message = String.format("Row #%s: Vessel does not have a valid period . Insert", rowCounter);
+                                insert(activityCalendar);
+                                messages.add(message);
+                                log.warn(message);
                             } else {
-                                //TODO MFA STANDARD ADD NEW
                                 insert(activityCalendar);
                                 inserts.increment();
                             }
@@ -218,7 +219,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                     result.setWarnings(warnings.intValue());
                     result.setErrors(errors.intValue());
 
-                    
+
                     progressionModel.setCurrent(progressionModel.getTotal());
 
                     return result;
@@ -298,9 +299,8 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         }
     }
 
-    //TODO MFA TU VAS PEUT ÊTRE DEVOIR RETOURNER LES CALENDRIERS COMPLETS À CAUSE DE LA GESTION DES DROITS.
-    protected Map<String, Integer> collectExistingActivityCalendars(Set<String> years) {
-        Map<String, Integer> result = new HashMap<>();
+    protected List<ActivityCalendarVO> collectExistingActivityCalendars(Set<String> years) {
+        List<ActivityCalendarVO> result = new ArrayList<>();
 
         for (String year : years) {
             Page page = Page.builder()
@@ -321,7 +321,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
                 activityCalendars.forEach(calendar -> {
                     try {
-                        result.put(calendar.getYear().toString() + '.' + calendar.getVesselSnapshot().getRegistrationCode(), calendar.getId());
+                        result.addAll(activityCalendars);
 
                     } catch (NestedNullException ne) {
                         // Skip entries with nested null exceptions
@@ -399,9 +399,9 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         target.setProgram(program);
 
         //vesselId
-        List<VesselSnapshotVO> voList = vesselFilterByRegistrationCode(vessel, source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE));
-        if (voList != null && !voList.isEmpty()) {
-            target.setVesselId(voList.get(0).getId());
+        List<VesselSnapshotVO> vesselSnapshots = vesselFilterByRegistrationCode(vessel, source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE));
+        if (vesselSnapshots != null && !vesselSnapshots.isEmpty()) {
+            target.setVesselId(vesselSnapshots.get(0).getId());
         }
 
         return target;
@@ -435,9 +435,24 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         return activityCalendarService.save(source);
     }
 
-    protected boolean update(ActivityCalendarVO source) {
-        Preconditions.checkNotNull(source.getId());
-        activityCalendarService.save(source);
+    protected boolean update(ActivityCalendarVO source, ActivityCalendarVO origin) {
+
+        origin.setYear(source.getYear());
+
+        origin.setDirectSurveyInvestigation(source.getDirectSurveyInvestigation());
+
+        origin.setEconomicSurvey(source.getEconomicSurvey());
+
+        origin.setQualityFlagId(StatusEnum.ENABLE.getId());
+
+        origin.setProgram(source.getProgram());
+
+        //vesselId
+        if (source.getVesselId() != null) {
+            origin.setVesselId(source.getVesselId());
+        }
+
+        activityCalendarService.save(origin);
         return true;
     }
 
@@ -451,13 +466,20 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
     protected boolean checkVesselPeriod(List<VesselSnapshotVO> vessels, Integer year) {
 
-        Date startOfYear = Dates.getFirstDayOfYear(year);
-
+        Integer endYear = null;
         for (VesselSnapshotVO vessel : vessels) {
+            Calendar calendar = Calendar.getInstance();
             Date startDate = vessel.getStartDate();
             Date endDate = vessel.getEndDate();
+            calendar.setTime(startDate);
+            Integer startYear = calendar.get(Calendar.YEAR);
 
-            if (Dates.isBetween(startOfYear, startDate, endDate)) {
+            if (vessel.getEndDate() != null) {
+                calendar.setTime(endDate);
+                endYear = calendar.get(Calendar.YEAR);
+            }
+
+            if (year >= startYear && (endYear == null || year <= endYear)) {
                 return true;
             }
         }

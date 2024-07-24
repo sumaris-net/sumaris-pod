@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
@@ -33,6 +34,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.importation.DatabaseResource;
 import net.sumaris.importation.core.service.activitycalendar.ListActivityCalendarImportService;
+import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityCalendarImportResultVO;
 import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityImportCalendarContextVO;
 import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
@@ -40,7 +42,12 @@ import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import java.io.File;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 
 @Slf4j
@@ -70,13 +77,13 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
     @Test
     public void loadFromFile() {
         String basePath = "src/test/data/activity-calendar/";
-        File file = new File(basePath, "activity-calendars-list.csv");
+        File file = new File(basePath, "activity-calendars-list-small-test.csv");
         assertLoadFromFile(file);
     }
-    
+
     @Test
     public void testImportListActivityCalendars() {
-        String fileName = "activity-calendars-list.csv";
+        String fileName = "activity-calendars-list-small-test.csv";
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
@@ -85,9 +92,38 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
                 .processingFile(file)
                 .build();
 
-        listActivityCalendarImportService.asyncImportFromFile(context, null);
+        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        try {
+
+            ListActivityCalendarImportResultVO result = future.get();
+
+            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            expectedResult.setStatus(JobStatusEnum.SUCCESS);
+            expectedResult.setMessage("Import successful");
+            expectedResult.setInserts(10);
+            expectedResult.setUpdates(5);
+            expectedResult.setDisables(2);
+            expectedResult.setWarnings(1);
+            expectedResult.setErrors(0);
+
+            assertAll("Result",
+                    () -> assertEquals(expectedResult.getStatus(), result.getStatus()),
+                    () -> assertEquals(expectedResult.getMessage(), result.getMessage()),
+                    () -> assertEquals(expectedResult.getInserts(), result.getInserts()),
+                    () -> assertEquals(expectedResult.getUpdates(), result.getUpdates()),
+                    () -> assertEquals(expectedResult.getDisables(), result.getDisables()),
+                    () -> assertEquals(expectedResult.getWarnings(), result.getWarnings()),
+                    () -> assertEquals(expectedResult.getErrors(), result.getErrors())
+            );
+
+        } catch (InterruptedException | ExecutionException e) {
+
+            e.printStackTrace();
+        }
     }
+
     /* -- internal -- */
+
 
     private void assertLoadFromFile(File file) {
         Assume.assumeTrue("Missing file at " + file.getAbsolutePath(), file.exists() && file.isFile());
