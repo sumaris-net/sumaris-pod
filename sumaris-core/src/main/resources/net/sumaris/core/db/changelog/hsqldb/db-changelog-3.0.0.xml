@@ -1349,6 +1349,20 @@
     <addForeignKeyConstraint baseColumnNames="person_fk" baseTableName="activity_calendar2person" constraintName="act_cal2person_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
   </changeSet>
 
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-181" failOnError="false" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyName="VESSEL_USE_MEASUREMENT_VESSEL_USE_FEATURES_FKC"/>
+    </preConditions>
+    <dropForeignKeyConstraint baseTableName="VESSEL_USE_MEASUREMENT" constraintName="VESSEL_USE_MEASUREMENT_VESSEL_USE_FEATURES_FKC"/>
+    <sql>
+      ALTER TABLE VESSEL_USE_MEASUREMENT
+        ADD CONSTRAINT VESSEL_USE_MEASUREMENT_VESSEL_USE_FEATURES_FKC
+          FOREIGN KEY (VESSEL_USE_FEATURES_FK)
+            REFERENCES VESSEL_USE_FEATURES(ID)
+            ON DELETE CASCADE;
+    </sql>
+  </changeSet>
+
   <!-- Update SYSTEM_VERSION -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-300" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
