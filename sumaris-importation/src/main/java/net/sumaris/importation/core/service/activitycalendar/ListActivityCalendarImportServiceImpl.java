@@ -206,7 +206,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                         } catch (Exception e) {
                             log.error(e.getMessage(), e);
                             errors.increment();
-                            messages.add(t("sumaris.import.job.error.row", rowCounter.getValue(), e.getMessage()));
+                            messages.add(t("Row #%s: sumaris.import.job.error.row #%s", rowCounter.getValue(), e.getMessage()));
                         } finally {
                             rowCounter.increment();
                         }
@@ -224,7 +224,6 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
                     return result;
                 }
-
 
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
