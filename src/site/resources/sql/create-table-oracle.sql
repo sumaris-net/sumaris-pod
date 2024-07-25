@@ -81,6 +81,7 @@ create sequence sorting_measurement_p_seq start with 1 increment by  1;
 create sequence status_seq start with 1 increment by  1;
 create sequence strategy2department_seq start with 1 increment by  1;
 create sequence strategy_seq start with 1 increment by  1;
+create sequence strategy_property_seq start with 1 increment by  1;
 create sequence survey_measurement_seq start with 1 increment by  1;
 create sequence system_version_seq start with 1 increment by  1;
 create sequence taxon_group_historical_rec_seq start with 1 increment by  1;
@@ -211,6 +212,7 @@ create table status (id number(10,0) not null, creation_date timestamp not null,
 create table strategy (id number(10,0) not null, analytic_reference varchar2(255 char), comments varchar2(2000 char), creation_date timestamp not null, description varchar2(255 char), label varchar2(50 char) not null, name varchar2(100 char) not null, update_date timestamp, program_fk number(10,0) not null, status_fk number(10,0) not null, primary key (id));
 create table strategy2department (id number(10,0) not null, update_date timestamp, department_fk number(10,0) not null, location_fk number(10,0), program_privilege_fk number(10,0) not null, strategy_fk number(10,0) not null, primary key (id));
 create table strategy2gear (strategy_fk number(10,0) not null, gear_fk number(10,0) not null, primary key (strategy_fk, gear_fk));
+create table strategy_property (id number(10,0) not null, creation_date timestamp not null, label varchar2(255 char) not null, name varchar2(255 char) not null, update_date timestamp, strategy_fk number(10,0) not null, status_fk number(10,0) not null, primary key (id));
 create table survey_measurement (id number(10,0) not null, alphanumerical_value varchar2(40 char), comments varchar2(2000 char), control_date timestamp, digit_count number(10,0), numerical_value double precision, precision_value double precision, qualification_comments varchar2(2000 char), qualification_date timestamp, rank_order number(5,0), update_date timestamp, landing_fk number(10,0) not null, pmfm_fk number(10,0) not null, qualitative_value_fk number(10,0), quality_flag_fk number(10,0) not null, recorder_department_fk number(10,0) not null, primary key (id));
 create table system_version (id number(10,0) not null, comments varchar2(2000 char), creation_date timestamp not null, description varchar2(255 char), label varchar2(50 char) not null, update_date timestamp, primary key (id));
 create table taxon_group (id number(10,0) not null, comments varchar2(2000 char), creation_date timestamp not null, description varchar2(255 char), label varchar2(50 char), name varchar2(100 char) not null, update_date timestamp, parent_taxon_group_fk number(10,0), status_fk number(10,0) not null, taxon_group_type_fk number(10,0) not null, primary key (id));
@@ -566,6 +568,8 @@ alter table strategy2department add constraint strategy2department_program_privi
 alter table strategy2department add constraint strategy2department_strategy_fkc foreign key (strategy_fk) references strategy;
 alter table strategy2gear add constraint strategy2gear_gear_fkc foreign key (gear_fk) references gear;
 alter table strategy2gear add constraint strategy2gear_strategy_fkc foreign key (strategy_fk) references strategy;
+alter table strategy_property add constraint strategy_property_strategy_fkc foreign key (strategy_fk) references strategy;
+alter table strategy_property add constraint strategy_property_status_fkc foreign key (status_fk) references status;
 alter table survey_measurement add constraint survey_measurement_landing_fkc foreign key (landing_fk) references landing;
 alter table survey_measurement add constraint survey_measurement_pmfm_fkc foreign key (pmfm_fk) references pmfm;
 alter table survey_measurement add constraint survey_measurement_qualitative_value_fkc foreign key (qualitative_value_fk) references qualitative_value;
