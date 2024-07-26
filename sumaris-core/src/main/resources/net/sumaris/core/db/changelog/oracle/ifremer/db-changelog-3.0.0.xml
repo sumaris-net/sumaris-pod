@@ -228,4 +228,14 @@
     <addForeignKeyConstraint constraintName="named_filter_recorder_department_fkc" baseTableName="named_filter" baseColumnNames="recorder_department_fk" referencedTableName="department" referencedColumnNames="id" referencedTableSchemaName="sih2_adagio_dba"/>
   </changeSet>
 
+  <!-- Rename a program options -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-156" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><sqlCheck expectedResult="0">select count(*) from PROGRAM_PROPERTY where label='sumaris.observedLocation.landing.autoFill'</sqlCheck></not>
+    </preConditions>
+    <sql endDelimiter=";">
+      update PROGRAM_PROPERTY set label='sumaris.observedLocation.landings.autoFill' where label='sumaris.observedLocation.landing.autoFill';
+      commit;
+    </sql>
+  </changeSet>
 </databaseChangeLog>
