@@ -102,16 +102,11 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         try {
             // Init progression model
             progressionModel.setMessage(t("sumaris.import.job.start", context.getProcessingFile().getName()));
-
             PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
-
-
             File tempFile = null;
-
 
             try {
                 tempFile = prepareFile(context.getProcessingFile());
-
                 Set<String> includedHeaders = new HashSet<>(headerReplacements.values());
                 // Do load
                 try (CSVFileReader reader = new CSVFileReader(tempFile, true, true, Charsets.UTF_8.name())) {
@@ -122,6 +117,9 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                             .map(row -> row.get(ActivityCalendarVO.Fields.YEAR))
                             .collect(Collectors.toSet());
                     Set<String> processedKeys = Sets.newHashSet();
+
+                    //if a row is empty
+                    yearsSet.remove(null);
 
                     List<ActivityCalendarVO> existingActivityCalendarsVO = collectExistingActivityCalendars(yearsSet);
 
@@ -142,6 +140,16 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                     MutableShort rowCounter = new MutableShort(1);
                     List<String> messages = new ArrayList<>();
 
+                    //Remove beacause is not in csv actualy
+                    includedHeaders.remove(StringUtils.doting(ActivityCalendarVO.Fields.DIRECT_SURVEY_INVESTIGATION));
+                    //Check if headers is valid
+                    String[] requiredHeaders = includedHeaders.toArray(new String[0]);
+                    if (!allHeaderArePresent(requiredHeaders, reader.getHeaders())) {
+                        errors.increment();
+                        String message = String.format("Invalid header found !");
+                        messages.add(message);
+                    }
+
                     // Get all VesselSnapshots
                     List<VesselSnapshotVO> vesselSnapshots = collectingVesselSnapshot();
 
@@ -150,6 +158,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                             .map(activityCalendar -> toVO(activityCalendar, vesselSnapshots))
                             .toList();
 
+                    progressionModel.setTotal(activityCalendars.size() + 1 /*disable vessels*/);
 
                     for (ActivityCalendarVO activityCalendar : activityCalendars) {
 
@@ -219,9 +228,9 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                     result.setWarnings(warnings.intValue());
                     result.setErrors(errors.intValue());
 
-
                     progressionModel.setCurrent(progressionModel.getTotal());
-
+                    progressionModel.setMessage(t("sumaris.import.job.activity.calendar.progress", rowCounter.intValue(), activityCalendars.size()));
+                    progressionModel.setCurrent(progressionModel.getTotal());
                     return result;
                 }
 
@@ -237,9 +246,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         } finally {
             running = false;
         }
-
     }
-
 
     @Override
     public Future<ListActivityCalendarImportResultVO> asyncImportFromFile(ListActivityImportCalendarContextVO context, @Nullable IProgressionModel progressionModel) {
@@ -283,8 +290,8 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                 String replacement = "$1" + headerReplacements.get(header) + "$2";
                 exactHeaderReplacements.put(regexp, replacement);
             }
-            Files.replaceAllInHeader(inputFile, tempFile, exactHeaderReplacements);
 
+            Files.replaceAllInHeader(inputFile, tempFile, exactHeaderReplacements);
 
             return tempFile;
         } catch (IOException e) {
@@ -356,6 +363,9 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
             for (String cellValue : cols) {
                 String headerName = headers[colIndex++];
                 if (includedHeaders.contains(headerName)) {
+                    if (Objects.equals(cellValue, "")) {
+                        cellValue = null;
+                    }
                     row.put(headerName, cellValue);
                 }
             }
@@ -369,6 +379,11 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
     protected ActivityCalendarVO toVO(Map<String, String> source, List<VesselSnapshotVO> vessel) {
         ActivityCalendarVO target = new ActivityCalendarVO();
+        //Check if all mandatory fields are present
+        if (source.get(ActivityCalendarVO.Fields.YEAR) == null
+                || source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE) == null) {
+            return target;
+        }
 
         //year
         String year = source.get(ActivityCalendarVO.Fields.YEAR);
@@ -437,13 +452,9 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
     protected boolean update(ActivityCalendarVO source, ActivityCalendarVO origin) {
 
         origin.setYear(source.getYear());
-
         origin.setDirectSurveyInvestigation(source.getDirectSurveyInvestigation());
-
         origin.setEconomicSurvey(source.getEconomicSurvey());
-
         origin.setQualityFlagId(StatusEnum.ENABLE.getId());
-
         origin.setProgram(source.getProgram());
 
         //vesselId
@@ -483,5 +494,19 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
             }
         }
         return false;
+    }
+
+    protected boolean allHeaderArePresent(String[] array1, String[] array2) {
+        Set<String> set2 = new HashSet<>();
+        for (String s : array2) {
+            // ECONOMIC_SURVEY is not mandatory
+            set2.add(s);
+        }
+        for (String s : array1) {
+            if (!set2.contains(s)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
