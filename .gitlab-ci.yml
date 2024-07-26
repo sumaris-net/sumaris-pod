@@ -205,7 +205,7 @@ sonarqube:
     - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${RELEASE_VERSION:-}"
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
-    - mvn --batch-mode clean package -DskipTests -DperformRelease -Phsqldb
+    - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
     - echo "-- Generated files:"
     - ls -la ${ARTIFACT_WAR_FILE} ${ARTIFACT_ZIP_FILE} ${ARTIFACT_CONFIG_FILES}
@@ -260,7 +260,7 @@ release:tags:
   script:
     - echo "Performing release..."
     - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${CI_COMMIT_TAG}"
-    - mvn --batch-mode clean package -DskipTests -DperformRelease -Phsqldb
+    - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
     - APP_VERSION=${CI_COMMIT_TAG}
     - echo "-- Generated files:"
     - ls -la ${ARTIFACT_WAR_FILE} ${ARTIFACT_ZIP_FILE} ${ARTIFACT_CONFIG_FILES}
