@@ -24,6 +24,8 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
@@ -667,6 +669,9 @@ public class StrategyRepositoryImpl
     protected void onAfterSaveEntity(StrategyVO vo, Strategy savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
+        // Save properties
+        saveProperties(vo.getProperties(), savedEntity, savedEntity.getUpdateDate());
+
         EntityManager em = getEntityManager();
         em.flush();
         em.clear();
@@ -990,6 +995,61 @@ public class StrategyRepositoryImpl
                 EntityGraph<?> entityGraph = em.getEntityGraph(Strategy.GRAPH_PMFMS);
                 query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
             }
+        }
+    }
+
+    protected void saveProperties(Map<String, String> source, Strategy parent, Date updateDate) {
+        final EntityManager em = getEntityManager();
+        if (MapUtils.isEmpty(source)) {
+            if (parent.getProperties() != null) {
+                List<StrategyProperty> toRemove = ImmutableList.copyOf(parent.getProperties());
+                parent.getProperties().clear();
+                toRemove.forEach(em::remove);
+            }
+        } else {
+            // WARN: database can stored many values for the same keys.
+            // Only the first existing instance will be reused. Duplicate properties will be removed
+            ListMultimap<String, StrategyProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
+                    Beans.getList(parent.getProperties()),
+                    StrategyProperty.Fields.LABEL);
+            List<StrategyProperty> existingValues = Beans.getList(existingPropertiesMap.values());
+            final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
+            if (parent.getProperties() == null) {
+                parent.setProperties(Lists.newArrayList());
+            }
+            final List<StrategyProperty> targetProperties = parent.getProperties();
+            targetProperties.clear();
+
+            // Transform each entry into StrategyProperty
+            source.keySet().stream()
+                    .map(key -> {
+                        StrategyProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
+                        boolean isNew = (prop == null);
+                        if (isNew) {
+                            prop = new StrategyProperty();
+                            prop.setLabel(key);
+                            prop.setStrategy(parent);
+                            prop.setCreationDate(updateDate);
+                        } else {
+                            existingValues.remove(prop);
+                        }
+                        prop.setName(source.get(key));
+                        prop.setStatus(enableStatus);
+                        prop.setUpdateDate(updateDate);
+                        if (isNew) {
+                            em.persist(prop);
+                        } else {
+                            prop = em.merge(prop);
+                        }
+                        return prop;
+                    })
+                    .forEach(targetProperties::add);
+
+            // Remove old properties
+            if (CollectionUtils.isNotEmpty(existingValues)) {
+                existingValues.forEach(em::remove);
+            }
+
         }
     }
 }
