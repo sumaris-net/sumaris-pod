@@ -22,7 +22,7 @@ package net.sumaris.server.service.crypto;
  * #L%
  */
 
-import net.sumaris.core.service.crypto.CryptoService;
+import net.sumaris.core.service.technical.crypto.CryptoService;
 import net.sumaris.core.util.crypto.KeyPair;
 
 public interface ServerCryptoService extends  CryptoService {

@@ -33,7 +33,6 @@ import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sample.SampleAdagioRepository;
 import net.sumaris.core.dao.data.sample.SampleRepository;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.NotUniqueException;
@@ -84,14 +83,14 @@ public class SampleServiceImpl implements SampleService {
 	protected boolean enableSampleUniqueTag;
 	protected boolean enableAdagioOptimization;
 
-	protected boolean enableSampleImages;
+	protected boolean enableImageAttachments;
 
 	@PostConstruct
 	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
 	public void onConfigurationReady() {
 		this.enableSampleUniqueTag = configuration.enableSampleUniqueTag();
 		this.enableAdagioOptimization = configuration.enableAdagioOptimization();
-		this.enableSampleImages = configuration.enableDataImages();
+		this.enableImageAttachments = configuration.enableDataImages();
 	}
 
 	@Override
@@ -164,7 +163,7 @@ public class SampleServiceImpl implements SampleService {
 		changes.forEach(this::saveMeasurements);
 
 		// Save images
-		if (this.enableSampleImages) {
+		if (this.enableImageAttachments) {
 			changes.forEach(this::saveImageAttachments);
 		}
 
@@ -199,7 +198,7 @@ public class SampleServiceImpl implements SampleService {
 		changes.forEach(this::saveMeasurements);
 
 		// Save images
-		if (this.enableSampleImages) {
+		if (this.enableImageAttachments) {
 			changes.forEach(this::saveImageAttachments);
 		}
 
@@ -228,7 +227,7 @@ public class SampleServiceImpl implements SampleService {
 			saveMeasurements(result);
 
 			// Save images
-			saveImageAttachments(result);
+			if (enableImageAttachments) saveImageAttachments(result);
 		}
 
 		return result;

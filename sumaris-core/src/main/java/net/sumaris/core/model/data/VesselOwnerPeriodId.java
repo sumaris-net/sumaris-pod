@@ -25,30 +25,33 @@ package net.sumaris.core.model.data;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
-@Embeddable
 @Getter
 @Setter
 @EqualsAndHashCode
+@ToString(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class VesselOwnerPeriodId implements Serializable {
 
-    @Column(name = "vessel_fk")
-    private Integer vesselId;
+    @ToString.Include
+    private int vessel;
 
-    @Column(name = "vessel_owner_fk")
-    private Integer vesselOwnerId;
+    @ToString.Include
+    private int vesselOwner;
 
-    @Column(name = "start_date")
-    @Temporal(TemporalType.DATE)
+    @ToString.Include
     private Date startDate;
 
     public VesselOwnerPeriodId copy() {
-        return new VesselOwnerPeriodId(this.getVesselId(), this.getVesselOwnerId(), this.getStartDate());
+        return VesselOwnerPeriodId.builder()
+                .vessel(getVessel())
+                .vesselOwner(getVesselOwner())
+                .startDate(getStartDate())
+                .build();
     }
 }

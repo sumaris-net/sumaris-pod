@@ -1013,6 +1013,17 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_PHYSICAL_GEAR_HASH_OPTIMIZATION.getKey());
     }
 
+    public boolean enableVesselUseFeaturesHashOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_VESSEL_USE_FEATURES_HASH_OPTIMIZATION.getKey());
+    }
+
+    public boolean enableGearUseFeaturesHashOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_GEAR_USE_FEATURES_HASH_OPTIMIZATION.getKey());
+    }
+
+    public boolean enableGearPhysicalFeaturesHashOptimization() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_GEAR_PHYSICAL_FEATURES_HASH_OPTIMIZATION.getKey());
+    }
 
     public boolean enableAdagioOptimization() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ADAGIO_OPTIMIZATION.getKey());

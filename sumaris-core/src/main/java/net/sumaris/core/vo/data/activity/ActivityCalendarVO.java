@@ -27,7 +27,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.data.IWithObserversEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -38,13 +40,17 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class ActivityCalendarVO implements IRootDataVO<Integer>,
+    IWithObserversEntity<Integer, PersonVO>,
     IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>,
-    IWithMeasurementValues {
+    IWithMeasurementValues{
 
+    @EqualsAndHashCode.Exclude
     private Integer id;
     private Integer year;
     private Integer[] registrationLocationIds;
@@ -53,7 +59,9 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     private Boolean economicSurvey;
     private String comments;
 
+    @EqualsAndHashCode.Exclude
     private Date creationDate;
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
@@ -62,6 +70,7 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     private String qualificationComments;
     private DepartmentVO recorderDepartment;
     private PersonVO recorderPerson;
+    private Set<PersonVO> observers;
 
     private Integer vesselId;
     @ToString.Exclude
@@ -77,11 +86,19 @@ public class ActivityCalendarVO implements IRootDataVO<Integer>,
     @EqualsAndHashCode.Exclude
     private List<GearUseFeaturesVO> gearUseFeatures;
 
+    @EqualsAndHashCode.Exclude
+    private List<GearPhysicalFeaturesVO> gearPhysicalFeatures;
+
     private List<ImageAttachmentVO> images;
+
+    @EqualsAndHashCode.Exclude
+    private List<ActivityCalendarVesselRegistrationPeriodVO> vesselRegistrationPeriods;
 
     @Override
     @JsonIgnore
     public Date getVesselDateTime() {
+        // Use the first day of the year
+        if (this.year != null) return Dates.getFirstDayOfYear(this.year);
         return null;
     }
 

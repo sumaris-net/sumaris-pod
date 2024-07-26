@@ -134,7 +134,7 @@ public class VesselSnapshotRepositoryImpl
         criteriaQuery.multiselect(selection).distinct(true);
 
         // Apply specification
-        Specification<VesselFeatures> spec = filter != null ? toSpecification(filter, fetchOptions) : null;
+        Specification<VesselFeatures> spec = toSpecification(filter, fetchOptions);
         Predicate predicate = spec != null ? spec.toPredicate(root, criteriaQuery, cb) : null;
         if (predicate != null) criteriaQuery.where(predicate);
 
@@ -171,8 +171,7 @@ public class VesselSnapshotRepositoryImpl
             .and(includedVesselIds(filter.getIncludedIds()))
             .and(excludedVesselIds(filter.getExcludedIds()))
             // Type
-            .and(vesselTypeId(filter.getVesselTypeId()))
-            .and(vesselTypeIds(filter.getVesselTypeIds()))
+            .and(vesselTypeIds(concat(filter.getVesselTypeId(), filter.getVesselTypeIds())))
             // by locations
             .and(registrationLocation(filter.getRegistrationLocationId()))
             .and(basePortLocation(filter.getBasePortLocationId()))
@@ -182,7 +181,7 @@ public class VesselSnapshotRepositoryImpl
             .and(programLabel(filter.getProgramLabel()))
             .and(programIds(filter.getProgramIds()))
             // Dates
-            //.and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
+            .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
             .and(betweenRegistrationDate(filter.getStartDate(), filter.getEndDate(), filter.getOnlyWithRegistration()))
             .and(newerThan(filter.getMinUpdateDate()))
             // Text

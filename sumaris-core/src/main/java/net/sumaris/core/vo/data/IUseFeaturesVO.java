@@ -22,13 +22,11 @@
 
 package net.sumaris.core.vo.data;
 
-import net.sumaris.core.model.data.IUseFeaturesEntity;
+import net.sumaris.core.model.IWithFlagsValueObject;
 import net.sumaris.core.model.data.IWithDataQualityEntity;
 import net.sumaris.core.model.data.IWithProgramEntity;
-import net.sumaris.core.model.data.IWithVesselEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 import java.util.List;
@@ -38,7 +36,8 @@ public interface IUseFeaturesVO extends
     IWithVesselSnapshotVO<Integer>,
     IWithProgramEntity<Integer, ProgramVO>,
     IWithDataQualityEntity<Integer, Integer>,
-    IWithMeasurementValues
+    IWithMeasurementValues,
+    IWithFlagsValueObject<Integer>
 {
 
     Date getStartDate();

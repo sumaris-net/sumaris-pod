@@ -23,7 +23,6 @@ package net.sumaris.core.dao.data.vessel;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.location.Location;
@@ -110,9 +109,10 @@ public class VesselUseFeaturesRepositoryImpl
         }
     }
 
-    @Override
-    public void toEntity(VesselUseFeaturesVO source, VesselUseFeatures target, boolean copyIfNull) {
-        super.toEntity(source, target, copyIfNull);
+
+    public boolean toEntity(VesselUseFeaturesVO source, VesselUseFeatures target, boolean copyIfNull, boolean allowSkipSameHash) {
+        boolean sameHash = super.toEntity(source, target, copyIfNull, allowSkipSameHash);
+        if (sameHash) return true;
 
         // Location
         Integer basePortLocationId = source.getBasePortLocation() != null ? source.getBasePortLocation().getId() : null;
@@ -144,20 +144,24 @@ public class VesselUseFeaturesRepositoryImpl
                 target.setDailyActivityCalendar(getReference(DailyActivityCalendar.class, source.getDailyActivityCalendarId()));
             }
         }
+
+        return false;
     }
 
     @Override
     public List<VesselUseFeaturesVO> saveAllByActivityCalendarId(int parentId, List<VesselUseFeaturesVO> sources) {
         ActivityCalendar parent = getById(ActivityCalendar.class, parentId);
         sources.forEach(source -> source.setActivityCalendarId(parentId));
-        return this.saveAllByList(parent.getVesselUseFeatures(), sources);
+        boolean dirty = this.saveAllByList(parent.getVesselUseFeatures(), sources);
+        return sources;
     }
 
     @Override
     public List<VesselUseFeaturesVO> saveAllByDailyActivityCalendarId(int parentId, List<VesselUseFeaturesVO> sources) {
         DailyActivityCalendar parent = getById(DailyActivityCalendar.class, parentId);
         sources.forEach(source -> source.setDailyActivityCalendarId(parentId));
-        return this.saveAllByList(parent.getVesselUseFeatures(), sources);
+        boolean dirty = this.saveAllByList(parent.getVesselUseFeatures(), sources);
+        return sources;
     }
 
     /* -- protected functions -- */

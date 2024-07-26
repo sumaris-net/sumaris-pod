@@ -25,14 +25,12 @@ package net.sumaris.core.dao.data.sample;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -48,7 +46,6 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
@@ -495,13 +492,13 @@ public class SampleRepositoryImpl
         onBeforeSaveEntity(source, entity, isNew);
 
         // VO -> Entity
-        boolean skipSave = toEntity(source, entity, true, !isNew && enableHashOptimization);
+        boolean sameHash = toEntity(source, entity, true, !isNew && enableHashOptimization);
 
-        // Stop here (without change on the update_date)
-        if (skipSave) {
+        if (sameHash) {
             // Mark as same hash (current item and all children)
             TreeNodeEntities.streamAll(source).forEach(vo -> vo.addFlag(ValueObjectFlags.SAME_HASH));
 
+            // Stop here (without change on the update_date)
             return source;
         }
 

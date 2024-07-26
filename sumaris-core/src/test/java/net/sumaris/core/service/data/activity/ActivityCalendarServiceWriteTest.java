@@ -28,12 +28,12 @@ import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevelEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
+import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.DataTestUtils;
-import net.sumaris.core.vo.data.DataOriginVO;
-import net.sumaris.core.vo.data.FishingAreaVO;
-import net.sumaris.core.vo.data.GearUseFeaturesVO;
-import net.sumaris.core.vo.data.VesselUseFeaturesVO;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.referential.LocationVO;
@@ -46,6 +46,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.List;
 
 public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
@@ -132,6 +133,44 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
     }
 
     @Test
+    public void saveUnchanged() {
+        int activityCalendarId = 1;
+
+        // Fetch and re-save (to force hash computation)
+        ActivityCalendarVO data = service.get(activityCalendarId, ActivityCalendarFetchOptions.FULL_GRAPH);
+        data = service.save(data);
+
+        Date maxUpdateDate = Dates.max(
+                Beans.getStream(data.getVesselUseFeatures()).map(VesselUseFeaturesVO::getUpdateDate).max(Dates::compare).orElse(null),
+                Beans.getStream(data.getGearUseFeatures()).map(GearUseFeaturesVO::getUpdateDate).max(Dates::compare).orElse(null)
+        );
+        VesselUseFeaturesVO updatedVuf = Beans.getList(data.getVesselUseFeatures()).get(0);
+        Assume.assumeNotNull("No VUF in ActivityCalendar#" + activityCalendarId, updatedVuf);
+        Assume.assumeNotNull("Missing VUF basePortLocation", updatedVuf.getBasePortLocation());
+
+        // Update first VUF basePortLocation
+        LocationVO newBasePortLocation = new LocationVO();
+        newBasePortLocation.setId(fixtures.getLocationPortId(1));
+        Assume.assumeFalse("VUF basePortLocation should NOT be Location#" + newBasePortLocation.getId(), updatedVuf.getBasePortLocation().getId().equals(newBasePortLocation.getId()));
+
+        updatedVuf.setBasePortLocation(newBasePortLocation);
+
+        // Save with the updated VUF
+        ActivityCalendarVO savedData = service.save(data);
+        Date savedMaxUpdateDate = Dates.max(
+                Beans.getStream(savedData.getVesselUseFeatures())
+                        .filter(vuf -> !vuf.getId().equals(updatedVuf.getId()))
+                        .map(VesselUseFeaturesVO::getUpdateDate).max(Dates::compare).orElse(null),
+                Beans.getStream(savedData.getGearUseFeatures()).map(GearUseFeaturesVO::getUpdateDate).max(Dates::compare).orElse(null)
+        );
+        Assert.assertEquals("Only updated VesselUseFeatures/gearUseFeatures should have been saved", maxUpdateDate, savedMaxUpdateDate);
+
+        // Ensure saved vuf update date is updated
+        VesselUseFeaturesVO savedUpdatedVuf = Beans.getList(savedData.getVesselUseFeatures()).get(0);
+        Assert.assertTrue(savedUpdatedVuf.getUpdateDate().after(savedMaxUpdateDate));
+    }
+
+    @Test
     public void delete() {
         // Create an activity calendar
         ActivityCalendarVO savedVO = null;
@@ -155,7 +194,7 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         ActivityCalendarVO calendar = DataTestUtils.createActivityCalendar(fixtures, year);
 
         calendar.setMeasurementValues(ImmutableMap.of(
-            PmfmEnum.SURVEY_QUALIFICATION.getId(), "591", // Directe
+            PmfmEnum.SURVEY_QUALIFICATION.getId(), QualitativeValueEnum.SURVEY_QUALIFICATION_DIRECT.getId().toString(), // Directe
             PmfmEnum.SURVEY_RELIABILITY.getId(), "600" // Fiable
         ));
 

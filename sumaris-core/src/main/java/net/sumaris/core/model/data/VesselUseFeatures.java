@@ -31,6 +31,7 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -99,14 +100,17 @@ public class VesselUseFeatures implements IUseFeaturesEntity {
     @JoinColumn(name = "base_port_location_fk")
     private Location basePortLocation;
 
-    @OneToMany(mappedBy = VesselUseMeasurement.Fields.VESSEL_USE_FEATURES)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = VesselUseMeasurement.Fields.VESSEL_USE_FEATURES, cascade = CascadeType.REMOVE)
     private List<VesselUseMeasurement> measurements;
 
-    @OneToMany(mappedBy = VesselUseFeaturesOrigin.Fields.VESSEL_USE_FEATURES)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = VesselUseFeaturesOrigin.Fields.VESSEL_USE_FEATURES, cascade = CascadeType.REMOVE)
     private List<VesselUseFeaturesOrigin> origins;
 
     @Transient
     private Department recorderDepartment; // Missing in DB, but expected by IDataEntity
+
+    @Column(name = "hash")
+    private Integer hash;
 
     /* -- parent entity -- */
 

@@ -31,6 +31,11 @@ public class IdentifierHelper {
         // helper class
     }
 
+    /**
+     * Convert change case into underscore (snakecase). E.g. "myColumnName" becomes "my_column_name"
+     * @param identifier
+     * @return
+     */
     public static Identifier normalize(Identifier identifier) {
         if (identifier == null || StringUtils.isBlank(identifier.getText())) {
             return identifier;

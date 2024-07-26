@@ -119,11 +119,6 @@ public interface VesselFeaturesSpecifications<
             .addBind(EXCLUDED_VESSEL_IDS_PARAM, vesselIds);
     }
 
-    default Specification<VesselFeatures> vesselTypeId(Integer vesselTypeId) {
-        if (vesselTypeId == null) return null;
-        return vesselTypeIds(vesselTypeId);
-    }
-
     default Specification<VesselFeatures> vesselTypeIds(Integer... vesselTypeIds) {
         if (ArrayUtils.isEmpty(vesselTypeIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
@@ -194,7 +189,7 @@ public interface VesselFeaturesSpecifications<
     }
 
     default Specification<VesselFeatures> betweenRegistrationDate(Date startDate, Date endDate, final boolean onlyWithRegistration) {
-        // Filtre has no dates: special case
+        // No dates: special case
         if (startDate == null && endDate == null) {
             return (root, query, cb) -> {
                 ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb, onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
@@ -217,6 +212,8 @@ public interface VesselFeaturesSpecifications<
 
             ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb, onlyWithRegistration ? JoinType.INNER : JoinType.LEFT);
 
+            query.distinct(true);
+
             Predicate vrpDatesPredicate;
             // Start + end date
             if (startDate != null && endDate != null) {
@@ -237,7 +234,7 @@ public interface VesselFeaturesSpecifications<
 
             // End date only
             else {
-                // VRP.start_date <=> filter.endDate
+                // VRP.start_date <= filter.endDate
                 vrpDatesPredicate = cb.lessThanOrEqualTo(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDate);
             }
 
@@ -245,7 +242,7 @@ public interface VesselFeaturesSpecifications<
 
             // Allow without VRP (left outer join)
             return cb.or(
-                cb.isNull(vrp.get(VesselRegistrationPeriod.Fields.ID)),
+                cb.isNull(vrp), // Left outer
                 vrpDatesPredicate
             );
         };
@@ -331,18 +328,20 @@ public interface VesselFeaturesSpecifications<
         return findByVesselIdAndDate(vesselId, date, null);
     }
 
+    @SuppressWarnings("unchecked")
     default Optional<V> findByVesselIdAndDate(int vesselId, Date date, O fetchOptions) {
         F filter = (F)VesselFilterVO.builder()
             .vesselId(vesselId)
             .startDate(date)
+            .endDate(date)
             .build();
-        List<V> result = findAll((F)filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
+        List<V> result = findAll((F)filter, 0, 5, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
 
         // No result for this date:
         // => retry without date (should return the last features and period)
         if (result.isEmpty() && date != null) {
             filter.setDate(null);
-            result = findAll(filter, 0, 1, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
+            result = findAll(filter, 0, 5, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
         }
         if (result.isEmpty()) {
             return Optional.empty();

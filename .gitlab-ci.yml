@@ -7,13 +7,22 @@ image: maven:3.8.5-eclipse-temurin-17-alpine
 
 # stages (main steps of pipeline)
 stages:
-    - build
-    - alt_build
-    - test
-    - release
-    - docker
-    - publish
-    - docs
+  - environment
+  - build
+  - test
+  - release
+  - docker
+  - publish
+  - docs
+
+workflow:
+  rules:
+    - changes:
+        - '.gitlab-ci.yml'
+        - '*/src/*'
+        - '*/src/**/*'
+        - 'pom.xml'
+        - '*/pom.xml'
 
 # ---------------------------------------------------------------
 # Global variables
@@ -27,12 +36,16 @@ variables:
     #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
-    MAVEN_REPO_URL: https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+    MAVEN_REPO_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven"
     APP_SHARED_MODULE: sumaris-core-shared
     APP_CORE_MODULE: sumaris-core
     APP_DB_MODULE: sumaris-db
     APP_WAR_MODULE: sumaris-server
-    ARTIFACT_WAR_FILE: "${APP_WAR_MODULE}/target/*.war"
+    ARTIFACT_WAR_FILE: "${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-*.war"
+    ARTIFACT_ZIP_FILE: "${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-*-standalone.zip"
+    ARTIFACT_WAR_SHA256_FILE: "${APP_WAR_MODULE}/target/${APP_WAR_MODULE}*.sha256"
+    ARTIFACT_DB_FILE: "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-*.zip"
+    ARTIFACT_DB_SHA256_FILE: "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-*.sha256"
     ARTIFACT_CONFIG_FILES: "${APP_WAR_MODULE}/target/classes/*.properties"
     ENV_FILE: target/variables.env
 
@@ -41,7 +54,7 @@ variables:
 # ---------------------------------------------------------------
 .configure-git-template: &git-setup
   before_script:
-    - echo "fetch origin using token --${CI_ACCESS_TOKEN}--"
+    - echo "Fetching origin..."
     - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
@@ -58,6 +71,33 @@ variables:
     after_script:
         - docker logout ${CI_REGISTRY}
     allow_failure: false
+
+# ---------------------------------------------------------------
+# Environment jobs : Create docker image for builds/release, this
+# offers possibility to cache project dependencies so we don't
+# have to download them every time.
+# ---------------------------------------------------------------
+build:env:
+  extends: .docker
+  stage: environment
+  allow_failure: true
+  script:
+    # Create the target directory
+    - mkdir -p target/docker
+    - cp -rf ${APP_WAR_MODULE}/src/main/docker/build/* target/docker
+    # Build and push the CI image
+    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
+    - docker push ${CI_BUILD_IMAGE}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+      changes:
+        - '.gitlab-ci.yml'
+        - '${APP_WAR_MODULE}/src/main/docker/build/Dockerfile'
+        - 'pom.xml'
+        - '*/pom.xml'
+    - if: '$CI_COMMIT_BRANCH =~ /^features?\/.*/ || $CI_MERGE_REQUEST_ID'
+      when: manual
+    - when: never
 
 # ---------------------------------------------------------------
 # Build jobs
@@ -96,37 +136,6 @@ build:feature:
     - /^feature\/.*/
     - /^features\/.*/
   when: manual
-
-failsafe-build:
-    extends: .build
-    stage: alt_build
-    when: on_failure
-    only:
-      - develop
-      - /^feature\/.*/
-      - /^features\/.*/
-
-# ---------------------------------------------------------------
-# Environment jobs : Create docker image for builds/release, this
-# offers possibility to cache project dependencies so we don't
-# have to download them every time.
-# ---------------------------------------------------------------
-build:env:
-    extends: .docker
-    stage: alt_build
-    when: on_failure
-    allow_failure: true
-    script:
-      # Create the target directory
-      - mkdir -p target/docker
-      - cp -rf ${APP_WAR_MODULE}/src/main/docker/build/* target/docker
-      # Build and push the CI image
-      - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
-      - docker push ${CI_BUILD_IMAGE}
-    only:
-      - develop
-      - /^feature\/.*/
-      - /^features\/.*/
 
 # ---------------------------------------------------------------
 # Tests jobs
@@ -193,32 +202,43 @@ sonarqube:
   tags: [sih_public_runner]
   script:
     - echo "Preparing release..."
-    - export MVN_OPTS="-DinstallProject=false -DpushRemote=false"
-    - if [[ "_${RELEASE_VERSION}" == "_" ]]; then echo "Missing pipeline variable 'RELEASE_VERSION' !" && exit 1; fi
-    - MVN_OPTS="${MVN_OPTS} -DreleaseVersion=${RELEASE_VERSION}"
+    - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${RELEASE_VERSION:-}"
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
-    - mvn clean package --batch-mode -DskipTests -DperformRelease -Phsqldb -Denv=hsqldb
-    - echo "Deploy binaries to package registry"
+    - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
+    - echo "-- Generated files:"
+    - ls -la ${ARTIFACT_WAR_FILE} ${ARTIFACT_ZIP_FILE} ${ARTIFACT_CONFIG_FILES}
+    - echo "-- Creating SHA256 file..."
+    - echo "$(cd ${APP_WAR_MODULE}/target && sha256sum ${APP_WAR_MODULE}-*.war)" > ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256
+    - echo "$(cd ${APP_WAR_MODULE}/target && sha256sum ${APP_WAR_MODULE}-*.zip)" >> ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256
+    - echo "Generating DB..."
+    - mvn --batch-mode -Prun,hsqldb -q -DskipTests -pl ${APP_CORE_MODULE}
+    - zip -q -r "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip" target/db
+    - echo "-- Generated files:"
+    - ls -la ${ARTIFACT_DB_FILE}
+    - echo "-- Creating SHA256 file..."
+    - echo "$(cd ${APP_CORE_MODULE}/target && sha256sum ${APP_DB_MODULE}-*.zip)" > ${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256
+    - echo "Deploy binaries to package registry"
     - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout --non-recursive)
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DpomFile=${APP_WAR_MODULE}/pom.xml -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -Dclassifier=standalone -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - echo "Pushing changes to upstream"
     - git diff --cached
     - git commit -am "[CI] release performed" || echo "Nothing to commit, continue"
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
-    - echo "-- Generated WAR files:"
-    - ls -la ${ARTIFACT_WAR_FILE}
-    - echo "-- Generated config files:"
-    - ls -la  ${ARTIFACT_CONFIG_FILES}
     - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
+      - ${ARTIFACT_ZIP_FILE}
+      - ${ARTIFACT_DB_FILE}
+      - ${ARTIFACT_WAR_SHA256_FILE}
+      - ${ARTIFACT_DB_SHA256_FILE}
       - ${ARTIFACT_CONFIG_FILES}
-      # FIXME: BLA - comment out to avoid an error "Request Entity Too Large"
-      #- ${APP_WAR_MODULE}/target/*.zip
     reports:
       dotenv: ${ENV_FILE}
     expire_in: 60 minutes
@@ -240,27 +260,41 @@ release:tags:
   script:
     - echo "Performing release..."
     - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${CI_COMMIT_TAG}"
-    - mvn clean package --batch-mode -DskipTests -DperformRelease -Phsqldb
-    - echo "Deploy binaries to package registry"
+    - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
+    - APP_VERSION=${CI_COMMIT_TAG}
+    - echo "-- Generated files:"
+    - ls -la ${ARTIFACT_WAR_FILE} ${ARTIFACT_ZIP_FILE} ${ARTIFACT_CONFIG_FILES}
+    - echo "-- Creating SHA256 file..."
+    - echo "$(cd ${APP_WAR_MODULE}/target && sha256sum ${APP_WAR_MODULE}-*.war)" > ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256
+    - echo "$(cd ${APP_WAR_MODULE}/target && sha256sum ${APP_WAR_MODULE}-*.zip)" >> ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256
+    - echo "Generating DB..."
+    - mvn --batch-mode -Prun,hsqldb -q -DskipTests -pl ${APP_CORE_MODULE}
+    - zip -q -r "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${CI_COMMIT_TAG}.zip" target/db
+    - echo "-- Generated files:"
+    - ls -la ${ARTIFACT_DB_FILE}
+    - echo "-- Creating SHA256 files..."
+    - echo "$(cd ${APP_CORE_MODULE}/target && sha256sum ${APP_DB_MODULE}-*.zip)" > ${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256
+    - echo "Deploy binaries to package registry..."
     - APP_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout --non-recursive)
     - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout --non-recursive)
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DpomFile=${APP_WAR_MODULE}/pom.xml -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -Dclassifier=standalone -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
+      - ${ARTIFACT_ZIP_FILE}
+      - ${ARTIFACT_DB_FILE}
+      - ${ARTIFACT_WAR_SHA256_FILE}
+      - ${ARTIFACT_DB_SHA256_FILE}
       - ${ARTIFACT_CONFIG_FILES}
-      # FIXME: BLA - comment out to avoid an error "Request Entity Too Large"
-      #- ${APP_WAR_MODULE}/target/*.zip
     expire_in: 60 minutes
   allow_failure: false
   only:
     - tags
   when: manual
-
-failsafe-release:
-    extends: .release
-    needs: [failsafe-build]
 
 gitlab-release:
     stage: release
@@ -273,6 +307,18 @@ gitlab-release:
         description: "Created using the release-cli $EXTRA_DESCRIPTION"
         tag_name: "${CI_COMMIT_TAG}"
         ref: "${CI_COMMIT_TAG}"
+        assets:
+          links:
+            - name: "${APP_WAR_MODULE}-${CI_COMMIT_TAG}.war"
+              url: "${MAVEN_REPO_URL}/net/sumaris/${APP_WAR_MODULE}/${CI_COMMIT_TAG}/${APP_WAR_MODULE}-${CI_COMMIT_TAG}.war"
+            - name: "${APP_WAR_MODULE}-${CI_COMMIT_TAG}-standalone.zip"
+              url: "${MAVEN_REPO_URL}/net/sumaris/${APP_WAR_MODULE}/${CI_COMMIT_TAG}/${APP_WAR_MODULE}-${CI_COMMIT_TAG}-standalone.zip"
+            - name: "${APP_DB_MODULE}-${CI_COMMIT_TAG}.zip"
+              url: "${MAVEN_REPO_URL}/net/sumaris/${APP_CORE_MODULE}/${CI_COMMIT_TAG}/${APP_DB_MODULE}-${CI_COMMIT_TAG}.zip"
+            - name: "${APP_WAR_MODULE}-${CI_COMMIT_TAG}.sha256"
+              url: "${MAVEN_REPO_URL}/net/sumaris/${APP_WAR_MODULE}/${CI_COMMIT_TAG}/${APP_WAR_MODULE}-${CI_COMMIT_TAG}.sha256"
+            - name: "${APP_DB_MODULE}-${CI_COMMIT_TAG}.sha256"
+              url: "${MAVEN_REPO_URL}/net/sumaris/${APP_CORE_MODULE}/${CI_COMMIT_TAG}/${APP_DB_MODULE}-${CI_COMMIT_TAG}.sha256"
     only:
         - tags
 
@@ -317,8 +363,6 @@ docker:develop:
     needs: [build]
     variables:
         IMAGE_TAG: 'develop'
-        IMAGE_USERID: ${PRODUCTION_IMAGE_USERID}
-        IMAGE_GROUPID: ${PRODUCTION_IMAGE_GROUPID}
     only:
         - develop
 
@@ -354,10 +398,12 @@ docker:release:tags:
       - git submodule foreach git fetch origin
       - git submodule foreach git pull
   script:
-      - echo "---- Generating SVG, from '*.plantuml' files..."
-      - git submodule foreach ./generate.sh || true
-      - echo "---- Generating Maven site..."
-      - mvn site -s ./ci_settings.xml -q -Phsqldb -DperformRelease
+    - echo "---- Generating SVG (e.g.PlantUML files) ..."
+    - git submodule foreach ./plantuml.sh svg || true
+    - echo "---- Cleaning sub modules..."
+    - git submodule foreach rm -rf node_modules || true
+    - echo "---- Generating Maven site..."
+    - mvn site -s ./ci_settings.xml -q -Phsqldb -DperformRelease
   after_script:
       - mv target/site public
   allow_failure: true

@@ -58,6 +58,8 @@
 		<property name="hibernate.show_sql">false</property>
 		<property name="hibernate.cache.use_query_cache">false</property>
 		<property name="hibernate.cache.use_second_level_cache">false</property>
+		<property name="hibernate.physical_naming_strategy">${hibernate.physical_naming_strategy}</property>
+		<property name="hibernate.implicit_naming_strategy">${hibernate.implicit_naming_strategy}</property>
 
 ]]></echo>
 		<propertyregex property="src.cleanPath" input="${project.build.sourceDirectory}" regexp="\\" replace="/" override="true" defaultValue="${project.build.sourceDirectory}" />
@@ -93,6 +95,8 @@ connection.driver_class=${jdbc.driver}
 connection.username=${jdbc.username}
 connection.password=${jdbc.password}
 hibernate.dialect=${hibernate.dialect}
+hibernate.physical_naming_strategy=${hibernate.physical_naming_strategy}
+hibernate.implicit_naming_strategy=${hibernate.implicit_naming_strategy}
 ]]>
 		</echo>
 	</target>

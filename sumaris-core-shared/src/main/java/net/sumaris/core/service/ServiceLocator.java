@@ -25,7 +25,7 @@ package net.sumaris.core.service;
  */
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
+import net.sumaris.core.service.technical.schema.DatabaseSchemaService;
 import org.springframework.context.ApplicationContext;
 
 import java.io.Closeable;

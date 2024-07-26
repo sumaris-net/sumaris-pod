@@ -148,13 +148,14 @@ public class ProgramServiceImpl implements ProgramService {
 
 		ProgramVO result = programRepository.save(source);
 
-		if (options.getWithDepartmentsAndPersons()) {
-
-			// Save departments
+		// Save departments
+		if (options.getWithDepartments()) {
 			List<ProgramDepartmentVO> savedDepartments = programRepository.saveDepartmentsByProgramId(source.getId(), Beans.getList(source.getDepartments()));
 			result.setDepartments(savedDepartments);
+		}
 
-			// Save persons
+		// Save persons
+		if (options.getWithPersons()) {
 			List<ProgramPersonVO> savedPersons = programRepository.savePersonsByProgramId(source.getId(), Beans.getList(source.getPersons()));
 			result.setPersons(savedPersons);
 		}

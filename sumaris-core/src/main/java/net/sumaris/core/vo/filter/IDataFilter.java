@@ -27,7 +27,7 @@ import net.sumaris.core.model.data.DataQualityStatusEnum;
 import java.io.Serializable;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 public interface IDataFilter extends Serializable {
 

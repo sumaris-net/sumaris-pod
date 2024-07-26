@@ -28,7 +28,9 @@ import net.sumaris.core.model.annotation.IEntityEnum;
 import java.io.Serializable;
 import java.util.Arrays;
 
-@EntityEnum(entity = QualitativeValue.class, resolveAttributes = {QualitativeValue.Fields.LABEL, QualitativeValue.Fields.ID})
+@EntityEnum(entity = QualitativeValue.class,
+    configAttributes = QualitativeValue.Fields.ID,
+    resolveAttributes = {QualitativeValue.Fields.LABEL, QualitativeValue.Fields.ID})
 public enum QualitativeValueEnum implements Serializable, IEntityEnum {
 
     SORTING_BULK(390, "VRAC"), // Adagio => 311
@@ -53,6 +55,10 @@ public enum QualitativeValueEnum implements Serializable, IEntityEnum {
 
     // SEX
     SEX_UNSEXED(188, "NS"), // Adagio => 302
+
+    SURVEY_QUALIFICATION_DIRECT(586, "DIR"),
+    SPECIES_LIST_ORIGIN_RANDOM(660, "RANDOM"),
+    SPECIES_LIST_ORIGIN_PETS(661, "PETS")
     ;
 
     public static QualitativeValueEnum valueOf(final int id) {

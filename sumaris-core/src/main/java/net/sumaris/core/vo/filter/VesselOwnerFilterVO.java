@@ -31,7 +31,7 @@ import lombok.experimental.FieldNameConstants;
 import java.util.Date;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Data
 @Builder

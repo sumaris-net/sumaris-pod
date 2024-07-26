@@ -92,6 +92,10 @@ public class Daos {
 
     public final static char LIKE_ESCAPE_CHAR = '\\';
 
+    // Useful because some DB (e.g. Oracle) does not allow boolean in queries
+    public final static int SQL_TRUE = 1;
+    public final static int SQL_FALSE = 0;
+
     private final static String JDBC_URL_PREFIX = "jdbc:";
     private final static String JDBC_URL_PREFIX_HSQLDB = JDBC_URL_PREFIX + DatabaseType.hsqldb.name() + ":";
     private final static String JDBC_URL_PREFIX_HSQLDB_FILE = JDBC_URL_PREFIX_HSQLDB + "file:";

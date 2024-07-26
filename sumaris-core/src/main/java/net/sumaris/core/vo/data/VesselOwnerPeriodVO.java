@@ -57,28 +57,37 @@ public class VesselOwnerPeriodVO implements IEntity<VesselOwnerPeriodId>,
     @EqualsAndHashCode.Exclude
     private VesselOwnerVO vesselOwner;
 
-
     public Integer getVesselId() {
-        if (this.id != null) return this.id.getVesselId();
+        if (this.vessel != null) return this.vessel.getId();
+        if (this.id != null) return this.id.getVessel();
         return null;
     }
 
     public void setVesselId(Integer vesselId) {
-        if (this.id == null) {
-            this.id = new VesselOwnerPeriodId();
+        if (this.vessel == null) {
+            this.vessel = new VesselVO();
         }
-        this.id.setVesselId(vesselId);
+        this.vessel.setId(vesselId);
+        if (vesselId != null) {
+            if (this.id == null) this.id = new VesselOwnerPeriodId();
+            this.id.setVessel(vesselId);
+        }
     }
 
     public Integer getVesselOwnerId() {
-        if (this.id == null) return null;
-        return this.id.getVesselOwnerId();
+        if (this.vesselOwner != null) return this.vesselOwner.getId();
+        if (this.id != null) return this.id.getVesselOwner();
+        return null;
     }
 
     public void setVesselOwnerId(Integer vesselOwnerId) {
-        if (this.id == null) {
-            this.id = new VesselOwnerPeriodId();
+        if (this.vesselOwner == null) {
+            this.vesselOwner = new VesselOwnerVO();
         }
-        this.id.setVesselOwnerId(vesselOwnerId);
+        this.vesselOwner.setId(vesselOwnerId);
+        if (vesselOwnerId != null) {
+            if (this.id == null) this.id = new VesselOwnerPeriodId();
+            this.id.setVesselOwner(vesselOwnerId);
+        }
     }
 }

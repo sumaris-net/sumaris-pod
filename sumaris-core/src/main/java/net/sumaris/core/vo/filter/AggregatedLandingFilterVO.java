@@ -32,7 +32,7 @@ import net.sumaris.core.model.data.DataQualityStatusEnum;
 import java.util.Date;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 @Data
 @Builder

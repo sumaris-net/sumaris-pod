@@ -1,4 +1,4 @@
-package net.sumaris.core.service.crypto;
+package net.sumaris.core.service.technical.crypto;
 
 /*
  * #%L
@@ -40,6 +40,15 @@ public interface CryptoService {
     byte[] getSeed(String salt, String password);
 
     byte[] getSeed(String salt, String password, int N, int r, int p);
+
+    /**
+     * Returns pubkey from salt and password.
+     *
+     * @param salt
+     * @param password
+     * @return
+     */
+    String getPubkey(String salt, String password);
 
     /**
      * Returns a new signing key pair generated from salt and password.

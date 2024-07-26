@@ -42,4 +42,5 @@ public class DataOriginVO {
 
     private Integer vesselUseFeaturesId;
     private Integer gearUseFeaturesId;
+    private Integer gearPhysicalFeaturesId;
 }

@@ -24,6 +24,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
@@ -43,20 +44,21 @@ public interface ProgramRepository
     extends ReferentialRepository<Integer, Program, ProgramVO, ProgramFilterVO, ProgramFetchOptions>,
     ProgramSpecifications {
 
+
     @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#p0", unless = "#result==null")
     default List<Integer> getReadableProgramIdsByUserId(int userId) {
-        return getProgramIdsByUserIdAndPrivilegeIds(userId, true, null);
+        return getProgramIdsByUserIdAndPrivilegeIds(userId, Daos.SQL_TRUE, null);
     }
 
     @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#p0", unless = "#result==null")
     default List<Integer> getWritableProgramIdsByUserId(int userId) {
-        return getProgramIdsByUserIdAndPrivilegeIds(userId, false, ProgramPrivilegeUtils.getWriteIds());
+        return getProgramIdsByUserIdAndPrivilegeIds(userId, Daos.SQL_FALSE, ProgramPrivilegeUtils.getWriteIds());
     }
 
     @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#p0", condition = "#p1==null", unless = "#result==null")
     default List<Integer> getProgramIdsByUserIdAndPrivilegeIds(@Param("userId") int userId,
                                                                @Param("programPrivilegeIds") List<Integer> programPrivilegeIds) {
-        return getProgramIdsByUserIdAndPrivilegeIds(userId, CollectionUtils.isEmpty(programPrivilegeIds), programPrivilegeIds);
+        return getProgramIdsByUserIdAndPrivilegeIds(userId, CollectionUtils.isEmpty(programPrivilegeIds) ? Daos.SQL_TRUE : Daos.SQL_FALSE, programPrivilegeIds);
     }
 
 
@@ -76,9 +78,9 @@ public interface ProgramRepository
         "       inner join STRATEGY2DEPARTMENT S2D on STRATEGY.ID = S2D.STRATEGY_FK" +
         "       inner join PERSON P on S2D.DEPARTMENT_FK = P.DEPARTMENT_FK " +
         "   where p.ID = :userId " +
-        "       AND (:anyProgramPrivilege OR S2D.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds))", nativeQuery = true)
+        "       AND (:anyProgramPrivilege = " + Daos.SQL_TRUE + " OR S2D.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds))", nativeQuery = true)
     List<Integer> getProgramIdsByUserIdAndPrivilegeIds(@Param("userId") int userId,
-                                                       @Param("anyProgramPrivilege") boolean anyProgramPrivilege,
+                                                       @Param("anyProgramPrivilege") int anyProgramPrivilege,
                                                        @Param("programPrivilegeIds") List<Integer> programPrivilegeIds
     );
 

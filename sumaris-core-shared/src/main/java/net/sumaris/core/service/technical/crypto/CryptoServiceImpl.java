@@ -1,4 +1,4 @@
-package net.sumaris.core.service.crypto;
+package net.sumaris.core.service.technical.crypto;
 
 /*
  * #%L
@@ -28,7 +28,6 @@ import jnr.ffi.byref.LongLongByReference;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.util.crypto.KeyPair;
-import net.sumaris.shared.exception.ErrorCodes;
 import org.abstractj.kalium.NaCl;
 import org.abstractj.kalium.NaCl.Sodium;
 import org.abstractj.kalium.crypto.Util;
@@ -82,14 +81,22 @@ public class CryptoServiceImpl implements CryptoService {
     public byte[] getSeed(String salt, String password, int N, int r, int p) {
         try {
             byte[] seed = SCrypt.scrypt(
-                    CryptoUtils.decodeAscii(password),
-                    CryptoUtils.decodeAscii(salt),
+                    CryptoUtils.decodeUTF8(password),
+                    CryptoUtils.decodeUTF8(salt),
                     N, r, p, SEED_BYTES);
             return seed;
         } catch (GeneralSecurityException e) {
             throw new SumarisTechnicalException(
                     "Unable to salt password, using Scrypt library", e);
         }
+    }
+
+    @Override
+    public String getPubkey(String salt, String password) {
+        byte[] seed = getSeed(salt, password);
+        KeyPair keyPair = getKeyPairFromSeed(seed);
+        byte[] pubkey = keyPair.getPubKey();
+        return CryptoUtils.encodeBase58(pubkey);
     }
 
     @Override

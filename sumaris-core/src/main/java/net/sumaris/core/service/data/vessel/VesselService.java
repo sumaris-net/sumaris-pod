@@ -29,6 +29,7 @@ import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +88,9 @@ public interface VesselService {
 
 	@Transactional(readOnly = true)
 	List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page);
+
+	@Transactional(readOnly = true)
+	List<VesselRegistrationPeriodVO> findRegistrationPeriodsByFilter(VesselRegistrationFilterVO filter, Page page);
 
 	@Transactional(readOnly = true)
 	List<VesselOwnerPeriodVO> findOwnerPeriodsByVesselId(int vesselId, Page page);

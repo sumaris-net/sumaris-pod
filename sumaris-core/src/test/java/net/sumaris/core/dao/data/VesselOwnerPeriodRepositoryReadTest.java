@@ -60,30 +60,25 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
     @Autowired
     private VesselOwnerPeriodRepository repository;
 
-    @Before
-    public void setUp() throws Exception {
-        super.setUp();
-        setCommitOnTearDown(false); // this is need because of delete test
-    }
-
     @Test
     public void findByFilter() {
         Integer vesselId = fixtures.getVesselId(0);
 
-        Date now = new Date();
+        // Get the full history (no dates)
         VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
             .vesselId(vesselId)
             .programLabel(ProgramEnum.SIH.getLabel())
-            .startDate(now).endDate(now)
             .build();
-        List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+        List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10,
+                VesselOwnerPeriodVO.Fields.START_DATE,
+                SortDirection.ASC));
 
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());
         VesselOwnerPeriodVO period1 = result.get(0);
-        Assert.assertEquals(vesselId, period1.getId().getVesselId());
         Assert.assertNotNull(period1.getStartDate());
-        Assert.assertNotNull(period1.getVesselId());
+        Assert.assertEquals(vesselId, period1.getVesselId());
+        Assert.assertEquals(vesselId, period1.getVessel().getId());
         Assert.assertNotNull(period1.getVesselOwner());
         Assert.assertEquals("19720111", period1.getVesselOwner().getRegistrationCode());
         Assert.assertEquals("DUPOND", period1.getVesselOwner().getLastName());
@@ -92,9 +87,9 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
         Assert.assertNotNull(period1.getVesselOwner().getProgram());
 
         VesselOwnerPeriodVO period2 = result.get(1);
-        Assert.assertEquals(vesselId, period2.getId().getVesselId());
         Assert.assertNotNull(period2.getStartDate());
-        Assert.assertNotNull(period2.getVesselId());
+        Assert.assertEquals(vesselId, period2.getVesselId());
+        Assert.assertEquals(vesselId, period2.getVessel().getId());
         Assert.assertNotNull(period2.getVesselOwner());
         Assert.assertEquals("SPR6950", period2.getVesselOwner().getRegistrationCode());
         Assert.assertEquals("NOTRE DAME DE PARIS", period2.getVesselOwner().getLastName());
@@ -103,20 +98,33 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
         Assert.assertNotNull(period2.getVesselOwner().getProgram());
     }
 
+
+    @Test
+    public void findByFilter_withDate() {
+
+        Integer vesselId = fixtures.getVesselId(0);
+        Date now = new Date();
+
+        VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+                .vesselId(vesselId)
+                .startDate(now).endDate(now)
+                .programLabel(ProgramEnum.SIH.getLabel())
+                .build();
+        List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+        Assert.assertNotNull(result);
+        Assert.assertEquals(1, result.size());
+        VesselOwnerPeriodVO period = result.get(0);
+        Assert.assertNotNull(period.getStartDate());
+        Assert.assertEquals(vesselId, period.getVesselId());
+        Assert.assertEquals(vesselId, period.getVessel().getId());
+        Assert.assertNotNull(period.getVesselOwner());
+        Assert.assertEquals("SPR6950", period.getVesselOwner().getRegistrationCode());
+        Assert.assertEquals("NOTRE DAME DE PARIS", period.getVesselOwner().getLastName());
+    }
+
     @Test
     public void findByFilter_withProgram() {
         Integer vesselId = fixtures.getVesselId(0);
-
-        // Get invalid program label
-        {
-            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
-                    .vesselId(vesselId)
-                    .programLabel("FAKE")
-                    .build();
-            List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
-            Assert.assertNotNull(result);
-            Assert.assertEquals(0, result.size());
-        }
 
         // Get valid program label
         {
@@ -129,16 +137,15 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
             Assert.assertFalse(result.isEmpty());
         }
 
-
-        // Get invalid program ids
+        // Get invalid program label
         {
             VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
                     .vesselId(vesselId)
-                    .programIds(new Integer[]{-9999})
+                    .programLabel("FAKE")
                     .build();
             List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
             Assert.assertNotNull(result);
-            Assert.assertTrue(result.isEmpty());
+            Assert.assertEquals(0, result.size());
         }
 
         // Get valid program ids
@@ -152,20 +159,17 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
             Assert.assertFalse(result.isEmpty());
         }
 
+        // Get invalid program ids
+        {
+            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+                    .vesselId(vesselId)
+                    .programIds(new Integer[]{-9999})
+                    .build();
+            List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+            Assert.assertNotNull(result);
+            Assert.assertTrue(result.isEmpty());
+        }
     }
 
 
-    @Test
-    public void findByFilter_withDate() {
-        Integer vesselId = fixtures.getVesselId(0);
-
-        VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
-                .vesselId(vesselId)
-                .programLabel("FAKE")
-                .build();
-        List<VesselOwnerPeriodVO> result = repository.findAll(filter, Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
-        Assert.assertNotNull(result);
-        Assert.assertEquals(0, result.size());
-
-    }
 }

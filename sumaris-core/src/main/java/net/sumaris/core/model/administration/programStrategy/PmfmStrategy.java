@@ -108,7 +108,7 @@ public class PmfmStrategy implements IEntity<Integer> {
     @JoinColumn(name = "acquisition_level_fk", nullable = false)
     private AcquisitionLevel acquisitionLevel;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2gear", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
                 foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade"))
@@ -118,7 +118,7 @@ public class PmfmStrategy implements IEntity<Integer> {
     private Set<Gear> gears = Sets.newHashSet();
 
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2metier", joinColumns = {
         @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
             foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade")) },
@@ -126,7 +126,7 @@ public class PmfmStrategy implements IEntity<Integer> {
             @JoinColumn(name = "metier_fk", nullable = false, updatable = false) })
     private Set<Metier> metiers = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2taxon_group", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
                 foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade")) },
@@ -134,7 +134,7 @@ public class PmfmStrategy implements IEntity<Integer> {
                     @JoinColumn(name = "taxon_group_fk", nullable = false, updatable = false) })
     private Set<TaxonGroup> taxonGroups = Sets.newHashSet();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm_strategy2reference_taxon", joinColumns = {
             @JoinColumn(name = "pmfm_strategy_fk", nullable = false, updatable = false,
                 foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (pmfm_strategy_fk) references pmfm_strategy(id) on delete cascade")) },

@@ -659,6 +659,33 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.class,
         false),
 
+    ENABLE_ACTIVITY_CALENDAR_HASH_OPTIMIZATION(
+            "sumaris.persistence.activityCalendar.hashOptimization",
+            n("sumaris.config.option.persistence.activityCalendar.hashOptimization.description"),
+            Boolean.TRUE.toString(), // TODO change to false
+            Boolean.class,
+            false),
+
+    ENABLE_VESSEL_USE_FEATURES_HASH_OPTIMIZATION(
+            "sumaris.persistence.vesselUseFeatures.hashOptimization",
+            n("sumaris.config.option.persistence.vesselUseFeatures.hashOptimization.description"),
+            "${sumaris.persistence.activityCalendar.hashOptimization}",
+            Boolean.class,
+            false),
+    ENABLE_GEAR_USE_FEATURES_HASH_OPTIMIZATION(
+            "sumaris.persistence.gearUseFeatures.hashOptimization",
+            n("sumaris.config.option.persistence.gearUseFeatures.hashOptimization.description"),
+            "${sumaris.persistence.activityCalendar.hashOptimization}",
+            Boolean.class,
+            false),
+
+    ENABLE_GEAR_PHYSICAL_FEATURES_HASH_OPTIMIZATION(
+            "sumaris.persistence.gearPhysicalFeatures.hashOptimization",
+            n("sumaris.config.option.persistence.gearPhysicalFeatures.hashOptimization.description"),
+            "${sumaris.persistence.activityCalendar.hashOptimization}",
+            Boolean.class,
+            false),
+
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",
         n("sumaris.config.option.persistence.vessel.defaultProgram.label.description"),

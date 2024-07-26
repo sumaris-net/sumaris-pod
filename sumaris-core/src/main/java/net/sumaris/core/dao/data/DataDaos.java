@@ -48,7 +48,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 public class DataDaos extends Daos {
 

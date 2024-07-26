@@ -70,12 +70,17 @@ public class DatabaseFixtures {
 			case 1 -> 2;
 			case 2 -> 3;
 			case 3 -> 4;
+			case 5 -> 6; // 2 QIM in 2023
 			default -> 1;
 		};
 	}
 
 	public Integer getScientificVesselId() {
 		return 4;
+	}
+
+	public Integer getVesselWithManyRegistrationLocations() {
+		return 6;
 	}
 
 	public String getVesselRegistrationCode(int index) {
@@ -86,6 +91,15 @@ public class DatabaseFixtures {
 			default:
 				return null;
 		}
+	}
+
+	public Integer getVesselOwnerId(int index) {
+		Preconditions.checkArgument(index >= 0);
+		return switch (index) {
+			case 0 -> 1;
+			case 1 -> 2;
+			default -> 2;
+		};
 	}
 
 	public Integer getTripId(int index) {

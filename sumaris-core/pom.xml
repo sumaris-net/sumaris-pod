@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>2.9.2-alpha18</version>
+    <version>2.9.19-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -30,6 +30,8 @@
 
     <hibernate.entities.package>net.sumaris.core.model</hibernate.entities.package>
     <hibernate.vo.package>net.sumaris.core.vo</hibernate.vo.package>
+    <hibernate.physical_naming_strategy>net.sumaris.core.dao.technical.hibernate.HibernatePhysicalNamingStrategy</hibernate.physical_naming_strategy>
+    <hibernate.implicit_naming_strategy>net.sumaris.core.dao.technical.hibernate.HibernateImplicitNamingStrategy</hibernate.implicit_naming_strategy>
 
     <test>AllTests</test>
 

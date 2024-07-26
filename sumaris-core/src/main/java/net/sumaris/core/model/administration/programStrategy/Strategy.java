@@ -102,17 +102,19 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyDepartment.class, mappedBy = StrategyDepartment.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<StrategyDepartment> departments = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "strategy2gear", joinColumns = {
-            @JoinColumn(name = "strategy_fk", nullable = false, updatable = false) },
+            @JoinColumn(name = "strategy_fk", nullable = false, updatable = false,
+                    foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, foreignKeyDefinition = "foreign key (strategy_fk) references strategy(id) on delete cascade")) },
             inverseJoinColumns = {
                     @JoinColumn(name = "gear_fk", nullable = false, updatable = false) })
     private Set<Gear> gears = Sets.newHashSet();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ReferenceTaxonStrategy.class, mappedBy = ReferenceTaxonStrategy.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<ReferenceTaxonStrategy> referenceTaxons = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.STRATEGY)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = TaxonGroupStrategy.class, mappedBy = TaxonGroupStrategy.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
 

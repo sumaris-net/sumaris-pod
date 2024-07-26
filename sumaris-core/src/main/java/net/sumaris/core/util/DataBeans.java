@@ -32,7 +32,7 @@ import java.io.Serializable;
 
 /**
  * Helper class for data beans
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 public class DataBeans extends Beans {
 

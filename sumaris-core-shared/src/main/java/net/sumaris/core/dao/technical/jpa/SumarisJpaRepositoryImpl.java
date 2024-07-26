@@ -39,6 +39,7 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataLockedException;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.Entities;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
@@ -88,6 +89,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
+    private boolean hasIdGenerator = true;
     private boolean publishEvent = false;
     private boolean lockForUpdate = false;
     private LockModeType lockForUpdateMode;
@@ -116,6 +118,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         super(domainClass, entityManager);
         this.entityName = domainClass.getSimpleName();
         this.voClass = voClass;
+        this.hasIdGenerator = Entities.hasIdGenerator(domainClass);
 
         // This is the recommended method for accessing inherited class dependencies.
         this.entityManager = entityManager;
@@ -137,6 +140,14 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         this.checkUpdateDate = checkUpdateDate;
     }
 
+    public boolean hasIdGenerator() {
+        return hasIdGenerator;
+    }
+
+    public void setHasIdGenerator(boolean hasIdGenerator) {
+        this.hasIdGenerator = hasIdGenerator;
+    }
+    
     public boolean isLockForUpdate() {
         return lockForUpdate;
     }
@@ -153,7 +164,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         this.lockForUpdateMode = lockForUpdateMode;
     }
 
-    public boolean getPublishEvent() {
+    public boolean isPublishEvent() {
         return publishEvent;
     }
 
@@ -197,7 +208,18 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         Preconditions.checkNotNull(vo);
         E entity;
         if (vo.getId() != null) {
-            entity = getById(vo.getId());
+            if (hasIdGenerator) {
+                entity = getById(vo.getId());
+            }
+            else {
+                // If no Id generator (id can be assigned)
+                // Then when create the entity if not found, at set the given id
+                entity = findById(vo.getId()).orElseGet(() -> {
+                    E newEntity = this.createEntity();
+                    newEntity.setId(vo.getId());
+                    return newEntity;
+                });
+            }
         } else {
             entity = createEntity();
         }

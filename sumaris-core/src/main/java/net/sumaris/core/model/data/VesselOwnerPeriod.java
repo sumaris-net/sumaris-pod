@@ -22,12 +22,12 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
 
 @Getter
@@ -35,6 +35,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "vessel_owner_period")
+@IdClass(VesselOwnerPeriodId.class)
 public class VesselOwnerPeriod implements IEntity<VesselOwnerPeriodId> {
     public static interface Fields extends IEntity.Fields {
         String VESSEL = "vessel";
@@ -43,34 +44,25 @@ public class VesselOwnerPeriod implements IEntity<VesselOwnerPeriodId> {
         String END_DATE = "endDate";
     }
 
-    @EmbeddedId
+    @Transient
     private VesselOwnerPeriodId id;
 
-    @MapsId("vesselId")
+    @Id
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vessel_fk", nullable = false)
     private Vessel vessel;
 
-    @MapsId("vesselOwnerId")
+    @Id
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "vessel_owner_fk", nullable = false)
     private VesselOwner vesselOwner;
+
+    @Id
+    @Column(name = "start_date")
+    @Temporal(TemporalType.DATE)
+    private Date startDate;
 
     @Column(name = "end_date")
     @Temporal(TemporalType.DATE)
     private Date endDate;
-
-
-    public Date getStartDate() {
-        // check if id is null to avoid NullPointerException
-        if (id == null) {
-            return null;
-        }
-        return id.getStartDate();
-    }
-
-    public void setStartDate(Date startDate) {
-        if (id == null) {
-            id = new VesselOwnerPeriodId();
-        }
-        id.setStartDate(startDate);
-    }
 }

@@ -28,7 +28,7 @@ package net.sumaris.cli.action;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.service.ServiceLocator;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
+import net.sumaris.core.service.technical.schema.DatabaseSchemaService;
 import org.nuiton.version.Version;
 
 /**

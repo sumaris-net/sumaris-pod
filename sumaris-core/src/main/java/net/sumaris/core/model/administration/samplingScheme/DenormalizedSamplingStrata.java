@@ -70,34 +70,37 @@ public class DenormalizedSamplingStrata implements IItemReferentialEntity<Intege
     @Column(length = IDataEntity.LENGTH_COMMENTS)
     private String comments;
 
-    @Column(length = 100)
+    @Column(name = "observation_location_comments", length = 100)
     private String observationLocationComments;
 
-    @Column(length = 100)
+    @Column(name = "sampling_strategy", length = 100)
     private String samplingStrategy;
 
-    @Column(length = 100)
+    @Column(name = "taxon_group_name", length = 100)
     private String taxonGroupName;
 
-    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
+    @Column(name = "sampling_scheme_label", nullable = false, length = IItemReferentialEntity.LENGTH_LABEL)
     private String samplingSchemeLabel;
 
-    @Column(nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
+    @Column(name = "sampling_scheme_name", nullable = false, length = IItemReferentialEntity.LENGTH_NAME)
     private String samplingSchemeName;
 
+    @Column(name = "sampling_scheme_description")
     private String samplingSchemeDescription;
 
-    @Column(length = IItemReferentialEntity.LENGTH_NAME)
+    @Column(name = "gear_mesh_range", length = IItemReferentialEntity.LENGTH_NAME)
     private String gearMeshRange;
 
-    @Column(length = IItemReferentialEntity.LENGTH_NAME)
+    @Column(name = "vessel_length_range", length = IItemReferentialEntity.LENGTH_NAME)
     private String vesselLengthRange;
 
+    @Column(name = "metier")
     private String metier;
 
-    @Column(length = 150)
+    @Column(name = "area_name", length = 150)
     private String areaName;
 
+    @Column(name = "sub_area_location_ids")
     private String subAreaLocationIds;
 
     @Column(name = "creation_date", nullable = false)

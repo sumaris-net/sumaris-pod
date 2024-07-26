@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
  */
 public enum ExtractionCategoryEnum {
 

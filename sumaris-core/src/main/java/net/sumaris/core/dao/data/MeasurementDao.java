@@ -174,6 +174,9 @@ public interface MeasurementDao {
     Map<Integer, String> getGearUseFeaturesMeasurementsMap(int gearUseFeaturesId);
     Map<Integer, String> saveGearUseFeaturesMeasurementsMap(final int gearUseFeaturesId, Map<Integer, String> sources);
 
+    Map<Integer, String> getGearPhysicalFeaturesMeasurementsMap(int gearPhysicalFeaturesId);
+    Map<Integer, String> saveGearPhysicalFeaturesMeasurementsMap(final int gearPhysicalFeaturesId, Map<Integer, String> sources);
+
     // Utils
     <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Collection<T> sources);
 

@@ -91,6 +91,7 @@ public class Beans {
      return values !=null ? Lists.newArrayList(values) : Lists.newArrayList();
     }
 
+    @SafeVarargs
     public static <E> Collection<E> intersection(Collection<E> ...lists) {
         Collection<E> result = null;
         for (Collection<E> item: lists) {
@@ -100,7 +101,8 @@ public class Beans {
         return result;
     }
 
-    public static <E> Collection<E> intersectionIfNotEmpty(Collection<E> ...lists) {
+    @SafeVarargs
+    public static <E> Collection<E> intersectionSkipEmpty(Collection<E> ...lists) {
         Collection<E> result = null;
         for (Collection<E> item: lists) {
             // Skip is empty

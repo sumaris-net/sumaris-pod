@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export HSQLDB_VERSION=2.4.1
-export HOME=`eval echo "~${USER}"`
+export HOME=$(eval echo "~${USER}")
 export M2_REPO="$HOME/.m2/repository"
 export CLASSPATH="${M2_REPO}/org/hsqldb/hsqldb/${HSQLDB_VERSION}/hsqldb-${HSQLDB_VERSION}.jar"
 export DB_NAME="sumaris"
@@ -45,5 +45,5 @@ if [[ ! -d "${DB_DIRECTORY}" ]]; then
 fi;
 
 # run db-server
-echo $JAVA_CMD
-$JAVA_CMD
+echo ${JAVA_CMD}
+${JAVA_CMD}

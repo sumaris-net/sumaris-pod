@@ -25,7 +25,6 @@ package net.sumaris.core.service.technical.schema;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.schema.DatabaseSchemaService;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;

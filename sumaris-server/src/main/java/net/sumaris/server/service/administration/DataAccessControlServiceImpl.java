@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.ForbiddenException;
@@ -213,7 +214,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     @Override
     public List<Integer> getAuthorizedProgramIdsByUserId(int userId) {
-        return programRepository.getProgramIdsByUserIdAndPrivilegeIds(userId, true /*any privilege */, null );
+        return programRepository.getReadableProgramIdsByUserId(userId);
     }
 
     /* -- protected functions -- */
