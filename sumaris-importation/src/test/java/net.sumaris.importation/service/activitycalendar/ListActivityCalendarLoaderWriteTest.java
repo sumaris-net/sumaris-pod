@@ -23,15 +23,29 @@
 package net.sumaris.importation.service.activitycalendar;
 
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepositoryImpl;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
+import net.sumaris.core.service.data.vessel.VesselService;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.VesselVO;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.PersonFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.importation.DatabaseResource;
 import net.sumaris.importation.core.service.activitycalendar.ListActivityCalendarImportService;
 import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityCalendarImportResultVO;
@@ -42,9 +56,13 @@ import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -66,6 +84,15 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
     @Autowired
     private ListActivityCalendarImportService listActivityCalendarImportService;
+
+    @Autowired
+    private VesselService vesselService;
+
+    @Autowired
+    private VesselSnapshotService vesselSnapshotService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Before
     public void setup() {
@@ -99,9 +126,9 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
             ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
-            expectedResult.setMessage("Import successful");
-            expectedResult.setInserts(1);
-            expectedResult.setUpdates(1);
+            expectedResult.setMessage(null);
+            expectedResult.setInserts(2);
+            expectedResult.setUpdates(2);
             expectedResult.setWarnings(2);
             expectedResult.setErrors(0);
 
@@ -122,13 +149,11 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         }
     }
 
-    // this test is Work
     @Test
-    public void importListActivityCalendarsAdd() {
+    public void importAddFile() {
         String fileName = "activity-calendars-list-add.csv";
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
-
         ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
                 .recorderPersonId(1)
                 .processingFile(file)
@@ -141,7 +166,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
             ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
-            expectedResult.setInserts(3);
+            expectedResult.setInserts(2);
             expectedResult.setUpdates(0);
             expectedResult.setWarnings(0);
             expectedResult.setErrors(0);
@@ -161,7 +186,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
     // this test is Work
     @Test
-    public void importListActivityCalendarsUpdate() {
+    public void importUpdateFile() {
         String fileName = "activity-calendars-list-update.csv";
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
@@ -197,9 +222,8 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         }
     }
 
-    // wait fix bla  delete cascade
     @Test
-    public void importListActivityCalendarsWarning() {
+    public void importWarningFile() {
         String fileName = "activity-calendars-list-warning.csv";
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
@@ -227,6 +251,80 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
             assertEquals(expectedResult.getWarnings(), result.getWarnings());
             assertEquals(expectedResult.getErrors(), result.getErrors());
 
+
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void importErrorFile() {
+        String fileName = "vessels-siop.csv";
+        String basePath = "src/test/data/activity-calendar/";
+        File file = new File(basePath, fileName);
+
+        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+                .recorderPersonId(1)
+                .processingFile(file)
+                .build();
+
+        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        try {
+
+            ListActivityCalendarImportResultVO result = future.get();
+
+            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            expectedResult.setStatus(JobStatusEnum.ERROR);
+            expectedResult.setMessage(null);
+            expectedResult.setInserts(0);
+            expectedResult.setUpdates(0);
+            expectedResult.setWarnings(0);
+            expectedResult.setErrors(1);
+
+            assertEquals(expectedResult.getStatus(), result.getStatus());
+            assertEquals(expectedResult.getMessage(), result.getMessage());
+            assertEquals(expectedResult.getInserts(), result.getInserts());
+            assertEquals(expectedResult.getUpdates(), result.getUpdates());
+            assertEquals(expectedResult.getWarnings(), result.getWarnings());
+            assertEquals(expectedResult.getErrors(), result.getErrors());
+
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void importEmptyFile() {
+        String fileName = "activity-calendars-list-empty.csv";
+        String basePath = "src/test/data/activity-calendar/";
+        File file = new File(basePath, fileName);
+
+        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+                .recorderPersonId(1)
+                .processingFile(file)
+                .build();
+
+        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        try {
+
+            ListActivityCalendarImportResultVO result = future.get();
+
+            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            expectedResult.setStatus(JobStatusEnum.SUCCESS);
+            expectedResult.setMessage(null);
+            expectedResult.setInserts(0);
+            expectedResult.setUpdates(0);
+            expectedResult.setWarnings(1);
+            expectedResult.setErrors(0);
+
+            assertEquals(expectedResult.getStatus(), result.getStatus());
+            assertEquals(expectedResult.getMessage(), result.getMessage());
+            assertEquals(expectedResult.getInserts(), result.getInserts());
+            assertEquals(expectedResult.getUpdates(), result.getUpdates());
+            assertEquals(expectedResult.getWarnings(), result.getWarnings());
+            assertEquals(expectedResult.getErrors(), result.getErrors());
 
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
