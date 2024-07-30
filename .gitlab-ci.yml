@@ -58,7 +58,7 @@ variables:
     - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
-    - git fetch origin
+    - git fetch origin ${CI_COMMIT_REF_NAME}
   tags: [sih_public_runner]
 
 .docker:
@@ -229,6 +229,7 @@ sonarqube:
     - echo "Pushing changes to upstream"
     - git diff --cached
     - git commit -am "[CI] release performed" || echo "Nothing to commit, continue"
+    - git fetch origin master
     - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
     - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
@@ -249,6 +250,12 @@ sonarqube:
 
 release:
   extends: .release
+  stage: build
+  image: ${CI_BUILD_IMAGE}
+
+release:build:
+  extends: .release
+  stage: release
   image: ${CI_BUILD_IMAGE}
   needs: [build]
 
