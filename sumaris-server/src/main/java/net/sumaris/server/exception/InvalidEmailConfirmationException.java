@@ -28,7 +28,6 @@ public class InvalidEmailConfirmationException extends SumarisBusinessException 
 
     public static final int ERROR_CODE = ErrorCodes.INVALID_EMAIL_CONFIRMATION;
 
-
     /**
      * <p>Constructor for InvalidEmailConfirmationException.</p>
      *

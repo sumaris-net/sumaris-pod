@@ -59,6 +59,9 @@ public interface PersonService {
 	Page<String> findPubkeysByFilter(PersonFilterVO filter, Pageable page);
 
 	@Transactional(readOnly = true)
+	String findByEmailMD5(String emailMD5);
+
+	@Transactional(readOnly = true)
 	Long countByFilter(PersonFilterVO filter);
 
 	@Transactional(readOnly = true)

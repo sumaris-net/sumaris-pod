@@ -10,12 +10,12 @@ package net.sumaris.server.service.administration;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -35,6 +35,7 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -49,6 +50,7 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
+import net.sumaris.server.http.security.ValidationExpiredCache;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import net.sumaris.server.service.social.UserMessageService;
 import org.apache.commons.collections.CollectionUtils;
@@ -77,6 +79,7 @@ public class AccountServiceImpl implements AccountService {
     private final PersonService personService;
     private final UserMessageService userMessageService;
     private final ServerCryptoService serverCryptoService;
+    private ValidationExpiredCache tokenExpiredCache;
 
     private String serverUrl;
 
@@ -92,19 +95,19 @@ public class AccountServiceImpl implements AccountService {
         this.personRepository = personRepository;
         this.userSettingsService = userSettingsService;
         this.userTokenRepository = userTokenRepository;
-        this.configuration = serverConfiguration;
+        configuration = serverConfiguration;
         this.serverCryptoService = serverCryptoService;
         this.userMessageService = userMessageService;
 
         log.debug("Register {Account} converters");
         conversionService.addConverter(PersonVO.class, AccountVO.class, this::toAccountVO);
-        conversionService.addConverter(Person.class, AccountVO.class, p -> this.getByPubkey(p.getPubkey()));
+        conversionService.addConverter(Person.class, AccountVO.class, p -> getByPubkey(p.getPubkey()));
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
         // Get server URL
-        this.serverUrl = configuration.getServerUrl();
+        serverUrl = configuration.getServerUrl();
     }
 
     @Override
@@ -162,11 +165,10 @@ public class AccountServiceImpl implements AccountService {
 
 
         // Skip mail confirmation
-        if (this.userMessageService.getEmailDefaultFrom() == null) {
+        if (userMessageService.getEmailDefaultFrom() == null) {
             log.debug(I18n.t("sumaris.server.account.register.mail.skip"));
             account.setStatusId(StatusEnum.ENABLE.getId());
-        }
-        else {
+        } else {
             // Mark account as temporary
             account.setStatusId(StatusEnum.TEMPORARY.getId());
         }
@@ -229,6 +231,18 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public void changePasswordByAccountId(Integer idAccount, String pubkey) {
+        Preconditions.checkNotNull(idAccount);
+        Preconditions.checkNotNull(pubkey);
+        PersonVO account = personRepository.get(idAccount);
+        if (account == null) {
+            throw new SumarisTechnicalException("account not found");
+        }
+        account.setPubkey(pubkey);
+        personRepository.save(account);
+    }
+
+    @Override
     public void confirmEmail(String email, String signatureHash) throws InvalidEmailConfirmationException {
         Preconditions.checkNotNull(email);
         Preconditions.checkArgument(email.trim().length() > 0);
@@ -272,6 +286,52 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public void sendChangePassword(String email, String locale) throws InvalidEmailConfirmationException {
+
+        if (!personRepository.existsByEmail(email)) {
+            throw new InvalidEmailConfirmationException((I18n.t("sumaris.server.account.change.notexist")));
+        }
+
+        sendEmailChangePassword(email, I18nUtil.toI18nLocale(locale));
+
+    }
+
+    @Override
+    public void confirmChangePassword(String token, String toAddress, String pubkey) {
+        Preconditions.checkNotNull(token);
+        Preconditions.checkNotNull(toAddress.trim());
+        Preconditions.checkNotNull(pubkey);
+        String[] splitToken = token.trim().split(":");
+
+        if (!tokenExpiredCache.contains(token)) {
+            throw new UnauthorizedException();
+        }
+
+        if (!personRepository.existsByEmail(toAddress)) {
+            throw new UnauthorizedException();
+        }
+        boolean valid = serverCryptoService.hash(serverCryptoService.sign(toAddress + ":" + splitToken[1])).equals(splitToken[0]);
+
+        if (!valid) {
+            log.warn(I18n.t("sumaris.error.account.register.badEmailOrToken", toAddress));
+            throw new InvalidEmailConfirmationException("Invalid confirmation: bad email or token.");
+        }
+
+        // Log success
+        log.info(I18n.t("sumaris.server.account.change.confirmed", toAddress));
+
+
+        PersonVO personToUpdate = personService.getByEmail(toAddress);
+        if (personToUpdate == null) {
+            log.warn(I18n.t("sumaris.error.account.change.badEmailOrToken", toAddress));
+            throw new InvalidEmailConfirmationException("This account does not exist");
+        }
+        personToUpdate.setPubkey(pubkey);
+        personService.save(personToUpdate);
+    }
+
+
+    @Override
     public void sendConfirmationEmail(String email, String locale) throws InvalidEmailConfirmationException {
         Preconditions.checkNotNull(email);
         Preconditions.checkArgument(email.trim().length() > 0);
@@ -313,8 +373,8 @@ public class AccountServiceImpl implements AccountService {
         List<UserToken> tokens = userTokenRepository.findByPubkey(pubkey);
         userTokenRepository.deleteAll(tokens);
         return tokens.stream()
-            .map(UserToken::getToken)
-            .collect(Collectors.toList());
+                .map(UserToken::getToken)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -329,7 +389,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountVO toAccountVO(PersonVO person) {
-        if (person == null) return null;
+        if (person == null) {
+            return null;
+        }
 
         AccountVO account = new AccountVO();
         BeanUtils.copyProperties(person, account);
@@ -384,7 +446,7 @@ public class AccountServiceImpl implements AccountService {
      * @param locale
      */
     private void sendConfirmationLinkByEmail(String toAddress, Locale locale) {
-        if (!this.userMessageService.isEmailEnabled()) {
+        if (!userMessageService.isEmailEnabled()) {
             log.warn(I18n.t("sumaris.error.account.register.sentConfirmation.skipped"));
             return; // Skip if disable
         }
@@ -397,28 +459,65 @@ public class AccountServiceImpl implements AccountService {
                     .replace("{email}", toAddress)
                     .replace("{code}", signatureHash);
 
-            final Email email = DefaultEmail.builder()
-                    .from(this.userMessageService.getEmailDefaultFrom())
-                    .replyTo(this.userMessageService.getEmailDefaultFrom())
+            Email email = DefaultEmail.builder()
+                    .from(userMessageService.getEmailDefaultFrom())
+                    .replyTo(userMessageService.getEmailDefaultFrom())
                     .to(Lists.newArrayList(new InternetAddress(toAddress)))
-                    .subject(I18n.l(locale,"sumaris.server.mail.subject.prefix", configuration.getAppName())
+                    .subject(I18n.l(locale, "sumaris.server.mail.subject.prefix", configuration.getAppName())
                             + " " + I18n.l(locale, "sumaris.server.account.register.mail.subject"))
                     .body(I18n.l(locale, "sumaris.server.account.register.mail.body",
-                            this.serverUrl,
+                            serverUrl,
                             confirmationLinkURL,
                             configuration.getAppName()))
                     .encoding(StandardCharsets.UTF_8.name())
                     .build();
 
             userMessageService.send(email);
-        }
-        catch(AddressException e) {
+        } catch (AddressException e) {
             throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
         }
     }
 
+    private void sendEmailChangePassword(String toAddress, Locale locale) {
+        if (!userMessageService.isEmailEnabled()) {
+            log.warn(I18n.t("sumaris.error.account.register.sentConfirmation.skipped"));
+            return; // Skip if disable
+        }
+
+
+        try {
+            String time = String.valueOf(System.currentTimeMillis());
+            String token = serverCryptoService.hash(serverCryptoService.sign(toAddress.trim() + ":" + time)) + ":" +
+                    time;
+            String changePasswordLinkURL = configuration.getChangePasswordUrlPattern()
+                    .replace("{token}", token)
+                    .replace("{email}", toAddress);
+
+            Email email = DefaultEmail.builder()
+                    .from(userMessageService.getEmailDefaultFrom())
+                    .replyTo(userMessageService.getEmailDefaultFrom())
+                    .to(Lists.newArrayList(new InternetAddress(toAddress)))
+                    .subject(I18n.l(locale, "sumaris.server.mail.subject.prefix", configuration.getAppName())
+                            + " " + I18n.l(locale, "sumaris.server.account.change.mail.subject"))
+                    .body(I18n.l(locale, "sumaris.server.account.change.mail.body",
+                            serverUrl,
+                            changePasswordLinkURL,
+                            configuration.getEmailChangePasswordDuration(),
+                            configuration.getAppName()))
+                    .encoding(StandardCharsets.UTF_8.name())
+                    .build();
+
+            userMessageService.send(email);
+            tokenExpiredCache = new ValidationExpiredCache(configuration.getEmailChangePasswordDuration() * 60);
+            tokenExpiredCache.add(token);
+        } catch (AddressException e) {
+            throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
+        }
+
+    }
+
     protected void sendRegistrationToAdmins(PersonVO confirmedAccount) {
-        if (!this.userMessageService.isEmailEnabled()) {
+        if (!userMessageService.isEmailEnabled()) {
             log.warn("New account registered, but no cannot send email to administrators!");
             // TODO: send as internal message ?
             return; // Skip if disable
@@ -440,9 +539,9 @@ public class AccountServiceImpl implements AccountService {
             // TODO: group email by locales (find it with the email, from personService)
 
             // Send the email
-            final Email email = DefaultEmail.builder()
-                    .from(this.userMessageService.getEmailDefaultFrom())
-                    .replyTo(this.userMessageService.getEmailDefaultFrom())
+            Email email = DefaultEmail.builder()
+                    .from(userMessageService.getEmailDefaultFrom())
+                    .replyTo(userMessageService.getEmailDefaultFrom())
                     .to(toInternetAddress(adminEmails))
                     .subject(I18n.t("sumaris.server.mail.subject.prefix", configuration.getAppName())
                             + " " + I18n.t("sumaris.server.account.register.admin.mail.subject"))
@@ -450,16 +549,15 @@ public class AccountServiceImpl implements AccountService {
                             confirmedAccount.getFirstName(),
                             confirmedAccount.getLastName(),
                             confirmedAccount.getEmail(),
-                            this.serverUrl,
-                            this.serverUrl + "/admin/users",
+                            serverUrl,
+                            serverUrl + "/admin/users",
                             configuration.getAppName()
-                            ))
+                    ))
                     .encoding(Charsets.UTF_8.name())
                     .build();
 
             userMessageService.send(email);
-        }
-        catch(Throwable e) {
+        } catch (Throwable e) {
             // Just log, but continue
             log.error(I18n.t("sumaris.error.account.register.sendAdminEmailFailed", e.getMessage()), new SumarisTechnicalException(e));
         }
@@ -468,13 +566,13 @@ public class AccountServiceImpl implements AccountService {
     protected List<InternetAddress> toInternetAddress(List<String> emails) {
         return emails.stream()
                 .map(email -> {
-                        try {
-                            return new InternetAddress(email);
-                        } catch(AddressException e) {
-                            log.debug("Invalid email address {" + email + "}: " + e.getMessage());
-                            return null;
-                        }
-                    })
+                    try {
+                        return new InternetAddress(email);
+                    } catch (AddressException e) {
+                        log.debug("Invalid email address {" + email + "}: " + e.getMessage());
+                        return null;
+                    }
+                })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }

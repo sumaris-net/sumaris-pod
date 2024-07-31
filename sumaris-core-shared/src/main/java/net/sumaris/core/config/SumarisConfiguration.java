@@ -12,12 +12,12 @@ package net.sumaris.core.config;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -132,8 +132,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public SumarisConfiguration(ApplicationConfig applicationConfig) {
         super();
         this.applicationConfig = applicationConfig;
-        this.transientOptionKeys = null;
-        this.defaults = null;
+        transientOptionKeys = null;
+        defaults = null;
 
         // Override application version
         initVersion(applicationConfig);
@@ -152,7 +152,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     /**
      * <p>Constructor for SumarisConfiguration.</p>
      *
-     * @param env a {@link ConfigurableEnvironment} object.
+     * @param env  a {@link ConfigurableEnvironment} object.
      * @param file a {@link String} object.
      * @param args a {@link String} object.
      */
@@ -163,18 +163,18 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // load all default options
         Set<ApplicationConfigProvider> providers = getProviders();
-        this.defaults = getDefaults(providers, env);
+        defaults = getDefaults(providers, env);
 
         // Create Nuiton config instance
-        this.applicationConfig = new ApplicationConfig(ApplicationConfigInit.forAllScopesWithout(
-                ApplicationConfigScope.HOME
-        )
-                .setDefaults(this.defaults));
-        this.applicationConfig.setEncoding(Charsets.UTF_8.name());
-        this.applicationConfig.setConfigFileName(file);
+        applicationConfig = new ApplicationConfig(ApplicationConfigInit.forAllScopesWithout(
+                        ApplicationConfigScope.HOME
+                )
+                .setDefaults(defaults));
+        applicationConfig.setEncoding(Charsets.UTF_8.name());
+        applicationConfig.setConfigFileName(file);
 
         // Load transient options keys
-        this.transientOptionKeys = ImmutableSet.copyOf(ApplicationConfigHelper.getTransientOptionKeys(providers));
+        transientOptionKeys = ImmutableSet.copyOf(ApplicationConfigHelper.getTransientOptionKeys(providers));
 
         System.setProperty("logging.level.Hibernate Types", "error");
 
@@ -187,7 +187,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         addAlias(applicationConfig);
         for (ApplicationConfigProvider provider : providers) {
             if (provider instanceof ApplicationConfigAliasProvider) {
-                ((ApplicationConfigAliasProvider)provider).addAlias(applicationConfig);
+                ((ApplicationConfigAliasProvider) provider).addAlias(applicationConfig);
             }
         }
 
@@ -208,8 +208,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         // Prepare basedir
         fixBasedir(applicationConfig);
 
-        if (log.isTraceEnabled())
+        if (log.isTraceEnabled()) {
             log.trace(applicationConfig.getPrintableConfig(null, 4));
+        }
     }
 
     public void doAllAction() throws InvocationTargetException, IllegalAccessException, InstantiationException {
@@ -272,21 +273,21 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     protected static Set<ApplicationConfigProvider> getProviders() {
         // get allOfToList config providers
         return ApplicationConfigHelper.getProviders(null,
-            null,
-            null,
-            true);
+                null,
+                null,
+                true);
     }
 
     protected Properties getDefaults(Set<ApplicationConfigProvider> providers, ConfigurableEnvironment env) {
 
         // Populate defaults from providers
-        final Properties defaults = new Properties();
+        Properties defaults = new Properties();
         providers
-            .stream()
-            .filter(provider -> !(provider instanceof SumarisConfigurationEntityEnumProvider))
-            .forEach(provider -> Arrays.stream(provider.getOptions())
-            .filter(configOptionDef -> configOptionDef.getDefaultValue() != null)
-            .forEach(configOptionDef -> defaults.setProperty(configOptionDef.getKey(), configOptionDef.getDefaultValue())));
+                .stream()
+                .filter(provider -> !(provider instanceof SumarisConfigurationEntityEnumProvider))
+                .forEach(provider -> Arrays.stream(provider.getOptions())
+                        .filter(configOptionDef -> configOptionDef.getDefaultValue() != null)
+                        .forEach(configOptionDef -> defaults.setProperty(configOptionDef.getKey(), configOptionDef.getDefaultValue())));
 
         // Set options from env if provided
         if (env != null) {
@@ -344,21 +345,18 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
                 applicationConfig.setDefaultOption(
                         SumarisConfigurationOption.VERSION.getKey(),
                         implementationVersion);
-            }
-            else if (StringUtils.isNotBlank(implementationVersion)) {
+            } else if (StringUtils.isNotBlank(implementationVersion)) {
                 if (log.isInfoEnabled()) {
                     log.info("Version: " + implementationVersion);
                 }
                 applicationConfig.setDefaultOption(
                         SumarisConfigurationOption.VERSION.getKey(),
                         implementationVersion);
-            }
-            else if (StringUtils.isNotBlank(defaultVersion)) {
+            } else if (StringUtils.isNotBlank(defaultVersion)) {
                 if (log.isInfoEnabled()) {
                     log.info("Version: " + defaultVersion);
                 }
-            }
-            else if (log.isErrorEnabled()) {
+            } else if (log.isErrorEnabled()) {
                 log.error(String.format("Could init version, from classpath file [%s]", DEFAULT_SHARED_CONFIG_FILE));
             }
         } catch (IOException e) {
@@ -370,7 +368,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     protected void fixBasedir(ApplicationConfig applicationConfig) {
         // TODO Review this, this is very dirty to do this...
         File appBasedir = applicationConfig.getOptionAsFile(
-            SumarisConfigurationOption.BASEDIR.getKey());
+                SumarisConfigurationOption.BASEDIR.getKey());
 
         if (appBasedir == null) {
             appBasedir = new File("");
@@ -390,8 +388,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             log.info(String.format("Database URL {%s}", getJdbcURL()));
         }
         applicationConfig.setOption(
-            SumarisConfigurationOption.BASEDIR.getKey(),
-            appBasedir.getAbsolutePath());
+                SumarisConfigurationOption.BASEDIR.getKey(),
+                appBasedir.getAbsolutePath());
     }
 
 
@@ -402,7 +400,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public void restoreDefaults(boolean skipEnumeration) {
         defaults.forEach((key, value) -> {
             // Skip if enumeration (e.g avoid to apply the overridden enumeration)
-            if (skipEnumeration && key.toString().startsWith(EntityEnum.DEFAULT_PREFIX)) return;
+            if (skipEnumeration && key.toString().startsWith(EntityEnum.DEFAULT_PREFIX)) {
+                return;
+            }
 
             applicationConfig.setOption(key.toString(), value.toString());
         });
@@ -464,7 +464,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected String resolvePlaceholder(String placeholder, Properties props) {
         if (applicationConfig == null) {
@@ -684,6 +686,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     /**
      * Enable trash of delete entities (e.g. Trip, Operation, etc)
+     *
      * @return
      */
     public boolean enableEntityTrash() {
@@ -830,6 +833,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     /**
      * Is spring cache enabled ?
+     *
      * @return
      */
     public boolean enableCache() {
@@ -847,6 +851,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     /**
      * Should enable configuration load from DB ?
+     *
      * @return
      */
     public boolean enableConfigurationDbPersistence() {
@@ -958,7 +963,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      * @return true if production mode.
      */
     public boolean isProduction() {
-       return LaunchModeEnum.production.name().equalsIgnoreCase(getLaunchMode());
+        return LaunchModeEnum.production.name().equalsIgnoreCase(getLaunchMode());
     }
 
     public int getDefaultQualityFlagId() {
@@ -1028,6 +1033,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     public boolean enableAdagioOptimization() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_ADAGIO_OPTIMIZATION.getKey());
     }
+
     public String getAdagioSchema() {
         return applicationConfig.getOption(SumarisConfigurationOption.DB_ADAGIO_SCHEMA.getKey());
     }
@@ -1119,8 +1125,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             boolean addSlash = false;
             if (firstSlashIndex == -1) {
                 addSlash = true;
-            }
-            else {
+            } else {
                 int lastSlashIndex = urlString.lastIndexOf('/');
                 if (lastSlashIndex > firstSlashIndex) {
                     addSlash = urlString.indexOf('.', lastSlashIndex) == -1;
@@ -1158,20 +1163,20 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             if (StringUtils.isBlank(ids)) {
                 result = ImmutableList.of();
             } else {
-                final List<String> invalidIds = Lists.newArrayList();
+                List<String> invalidIds = Lists.newArrayList();
                 result = Splitter.on(",").omitEmptyStrings().trimResults()
-                    .splitToList(ids)
-                    .stream()
-                    .map(id -> {
-                        try {
-                            return Integer.parseInt(id);
-                        } catch (Exception e) {
-                            invalidIds.add(id);
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                        .splitToList(ids)
+                        .stream()
+                        .map(id -> {
+                            try {
+                                return Integer.parseInt(id);
+                            } catch (Exception e) {
+                                invalidIds.add(id);
+                                return null;
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
                 if (CollectionUtils.isNotEmpty(invalidIds)) {
                     log.error("Skipping invalid values found in configuration option '{}': {}", optionKey, invalidIds);

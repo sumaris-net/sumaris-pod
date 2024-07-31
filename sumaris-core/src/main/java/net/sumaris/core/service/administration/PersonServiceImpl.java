@@ -94,6 +94,11 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
+	public String findByEmailMD5(String emailMD5) {
+		return personRepository.findByEmailMD5(emailMD5).getEmail();
+	}
+
+	@Override
 	public Long countByFilter(PersonFilterVO filter) {
 		return personRepository.countByFilter(PersonFilterVO.nullToEmpty(filter));
 	}

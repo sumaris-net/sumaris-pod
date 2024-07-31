@@ -29,4 +29,9 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 public interface PersonRepository extends SumarisJpaRepository<Person, Integer, PersonVO>, PersonSpecifications {
 
     boolean existsByEmailMD5(String emailMD5);
+
+    boolean existsByEmail(String email);
+
+    Person findByEmailMD5(String emailMD5);
+
 }
