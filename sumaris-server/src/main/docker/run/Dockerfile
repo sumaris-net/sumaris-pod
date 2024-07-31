@@ -7,10 +7,10 @@ FROM $DOCKER_IMAGE
 ARG ENTRYPOINT=app.sh
 ARG WAR_FILE=app.war
 ARG CONFIG_FILES=config/*.properties
-ARG USERNAME="spring"
-ARG USERID="20001"
-ARG GROUPNAME="spring"
-ARG GROUPID="20001"
+ARG USERNAME="udocker"
+ARG USERID="9999"
+ARG GROUPNAME="gcontainer"
+ARG GROUPID="9999"
 
 # Install dependencies
 RUN apt-get update \
@@ -30,7 +30,7 @@ COPY --chown=${USERNAME}:${GROUPNAME} ${CONFIG_FILES} /app/config/
 # Make executable and change ownership
 RUN chmod +x /app/app.sh && \
     mkdir -p /app/logs /app/data && \
-    chown ${USERNAME}:${GROUPNAME} /app/logs /app/data
+    chown -R ${USERNAME}:${GROUPNAME} /app/logs /app/data
 
 USER ${USERNAME}:${GROUPNAME}
 
