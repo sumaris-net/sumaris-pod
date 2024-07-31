@@ -223,11 +223,11 @@ sonarqube:
     - echo "$(cd ${APP_CORE_MODULE}/target && sha256sum ${APP_DB_MODULE}-*.zip)" > ${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256
     - echo "Deploy binaries to package registry"
     - APP_GROUP_ID=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.groupId -q -DforceStdout --non-recursive)
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DpomFile=${APP_WAR_MODULE}/pom.xml -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -Dclassifier=standalone -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.war -DpomFile=${APP_WAR_MODULE}/pom.xml -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}-standalone.zip -Dpackaging=zip -Dclassifier=standalone -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_CORE_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - echo "Pushing changes to upstream"
     - git diff --cached
     - git commit -am "[CI] release performed" || echo "Nothing to commit, continue"
@@ -237,10 +237,6 @@ sonarqube:
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
-      - ${ARTIFACT_ZIP_FILE}
-      - ${ARTIFACT_DB_FILE}
-      - ${ARTIFACT_WAR_SHA256_FILE}
-      - ${ARTIFACT_DB_SHA256_FILE}
       - ${ARTIFACT_CONFIG_FILES}
     reports:
       dotenv: ${ENV_FILE}
