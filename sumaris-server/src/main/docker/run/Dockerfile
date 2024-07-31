@@ -24,13 +24,14 @@ RUN echo "Creating group ${GROUPNAME}:${GROUPID}" && \
 
 # Copy files
 COPY --chown=${USERNAME}:${GROUPNAME} ${ENTRYPOINT} /app/app.sh
-COPY --chown=${USERNAME}:${GROUPNAME} ${WAR_FILE} /app/app.war
 COPY --chown=${USERNAME}:${GROUPNAME} ${CONFIG_FILES} /app/config/
 
 # Make executable and change ownership
 RUN chmod +x /app/app.sh && \
     mkdir -p /app/logs /app/data && \
-    chown -R ${USERNAME}:${GROUPNAME} /app/logs /app/data
+    chown -R ${USERNAME}:${GROUPNAME} /app/logs /app/data \
+
+COPY --chown=${USERNAME}:${GROUPNAME} ${WAR_FILE} /app/app.war
 
 USER ${USERNAME}:${GROUPNAME}
 
