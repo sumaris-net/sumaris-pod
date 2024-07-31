@@ -10,6 +10,8 @@ DEFAULT_PROFILES=val
 VERSION=$1
 PORT=$2
 PROFILES=$3
+USERID=$(id -u)
+GROUPID=$(id -g)
 
 [[ "_${VERSION}" = "_" ]] && VERSION=$DEFAULT_VERSION
 [[ "_${PORT}" = "_" && "${VERSION}" = "${DEFAULT_VERSION}" ]] && PORT=$DEFAULT_PORT
@@ -31,6 +33,7 @@ CI_REGISTRY_IMAGE=${CI_REGISTRY_IMAGE_PATH}:${VERSION}
 CONTAINER_PREFIX="${CI_PROJECT_NAME}-${PORT}"
 CONTAINER_NAME="${CONTAINER_PREFIX}-${VERSION}"
 CONTAINER_MEMORY=2g
+CONTAINER_GROUPID=9999
 
 # Check arguments
 if [[ (! $VERSION =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc|SNAPSHOT)[-0-9]*)?$ && $VERSION != 'imagine' && $VERSION != 'develop' ) ]]; then
@@ -79,6 +82,8 @@ sleep 3
 docker run -it -d --rm \
            --name "${CONTAINER_NAME}" \
            --memory ${CONTAINER_MEMORY} \
+           --user ${USERID}:${GROUPID} \
+           --group-add ${CONTAINER_GROUPID} \
            -p ${PORT}:${PORT} \
            -v ${CONFIG_DIR}:/app/config   \
            -v /home/tnsnames:/home/tnsnames \
