@@ -35,4 +35,6 @@ public interface UserSettingsService {
     Optional<UserSettingsVO> findByIssuer(String issuer);
 
     UserSettingsVO save(@NonNull UserSettingsVO settings);
+
+    void changePubkeyByIssuer(@NonNull String newIssuer, @NonNull String oldIssuer);
 }

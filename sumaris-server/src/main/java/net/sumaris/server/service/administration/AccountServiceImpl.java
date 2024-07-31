@@ -41,6 +41,7 @@ import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
+import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.AccountVO;
@@ -79,6 +80,7 @@ public class AccountServiceImpl implements AccountService {
     private final PersonService personService;
     private final UserMessageService userMessageService;
     private final ServerCryptoService serverCryptoService;
+    private final UserEventService userEventService;
     private ValidationExpiredCache tokenExpiredCache;
 
     private String serverUrl;
@@ -90,7 +92,7 @@ public class AccountServiceImpl implements AccountService {
                               UserTokenRepository userTokenRepository,
                               ServerCryptoService serverCryptoService,
                               GenericConversionService conversionService,
-                              UserMessageService userMessageService) {
+                              UserMessageService userMessageService, UserEventService userEventService) {
         this.personService = personService;
         this.personRepository = personRepository;
         this.userSettingsService = userSettingsService;
@@ -102,6 +104,7 @@ public class AccountServiceImpl implements AccountService {
         log.debug("Register {Account} converters");
         conversionService.addConverter(PersonVO.class, AccountVO.class, this::toAccountVO);
         conversionService.addConverter(Person.class, AccountVO.class, p -> getByPubkey(p.getPubkey()));
+        this.userEventService = userEventService;
     }
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -165,11 +168,11 @@ public class AccountServiceImpl implements AccountService {
 
 
         // Skip mail confirmation
+        // Mark account as temporary
         if (userMessageService.getEmailDefaultFrom() == null) {
             log.debug(I18n.t("sumaris.server.account.register.mail.skip"));
             account.setStatusId(StatusEnum.ENABLE.getId());
         } else {
-            // Mark account as temporary
             account.setStatusId(StatusEnum.TEMPORARY.getId());
         }
 
@@ -231,15 +234,20 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void changePasswordByAccountId(Integer idAccount, String pubkey) {
+    public void changePasswordByAccountId(Integer idAccount, String newPubkey) {
         Preconditions.checkNotNull(idAccount);
-        Preconditions.checkNotNull(pubkey);
+        Preconditions.checkNotNull(newPubkey);
         PersonVO account = personRepository.get(idAccount);
         if (account == null) {
             throw new SumarisTechnicalException("account not found");
         }
-        account.setPubkey(pubkey);
+
+        String oldPubkey = account.getPubkey();
+
+        account.setPubkey(newPubkey);
         personRepository.save(account);
+
+        updateWithNewPubkey(oldPubkey, newPubkey);
     }
 
     @Override
@@ -297,10 +305,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void confirmChangePassword(String token, String toAddress, String pubkey) {
+    public void confirmChangePassword(String token, String toAddress, String newPubkey) {
         Preconditions.checkNotNull(token);
         Preconditions.checkNotNull(toAddress.trim());
-        Preconditions.checkNotNull(pubkey);
+        Preconditions.checkNotNull(newPubkey);
         String[] splitToken = token.trim().split(":");
 
         if (!tokenExpiredCache.contains(token)) {
@@ -326,8 +334,12 @@ public class AccountServiceImpl implements AccountService {
             log.warn(I18n.t("sumaris.error.account.change.badEmailOrToken", toAddress));
             throw new InvalidEmailConfirmationException("This account does not exist");
         }
-        personToUpdate.setPubkey(pubkey);
+
+        String oldPubkey = personToUpdate.getPubkey();
+        personToUpdate.setPubkey(newPubkey);
         personService.save(personToUpdate);
+
+        updateWithNewPubkey(oldPubkey, newPubkey);
     }
 
 
@@ -348,8 +360,8 @@ public class AccountServiceImpl implements AccountService {
             account = matches.get(0);
             valid = Objects.equals(account.getStatusId(), StatusEnum.TEMPORARY.getId());
 
+            // Sent the confirmation email
             if (valid) {
-                // Sent the confirmation email
                 sendConfirmationLinkByEmail(email, I18nUtil.toI18nLocale(locale));
             }
         }
@@ -575,5 +587,11 @@ public class AccountServiceImpl implements AccountService {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+    }
+
+    private void updateWithNewPubkey(String oldPubkey, String newPubkey) {
+        userTokenRepository.deleteAllByPubkey(oldPubkey);
+        userSettingsService.changePubkeyByIssuer(newPubkey, oldPubkey);
+        userEventService.changeIssuerAndRecipient(newPubkey, oldPubkey);
     }
 }

@@ -56,6 +56,8 @@ public interface UserEventService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     UserEventVO save(UserEventVO event);
 
+    void changeIssuerAndRecipient(String newPubkey, String oldPubkey);
+
     void delete(int id);
 
     void delete(List<Integer> ids);
