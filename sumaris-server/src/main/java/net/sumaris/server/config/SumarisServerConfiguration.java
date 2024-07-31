@@ -38,7 +38,6 @@ import java.util.TimeZone;
 
 /**
  * <p>SumarisServerConfiguration class.</p>
- *
  */
 @Slf4j
 public class SumarisServerConfiguration extends SumarisConfiguration {
@@ -183,8 +182,17 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         return applicationConfig.getOption(SumarisServerConfigurationOption.REGISTRATION_CONFIRM_URL.getKey());
     }
 
+    public String getChangePasswordUrlPattern() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.PASSWORD_CHANGE_URL.getKey());
+    }
+
     public boolean enableMailService() {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.EMAIL_ENABLED.getKey());
+    }
+
+    public Integer getEmailChangePasswordDuration() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.PASSWORD_CHANGE_DURATION.getKey());
+
     }
 
     /**
@@ -276,7 +284,9 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public Version getAppMinVersion() {
         String versionStr = applicationConfig.getOption(SumarisServerConfigurationOption.APP_MIN_VERSION.getKey());
-        if (StringUtils.isBlank(versionStr)) return null;
+        if (StringUtils.isBlank(versionStr)) {
+            return null;
+        }
 
         try {
             return VersionBuilder.create(versionStr).build();

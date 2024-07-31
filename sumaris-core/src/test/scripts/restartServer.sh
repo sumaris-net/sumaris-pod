@@ -1,5 +1,5 @@
 #!/bin/bash
-
+export JAVA_HOME="/Users/eis/Library/Java/JavaVirtualMachines/temurin-17.0.11/Contents/Home"
 SCRIPT_DIR=$(dirname $0)
 SCRIPT_DIR=$(cd "${SCRIPT_DIR}" && pwd)
 

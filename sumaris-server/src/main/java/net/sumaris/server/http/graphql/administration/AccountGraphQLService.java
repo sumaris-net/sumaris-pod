@@ -77,18 +77,15 @@ public class AccountGraphQLService {
     @GraphQLQuery(name = "account", description = "Load a user account")
     @Transactional(readOnly = true)
     public AccountVO loadAccount(
-        @GraphQLArgument(name = "pubkey") String pubkey // Deprecated in 1.8.0
+            @GraphQLArgument(name = "pubkey") String pubkey // Deprecated in 1.8.0
     ) {
-        if (pubkey != null) {
+        if (pubkey != null)
             log.warn("Deprecated used of GraphQL 'account' query. Since version 1.8.0, the 'pubkey' argument has been deprecated, and will be ignored.");
-        }
 
-        PersonVO person = this.authService.getAuthenticatedUser().orElse(null);
+        PersonVO person = authService.getAuthenticatedUser().orElse(null);
 
         // Check if user exists
-        if (person == null) {
-            throw new UnauthorizedException(I18n.t("sumaris.error.account.unauthorized"));
-        }
+        if (person == null) throw new UnauthorizedException(I18n.t("sumaris.error.account.unauthorized"));
 
         // Check if user has been disabled
         if (Persons.isDisableOrDeleted(person)) {
@@ -115,24 +112,47 @@ public class AccountGraphQLService {
         return accountService.saveAccount(account);
     }
 
-    @GraphQLMutation(name = "confirmAccountEmail", description = "Confirm an account email")
-    public boolean confirmEmail(@GraphQLArgument(name="email") String email,
-                                @GraphQLArgument(name="code") String signatureHash) {
+    @GraphQLQuery(name = "changePassword", description = "Ask for a new password")
+    public boolean sendEmailChangePassword(@GraphQLArgument(name = "email") String email,
+                                           @GraphQLArgument(name = "locale", defaultValue = "en_GB") String locale) {
+        accountService.sendChangePassword(email, locale);
+        return true;
+    }
+
+    @GraphQLQuery(name = "confirmChangePassword", description = "Token validation and change pubkey")
+    public boolean confirmEmailChangePassword(@GraphQLArgument(name = "token") String token,
+                                              @GraphQLArgument(name = "email") String email,
+                                              @GraphQLArgument(name = "pubkey") String pubkey) {
+        accountService.confirmChangePassword(token, email, pubkey);
+        return true;
+    }
+
+    @IsUser
+    @GraphQLQuery(name = "changePasswordByAccountId", description = "Change password from account page")
+    public boolean changePasswordByAccountId(@GraphQLArgument(name = "idAccount") Integer idAccount,
+                                             @GraphQLArgument(name = "pubkey") String pubkey) {
+        accountService.changePasswordByAccountId(idAccount, pubkey);
+        return true;
+    }
+
+    @GraphQLQuery(name = "confirmAccountEmail", description = "Confirm an account email")
+    public boolean confirmEmail(@GraphQLArgument(name = "email") String email,
+                                @GraphQLArgument(name = "code") String signatureHash) {
         accountService.confirmEmail(email, signatureHash);
         return true;
     }
 
     @GraphQLMutation(name = "sendAccountConfirmationEmail", description = "Resent confirmation email")
     @IsGuest
-    public boolean sendConfirmationEmail(@GraphQLArgument(name="email") String email,
-                                         @GraphQLArgument(name="locale", defaultValue = "en_GB") String locale) {
+    public boolean sendConfirmationEmail(@GraphQLArgument(name = "email") String email,
+                                         @GraphQLArgument(name = "locale", defaultValue = "en_GB") String locale) {
         accountService.sendConfirmationEmail(email, locale);
         return true;
     }
 
     @GraphQLMutation(name = "saveSettings", description = "Save user settings")
     @IsGuest
-    public UserSettingsVO saveSettings(@GraphQLArgument(name="settings") UserSettingsVO settings) {
+    public UserSettingsVO saveSettings(@GraphQLArgument(name = "settings") UserSettingsVO settings) {
         Preconditions.checkNotNull(settings);
 
         // Set account pubkey into issuer
@@ -148,12 +168,12 @@ public class AccountGraphQLService {
     @IsGuest
     @Transactional(readOnly = true)
     public Publisher<AccountVO> updateAccount(
-        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond
+            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") Integer intervalInSecond
     ) {
 
-        Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
+        Integer personId = authService.getAuthenticatedUserId().orElse(null);
         return entityWatchService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
-            .toFlowable(BackpressureStrategy.LATEST);
+                .toFlowable(BackpressureStrategy.LATEST);
     }
 
 }
