@@ -30,6 +30,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.List;
 
 public interface UserEventRepository
     extends SumarisJpaRepository<UserEvent, Integer, UserEventVO>, UserEventSpecifications {
@@ -42,4 +43,9 @@ public interface UserEventRepository
 
     @Query("from UserEvent where source = :source")
     UserEvent getBySource(@Param("source") String source);
+
+    List<UserEvent> findAllByIssuer(String issuer);
+
+    List<UserEvent> findAllByRecipient(String recipient);
 }
+

@@ -25,7 +25,6 @@ package net.sumaris.core.dao.social;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.social.UserEvent;
-import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
@@ -46,7 +45,9 @@ import java.util.List;
 public interface UserEventSpecifications {
 
     default Specification<UserEvent> toSpecification(UserEventFilterVO filter) {
-        if (filter == null) return null;
+        if (filter == null) {
+            return null;
+        }
 
 
         return BindableSpecification
@@ -62,7 +63,9 @@ public interface UserEventSpecifications {
     }
 
     default Specification<UserEvent> includedIds(Integer[] includedIds) {
-        if (ArrayUtils.isEmpty(includedIds)) return null;
+        if (ArrayUtils.isEmpty(includedIds)) {
+            return null;
+        }
         return BindableSpecification.<UserEvent>where((root, query, criteriaBuilder) -> {
                 ParameterExpression<Collection> param = criteriaBuilder.parameter(Collection.class, UserEvent.Fields.ID);
                 return criteriaBuilder.in(root.get(UserEvent.Fields.ID)).value(param);
@@ -76,7 +79,9 @@ public interface UserEventSpecifications {
     }
 
     default Specification<UserEvent> hasSource(String source) {
-        if (StringUtils.isBlank(source)) return null;
+        if (StringUtils.isBlank(source)) {
+            return null;
+        }
         return BindableSpecification.<UserEvent>where((root, query, cb) -> {
                 ParameterExpression<String> param = cb.parameter(String.class, UserEvent.Fields.SOURCE);
                 return cb.equal(root.get(UserEvent.Fields.SOURCE), param);
@@ -97,17 +102,23 @@ public interface UserEventSpecifications {
     }
 
     default Specification<UserEvent> creationDateAfter(Date startDate) {
-        if (startDate == null) return null;
+        if (startDate == null) {
+            return null;
+        }
         return (root, query, cb) -> cb.greaterThan(root.get(UserEvent.Fields.CREATION_DATE), startDate);
     }
 
     default Specification<UserEvent> excludeRead(boolean excludeRead) {
-        if (!excludeRead) return null;
+        if (!excludeRead) {
+            return null;
+        }
         return (root, query, cb) -> cb.isNull(root.get(UserEvent.Fields.READ_SIGNATURE));
     }
 
     default Specification<UserEvent> inPropertyValues(String propertyName, String[] values) {
-        if (ArrayUtils.isEmpty(values)) return null;
+        if (ArrayUtils.isEmpty(values)) {
+            return null;
+        }
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, propertyName);
             return cb.in(Daos.composePath(root, propertyName))

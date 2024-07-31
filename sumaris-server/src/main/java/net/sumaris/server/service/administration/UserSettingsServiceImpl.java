@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -38,6 +37,7 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 
     private final UserSettingsRepository userSettingsRepository;
 
+    @Override
     public Optional<UserSettingsVO> findByIssuer(String issuer) {
         return userSettingsRepository.findByIssuer(issuer);
     }
@@ -46,5 +46,14 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     public UserSettingsVO save(@NonNull UserSettingsVO settings) {
         Preconditions.checkNotNull(settings.getIssuer());
         return userSettingsRepository.save(settings);
+    }
+
+    @Override
+    public void changePubkeyByIssuer(@NonNull String newIssuer, @NonNull String oldIssuer) {
+        Optional<UserSettingsVO> userSettings = userSettingsRepository.findByIssuer(oldIssuer);
+        if (userSettings.isPresent()) {
+            userSettings.get().setIssuer(newIssuer);
+            userSettingsRepository.save(userSettings.get());
+        }
     }
 }

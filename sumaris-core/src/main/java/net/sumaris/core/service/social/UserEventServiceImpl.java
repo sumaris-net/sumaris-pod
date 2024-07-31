@@ -36,7 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author <benoit.lavenier@e-is.pro> on 08/07/2020.
@@ -122,7 +125,9 @@ public class UserEventServiceImpl implements UserEventService {
 
     @Override
     public void markAsRead(List<Integer> userEventIds) {
-        if (CollectionUtils.isEmpty(userEventIds)) return;
+        if (CollectionUtils.isEmpty(userEventIds)) {
+            return;
+        }
 
         Timestamp readDate = userEventRepository.getDatabaseCurrentTimestamp();
         userEventIds.stream()
@@ -133,5 +138,20 @@ public class UserEventServiceImpl implements UserEventService {
                 userEventVO.setReadDate(readDate);
                 userEventRepository.save(userEventVO);
             });
+    }
+
+    @Override
+    public void changeIssuerAndRecipient(String newPubkey, String oldPubkey) {
+
+        List<UserEvent> listUserEventByIssuer = userEventRepository.findAllByIssuer(oldPubkey);
+
+        List<UserEvent> listUserEventByRecipient = userEventRepository.findAllByRecipient(oldPubkey);
+        if (!CollectionUtils.isEmpty(listUserEventByIssuer)) {
+            listUserEventByIssuer.forEach(userEvent -> userEvent.setIssuer(newPubkey));
+        }
+
+        if (!CollectionUtils.isEmpty(listUserEventByRecipient)) {
+            listUserEventByRecipient.forEach(userEvent -> userEvent.setRecipient(newPubkey));
+        }
     }
 }
