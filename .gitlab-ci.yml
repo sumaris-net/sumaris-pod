@@ -34,9 +34,7 @@ variables:
     DOCKER_DIND_VERSION: 24.0.7-dind
     #DOCKER_DIND_VERSION: latest
     DOCKER_DIND_IMAGE: ${DOCKER_IMAGE_REGISTRY}docker:${DOCKER_DIND_VERSION}
-    CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
-    #CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-    CONTAINER_SNAPSHOT_IMAGE: $CI_REGISTRY_IMAGE:develop
+    CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:develop
     MAVEN_LOCAL_REPO: /root/.m2/repository/
     MAVEN_REPO_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/maven"
     APP_SHARED_MODULE: sumaris-core-shared
@@ -273,7 +271,7 @@ release:tags:
     - echo "$(cd ${APP_WAR_MODULE}/target && sha256sum ${APP_WAR_MODULE}-*.war)" > ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256
     - echo "$(cd ${APP_WAR_MODULE}/target && sha256sum ${APP_WAR_MODULE}-*.zip)" >> ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256
     - echo "Generating DB..."
-    - mvn --batch-mode -Prun,hsqldb -q -DskipTests -pl ${APP_CORE_MODULE}
+    - mvn -s ./ci_settings.xml --batch-mode -Prun,hsqldb -q -DskipTests -pl ${APP_CORE_MODULE}
     - zip -q -r "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${CI_COMMIT_TAG}.zip" target/db
     - echo "-- Generated files:"
     - ls -la ${ARTIFACT_DB_FILE}
