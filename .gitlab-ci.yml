@@ -214,7 +214,9 @@ sonarqube:
     - echo "$(cd ${APP_WAR_MODULE}/target && sha256sum ${APP_WAR_MODULE}-*.zip)" >> ${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256
     - echo "Generating DB..."
     - mvn --batch-mode -Prun,hsqldb -q -DskipTests -pl ${APP_CORE_MODULE}
-    - zip -q -r "${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip" target/db
+    - cd ${CI_PROJECT_DIR}/target
+    - zip -q -r "${CI_PROJECT_DIR}/${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip" db
+    - cd ${CI_PROJECT_DIR}
     - echo "-- Generated files:"
     - ls -la ${ARTIFACT_DB_FILE}
     - echo "-- Creating SHA256 file..."
