@@ -13,7 +13,7 @@
         </preConditions>
         <createSequence sequenceName="PROGRAM_PROPERTY_SEQ"/>
     </changeSet>
-    <changeSet author="benoit.lavenier@e-is.pro" id="1556524707391-11">
+    <changeSet author="benoit.lavenier@e-is.pro" id="1556524707391-11" runOnChange="true">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="program_property"/>
