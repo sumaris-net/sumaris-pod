@@ -2164,12 +2164,7 @@ public class DataGraphQLService {
      *
      */
     protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
-        try {
-            filter = filter != null ? filter : Beans.newInstance(filterClass);
-        } catch (Exception e) {
-            log.error("Cannot create filter instance: {}", e.getMessage(), e);
-            return filter;
-        }
+        filter = Beans.nullToEmpty(filter, filterClass);
 
         // Replace programLabel by ID
         if (StringUtils.isNotBlank(filter.getProgramLabel()) && ArrayUtils.isEmpty(filter.getProgramIds())) {
@@ -2225,17 +2220,20 @@ public class DataGraphQLService {
 
     protected ActivityCalendarFilterVO fillActivityCalendarFilter(ActivityCalendarFilterVO filter) {
 
-        boolean hasRecorderPersonId = filter != null && filter.getRecorderPersonId() != null;
-        boolean hasRecorderDepartmentId = filter != null && filter.getRecorderDepartmentId() != null;
+        filter = Beans.nullToEmpty(filter, ActivityCalendarFilterVO.class);
 
-        // Fill default programs
+        // Save original state of some properties
+        boolean hasRecorderPersonId = filter.getRecorderPersonId() != null;
+        boolean hasRecorderDepartmentId = filter.getRecorderDepartmentId() != null;
+
+        // Fill default program
         if (ArrayUtils.isEmpty(filter.getProgramIds()) && StringUtils.isEmpty(filter.getProgramLabel())
-                && ProgramEnum.SIH_ACTIFLOT.getId() != -1) {
+            && ProgramEnum.SIH_ACTIFLOT.getId() != -1) {
             filter.setProgramLabel(ProgramEnum.SIH_ACTIFLOT.getLabel());
         }
 
         // Default rules
-        filter = this.fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
+        this.fillRootDataFilter(filter, ActivityCalendarFilterVO.class);
 
         // Limit to user program's locations
         if (filter.getProgramIds() != DataAccessControlService.NO_ACCESS_FAKE_IDS) {

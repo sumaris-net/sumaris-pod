@@ -39,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -68,6 +70,10 @@ public class Beans {
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new SumarisTechnicalException(e);
         }
+    }
+
+    public static <C> @Nonnull C nullToEmpty(@Nullable C object, Class<C> objectClass)  {
+        return object != null ? object : newInstance(objectClass);
     }
 
     /**
