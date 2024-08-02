@@ -251,12 +251,6 @@ release:
   stage: build
   image: ${CI_BUILD_IMAGE}
 
-release:build:
-  extends: .release
-  stage: release
-  image: ${CI_BUILD_IMAGE}
-  needs: [build]
-
 release:tags:
   <<: *git-setup
   image: ${CI_BUILD_IMAGE}
