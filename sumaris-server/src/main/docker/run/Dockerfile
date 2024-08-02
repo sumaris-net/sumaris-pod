@@ -13,8 +13,9 @@ ARG GROUPNAME="spring"
 ARG GROUPID="9999"
 
 # Install dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends libsodium-dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libsodium-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create execution user/group
 RUN echo "Creating group ${GROUPNAME}:${GROUPID}" && \
