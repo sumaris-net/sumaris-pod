@@ -30,8 +30,8 @@
                 LOGO_FK="2022" LOCATION_FK="204" STATUS_FK="1" CREATION_DATE="2024-08-01" UPDATE_DATE="2024-08-01"/>
 
     <!-- SIH-OBSDEB Programs -->
-    <PROGRAM ID="2030" LABEL="SFA-LOGBOOK" NAME="LOGBOOK-SEA-CUCUMBER"
-             DESCRIPTION="Logbook pour les concombres de mers" STATUS_FK="1" CREATION_DATE="2024-08-01"
+    <PROGRAM ID="2030" LABEL="LOGBOOK-SEA-CUCUMBER" NAME="Logbook for sea cucumbers"
+             DESCRIPTION="Logbook for sea cucumbers, for SFA" STATUS_FK="1" CREATION_DATE="2024-08-01"
              UPDATE_DATE="2024-08-01" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
 
     <PROGRAM2PERSON ID="2030" PROGRAM_FK="2030" PERSON_FK="3" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2024-08-01"/>
@@ -56,89 +56,17 @@
                       LABEL="sumaris.trip.sale.enable" NAME="false"/>
     <PROGRAM_PROPERTY ID="2050" STATUS_FK="1" PROGRAM_FK="2030" CREATION_DATE="2024-08-01"
                       LABEL="sumaris.trip.observers.enable" NAME="true"/>
-
+    <PROGRAM_PROPERTY ID="2051" STATUS_FK="1" PROGRAM_FK="2030" CREATION_DATE="2024-08-01"
+                      LABEL="sumaris.trip.expenses.enable" NAME="true"/>
+    
     <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="2030" LOCATION_CLASSIFICATION_FK="2"/>
 
     <!-- strategies -->
-    <STRATEGY ID="2020" PROGRAM_FK="2030" LABEL="SEA_CUCUMBER" NAME="Stratégie adaptée à la saisie SFA avec dépense"
+    <STRATEGY ID="2020" PROGRAM_FK="2030" LABEL="V1" NAME="Strategy V1"
               STATUS_FK="1"
               CREATION_DATE="2024-08-01" UPDATE_DATE="2024-08-01"/>
 
-    <!-- PmfmStrategy / Trip -->
-    <!--  nb fishermen -->
-    <PMFM_STRATEGY ID="2400" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="1" PMFM_FK="21" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1"
-                   IS_MANDATORY="0"/>
-    <!-- wind force-->
-    <PMFM_STRATEGY ID="2401" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="1" PMFM_FK="29" RANK_ORDER="2"
-                   ACQUISITION_NUMBER="1"
-                   IS_MANDATORY="0"/>
-
-    <!-- PmfmStrategy / Landing -->
-    <!-- vessel port state -->
-    <PMFM_STRATEGY ID="2405" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="11" PMFM_FK="36" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
-    <PMFM_STRATEGY ID="2406" STRATEGY_FK="2021" ACQUISITION_LEVEL_FK="11" PMFM_FK="36" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
-
-    <!-- PmfmStrategy / Operation -->
-    <!-- fishing duration -->
-    <PMFM_STRATEGY ID="2410" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="3" PMFM_FK="37" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1"
-                   IS_MANDATORY="1"/>
-    <!-- nb gear -->
-    <PMFM_STRATEGY ID="2411" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="3" PMFM_FK="38" RANK_ORDER="2"
-                   ACQUISITION_NUMBER="1"
-                   IS_MANDATORY="0"/>
-
-    <!-- PmfmStrategy / Product -->
-    <!-- packaging -->
-    <PMFM_STRATEGY ID="2415" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="13" PMFM_FK="77" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- dressing -->
-    <PMFM_STRATEGY ID="2416" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="13" PMFM_FK="51" RANK_ORDER="2"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- preservation -->
-    <PMFM_STRATEGY ID="2417" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="13" PMFM_FK="50" RANK_ORDER="3"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- size category -->
-    <PMFM_STRATEGY ID="2418" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="13" PMFM_FK="74" RANK_ORDER="4"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-
-    <!-- PmfmStrategy / sale -->
-    <!-- expected total -->
-    <PMFM_STRATEGY ID="2420" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="14" PMFM_FK="69" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-
-    <!-- PmfmStrategy / Product sale -->
-    <!-- packaging -->
-    <PMFM_STRATEGY ID="2425" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="15" PMFM_FK="77" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- size category -->
-    <PMFM_STRATEGY ID="2426" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="15" PMFM_FK="74" RANK_ORDER="2"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- ratio -->
-    <PMFM_STRATEGY ID="2427" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="15" PMFM_FK="78" RANK_ORDER="3"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
-    <!-- average weight price -->
-    <PMFM_STRATEGY ID="2428" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="15" PMFM_FK="72" RANK_ORDER="4"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- average packaging price -->
-    <PMFM_STRATEGY ID="2429" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="15" PMFM_FK="71" RANK_ORDER="5"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- total price -->
-    <PMFM_STRATEGY ID="2430" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="15" PMFM_FK="70" RANK_ORDER="6"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-
-    <!-- PmfmStrategy / Packet sale -->
-    <!-- sale rank order -->
-    <PMFM_STRATEGY ID="2431" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="16" PMFM_FK="79" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- average weight price -->
-    <PMFM_STRATEGY ID="2432" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="16" PMFM_FK="72" RANK_ORDER="2"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- total price -->
-    <PMFM_STRATEGY ID="2433" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="16" PMFM_FK="70" RANK_ORDER="3"
+    <PMFM_STRATEGY ID="2433" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="1" PMFM_FK="21" RANK_ORDER="1"
                    ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
 
     <!-- PmfmStrategy / Expense (total, fuel, oils...) -->
@@ -146,9 +74,8 @@
     <PMFM_STRATEGY ID="2434" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="17" PMFM_FK="300" RANK_ORDER="1"
                    ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
     <!-- fuel type (default: Gasoil) -->
-    <PMFM_STRATEGY ID="2435" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="17" PMFM_FK="305" DEFAULT_VALUE="420"
-                   RANK_ORDER="2"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
+    <PMFM_STRATEGY ID="2435" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="17" PMFM_FK="305" RANK_ORDER="2"
+                   ACQUISITION_NUMBER="1" IS_MANDATORY="0" DEFAULT_VALUE="420"/>
     <!-- fuel volume -->
     <PMFM_STRATEGY ID="2436" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="17" PMFM_FK="306" RANK_ORDER="3"
                    ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
@@ -219,14 +146,4 @@
     <!-- bait cost -->
     <PMFM_STRATEGY ID="2457" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="19" PMFM_FK="327" RANK_ORDER="6"
                    ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-
-    <!-- PmfmStrategy / Sample -->
-    <!-- weight -->
-    <PMFM_STRATEGY ID="2460" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="12" PMFM_FK="140" RANK_ORDER="1"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-    <!-- length -->
-    <PMFM_STRATEGY ID="2461" STRATEGY_FK="2020" ACQUISITION_LEVEL_FK="12" PMFM_FK="81" RANK_ORDER="2"
-                   ACQUISITION_NUMBER="1" IS_MANDATORY="0"/>
-
-
 </dataset>
