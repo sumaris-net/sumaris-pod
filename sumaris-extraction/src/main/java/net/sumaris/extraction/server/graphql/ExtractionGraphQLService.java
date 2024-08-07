@@ -84,6 +84,7 @@ public class ExtractionGraphQLService {
         Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
 
         IExtractionType checkedType = extractionService.getByExample(type);
+
         extractionSecurityService.checkReadAccess(checkedType);
 
         Page page = Page.builder()
@@ -177,6 +178,49 @@ public class ExtractionGraphQLService {
         }
     }
 
+    @GraphQLQuery(name = "extractionProgressReport", description = "Read extraction data for progress report")
+    public JsonNode readProgressReport(@GraphQLArgument(name = "type") ExtractionTypeVO type,
+                                       @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
+                                       @GraphQLArgument(name = "strata") AggregationStrataVO strata,
+                                       @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                       @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                       @GraphQLArgument(name = "sortBy") String sort,
+                                       @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+                                       @GraphQLArgument(name = "cacheDuration") String cacheDuration
+    ) {
+        Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
+        Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
+        Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
+
+        IExtractionType checkedType = extractionService.getByExample(type);
+
+        Page page = Page.builder()
+                .offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(SortDirection.fromString(direction))
+                .build();
+
+        // If one one sheetname, force to use 'sheetName' instead of 'sheetNames'
+        if (CollectionUtils.size(filter.getSheetNames()) == 1 && filter.getSheetName() == null) {
+            filter.setSheetName(filter.getSheetNames().iterator().next());
+            filter.setSheetNames(null);
+        }
+
+        CacheTTL ttl = CacheTTL.fromString(cacheDuration);
+
+        // Many sheetNames
+        if (CollectionUtils.size(filter.getSheetNames()) > 1) {
+            Map<String, ExtractionResultVO> data = extractionService.executeAndReadMany(checkedType, filter, strata, page, ttl);
+            return extractionService.toJsonMap(data);
+        }
+        // Single sheet name (=preview mode)
+        else {
+            ExtractionResultVO data = extractionService.executeAndRead(checkedType, filter, strata, page, ttl);
+            return extractionService.toJsonArray(data);
+        }
+    }
+
     @GraphQLQuery(name = "extractionFile", description = "Extract data into a file")
     public String getExtractionFile(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                     @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
@@ -242,7 +286,9 @@ public class ExtractionGraphQLService {
         }
 
         // Make sure strata has been filled
-        if (strata == null || strata.getSpatialColumnName() == null) throw new SumarisTechnicalException(String.format("No strata or spatial column found, in type '%s'", type.getLabel()));
+        if (strata == null || strata.getSpatialColumnName() == null) {
+            throw new SumarisTechnicalException(String.format("No strata or spatial column found, in type '%s'", type.getLabel()));
+        }
 
         // Sort by spatial column, by default
         // This is import, to get all pages
@@ -307,13 +353,17 @@ public class ExtractionGraphQLService {
     }
 
     protected void checkIsSpatial(ExtractionProductVO target) {
-        if (!target.getIsSpatial()) throw new SumarisTechnicalException("Not a spatial product");
+        if (!target.getIsSpatial()) {
+            throw new SumarisTechnicalException("Not a spatial product");
+        }
     }
 
     protected ExtractionProductVO getProductByExample(IExtractionType source, ExtractionProductFetchOptions fetchOptions) {
         IExtractionType checkedType = extractionService.getByExample(source, fetchOptions);
 
-        if (!(checkedType instanceof ExtractionProductVO)) throw new SumarisTechnicalException("Not a product extraction");
+        if (!(checkedType instanceof ExtractionProductVO)) {
+            throw new SumarisTechnicalException("Not a product extraction");
+        }
 
         return (ExtractionProductVO)checkedType;
     }
