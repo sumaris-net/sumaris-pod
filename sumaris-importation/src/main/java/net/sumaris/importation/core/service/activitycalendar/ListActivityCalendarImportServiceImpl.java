@@ -185,14 +185,14 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                             if (activityCalendar.getVesselId() == null) {
                                 warnings.increment();
 
-                                String message = String.format(t("sumaris.import.activity_calendar.list.error.invalid_row", rowCounter, activityCalendar.getQualificationComments()));
+                                String message = String.format(t("sumaris.import.activity_calendar.list.error.invalid_row", rowCounter, activityCalendar.getQualificationComments(), activityCalendar.getYear() ));
                                 messages.add(message);
                                 log.warn(message);
                             }
                             //  Check if it has already been executed
                             else if (processedKeys.contains(uniqueKey)) {
                                 warnings.increment();
-                                String message = String.format(t("sumaris.import.activity_calendar.list.error.duplicate_row", rowCounter, activityCalendar.getQualificationComments()));
+                                String message = String.format(t("sumaris.import.activity_calendar.list.error.duplicate_row", rowCounter, activityCalendar.getQualificationComments(), activityCalendar.getYear()));
                                 messages.add(message);
                                 log.warn(message);
                             }
@@ -210,7 +210,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
 
 
                                 warnings.increment();
-                                String message = String.format(t("sumaris.import.activity_calendar.list.error.invalid_period", rowCounter, activityCalendar.getQualificationComments()));
+                                String message = String.format(t("sumaris.import.activity_calendar.list.error.invalid_period", rowCounter, activityCalendar.getQualificationComments(), activityCalendar.getYear()));
                                 //clean QualificationComments
                                 activityCalendar.setQualificationComments(null);
                                 insert(activityCalendar);
