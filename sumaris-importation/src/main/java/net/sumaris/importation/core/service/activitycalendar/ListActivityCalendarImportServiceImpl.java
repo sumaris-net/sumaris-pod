@@ -38,6 +38,7 @@ import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityCale
 import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityImportCalendarContextVO;
 import net.sumaris.importation.core.util.csv.CSVFileReader;
 import org.apache.commons.beanutils.NestedNullException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.mutable.MutableShort;
 import org.springframework.context.ApplicationContext;
@@ -183,31 +184,42 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                             //  Check if is valid calendar
                             if (activityCalendar.getVesselId() == null) {
                                 warnings.increment();
-                                String message = String.format("Invalid row #%s: Ship not found ", rowCounter);
+
+                                String message = String.format(t("sumaris.import.activity_calendar.list.error.invalid_row", rowCounter, activityCalendar.getQualificationComments()));
                                 messages.add(message);
                                 log.warn(message);
                             }
                             //  Check if it has already been executed
                             else if (processedKeys.contains(uniqueKey)) {
                                 warnings.increment();
-                                String message = String.format("Invalid row #%s: duplicated value . Skipping", rowCounter);
+                                String message = String.format(t("sumaris.import.activity_calendar.list.error.duplicate_row", rowCounter, activityCalendar.getQualificationComments()));
                                 messages.add(message);
                                 log.warn(message);
                             }
                             // Check if already exist in database
                             else if (existingId != null) {
+                                //clean QualificationComments
+                                activityCalendar.setQualificationComments(null);
+
                                 activityCalendar.setId(existingId);
                                 boolean updated = update(activityCalendar, existingActivityCalendarsVO.stream().filter(calendar -> calendar.getId().equals(existingId)).findFirst().get());
                                 if (updated) updates.increment();
                             }
                             // Check if the vessel is in the BAD period
                             else if (!checkVesselPeriod(vesselSnapshotFilteredById, activityCalendar.getYear())) {
+
+
                                 warnings.increment();
-                                String message = String.format("Row #%s: Vessel does not have a valid period . Insert", rowCounter);
+                                String message = String.format(t("sumaris.import.activity_calendar.list.error.invalid_period", rowCounter, activityCalendar.getQualificationComments()));
+                                //clean QualificationComments
+                                activityCalendar.setQualificationComments(null);
                                 insert(activityCalendar);
                                 messages.add(message);
                                 log.warn(message);
                             } else {
+                                //clean QualificationComments
+                                activityCalendar.setQualificationComments(null);
+
                                 insert(activityCalendar);
                                 inserts.increment();
                             }
@@ -227,6 +239,12 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
                     result.setUpdates(updates.intValue());
                     result.setWarnings(warnings.intValue());
                     result.setErrors(errors.intValue());
+                    result.setTotal(rowCounter.intValue() - 1);
+
+                    if (CollectionUtils.isNotEmpty(messages)) {
+                        result.setMessage(String.join("\n", messages));
+                    }
+
 
                     progressionModel.setCurrent(progressionModel.getTotal());
                     progressionModel.setMessage(t("sumaris.import.job.activity.calendar.progress", rowCounter.intValue(), activityCalendars.size()));
@@ -268,7 +286,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
             result.setStatus(JobStatusEnum.FATAL);
         }
 
-        return new AsyncResult<>(result);
+         return new AsyncResult<>(result);
     }
 
     protected File prepareFile(File inputFile) throws IOException {
@@ -377,7 +395,7 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         return rows;
     }
 
-    protected ActivityCalendarVO toVO(Map<String, String> source, List<VesselSnapshotVO> vessel) {
+    protected ActivityCalendarVO toVO(Map<String, String> source, List<VesselSnapshotVO> vessels) {
         ActivityCalendarVO target = new ActivityCalendarVO();
         //Check if all mandatory fields are present
         if (source.get(ActivityCalendarVO.Fields.YEAR) == null
@@ -413,10 +431,13 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
         target.setProgram(program);
 
         //vesselId
-        List<VesselSnapshotVO> vesselSnapshots = vesselFilterByRegistrationCode(vessel, source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE));
+        List<VesselSnapshotVO> vesselSnapshots = vesselFilterByRegistrationCode(vessels, source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE));
         if (vesselSnapshots != null && !vesselSnapshots.isEmpty()) {
             target.setVesselId(vesselSnapshots.get(0).getId());
         }
+
+        //Use the qualificationComments for storing the registration code
+        target.setQualificationComments(source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE));
 
         return target;
     }
@@ -427,10 +448,6 @@ public class ListActivityCalendarImportServiceImpl implements ListActivityCalend
             target.setRecorderDepartment(person.getDepartment());
         }
 
-        // Fill recorder department
-        if (target.getRecorderPerson() == null) {
-            target.setRecorderPerson(person);
-        }
     }
 
 

@@ -16,6 +16,7 @@ public class ListActivityCalendarImportResultVO implements IJobResultVO {
     private Integer updates;
     private Integer disables;
     private Integer warnings;
+    private Integer total;
 
     private Integer errors;
 
