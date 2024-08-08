@@ -201,24 +201,12 @@ public class ExtractionGraphQLService {
                 .sortDirection(SortDirection.fromString(direction))
                 .build();
 
-        // If one one sheetname, force to use 'sheetName' instead of 'sheetNames'
-        if (CollectionUtils.size(filter.getSheetNames()) == 1 && filter.getSheetName() == null) {
-            filter.setSheetName(filter.getSheetNames().iterator().next());
-            filter.setSheetNames(null);
-        }
 
         CacheTTL ttl = CacheTTL.fromString(cacheDuration);
 
-        // Many sheetNames
-        if (CollectionUtils.size(filter.getSheetNames()) > 1) {
-            Map<String, ExtractionResultVO> data = extractionService.executeAndReadMany(checkedType, filter, strata, page, ttl);
-            return extractionService.toJsonMap(data);
-        }
-        // Single sheet name (=preview mode)
-        else {
-            ExtractionResultVO data = extractionService.executeAndRead(checkedType, filter, strata, page, ttl);
-            return extractionService.toJsonArray(data);
-        }
+
+        ExtractionResultVO data = extractionService.executeAndRead(checkedType, filter, strata, page, ttl);
+        return extractionService.toJsonArray(data);
     }
 
     @GraphQLQuery(name = "extractionFile", description = "Extract data into a file")
