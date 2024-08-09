@@ -199,7 +199,7 @@ public class ExtractionActimonitDaoImpl<C extends ExtractionActimonitContextVO, 
 
     protected XMLQuery createActimonitQuery(C context) throws PersistenceException {
         XMLQuery xmlQuery = createXMLQuery(context, "injectionMonitoringTable");
-
+        xmlQuery.bind("surveyQualification", "SURVEY_QUALIFICATION");
         return xmlQuery;
     }
 }
