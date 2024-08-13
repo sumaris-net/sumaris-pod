@@ -28,10 +28,11 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
+import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.extraction.core.vo.AggregationContextVO;
 import net.sumaris.extraction.core.vo.ExtractionPmfmColumnVO;
-import net.sumaris.core.vo.filter.TripFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -70,27 +71,39 @@ public class ExtractionTripContextVO extends AggregationContextVO {
     }
 
     public List<Integer> getVesselIds() {
-        return tripFilter != null && tripFilter.getVesselId() != null ? ImmutableList.of(tripFilter.getVesselId()) : null;
+        if (tripFilter == null) {
+            return null;
+        }
+        return tripFilter.getVesselId() != null ? ImmutableList.of(tripFilter.getVesselId()) : Beans.getList(tripFilter.getVesselIds());
     }
 
     public List<Integer> getLocationIds() {
-        return tripFilter != null && tripFilter.getLocationId() != null ? ImmutableList.of(tripFilter.getLocationId()) : null;
-    }
-
-    public Integer getTripId() {
-        return tripFilter != null ? tripFilter.getTripId() : null;
+        if (tripFilter == null) {
+            return null;
+        }
+        return tripFilter.getLocationId() != null ? ImmutableList.of(tripFilter.getLocationId()) : Beans.getList(tripFilter.getLocationIds());
     }
 
     public List<Integer> getTripIds() {
-        if (tripFilter == null) return null;
-        if (tripFilter.getTripId() != null) return ImmutableList.of(tripFilter.getTripId());
-        if (ArrayUtils.isNotEmpty(tripFilter.getIncludedIds())) return ImmutableList.copyOf(tripFilter.getIncludedIds());
+        if (tripFilter == null) {
+            return null;
+        }
+        if (tripFilter.getTripId() != null) {
+            return ImmutableList.of(tripFilter.getTripId());
+        }
+        if (ArrayUtils.isNotEmpty(tripFilter.getIncludedIds())) {
+            return ImmutableList.copyOf(tripFilter.getIncludedIds());
+        }
         return null;
     }
 
     public List<Integer> getOperationIds() {
-        if (tripFilter == null) return null;
-        if (tripFilter.getOperationIds() != null) return ImmutableList.copyOf(tripFilter.getOperationIds());
+        if (tripFilter == null) {
+            return null;
+        }
+        if (tripFilter.getOperationIds() != null) {
+            return ImmutableList.copyOf(tripFilter.getOperationIds());
+        }
         return null;
     }
 }
