@@ -1,0 +1,71 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/pgsql/all/db-changelog-4.3.1.xml">
+
+  <changeSet author="jv.famy@codra.fr" id="1722000410026-001">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="STRATEGY_PROPERTY_SEQ"/>
+      </not>
+    </preConditions>
+    <createSequence sequenceName="STRATEGY_PROPERTY_SEQ"/>
+  </changeSet>
+  <changeSet author="jv.famy@codra.fr" id="1722000410026-002">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="strategy_property"/>
+      </not>
+    </preConditions>
+    <createTable tableName="strategy_property">
+      <column name="id" type="INT">
+        <constraints primaryKey="true" primaryKeyName="strategy_property_pk"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="label" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP"/>
+      <column name="strategy_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet author="jv.famy@codra.fr" id="1556524707391-003" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="strategy_property" constraintName="strategy_property_status_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" />
+  </changeSet>
+  <changeSet author="jv.famy@codra.fr" id="1556524707391-004" failOnError="false">
+    <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="strategy_property" constraintName="strategy_property_strategy_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Strategy" />
+  </changeSet>
+
+
+  <!-- Update SYSTEM_VERSION -->
+  <changeSet author="jv.famy@codra.fr" id="1722000410026-300" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='4.3.1'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">4.3.1</column>
+      <column name="DESCRIPTION" >
+        - Add table STRATEGY_PROPERTY
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Add table STRATEGY_PROPERTY
+      </column>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>
