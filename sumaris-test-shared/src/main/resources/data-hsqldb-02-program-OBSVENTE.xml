@@ -63,7 +63,6 @@
   <PROGRAM_PROPERTY ID="520" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.samplingStrata.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="521" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.endDate.required" NAME="true"/>
   <PROGRAM_PROPERTY ID="522" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.observedLocation.control.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="523" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.autoFill" NAME="true"/>
   <PROGRAM_PROPERTY ID="524" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.location.level.ids" NAME="2,3"/> <!-- PORT, AUCTION -->
   <PROGRAM_PROPERTY ID="525" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.batch.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="530" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
@@ -79,6 +78,9 @@
   <!-- strategies -->
   <STRATEGY ID="100" PROGRAM_FK="100" LABEL="OBSVENTE-2023" NAME="OBSVENTE démarrage le 01/11/2023" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <STRATEGY ID="101" PROGRAM_FK="100" LABEL="OBSVENTE-2023-M" NAME="OBSVENTE outre-mer démarrage le 01/11/2023" STATUS_FK="1" CREATION_DATE="2024-06-26" UPDATE_DATE="2024-06-26"/>
+
+  <!-- Strategy properties -->
+  <STRATEGY_PROPERTY ID="1" STATUS_FK="1" STRATEGY_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.autoFill" NAME="true"/>
 
   <!-- PETS (taxon) -->
   <REFERENCE_TAXON_STRATEGY PRIORITY_LEVEL="0" STRATEGY_FK="100" REFERENCE_TAXON_FK="1013"/>
