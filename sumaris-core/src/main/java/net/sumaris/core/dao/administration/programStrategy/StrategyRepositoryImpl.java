@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
@@ -742,6 +743,21 @@ public class StrategyRepositoryImpl
         if (opts.isWithDenormalizedPmfms()) {
             target.setDenormalizedPmfms(getDenormalizedPmfms(source, opts.getPmfmsFetchOptions()));
         }
+
+        // Properties
+        Map<String, String> properties = Maps.newHashMap();
+        Beans.getStream(source.getProperties())
+                .filter(prop -> Objects.nonNull(prop)
+                        && Objects.nonNull(prop.getLabel())
+                        && Objects.nonNull(prop.getName())
+                )
+                .forEach(prop -> {
+                    if (properties.containsKey(prop.getLabel())) {
+                        log.warn(String.format("Duplicate strategy property with label {%s}. Overriding existing value with {%s}", prop.getLabel(), prop.getName()));
+                    }
+                    properties.put(prop.getLabel(), prop.getName());
+                });
+        target.setProperties(properties);
     }
 
     protected List<TaxonNameStrategyVO> getTaxonNameStrategies(Strategy source) {
