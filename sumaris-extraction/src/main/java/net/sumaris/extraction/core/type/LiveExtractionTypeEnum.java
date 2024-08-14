@@ -25,7 +25,7 @@ package net.sumaris.extraction.core.type;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.extraction.core.specification.actimonit.ActiMonitSpecification;
+import net.sumaris.extraction.core.specification.actimonit.MonitoringSpecification;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
@@ -56,7 +56,7 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
     RJB_TRIP(RjbTripSpecification.FORMAT, RjbTripSpecification.SHEET_NAMES, RjbTripSpecification.VERSION_1_0),
     APASE(ApaseSpecification.FORMAT, ApaseSpecification.SHEET_NAMES, ApaseSpecification.VERSION_1_0),
     ACOST(AcostSpecification.FORMAT, AcostSpecification.SHEET_NAMES, AcostSpecification.VERSION_1_0),
-    ACTIMONIT(ActiMonitSpecification.FORMAT, ActiMonitSpecification.SHEET_NAMES, ActiMonitSpecification.VERSION)
+    MONITORING(MonitoringSpecification.FORMAT, MonitoringSpecification.SHEET_NAMES, MonitoringSpecification.VERSION)
     ;
 
     private Integer id;

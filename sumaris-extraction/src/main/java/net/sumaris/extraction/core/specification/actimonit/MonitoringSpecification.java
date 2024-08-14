@@ -22,16 +22,21 @@ package net.sumaris.extraction.core.specification.actimonit;
  * #L%
  */
 
-public interface ActiMonitSpecification {
+public interface MonitoringSpecification {
     String FORMAT = "ACTIMONIT";
     String VERSION = "1.0.0";
 
     String AM_SHEET_NAME = "AM";
+    String RESULT_AM_SHEET_NAME = "RESULT_AM";
 
     String COLUMN_PROJECT = "projet";
-    String COLUMN_ACTIMONIT_IDENTIFIER = "actimonit_identifier";
-    String COLUMN_REGISTRATION_START_DATE = "registration_start_date";
-    String COLUMN_REGISTRATION_END_DATE = "registration_end_date";
 
+    String COLUMN_YEAR = "year";
+    String COLUMN_END_DATE = "END_DATE";
     String[] SHEET_NAMES = {AM_SHEET_NAME};
+
+    // Time columns
+    String COLUMN_AREA = "area";
+    String COLUMN_MONTH = "month";
+
 }

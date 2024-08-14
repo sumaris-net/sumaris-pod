@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.TimeZone;
 
 @Slf4j
 public class ExtractionConfiguration {
@@ -181,6 +182,9 @@ public class ExtractionConfiguration {
         return delegate.getCsvSeparator();
     }
 
+    public TimeZone getTimeZone() {
+        return delegate.getDbTimezone();
+    }
     /**
      * Add alias to the given ApplicationConfig. <p/>
      * This method could be override to add specific alias

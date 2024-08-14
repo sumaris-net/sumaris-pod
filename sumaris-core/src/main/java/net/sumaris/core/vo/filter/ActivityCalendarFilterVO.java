@@ -42,6 +42,7 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     public static ActivityCalendarFilterVO nullToEmpty(@Nullable ActivityCalendarFilterVO filter) {
         return filter == null ? new ActivityCalendarFilterVO() : filter;
     }
+    private boolean preview;
 
     private Date startDate;
     private Date endDate;
@@ -70,10 +71,12 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     private Boolean directSurveyInvestigation;
     private Boolean economicSurvey;
 
+    @Override
     public void setLocationId(Integer locationId) {
         this.registrationLocationId = locationId;
     }
 
+    @Override
     public Integer getLocationId() {
         return this.registrationLocationId;
     }

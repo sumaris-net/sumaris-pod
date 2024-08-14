@@ -41,6 +41,7 @@ import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
+import net.sumaris.extraction.core.specification.actimonit.MonitoringSpecification;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
@@ -48,12 +49,14 @@ import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import org.junit.*;
-import org.junit.runners.MethodSorters;
+import org.junit.Assert;
+import org.junit.Assume;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -508,7 +511,6 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         //Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
     }
 
-
     public void aggregateSurvivalTest() throws IOException {
 
         IExtractionType type = AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
@@ -643,6 +645,42 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
         }
         catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
+    }
+
+    public void executeMonitoringTest() throws IOException, ParseException {
+        IExtractionType type = LiveExtractionTypeEnum.MONITORING;
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .sheetName(MonitoringSpecification.AM_SHEET_NAME)
+                .build();
+
+        ExtractionFilterCriterionVO startDateCriteria = new ExtractionFilterCriterionVO().builder()
+                .sheetName(MonitoringSpecification.AM_SHEET_NAME)
+                .name(MonitoringSpecification.COLUMN_YEAR)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("2023")
+                .build();
+
+
+        List<ExtractionFilterCriterionVO> criterions = new ArrayList<>();
+        criterions.add(startDateCriteria);
+
+        filter.setCriteria(criterions);
+
+        AggregationStrataVO strata = AggregationStrataVO.builder()
+                .sheetName(MonitoringSpecification.AM_SHEET_NAME)
+                .spatialColumnName(MonitoringSpecification.COLUMN_AREA)
+                .timeColumnName(MonitoringSpecification.COLUMN_MONTH)
+                .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, strata);
+            Assert.assertTrue(outputFile.exists());
+            Assert.assertTrue(countLineInCsvFile(outputFile) > 1);
+
+        } catch (DataNotFoundException e) {
             Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
         }
     }
@@ -884,7 +922,9 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         TripVO trip = tripService.get(tripId);
         Assume.assumeNotNull(trip);
 
-        if (!canWriteData()) return trip;
+        if (!canWriteData()) {
+            return trip;
+        }
 
         // Control
         if (trip.getControlDate() == null) {
@@ -925,7 +965,9 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
 
     protected void validateTrips(String programLabel) {
-        if (!canWriteData()) return;
+        if (!canWriteData()) {
+            return;
+        }
 
         // Validate some trips
         List<TripVO> trips =
@@ -933,8 +975,12 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
                 .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
                 .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
         trips.forEach(trip -> {
-            if (trip.getControlDate() == null) tripService.control(trip);
-            if (trip.getValidationDate() == null) tripService.validate(trip);
+            if (trip.getControlDate() == null) {
+                tripService.control(trip);
+            }
+            if (trip.getValidationDate() == null) {
+                tripService.validate(trip);
+            }
         });
     }
 

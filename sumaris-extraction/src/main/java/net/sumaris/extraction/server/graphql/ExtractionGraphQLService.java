@@ -178,7 +178,7 @@ public class ExtractionGraphQLService {
         }
     }
 
-    @GraphQLQuery(name = "extractionActimonit", description = "Read extraction data for ActiMonit")
+    @GraphQLQuery(name = "extractionMonitoring", description = "Read extraction data for monitoring")
     public JsonNode readProgressReport(@GraphQLArgument(name = "type") ExtractionTypeVO type,
                                        @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
                                        @GraphQLArgument(name = "strata") AggregationStrataVO strata,

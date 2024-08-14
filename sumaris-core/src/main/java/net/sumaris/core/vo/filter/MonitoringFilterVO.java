@@ -35,10 +35,10 @@ import java.util.List;
 @NoArgsConstructor
 @FieldNameConstants
 @EqualsAndHashCode
-public class ActimonitFilterVO implements IRootDataFilter {
+public class MonitoringFilterVO implements IRootDataFilter {
 
-    public static ActimonitFilterVO nullToEmpty(final ActimonitFilterVO vo) {
-        return vo != null ? vo : new ActimonitFilterVO();
+    public static MonitoringFilterVO nullToEmpty(final MonitoringFilterVO vo) {
+        return vo != null ? vo : new MonitoringFilterVO();
     }
 
     private String programLabel;

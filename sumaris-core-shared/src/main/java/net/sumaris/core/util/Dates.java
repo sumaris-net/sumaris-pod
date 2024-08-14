@@ -25,7 +25,6 @@ package net.sumaris.core.util;
  */
 
 import com.google.common.base.Preconditions;
-import com.sun.istack.NotNull;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +34,7 @@ import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -319,6 +319,19 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     }
 
     /**
+     * Convert a LocalDateTime with TimeZone to an Date object
+     *
+     * @param localDateTime the localdatetime, not null
+     * @param timeZone      the timezone
+     * @return object Date create
+     */
+    public static Date convertToDate(LocalDateTime localDateTime, TimeZone timeZone) {
+        if (localDateTime == null) return null;
+        Assert.notNull(timeZone);
+        return Date.from(localDateTime.atZone(timeZone.toZoneId()).toInstant());
+    }
+
+    /**
      * Adds a number of seconds to a date returning a new object.
      * The original {@code Timestamp} is unchanged.
      *
@@ -575,7 +588,8 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     /**
      * Allow to compare dates, ignoring nanoseconds.
      * This allow to compare a java.util.Date with a java.sql.Timestamp
-     * @param d
+     * @param d1
+     * @param d2
      * @return
      */
     public static boolean equals(Date d1, Date d2) {
