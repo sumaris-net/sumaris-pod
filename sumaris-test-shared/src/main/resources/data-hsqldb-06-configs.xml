@@ -423,5 +423,6 @@
     <!-- Strategy properties - OBSVENTES -->
     <SOFTWARE_PROPERTY ID="1350" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="17" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.autoFill" NAME="true"/>
     <SOFTWARE_PROPERTY ID="1351" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="17" OBJECT_ID="101" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.autoFill" NAME="false"/>
+    <SOFTWARE_PROPERTY ID="1352" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="17" OBJECT_ID="101" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.taxonGroupSelection" NAME="true"/>
 
 </dataset>
