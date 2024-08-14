@@ -81,6 +81,7 @@
 
   <!-- Strategy properties -->
   <STRATEGY_PROPERTY ID="1" STATUS_FK="1" STRATEGY_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.autoFill" NAME="true"/>
+  <STRATEGY_PROPERTY ID="2" STATUS_FK="1" STRATEGY_FK="101" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.taxonGroupSelection" NAME="true"/>
 
   <!-- PETS (taxon) -->
   <REFERENCE_TAXON_STRATEGY PRIORITY_LEVEL="0" STRATEGY_FK="100" REFERENCE_TAXON_FK="1013"/>
