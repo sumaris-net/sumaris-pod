@@ -60,6 +60,9 @@ public interface ObservedLocationService {
 	@Transactional(readOnly = true)
 	ObservedLocationVO get(int id, ObservedLocationFetchOptions fetchOptions);
 
+	@Transactional(readOnly = true)
+	int getProgramIdById(int id);
+
 	ObservedLocationVO save(ObservedLocationVO data, @Nullable ObservedLocationSaveOptions options);
 
 	List<ObservedLocationVO> save(List<ObservedLocationVO> data, @Nullable ObservedLocationSaveOptions options);

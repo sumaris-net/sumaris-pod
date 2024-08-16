@@ -25,6 +25,7 @@ package net.sumaris.core.service.data;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -35,6 +36,7 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.SaleMeasurement;
@@ -119,6 +121,23 @@ public class SaleServiceImpl implements SaleService {
 	@Override
 	public int getProgramIdById(int id) {
 		return saleRepository.get(id, SaleFetchOptions.MINIMAL).getProgram().getId();
+	}
+
+	@Override
+	public List<SaleVO> findAllByFilter(@NonNull SaleFilterVO filter,
+											 @NonNull SaleFetchOptions fetchOptions) {
+		return saleRepository.findAll(filter, fetchOptions);
+	}
+
+	@Override
+	public List<SaleVO> findAllByFilter(SaleFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
+											 @NonNull SaleFetchOptions fetchOptions) {
+		return saleRepository.findAll(SaleFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+	}
+
+	@Override
+	public Long countByFilter(SaleFilterVO filter) {
+		return saleRepository.count(filter);
 	}
 
 	@Override

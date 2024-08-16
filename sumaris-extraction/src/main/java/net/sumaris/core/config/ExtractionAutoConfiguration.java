@@ -23,8 +23,6 @@
 package net.sumaris.core.config;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.JpaAutoConfiguration;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

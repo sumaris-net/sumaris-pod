@@ -22,12 +22,14 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
+import net.sumaris.core.util.Beans;
 
 import java.util.Date;
 
@@ -41,13 +43,20 @@ import java.util.Date;
 @FieldNameConstants
 public class SaleFilterVO implements IRootDataFilter {
 
+    public static SaleFilterVO nullToEmpty(SaleFilterVO f) {
+        return f != null ? f : new SaleFilterVO();
+    }
+
     private Date startDate;
     private Date endDate;
     private String programLabel;
+    private Integer[] includedIds;
+    private Integer[] excludedIds;
     private Integer locationId;
     private Integer[] locationIds;
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
+    private Boolean needBatchDenormalization;
 
     // Parent
     private Integer tripId;
@@ -57,4 +66,9 @@ public class SaleFilterVO implements IRootDataFilter {
     // Quality
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;
+
+    @JsonIgnore
+    public SaleFilterVO clone() {
+        return Beans.clone(this, SaleFilterVO.class);
+    }
 }

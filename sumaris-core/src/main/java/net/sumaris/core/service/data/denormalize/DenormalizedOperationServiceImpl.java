@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 @Service("denormalizeOperationService")
 @RequiredArgsConstructor
 @Slf4j
-public class DenormalizeOperationServiceImpl implements DenormalizedOperationService {
+public class DenormalizedOperationServiceImpl implements DenormalizedOperationService {
 
     private final DenormalizedBatchService denormalizedBatchService;
 

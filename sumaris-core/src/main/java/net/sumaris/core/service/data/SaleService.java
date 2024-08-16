@@ -23,9 +23,10 @@ package net.sumaris.core.service.data;
  */
 
 
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.SaleFetchOptions;
-import net.sumaris.core.vo.data.SaleVO;
+import lombok.NonNull;
+import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.filter.SaleFilterVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -48,6 +49,15 @@ public interface SaleService {
 
 	@Transactional(readOnly = true)
 	Set<Integer> getAllIdByLandingId(int landingId);
+
+	@Transactional(readOnly = true)
+	List<SaleVO> findAllByFilter(@NonNull SaleFilterVO filter, @NonNull SaleFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	List<SaleVO> findAllByFilter(SaleFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, SaleFetchOptions fetchOptions);
+
+	@Transactional(readOnly = true)
+	Long countByFilter(SaleFilterVO filter);
 
 	@Transactional(readOnly = true)
 	SaleVO get(int id);

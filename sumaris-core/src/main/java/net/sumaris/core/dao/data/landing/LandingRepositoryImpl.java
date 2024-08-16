@@ -114,7 +114,8 @@ public class LandingRepositoryImpl
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(hasStrategyLabels(filter.getStrategyLabels()))
             .and(hasSampleLabels(filter.getSampleLabels(), this.enableAdagioOptimization))
-            .and(hasSampleTagIds(filter.getSampleTagIds(), this.enableAdagioOptimization));
+            .and(hasSampleTagIds(filter.getSampleTagIds(), this.enableAdagioOptimization))
+            .and(hasSale(filter.getHasSale()));
     }
 
     @Override
