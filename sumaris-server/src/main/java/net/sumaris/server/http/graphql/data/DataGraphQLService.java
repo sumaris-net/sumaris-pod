@@ -46,9 +46,7 @@ import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.data.*;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.activity.DailyActivityCalendarService;
-import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
-import net.sumaris.core.service.data.denormalize.DenormalizedTripResultVO;
-import net.sumaris.core.service.data.denormalize.DenormalizedTripService;
+import net.sumaris.core.service.data.denormalize.*;
 import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
@@ -161,6 +159,8 @@ public class DataGraphQLService {
     private final ReferentialService referentialService;
 
     private final SumarisServerConfiguration configuration;
+
+    private final DenormalizedObservedLocationService denormalizedObservedLocationService;
 
     private boolean enableImages = false;
 
@@ -1109,6 +1109,13 @@ public class DataGraphQLService {
     @IsUser
     public DenormalizedTripResultVO denormalizeTrip(@GraphQLArgument(name = "id") int tripId) {
         return denormalizedTripService.denormalizeById(tripId);
+    }
+
+    @GraphQLQuery(name = "denormalizeObservedLocation", description = "Check if observed location has been denormalized or not")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED) // Avoid transaction timeout
+    @IsUser
+    public DenormalizedSaleResultVO denormalizeObservedLocation(@GraphQLArgument(name = "id") int observedLocationId) {
+        return denormalizedObservedLocationService.denormalizeById(observedLocationId);
     }
 
 

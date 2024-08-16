@@ -238,13 +238,17 @@ public class SaleRepositoryImpl
     @Override
     protected Specification<Sale> toSpecification(SaleFilterVO filter, SaleFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
+            .and(excludedIds(filter.getExcludedIds()))
+            .and(includedIds(filter.getIncludedIds()))
             // Location
             .and(hasSaleLocationIds(filter.getLocationId() != null ? new Integer[]{filter.getLocationId()} : filter.getLocationIds()))
             // Parent
             .and(hasTripId(filter.getTripId()))
             .and(hasLandingId(filter.getLandingId()))
             // Quality
-            .and(inDataQualityStatus(filter.getDataQualityStatus()));
+            .and(inDataQualityStatus(filter.getDataQualityStatus()))
+            // Denormalization
+            .and(needBatchDenormalization(filter.getNeedBatchDenormalization()));
     }
 
     protected List<SaleVO> saveAllByParent(IWithSalesEntity<Integer, Sale> parent, List<SaleVO> sales) {

@@ -75,4 +75,7 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     // Sample
     private String[] sampleLabels;
     private String[] sampleTagIds;
+
+    // Sale
+    private Boolean hasSale;
 }

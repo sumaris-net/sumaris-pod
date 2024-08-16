@@ -111,6 +111,11 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	}
 
 	@Override
+	public int getProgramIdById(int id) {
+		return observedLocationRepository.getProgramIdById(id);
+	}
+
+	@Override
 	public ObservedLocationVO save(final ObservedLocationVO source, ObservedLocationSaveOptions options) {
 		checkCanSave(source);
 

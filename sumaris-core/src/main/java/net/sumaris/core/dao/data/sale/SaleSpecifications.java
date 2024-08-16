@@ -26,6 +26,8 @@ import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.data.Batch;
+import net.sumaris.core.model.data.DenormalizedBatch;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.SaleVO;
@@ -33,7 +35,7 @@ import net.sumaris.core.vo.filter.SaleFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -74,5 +76,38 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
     List<SaleVO> saveAllByTripId(int tripId, List<SaleVO> sales);
 
     List<SaleVO> saveAllByLandingId(int landingId, List<SaleVO> sales);
+
+    default Specification<Sale> needBatchDenormalization(Boolean needBatchDenormalization) {
+        if (!Boolean.TRUE.equals(needBatchDenormalization)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+
+            Join<Sale, Batch> catchBatch = Daos.composeJoin(root, Sale.Fields.BATCHES, JoinType.INNER);
+
+            // Sub select that return the update to date denormalized catch batch
+            Subquery<Integer> subQuery = query.subquery(Integer.class);
+            Root<DenormalizedBatch> denormalizedBatchRoot = subQuery.from(DenormalizedBatch.class);
+            subQuery.select(denormalizedBatchRoot.get(DenormalizedBatch.Fields.ID));
+            subQuery.where(
+                    cb.and(
+                            // Catch batch
+                            cb.isNull(denormalizedBatchRoot.get(DenormalizedBatch.Fields.PARENT)),
+                            // Same sale
+                            cb.equal(denormalizedBatchRoot.get(DenormalizedBatch.Fields.SALE), root),
+                            // Same catch batch
+                            cb.equal(denormalizedBatchRoot.get(DenormalizedBatch.Fields.ID), catchBatch.get(Batch.Fields.ID)),
+                            // Same date
+                            cb.equal(denormalizedBatchRoot.get(DenormalizedBatch.Fields.UPDATE_DATE), catchBatch.get(Batch.Fields.UPDATE_DATE))
+                    )
+            );
+
+            return cb.and(
+                    // Operation with a catch batch
+                    cb.isNull(catchBatch.get(Batch.Fields.PARENT)),
+                    // And without an update to date denormalization
+                    cb.not(cb.exists(subQuery))
+            );
+        });
+    }
 
 }

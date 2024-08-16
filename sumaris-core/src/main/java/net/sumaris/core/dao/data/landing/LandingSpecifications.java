@@ -58,6 +58,7 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing>,
     String STRATEGY_LABELS = "strategyLabels";
     String SAMPLE_LABELS = "sampleLabels";
     String SAMPLE_TAG_IDS = "sampleTagIds";
+    String SALE_ID_PARAM = "saleId";
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
@@ -263,6 +264,21 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing>,
         }
         // Landing's observers
         return hasObserverPersonIds(Landing.Fields.OBSERVERS, filter.getObserverPersonIds());
+    }
+
+    default Specification<Landing> hasSale(Boolean hasSale) {
+        if (hasSale == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            if (hasSale) {
+                query.distinct(true);
+                ListJoin<Landing, Sale> saleJoin = Daos.composeJoinList(root, Landing.Fields.SALES, JoinType.INNER);
+                return cb.isNotNull(saleJoin.get(Sale.Fields.ID));
+            }
+            else {
+                ListJoin<Landing, Sale> saleJoin = Daos.composeJoinList(root, Landing.Fields.SALES, JoinType.INNER);
+                return cb.isNull(saleJoin.get(Sale.Fields.ID));
+            }
+        });
     }
 
     List<LandingVO> findAllByObservedLocationId(int observedLocationId);

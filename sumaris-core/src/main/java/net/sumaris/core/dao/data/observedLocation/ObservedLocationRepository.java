@@ -27,6 +27,8 @@ import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.vo.data.ObservedLocationFetchOptions;
 import net.sumaris.core.vo.data.ObservedLocationVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @author peck7 on 31/08/2020.
@@ -34,5 +36,8 @@ import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 public interface ObservedLocationRepository
     extends RootDataRepository<ObservedLocation, ObservedLocationVO, ObservedLocationFilterVO, ObservedLocationFetchOptions>,
     ObservedLocationSpecifications {
+
+    @Query("select p.id from ObservedLocation t inner join t.program p where t.id = :id")
+    int getProgramIdById(@Param("id") int id);
 
 }
