@@ -217,7 +217,7 @@ public class UserEventGraphQLService {
         }
 
         // Is user is NOT an admin
-        if (!authService.isAdmin()) {
+        if (!authService.isAdmin() && event.getType() != EventTypeEnum.COMMENT) {
             // Check issuer = himself
             Preconditions.checkArgument(Objects.equals(user.getPubkey(), event.getIssuer()));
 

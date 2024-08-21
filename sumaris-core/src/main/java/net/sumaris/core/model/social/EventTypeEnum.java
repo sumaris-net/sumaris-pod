@@ -33,6 +33,7 @@ public enum EventTypeEnum implements Serializable {
     INBOX_MESSAGE,
     EMAIL,
     FEED,
+    COMMENT,
     JOB;
 
     public static EventTypeEnum valueOfOrNull(final String level) {
