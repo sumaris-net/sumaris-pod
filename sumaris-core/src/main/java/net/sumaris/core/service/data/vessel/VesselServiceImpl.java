@@ -101,6 +101,12 @@ public class VesselServiceImpl implements VesselService {
 	}
 
 	@Override
+	public long countFeaturesByVesselId(int vesselId) {
+		return vesselFeaturesRepository
+				.count(VesselFilterVO.builder().vesselId(vesselId).build());
+	}
+
+	@Override
 	public List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page) {
 		return vesselRegistrationPeriodRepository.findAll(
 			VesselRegistrationFilterVO.builder()
@@ -108,6 +114,15 @@ public class VesselServiceImpl implements VesselService {
 					.build(),
 			page);
 	}
+
+	@Override
+	public long countRegistrationPeriodsByVesselId(int vesselId) {
+		return vesselRegistrationPeriodRepository.count(
+				VesselRegistrationFilterVO.builder()
+						.vesselId(vesselId)
+						.build());
+	}
+
 
 	@Override
 	public List<VesselRegistrationPeriodVO> findRegistrationPeriodsByFilter(VesselRegistrationFilterVO filter, Page page) {
@@ -128,6 +143,16 @@ public class VesselServiceImpl implements VesselService {
 						.build(),
 				page);
 	}
+
+	@Override
+	public long countOwnerPeriodsByVesselId(int vesselId) {
+		return vesselOwnerPeriodRepository.count(
+				VesselOwnerFilterVO.builder()
+						.vesselId(vesselId)
+						.programLabel(ProgramEnum.SIH.getLabel())
+						.build());
+	}
+
 
 	@Override
 	public void replaceTemporaryVessel(List<Integer> temporaryVesselIds, int targetVesselId) {
