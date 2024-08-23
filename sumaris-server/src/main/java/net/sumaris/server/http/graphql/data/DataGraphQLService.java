@@ -782,6 +782,18 @@ public class DataGraphQLService {
         return CollectionUtils.isEmpty(sales) ? null : CollectionUtils.extractSingleton(sales);
     }
 
+    @GraphQLMutation(name = "deleteSale", description = "Delete a sale")
+    @IsUser
+    public void deleteSale(@GraphQLArgument(name = "id") int id) {
+        saleService.delete(id);
+    }
+
+    @GraphQLMutation(name = "deleteSales", description = "Delete many sales")
+    @IsUser
+    public void deleteSales(@GraphQLNonNull @GraphQLArgument(name = "ids") List<Integer> ids) {
+        saleService.delete(ids);
+    }
+
     /* -- Expected Sales -- */
 
     @GraphQLQuery(name = "expectedSales", description = "Get trip's expected sales")

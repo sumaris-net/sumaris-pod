@@ -652,6 +652,10 @@ type Mutation {
     deleteObservedLocation(id: Int!): Boolean!
     "Delete many observed locations"
     deleteObservedLocations(ids: [Int]!): Boolean!
+    "Delete a sale"
+    deleteSale(id: Int!): Boolean!
+    "Delete many sales"
+    deleteSales(ids: [Int]!): Boolean!
     "Delete an operation"
     deleteOperation(id: Int!): Boolean!
     "Delete many operations"
