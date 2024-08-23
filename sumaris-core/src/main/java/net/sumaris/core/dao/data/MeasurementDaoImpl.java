@@ -1277,13 +1277,21 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     }
 
     protected <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Stream<T> sources) {
-        return sources
-            .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
-            .collect(Collectors.<T, Integer, String>toMap(
-                m -> m.getPmfm().getId(),
-                this::entityToValueAsStringOrNull,
-                this::concatMeasurementMapValues
-            ));
+        try {
+            return sources
+                    .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
+                    .collect(Collectors.<T, Integer, String>toMap(
+                            m -> m.getPmfm().getId(),
+                            this::entityToValueAsStringOrNull,
+                            this::concatMeasurementMapValues
+                    ));
+        } catch (Exception e) {
+            // Log the exception if necessary
+            System.err.println("An error occurred while processing the data: " + e.getMessage());
+            // Return an empty map if an error occurs
+            return Collections.emptyMap();
+        }
+
     }
 
     protected String concatMeasurementMapValues(@Nullable String v1, @Nullable String v2) {
