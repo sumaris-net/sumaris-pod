@@ -1286,9 +1286,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                             this::concatMeasurementMapValues
                     ));
         } catch (Exception e) {
-            // Log the exception if necessary
-            System.err.println("An error occurred while processing the data: " + e.getMessage());
-            // Return an empty map if an error occurs
+            log.error("An error occurred while processing the data: " + e.getMessage(), e);
             return Collections.emptyMap();
         }
 
