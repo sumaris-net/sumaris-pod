@@ -140,8 +140,8 @@
     <jakarta-jms.version>2.0.3</jakarta-jms.version>
     <groovy.version>4.0.6</groovy.version>
 
-    <jnr-ffi.version>2.2.2</jnr-ffi.version>
-    <kalium.version>0.8.2</kalium.version>
+    <jnr-ffi.version>2.2.16</jnr-ffi.version>
+    <kalium.version>0.8.3</kalium.version>
     <scrypt.version>1.4.0</scrypt.version>
     <graphql-java.version>19.3</graphql-java.version>
     <graphql-java-tools.version>13.0.2</graphql-java-tools.version>
@@ -272,7 +272,7 @@
 
     <assembly.skip>false</assembly.skip>
 
-    <wagonSshVersion>3.4.3</wagonSshVersion>
+    <wagonSshVersion>3.5.3</wagonSshVersion>
   </properties>
 
 
