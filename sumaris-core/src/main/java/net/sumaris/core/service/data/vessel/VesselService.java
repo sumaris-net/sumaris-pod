@@ -27,6 +27,7 @@ import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
 import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
@@ -97,6 +98,9 @@ public interface VesselService {
 
 	@Transactional(readOnly = true)
 	List<VesselRegistrationPeriodVO> findRegistrationPeriodsByFilter(VesselRegistrationFilterVO filter, Page page);
+
+	@Transactional(readOnly = true)
+	VesselOwnerVO getVesselOwner(int vesselOwnerId);
 
 	@Transactional(readOnly = true)
 	List<VesselOwnerPeriodVO> findOwnerPeriodsByVesselId(int vesselId, Page page);

@@ -43,6 +43,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
 import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -227,6 +228,13 @@ public class VesselGraphQLService {
         return vesselService.countRegistrationPeriodsByVesselId(vesselId);
     }
 
+    @GraphQLQuery(name = "vesselOwner", description = "Get a vesselOwner")
+    @Transactional(readOnly = true)
+    @IsUser
+    public VesselOwnerVO getVesselOwnerById(@GraphQLArgument(name = "id") Integer id) {
+        VesselOwnerVO result = vesselService.getVesselOwner(id);
+        return result;
+    }
 
     @GraphQLQuery(name = "vesselOwnerHistory", description = "Get vessel owner history")
     @Transactional(readOnly = true)
