@@ -61,6 +61,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    APP_URL(
+            "server.app.url",
+            n("sumaris.config.option.server.app.url.description"),
+            "${server.url}",
+            String.class,
+            false),
+
     REGISTRATION_CONFIRM_URL(
             "sumaris.server.account.register.confirm.url",
             n("sumaris.config.option.server.account.register.confirm.url.description"),

@@ -48,6 +48,8 @@ public interface RestPaths {
 
     String UPLOAD_PATH = "/upload";
 
+    String SHARE_PATH = "/share";
+
 
     static void checkSecuredPath(String path) throws InvalidPathException {
         if (!isSecuredPath(path)) throw new InvalidPathException("Invalid path: " + path);
