@@ -25,12 +25,11 @@ import com.google.common.collect.Sets;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import net.sumaris.extraction.core.vo.AggregationContextVO;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -46,7 +45,7 @@ public class ExtractionMonitoringContextVO extends AggregationContextVO {
     Date startRequestDate;
     Date endRequestDate;
 
-    int year;
+    Integer year;
 
     Date minDate;
     Date maxDate;
@@ -71,5 +70,10 @@ public class ExtractionMonitoringContextVO extends AggregationContextVO {
         result.add(resultTableName);
         result.add(rawTableName);
         return result;
+    }
+
+    @Override
+    public Optional<String> findTableNameBySheetName(@NonNull String sheetName) {
+        return Optional.of(resultTableName);
     }
 }

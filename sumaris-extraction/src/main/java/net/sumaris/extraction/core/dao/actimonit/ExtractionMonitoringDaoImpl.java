@@ -56,10 +56,8 @@ import java.net.URL;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Set;
+import java.time.Year;
+import java.util.*;
 
 @Repository("extractionProcessDao")
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
@@ -120,7 +118,7 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
         context.setUpdateDate(new Date());
         context.setType(LiveExtractionTypeEnum.MONITORING);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
-        context.setYear(activityCalendarFilter.getYear());
+        context.setYear(Optional.ofNullable(activityCalendarFilter.getYear()).orElse(Year.now().getValue() - 1));
         context.addTableName(MonitoringSpecification.AM_SHEET_NAME, MonitoringSpecification.AM_SHEET_NAME);
         Long startTime = null;
 
