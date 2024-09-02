@@ -50,6 +50,7 @@ public interface IDataSpecifications<ID extends Serializable,
 
     String RECORDER_DEPARTMENT_ID_PARAM = "recorderDepartmentId";
     String RECORDER_DEPARTMENT_IDS_PARAM = "recorderDepartmentIds";
+    String RECORDER_PERSON_IDS_PARAM = "recorderPersonIds";
     String QUALITY_FLAG_ID_PARAM = "qualityFlagId";
 
     default Specification<E> hasRecorderDepartmentId(Integer recorderDepartmentId) {
@@ -69,6 +70,16 @@ public interface IDataSpecifications<ID extends Serializable,
                     return cb.in(root.get(E.Fields.RECORDER_DEPARTMENT).get(IEntity.Fields.ID)).value(parameter);
                 })
                 .addBind(RECORDER_DEPARTMENT_IDS_PARAM, Arrays.asList(recorderDepartmentIds));
+    }
+
+    default Specification<E> hasRecorderPersonIds(Integer... recorderPersonIds) {
+        if (ArrayUtils.isEmpty(recorderPersonIds)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+                    ParameterExpression<Collection> parameter = cb.parameter(Collection.class, RECORDER_PERSON_IDS_PARAM);
+                    return cb.in(root.get(E.Fields.RECORDER_PERSON).get(IEntity.Fields.ID)).value(parameter);
+                })
+                .addBind(RECORDER_PERSON_IDS_PARAM, Arrays.asList(recorderPersonIds));
     }
     /**
      * Control date is null

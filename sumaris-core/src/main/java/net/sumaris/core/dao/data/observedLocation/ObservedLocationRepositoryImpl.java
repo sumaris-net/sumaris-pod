@@ -78,6 +78,7 @@ public class ObservedLocationRepositoryImpl
             .and(withEndDate(filter.getEndDate()))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(hasRecorderDepartmentIds(filter.getRecorderDepartmentIds()))
+            .and(hasRecorderPersonIds(filter.getRecorderPersonIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(hasLandingVesselIds(filter.getVesselIds()))

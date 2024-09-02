@@ -30,6 +30,7 @@ public interface IWithRecorderDepartmentEntity<ID extends Serializable, P extend
 
     interface Fields extends IEntity.Fields {
         String RECORDER_DEPARTMENT = "recorderDepartment";
+        String RECORDER_PERSON = "recorderPerson";
     }
 
 
