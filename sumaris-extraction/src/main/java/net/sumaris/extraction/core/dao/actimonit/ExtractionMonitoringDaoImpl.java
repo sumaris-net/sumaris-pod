@@ -184,21 +184,21 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
 
     protected void createTable(C context) throws PersistenceException, ParseException {
         // Create Raw Data Table
-        XMLQuery xmlQuery = createMonitoringQuery(context);
+        XMLQuery xmlQuery = createRawMonitoringQuery(context);
         execute(context, xmlQuery);
 
         // Create Result Table with an injection
-        XMLQuery xmlAggregation = createResultMonitoringQuery(context);
+        XMLQuery xmlAggregation = createMonitoringQuery(context);
         execute(context, xmlAggregation);
 
     }
 
-    protected XMLQuery createMonitoringQuery(C context) throws PersistenceException {
+    protected XMLQuery createRawMonitoringQuery(C context) throws PersistenceException {
 
         context.setStartRequestDate(Dates.getFirstDayOfYear(context.getYear()));
         context.setEndRequestDate(Dates.getLastSecondOfYear(context.getYear()));
 
-        XMLQuery xmlQuery = createXMLQuery(context, "createMonitoringTable");
+        XMLQuery xmlQuery = createXMLQuery(context, "createRawMonitoringTable");
         xmlQuery.bind("monitoringTableName", context.getRawTableName());
         //Date Filter
         xmlQuery.setGroup("startDateFilter", context.getStartRequestDate() != null);
@@ -209,10 +209,10 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
         return xmlQuery;
     }
 
-    protected XMLQuery createResultMonitoringQuery(C context) throws PersistenceException {
+    protected XMLQuery createMonitoringQuery(C context) throws PersistenceException {
 
-        XMLQuery xmlQuery = createXMLQuery(context, "createResultMonitoring");
-        URL injectionQuery = getXMLQueryURL(context, "injectionResultMonitoring");
+        XMLQuery xmlQuery = createXMLQuery(context, "createMonitoringTable");
+        URL injectionQuery = getXMLQueryURL(context, "injectionMonitoringTable");
 
 
         // Create a column for each month
@@ -221,14 +221,13 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
                     try {
                         LocalDateTime lDate = LocalDateTime.of(context.getYear(), month.getValue(), 1, 0, 0, 0);
 
-
                         Date minDate = Dates.convertToDate(lDate, configuration.getTimeZone());
                         Date maxDate = Dates.convertToDate(lDate.plusMonths(1).minusSeconds(1), configuration.getTimeZone());
 
                         context.setMinDate(minDate);
                         context.setMaxDate(maxDate);
                         createResultMonitoringQuery(context, injectionQuery,
-                                "M" + month.getValue(), xmlQuery
+                                "MONTH" + month.getValue(), xmlQuery
                         );
                     } catch (ParseException e) {
                         throw new RuntimeException(e);
@@ -242,14 +241,12 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
     protected void createResultMonitoringQuery(C context, URL injectionQuery,
                                                String tableAlias, XMLQuery xmlQuery) throws PersistenceException, ParseException {
 
-        String suffix = StringUtils.capitalize(StringUtils.underscoreToChangeCase(tableAlias));
-
-        xmlQuery.injectQuery(injectionQuery, "%suffix%", suffix);
-        xmlQuery.bind("columnAlias" + suffix, suffix);
+        xmlQuery.injectQuery(injectionQuery, "%suffix%", tableAlias);
+        xmlQuery.bind("columnAlias" + tableAlias, tableAlias);
         xmlQuery.bind("monitoringTableName", context.getRawTableName());
         xmlQuery.bind("resultMonitoringTableName", context.getResultTableName());
-        xmlQuery.bind("minDate" + suffix, Daos.getSqlToDate(context.getMinDate()));
-        xmlQuery.bind("maxDate" + suffix, Daos.getSqlToDate(context.getMaxDate()));
+        xmlQuery.bind("minDate" + tableAlias, Daos.getSqlToDate(context.getMinDate()));
+        xmlQuery.bind("maxDate" + tableAlias, Daos.getSqlToDate(context.getMaxDate()));
     }
 }
 

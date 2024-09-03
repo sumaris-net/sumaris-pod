@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+<queries name="createRawMonitoringTable">
+    <query type="create" temp="false" table="&amp;monitoringTableName" option="distinct">
+        <select type="number" alias="ID">VESSEL.ID</select>
+        <select type="text" alias="MARKING">VESSEL_FEATURES.EXTERIOR_MARKING</select>
+        <select type="text" alias="NAME">VESSEL_FEATURES.NAME</select>
+        <select type="text" alias="LENGTH">VESSEL_FEATURES.LENGTH_OVER_ALL</select>
+        <select type="text" alias="QIM">LOCATION.LABEL</select>
+        <select type="number" alias="GEAR">GEAR_USE_FEATURES.ID</select>
+        <select type="text" alias="FIRST_NAME">PERSON.FIRST_NAME</select>
+        <select type="text" alias="LAST_NAME">PERSON.LAST_NAME</select>
+        <select type="date" alias="START_DATE">GEAR_USE_FEATURES.START_DATE</select>
+        <select type="date" alias="END_DATE">GEAR_USE_FEATURES.END_DATE</select>
+
+        <from>VESSEL</from>
+
+        <from join="true">INNER JOIN VESSEL_FEATURES ON VESSEL_FEATURES.VESSEL_FK = VESSEL.ID</from>
+        <from join="true">INNER JOIN GEAR_USE_FEATURES ON VESSEL_FEATURES.VESSEL_FK = GEAR_USE_FEATURES.VESSEL_FK</from>
+        <from join="true">INNER JOIN ACTIVITY_CALENDAR ON GEAR_USE_FEATURES.ACTIVITY_CALENDAR_FK = ACTIVITY_CALENDAR.ID
+        </from>
+        <from join="true">INNER JOIN PERSON ON ACTIVITY_CALENDAR.RECORDER_PERSON_FK = PERSON.ID</from>
+        <from join="true">
+            INNER JOIN VESSEL_REGISTRATION_PERIOD ON ACTIVITY_CALENDAR.VESSEL_FK =
+            VESSEL_REGISTRATION_PERIOD.VESSEL_FK
+        </from>
+        <from join="true">INNER JOIN LOCATION ON VESSEL_FEATURES.BASE_PORT_LOCATION_FK =
+            LOCATION.ID
+        </from>
+        <where>1=1</where>
+        <where operator="AND">
+            <![CDATA[ GEAR_USE_FEATURES.START_DATE >= &startDateInitial ]]>
+        </where>
+        <where operator="AND">
+            <![CDATA[ GEAR_USE_FEATURES.END_DATE <= &endDateInitial ]]>
+        </where>
+        <where operator="AND">
+            <![CDATA[ VESSEL_REGISTRATION_PERIOD.START_DATE <= GEAR_USE_FEATURES.END_DATE ]]>
+        </where>
+
+    </query>
+</queries>
