@@ -3771,7 +3771,9 @@ input TripFilterVOInput {
     programLabel: String
     qualityFlagIds: [Int]
     recorderDepartmentId: Int
+    recorderDepartmentIds: [Int]
     recorderPersonId: Int
+    recorderPersonIds: [Int]
     startDate: Date
     tripId: Int
     vesselId: Int
