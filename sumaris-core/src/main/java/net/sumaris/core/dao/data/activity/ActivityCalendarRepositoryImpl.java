@@ -93,6 +93,7 @@ public class ActivityCalendarRepositoryImpl
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(hasDirectSurveyInvestigation(filter.getDirectSurveyInvestigation()))
+            .and(hasRecorderDepartmentIds(concat(filter.getRecorderDepartmentId(), filter.getRecorderDepartmentIds())))
             .and(hasEconomicSurvey(filter.getEconomicSurvey()))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             ;
