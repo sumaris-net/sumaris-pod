@@ -65,6 +65,7 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
 
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
+    private Integer[] recorderPersonIds;
     private Integer[] observerPersonIds;
 
     private Boolean directSurveyInvestigation;
