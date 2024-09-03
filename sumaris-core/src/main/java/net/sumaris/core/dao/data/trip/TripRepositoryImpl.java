@@ -100,6 +100,7 @@ public class TripRepositoryImpl
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             .and(hasRecorderDepartmentIds(concat(filter.getRecorderDepartmentId(), filter.getRecorderDepartmentIds())))
+            .and(hasRecorderPersonIds(concat(filter.getRecorderPersonId(), filter.getRecorderPersonIds())))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
