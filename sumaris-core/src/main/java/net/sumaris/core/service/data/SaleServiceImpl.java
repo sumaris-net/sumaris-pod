@@ -29,12 +29,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
+import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.data.sale.SaleRepository;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
+import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.SaleMeasurement;
@@ -43,13 +45,21 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.filter.SaleFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -75,6 +85,15 @@ public class SaleServiceImpl implements SaleService {
 	public void onConfigurationReady() {
 		this.enableTrash = configuration.enableEntityTrash();
 	}
+
+	@Resource
+	@Lazy
+	protected TripService tripService;
+
+	protected final OperationGroupRepository operationGroupRepository;
+
+	protected final MetierRepository metierRepository;
+
 
 	@Override
 	public List<SaleVO> getAllByTripId(int tripId, SaleFetchOptions fetchOptions) {
@@ -112,6 +131,11 @@ public class SaleServiceImpl implements SaleService {
 
 		// Fill vessel snapshot
 		if (fetchOptions != null && fetchOptions.isWithVesselSnapshot()) fillVesselSnapshot(target);
+
+		// Fill metiers
+		if (fetchOptions != null && target.getTripId() != null && fetchOptions.isWithMetiers()) {
+			target.setMetiers(operationGroupRepository.getMetiersByTripId(target.getTripId()));
+		}
 
 		return target;
 	}
@@ -273,6 +297,128 @@ public class SaleServiceImpl implements SaleService {
 			source.setBatches(batches);
 		}
 
+	}
+
+	private void saveMetiers(SaleVO source) {
+		// Metiers
+		// Save trip
+		Integer tripId = source.getTripId();
+		boolean tripDirty = false;
+		if (source.getMetiers() != null && !source.getMetiers().isEmpty()) {
+			// At least 1 metier is active, create or update existing trip
+			TripVO trip;
+			if (tripId == null) {
+				// Create new trip
+				trip = createTrip(source);
+				tripDirty = true;
+				/*if (log.isDebugEnabled()) {
+					log.debug(String.format("Add trip on observation (id=%s) for vessel %s",
+							observedLocation.getId(), vesselId));
+				}*/
+			} else {
+				// Load it
+				trip = loadTrip(tripId);
+			}
+
+			// Collect metiers to remove
+			List<Integer> saleMetierIds = Beans.collectIds(source.getMetiers());
+			List<Integer> metierIdsToRemove = trip.getMetiers() == null ? null :
+					trip.getMetiers().stream()
+							.map(MetierVO::getId)
+							.filter(metierId -> !saleMetierIds.contains(metierId))
+							.collect(Collectors.toList());
+
+			// Iterate over missing metier to add
+			for (ReferentialVO metierRef : source.getMetiers()) {
+				MetierVO metier = metierRepository.get(metierRef.getId());
+				// Add missing metier
+				if (!trip.getMetiers().contains(metier)) {
+					trip.getMetiers().add(metier);
+					tripDirty = true;
+					if (log.isDebugEnabled()) {
+						log.debug(String.format("Add Metier %s (id=%s) on trip (id=%s)", metier.getLabel() + " - " + metier.getName(), metier.getId(), tripId));
+					}
+				}
+
+			}
+			// Remove remaining metiers
+			if (CollectionUtils.isNotEmpty(metierIdsToRemove)) {
+				trip.getMetiers().removeIf(metier -> metierIdsToRemove.contains(metier.getId()));
+				trip.getOperationGroups().removeIf(operationGroup -> metierIdsToRemove.contains(operationGroup.getMetier().getId()));
+				tripDirty = true;
+			}
+
+			if (tripDirty) {
+				// Save trip
+				TripVO savedTrip = saveTrip(trip);
+				source.setTripId(savedTrip.getId());
+				if (log.isDebugEnabled()) {
+					log.debug(String.format("Trip (id=%s) with landing (id=%s) successfully saved", savedTrip.getId(), savedTrip.getLanding().getId()));
+				}
+			}
+		} else if (tripId != null) {
+
+			// Delete the whole trip
+			tripService.delete(tripId);
+			if (log.isDebugEnabled()) {
+				log.debug(String.format("Trip (id=%s) successfully deleted", tripId));
+			}
+			source.setTripId(null);
+		}
+
+	}
+
+	private TripVO createTrip(SaleVO sale) {
+		VesselSnapshotVO vessel = new VesselSnapshotVO();
+		vessel.setVesselId(sale.getVesselSnapshot().getVesselId());
+		TripVO trip = new TripVO();
+		trip.setProgram(sale.getProgram());
+		trip.setVesselSnapshot(vessel); // TODO: Directement faire un get sur le vesselSnapshot ?
+		// add minutes to startDate to prevent natural Id integrity violation
+		trip.setDepartureDateTime(sale.getStartDateTime());
+		trip.setReturnDateTime(Dates.lastSecondOfTheDay(sale.getStartDateTime()));
+		trip.setDepartureLocation(sale.getSaleLocation());
+		trip.setReturnLocation(sale.getSaleLocation());
+		trip.setObservers(Beans.getSet(sale.getObservers()));
+		trip.setRecorderDepartment(sale.getRecorderDepartment());
+		trip.setRecorderPerson(sale.getRecorderPerson());
+		trip.setMetiers(new ArrayList<>());
+		trip.setOperationGroups(new ArrayList<>());
+		return trip;
+	}
+
+	private TripVO loadTrip(int tripId) {
+		//noinspection UnnecessaryBoxing
+		TripVO trip = tripService.get(Integer.valueOf(tripId));
+		// Load metiers and operation groups
+		if (CollectionUtils.isEmpty(trip.getMetiers())) {
+			trip.setMetiers(operationGroupRepository.getMetiersByTripId(tripId));
+		}
+		if (CollectionUtils.isEmpty(trip.getOperationGroups())) {
+			trip.setOperationGroups(operationGroupRepository.findAll(
+					OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build()
+			));
+		}
+
+		return trip;
+	}
+
+	private TripVO saveTrip(TripVO trip) {
+
+		Preconditions.checkNotNull(trip);
+
+		// Trip itself
+		TripVO savedTrip = tripService.save(
+				trip,
+				TripSaveOptions.builder().withLanding(false).build() // TODO check if needed, landing should be already created
+		);
+
+		// Save metiers
+		operationGroupRepository.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
+
+		// TODO: save operation groups (if default needed)
+
+		return savedTrip;
 	}
 
 	protected void fillDefaultProperties(SaleVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {

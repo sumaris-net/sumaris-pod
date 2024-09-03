@@ -59,11 +59,13 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -75,7 +77,9 @@ public class TripServiceImpl implements TripService {
 
     private final SumarisConfiguration configuration;
     private final TripRepository repository;
-    private final SaleService saleService;
+    @Resource
+    @Lazy
+    private SaleService saleService;
     private final ExpectedSaleService expectedSaleService;
     private final OperationService operationService;
     private final OperationGroupService operationGroupService;
