@@ -635,4 +635,32 @@ public class DataTestUtils {
 
         return vo;
     }
+
+    public static SaleVO createSale(DatabaseFixtures fixtures, PmfmService pmfmService) {
+        SaleVO vo = new SaleVO();
+
+        vo.setProgram(fixtures.getDefaultProgram());
+
+        Calendar date = Calendar.getInstance();
+        date.add(Calendar.HOUR, -12);
+        vo.setStartDateTime(date.getTime());
+
+        LocationVO saleLocation = new LocationVO();
+        saleLocation.setId(fixtures.getLocationPortId(0));
+        vo.setSaleLocation(saleLocation);
+
+        vo.setSaleType(createReferentialVO(1, "Sale type 1"));
+
+        // Recorder
+        DepartmentVO recorderDepartment = new DepartmentVO();
+        recorderDepartment.setId(fixtures.getDepartmentId(0));
+        vo.setRecorderDepartment(recorderDepartment);
+
+        // Vessel
+        VesselSnapshotVO vessel = new VesselSnapshotVO();
+        vessel.setVesselId(fixtures.getVesselId(0));
+        vo.setVesselSnapshot(vessel);
+
+        return vo;
+    }
 }

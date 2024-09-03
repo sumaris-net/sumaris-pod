@@ -2145,6 +2145,7 @@ public class DataGraphQLService {
                 .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
                 .withMeasurementValues(fields.contains(SaleVO.Fields.MEASUREMENT_VALUES))
                 .withFishingAreas(fields.contains(StringUtils.slashing(SaleVO.Fields.FISHING_AREAS, IEntity.Fields.ID)))
+                .withMetiers(fields.contains(StringUtils.slashing(SaleVO.Fields.METIERS, IEntity.Fields.ID)))
                 .withProducts(fields.contains(StringUtils.slashing(SaleVO.Fields.PRODUCTS, IEntity.Fields.ID)))
                 .withBatches(fields.contains(StringUtils.slashing(SaleVO.Fields.BATCHES, IEntity.Fields.ID)))
                 .build();
