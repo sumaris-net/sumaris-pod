@@ -135,7 +135,7 @@ public class Trip implements IRootDataEntity<Integer>,
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = PhysicalGear.class, mappedBy = PhysicalGear.Fields.TRIP)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    @OrderBy("rankOrder ASC")
+    @OrderBy(PhysicalGear.Fields.RANK_ORDER + " ASC")
     private List<PhysicalGear> gears = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = Sale.class, mappedBy = Sale.Fields.TRIP)

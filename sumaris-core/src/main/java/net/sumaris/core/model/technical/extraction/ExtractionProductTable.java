@@ -92,7 +92,6 @@ public class ExtractionProductTable implements IItemReferentialEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductColumn.class, mappedBy = ExtractionProductColumn.Fields.TABLE)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     @OrderBy(ExtractionProductColumn.Fields.RANK_ORDER + " ASC")
-    @SortNatural
     private List<ExtractionProductColumn> columns;
 
 }
