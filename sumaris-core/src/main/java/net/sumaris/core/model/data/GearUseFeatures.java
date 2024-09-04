@@ -120,6 +120,7 @@ public class GearUseFeatures implements IUseFeaturesEntity {
     private List<GearUseFeaturesOrigin> origins;
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.GEAR_USE_FEATURES, cascade = CascadeType.REMOVE)
+    @OrderBy(FishingArea.Fields.ID + " ASC") // Keep save order
     private List<FishingArea> fishingAreas;
 
     @Transient
