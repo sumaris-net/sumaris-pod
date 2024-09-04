@@ -192,10 +192,10 @@ public class VesselGraphQLService {
             getFeaturesFetchOptions(GraphQLUtils.fields(env)));
     }
 
-    @GraphQLQuery(name = "vesselFeaturesHistoryCount", description = "Get total vessel features history count")
+    @GraphQLQuery(name = "vesselFeaturesHistoryCount", description = "Get vessel features history count")
     @Transactional(readOnly = true)
     @IsUser
-    public Long countRegistrationPeriodsByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
+    public Long countFeaturesByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
                                                    @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter) {
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
@@ -217,7 +217,7 @@ public class VesselGraphQLService {
         return vesselService.findRegistrationPeriodsByVesselId(vesselId, Page.create(offset, size, sort, SortDirection.fromString(direction)));
     }
 
-    @GraphQLQuery(name = "vesselRegistrationHistoryCount", description = "Get total vessel registration history count")
+    @GraphQLQuery(name = "vesselRegistrationHistoryCount", description = "Get vessel registration history count")
     @Transactional(readOnly = true)
     @IsUser
     public Long countRegistrationPeriodsByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
