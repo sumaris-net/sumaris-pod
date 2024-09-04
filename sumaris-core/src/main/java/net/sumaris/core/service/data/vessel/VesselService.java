@@ -87,7 +87,13 @@ public interface VesselService {
 	List<VesselFeaturesVO> findFeaturesByVesselId(int vesselId, Page page, DataFetchOptions fetchOptions);
 
 	@Transactional(readOnly = true)
+	long countFeaturesByVesselId(int vesselId);
+
+	@Transactional(readOnly = true)
 	List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page);
+
+	@Transactional(readOnly = true)
+	long countRegistrationPeriodsByVesselId(int vesselId);
 
 	@Transactional(readOnly = true)
 	List<VesselRegistrationPeriodVO> findRegistrationPeriodsByFilter(VesselRegistrationFilterVO filter, Page page);
@@ -97,6 +103,9 @@ public interface VesselService {
 
 	@Transactional(readOnly = true)
 	List<VesselOwnerPeriodVO> findOwnerPeriodsByFilter(VesselOwnerFilterVO filter, Page page);
+
+	@Transactional(readOnly = true)
+	long countOwnerPeriodsByVesselId(int vesselId);
 
 	@CacheEvict(cacheNames = {
 		CacheConfiguration.Names.VESSEL_SNAPSHOT_BY_ID_AND_DATE,
