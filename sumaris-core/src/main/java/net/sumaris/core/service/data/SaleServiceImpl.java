@@ -376,7 +376,7 @@ public class SaleServiceImpl implements SaleService {
 		// Trip itself
 		TripVO savedTrip = tripService.save(
 				trip,
-				TripSaveOptions.builder().withLanding(false).build() // TODO check if needed, landing should be already created
+				TripSaveOptions.builder().withLanding(false).withSales(false).build() // TODO check if needed, landing should be already created
 		);
 
 		// Save metiers
