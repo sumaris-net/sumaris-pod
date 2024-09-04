@@ -76,6 +76,10 @@ public class VesselOwnerRepositoryImpl
         }
     }
 
+    public long count(VesselOwnerFilterVO filter) {
+        return count(toSpecification(filter));
+    }
+
     @Override
     public void toVO(VesselOwner source, VesselOwnerVO target, boolean copyIfNull) {
         super.toVO(source, target, copyIfNull);
