@@ -32,7 +32,10 @@ public interface MonitoringSpecification {
     String COLUMN_PROJECT = "projet";
 
     String COLUMN_YEAR = "year";
-    String COLUMN_END_DATE = "END_DATE";
+    String COLUMN_PROGRAM = "PROGRAM";
+    String COLUMN_REGISTRATION_LOCATION = "REGISTRATION_LOCATION";
+    String COLUMN_LOCATION = "LOCATION";
+
     String[] SHEET_NAMES = {AM_SHEET_NAME};
 
     // Time columns

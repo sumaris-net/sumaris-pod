@@ -25,13 +25,14 @@
         <select type="text" alias="MARKING">VESSEL_FEATURES.EXTERIOR_MARKING</select>
         <select type="text" alias="NAME">VESSEL_FEATURES.NAME</select>
         <select type="text" alias="LENGTH">VESSEL_FEATURES.LENGTH_OVER_ALL</select>
-        <select type="text" alias="QIM">LOCATION.LABEL</select>
+        <select type="text" alias="LOCATION">BASE_PORT_LOCATION.LABEL</select>
         <select type="number" alias="GEAR">GEAR_USE_FEATURES.ID</select>
         <select type="text" alias="FIRST_NAME">PERSON.FIRST_NAME</select>
         <select type="text" alias="LAST_NAME">PERSON.LAST_NAME</select>
         <select type="date" alias="START_DATE">GEAR_USE_FEATURES.START_DATE</select>
         <select type="date" alias="END_DATE">GEAR_USE_FEATURES.END_DATE</select>
-
+        <select type="text" alias="REGISTRATION_LOCATION">REGISTRATION_PORT.LABEL</select>
+        <select type="text" alias="PROGRAM">PROGRAM.LABEL</select>
         <from>VESSEL</from>
 
         <from join="true">INNER JOIN VESSEL_FEATURES ON VESSEL_FEATURES.VESSEL_FK = VESSEL.ID</from>
@@ -43,11 +44,14 @@
             INNER JOIN VESSEL_REGISTRATION_PERIOD ON ACTIVITY_CALENDAR.VESSEL_FK =
             VESSEL_REGISTRATION_PERIOD.VESSEL_FK
         </from>
-        <from join="true">INNER JOIN LOCATION ON VESSEL_FEATURES.BASE_PORT_LOCATION_FK =
-            LOCATION.ID
+        <from join="true">INNER JOIN VESSEL_USE_FEATURES ON VESSEL.ID = VESSEL_USE_FEATURES.VESSEL_FK</from>
+        <from join="true">INNER JOIN LOCATION BASE_PORT_LOCATION ON VESSEL_USE_FEATURES.BASE_PORT_LOCATION_FK = BASE_PORT_LOCATION.ID </from>
+        <from join="true">INNER JOIN LOCATION REGISTRATION_PORT ON VESSEL_FEATURES.BASE_PORT_LOCATION_FK =
+            REGISTRATION_PORT.ID
         </from>
-        <where>1=1</where>
-        <where operator="AND">
+        <from join="true">INNER JOIN PROGRAM ON GEAR_USE_FEATURES.PROGRAM_FK = PROGRAM.ID</from>
+
+        <where>
             <![CDATA[ GEAR_USE_FEATURES.START_DATE >= &startDateInitial ]]>
         </where>
         <where operator="AND">

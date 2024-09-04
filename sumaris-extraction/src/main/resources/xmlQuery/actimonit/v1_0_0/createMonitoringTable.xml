@@ -28,10 +28,11 @@
         <select type="text" alias="VESSEL_MARKING">MARKING</select>
         <select type="text" alias="VESSEL_NAME">NAME</select>
         <select type="text" alias="VESSEL_LENGTH">LENGTH</select>
-        <select type="text" alias="REGISTRATION_LOCATION">QIM</select>
+        <select type="text" alias="USE_LOCATION">LOCATION</select>
         <select type="text" alias="LAST_NAME">LAST_NAME</select>
         <select type="text" alias="FIRST_NAME">FIRST_NAME</select>
-
+        <select type="text" alias="PROGRAM">PROGRAM</select>
+        <select type="text" alias="REGISTRATION_LOCATION">REGISTRATION_LOCATION</select>
         <from>&amp;monitoringTableName</from>
     </query>
 

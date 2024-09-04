@@ -663,9 +663,33 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
                 .value("2023")
                 .build();
 
+        ExtractionFilterCriterionVO programCriteria = new ExtractionFilterCriterionVO().builder()
+                .sheetName(MonitoringSpecification.AM_SHEET_NAME)
+                .name(MonitoringSpecification.COLUMN_PROGRAM)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("SIH-ACTIFLOT")
+                .build();
+//
+//        ExtractionFilterCriterionVO locationCriteria = new ExtractionFilterCriterionVO().builder()
+//                .sheetName(MonitoringSpecification.AM_SHEET_NAME)
+//                .name(MonitoringSpecification.COLUMN_LOCATION)
+//                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+//                .value("2023")
+//                .build();
+//
+//        ExtractionFilterCriterionVO registrationLocationCriteria = new ExtractionFilterCriterionVO().builder()
+//                .sheetName(MonitoringSpecification.AM_SHEET_NAME)
+//                .name(MonitoringSpecification.COLUMN_REGISTRATION_LOCATION)
+//                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+//                .value("FRRTB")
+//                .build();
+
 
         List<ExtractionFilterCriterionVO> criterions = new ArrayList<>();
         criterions.add(startDateCriteria);
+        criterions.add(programCriteria);
+//        criterions.add(locationCriteria);
+//        criterions.add(registrationLocationCriteria);
 
         filter.setCriteria(criterions);
 

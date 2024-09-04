@@ -53,14 +53,24 @@ public interface ExtractionMonitoringDao<C extends ExtractionMonitoringContextVO
             ExtractionFilterOperatorEnum operator = ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
             if (StringUtils.isNotBlank(criterion.getValue())) {
                 switch (criterion.getName().toLowerCase()) {
-                    case MonitoringSpecification.COLUMN_PROJECT:
+//                    case MonitoringSpecification.COLUMN_YEAR:
+//                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+//                            target.setYear(Integer.valueOf(criterion.getValue()));
+//                        }
+//                        break;
+                    case MonitoringSpecification.COLUMN_REGISTRATION_LOCATION:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setRegistrationLocationId(Integer.valueOf(criterion.getValue()));
+                        }
+                        break;
+                    case MonitoringSpecification.COLUMN_PROGRAM:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setProgramLabel(criterion.getValue());
                         }
                         break;
-                    case MonitoringSpecification.COLUMN_YEAR:
+                    case MonitoringSpecification.COLUMN_LOCATION:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
-                            target.setYear(Integer.valueOf(criterion.getValue()));
+                            target.setLocationId(Integer.valueOf(criterion.getValue()));
                         }
                         break;
 
