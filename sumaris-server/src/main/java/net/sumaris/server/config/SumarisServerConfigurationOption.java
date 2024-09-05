@@ -40,10 +40,17 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             Integer.class,
             false),
 
+    SERVER_ADDRESS(
+        "server.address",
+        n("sumaris.config.option.server.address.description"),
+        "localhost",
+        String.class,
+        false),
+
     SERVER_HOST(
             "server.host",
             n("sumaris.config.option.server.host.description"),
-            "localhost",
+            "${server.address}",
             String.class,
             false),
 
@@ -61,10 +68,24 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             String.class,
             false),
 
+    APP_URL(
+            "sumaris.app.url",
+            n("sumaris.config.option.app.url.description"),
+            "${server.url}",
+            String.class,
+            false),
+
+    APP_REDIRECTION_CACHE_MAX_AGE(
+        "sumaris.app.redirection.cache.maxAge",
+        n("sumaris.config.option.app.redirection.cache.maxAge.description"),
+        "300",
+        Integer.class,
+        false),
+
     REGISTRATION_CONFIRM_URL(
             "sumaris.server.account.register.confirm.url",
             n("sumaris.config.option.server.account.register.confirm.url.description"),
-            "${server.url}/api/confirmEmail/?email={email}&code={code}",
+            "${sumarie.app.url}/confirm/{email}/{code}",
             String.class,
             false),
 

@@ -79,6 +79,10 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return join(strings, '/');
     }
 
+    public static String removeTrailingSlash(String path) {
+        return path != null && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+    }
+
     /**
      * Method to encode a string value using `UTF-8` encoding scheme
      */
