@@ -152,6 +152,10 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         return applicationConfig.getOption(SumarisServerConfigurationOption.APP_URL.getKey());
     }
 
+    public int getAppRedirectionCacheMaxAge() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.APP_REDIRECTION_CACHE_MAX_AGE.getKey());
+    }
+
     /**
      * <p>getDownloadDirectory</p>
      *

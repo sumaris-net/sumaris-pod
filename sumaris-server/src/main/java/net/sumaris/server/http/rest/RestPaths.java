@@ -48,7 +48,8 @@ public interface RestPaths {
 
     String UPLOAD_PATH = "/upload";
 
-    String SHARE_PATH = "/share";
+    String APP_SHARE_PATH = "/share/{uuid:[a-zA-Z0-9-_$.]+}";
+    String APP_EMAIL_CONFIRM_PATH = "/confirm/{email}/{code}";
 
 
     static void checkSecuredPath(String path) throws InvalidPathException {
