@@ -144,6 +144,19 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
     }
 
     /**
+     * <p>getAppUrl.</p>
+     *
+     * @return a {@link String} object.
+     */
+    public String getAppUrl() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.APP_URL.getKey());
+    }
+
+    public int getAppRedirectionCacheMaxAge() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.APP_REDIRECTION_CACHE_MAX_AGE.getKey());
+    }
+
+    /**
      * <p>getDownloadDirectory</p>
      *
      * @return a {@link File} object.
