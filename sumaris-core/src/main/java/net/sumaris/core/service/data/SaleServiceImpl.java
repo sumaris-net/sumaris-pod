@@ -277,10 +277,6 @@ public class SaleServiceImpl implements SaleService {
 				// Create new trip
 				trip = createTrip(source);
 				tripDirty = true;
-				/*if (log.isDebugEnabled()) {
-					log.debug(String.format("Add trip on observation (id=%s) for vessel %s",
-							observedLocation.getId(), vesselId));
-				}*/
 			} else {
 				// Load it
 				trip = loadTrip(tripId);
@@ -335,12 +331,9 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	private TripVO createTrip(SaleVO sale) {
-		VesselSnapshotVO vessel = new VesselSnapshotVO();
-		vessel.setVesselId(sale.getVesselSnapshot().getVesselId());
 		TripVO trip = new TripVO();
 		trip.setProgram(sale.getProgram());
-		trip.setVesselSnapshot(vessel); // TODO: Directement faire un get sur le vesselSnapshot ?
-		// add minutes to startDate to prevent natural Id integrity violation
+		trip.setVesselSnapshot(sale.getVesselSnapshot());
 		trip.setDepartureDateTime(sale.getStartDateTime());
 		trip.setReturnDateTime(Dates.lastSecondOfTheDay(sale.getStartDateTime()));
 		trip.setDepartureLocation(sale.getSaleLocation());
@@ -376,13 +369,11 @@ public class SaleServiceImpl implements SaleService {
 		// Trip itself
 		TripVO savedTrip = tripService.save(
 				trip,
-				TripSaveOptions.builder().withLanding(false).withSales(false).build() // TODO check if needed, landing should be already created
+				TripSaveOptions.builder().withLanding(false).withSales(false).build()
 		);
 
 		// Save metiers
 		operationGroupRepository.saveMetiersByTripId(savedTrip.getId(), trip.getMetiers());
-
-		// TODO: save operation groups (if default needed)
 
 		return savedTrip;
 	}

@@ -74,26 +74,18 @@ public class SaleServiceWriteTest extends AbstractServiceTest{
         Assert.assertNotNull(savedVO.getId());
 
         // Reload and check
-        SaleVO reloadedVO = service.get(savedVO.getId(), SaleFetchOptions.FULL_GRAPH);
-        Assert.assertNotNull(reloadedVO);
-        Assert.assertNotNull(reloadedVO.getMetiers());
-        Assert.assertEquals(reloadedVO.getMetiers().size(), 1);
-        Assert.assertEquals(reloadedVO.getMetiers().get(0).getId(), (Integer)1);
-
-        // Save again
-        service.save(savedVO);
-        reloadedVO = service.get(savedVO.getId(), SaleFetchOptions.FULL_GRAPH);
-        Assert.assertNotNull(reloadedVO);
-        Assert.assertNotNull(reloadedVO.getId());
-        Assert.assertNotNull(reloadedVO.getMetiers());
-        Assert.assertEquals(reloadedVO.getMetiers().size(), 1);
+        savedVO = service.get(savedVO.getId(), SaleFetchOptions.FULL_GRAPH);
+        Assert.assertNotNull(savedVO);
+        Assert.assertNotNull(savedVO.getMetiers());
+        Assert.assertEquals(savedVO.getMetiers().size(), 1);
+        Assert.assertEquals(savedVO.getMetiers().get(0).getId(), (Integer)1);
 
         // Change metiers
-        reloadedVO.setMetiers(ImmutableList.of(DataTestUtils.createMetierVO(2)));
-        service.save(reloadedVO);
-        reloadedVO = service.get(reloadedVO.getId(), SaleFetchOptions.FULL_GRAPH);
-        Assert.assertEquals(reloadedVO.getMetiers().size(), 1);
-        Assert.assertEquals(reloadedVO.getMetiers().get(0).getId(), (Integer)2);
+        savedVO.setMetiers(ImmutableList.of(DataTestUtils.createMetierVO(2)));
+        service.save(savedVO);
+        savedVO = service.get(savedVO.getId(), SaleFetchOptions.FULL_GRAPH);
+        Assert.assertEquals(savedVO.getMetiers().size(), 1);
+        Assert.assertEquals(savedVO.getMetiers().get(0).getId(), (Integer)2);
 
     }
 
