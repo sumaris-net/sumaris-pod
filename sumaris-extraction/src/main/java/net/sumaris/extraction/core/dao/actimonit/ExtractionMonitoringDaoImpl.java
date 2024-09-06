@@ -45,6 +45,7 @@ import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.report.ExtractionMonitoringContextVO;
 import net.sumaris.xml.query.XMLQuery;
+import org.nuiton.version.Versions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
@@ -200,11 +201,20 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
 
         XMLQuery xmlQuery = createXMLQuery(context, "createRawMonitoringTable");
         xmlQuery.bind("monitoringTableName", context.getRawTableName());
+
         //Date Filter
-        xmlQuery.setGroup("startDateFilter", context.getStartRequestDate() != null);
-        xmlQuery.bind("startDateInitial", Daos.getSqlToDate(context.getStartRequestDate()));
-        xmlQuery.setGroup("endDateFilter", context.getEndRequestDate() != null);
-        xmlQuery.bind("endDateInitial", Daos.getSqlToDate(context.getEndRequestDate()));
+        xmlQuery.bind("endDateVesselFeature", Daos.getSqlToDate(context.getEndRequestDate()));
+        xmlQuery.bind("endDateVesselRegistration", Daos.getSqlToDate(context.getEndRequestDate()));
+        xmlQuery.bind("activityCalendarYear", context.getYear());
+
+        if (databaseType == DatabaseType.oracle && databaseVersion != null) {
+            boolean isOracle12 = databaseVersion.afterOrEquals(Versions.valueOf("12"));
+            xmlQuery.setGroup("oracle11", !isOracle12);
+            xmlQuery.setGroup("oracle12", isOracle12);
+        } else {
+            xmlQuery.setGroup("oracle11", false);
+            xmlQuery.setGroup("oracle12", false);
+        }
 
         return xmlQuery;
     }

@@ -23,7 +23,11 @@
 <query type="select">
     <select type="number" alias="&amp;columnAlias%suffix%">
         <![CDATA[
-        (SELECT COUNT(GEAR) FROM &monitoringTableName WHERE START_DATE >= &minDate%suffix% AND END_DATE <= &maxDate%suffix%)
+        (
+         SELECT COUNT(ID)
+         FROM GEAR_USE_FEATURES GUF
+         WHERE GUF.START_DATE >= &minDate%suffix% AND GUF.END_DATE <= &maxDate%suffix% AND GUF.ACTIVITY_CALENDAR_FK = &monitoringTableName.ACTIVITY_CALENDAR_ID
+         )
     ]]>
     </select>
 </query>

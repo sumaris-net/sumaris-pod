@@ -20,46 +20,56 @@
   #L%
   -->
 <queries name="createRawMonitoringTable">
-    <query type="create" temp="false" table="&amp;monitoringTableName" option="distinct">
-        <select type="number" alias="ID">VESSEL.ID</select>
-        <select type="text" alias="MARKING">VESSEL_FEATURES.EXTERIOR_MARKING</select>
-        <select type="text" alias="NAME">VESSEL_FEATURES.NAME</select>
-        <select type="text" alias="LENGTH">VESSEL_FEATURES.LENGTH_OVER_ALL</select>
-        <select type="text" alias="LOCATION">BASE_PORT_LOCATION.LABEL</select>
-        <select type="number" alias="GEAR">GEAR_USE_FEATURES.ID</select>
-        <select type="text" alias="FIRST_NAME">PERSON.FIRST_NAME</select>
-        <select type="text" alias="LAST_NAME">PERSON.LAST_NAME</select>
-        <select type="date" alias="START_DATE">GEAR_USE_FEATURES.START_DATE</select>
-        <select type="date" alias="END_DATE">GEAR_USE_FEATURES.END_DATE</select>
-        <select type="text" alias="REGISTRATION_LOCATION">REGISTRATION_PORT.LABEL</select>
-        <select type="text" alias="PROGRAM">PROGRAM.LABEL</select>
-        <from>VESSEL</from>
+    <query type="create" temp="false" table="&amp;monitoringTableName">
+        <select alias="ACTIVITY_CALENDAR_ID" type="number">ACTIVITY_CALENDAR.ID </select>
+        <select alias="ACTIVITY_CALENDAR_YEAR" type="text">ACTIVITY_CALENDAR.YEAR</select>
 
-        <from join="true">INNER JOIN VESSEL_FEATURES ON VESSEL_FEATURES.VESSEL_FK = VESSEL.ID</from>
-        <from join="true">INNER JOIN GEAR_USE_FEATURES ON VESSEL_FEATURES.VESSEL_FK = GEAR_USE_FEATURES.VESSEL_FK</from>
-        <from join="true">INNER JOIN ACTIVITY_CALENDAR ON GEAR_USE_FEATURES.ACTIVITY_CALENDAR_FK = ACTIVITY_CALENDAR.ID
+        <select alias="VESSEL_FEATURES_NAME" dbms="hsqldb,pgsql">ARRAY_AGG(DISTINCT CONCAT(VESSEL_FEATURES.NAME, ' - ', VESSEL_FEATURES.EXTERIOR_MARKING))</select>
+        <select alias="VESSEL_FEATURES_NAME" dbms="oracle" group="oracle11">DISTINCT LISTAGG(VESSEL_FEATURES.NAME, ' - ')</select>
+        <select alias="VESSEL_FEATURES_NAME" dbms="oracle" group="oracle12">DISTINCT LISTAGG(VESSEL_FEATURES.NAME, ' - ') WITHIN GROUP (ORDER BY VESSEL_FEATURES.NAME)</select>
+
+        <select alias="REGISTRATION_LOCATION_LABEL" dbms="hsqldb,pgsql">ARRAY_AGG(DISTINCT REGISTRATION_LOCATION.LABEL)</select>
+        <select alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="oracle11">DISTINCT LISTAGG(REGISTRATION_LOCATION.LABEL, ' - ')</select>
+        <select alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="oracle12">DISTINCT LISTAGG(REGISTRATION_LOCATION.LABEL, ' - ') WITHIN GROUP (ORDER BY REGISTRATION_LOCATION.LABEL)</select>
+
+        <select alias="VESSEL_FEATURES_LENGHT" dbms="hsqldb,pgsql">ARRAY_AGG(DISTINCT VESSEL_FEATURES.LENGTH_OVER_ALL)</select>
+        <select alias="VESSEL_FEATURES_LENGHT" dbms="oracle" group="oracle11">DISTINCT LISTAGG(VESSEL_FEATURES.LENGTH_OVER_ALL, ' - ')</select>
+        <select alias="VESSEL_FEATURES_LENGHT" dbms="oracle" group="oracle12">DISTINCT LISTAGG(VESSEL_FEATURES.LENGTH_OVER_ALL, ' - ') WITHIN GROUP (ORDER BY VESSEL_FEATURES.LENGTH_OVER_ALL)</select>
+
+        <select alias="SURVEY_QUALIFICATION">QUALITATIVE_VALUE.NAME</select>
+        <select alias="RECORDER_PERSON">(SELECT CONCAT(LAST_NAME,' ', FIRST_NAME) FROM PERSON INNER JOIN ACTIVITY_CALENDAR A on PERSON.ID = A.RECORDER_PERSON_FK WHERE A.ID = ACTIVITY_CALENDAR.ID)</select>
+
+        <from>ACTIVITY_CALENDAR</from>
+
+        <from join="true">INNER JOIN PROGRAM on PROGRAM.ID = ACTIVITY_CALENDAR.PROGRAM_FK</from>
+        <from join="true">INNER JOIN VESSEL on ACTIVITY_CALENDAR.VESSEL_FK = VESSEL.ID</from>
+        <from join="true"><![CDATA[
+            LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD ON VESSEL.ID = VESSEL_REGISTRATION_PERIOD.VESSEL_FK
+                AND NOT(
+                (VESSEL_REGISTRATION_PERIOD.END_DATE  <= &endDateVesselRegistration OR VESSEL_REGISTRATION_PERIOD.END_DATE IS NULL)
+                AND (VESSEL_REGISTRATION_PERIOD.START_DATE > &endDateVesselRegistration )
+            )]]>
         </from>
-        <from join="true">INNER JOIN PERSON ON ACTIVITY_CALENDAR.RECORDER_PERSON_FK = PERSON.ID</from>
+        <from join="true">LEFT OUTER JOIN LOCATION REGISTRATION_LOCATION ON VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION_FK = REGISTRATION_LOCATION.ID</from>
+        <from join="true"><![CDATA[
+            LEFT OUTER JOIN VESSEL_FEATURES ON VESSEL.ID = VESSEL_FEATURES.VESSEL_FK
+            AND NOT( (VESSEL_FEATURES.END_DATE < &endDateVesselFeature OR VESSEL_FEATURES.END_DATE IS NULL)
+            AND (VESSEL_FEATURES.START_DATE > &endDateVesselFeature)
+            )]]>
+        </from>
         <from join="true">
-            INNER JOIN VESSEL_REGISTRATION_PERIOD ON ACTIVITY_CALENDAR.VESSEL_FK =
-            VESSEL_REGISTRATION_PERIOD.VESSEL_FK
+            LEFT OUTER JOIN SURVEY_MEASUREMENT ON ACTIVITY_CALENDAR.ID = SURVEY_MEASUREMENT.ACTIVITY_CALENDAR_FK
+            AND ( PMFM_FK = (SELECT ID FROM PMFM WHERE LABEL = 'SURVEY_QUALIFICATION'))
         </from>
-        <from join="true">INNER JOIN VESSEL_USE_FEATURES ON VESSEL.ID = VESSEL_USE_FEATURES.VESSEL_FK</from>
-        <from join="true">INNER JOIN LOCATION BASE_PORT_LOCATION ON VESSEL_USE_FEATURES.BASE_PORT_LOCATION_FK = BASE_PORT_LOCATION.ID </from>
-        <from join="true">INNER JOIN LOCATION REGISTRATION_PORT ON VESSEL_FEATURES.BASE_PORT_LOCATION_FK =
-            REGISTRATION_PORT.ID
+        <from join="true">
+            LEFT OUTER JOIN QUALITATIVE_VALUE ON SURVEY_MEASUREMENT.QUALITATIVE_VALUE_FK = QUALITATIVE_VALUE.ID
         </from>
-        <from join="true">INNER JOIN PROGRAM ON GEAR_USE_FEATURES.PROGRAM_FK = PROGRAM.ID</from>
-
-        <where>
-            <![CDATA[ GEAR_USE_FEATURES.START_DATE >= &startDateInitial ]]>
-        </where>
+        <where>1=1</where>
         <where operator="AND">
-            <![CDATA[ GEAR_USE_FEATURES.END_DATE <= &endDateInitial ]]>
+            ACTIVITY_CALENDAR.YEAR = &amp;activityCalendarYear
         </where>
-        <where operator="AND">
-            <![CDATA[ VESSEL_REGISTRATION_PERIOD.START_DATE <= GEAR_USE_FEATURES.END_DATE ]]>
-        </where>
-
+        <groupby>
+            ACTIVITY_CALENDAR.ID, ACTIVITY_CALENDAR.YEAR, VESSEL_FEATURES.LENGTH_OVER_ALL,QUALITATIVE_VALUE.NAME
+        </groupby>
     </query>
 </queries>

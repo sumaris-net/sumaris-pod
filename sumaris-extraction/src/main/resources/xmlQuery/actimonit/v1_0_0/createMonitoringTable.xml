@@ -22,21 +22,15 @@
 
 <queries name="createMonitoringTable">
 
-    <query type="create" temp="false" table="&amp;resultMonitoringTableName" option="distinct">
+    <query type="create" temp="false" table="&amp;resultMonitoringTableName">
 
-        <select type="number" alias="ID">ID</select>
-        <select type="text" alias="VESSEL_MARKING">MARKING</select>
-        <select type="text" alias="VESSEL_NAME">NAME</select>
-        <select type="text" alias="VESSEL_LENGTH">LENGTH</select>
-        <select type="text" alias="USE_LOCATION">LOCATION</select>
-        <select type="text" alias="LAST_NAME">LAST_NAME</select>
-        <select type="text" alias="FIRST_NAME">FIRST_NAME</select>
-        <select type="text" alias="PROGRAM">PROGRAM</select>
-        <select type="text" alias="REGISTRATION_LOCATION">REGISTRATION_LOCATION</select>
+        <select type="number" alias="ACTIVITY_CALENDAR_ID">&amp;monitoringTableName.ACTIVITY_CALENDAR_ID</select>
+        <select type="text" alias="VESSEL_FEATURES_NAME">&amp;monitoringTableName.VESSEL_FEATURES_NAME</select>
+        <select type="text" alias="REGISTRATION_LOCATION_LABEL">&amp;monitoringTableName.REGISTRATION_LOCATION_LABEL</select>
+        <select type="text" alias="VESSEL_FEATURES_LENGHT">&amp;monitoringTableName.VESSEL_FEATURES_LENGHT</select>
+        <select type="text" alias="SURVEY_QUALIFICATION">&amp;monitoringTableName.SURVEY_QUALIFICATION</select>
+        <select type="text" alias="RECORDER_PERSON">&amp;monitoringTableName.RECORDER_PERSON</select>
         <from>&amp;monitoringTableName</from>
     </query>
 
 </queries>
-
-
-
