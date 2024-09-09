@@ -66,6 +66,7 @@
   <PROGRAM_PROPERTY ID="523" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.landings.autoFill" NAME="true"/>
   <PROGRAM_PROPERTY ID="524" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.location.level.ids" NAME="2,3"/> <!-- PORT, AUCTION -->
   <PROGRAM_PROPERTY ID="525" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.batch.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="526" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.metier.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="530" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="531" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.measure.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="532" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.measure.individualCountOnly.enable" NAME="true"/>
