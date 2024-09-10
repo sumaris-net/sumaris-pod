@@ -29,7 +29,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
+import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.job.JobVO;
@@ -55,6 +58,7 @@ public class ActivityCalendarImportGraphQLService {
 
     private final ActivityCalendarImportService activityCalendarImportService;
     private final Optional<JobExecutionService> jobExecutionService;
+    private final ProgramService programService;
     private final ISecurityContext<PersonVO> securityContext;
     private final IFileController fileController;
 
@@ -67,22 +71,28 @@ public class ActivityCalendarImportGraphQLService {
     }
 
 
-    @GraphQLQuery(name = "importActivityCalendarList", description = "Import a list of activity calendar from a file")
-    public JobVO importActivityCalendarList(@GraphQLArgument(name = "fileName") String fileName) {
+    @GraphQLQuery(name = "importActivityCalendars", description = "Import a list of activity calendar from a file")
+    public JobVO importActivityCalendars(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
-        if (!securityContext.isAdmin()) throw new UnauthorizedException();
+        // Check user is authenticated
+        PersonVO user = securityContext.getAuthenticatedUser().orElseThrow(UnauthorizedException::new);
+
+        // Check user is an admin or program manager
+        if (!securityContext.isAdmin()) {
+            boolean isProgramManager = programService.getAllPrivilegesByUserId(ProgramEnum.SIH_ACTIFLOT.getId(), user.getId())
+                .stream().anyMatch(privilege -> privilege == ProgramPrivilegeEnum.MANAGER);
+            if (!isProgramManager) throw new UnauthorizedException();
+        }
 
         JobExecutionService jobExecutionService = this.jobExecutionService
                 .orElseThrow(() -> new SumarisTechnicalException("Unable to import activity calendar: job service has been disabled"));
-
 
         File inputFile = fileController.getUserUploadFile(fileName);
         if (!inputFile.exists() || !inputFile.isFile()) {
             throw new SumarisTechnicalException("File not found, or invalid");
         }
 
-        PersonVO user = securityContext.getAuthenticatedUser().get();
         JobVO job = JobVO.builder()
                 .type(JobTypeEnum.ACTIVITY_CALENDARS_IMPORTATION.name())
                 .name(t("sumaris.import.activityCalendar.job.name", fileName))
