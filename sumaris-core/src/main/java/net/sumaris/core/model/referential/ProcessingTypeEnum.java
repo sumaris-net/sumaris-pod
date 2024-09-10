@@ -36,29 +36,29 @@ public enum ProcessingTypeEnum implements Serializable {
     SUMARIS_EXTRACTION(2, "SUMARIS_EXTRACTION"),
     SIOP_VESSELS_IMPORTATION(3, "SIOP_VESSELS_IMPORTATION"),
     VESSEL_SNAPSHOTS_INDEXATION(4, "VESSEL_SNAPSHOTS_INDEXATION"),
+    ACTIVITY_CALENDARS_IMPORTATION(5, "ACTIVITY_CALENDARS_IMPORTATION"),
 
     FILL_LOCATION_HIERARCHY(49, "SYS_P_FILL_LOCATION_HIERARCHY"), // ID Harmonie
     FILL_TAXON_GROUP_HIERARCHY(50, "SYS_P_FILL_TAXON_GROUP_HIERARCHY"), // ID Harmonie
 
-    UNKNOWN(-1, "UNKNOWN")
-    ;
+    UNKNOWN(-1, "UNKNOWN");
 
     public static Optional<ProcessingTypeEnum> byId(final int id) {
         return Arrays.stream(values())
-            .filter(enumValue -> enumValue.id == id)
-            .findFirst();
+                .filter(enumValue -> enumValue.id == id)
+                .findFirst();
     }
 
     public static Optional<ProcessingTypeEnum> byLabel(@NonNull final String label) {
         return Arrays.stream(values())
-            .filter(level -> label.equals(level.label))
-            .findFirst();
+                .filter(level -> label.equals(level.label))
+                .findFirst();
     }
 
     public static @NonNull Optional<ProcessingTypeEnum> byLabelOrName(@NonNull final String label) {
         Optional<ProcessingTypeEnum> result = Arrays.stream(values())
-            .filter(level -> label.equals(level.label))
-            .findFirst();
+                .filter(level -> label.equals(level.label))
+                .findFirst();
         if (result.isPresent()) return result;
 
         // Try as name

@@ -113,7 +113,14 @@ spring-boot:run -Dspring-boot.run.fork=false -Doracle.net.tns_admin=\\brest\tnsn
 Your running Pod give access to useful dev tools : 
   - A GraphQL live query editor, at `<server_url>/graphiql` (WARN some query will need authorization) 
   - A GraphQL subscription query editor (GraphQL + websocket), at `<server_url>/subscription/test`
-    
+
+### On MacOS
+
+1. Install Pod's dependencies:
+    * Install LibSodium
+        * using HomeBrew: `brew install libsodium`
+        * build from source code: https://download.libsodium.org/doc/installation/
+
 ### On MS Windows
 
 `TODO: write this part`

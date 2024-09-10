@@ -37,7 +37,7 @@ import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.importation.DatabaseResource;
-import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
+import net.sumaris.importation.core.service.vessel.SiopVesselsImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.*;
@@ -54,7 +54,7 @@ public class SiopVesselLoaderWriteTest extends AbstractServiceTest {
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private SiopVesselImportService service = null;
+    private SiopVesselsImportService service = null;
 
     @Autowired
     private PersonService personService = null;

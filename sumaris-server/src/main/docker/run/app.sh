@@ -22,6 +22,10 @@
 # L%
 #
 
+# Allow group to modify files on each newly created file.
+# This is usefull when we run container with -group-add="${GROUPNAME}".
+umask 002
+
 [[ "_${APP_NAME}" == "_" ]] && APP_NAME=sumaris
 [[ "_${BASEDIR}" == "_" ]] && BASEDIR=/app
 [[ "_${LOG_DIR}" == "_" ]] && LOG_DIR=/app/logs

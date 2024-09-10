@@ -22,7 +22,9 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
@@ -153,8 +155,8 @@ public class Operation implements IDataEntity<Integer>,
     private List<Product> products = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = FishingArea.class, mappedBy = FishingArea.Fields.OPERATION, cascade = CascadeType.REMOVE)
+    @OrderBy(FishingArea.Fields.ID + " ASC") // Keep save order
     private List<FishingArea> fishingAreas = new ArrayList<>();
-
 
     @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class, cascade = CascadeType.DETACH)
     @JoinColumn(name = "operation_fk", unique = true)

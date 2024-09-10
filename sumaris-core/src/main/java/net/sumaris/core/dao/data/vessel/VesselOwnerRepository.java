@@ -23,15 +23,12 @@ package net.sumaris.core.dao.data.vessel;
  */
 
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.data.VesselOwner;
-import net.sumaris.core.model.data.VesselOwnerPeriod;
-import net.sumaris.core.model.data.VesselOwnerPeriodId;
-import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
 import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
 
 public interface VesselOwnerRepository extends
     SumarisJpaRepository<VesselOwner, Integer, VesselOwnerVO>,
     VesselOwnerSpecifications {
 
+    VesselOwnerVO get(int id);
 }

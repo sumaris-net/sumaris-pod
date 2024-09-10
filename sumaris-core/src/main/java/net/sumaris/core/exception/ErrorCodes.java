@@ -10,12 +10,12 @@ package net.sumaris.core.exception;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -26,5 +26,8 @@ public interface ErrorCodes extends net.sumaris.shared.exception.ErrorCodes {
 
     // Data exception >= 600
     int INVALID_SAMPLING_BATCH_EXCEPTION = 600;
-    int SIOP_VESSEL_IMPORT_ALREADY_RUNNING = 601;
+    int SIOP_VESSELS_IMPORTATION_ALREADY_RUNNING = 601;
+
+    int ACTIVITY_CALENDAR_IMPORTATION_ALREADY_RUNNING = 602;
+
 }

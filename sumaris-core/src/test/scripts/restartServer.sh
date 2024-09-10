@@ -34,8 +34,14 @@ cd "${PROJECT_DIR}"
 PROJECT_DIR=`pwd`
 rm -rf target/db
 mvn -Prun,hsqldb $MVN_ARGS
-#mvn -Prun,hsqldb -DskipTests --quiet | grep -P "(WARN|ERROR|FAILURE)"
+#mvn -Prun,hsqldb $MVN_ARGS | grep -P "(WARN|ERROR|FAILURE)"
 [[ $? -ne 0 ]] && exit 1
+
+# Make sure test DB exists
+if [[ ! -f "target/db/sumaris.script" ]]; then
+    echo "Test DB not exists. Please run InitTest first !"
+    exit 1
+fi;
 
 # ------------------------------------
 echo "${LOG_PREFIX} Stopping DB server...       ${LOG_PREFIX}"
