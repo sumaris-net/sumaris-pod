@@ -47,8 +47,7 @@ public class ExtractionMonitoringContextVO extends AggregationContextVO {
 
     Integer year;
 
-    Date minDate;
-    Date maxDate;
+    int month;
 
     String strategyTableName; // ST table
     String strategyMonitoringTableName; // SM table

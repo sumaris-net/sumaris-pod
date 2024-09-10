@@ -230,12 +230,7 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
                 month -> {
                     try {
                         LocalDateTime lDate = LocalDateTime.of(context.getYear(), month.getValue(), 1, 0, 0, 0);
-
-                        Date minDate = Dates.convertToDate(lDate, configuration.getTimeZone());
-                        Date maxDate = Dates.convertToDate(lDate.plusMonths(1).minusSeconds(1), configuration.getTimeZone());
-
-                        context.setMinDate(minDate);
-                        context.setMaxDate(maxDate);
+                        context.setMonth(month.getValue());
                         createResultMonitoringQuery(context, injectionQuery,
                                 "MONTH" + month.getValue(), xmlQuery
                         );
@@ -255,8 +250,7 @@ public class ExtractionMonitoringDaoImpl<C extends ExtractionMonitoringContextVO
         xmlQuery.bind("columnAlias" + tableAlias, tableAlias);
         xmlQuery.bind("monitoringTableName", context.getRawTableName());
         xmlQuery.bind("resultMonitoringTableName", context.getResultTableName());
-        xmlQuery.bind("minDate" + tableAlias, Daos.getSqlToDate(context.getMinDate()));
-        xmlQuery.bind("maxDate" + tableAlias, Daos.getSqlToDate(context.getMaxDate()));
+        xmlQuery.bind("month" + tableAlias, context.getMonth());
     }
 }
 

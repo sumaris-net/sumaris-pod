@@ -23,11 +23,13 @@
 <query type="select">
     <select type="number" alias="&amp;columnAlias%suffix%">
         <![CDATA[
-        (
-         SELECT COUNT(ID)
-         FROM GEAR_USE_FEATURES GUF
-         WHERE GUF.START_DATE >= &minDate%suffix% AND GUF.END_DATE <= &maxDate%suffix% AND GUF.ACTIVITY_CALENDAR_FK = &monitoringTableName.ACTIVITY_CALENDAR_ID
-         )
+        (SELECT
+            CASE WHEN VUF_IS_ACTIVE !=1 THEN 'INA'
+            ELSE CAST(GUF_COUNT AS VARCHAR(4)) END
+            FROM &monitoringTableName
+            WHERE VUF_MONTH = &month%suffix%
+            AND &monitoringTableName.ACTIVITY_CALENDAR_ID = RAW.ACTIVITY_CALENDAR_ID
+        )
     ]]>
     </select>
 </query>

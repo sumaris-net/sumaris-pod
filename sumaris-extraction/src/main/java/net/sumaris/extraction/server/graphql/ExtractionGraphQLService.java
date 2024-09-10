@@ -36,6 +36,7 @@ import net.sumaris.core.dao.technical.cache.CacheTTL;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.MapUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
@@ -141,6 +142,8 @@ public class ExtractionGraphQLService {
             .sortDirection(SortDirection.fromString(direction))
             .build();
 
+        boolean useMapResult = CollectionUtils.isNotEmpty(filter.getSheetNames());
+
         // If one one sheetname, force to use 'sheetName' instead of 'sheetNames'
         if (CollectionUtils.size(filter.getSheetNames()) == 1 && filter.getSheetName() == null){
             filter.setSheetName(filter.getSheetNames().iterator().next());
@@ -148,6 +151,7 @@ public class ExtractionGraphQLService {
         }
 
         boolean hasManySheetNames = CollectionUtils.size(filter.getSheetNames()) > 1;
+
         CacheTTL ttl = CacheTTL.fromString(cacheDuration);
 
         // Read product
@@ -160,7 +164,11 @@ public class ExtractionGraphQLService {
             // Single sheet name (=preview mode)
             else {
                 ExtractionResultVO data = extractionService.read(checkedType, filter, strata, page, ttl);
-                return extractionService.toJsonArray(data);
+                if (useMapResult) {
+                    return extractionService.toJsonMap(MapUtils.of(filter.getSheetName(), data));
+                } else {
+                    return extractionService.toJsonArray(data);
+                }
             }
         }
         // Live extraction
@@ -173,7 +181,11 @@ public class ExtractionGraphQLService {
             // Single sheet name (=preview mode)
             else {
                 ExtractionResultVO data = extractionService.executeAndRead(checkedType, filter, strata, page, ttl);
-                return extractionService.toJsonArray(data);
+                if (useMapResult) {
+                    return extractionService.toJsonMap(MapUtils.of(filter.getSheetName(), data));
+                } else {
+                    return extractionService.toJsonArray(data);
+                }
             }
         }
     }

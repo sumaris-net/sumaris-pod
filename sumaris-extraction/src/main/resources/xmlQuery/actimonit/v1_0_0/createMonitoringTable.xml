@@ -22,15 +22,39 @@
 
 <queries name="createMonitoringTable">
 
-    <query type="create" temp="false" table="&amp;resultMonitoringTableName">
-
-        <select type="number" alias="ACTIVITY_CALENDAR_ID">&amp;monitoringTableName.ACTIVITY_CALENDAR_ID</select>
-        <select type="text" alias="VESSEL_FEATURES_NAME">&amp;monitoringTableName.VESSEL_FEATURES_NAME</select>
-        <select type="text" alias="REGISTRATION_LOCATION_LABEL">&amp;monitoringTableName.REGISTRATION_LOCATION_LABEL</select>
-        <select type="text" alias="VESSEL_FEATURES_LENGHT">&amp;monitoringTableName.VESSEL_FEATURES_LENGHT</select>
-        <select type="text" alias="SURVEY_QUALIFICATION">&amp;monitoringTableName.SURVEY_QUALIFICATION</select>
-        <select type="text" alias="RECORDER_PERSON">&amp;monitoringTableName.RECORDER_PERSON</select>
-        <from>&amp;monitoringTableName</from>
+    <query type="create" temp="false" table="&amp;resultMonitoringTableName" option="distinct">
+        <select type="number" alias="ACTIVITY_CALENDAR_ID">RAW.ACTIVITY_CALENDAR_ID</select>
+        <select type="text" alias="VESSEL_NAMES">RAW.VESSEL_FEATURES_NAME</select>
+        <select type="text" alias="VESSEL_LENGTH">RAW.VESSEL_FEATURES_LENGTH</select>
+        <select type="text" alias="REGISTRATION_LOCATION_LABELS">RAW.REGISTRATION_LOCATION_LABEL</select>
+        <select type="text" alias="VESSEL_REGISTRATION_CODES">RAW.VESSEL_REGISTRATION_PERIOD_REGISTRATION_CODE</select>
+        <select type="text" alias="SURVEY_QUALIFICATION">RAW.SURVEY_QUALIFICATION</select>
+        <select type="text" alias="RECORDER_PERSON">RAW.RECORDER_PERSON</select>
+        <select type="number" alias="EMPTY_MOUNT_COUNT">
+            <![CDATA[
+                (
+                    SELECT (12 - COUNT(VUF_MONTH))
+                    FROM &monitoringTableName
+                    WHERE ACTIVITY_CALENDAR_ID = RAW.ACTIVITY_CALENDAR_ID
+                    GROUP BY ACTIVITY_CALENDAR_ID
+                )
+            ]]>
+        </select>
+        <select type="number" alias="STATUS">
+            <![CDATA[
+                (
+                    SELECT
+                        CASE COUNT(VUF_MONTH) WHEN 0 THEN 'EMPTY'
+                        WHEN 12 THEN 'COMPLETE'
+                        ELSE 'INCOMPLETE'
+                        END
+                    FROM &monitoringTableName
+                    WHERE ACTIVITY_CALENDAR_ID = RAW.ACTIVITY_CALENDAR_ID
+                    GROUP BY ACTIVITY_CALENDAR_ID
+                )
+            ]]>
+        </select>
+        <from alias="RAW">&amp;monitoringTableName</from>
     </query>
 
 </queries>
