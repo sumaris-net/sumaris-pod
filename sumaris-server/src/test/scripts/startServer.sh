@@ -55,11 +55,19 @@ JAVA_OPTS="$JAVA_OPTS -Dspring.datasource.url=${DB_URL}"
 JAVA_OPTS="$JAVA_OPTS -Dspring.mail.enabled=false"
 #JAVA_OPTS="$JAVA_OPTS -Drdf.enabled=true"
 if [[ -d "${CONFIG_DIR}" ]]; then
-  JAVA_OPTS="$JAVA_OPTS -Dspring.config.location=${CONFIG_DIR}/"
+  echo "Local config: $CONFIG_DIR"
+  JAVA_OPTS="$JAVA_OPTS -Dspring.config.additional-location=${CONFIG_DIR}/"
 fi;
-[[ "_${PROFILE}" != "_" ]]  && JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"
+if [[ "_${PROFILE}" != "_" ]]; then
+  JAVA_OPTS="$JAVA_OPTS -Dspring.profiles.active=${PROFILE}"
+fi;
 
 JAVA_CMD="java ${JAVA_OPTS} -jar ${WAR_FILE}"
+
+# Mac OS - force arch
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  JAVA_CMD="arch -x86_64  ${JAVA_CMD}"
+fi;
 
 # ------------------------------------
 echo "${LOG_PREFIX} Running pod from '${WAR_FILE}'... ${LOG_PREFIX}"

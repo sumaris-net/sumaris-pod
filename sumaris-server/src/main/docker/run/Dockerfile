@@ -13,8 +13,9 @@ ARG GROUPNAME="spring"
 ARG GROUPID="9999"
 
 # Install dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends libsodium-dev
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libsodium-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create execution user/group
 RUN echo "Creating group ${GROUPNAME}:${GROUPID}" && \
@@ -29,7 +30,10 @@ COPY --chown=${USERNAME}:${GROUPNAME} ${CONFIG_FILES} /app/config/
 # Make executable and change ownership
 RUN chmod +x /app/app.sh && \
     mkdir -p /app/logs /app/data && \
-    chown -R ${USERNAME}:${GROUPNAME} /app/logs /app/data
+    chown -R ${USERNAME}:${GROUPNAME} /app/logs /app/data && \
+    chmod -R g=srwX /app/logs /app/data # Note : add setgit bit ("s" on "srwX")
+    # is needed to force each file create on theese directory has owned by
+    # ${GROUPNAME}. This is usefull when we run container with -group-add="${GROUPNAME}".
 
 COPY --chown=${USERNAME}:${GROUPNAME} ${WAR_FILE} /app/app.war
 

@@ -31,7 +31,6 @@ import java.util.Arrays;
 public enum ProgramEnum implements Serializable {
 
     SIH(0, "SIH"),
-
     SIH_ACTIFLOT(110, "SIH-ACTIFLOT"),
     ;
 

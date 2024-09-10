@@ -25,13 +25,13 @@ package net.sumaris.importation.core.service.vessel;
 import net.sumaris.core.exception.ErrorCodes;
 import net.sumaris.core.exception.SumarisBusinessException;
 
-public class SiopVesselAlreadyRunningException extends SumarisBusinessException {
+public class SiopVesselsAlreadyRunningException extends SumarisBusinessException {
 
-    public SiopVesselAlreadyRunningException(Throwable t) {
-        super(ErrorCodes.SIOP_VESSEL_IMPORT_ALREADY_RUNNING, t);
+    public SiopVesselsAlreadyRunningException(Throwable t) {
+        super(ErrorCodes.SIOP_VESSELS_IMPORTATION_ALREADY_RUNNING, t);
     }
 
-    public SiopVesselAlreadyRunningException(String message) {
-        super(ErrorCodes.SIOP_VESSEL_IMPORT_ALREADY_RUNNING, message);
+    public SiopVesselsAlreadyRunningException(String message) {
+        super(ErrorCodes.SIOP_VESSELS_IMPORTATION_ALREADY_RUNNING, message);
     }
 }

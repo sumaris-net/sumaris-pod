@@ -27,10 +27,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
-import net.sumaris.core.dao.data.vessel.VesselOwnerPeriodRepository;
-import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
-import net.sumaris.core.dao.data.vessel.VesselRepository;
+import net.sumaris.core.dao.data.vessel.*;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
@@ -39,6 +36,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
 import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
@@ -46,10 +44,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("vesselService")
@@ -62,6 +57,8 @@ public class VesselServiceImpl implements VesselService {
 	protected final VesselFeaturesRepository vesselFeaturesRepository;
 
 	protected final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
+
+	protected final VesselOwnerRepository vesselOwnerRepository;
 
 	protected final VesselOwnerPeriodRepository vesselOwnerPeriodRepository;
 
@@ -101,6 +98,12 @@ public class VesselServiceImpl implements VesselService {
 	}
 
 	@Override
+	public long countFeaturesByVesselId(int vesselId) {
+		return vesselFeaturesRepository
+				.count(VesselFilterVO.builder().vesselId(vesselId).build());
+	}
+
+	@Override
 	public List<VesselRegistrationPeriodVO> findRegistrationPeriodsByVesselId(int vesselId, Page page) {
 		return vesselRegistrationPeriodRepository.findAll(
 			VesselRegistrationFilterVO.builder()
@@ -108,6 +111,15 @@ public class VesselServiceImpl implements VesselService {
 					.build(),
 			page);
 	}
+
+	@Override
+	public long countRegistrationPeriodsByVesselId(int vesselId) {
+		return vesselRegistrationPeriodRepository.count(
+				VesselRegistrationFilterVO.builder()
+						.vesselId(vesselId)
+						.build());
+	}
+
 
 	@Override
 	public List<VesselRegistrationPeriodVO> findRegistrationPeriodsByFilter(VesselRegistrationFilterVO filter, Page page) {
@@ -119,6 +131,10 @@ public class VesselServiceImpl implements VesselService {
 		return vesselOwnerPeriodRepository.findAll(filter, page);
 	}
 
+	public VesselOwnerVO getVesselOwner(int id) {
+		return vesselOwnerRepository.get(id);
+	}
+
 	@Override
 	public List<VesselOwnerPeriodVO> findOwnerPeriodsByVesselId(int vesselId, Page page) {
 		return vesselOwnerPeriodRepository.findAll(
@@ -128,6 +144,16 @@ public class VesselServiceImpl implements VesselService {
 						.build(),
 				page);
 	}
+
+	@Override
+	public long countOwnerPeriodsByVesselId(int vesselId) {
+		return vesselOwnerPeriodRepository.count(
+				VesselOwnerFilterVO.builder()
+						.vesselId(vesselId)
+						.programLabel(ProgramEnum.SIH.getLabel())
+						.build());
+	}
+
 
 	@Override
 	public void replaceTemporaryVessel(List<Integer> temporaryVesselIds, int targetVesselId) {

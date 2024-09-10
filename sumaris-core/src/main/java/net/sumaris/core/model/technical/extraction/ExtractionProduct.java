@@ -130,7 +130,6 @@ public class ExtractionProduct implements IExtractionType<Person, Department>,
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ExtractionProductTable.class, mappedBy = ExtractionProductTable.Fields.PRODUCT)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     @OrderBy(ExtractionProductTable.Fields.RANK_ORDER + " ASC")
-    @SortNatural
     private List<ExtractionProductTable> tables = new ArrayList<>();
 
 

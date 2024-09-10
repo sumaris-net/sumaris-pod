@@ -32,6 +32,10 @@ public final class HttpHeaders extends org.springframework.http.HttpHeaders {
      */
     public static String ACCESS_CONTROL_DENY_DELETION_ENTITIES = "Access-Control-Deny-Deletion-Entities";
 
-
+    public interface Values {
+        String NO_CACHE = "no-cache";
+        String MAX_AGE = "max-age=";
+        String MUST_REVALIDATE = "must-revalidate";
+    }
 
 }

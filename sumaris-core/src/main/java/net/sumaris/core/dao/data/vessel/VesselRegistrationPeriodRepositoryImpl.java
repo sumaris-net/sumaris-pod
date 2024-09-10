@@ -79,6 +79,10 @@ public class VesselRegistrationPeriodRepositoryImpl
         }
     }
 
+    public long count(VesselRegistrationFilterVO filter) {
+        return count(toSpecification(filter));
+    }
+
     public Optional<VesselRegistrationPeriodVO> findLastByVesselId(int vesselId) {
         return findByVesselIdAndDate(vesselId, null).map(this::toVO);
     }

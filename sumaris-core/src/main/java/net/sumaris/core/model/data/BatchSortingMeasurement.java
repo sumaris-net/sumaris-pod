@@ -22,13 +22,14 @@
 
 package net.sumaris.core.model.data;
 
-import lombok.*;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.user.Department;
+import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.pmfm.Pmfm;
 import net.sumaris.core.model.referential.pmfm.QualitativeValue;
-import net.sumaris.core.model.referential.QualityFlag;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -95,12 +96,10 @@ public class BatchSortingMeasurement implements ISortedMeasurementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pmfm_fk", nullable = false)
-    
     private Pmfm pmfm;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = Batch.class)
     @JoinColumn(name = "batch_fk")
-    
     private Batch batch;
 
 }

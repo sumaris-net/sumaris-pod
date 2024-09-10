@@ -1951,13 +1951,16 @@ public class DataGraphQLService {
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(activityCalendar, fields);
 
+        // get vessel id
+        int vesselId =  activityCalendar.getVesselId() != null ? activityCalendar.getVesselId() : activityCalendar.getVesselSnapshot().getId();
+
         // Add authorized locations (if need)
         if (fields.contains(StringUtils.doting(ActivityCalendarVO.Fields.VESSEL_REGISTRATION_PERIODS))) {
             // Load vessel registration periods
             Date startDate = Dates.getFirstDayOfYear(activityCalendar.getYear());
             Date endDate = Dates.getLastSecondOfYear(activityCalendar.getYear());
             List<VesselRegistrationPeriodVO> registrationPeriods = vesselService.findRegistrationPeriodsByFilter(VesselRegistrationFilterVO.builder()
-                            .vesselId(activityCalendar.getVesselId())
+                            .vesselId(vesselId)
                             .startDate(startDate)
                             .endDate(endDate)
                             .build(),

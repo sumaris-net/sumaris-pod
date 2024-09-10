@@ -43,6 +43,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
 import net.sumaris.core.vo.filter.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -192,6 +193,17 @@ public class VesselGraphQLService {
             getFeaturesFetchOptions(GraphQLUtils.fields(env)));
     }
 
+    @GraphQLQuery(name = "vesselFeaturesHistoryCount", description = "Get vessel features history count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public Long countFeaturesByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                   @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter) {
+        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
+        Preconditions.checkNotNull(vesselId);
+        return vesselService.countFeaturesByVesselId(vesselId);
+    }
+
+
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
     @Transactional(readOnly = true)
     @IsUser
@@ -206,6 +218,23 @@ public class VesselGraphQLService {
         return vesselService.findRegistrationPeriodsByVesselId(vesselId, Page.create(offset, size, sort, SortDirection.fromString(direction)));
     }
 
+    @GraphQLQuery(name = "vesselRegistrationHistoryCount", description = "Get vessel registration history count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public Long countRegistrationPeriodsByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                   @GraphQLArgument(name = "filter") VesselRegistrationFilterVO filter) {
+        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
+        Preconditions.checkNotNull(vesselId);
+        return vesselService.countRegistrationPeriodsByVesselId(vesselId);
+    }
+
+    @GraphQLQuery(name = "vesselOwner", description = "Get a vesselOwner")
+    @Transactional(readOnly = true)
+    @IsUser
+    public VesselOwnerVO getVesselOwnerById(@GraphQLArgument(name = "id") Integer id) {
+        VesselOwnerVO result = vesselService.getVesselOwner(id);
+        return result;
+    }
 
     @GraphQLQuery(name = "vesselOwnerHistory", description = "Get vessel owner history")
     @Transactional(readOnly = true)
@@ -231,6 +260,24 @@ public class VesselGraphQLService {
 
         return vesselService.findOwnerPeriodsByFilter(filter,
                 Page.create(offset, size, sort, SortDirection.fromString(direction)));
+    }
+
+    @GraphQLQuery(name = "vesselOwnerHistoryCount", description = "Get total vessel owner history count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public Long countOwnerPeriodsByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                          @GraphQLArgument(name = "filter") VesselOwnerFilterVO filter) {
+        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
+        Preconditions.checkNotNull(vesselId);
+        filter = VesselOwnerFilterVO.nullToEmpty(filter);
+        filter.setVesselId(vesselId);
+
+        // Make sure to limit access to SIH data
+        if (filter == null || (filter.getProgramLabel() == null && ArrayUtils.isEmpty(filter.getProgramIds()))) {
+            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        }
+        Preconditions.checkNotNull(vesselId);
+        return vesselService.countOwnerPeriodsByVesselId(vesselId);
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
