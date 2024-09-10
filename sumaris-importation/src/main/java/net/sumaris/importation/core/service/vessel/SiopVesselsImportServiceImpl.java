@@ -89,10 +89,10 @@ import java.util.stream.Collectors;
 
 import static org.nuiton.i18n.I18n.t;
 
-@Service("siopVesselLoaderService")
+@Service("siopVesselsImportService")
 @RequiredArgsConstructor
 @Slf4j
-public class SiopVesselImportServiceImpl implements SiopVesselImportService {
+public class SiopVesselsImportServiceImpl implements SiopVesselsImportService {
 
 	protected final static String LABEL_NAME_SEPARATOR_REGEXP = "[ \t]+-[ \t]+";
 	protected static final String[] INPUT_DATE_PATTERNS = new String[] {
@@ -224,17 +224,17 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 		// Make sure this job run once, to avoid duplication
 		if (running) {
-			String message = t("sumaris.import.job.error.alreadyRunning");
+			String message = t("sumaris.import.error.alreadyRunning");
 			progressionModel.setMessage(message);
 			progressionModel.setTotal(1);
 			progressionModel.setCurrent(1);
-			throw new SiopVesselAlreadyRunningException(message);
+			throw new SiopVesselsAlreadyRunningException(message);
 		}
 		running = true;
 
 		try {
 			// Init progression model
-			progressionModel.setMessage(t("sumaris.import.job.start", context.getProcessingFile().getName()));
+			progressionModel.setMessage(t("sumaris.import.start", context.getProcessingFile().getName()));
 
 			PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
 
@@ -342,7 +342,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 							rowCounter.increment();
 							if (rowCounter.intValue() % 10 == 0) {
 								progressionModel.setCurrent(rowCounter.intValue());
-								progressionModel.setMessage(t("sumaris.import.job.vessel.progress", rowCounter.intValue(), vessels.size()));
+								progressionModel.setMessage(t("sumaris.import.vessel.siop.progress", rowCounter.intValue(), vessels.size()));
 							}
 						}
 					}
@@ -351,7 +351,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 					// Disabled existing but absents vessel
 					// (only if sometimes was processed in the import - skip if not - eg. empty file)
 					if (inserts.intValue() > 0 || updates.intValue() > 0) {
-						progressionModel.setMessage(t("sumaris.import.job.vessel.disabling"));
+						progressionModel.setMessage(t("sumaris.import.vessel.siop.disabling"));
 
 						// Disable not present vessels
 						Set<Integer> vesselIdsToDisable = existingKeys.entrySet().stream()
@@ -436,7 +436,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 
 		SiopVesselImportResultVO result;
 		try {
-			result = applicationContext.getBean(SiopVesselImportService.class)
+			result = applicationContext.getBean(SiopVesselsImportService.class)
 				.importFromFile(context, progressionModel);
 
 			// Set result status
@@ -445,7 +445,7 @@ public class SiopVesselImportServiceImpl implements SiopVesselImportService {
 		} catch (Exception e) {
 			// Result is kept in context
 			result = context.getResult();
-			result.setMessage(t("sumaris.job.error.detail", ExceptionUtils.getStackTrace(e)));
+			result.setMessage(t("sumaris.import.error.detail", ExceptionUtils.getStackTrace(e)));
 
 			// Set failed status
 			result.setStatus(JobStatusEnum.FATAL);
