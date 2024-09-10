@@ -23,7 +23,6 @@
 package net.sumaris.importation.core.service.vessel;
 
 import net.sumaris.core.model.IProgressionModel;
-import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportResultVO;
 import org.springframework.scheduling.annotation.Async;
@@ -34,14 +33,14 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 
 
-public interface SiopVesselImportService {
+public interface SiopVesselsImportService {
 
 
     /**
-     * Import a CL file (landing statistics) into the database
+     * Import SIOP vessels file into the database
      *
-     * @param recorderPersonId the recorder person to store VESSEL_xxx tables
-     * @param inputFile the input data file to import
+     * @param context the importation context
+     * @param progressionModel a progression model
      * @return
      * @throws IOException
      */

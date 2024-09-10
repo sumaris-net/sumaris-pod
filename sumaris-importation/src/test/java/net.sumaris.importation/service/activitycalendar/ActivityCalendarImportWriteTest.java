@@ -23,58 +23,40 @@
 package net.sumaris.importation.service.activitycalendar;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepositoryImpl;
-import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
-import net.sumaris.core.model.referential.VesselTypeEnum;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
-import net.sumaris.core.service.data.vessel.VesselService;
-import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.data.VesselVO;
-import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
-import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.importation.DatabaseResource;
-import net.sumaris.importation.core.service.activitycalendar.ListActivityCalendarImportService;
-import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityCalendarImportResultVO;
-import net.sumaris.importation.core.service.activitycalendar.vo.ListActivityImportCalendarContextVO;
-import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
+import net.sumaris.importation.core.service.activitycalendar.ActivityCalendarImportService;
+import net.sumaris.importation.core.service.activitycalendar.vo.ActivityCalendarImportContextVO;
+import net.sumaris.importation.core.service.activitycalendar.vo.ActivityCalendarImportResultVO;
+import net.sumaris.importation.core.service.vessel.SiopVesselsImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
-import static org.junit.Assert.*;
-
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static org.junit.Assert.assertEquals;
+
 
 @Slf4j
-public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
+public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
 
     @Autowired
-    private SiopVesselImportService service = null;
+    private SiopVesselsImportService service = null;
 
     @Autowired
     private PersonService personService = null;
@@ -83,16 +65,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
     private ConfigurationService configurationService;
 
     @Autowired
-    private ListActivityCalendarImportService listActivityCalendarImportService;
-
-    @Autowired
-    private VesselService vesselService;
-
-    @Autowired
-    private VesselSnapshotService vesselSnapshotService;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private ActivityCalendarImportService activityCalendarImportService;
 
     @Before
     public void setup() {
@@ -114,17 +87,17 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
-        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+        ActivityCalendarImportContextVO context = ActivityCalendarImportContextVO.builder()
                 .recorderPersonId(1)
                 .processingFile(file)
                 .build();
 
-        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        Future<ActivityCalendarImportResultVO> future = activityCalendarImportService.asyncImportFromFile(context, null);
         try {
 
-            ListActivityCalendarImportResultVO result = future.get();
+            ActivityCalendarImportResultVO result = future.get();
 
-            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
             expectedResult.setMessage(null);
             expectedResult.setInserts(2);
@@ -132,8 +105,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
             expectedResult.setWarnings(2);
             expectedResult.setErrors(0);
 
-            System.out.println("result.getStatus() : " + result);
-
+            log.debug("Result status: {}", result);
 
             assertEquals(expectedResult.getStatus(), result.getStatus());
             assertEquals(expectedResult.getMessage(), result.getMessage());
@@ -144,7 +116,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("Unexpected exception: {}", e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
     }
@@ -154,17 +126,17 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         String fileName = "activity-calendars-list-add.csv";
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
-        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+        ActivityCalendarImportContextVO context = ActivityCalendarImportContextVO.builder()
                 .recorderPersonId(1)
                 .processingFile(file)
                 .build();
 
-        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        Future<ActivityCalendarImportResultVO> future = activityCalendarImportService.asyncImportFromFile(context, null);
         try {
 
-            ListActivityCalendarImportResultVO result = future.get();
+            ActivityCalendarImportResultVO result = future.get();
 
-            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
             expectedResult.setInserts(2);
             expectedResult.setUpdates(0);
@@ -179,7 +151,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("Unexpected exception: {}", e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
     }
@@ -191,17 +163,17 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
-        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+        ActivityCalendarImportContextVO context = ActivityCalendarImportContextVO.builder()
                 .recorderPersonId(1)
                 .processingFile(file)
                 .build();
 
-        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        Future<ActivityCalendarImportResultVO> future = activityCalendarImportService.asyncImportFromFile(context, null);
         try {
 
-            ListActivityCalendarImportResultVO result = future.get();
+            ActivityCalendarImportResultVO result = future.get();
 
-            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
             expectedResult.setInserts(0);
             expectedResult.setUpdates(2);
@@ -217,7 +189,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("Unexpected exception: {}", e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
     }
@@ -228,17 +200,17 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
-        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+        ActivityCalendarImportContextVO context = ActivityCalendarImportContextVO.builder()
                 .recorderPersonId(1)
                 .processingFile(file)
                 .build();
 
-        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        Future<ActivityCalendarImportResultVO> future = activityCalendarImportService.asyncImportFromFile(context, null);
         try {
 
-            ListActivityCalendarImportResultVO result = future.get();
+            ActivityCalendarImportResultVO result = future.get();
 
-            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
             expectedResult.setInserts(0);
             expectedResult.setUpdates(0);
@@ -253,7 +225,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
 
 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("Unexpected exception: {}", e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
     }
@@ -264,17 +236,17 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
-        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+        ActivityCalendarImportContextVO context = ActivityCalendarImportContextVO.builder()
                 .recorderPersonId(1)
                 .processingFile(file)
                 .build();
 
-        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        Future<ActivityCalendarImportResultVO> future = activityCalendarImportService.asyncImportFromFile(context, null);
         try {
 
-            ListActivityCalendarImportResultVO result = future.get();
+            ActivityCalendarImportResultVO result = future.get();
 
-            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.ERROR);
             expectedResult.setMessage(null);
             expectedResult.setInserts(0);
@@ -290,7 +262,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
             assertEquals(expectedResult.getErrors(), result.getErrors());
 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("Unexpected exception: {}", e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
     }
@@ -301,17 +273,17 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
         String basePath = "src/test/data/activity-calendar/";
         File file = new File(basePath, fileName);
 
-        ListActivityImportCalendarContextVO context = ListActivityImportCalendarContextVO.builder()
+        ActivityCalendarImportContextVO context = ActivityCalendarImportContextVO.builder()
                 .recorderPersonId(1)
                 .processingFile(file)
                 .build();
 
-        Future<ListActivityCalendarImportResultVO> future = listActivityCalendarImportService.asyncImportFromFile(context, null);
+        Future<ActivityCalendarImportResultVO> future = activityCalendarImportService.asyncImportFromFile(context, null);
         try {
 
-            ListActivityCalendarImportResultVO result = future.get();
+            ActivityCalendarImportResultVO result = future.get();
 
-            ListActivityCalendarImportResultVO expectedResult = new ListActivityCalendarImportResultVO();
+            ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
             expectedResult.setMessage(null);
             expectedResult.setInserts(0);
@@ -327,7 +299,7 @@ public class ListActivityCalendarLoaderWriteTest extends AbstractServiceTest {
             assertEquals(expectedResult.getErrors(), result.getErrors());
 
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("Unexpected exception: {}", e.getMessage(), e);
             Assert.fail(e.getMessage());
         }
     }

@@ -33,7 +33,7 @@ import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.technical.JobExecutionService;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.job.JobVO;
-import net.sumaris.importation.core.service.vessel.SiopVesselImportService;
+import net.sumaris.importation.core.service.vessel.SiopVesselsImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.security.IFileController;
@@ -54,7 +54,7 @@ import static org.nuiton.i18n.I18n.t;
 @Slf4j
 public class VesselImportGraphQLService {
 
-    private final SiopVesselImportService siopVesselImportService;
+    private final SiopVesselsImportService siopVesselsImportService;
     private final Optional<JobExecutionService> jobExecutionService;
     private final ISecurityContext<PersonVO> securityContext;
     private final IFileController fileController;
@@ -96,6 +96,6 @@ public class VesselImportGraphQLService {
         // Execute importJob by JobService (async)
         return jobExecutionService.run(job,
                 () -> context,
-                (progression) -> siopVesselImportService.asyncImportFromFile(context, progression));
+                (progression) -> siopVesselsImportService.asyncImportFromFile(context, progression));
     }
 }

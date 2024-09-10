@@ -26,8 +26,8 @@ public interface ErrorCodes extends net.sumaris.shared.exception.ErrorCodes {
 
     // Data exception >= 600
     int INVALID_SAMPLING_BATCH_EXCEPTION = 600;
-    int SIOP_VESSEL_IMPORT_ALREADY_RUNNING = 601;
+    int SIOP_VESSELS_IMPORTATION_ALREADY_RUNNING = 601;
 
-    int LIST_ACTIVITY_CALENDAR_IMPORT_ALREADY_RUNNING = 602;
+    int ACTIVITY_CALENDAR_IMPORTATION_ALREADY_RUNNING = 602;
 
 }
