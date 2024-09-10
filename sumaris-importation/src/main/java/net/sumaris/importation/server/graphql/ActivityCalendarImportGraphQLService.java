@@ -71,7 +71,7 @@ public class ActivityCalendarImportGraphQLService {
     }
 
 
-    @GraphQLQuery(name = "importActivityCalendars", description = "Import a list of activity calendar from a file")
+    @GraphQLQuery(name = "importActivityCalendars", description = "Import a list of activity calendar from a CSV file")
     public JobVO importActivityCalendars(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
