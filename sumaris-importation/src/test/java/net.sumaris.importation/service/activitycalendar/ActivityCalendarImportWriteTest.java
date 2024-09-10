@@ -40,13 +40,14 @@ import net.sumaris.importation.core.service.vessel.SiopVesselsImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.importation.service.AbstractServiceTest;
 import org.junit.*;
+import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 @Slf4j
@@ -99,7 +100,11 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
 
             ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
-            expectedResult.setMessage(null);
+            expectedResult.setMessage(
+                I18n.t("sumaris.import.activityCalendar.error.invalidRow", 5, "104641", 2023)
+                + "\n"
+                + I18n.t("sumaris.import.activityCalendar.error.invalidRow", 6, "110854", 2023)
+            );
             expectedResult.setInserts(2);
             expectedResult.setUpdates(2);
             expectedResult.setWarnings(2);
@@ -107,13 +112,7 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
 
             log.debug("Result status: {}", result);
 
-            assertEquals(expectedResult.getStatus(), result.getStatus());
-            assertEquals(expectedResult.getMessage(), result.getMessage());
-            assertEquals(expectedResult.getInserts(), result.getInserts());
-            assertEquals(expectedResult.getUpdates(), result.getUpdates());
-            assertEquals(expectedResult.getWarnings(), result.getWarnings());
-            assertEquals(expectedResult.getErrors(), result.getErrors());
-
+            assertEquals(expectedResult, result);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unexpected exception: {}", e.getMessage(), e);
@@ -143,12 +142,7 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
             expectedResult.setWarnings(0);
             expectedResult.setErrors(0);
 
-            assertEquals(expectedResult.getStatus(), result.getStatus());
-            assertEquals(expectedResult.getInserts(), result.getInserts());
-            assertEquals(expectedResult.getUpdates(), result.getUpdates());
-            assertEquals(expectedResult.getWarnings(), result.getWarnings());
-            assertEquals(expectedResult.getErrors(), result.getErrors());
-
+            assertEquals(expectedResult, result, false);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unexpected exception: {}", e.getMessage(), e);
@@ -156,7 +150,6 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
         }
     }
 
-    // this test is Work
     @Test
     public void importUpdateFile() {
         String fileName = "activity-calendars-list-update.csv";
@@ -180,13 +173,7 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
             expectedResult.setWarnings(0);
             expectedResult.setErrors(0);
 
-
-            assertEquals(expectedResult.getStatus(), result.getStatus());
-            assertEquals(expectedResult.getInserts(), result.getInserts());
-            assertEquals(expectedResult.getUpdates(), result.getUpdates());
-            assertEquals(expectedResult.getWarnings(), result.getWarnings());
-            assertEquals(expectedResult.getErrors(), result.getErrors());
-
+            assertEquals(expectedResult, result);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unexpected exception: {}", e.getMessage(), e);
@@ -217,12 +204,7 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
             expectedResult.setWarnings(6214);
             expectedResult.setErrors(0);
 
-            assertEquals(expectedResult.getStatus(), result.getStatus());
-            assertEquals(expectedResult.getInserts(), result.getInserts());
-            assertEquals(expectedResult.getUpdates(), result.getUpdates());
-            assertEquals(expectedResult.getWarnings(), result.getWarnings());
-            assertEquals(expectedResult.getErrors(), result.getErrors());
-
+            assertEquals(expectedResult, result, false);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unexpected exception: {}", e.getMessage(), e);
@@ -248,18 +230,13 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
 
             ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.ERROR);
-            expectedResult.setMessage(null);
+            expectedResult.setMessage(I18n.t("sumaris.import.activityCalendar.error.invalidHeaderRow"));
             expectedResult.setInserts(0);
             expectedResult.setUpdates(0);
             expectedResult.setWarnings(0);
             expectedResult.setErrors(1);
 
-            assertEquals(expectedResult.getStatus(), result.getStatus());
-            assertEquals(expectedResult.getMessage(), result.getMessage());
-            assertEquals(expectedResult.getInserts(), result.getInserts());
-            assertEquals(expectedResult.getUpdates(), result.getUpdates());
-            assertEquals(expectedResult.getWarnings(), result.getWarnings());
-            assertEquals(expectedResult.getErrors(), result.getErrors());
+            assertEquals(expectedResult, result);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unexpected exception: {}", e.getMessage(), e);
@@ -285,18 +262,13 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
 
             ActivityCalendarImportResultVO expectedResult = new ActivityCalendarImportResultVO();
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
-            expectedResult.setMessage(null);
+            expectedResult.setMessage(I18n.t("sumaris.import.activityCalendar.error.invalidRow", 1, null, null));
             expectedResult.setInserts(0);
             expectedResult.setUpdates(0);
             expectedResult.setWarnings(1);
             expectedResult.setErrors(0);
 
-            assertEquals(expectedResult.getStatus(), result.getStatus());
-            assertEquals(expectedResult.getMessage(), result.getMessage());
-            assertEquals(expectedResult.getInserts(), result.getInserts());
-            assertEquals(expectedResult.getUpdates(), result.getUpdates());
-            assertEquals(expectedResult.getWarnings(), result.getWarnings());
-            assertEquals(expectedResult.getErrors(), result.getErrors());
+            assertEquals(expectedResult, result);
 
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unexpected exception: {}", e.getMessage(), e);
@@ -333,5 +305,20 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
                         .build(), Pageables.create(0, 1))
                 .stream().findFirst().map(PersonVO::getId)
                 .orElse(1); // Admin user
+    }
+
+    private void assertEquals(ActivityCalendarImportResultVO expectedResult, ActivityCalendarImportResultVO result) {
+        assertEquals(expectedResult, result, true);
+    }
+
+    private void assertEquals(ActivityCalendarImportResultVO expectedResult, ActivityCalendarImportResultVO result, boolean withMessage) {
+        Assume.assumeNotNull(expectedResult);
+        assertNotNull(result);
+        Assert.assertEquals(expectedResult.getStatus(), result.getStatus());
+        if (withMessage) Assert.assertEquals(expectedResult.getMessage(), result.getMessage());
+        Assert.assertEquals(expectedResult.getInserts(), result.getInserts());
+        Assert.assertEquals(expectedResult.getUpdates(), result.getUpdates());
+        Assert.assertEquals(expectedResult.getWarnings(), result.getWarnings());
+        Assert.assertEquals(expectedResult.getErrors(), result.getErrors());
     }
 }
