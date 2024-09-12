@@ -3,7 +3,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
-    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-4.3.1.xml">
+    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-3.1.0.xml">
 
   <changeSet author="jv.famy@codra.fr" id="1722000410026-001">
     <preConditions onFail="MARK_RAN">
@@ -52,11 +52,11 @@
   <!-- Update SYSTEM_VERSION -->
   <changeSet author="jv.famy@codra.fr" id="1722000410026-300" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
-      <where>LABEL='4.3.1'</where>
+      <where>LABEL='3.1.0'</where>
     </delete>
     <insert tableName="SYSTEM_VERSION">
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
-      <column name="LABEL">4.3.1</column>
+      <column name="LABEL">3.1.0</column>
       <column name="DESCRIPTION" >
         - Add table STRATEGY_PROPERTY
       </column>
