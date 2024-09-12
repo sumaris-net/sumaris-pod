@@ -410,7 +410,7 @@ public class TripServiceImpl implements TripService {
 
     @Override
     public void delete(int id) {
-        log.info("Delete Trip#{} {trash: {}}", id, enableTrash);
+        log.info("Delete {}#{} {trash: {}}", Trip.class.getSimpleName(), id, enableTrash);
 
         // Construct the event data
         // (should be done before deletion, to be able to get the VO)

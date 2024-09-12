@@ -27,10 +27,14 @@ import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.observedLocation.ObservedLocationRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
@@ -46,8 +50,10 @@ import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -58,16 +64,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ObservedLocationServiceImpl implements ObservedLocationService {
 
-
-	protected final ObservedLocationRepository observedLocationRepository;
-
-	protected final MeasurementDao measurementDao;
-
-	protected final ProgramService programService;
-
-	protected final LandingService landingService;
-
+	private final SumarisConfiguration configuration;
+	private final ObservedLocationRepository repository;
+	private final MeasurementDao measurementDao;
+	private final ProgramService programService;
+	private final LandingService landingService;
 	private final ApplicationEventPublisher publisher;
+	private boolean enableTrash = false;
+
+	@PostConstruct
+	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+	public void onConfigurationReady() {
+		this.enableTrash = configuration.enableEntityTrash();
+	}
 
 	@Override
 	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size) {
@@ -77,18 +86,18 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	@Override
 	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, int offset, int size, String sortAttribute,
 											SortDirection sortDirection, ObservedLocationFetchOptions fetchOptions) {
-		return observedLocationRepository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+		return repository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
 	}
 
 	@Override
 	public List<ObservedLocationVO> findAll(ObservedLocationFilterVO filter, Page page, ObservedLocationFetchOptions fetchOptions) {
-		return observedLocationRepository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), page, fetchOptions);
+		return repository.findAll(ObservedLocationFilterVO.nullToEmpty(filter), page, fetchOptions);
 	}
 
 	@Override
 	public Long countByFilter(ObservedLocationFilterVO filter) {
 		filter = ObservedLocationFilterVO.nullToEmpty(filter);
-		return observedLocationRepository.count(filter);
+		return repository.count(filter);
 	}
 
 	@Override
@@ -98,7 +107,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 	@Override
 	public ObservedLocationVO get(int id, ObservedLocationFetchOptions fetchOptions) {
-		return observedLocationRepository.get(id, fetchOptions);
+		return repository.get(id, fetchOptions);
 	}
 
 	@Override
@@ -114,7 +123,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		boolean isNew = source.getId() == null;
 
 		// Save
-		ObservedLocationVO result = observedLocationRepository.save(source);
+		ObservedLocationVO result = repository.save(source);
 
 		// Save measurements
 		if (result.getMeasurementValues() != null) {
@@ -157,10 +166,21 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 	@Override
 	public void delete(int id) {
 
+		log.info("Delete {}#{} {trash: {}}", ObservedLocation.class.getSimpleName(), id, enableTrash);
+
+		// Construct the event data
+		// (should be done before deletion, to be able to get the VO)
+		ObservedLocationVO eventData = enableTrash ?
+			get(id, ObservedLocationFetchOptions.FULL_GRAPH) :
+			null;
+
 		// Delete linked landings
 		landingService.deleteAllByObservedLocationId(id);
 
-		observedLocationRepository.deleteById(id);
+		repository.deleteById(id);
+
+		// Publish delete event
+		publisher.publishEvent(new EntityDeleteEvent(id, ObservedLocation.class.getSimpleName(), eventData));
 	}
 
 	@Override
@@ -178,7 +198,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 		DataControlOptions controlOptions = DataControlOptions.defaultIfEmpty(options);
 
-		observedLocation = observedLocationRepository.control(observedLocation);
+		observedLocation = repository.control(observedLocation);
 
 		if (controlOptions.getWithChildren()) {
 			// Get if observedLocation has a meta program
@@ -225,7 +245,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 		DataValidateOptions validateOptions = DataValidateOptions.defaultIfEmpty(options);
 
-		observedLocation = observedLocationRepository.validate(observedLocation);
+		observedLocation = repository.validate(observedLocation);
 
 		if (validateOptions.getWithChildren()) {
 			// Get if observedLocation has a meta program
@@ -272,7 +292,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 		DataValidateOptions validateOptions = DataValidateOptions.defaultIfEmpty(options);
 
-		observedLocation = observedLocationRepository.unValidate(observedLocation);
+		observedLocation = repository.unValidate(observedLocation);
 
 		if (validateOptions.getWithChildren()) {
 			String programLabel = observedLocation.getProgram().getLabel();
@@ -320,7 +340,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 		Preconditions.checkNotNull(observedLocation.getControlDate());
 		Preconditions.checkNotNull(observedLocation.getValidationDate());
 
-		observedLocation = observedLocationRepository.qualify(observedLocation);
+		observedLocation = repository.qualify(observedLocation);
 
 		// Publish event
 		publisher.publishEvent(new EntityUpdateEvent(observedLocation.getId(), ObservedLocation.class.getSimpleName(), observedLocation));
