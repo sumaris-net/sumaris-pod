@@ -25,6 +25,9 @@
         <select alias="YEAR" type="text">AC.YEAR</select>
         <select alias="VESSEL_IDENTIFIER" type="hidden">AC.VESSEL_FK</select>
 
+        <select alias="OBSERVER" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) SEPARATOR ' | ')</select>
+        <select alias="OBSERVER" dbms="pgsql" group="agg">STRING_AGG(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME), ' | ')</select>
+        <select alias="OBSERVER" dbms="oracle" group="agg">LISTAGG(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME), ' | ')</select>
 
         <select alias="VESSEL_NAME" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT REPLACE(VF.NAME, '|', 'I') ORDER BY VF.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_NAME" dbms="pgsql" group="agg">STRING_AGG(DISTINCT REPLACE(VF.NAME, '|', 'I'), ' | ' ORDER BY VF.START_DATE)</select>
@@ -89,9 +92,14 @@
         <select alias="VESSEL_REGISTRATION_CODE_FILTERED" type="hidden" group="vesselRegistrationCodeFilter,agg">MAX(CASE WHEN VRP.REGISTRATION_CODE IN (&amp;vesselRegistrationCodes) THEN 1 ELSE 0 END)</select>
         <select alias="VESSEL_REGISTRATION_CODE_FILTERED" type="hidden" group="!vesselRegistrationCodeFilter,agg">MIN(1)</select>
 
+        <select alias="OBSERVER_FILTERED" type="hidden" group="observersFilter,agg">MAX(CASE WHEN CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) IN (&amp;observers) THEN 1 ELSE 0 END)</select>
+        <select alias="OBSERVER_FILTERED" type="hidden" group="!observersFilter,agg">MIN(1)</select>
+
         <from alias="AC">ACTIVITY_CALENDAR</from>
 
         <from join="true">INNER JOIN PROGRAM P on P.ID = AC.PROGRAM_FK</from>
+        <from join="true">LEFT OUTER JOIN ACTIVITY_CALENDAR2PERSON AC2P ON AC2P.ACTIVITY_CALENDAR_FK = AC.ID</from>
+        <from join="true">LEFT OUTER JOIN PERSON OBSERVER ON OBSERVER.ID = AC2P.PERSON_FK</from>
         <from join="true">INNER JOIN VESSEL on AC.VESSEL_FK = VESSEL.ID</from>
         <from join="true" dbms="hsqldb,pgsql"><![CDATA[
             LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VESSEL.ID = VRP.VESSEL_FK

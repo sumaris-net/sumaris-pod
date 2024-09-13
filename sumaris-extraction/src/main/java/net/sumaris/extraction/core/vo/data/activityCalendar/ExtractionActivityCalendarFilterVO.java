@@ -51,6 +51,8 @@ public class ExtractionActivityCalendarFilterVO extends ActivityCalendarFilterVO
 
     List<String> vesselRegistrationCodes;
 
+    List<String> observers;
+
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();
@@ -61,6 +63,7 @@ public class ExtractionActivityCalendarFilterVO extends ActivityCalendarFilterVO
         if (! this.registrationLocationLabels.isEmpty()) sb.append(separator).append("Registration location (labels): ").append(Joiner.on(",").join(this.getRegistrationLocationLabels()));
         if (! this.basePortLocationLabels.isEmpty()) sb.append(separator).append("Base port location (labels): ").append(Joiner.on(",").join(this.getBasePortLocationLabels()));
         if (! this.vesselRegistrationCodes.isEmpty()) sb.append(separator).append("Base port location (labels): ").append(Joiner.on(",").join(this.getBasePortLocationLabels()));
+        if (! this.observers.isEmpty()) sb.append(separator).append("Observers: ").append(Joiner.on(",").join(this.getObservers()));
         return sb.toString();
     }
 }

@@ -35,6 +35,7 @@ public interface ActivityMonitoringSpecification {
     String COLUMN_REGISTRATION_LOCATION_LABEL = "registration_location_label";
     String COLUMN_BASE_PORT_LOCATION_LABEL = "base_port_location_label";
     String COLUMN_VESSEL_CODE = "vessel_registration_code";
+    String COLUMN_OBSERVER = "observer";
 
     String COLUMN_MONTH_PREFIX = "month";
 

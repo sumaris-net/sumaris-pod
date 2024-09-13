@@ -87,6 +87,14 @@ public interface ExtractionMonitoringDao<C extends ExtractionActivityMonitoringC
                             criterion.setValue(null);
                         }
                         break;
+                    case ActivityMonitoringSpecification.COLUMN_OBSERVER:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setObservers(ImmutableList.of(criterion.getValue()));
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
                 }
             }
 
@@ -104,6 +112,12 @@ public interface ExtractionMonitoringDao<C extends ExtractionActivityMonitoringC
                         break;
                     case ActivityMonitoringSpecification.COLUMN_VESSEL_CODE:
                         target.setVesselRegistrationCodes(Arrays.asList(criterion.getValues()));
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_OBSERVER:
+                        target.setObservers(Arrays.asList(criterion.getValues()));
                         // Clean the criterion (to avoid clean to exclude too many data)
                         criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
                         criterion.setValues(null);

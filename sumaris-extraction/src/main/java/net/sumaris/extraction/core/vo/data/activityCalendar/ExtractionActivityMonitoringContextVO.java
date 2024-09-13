@@ -79,4 +79,8 @@ public class ExtractionActivityMonitoringContextVO extends ExtractionContextVO {
     public List<String> getVesselRegistrationCodes() {
         return activityCalendarFilter != null && activityCalendarFilter.getVesselRegistrationCodes() != null ? activityCalendarFilter.getVesselRegistrationCodes() : null;
     }
+
+    public List<String> getObservers() {
+        return activityCalendarFilter != null && activityCalendarFilter.getObservers() != null ? activityCalendarFilter.getObservers() : null;
+    }
 }

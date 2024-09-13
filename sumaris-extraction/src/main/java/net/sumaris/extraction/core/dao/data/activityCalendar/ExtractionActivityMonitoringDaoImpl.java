@@ -322,6 +322,15 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
             if (enableFilter) xmlQuery.bind("vesselRegistrationCodes", Daos.getSqlInEscapedStrings(vesselRegistrationCodes));
         }
 
+        // Observers
+        {
+            List<String> observers = context.getObservers();
+            boolean enableFilter = CollectionUtils.isNotEmpty(observers);
+            xmlQuery.setGroup("observersFilter", enableFilter);
+            xmlQuery.setGroup("!observersFilter", !enableFilter);
+            if (enableFilter) xmlQuery.bind("observers", Daos.getSqlInEscapedStrings(observers));
+        }
+
         // Bind group by columns
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 

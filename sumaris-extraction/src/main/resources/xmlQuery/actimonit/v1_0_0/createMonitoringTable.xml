@@ -31,10 +31,12 @@
                 <where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
                 <where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
                 <where operator="AND">VESSEL_REGISTRATION_CODE_FILTERED=1</where>
+                <where operator="AND">OBSERVER_FILTERED=1</where>
             </subquery>
         </with>
         <select type="hidden" alias="ID">T.ID</select>
         <select type="text" alias="YEAR">T.YEAR</select>
+        <select type="text" alias="OBSERVER">T.OBSERVER</select>
         <select type="text" alias="VESSEL_REGISTRATION_CODE">T.VESSEL_REGISTRATION_CODE</select>
         <select type="text" alias="VESSEL_INT_REGISTRATION_CODE">T.VESSEL_INT_REGISTRATION_CODE</select>
         <select type="text" alias="VESSEL_NAME">T.VESSEL_NAME</select>
