@@ -29,6 +29,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -39,6 +40,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class JobFilterVO implements Serializable {
 
+    @Nonnull
     public static JobFilterVO nullToDefault(JobFilterVO filter) {
         return filter != null ? filter : JobFilterVO.builder().build();
     }

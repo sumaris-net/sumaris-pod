@@ -33,6 +33,7 @@ import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.apache.commons.collections4.MapUtils;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -267,4 +268,38 @@ public class StrategyServiceReadTest extends AbstractServiceTest{
             Assert.assertEquals(0, strategies.size());
         }
     }
+
+    @Test
+    public void loadWithProperties() {
+        int obsventesStrategyId = 100; // Obsventes metropole (should have at least one property)
+
+        // Null fetch options should load properties
+        {
+            StrategyVO strategy = service.get(obsventesStrategyId);
+            Assert.assertNotNull(strategy.getProperties());
+            Assert.assertTrue(MapUtils.isNotEmpty(strategy.getProperties()));
+        }
+
+        // Default fetch options should load properties
+        {
+            StrategyVO strategy = service.get(obsventesStrategyId, StrategyFetchOptions.DEFAULT);
+            Assert.assertNotNull(strategy.getProperties());
+            Assert.assertTrue(MapUtils.isNotEmpty(strategy.getProperties()));
+        }
+
+        // Minimal fetch options should NOT load properties
+        {
+            StrategyVO strategy = service.get(obsventesStrategyId, StrategyFetchOptions.MINIMAL);
+            Assert.assertNull(strategy.getProperties());
+        }
+
+        // Force no properties
+        {
+            StrategyVO strategy = service.get(obsventesStrategyId, StrategyFetchOptions.builder()
+                .withProperties(false)
+                .build());
+            Assert.assertNull(strategy.getProperties());
+        }
+    }
 }
+

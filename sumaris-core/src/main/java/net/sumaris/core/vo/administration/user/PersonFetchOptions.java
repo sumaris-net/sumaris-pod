@@ -24,7 +24,8 @@ package net.sumaris.core.vo.administration.user;
 
 import lombok.*;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
-import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
+
+import javax.annotation.Nonnull;
 
 @Data
 @Builder
@@ -36,6 +37,7 @@ public class PersonFetchOptions implements IFetchOptions {
 
     public static final PersonFetchOptions DEFAULT = PersonFetchOptions.builder().build();
 
+    @Nonnull
     public static PersonFetchOptions nullToDefault(PersonFetchOptions options) {
         return options != null ? options : DEFAULT;
     }
