@@ -697,7 +697,7 @@ public class StrategyRepositoryImpl
 
     @Override
     protected void toVO(Strategy source, StrategyVO target, StrategyFetchOptions fetchOptions, boolean copyIfNull) {
-        final StrategyFetchOptions opts = StrategyFetchOptions.nullToDefault(fetchOptions);
+        fetchOptions = StrategyFetchOptions.nullToDefault(fetchOptions);
 
         super.toVO(source, target, fetchOptions, copyIfNull);
 
@@ -705,7 +705,7 @@ public class StrategyRepositoryImpl
         target.setProgramId(source.getProgram().getId());
 
         // Gears
-        if (opts.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
+        if (fetchOptions.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
             List<ReferentialVO> gears = source.getGears()
                 .stream()
                 .map(referentialDao::toVO)
@@ -715,41 +715,42 @@ public class StrategyRepositoryImpl
         }
 
         // Taxon groups
-        if (opts.isWithTaxonGroups()) {
+        if (fetchOptions.isWithTaxonGroups()) {
             target.setTaxonGroups(getTaxonGroupStrategies(source));
         }
 
         // Taxon names
-        if (opts.isWithTaxonNames()) {
+        if (fetchOptions.isWithTaxonNames()) {
             target.setTaxonNames(getTaxonNameStrategies(source));
         }
 
         // Applied Strategies
-        if (opts.isWithAppliedStrategies()) {
+        if (fetchOptions.isWithAppliedStrategies()) {
             target.setAppliedStrategies(getAppliedStrategies(source));
         }
 
         // Strategy departments
-        if (opts.isWithDepartments()) {
+        if (fetchOptions.isWithDepartments()) {
             target.setDepartments(getDepartments(source));
         }
 
         // Pmfms
-        if (opts.isWithPmfms()) {
-            target.setPmfms(getPmfms(source, opts.getPmfmsFetchOptions()));
+        if (fetchOptions.isWithPmfms()) {
+            target.setPmfms(getPmfms(source, fetchOptions.getPmfmsFetchOptions()));
         }
 
         // Denormalized pmfms
-        if (opts.isWithDenormalizedPmfms()) {
-            target.setDenormalizedPmfms(getDenormalizedPmfms(source, opts.getPmfmsFetchOptions()));
+        if (fetchOptions.isWithDenormalizedPmfms()) {
+            target.setDenormalizedPmfms(getDenormalizedPmfms(source, fetchOptions.getPmfmsFetchOptions()));
         }
 
         // Properties
-        Map<String, String> properties = Maps.newHashMap();
-        Beans.getStream(source.getProperties())
+        if (fetchOptions.isWithProperties()) {
+            Map<String, String> properties = Maps.newHashMap();
+            Beans.getStream(source.getProperties())
                 .filter(prop -> Objects.nonNull(prop)
-                        && Objects.nonNull(prop.getLabel())
-                        && Objects.nonNull(prop.getName())
+                    && Objects.nonNull(prop.getLabel())
+                    && Objects.nonNull(prop.getName())
                 )
                 .forEach(prop -> {
                     if (properties.containsKey(prop.getLabel())) {
@@ -757,7 +758,8 @@ public class StrategyRepositoryImpl
                     }
                     properties.put(prop.getLabel(), prop.getName());
                 });
-        target.setProperties(properties);
+            target.setProperties(properties);
+        }
     }
 
     protected List<TaxonNameStrategyVO> getTaxonNameStrategies(Strategy source) {

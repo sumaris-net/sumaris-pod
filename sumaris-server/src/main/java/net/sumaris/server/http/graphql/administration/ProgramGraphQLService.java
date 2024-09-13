@@ -559,6 +559,9 @@ public class ProgramGraphQLService {
 
     protected ProgramFetchOptions getProgramFetchOptions(Set<String> fields) {
         return ProgramFetchOptions.builder()
+            .withProperties(
+                fields.contains(ProgramVO.Fields.PROPERTIES)
+            )
             .withLocations(
                 fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATIONS, ReferentialVO.Fields.ID))
                     || fields.contains(ProgramVO.Fields.LOCATION_IDS)
@@ -566,9 +569,6 @@ public class ProgramGraphQLService {
             .withLocationClassifications(
                 fields.contains(StringUtils.slashing(ProgramVO.Fields.LOCATION_CLASSIFICATIONS, ReferentialVO.Fields.ID))
                     || fields.contains(ProgramVO.Fields.LOCATION_CLASSIFICATION_IDS)
-            )
-            .withProperties(
-                fields.contains(ProgramVO.Fields.PROPERTIES)
             )
             .withDepartments(
                 fields.contains(StringUtils.slashing(ProgramVO.Fields.DEPARTMENTS, ReferentialVO.Fields.ID))
@@ -585,6 +585,9 @@ public class ProgramGraphQLService {
 
     protected StrategyFetchOptions getStrategyFetchOptions(Set<String> fields) {
         return StrategyFetchOptions.builder()
+            .withProperties(
+                fields.contains(StrategyVO.Fields.PROPERTIES)
+            )
             .withTaxonNames(
                 fields.contains(StringUtils.slashing(StrategyVO.Fields.TAXON_NAMES, TaxonNameStrategyVO.Fields.PRIORITY_LEVEL))
                     || fields.contains(StringUtils.slashing(StrategyVO.Fields.TAXON_NAMES, TaxonNameStrategyVO.Fields.TAXON_NAME, TaxonNameVO.Fields.REFERENCE_TAXON_ID))

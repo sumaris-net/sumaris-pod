@@ -41,13 +41,12 @@
       </column>
     </createTable>
   </changeSet>
-  <changeSet author="jv.famy@codra.fr" id="1556524707391-003" failOnError="false">
+  <changeSet author="jv.famy@codra.fr" id="1722000410026-003" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="strategy_property" constraintName="strategy_property_status_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" />
   </changeSet>
-  <changeSet author="jv.famy@codra.fr" id="1556524707391-004" failOnError="false">
+  <changeSet author="jv.famy@codra.fr" id="1722000410026-004" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="strategy_property" constraintName="strategy_property_strategy_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Strategy" />
   </changeSet>
-
 
   <!-- Update SYSTEM_VERSION -->
   <changeSet author="jv.famy@codra.fr" id="1722000410026-300" runOnChange="true">
