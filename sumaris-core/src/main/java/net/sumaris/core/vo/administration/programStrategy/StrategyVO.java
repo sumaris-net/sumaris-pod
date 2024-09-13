@@ -29,6 +29,7 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @FieldNameConstants
@@ -61,6 +62,8 @@ public class StrategyVO implements IReferentialVO<Integer>{
 
     private List<Integer> taxonNameIds;
     private List<TaxonNameStrategyVO> taxonNames;
+
+    private Map<String, String> properties;
 
 
     private String entityName = "Strategy";

@@ -27,6 +27,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.sumaris.core.vo.data.IDataFetchOptions;
 
+import javax.annotation.Nonnull;
+
 @Data
 @Builder
 @EqualsAndHashCode
@@ -34,6 +36,7 @@ public class VesselFetchOptions implements IDataFetchOptions {
 
     public static final VesselFetchOptions DEFAULT = VesselFetchOptions.builder().build();
 
+    @Nonnull
     public static VesselFetchOptions nullToDefault(VesselFetchOptions options) {
         return options != null ? options : DEFAULT;
     }

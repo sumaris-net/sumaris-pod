@@ -190,19 +190,17 @@ public class ProgramRepositoryImpl
 
     @Override
     public ProgramVO toVO(Program source, ProgramFetchOptions fetchOptions) {
-        if (fetchOptions == null)
-            fetchOptions = ProgramFetchOptions.builder()
-                .withProperties(true) // force with properties if fetch options not provided
-                .build();
         return super.toVO(source, fetchOptions);
     }
 
     @Override
     protected void toVO(Program source, ProgramVO target, ProgramFetchOptions fetchOptions, boolean copyIfNull) {
+        fetchOptions = ProgramFetchOptions.nullToDefault(fetchOptions);
+
         super.toVO(source, target, fetchOptions, copyIfNull);
 
         // properties
-        if (fetchOptions != null && fetchOptions.isWithProperties()) {
+        if (fetchOptions.isWithProperties()) {
             Map<String, String> properties = Maps.newHashMap();
             Beans.getStream(source.getProperties())
                 .filter(prop -> Objects.nonNull(prop)
@@ -223,7 +221,7 @@ public class ProgramRepositoryImpl
         target.setTaxonGroupTypeId(source.getTaxonGroupType() != null ? source.getTaxonGroupType().getId() : null);
 
         // locations
-        if (fetchOptions != null && fetchOptions.isWithLocations()) {
+        if (fetchOptions.isWithLocations()) {
             target.setLocationClassifications(
                 Beans.getStream(source.getLocationClassifications())
                     .map(referentialDao::toVO)
@@ -237,14 +235,14 @@ public class ProgramRepositoryImpl
             target.setLocationIds(Beans.collectIds(source.getLocations()));
         }
         // Location classifications (only IDs)
-        else if (fetchOptions != null && fetchOptions.isWithLocationClassifications()) {
+        else if (fetchOptions.isWithLocationClassifications()) {
             if (copyIfNull || source.getLocationClassifications() != null) {
                 target.setLocationClassificationIds(Beans.collectIds(source.getLocationClassifications()));
             }
         }
 
         // strategies
-        if (fetchOptions != null && fetchOptions.isWithStrategies()) {
+        if (fetchOptions.isWithStrategies()) {
             target.setStrategies(
                 Beans.getStream(source.getStrategies())
                     .map(strategyRepository::toVO)
@@ -252,17 +250,17 @@ public class ProgramRepositoryImpl
         }
 
         // Departments
-        if (fetchOptions != null && fetchOptions.isWithDepartments()) {
+        if (fetchOptions.isWithDepartments()) {
             target.setDepartments(getDepartments(source));
         }
 
         // Persons
-        if (fetchOptions != null && fetchOptions.isWithPersons()) {
+        if (fetchOptions.isWithPersons()) {
             target.setPersons(getPersons(source));
         }
 
         // AcquisitionLevels
-        if (fetchOptions != null && fetchOptions.isWithAcquisitionLevels()) {
+        if (fetchOptions.isWithAcquisitionLevels()) {
             if (target.getId() != null) {
                 target.setAcquisitionLevels(getAcquisitionLevelsById(target.getId()));
             } else {

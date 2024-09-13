@@ -27,6 +27,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
+import javax.annotation.Nonnull;
+
 @Data
 @Builder
 @EqualsAndHashCode
@@ -34,6 +36,7 @@ public class PmfmStrategyFetchOptions implements IFetchOptions {
 
     public static PmfmStrategyFetchOptions DEFAULT = PmfmStrategyFetchOptions.builder().build();
 
+    @Nonnull
     public static PmfmStrategyFetchOptions nullToDefault(PmfmStrategyFetchOptions options) {
         if (options != null) return options;
         return DEFAULT;
