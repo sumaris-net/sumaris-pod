@@ -22,39 +22,48 @@
 
 <queries name="createMonitoringTable">
 
-    <query type="create" temp="false" table="&amp;resultMonitoringTableName" option="distinct">
-        <select type="number" alias="ACTIVITY_CALENDAR_ID">RAW.ACTIVITY_CALENDAR_ID</select>
-        <select type="text" alias="VESSEL_NAMES">RAW.VESSEL_FEATURES_NAME</select>
-        <select type="text" alias="VESSEL_LENGTH">RAW.VESSEL_FEATURES_LENGTH</select>
-        <select type="text" alias="REGISTRATION_LOCATION_LABELS">RAW.REGISTRATION_LOCATION_LABEL</select>
-        <select type="text" alias="VESSEL_REGISTRATION_CODES">RAW.VESSEL_REGISTRATION_PERIOD_REGISTRATION_CODE</select>
-        <select type="text" alias="SURVEY_QUALIFICATION">RAW.SURVEY_QUALIFICATION</select>
-        <select type="text" alias="RECORDER_PERSON">RAW.RECORDER_PERSON</select>
-        <select type="number" alias="EMPTY_MOUNT_COUNT">
-            <![CDATA[
-                (
-                    SELECT (12 - COUNT(VUF_MONTH))
-                    FROM &monitoringTableName
-                    WHERE ACTIVITY_CALENDAR_ID = RAW.ACTIVITY_CALENDAR_ID
-                    GROUP BY ACTIVITY_CALENDAR_ID
-                )
-            ]]>
+    <query type="create" temp="false" table="&amp;monitoringTableName" option="distinct">
+        <with alias="TMP_ACTIVITY_CALENDAR">
+            <subquery option="distinct">
+                <select alias="ID" type="number">ID</select>
+                <from>&amp;rawMonitoringTableName</from>
+                <where>1=1</where>
+                <where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
+                <where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
+                <where operator="AND">VESSEL_REGISTRATION_CODE_FILTERED=1</where>
+            </subquery>
+        </with>
+        <select type="hidden" alias="ID">T.ID</select>
+        <select type="text" alias="YEAR">T.YEAR</select>
+        <select type="text" alias="VESSEL_REGISTRATION_CODE">T.VESSEL_REGISTRATION_CODE</select>
+        <select type="text" alias="VESSEL_INT_REGISTRATION_CODE">T.VESSEL_INT_REGISTRATION_CODE</select>
+        <select type="text" alias="VESSEL_NAME">T.VESSEL_NAME</select>
+        <select type="text" alias="VESSEL_LENGTH">T.VESSEL_LENGTH</select>
+        <select type="text" alias="REGISTRATION_LOCATION_LABEL">T.REGISTRATION_LOCATION_LABEL</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION">T.DIRECT_SURVEY_INVESTIGATION</select>
+        <select alias="ECONOMIC_SURVEY">T.ECONOMIC_SURVEY</select>
+        <select type="text" alias="SURVEY_QUALIFICATION">T.SURVEY_QUALIFICATION</select>
+        <select type="text" alias="RECORDER_PERSON">T.RECORDER_PERSON</select>
+        <select type="text" alias="RECORDER_DEPARTMENT">T.RECORDER_DEPARTMENT</select>
+        <select type="number" alias="EMPTY_MONTH_COUNT" group="agg">(12 - COUNT(DISTINCT T.MONTH))</select>
+        <select type="number" alias="ERROR_MONTH_COUNT" group="agg">COUNT(T.ERROR)</select>
+        <select type="text" alias="QUALITY_STATUS">T.QUALITY_STATUS</select>
+        <select type="number" alias="STATUS" group="agg">
+            TRIM(CASE COUNT(T.MONTH)
+                    WHEN 0 THEN 'EMPTY'
+                    WHEN 12 THEN
+                        (CASE COUNT(T.ERROR)
+                            WHEN 0 THEN 'COMPLETE'
+                            ELSE 'INCOMPLETE'
+                        END)
+                    ELSE 'INCOMPLETE'
+                END)
         </select>
-        <select type="number" alias="STATUS">
-            <![CDATA[
-                (
-                    SELECT
-                        CASE COUNT(VUF_MONTH) WHEN 0 THEN 'EMPTY'
-                        WHEN 12 THEN 'COMPLETE'
-                        ELSE 'INCOMPLETE'
-                        END
-                    FROM &monitoringTableName
-                    WHERE ACTIVITY_CALENDAR_ID = RAW.ACTIVITY_CALENDAR_ID
-                    GROUP BY ACTIVITY_CALENDAR_ID
-                )
-            ]]>
-        </select>
-        <from alias="RAW">&amp;monitoringTableName</from>
+
+        <from alias="AC">TMP_ACTIVITY_CALENDAR</from>
+        <from join="true">INNER JOIN &amp;rawMonitoringTableName T on T.ID = AC.ID</from>
+
+        <groupby>&amp;groupByColumns</groupby>
     </query>
 
 </queries>

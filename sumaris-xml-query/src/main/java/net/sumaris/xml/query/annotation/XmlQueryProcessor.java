@@ -27,7 +27,6 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.annotation.StringMemberValue;
 import net.sumaris.core.dao.technical.DatabaseType;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.xml.query.XMLQuery;
 import net.sumaris.xml.query.XMLQueryImpl;
 import org.springframework.stereotype.Component;
@@ -52,6 +51,10 @@ import java.util.Set;
 @SupportedAnnotationTypes("net.sumaris.xml.query.annotation.XmlQuery")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class XmlQueryProcessor extends AbstractProcessor {
+
+    public XmlQueryProcessor() {
+        super();
+    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

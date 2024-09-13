@@ -1,4 +1,4 @@
-package net.sumaris.extraction.core.specification.actimonit;
+package net.sumaris.extraction.core.specification.data.activityCalendar;
 
 /*
  * #%L
@@ -22,24 +22,27 @@ package net.sumaris.extraction.core.specification.actimonit;
  * #L%
  */
 
-public interface MonitoringSpecification {
+public interface ActivityMonitoringSpecification {
     String FORMAT = "ACTIMONIT";
     String VERSION = "1.0.0";
 
+    String AM_RAW_SHEET_NAME = "AM_RAW";
     String AM_SHEET_NAME = "AM";
-    String RESULT_AM_SHEET_NAME = "RESULT_AM";
 
-    String COLUMN_PROJECT = "projet";
+    String COLUMN_PROJECT = "project";
 
     String COLUMN_YEAR = "year";
-    String COLUMN_PROGRAM = "PROGRAM";
-    String COLUMN_REGISTRATION_LOCATION = "REGISTRATION_LOCATION";
-    String COLUMN_LOCATION = "LOCATION";
+    String COLUMN_REGISTRATION_LOCATION_LABEL = "registration_location_label";
+    String COLUMN_BASE_PORT_LOCATION_LABEL = "base_port_location_label";
+    String COLUMN_VESSEL_CODE = "vessel_registration_code";
+
+    String COLUMN_MONTH_PREFIX = "month";
 
     String[] SHEET_NAMES = {AM_SHEET_NAME};
 
-    // Time columns
-    String COLUMN_AREA = "area";
-    String COLUMN_MONTH = "month";
-
+    // For DEBUG only
+    String[] SHEET_NAMES_DEBUG = {
+            AM_RAW_SHEET_NAME,
+            AM_SHEET_NAME
+    };
 }

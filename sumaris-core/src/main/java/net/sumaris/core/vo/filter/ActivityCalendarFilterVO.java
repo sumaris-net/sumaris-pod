@@ -42,7 +42,6 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     public static ActivityCalendarFilterVO nullToEmpty(@Nullable ActivityCalendarFilterVO filter) {
         return filter == null ? new ActivityCalendarFilterVO() : filter;
     }
-    private boolean preview;
 
     private Date startDate;
     private Date endDate;
