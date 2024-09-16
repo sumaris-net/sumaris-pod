@@ -118,7 +118,7 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyProperty.class, mappedBy = StrategyProperty.Fields.STRATEGY)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyProperty.class, mappedBy = StrategyProperty.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<StrategyProperty> properties = new ArrayList<>();
 
