@@ -1278,12 +1278,16 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     protected <T extends IMeasurementEntity> Map<Integer, String> toMeasurementsMap(Stream<T> sources) {
         return sources
-            .filter(m -> m.getPmfm() != null && m.getPmfm().getId() != null)
-            .collect(Collectors.<T, Integer, String>toMap(
-                m -> m.getPmfm().getId(),
-                this::entityToValueAsStringOrNull,
-                this::concatMeasurementMapValues
-            ));
+                .filter(m -> m != null && m.getPmfm() != null && m.getPmfm().getId() != null)
+                .map(m -> new AbstractMap.SimpleImmutableEntry<>(
+                    m.getPmfm().getId(), this.entityToValueAsStringOrNull(m)))
+                // Exclude null value (see issue sumaris-app#689)
+                .filter(e -> e.getValue() != null)
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    this::concatMeasurementMapValues
+                ));
     }
 
     protected String concatMeasurementMapValues(@Nullable String v1, @Nullable String v2) {
@@ -1331,7 +1335,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
     protected Object getEntityValue(IMeasurementEntity source) {
 
-        // Get PMFM
+        // Get PMFM and type
         PmfmVO pmfm = getPmfm(source.getPmfm().getId());
         PmfmValueType type = PmfmValueType.fromString(pmfm.getType());
 
