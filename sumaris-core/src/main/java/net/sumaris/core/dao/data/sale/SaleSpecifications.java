@@ -102,7 +102,7 @@ public interface SaleSpecifications extends RootDataSpecifications<Sale> {
             );
 
             return cb.and(
-                    // Operation with a catch batch
+                // Get the catch batch (no parent)
                     cb.isNull(catchBatch.get(Batch.Fields.PARENT)),
                     // And without an update to date denormalization
                     cb.not(cb.exists(subQuery))
