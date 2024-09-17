@@ -51,6 +51,7 @@ import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.administration.DataAccessControlService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -393,7 +394,12 @@ public class VesselGraphQLService {
             // (an admin can access to any other vessel types)
             if (ArrayUtils.isEmpty(userVesselTypesIds) || !isAdmin) {
                 Integer[] intersection = ArrayUtils.intersectionSkipEmpty(vesselTypeIds, userVesselTypesIds);
-                filter.setVesselTypeIds(intersection);
+                if (intersection != null && ArrayUtils.isEmpty(intersection)) {
+                    filter.setVesselTypeIds(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+                }
+                else {
+                    filter.setVesselTypeIds(intersection);
+                }
                 filter.setVesselTypeId(null);
             }
         }
