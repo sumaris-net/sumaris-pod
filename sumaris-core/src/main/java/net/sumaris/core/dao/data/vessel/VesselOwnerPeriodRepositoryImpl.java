@@ -28,16 +28,22 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselOwner;
+import net.sumaris.core.model.data.VesselOwnerPeriod;
+import net.sumaris.core.model.data.VesselOwnerPeriodId;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
-import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -63,7 +69,7 @@ public class VesselOwnerPeriodRepositoryImpl
     }
 
     @Override
-    public Specification<VesselOwnerPeriod> toSpecification(VesselOwnerFilterVO filter) {
+    public Specification<VesselOwnerPeriod> toSpecification(VesselFilterVO filter) {
         return BindableSpecification.where(vesselId(filter.getVesselId()))
                 .and(vesselOwnerId(filter.getVesselOwnerId()))
                 .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
@@ -73,7 +79,7 @@ public class VesselOwnerPeriodRepositoryImpl
     }
 
     @Override
-    public List<VesselOwnerPeriodVO> findAll(VesselOwnerFilterVO filter, Page page) {
+    public List<VesselOwnerPeriodVO> findAll(VesselFilterVO filter, Page page) {
 
         TypedQuery<VesselOwnerPeriod> query = getQuery(toSpecification(filter), page, VesselOwnerPeriod.class);
 
@@ -82,7 +88,7 @@ public class VesselOwnerPeriodRepositoryImpl
         }
     }
 
-    public long count(VesselOwnerFilterVO filter) {
+    public long count(VesselFilterVO filter) {
         return count(toSpecification(filter));
     }
 

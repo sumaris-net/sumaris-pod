@@ -66,10 +66,15 @@ public class VesselFilterVO implements IRootDataFilter {
     private Date endDate;
 
     private Integer registrationLocationId;
+    private Integer[] registrationLocationIds;
+
     private Integer basePortLocationId;
+    private Integer[] basePortLocationIds;
 
     @Builder.Default
     private Boolean onlyWithRegistration = false;
+
+    private Integer vesselOwnerId;
 
     // Quality
     private Integer[] qualityFlagIds; // not used

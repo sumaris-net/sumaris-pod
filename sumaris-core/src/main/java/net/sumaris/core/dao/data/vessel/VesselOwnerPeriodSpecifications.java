@@ -27,13 +27,14 @@ import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselOwner;
+import net.sumaris.core.model.data.VesselOwnerPeriod;
+import net.sumaris.core.model.data.VesselOwnerPeriodId;
 import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
@@ -48,23 +49,23 @@ public interface VesselOwnerPeriodSpecifications {
     default Specification<VesselOwnerPeriod> hasProgramLabel(String programLabel) {
         if (StringUtils.isBlank(programLabel)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-                    ParameterExpression<String> param = cb.parameter(String.class, VesselOwnerFilterVO.Fields.PROGRAM_LABEL);
+                    ParameterExpression<String> param = cb.parameter(String.class, VesselFilterVO.Fields.PROGRAM_LABEL);
                     return cb.equal(
                             Daos.composePath(root, StringUtils.doting(VesselOwnerPeriod.Fields.VESSEL_OWNER, VesselOwner.Fields.PROGRAM, Program.Fields.LABEL)),
                             param);
                 })
-                .addBind(VesselOwnerFilterVO.Fields.PROGRAM_LABEL, programLabel);
+                .addBind(VesselFilterVO.Fields.PROGRAM_LABEL, programLabel);
     }
 
     default Specification<VesselOwnerPeriod> hasProgramIds(Integer[] programIds) {
         if (ArrayUtils.isEmpty(programIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-                    ParameterExpression<Collection> param = cb.parameter(Collection.class, VesselOwnerFilterVO.Fields.PROGRAM_IDS);
+                    ParameterExpression<Collection> param = cb.parameter(Collection.class, VesselFilterVO.Fields.PROGRAM_IDS);
                     return cb.in(
                             Daos.composePath(root, StringUtils.doting(VesselOwnerPeriod.Fields.VESSEL_OWNER, VesselOwner.Fields.PROGRAM, Program.Fields.ID)))
                             .value(param);
                 })
-                .addBind(VesselOwnerFilterVO.Fields.PROGRAM_IDS, Arrays.asList(programIds));
+                .addBind(VesselFilterVO.Fields.PROGRAM_IDS, Arrays.asList(programIds));
     }
 
     default Specification<VesselOwnerPeriod> vesselId(Integer vesselId) {
@@ -120,11 +121,11 @@ public interface VesselOwnerPeriodSpecifications {
 
     Optional<VesselOwnerPeriodVO> findLastByVesselId(int vesselId);
 
-    Specification<VesselOwnerPeriod> toSpecification(VesselOwnerFilterVO filter);
+    Specification<VesselOwnerPeriod> toSpecification(VesselFilterVO filter);
 
     Optional<VesselOwnerPeriod> findByVesselIdAndDate(int vesselId, Date date);
 
-    List<VesselOwnerPeriodVO> findAll(VesselOwnerFilterVO filter, Page page);
+    List<VesselOwnerPeriodVO> findAll(VesselFilterVO filter, Page page);
 
     DatabaseType getDatabaseType();
 }

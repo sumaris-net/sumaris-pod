@@ -83,7 +83,7 @@ public class DatabaseFixtures {
 		return 6;
 	}
 
-	public String getVesselRegistrationCode(int index) {
+	public String getVesselIntRegistrationCode(int index) {
 		Preconditions.checkArgument(index >= 0);
 		switch (index) {
 			case 0:

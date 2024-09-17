@@ -23,28 +23,15 @@ package net.sumaris.core.dao.data.vessel;
  */
 
 import net.sumaris.core.dao.referential.ISearchTextSpecifications;
-import net.sumaris.core.dao.referential.ReferentialSpecifications;
-import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselOwner;
-import net.sumaris.core.model.data.VesselOwnerPeriod;
-import net.sumaris.core.model.data.VesselOwnerPeriodId;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
 import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
-import net.sumaris.core.vo.filter.PersonFilterVO;
-import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.ParameterExpression;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 public interface VesselOwnerSpecifications extends ISearchTextSpecifications<Integer, VesselOwner> {
 
@@ -55,12 +42,10 @@ public interface VesselOwnerSpecifications extends ISearchTextSpecifications<Int
             VesselOwner.Fields.LAST_NAME
     };
 
-    default Specification<VesselOwner> searchText(VesselOwnerFilterVO filter) {
+    default Specification<VesselOwner> searchText(VesselFilterVO filter) {
         if (StringUtils.isBlank(filter.getSearchText())) return null;
 
-        String[] searchAttributes = StringUtils.isNotBlank(filter.getSearchAttribute())
-                ? ArrayUtils.toArray(filter.getSearchAttribute())
-                : filter.getSearchAttributes();
+        String[] searchAttributes = filter.getSearchAttributes();
 
         // No search attribute(s) define: use defaults
         if (ArrayUtils.isEmpty(searchAttributes)) {
@@ -70,8 +55,8 @@ public interface VesselOwnerSpecifications extends ISearchTextSpecifications<Int
         return searchText(searchAttributes, filter.getSearchText(), true);
     }
 
-    Specification<VesselOwner> toSpecification(VesselOwnerFilterVO filter);
+    Specification<VesselOwner> toSpecification(VesselFilterVO filter);
 
-    List<VesselOwnerVO> findAll(VesselOwnerFilterVO filter, Page page);
+    List<VesselOwnerVO> findAll(VesselFilterVO filter, Page page);
 
 }
