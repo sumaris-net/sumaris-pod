@@ -58,7 +58,6 @@ public interface LandingSpecifications extends RootDataSpecifications<Landing>,
     String STRATEGY_LABELS = "strategyLabels";
     String SAMPLE_LABELS = "sampleLabels";
     String SAMPLE_TAG_IDS = "sampleTagIds";
-    String SALE_ID_PARAM = "saleId";
 
     default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
