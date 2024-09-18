@@ -22,6 +22,7 @@
 
 package net.sumaris.server.http.graphql.data;
 
+import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
@@ -217,12 +218,11 @@ public class VesselGraphQLService {
     @Transactional(readOnly = true)
     @IsUser
     public Long countFeaturesByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                   @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter) {
+                                                   @GraphQLArgument(name = "filter") VesselFilterVO filter) {
         vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
         Preconditions.checkNotNull(vesselId);
         return vesselService.countFeaturesByVesselId(vesselId);
     }
-
 
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
     @Transactional(readOnly = true)
