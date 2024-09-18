@@ -513,7 +513,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         }
 
         // Add as a raw table (to be able to clean it later)
-        if (this.production || this.enableCleanup) {
+        if (count == 0 || this.production || this.enableCleanup) {
             context.addRawTableName(tableName);
         }
         // Keep raw table (for DEBUG only)

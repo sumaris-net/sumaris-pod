@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<query type="select">
+    <select type="text" alias="%suffix%" group="agg">
+        <![CDATA[
+        MIN(TRIM(CASE T.MONTH WHEN &month%suffix% THEN
+                (CASE T.IS_ACTIVE
+                  WHEN 0 THEN 'INA'
+                  WHEN 2 THEN 'INE'
+                  ELSE TO_CHAR(T.METIER_COUNT)
+                END)
+            ELSE NULL
+            END)
+        )
+    ]]>
+    </select>
+    <select type="text" alias="%suffix%_ERROR" group="agg">
+        <![CDATA[
+        MIN(TRIM(CASE T.MONTH WHEN &month%suffix% THEN T.ERROR
+            ELSE NULL
+            END)
+        )
+    ]]>
+    </select>
+</query>
