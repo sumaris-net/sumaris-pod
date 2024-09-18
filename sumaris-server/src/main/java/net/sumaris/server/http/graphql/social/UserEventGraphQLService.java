@@ -217,12 +217,14 @@ public class UserEventGraphQLService {
         }
 
         // Is user is NOT an admin
-        if (!authService.isAdmin() && event.getType() != EventTypeEnum.COMMENT) {
+        if (!authService.isAdmin()) {
             // Check issuer = himself
             Preconditions.checkArgument(Objects.equals(user.getPubkey(), event.getIssuer()));
 
             // Check event type = DEBUG_DATA or INBOX_MESSAGE
-            Preconditions.checkArgument (type == EventTypeEnum.DEBUG_DATA || type == EventTypeEnum.INBOX_MESSAGE,
+            Preconditions.checkArgument (type == EventTypeEnum.DEBUG_DATA
+                    || type == EventTypeEnum.INBOX_MESSAGE
+                    || type == EventTypeEnum.COMMENT,
                 "Invalid user event type: " + type.name());
         }
 
