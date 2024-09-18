@@ -22,8 +22,6 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.NonNull;
-
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -33,6 +31,7 @@ public enum EventTypeEnum implements Serializable {
     INBOX_MESSAGE,
     EMAIL,
     FEED,
+    COMMENT,
     JOB;
 
     public static EventTypeEnum valueOfOrNull(final String level) {
