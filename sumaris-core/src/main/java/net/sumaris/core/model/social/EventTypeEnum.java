@@ -22,8 +22,6 @@ package net.sumaris.core.model.social;
  * #L%
  */
 
-import lombok.NonNull;
-
 import java.io.Serializable;
 import java.util.Arrays;
 
