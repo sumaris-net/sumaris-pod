@@ -42,6 +42,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
 import net.sumaris.core.vo.filter.IRootDataFilter;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
@@ -212,6 +213,17 @@ public class VesselGraphQLService {
     }
 
 
+    @GraphQLQuery(name = "vesselFeaturesHistoryCount", description = "Get vessel features history count")
+    @Transactional(readOnly = true)
+    @IsUser
+    public Long countFeaturesByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                   @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter) {
+        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
+        Preconditions.checkNotNull(vesselId);
+        return vesselService.countFeaturesByVesselId(vesselId);
+    }
+
+
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
     @Transactional(readOnly = true)
     @IsUser
@@ -277,6 +289,13 @@ public class VesselGraphQLService {
         }
 
         return vesselService.countOwnerPeriodsByFilter(filter);
+    }
+
+    @GraphQLQuery(name = "vesselOwner", description = "Get a vesselOwner")
+    @Transactional(readOnly = true)
+    @IsUser
+    public VesselOwnerVO getVesselOwnerById(@GraphQLArgument(name = "id") Integer id) {
+        return vesselService.getVesselOwner(id);
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")

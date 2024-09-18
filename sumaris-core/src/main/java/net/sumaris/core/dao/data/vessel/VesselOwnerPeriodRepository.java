@@ -25,6 +25,7 @@ package net.sumaris.core.dao.data.vessel;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.VesselOwnerPeriod;
 import net.sumaris.core.model.data.VesselOwnerPeriodId;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 

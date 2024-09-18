@@ -27,10 +27,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
-import net.sumaris.core.dao.data.vessel.VesselFeaturesRepository;
-import net.sumaris.core.dao.data.vessel.VesselOwnerPeriodRepository;
-import net.sumaris.core.dao.data.vessel.VesselRegistrationPeriodRepository;
-import net.sumaris.core.dao.data.vessel.VesselRepository;
+import net.sumaris.core.dao.data.vessel.*;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.VesselPhysicalMeasurement;
@@ -39,6 +36,7 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +58,8 @@ public class VesselServiceImpl implements VesselService {
 	protected final VesselFeaturesRepository vesselFeaturesRepository;
 
 	protected final VesselRegistrationPeriodRepository vesselRegistrationPeriodRepository;
+
+	protected final VesselOwnerRepository vesselOwnerRepository;
 
 	protected final VesselOwnerPeriodRepository vesselOwnerPeriodRepository;
 
@@ -146,6 +146,10 @@ public class VesselServiceImpl implements VesselService {
 	@Override
 	public List<VesselOwnerPeriodVO> findOwnerPeriodsByFilter(VesselFilterVO filter, Page page) {
 		return vesselOwnerPeriodRepository.findAll(filter, page);
+	}
+
+	public VesselOwnerVO getVesselOwner(int id) {
+		return vesselOwnerRepository.get(id);
 	}
 
 	@Override

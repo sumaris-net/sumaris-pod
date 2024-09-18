@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.stream.Stream;
@@ -60,6 +61,14 @@ public class VesselOwnerRepositoryImpl
         this.programRepository = programRepository;
     }
 
+    public VesselOwnerVO get(int id) {
+        return toVO(this.getById(id));
+    }
+
+    public VesselOwner getById(int id) {
+        return super.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Unable to load entity " + getDomainClass().getName() + " with identifier '" + id + "': not found in database."));
+    }
 
     @Override
     public Specification<VesselOwner> toSpecification(VesselFilterVO filter) {
