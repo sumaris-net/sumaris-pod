@@ -75,6 +75,7 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
         }
     }
 
+    @Override
     @Test
     public void executeStrat() throws IOException {
 

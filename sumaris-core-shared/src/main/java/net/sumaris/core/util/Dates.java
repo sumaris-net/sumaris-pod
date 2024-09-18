@@ -25,7 +25,6 @@ package net.sumaris.core.util;
  */
 
 import com.google.common.base.Preconditions;
-import com.sun.istack.NotNull;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
@@ -575,7 +574,8 @@ public class Dates extends org.apache.commons.lang3.time.DateUtils{
     /**
      * Allow to compare dates, ignoring nanoseconds.
      * This allow to compare a java.util.Date with a java.sql.Timestamp
-     * @param d
+     * @param d1
+     * @param d2
      * @return
      */
     public static boolean equals(Date d1, Date d2) {

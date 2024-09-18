@@ -36,6 +36,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -132,6 +133,12 @@ public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
         super.executeAggRjbTrip();
     }
 
+    @Override
+    @Test
+    public void executeActivityMonitoringTest() throws IOException, ParseException {
+        super.executeActivityMonitoringTest();
+    }
+
     @Override @Test
     public void executeAndReadAggSurvivalTest() {
         super.executeAndReadAggSurvivalTest();
@@ -157,6 +164,7 @@ public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
         super.updateAggRdbProduct();
     }
 
+    @Override
     @Test
     public void executeStrat() throws IOException {
         ExtractionStrategyFilterVO filter = new ExtractionStrategyFilterVO();

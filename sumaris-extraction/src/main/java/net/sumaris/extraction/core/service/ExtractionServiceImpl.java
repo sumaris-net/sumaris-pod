@@ -80,7 +80,6 @@ import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.Predicate;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -163,7 +162,9 @@ public class ExtractionServiceImpl implements ExtractionService {
             this.enableTechnicalTablesUpdate = configuration.enableTechnicalTablesUpdate();
 
             // Init rectangles
-            if (this.enableTechnicalTablesUpdate) initRectangleLocations();
+            if (this.enableTechnicalTablesUpdate) {
+                initRectangleLocations();
+            }
         }
     }
 
@@ -372,7 +373,9 @@ public class ExtractionServiceImpl implements ExtractionService {
         Preconditions.checkNotNull(context);
         Preconditions.checkNotNull(context.getFormat());
 
-        if (CollectionUtils.isEmpty(context.getTableNames())) return null;
+        if (CollectionUtils.isEmpty(context.getTableNames())) {
+            return null;
+        }
 
         // Dump table to CSV files
         log.debug(String.format("Extraction #%s > Creating CSV files...", context.getId()));
@@ -504,7 +507,9 @@ public class ExtractionServiceImpl implements ExtractionService {
         @CacheEvict(cacheNames = ExtractionCacheConfiguration.Names.PRODUCT_BY_ID, allEntries = true)
     })
     protected void clearCache() {
-        if (this.cacheManager.isEmpty()) return; // Skip
+        if (this.cacheManager.isEmpty()) {
+            return; // Skip
+        }
 
         log.debug("Cleaning {Extraction} caches...");
 
@@ -568,7 +573,9 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public List<Map<String, String>> toListOfMap(ExtractionResultVO source) {
-        if (source == null || CollectionUtils.isNotEmpty(source.getColumns())) return null;
+        if (source == null || CollectionUtils.isNotEmpty(source.getColumns())) {
+            return null;
+        }
 
         String[] columnNames = source.getColumns().stream()
             .map(ExtractionTableColumnVO::getLabel)
@@ -586,7 +593,9 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public ObjectNode toJsonMap(Map<String, ExtractionResultVO> source) {
-        if (source == null) return null;
+        if (source == null) {
+            return null;
+        }
         final ObjectNode node = objectMapper.createObjectNode();
         source.entrySet().forEach(e -> {
             ArrayNode array = node.putArray(e.getKey());
@@ -766,7 +775,7 @@ public class ExtractionServiceImpl implements ExtractionService {
             // Result has not the expected sheetname: skip
             if (filter.getSheetName() != null && !context.hasSheet(filter.getSheetName())) {
                 log.debug("No sheetName to read, in extraction #{}. Skipping", context.getId());
-                return (R)createEmptyResult();
+                return (R) createEmptyResult();
             }
 
             // Create a read filter, with sheetname only, because filter already applied by execute()
@@ -921,7 +930,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected void clean(ExtractionContextVO context) {
-        if (!enableCleanup) return; // Skip (for DEV only)
+        if (!enableCleanup) {
+            return; // Skip (for DEV only)
+        }
 
         try {
             if (context != null) {
@@ -938,7 +949,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected void asyncClean(ExtractionContextVO context) {
-        if (!enableCleanup) return; // Skip (for DEV only)
+        if (!enableCleanup) {
+            return; // Skip (for DEV only)
+        }
 
         if (taskExecutor.isPresent()) {
             Schedulers.from(taskExecutor.get())
@@ -950,7 +963,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected ExtractionProductVO toProductVO(ExtractionContextVO source) {
-        if (source == null) return null;
+        if (source == null) {
+            return null;
+        }
         ExtractionProductVO target = new ExtractionProductVO();
         toProductVO(source, target);
 
@@ -1064,7 +1079,9 @@ public class ExtractionServiceImpl implements ExtractionService {
 
     @Override
     public ExtractionFilterVO parseFilter(String jsonFilter) {
-        if (StringUtils.isBlank(jsonFilter)) return null;
+        if (StringUtils.isBlank(jsonFilter)) {
+            return null;
+        }
 
         try {
             return objectMapper.readValue(jsonFilter, ExtractionFilterVO.class);
@@ -1075,7 +1092,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected String writeFilterAsString(ExtractionFilterVO filter) {
-        if (filter == null) return null;
+        if (filter == null) {
+            return null;
+        }
         try {
             return objectMapper.writeValueAsString(filter);
         }
@@ -1085,7 +1104,9 @@ public class ExtractionServiceImpl implements ExtractionService {
     }
 
     protected Stream<ObjectNode> toJsonStream(ExtractionResultVO source) {
-        if (source == null) return Stream.empty();
+        if (source == null) {
+            return Stream.empty();
+        }
         if (CollectionUtils.isEmpty(source.getColumns())) {
             log.warn("Cannot convert extraction result: missing columns. Is the result empty ?");
             return Stream.empty();
@@ -1125,7 +1146,9 @@ public class ExtractionServiceImpl implements ExtractionService {
         ttl = CacheTTL.nullToDefault(CacheTTL.nullToDefault(ttl, this.cacheDefaultTtl), CacheTTL.DEFAULT);
 
         // No cache: compute value
-        if (!enableCache || ttl == CacheTTL.NONE) return supplier.get();
+        if (!enableCache || ttl == CacheTTL.NONE) {
+            return supplier.get();
+        }
 
         // Compute a cache key
         Integer cacheKey = computeCacheKey(type, filter, strata, page);
@@ -1136,11 +1159,15 @@ public class ExtractionServiceImpl implements ExtractionService {
 
         // Reuse cached value if exists
         R result = cache.get(cacheKey);
-        if (result != null) return result;
+        if (result != null) {
+            return result;
+        }
 
         // Not exists in cache: compute it
         result = supplier.get();
-        if (result == null) return null;
+        if (result == null) {
+            return null;
+        }
 
         // Add to cache
         cache.put(cacheKey, result);

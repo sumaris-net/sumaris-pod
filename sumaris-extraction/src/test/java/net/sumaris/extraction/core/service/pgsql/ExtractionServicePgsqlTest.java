@@ -91,6 +91,7 @@ public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
 
     }
 
+    @Override
     @Test
     public void executeApase() throws IOException {
         String programLabel = "PIFIL";
@@ -142,11 +143,13 @@ public class ExtractionServicePgsqlTest extends ExtractionServiceTest {
 
     /* -- protected methods -- */
 
+    @Override
     protected boolean canWriteData() {
         return false;
     }
 
     //@Override
+    @Override
     protected String getProgramLabelForVessel() {
         return "PIFIL"; // Open database
     }
