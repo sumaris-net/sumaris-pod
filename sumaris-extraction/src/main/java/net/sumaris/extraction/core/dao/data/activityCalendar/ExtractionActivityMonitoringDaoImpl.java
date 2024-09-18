@@ -58,7 +58,10 @@ import javax.persistence.PersistenceException;
 import java.net.URL;
 import java.text.ParseException;
 import java.time.Month;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Repository("extractionActivityMonitoringDao")
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
@@ -67,7 +70,7 @@ import java.util.*;
 @Slf4j
 public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMonitoringContextVO, F extends ExtractionFilterVO>
         extends ExtractionBaseDaoImpl<C, F>
-        implements ExtractionMonitoringDao<C, F> {
+        implements ExtractionActivityMonitoringDao<C, F> {
 
     private static final String AM_RAW_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ActivityMonitoringSpecification.AM_RAW_SHEET_NAME + "_%s";
     private static final String AM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ActivityMonitoringSpecification.AM_SHEET_NAME + "_%s";

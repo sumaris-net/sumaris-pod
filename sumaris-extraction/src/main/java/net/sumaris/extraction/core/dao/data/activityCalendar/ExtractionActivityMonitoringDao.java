@@ -38,7 +38,7 @@ import javax.annotation.Nullable;
 import java.time.Year;
 import java.util.Arrays;
 
-public interface ExtractionMonitoringDao<C extends ExtractionActivityMonitoringContextVO, F extends ExtractionFilterVO>
+public interface ExtractionActivityMonitoringDao<C extends ExtractionActivityMonitoringContextVO, F extends ExtractionFilterVO>
         extends ExtractionDao<C, F> {
 
     default ExtractionActivityCalendarFilterVO toActivityCalendarFilterVO(@Nullable ExtractionFilterVO source) {

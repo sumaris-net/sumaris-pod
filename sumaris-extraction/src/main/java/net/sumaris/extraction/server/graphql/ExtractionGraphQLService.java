@@ -190,37 +190,6 @@ public class ExtractionGraphQLService {
         }
     }
 
-    @GraphQLQuery(name = "extractionMonitoring", description = "Read extraction data for monitoring")
-    public JsonNode readProgressReport(@GraphQLArgument(name = "type") ExtractionTypeVO type,
-                                       @GraphQLArgument(name = "filter") ExtractionFilterVO filter,
-                                       @GraphQLArgument(name = "strata") AggregationStrataVO strata,
-                                       @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                       @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                       @GraphQLArgument(name = "sortBy") String sort,
-                                       @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
-                                       @GraphQLArgument(name = "cacheDuration") String cacheDuration
-    ) {
-        Preconditions.checkNotNull(type, "Argument 'type' must not be null.");
-        Preconditions.checkNotNull(offset, "Argument 'offset' must not be null.");
-        Preconditions.checkNotNull(size, "Argument 'size' must not be null.");
-
-        IExtractionType checkedType = extractionService.getByExample(type);
-
-        Page page = Page.builder()
-                .offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build();
-
-
-        CacheTTL ttl = CacheTTL.fromString(cacheDuration);
-
-
-        ExtractionResultVO data = extractionService.executeAndRead(checkedType, filter, strata, page, ttl);
-        return extractionService.toJsonArray(data);
-    }
-
     @GraphQLQuery(name = "extractionFile", description = "Extract data into a file")
     public String getExtractionFile(@GraphQLNonNull @GraphQLArgument(name = "type") ExtractionTypeVO type,
                                     @GraphQLArgument(name = "filter") ExtractionFilterVO filter,

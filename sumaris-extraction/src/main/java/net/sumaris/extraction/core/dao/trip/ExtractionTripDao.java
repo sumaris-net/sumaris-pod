@@ -53,9 +53,7 @@ public interface ExtractionTripDao<
 
     default ExtractionTripFilterVO toTripFilterVO(@Nullable ExtractionFilterVO source) {
         ExtractionTripFilterVO target = new ExtractionTripFilterVO();
-        if (source == null) {
-            return target;
-        }
+        if (source == null) return target;
 
         Beans.copyProperties(source, target);
 

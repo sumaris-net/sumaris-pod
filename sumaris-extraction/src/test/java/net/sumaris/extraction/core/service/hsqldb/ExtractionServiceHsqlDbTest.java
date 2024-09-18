@@ -138,6 +138,7 @@ public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
     public void executeActivityMonitoringTest() throws IOException, ParseException {
         super.executeActivityMonitoringTest();
     }
+
     @Override @Test
     public void executeAndReadAggSurvivalTest() {
         super.executeAndReadAggSurvivalTest();
