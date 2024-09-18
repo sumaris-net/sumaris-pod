@@ -51,7 +51,7 @@ public interface ExtractionTripDao<
         F extends ExtractionFilterVO>
     extends ExtractionDao<C, F> {
 
-    default ExtractionTripFilterVO toTripFilterVO(@Nullable ExtractionFilterVO source){
+    default ExtractionTripFilterVO toTripFilterVO(@Nullable ExtractionFilterVO source) {
         ExtractionTripFilterVO target = new ExtractionTripFilterVO();
         if (source == null) return target;
 
@@ -180,7 +180,9 @@ public interface ExtractionTripDao<
     default ExtractionFilterVO toExtractionFilterVO(ExtractionTripFilterVO source,
                                                     String tripSheetName){
         ExtractionFilterVO target = new ExtractionFilterVO();
-        if (source == null) return target;
+        if (source == null) {
+            return target;
+        }
 
         Beans.copyProperties(source, target);
 

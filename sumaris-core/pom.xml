@@ -4,7 +4,7 @@
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>2.9.21-SNAPSHOT</version>
+    <version>2.9.21</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -188,12 +188,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.mattbertolini</groupId>
-      <artifactId>liquibase-slf4j</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-    <groupId>org.testcontainers</groupId>
+      <groupId>org.testcontainers</groupId>
       <artifactId>elasticsearch</artifactId>
       <scope>test</scope>
     </dependency>
@@ -398,6 +393,11 @@
               <goal>bundle</goal>
               <goal>generate-csv-bundle</goal>
             </goals>
+            <configuration>
+              <silent>${i18n.silent}</silent>
+              <force>${i18n.force}</force>
+              <verbose>false</verbose>
+            </configuration>
           </execution>
         </executions>
       </plugin>

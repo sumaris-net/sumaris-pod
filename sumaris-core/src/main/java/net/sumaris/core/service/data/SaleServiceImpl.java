@@ -27,9 +27,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.sale.SaleRepository;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityInsertEvent;
+import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.IMeasurementEntity;
+import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.data.SaleMeasurement;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
@@ -38,8 +45,11 @@ import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.filter.SaleFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -50,17 +60,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SaleServiceImpl implements SaleService {
 
-	protected final SaleRepository saleRepository;
+	private final SumarisConfiguration configuration;
+	private final SaleRepository saleRepository;
+	private final MeasurementDao measurementDao;
+	private final FishingAreaService fishingAreaService;
+	private final ProductService productService;
+	private final BatchService batchService;
+	private final VesselSnapshotService vesselSnapshotService;
+	private final ApplicationEventPublisher publisher;
+	private boolean enableTrash = false;
 
-	protected final MeasurementDao measurementDao;
-
-	protected final FishingAreaService fishingAreaService;
-
-	protected final ProductService productService;
-
-	protected final BatchService batchService;
-
-	protected final VesselSnapshotService vesselSnapshotService;
+	@PostConstruct
+	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+	public void onConfigurationReady() {
+		this.enableTrash = configuration.enableEntityTrash();
+	}
 
 	@Override
 	public List<SaleVO> getAllByTripId(int tripId, SaleFetchOptions fetchOptions) {
@@ -132,17 +146,26 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	@Override
-	public SaleVO save(SaleVO sale) {
-		checkSale(sale);
+	public SaleVO save(SaleVO source) {
+		checkSale(source);
 
 		// Reset control date
-		sale.setControlDate(null);
+		source.setControlDate(null);
 
-		SaleVO savedSale = saleRepository.save(sale);
+		boolean isNew = source.getId() == null;
 
-		saveChildrenEntities(savedSale);
+		SaleVO result = saleRepository.save(source);
 
-		return savedSale;
+		saveChildrenEntities(result);
+
+		// Publish event
+		if (isNew) {
+			publisher.publishEvent(new EntityInsertEvent(result.getId(), Sale.class.getSimpleName(), result));
+		} else {
+			publisher.publishEvent(new EntityUpdateEvent(result.getId(), Sale.class.getSimpleName(), result));
+		}
+
+		return result;
 	}
 
 	@Override
@@ -156,7 +179,18 @@ public class SaleServiceImpl implements SaleService {
 
 	@Override
 	public void delete(int id) {
+		log.info("Delete {}}#{} {trash: {}}", Sale.class.getSimpleName(), id, enableTrash);
+
+		// Construct the event data
+		// (should be done before deletion, to be able to get the VO)
+		SaleVO eventData = enableTrash ?
+			get(id, SaleFetchOptions.FULL_GRAPH) :
+			null;
+
 		saleRepository.deleteById(id);
+
+		// Publish delete event
+		publisher.publishEvent(new EntityDeleteEvent(id, Sale.class.getSimpleName(), eventData));
 	}
 
 	@Override

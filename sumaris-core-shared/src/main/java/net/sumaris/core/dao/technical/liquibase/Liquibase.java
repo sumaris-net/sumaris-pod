@@ -25,6 +25,9 @@ package net.sumaris.core.dao.technical.liquibase;
  */
 
 
+import liquibase.Scope;
+import liquibase.UpdateSummaryEnum;
+import liquibase.UpdateSummaryOutputEnum;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
@@ -40,6 +43,8 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.FileSystemResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 import liquibase.structure.core.DatabaseObjectFactory;
+import liquibase.ui.LoggerUIService;
+import liquibase.util.SmartMap;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
@@ -63,10 +68,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
@@ -365,6 +372,14 @@ public class Liquibase implements ResourceLoaderAware {
                 liquibase.setChangeLogParameter(entry.getKey(), entry.getValue());
             }
         }
+
+        // Workaround used to redirect command output to the logger service
+        // (By default, commands will log to the console)
+        initScopeUiService(Scope.getCurrentScope());
+
+        // Disable summary
+        liquibase.setShowSummary(UpdateSummaryEnum.SUMMARY);
+        liquibase.setShowSummaryOutput(UpdateSummaryOutputEnum.LOG);
 
         return liquibase;
     }
@@ -759,4 +774,27 @@ public class Liquibase implements ResourceLoaderAware {
             : file;
     }
 
+    /**
+     * Workaround to redirect the ui service used by commands, to the logger ui service
+     * @param scope THe liquibase scope to set
+     */
+    protected void initScopeUiService(@Nullable Scope scope) {
+        scope = scope != null ? scope : Scope.getCurrentScope();
+        if (scope == null) return; // No scope
+
+        if (scope.getUI() == null || !(scope.getUI() instanceof LoggerUIService)) {
+            try {
+                // USe reflection to access a private field 'values'
+                Field valuesField = Scope.class.getDeclaredField("values");
+                if (!valuesField.canAccess(scope)) {
+                    valuesField.setAccessible(true);
+                }
+                SmartMap values = (SmartMap) valuesField.get(scope);
+                values.put(Scope.Attr.ui.name(), new LoggerUIService());
+            } catch (NullPointerException | NoSuchFieldException | IllegalAccessException e) {
+                log.warn("Cannot set scope's ui service to LoggerUIService", e);
+                // Silent
+            }
+        }
+    }
 }

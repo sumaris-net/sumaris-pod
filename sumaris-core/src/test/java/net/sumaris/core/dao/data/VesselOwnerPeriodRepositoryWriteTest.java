@@ -30,7 +30,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
-import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -77,7 +77,7 @@ public class VesselOwnerPeriodRepositoryWriteTest extends AbstractDaoTest {
         // Check if can fetch
         {
             List<VesselOwnerPeriodVO> reloadPeriods = repository.findAll(
-                    VesselOwnerFilterVO.builder()
+                    VesselFilterVO.builder()
                             .vesselId(vesselId)
                             .build(),
                     Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.DESC)
@@ -92,10 +92,10 @@ public class VesselOwnerPeriodRepositoryWriteTest extends AbstractDaoTest {
     public void delete() {
         Integer vesselId = fixtures.getVesselId(0); // Vessel 1
         Integer vesselOwnerId = fixtures.getVesselOwnerId(0); // Vessel Owner 1
-        List<VesselOwnerPeriodVO> periods = repository.findAll(VesselOwnerFilterVO.builder()
+        List<VesselOwnerPeriodVO> periods = repository.findAll(VesselFilterVO.builder()
                 .vesselId(vesselId)
                 .vesselOwnerId(vesselOwnerId)
-                .build(), Page.create(0, 10, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
+                .build(), Page.create(0, 1, VesselOwnerPeriodVO.Fields.START_DATE, SortDirection.ASC));
         Assert.assertTrue(CollectionUtils.isNotEmpty(periods));
         VesselOwnerPeriodVO firstPeriod = CollectionUtils.extractSingleton(periods);
         Assert.assertNotNull(firstPeriod.getId());

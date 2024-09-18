@@ -652,6 +652,10 @@ type Mutation {
     deleteObservedLocation(id: Int!): Boolean!
     "Delete many observed locations"
     deleteObservedLocations(ids: [Int]!): Boolean!
+    "Delete a sale"
+    deleteSale(id: Int!): Boolean!
+    "Delete many sales"
+    deleteSales(ids: [Int]!): Boolean!
     "Delete an operation"
     deleteOperation(id: Int!): Boolean!
     "Delete many operations"
@@ -1652,6 +1656,7 @@ type StrategyVO {
     "Get strategy's pmfms"
     pmfms: [PmfmStrategyVO]
     programId: Int
+    properties: Map_String_StringScalar
     statusId: Int
     taxonGroupIds: [Int]
     taxonGroups: [TaxonGroupStrategyVO]
@@ -3654,6 +3659,7 @@ input StrategyVOInput {
     name: String
     pmfms: [PmfmStrategyVOInput]
     programId: Int
+    properties: Map_String_StringScalar
     statusId: Int
     taxonGroupIds: [Int]
     taxonGroups: [TaxonGroupStrategyVOInput]

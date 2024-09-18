@@ -31,6 +31,7 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Date;
 
@@ -42,6 +43,7 @@ public class DenormalizedBatchOptions {
 
     public static final DenormalizedBatchOptions DEFAULT = DenormalizedBatchOptions.builder().build();
 
+    @Nonnull
     public static DenormalizedBatchOptions nullToDefault(@Nullable DenormalizedBatchOptions options) {
         return options != null ? options : DEFAULT;
     }

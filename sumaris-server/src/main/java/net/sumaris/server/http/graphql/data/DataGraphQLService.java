@@ -61,8 +61,8 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
-import net.sumaris.core.vo.data.activity.ActivityCalendarVesselRegistrationPeriodVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
+import net.sumaris.core.vo.data.activity.ActivityCalendarVesselRegistrationPeriodVO;
 import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
 import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.data.batch.*;
@@ -780,6 +780,18 @@ public class DataGraphQLService {
         if (trip.getId() == null) return null;
         List<SaleVO> sales = saleService.getAllByTripId(trip.getId(), null);
         return CollectionUtils.isEmpty(sales) ? null : CollectionUtils.extractSingleton(sales);
+    }
+
+    @GraphQLMutation(name = "deleteSale", description = "Delete a sale")
+    @IsUser
+    public void deleteSale(@GraphQLArgument(name = "id") int id) {
+        saleService.delete(id);
+    }
+
+    @GraphQLMutation(name = "deleteSales", description = "Delete many sales")
+    @IsUser
+    public void deleteSales(@GraphQLNonNull @GraphQLArgument(name = "ids") List<Integer> ids) {
+        saleService.delete(ids);
     }
 
     /* -- Expected Sales -- */
@@ -1959,7 +1971,7 @@ public class DataGraphQLService {
             // Load vessel registration periods
             Date startDate = Dates.getFirstDayOfYear(activityCalendar.getYear());
             Date endDate = Dates.getLastSecondOfYear(activityCalendar.getYear());
-            List<VesselRegistrationPeriodVO> registrationPeriods = vesselService.findRegistrationPeriodsByFilter(VesselRegistrationFilterVO.builder()
+            List<VesselRegistrationPeriodVO> registrationPeriods = vesselService.findRegistrationPeriodsByFilter(VesselFilterVO.builder()
                             .vesselId(vesselId)
                             .startDate(startDate)
                             .endDate(endDate)

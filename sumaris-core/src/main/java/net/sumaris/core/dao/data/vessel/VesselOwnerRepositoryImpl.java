@@ -33,7 +33,7 @@ import net.sumaris.core.model.data.VesselOwner;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
 import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
-import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.LocationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -71,12 +71,12 @@ public class VesselOwnerRepositoryImpl
     }
 
     @Override
-    public Specification<VesselOwner> toSpecification(VesselOwnerFilterVO filter) {
+    public Specification<VesselOwner> toSpecification(VesselFilterVO filter) {
         return BindableSpecification.where(searchText(filter));
     }
 
     @Override
-    public List<VesselOwnerVO> findAll(VesselOwnerFilterVO filter, Page page) {
+    public List<VesselOwnerVO> findAll(VesselFilterVO filter, Page page) {
 
         TypedQuery<VesselOwner> query = getQuery(toSpecification(filter), page, VesselOwner.class);
 
@@ -85,7 +85,7 @@ public class VesselOwnerRepositoryImpl
         }
     }
 
-    public long count(VesselOwnerFilterVO filter) {
+    public long count(VesselFilterVO filter) {
         return count(toSpecification(filter));
     }
 

@@ -22,7 +22,6 @@
 
 package net.sumaris.server.http.graphql.data;
 
-import com.google.common.base.Preconditions;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import lombok.NonNull;
@@ -44,7 +43,8 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
-import net.sumaris.core.vo.filter.*;
+import net.sumaris.core.vo.filter.IRootDataFilter;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
@@ -52,6 +52,7 @@ import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
 import net.sumaris.server.http.security.AuthService;
 import net.sumaris.server.http.security.IsUser;
+import net.sumaris.server.service.administration.DataAccessControlService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +107,7 @@ public class VesselGraphQLService {
             sort = sort.replaceFirst(VesselVO.Fields.STATUS_ID, StringUtils.doting(Vessel.Fields.STATUS, Status.Fields.ID));
         }
 
-        filter = fillVesselFilterDefaults(filter);
+        filter = fillVesselFilterDefaults(filter, true);
 
         return vesselService.findAll(filter,
                 Page.builder()
@@ -131,7 +132,7 @@ public class VesselGraphQLService {
     ) {
         // Add restriction to filter (e.g. program=SIH)
         // and fill (or fix) dates
-        filter = fillVesselFilterDefaults(filter);
+        filter = fillVesselFilterDefaults(filter, true);
 
         // Compute fetch options
         VesselFetchOptions fetchOptions = getSnapshotFetchOptions(GraphQLUtils.fields(env));
@@ -145,7 +146,7 @@ public class VesselGraphQLService {
     public Long countVesselSnapshots(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
         // Add restriction to filter (e.g. program=SIH)
         // and fill (or fix) dates
-        filter = fillVesselFilterDefaults(filter);
+        filter = fillVesselFilterDefaults(filter, true);
 
         return vesselSnapshotService.countByFilter(filter);
     }
@@ -156,7 +157,7 @@ public class VesselGraphQLService {
     public long countVessels(@GraphQLArgument(name = "filter") VesselFilterVO filter) {
         // Add restriction to filter (e.g. program=SIH)
         // and fill (or fix) dates
-        filter = fillVesselFilterDefaults(filter);
+        filter = fillVesselFilterDefaults(filter, true);
 
         return vesselService.countByFilter(filter);
     }
@@ -177,18 +178,22 @@ public class VesselGraphQLService {
     @GraphQLQuery(name = "vesselFeaturesHistory", description = "Get vessel features history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselFeaturesVO> getFeaturesByVesselId(
+    public List<VesselFeaturesVO> getVesselFeatures(
         @GraphQLArgument(name = "vesselId") Integer vesselId,
-        @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter,
+        @GraphQLArgument(name = "filter") VesselFilterVO filter,
         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
         @GraphQLArgument(name = "sortBy", defaultValue = VesselFeaturesVO.Fields.START_DATE) String sort,
         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
         @GraphQLEnvironment ResolutionEnvironment env) {
 
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        return vesselService.findFeaturesByVesselId(vesselId,
+        filter = fillVesselFilterDefaults(filter, false);
+
+        if (filter.getVesselId() == null) {
+            filter.setVesselId(vesselId);
+        }
+
+        return vesselService.findFeaturesByFilter(filter,
             Page.create(offset, size, sort, SortDirection.fromString(direction)),
             getFeaturesFetchOptions(GraphQLUtils.fields(env)));
     }
@@ -196,66 +201,64 @@ public class VesselGraphQLService {
     @GraphQLQuery(name = "vesselFeaturesHistoryCount", description = "Get vessel features history count")
     @Transactional(readOnly = true)
     @IsUser
-    public Long countFeaturesByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                   @GraphQLArgument(name = "filter") VesselFeaturesFilterVO filter) {
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        return vesselService.countFeaturesByVesselId(vesselId);
-    }
+    public Long countVesselFeatures(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                    @GraphQLArgument(name = "filter") VesselFilterVO filter) {
+        filter = fillVesselFilterDefaults(filter, false);
 
+        if (filter.getVesselId() == null) {
+            filter.setVesselId(vesselId);
+        }
+
+        return vesselService.countFeaturesByFilter(filter);
+    }
 
     @GraphQLQuery(name = "vesselRegistrationHistory", description = "Get vessel registration history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselRegistrationPeriodVO> getRegistrationPeriodsByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                                         @GraphQLArgument(name = "filter") VesselRegistrationFilterVO filter,
-                                                                         @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
-                                                                         @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
-                                                                         @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationPeriodVO.Fields.START_DATE) String sort,
-                                                                         @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        return vesselService.findRegistrationPeriodsByVesselId(vesselId, Page.create(offset, size, sort, SortDirection.fromString(direction)));
+    public List<VesselRegistrationPeriodVO> getRegistrationPeriods(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                                                 @GraphQLArgument(name = "filter") VesselFilterVO filter,
+                                                                 @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
+                                                                 @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
+                                                                 @GraphQLArgument(name = "sortBy", defaultValue = VesselRegistrationPeriodVO.Fields.START_DATE) String sort,
+                                                                 @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction) {
+        filter = fillVesselFilterDefaults(filter, false);
+        if (filter.getVesselId() == null) {
+            filter.setVesselId(vesselId);
+        }
+
+        return vesselService.findRegistrationPeriodsByFilter(filter, Page.create(offset, size, sort, SortDirection.fromString(direction)));
     }
 
     @GraphQLQuery(name = "vesselRegistrationHistoryCount", description = "Get vessel registration history count")
     @Transactional(readOnly = true)
     @IsUser
-    public Long countRegistrationPeriodsByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                                   @GraphQLArgument(name = "filter") VesselRegistrationFilterVO filter) {
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        return vesselService.countRegistrationPeriodsByVesselId(vesselId);
+    public Long countVesselRegistrationPeriods(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                               @GraphQLArgument(name = "filter") VesselFilterVO filter) {
+        filter = fillVesselFilterDefaults(filter, false);
+
+        if (filter.getVesselId() == null) {
+            filter.setVesselId(vesselId);
+        }
+
+        return vesselService.countRegistrationPeriodsByFilter(filter);
     }
 
-    @GraphQLQuery(name = "vesselOwner", description = "Get a vesselOwner")
-    @Transactional(readOnly = true)
-    @IsUser
-    public VesselOwnerVO getVesselOwnerById(@GraphQLArgument(name = "id") Integer id) {
-        VesselOwnerVO result = vesselService.getVesselOwner(id);
-        return result;
-    }
 
     @GraphQLQuery(name = "vesselOwnerHistory", description = "Get vessel owner history")
     @Transactional(readOnly = true)
     @IsUser
-    public List<VesselOwnerPeriodVO> getOwnerPeriodsByVesselId(
+    public List<VesselOwnerPeriodVO> getVesselOwnerPeriods(
             @GraphQLArgument(name = "vesselId") Integer vesselId,
-            @GraphQLArgument(name = "filter") VesselOwnerFilterVO filter,
+            @GraphQLArgument(name = "filter") VesselFilterVO filter,
             @GraphQLArgument(name = "offset", defaultValue = "0") Integer offset,
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = VesselOwnerPeriodVO.Fields.START_DATE) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
             @GraphQLEnvironment ResolutionEnvironment env) {
+        filter = fillVesselFilterDefaults(filter, false);
 
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        filter = VesselOwnerFilterVO.nullToEmpty(filter);
-        filter.setVesselId(vesselId);
-
-        // Make sure to limit access to SIH data
-        if (filter == null || (filter.getProgramLabel() == null && ArrayUtils.isEmpty(filter.getProgramIds()))) {
-           filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        if (filter.getVesselId() == null) {
+            filter.setVesselId(vesselId);
         }
 
         return vesselService.findOwnerPeriodsByFilter(filter,
@@ -265,19 +268,22 @@ public class VesselGraphQLService {
     @GraphQLQuery(name = "vesselOwnerHistoryCount", description = "Get total vessel owner history count")
     @Transactional(readOnly = true)
     @IsUser
-    public Long countOwnerPeriodsByVesselId(@GraphQLArgument(name = "vesselId") Integer vesselId,
-                                          @GraphQLArgument(name = "filter") VesselOwnerFilterVO filter) {
-        vesselId = vesselId != null ? vesselId : (filter != null ? filter.getVesselId() : null);
-        Preconditions.checkNotNull(vesselId);
-        filter = VesselOwnerFilterVO.nullToEmpty(filter);
-        filter.setVesselId(vesselId);
+    public Long countVesselOwnerPeriods(@GraphQLArgument(name = "vesselId") Integer vesselId,
+                                        @GraphQLArgument(name = "filter") VesselFilterVO filter) {
+        filter = fillVesselFilterDefaults(filter, false);
 
-        // Make sure to limit access to SIH data
-        if (filter == null || (filter.getProgramLabel() == null && ArrayUtils.isEmpty(filter.getProgramIds()))) {
-            filter.setProgramLabel(ProgramEnum.SIH.getLabel());
+        if (filter.getVesselId() == null) {
+            filter.setVesselId(vesselId);
         }
-        Preconditions.checkNotNull(vesselId);
-        return vesselService.countOwnerPeriodsByVesselId(vesselId);
+
+        return vesselService.countOwnerPeriodsByFilter(filter);
+    }
+
+    @GraphQLQuery(name = "vesselOwner", description = "Get a vesselOwner")
+    @Transactional(readOnly = true)
+    @IsUser
+    public VesselOwnerVO getVesselOwnerById(@GraphQLArgument(name = "id") Integer id) {
+        return vesselService.getVesselOwner(id);
     }
 
     @GraphQLMutation(name = "saveVessel", description = "Create or update a vessel")
@@ -382,7 +388,7 @@ public class VesselGraphQLService {
     /**
      * If need, restrict vessel program (to SIH), and dates (to today)
      */
-    protected VesselFilterVO fillVesselFilterDefaults(VesselFilterVO filter) {
+    protected VesselFilterVO fillVesselFilterDefaults(VesselFilterVO filter, boolean forceDate) {
         filter = VesselFilterVO.nullToEmpty(filter);
 
         boolean isAdmin = authService.isAdmin();
@@ -401,14 +407,21 @@ public class VesselGraphQLService {
             // (an admin can access to any other vessel types)
             if (ArrayUtils.isEmpty(userVesselTypesIds) || !isAdmin) {
                 Integer[] intersection = ArrayUtils.intersectionSkipEmpty(vesselTypeIds, userVesselTypesIds);
-                filter.setVesselTypeIds(intersection);
+                if (intersection != null && ArrayUtils.isEmpty(intersection)) {
+                    filter.setVesselTypeIds(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+                }
+                else {
+                    filter.setVesselTypeIds(intersection);
+                }
                 filter.setVesselTypeId(null);
             }
         }
 
         // If expected a date: use today (at 0h0min)
         if (filter.getStartDate() == null && filter.getEndDate() == null) {
-            filter.setDate(Dates.resetTime(new Date()));
+            if (forceDate) {
+                filter.setDate(Dates.resetTime(new Date()));
+            }
         }
 
         // Reset hour in date (0h0min - to limit cache key changes)

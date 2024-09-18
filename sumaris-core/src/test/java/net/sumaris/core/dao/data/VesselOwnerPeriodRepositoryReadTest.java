@@ -22,25 +22,16 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.AbstractDaoTest;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.data.vessel.VesselOwnerPeriodRepository;
-import net.sumaris.core.dao.data.vessel.VesselRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
-import net.sumaris.core.model.data.VesselFeatures;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.referential.VesselTypeEnum;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
-import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +56,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
         Integer vesselId = fixtures.getVesselId(0);
 
         // Get the full history (no dates)
-        VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+        VesselFilterVO filter = VesselFilterVO.builder()
             .vesselId(vesselId)
             .programLabel(ProgramEnum.SIH.getLabel())
             .build();
@@ -74,7 +65,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
                 SortDirection.ASC));
 
         Assert.assertNotNull(result);
-        Assert.assertEquals(2, result.size());
+        Assert.assertEquals(3, result.size());
         VesselOwnerPeriodVO period1 = result.get(0);
         Assert.assertNotNull(period1.getStartDate());
         Assert.assertEquals(vesselId, period1.getVesselId());
@@ -105,7 +96,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
         Integer vesselId = fixtures.getVesselId(0);
         Date now = new Date();
 
-        VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+        VesselFilterVO filter = VesselFilterVO.builder()
                 .vesselId(vesselId)
                 .startDate(now).endDate(now)
                 .programLabel(ProgramEnum.SIH.getLabel())
@@ -118,7 +109,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
         Assert.assertEquals(vesselId, period.getVesselId());
         Assert.assertEquals(vesselId, period.getVessel().getId());
         Assert.assertNotNull(period.getVesselOwner());
-        Assert.assertEquals("SPR6950", period.getVesselOwner().getRegistrationCode());
+        Assert.assertEquals("19720111", period.getVesselOwner().getRegistrationCode());
         Assert.assertEquals("NOTRE DAME DE PARIS", period.getVesselOwner().getLastName());
     }
 
@@ -128,7 +119,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
 
         // Get valid program label
         {
-            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+            VesselFilterVO filter = VesselFilterVO.builder()
                     .vesselId(vesselId)
                     .programLabel(ProgramEnum.SIH.getLabel())
                     .build();
@@ -139,7 +130,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
 
         // Get invalid program label
         {
-            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+            VesselFilterVO filter = VesselFilterVO.builder()
                     .vesselId(vesselId)
                     .programLabel("FAKE")
                     .build();
@@ -150,7 +141,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
 
         // Get valid program ids
         {
-            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+            VesselFilterVO filter = VesselFilterVO.builder()
                     .vesselId(vesselId)
                     .programIds(new Integer[]{ProgramEnum.SIH.getId()})
                     .build();
@@ -161,7 +152,7 @@ public class VesselOwnerPeriodRepositoryReadTest extends AbstractDaoTest {
 
         // Get invalid program ids
         {
-            VesselOwnerFilterVO filter = VesselOwnerFilterVO.builder()
+            VesselFilterVO filter = VesselFilterVO.builder()
                     .vesselId(vesselId)
                     .programIds(new Integer[]{-9999})
                     .build();

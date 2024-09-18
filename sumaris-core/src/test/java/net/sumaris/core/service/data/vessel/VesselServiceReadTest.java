@@ -23,13 +23,11 @@
 package net.sumaris.core.service.data.vessel;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseFixtures;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
@@ -38,13 +36,12 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.util.elasticsearch.ElasticsearchResource;
+import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
 import net.sumaris.core.vo.data.VesselRegistrationPeriodVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.VesselVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.filter.VesselRegistrationFilterVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -53,7 +50,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @ActiveProfiles("hsqldb")
@@ -61,9 +57,6 @@ public class VesselServiceReadTest extends AbstractServiceTest{
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
-
-    @ClassRule
-    public static final ElasticsearchResource nodeResource = new ElasticsearchResource();
 
     @Autowired
     protected DatabaseFixtures fixtures;
@@ -81,15 +74,16 @@ public class VesselServiceReadTest extends AbstractServiceTest{
             .programLabel(ProgramEnum.SIH.getLabel())
             .statusIds(ImmutableList.of(StatusEnum.ENABLE.getId()))
             .searchAttributes(new String[]{
-                StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
+                StringUtils.doting(Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)
             })
-            .searchText(fixtures.getVesselRegistrationCode(0))
+            .searchText(fixtures.getVesselIntRegistrationCode(0))
             .build();
 
         // Start + End date
         {
-            filter.setStartDate(new Date());
-            filter.setEndDate(Dates.fromISODateTimeString("2025-01-01T00:00:00.000Z"));
+            int year = 2023;
+            filter.setStartDate(Dates.getFirstDayOfYear(year));
+            filter.setEndDate(Dates.getLastSecondOfYear(year));
 
             long now = System.currentTimeMillis();
             long count = service.countByFilter(filter);
@@ -109,8 +103,8 @@ public class VesselServiceReadTest extends AbstractServiceTest{
             log.info("[startDate only] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
             Assert.assertEquals(1L, count);
 
-            // Invalid date ( > year 2100 - see NVL condition in vessel query specification)
-            filter.setDate(Dates.fromISODateTimeString("1980-01-01T00:00:00.000Z"));
+            // Invalid date
+            filter.setDate(Dates.fromISODateTimeString("1979-01-01T00:00:00.000Z"));
             now = System.currentTimeMillis();
             count = service.countByFilter(filter);
             log.info("[startDate only] vesselCount: {} - responseTime: {}ms", count, System.currentTimeMillis() - now);
@@ -180,11 +174,11 @@ public class VesselServiceReadTest extends AbstractServiceTest{
         {
 
             filter = createFilterBuilder()
-                .searchAttributes(new String[]{VesselRegistrationPeriod.Fields.REGISTRATION_CODE})
+                .searchAttributes(new String[]{VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE})
                 .searchText("FRA000851*")
                 .build();
             filter.setDate(new Date());
-            page = createPage(VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+            page = createPage(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
 
             List<VesselSnapshotVO> result = vesselSnapshotService.findAll(filter, page, VesselFetchOptions.DEFAULT);
             Assert.assertNotNull(result);
@@ -203,17 +197,37 @@ public class VesselServiceReadTest extends AbstractServiceTest{
     }
 
     @Test
+    public void findOwnerPeriodsByFilter() {
+
+        int year = 2023;
+        Date startDate = Dates.getFirstDayOfYear(year);
+        Date endDate = Dates.getLastSecondOfYear(year);
+        int vesselId = fixtures.getVesselWithManyRegistrationLocations();
+        VesselFilterVO filter = VesselFilterVO.builder()
+                .vesselId(vesselId)
+                .startDate(startDate)
+                .endDate(endDate)
+                .build();
+        List<VesselOwnerPeriodVO> result = service.findOwnerPeriodsByFilter(filter, null);
+        Assert.assertNotNull(result);
+        Assert.assertEquals(2, result.size());
+
+        Assert.assertEquals(1, result.stream().filter((period) -> period.getEndDate() == null).count());
+        Assert.assertEquals(1, result.stream().filter((period) -> period.getEndDate() != null).count());
+    }
+
+    @Test
     public void findRegistrationPeriodsByFilter() {
 
         int year = 2023;
         Date startDate = Dates.getFirstDayOfYear(year);
         Date endDate = Dates.getLastSecondOfYear(year);
         int vesselId = fixtures.getVesselWithManyRegistrationLocations();
-        VesselRegistrationFilterVO filter = VesselRegistrationFilterVO.builder()
-                .vesselId(vesselId)
-                .startDate(startDate)
-                .endDate(endDate)
-                .build();
+        VesselFilterVO filter = VesselFilterVO.builder()
+            .vesselId(vesselId)
+            .startDate(startDate)
+            .endDate(endDate)
+            .build();
         List<VesselRegistrationPeriodVO> result = service.findRegistrationPeriodsByFilter(filter, null);
         Assert.assertNotNull(result);
         Assert.assertEquals(2, result.size());

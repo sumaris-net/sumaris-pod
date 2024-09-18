@@ -25,6 +25,8 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.*;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
+import javax.annotation.Nonnull;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -33,11 +35,31 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 @ToString
 public class StrategyFetchOptions implements IFetchOptions {
 
-    public static final StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder().build();
-
+    @Nonnull
     public static StrategyFetchOptions nullToDefault(StrategyFetchOptions options) {
         return options != null ? options : DEFAULT;
     }
+
+    public static final StrategyFetchOptions DEFAULT = StrategyFetchOptions.builder()
+        .build();
+
+    public static final StrategyFetchOptions MINIMAL = StrategyFetchOptions.builder()
+        .withProperties(false)
+        .build();
+
+    public static StrategyFetchOptions FULL = StrategyFetchOptions.builder()
+        .withProperties(true)
+        .withTaxonNames(true)
+        .withTaxonGroups(true)
+        .withDepartments(true)
+        .withAppliedStrategies(true)
+        .withGears(true)
+        .withPmfms(true)
+        .withDenormalizedPmfms(false) // Not need if pmfms already fetched
+        .build();
+
+    @Builder.Default
+    private boolean withProperties = true;
 
     /**
      * Fetch taxon names

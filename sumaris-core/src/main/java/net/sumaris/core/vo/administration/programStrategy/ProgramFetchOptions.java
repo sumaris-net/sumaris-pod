@@ -26,11 +26,19 @@ import lombok.Builder;
 import lombok.Data;
 import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
+import javax.annotation.Nonnull;
+
 @Data
 @Builder
 public class ProgramFetchOptions implements IFetchOptions {
 
-    public static ProgramFetchOptions DEFAULT = ProgramFetchOptions.builder().build();
+    @Nonnull
+    public static ProgramFetchOptions nullToDefault(ProgramFetchOptions options) {
+        return options != null ? options : DEFAULT;
+    }
+
+    public static ProgramFetchOptions DEFAULT = ProgramFetchOptions.builder()
+        .build();
 
     public static ProgramFetchOptions MINIMAL = ProgramFetchOptions.builder()
         .withProperties(false)
@@ -44,7 +52,7 @@ public class ProgramFetchOptions implements IFetchOptions {
         .build();
 
     @Builder.Default
-    private boolean withProperties = false;
+    private boolean withProperties = true;
 
     @Builder.Default
     private boolean withLocations = false;

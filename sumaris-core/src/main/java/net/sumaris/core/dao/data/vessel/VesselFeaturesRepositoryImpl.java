@@ -24,13 +24,11 @@ package net.sumaris.core.dao.data.vessel;
 
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.Vessel;
@@ -90,9 +88,24 @@ public class VesselFeaturesRepositoryImpl
     @Override
     public Specification<VesselFeatures> toSpecification(VesselFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(vesselId(filter.getVesselId()))
-                .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
-                ;
+            // IDs
+            .and(id(filter.getVesselFeaturesId(), Integer.class))
+            .and(vesselId(filter.getVesselId()))
+            .and(includedVesselIds(filter.getIncludedIds()))
+            .and(excludedVesselIds(filter.getExcludedIds()))
+            // Type
+            .and(vesselTypeIds(concat(filter.getVesselTypeId(), filter.getVesselTypeIds())))
+            // by locations
+            .and(basePortLocation(filter.getBasePortLocationId()))
+            // by Status
+            .and(statusIds(filter.getStatusIds()))
+            // by program
+            .and(programLabel(filter.getProgramLabel()))
+            .and(programIds(filter.getProgramIds()))
+            // Dates
+            .and(betweenFeaturesDate(filter.getStartDate(), filter.getEndDate()))
+            // Text
+            .and(searchText(toEntityProperties(filter.getSearchAttributes()), filter.getSearchText()));
     }
 
     @Override

@@ -25,12 +25,13 @@ package net.sumaris.core.dao.data.vessel;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.data.VesselOwnerPeriod;
 import net.sumaris.core.model.data.VesselOwnerPeriodId;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.vo.data.VesselOwnerPeriodVO;
-import net.sumaris.core.vo.filter.VesselOwnerFilterVO;
+import net.sumaris.core.vo.filter.VesselFilterVO;
 
 public interface VesselOwnerPeriodRepository extends
     SumarisJpaRepository<VesselOwnerPeriod, VesselOwnerPeriodId, VesselOwnerPeriodVO>,
     VesselOwnerPeriodSpecifications {
 
-    long count(VesselOwnerFilterVO filter);
+    long count(VesselFilterVO filter);
 }

@@ -222,7 +222,9 @@ public class UserEventGraphQLService {
             Preconditions.checkArgument(Objects.equals(user.getPubkey(), event.getIssuer()));
 
             // Check event type = DEBUG_DATA or INBOX_MESSAGE
-            Preconditions.checkArgument (type == EventTypeEnum.DEBUG_DATA || type == EventTypeEnum.INBOX_MESSAGE,
+            Preconditions.checkArgument (type == EventTypeEnum.DEBUG_DATA
+                    || type == EventTypeEnum.INBOX_MESSAGE
+                    || type == EventTypeEnum.COMMENT,
                 "Invalid user event type: " + type.name());
         }
 

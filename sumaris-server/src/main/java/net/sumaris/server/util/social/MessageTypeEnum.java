@@ -31,6 +31,7 @@ public enum MessageTypeEnum {
     EMAIL(EventTypeEnum.EMAIL),
     INBOX_MESSAGE(EventTypeEnum.INBOX_MESSAGE),
     FEED(EventTypeEnum.FEED),
+    COMMENT(EventTypeEnum.COMMENT),
     DEBUG_DATA(EventTypeEnum.DEBUG_DATA),
     ;
 

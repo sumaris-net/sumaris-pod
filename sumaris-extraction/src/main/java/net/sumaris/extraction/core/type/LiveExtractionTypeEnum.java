@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.type;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
@@ -54,7 +55,8 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
     PMFM_TRIP(PmfmTripSpecification.FORMAT, PmfmTripSpecification.SHEET_NAMES, PmfmTripSpecification.VERSION_1_0),
     RJB_TRIP(RjbTripSpecification.FORMAT, RjbTripSpecification.SHEET_NAMES, RjbTripSpecification.VERSION_1_0),
     APASE(ApaseSpecification.FORMAT, ApaseSpecification.SHEET_NAMES, ApaseSpecification.VERSION_1_0),
-    ACOST(AcostSpecification.FORMAT, AcostSpecification.SHEET_NAMES, AcostSpecification.VERSION_1_0)
+    ACOST(AcostSpecification.FORMAT, AcostSpecification.SHEET_NAMES, AcostSpecification.VERSION_1_0),
+    ACTIVITY_MONITORING(ActivityMonitoringSpecification.FORMAT, ActivityMonitoringSpecification.SHEET_NAMES, ActivityMonitoringSpecification.VERSION)
     ;
 
     private Integer id;
@@ -74,6 +76,7 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
             .build());
     }
 
+    @Override
     public Integer getId() {
         return id;
     }
@@ -83,14 +86,17 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
         return getFormat();
     }
 
+    @Override
     public String getFormat() {
         return format;
     }
 
+    @Override
     public String getVersion() {
         return version;
     }
 
+    @Override
     public String[] getSheetNames() {
         return sheetNames;
     }

@@ -62,6 +62,7 @@ create sequence software_seq start with 1 increment by 1;
 create sequence status_seq start with 1 increment by 1;
 create sequence strategy2department_seq start with 1 increment by 1;
 create sequence strategy_seq start with 1 increment by 1;
+create sequence strategy_property_seq start with 1 increment by 1;
 create sequence system_version_seq start with 1 increment by 1;
 create sequence taxon_group_historical_rec_seq start with 1 increment by 1;
 create sequence taxon_group_seq start with 1 increment by 1;
@@ -201,6 +202,7 @@ create table status (id integer not null, creation_date timestamp not null, labe
 create table strategy (id integer not null, analytic_reference varchar(255), comments varchar(2000), creation_date timestamp not null, description varchar(255), label varchar(50) not null, name varchar(100) not null, update_date timestamp, program_fk integer not null, status_fk integer not null, primary key (id));
 create table strategy2department (id integer not null, update_date timestamp, department_fk integer not null, location_fk integer, program_privilege_fk integer not null, strategy_fk integer not null, primary key (id));
 create table strategy2gear (strategy_fk integer not null, gear_fk integer not null, primary key (strategy_fk, gear_fk));
+create table strategy_property (id integer not null, creation_date timestamp not null, label varchar(255) not null, name varchar(255) not null, update_date timestamp, strategy_fk integer not null, status_fk integer not null, primary key (id));
 create table survey_measurement (id integer not null, alphanumerical_value varchar(40), comments varchar(2000), control_date timestamp, digit_count integer, numerical_value double, precision_value double, qualification_comments varchar(2000), qualification_date timestamp, rank_order smallint, update_date timestamp, activity_calendar_fk integer, daily_activity_calendar_fk integer, landing_fk integer, pmfm_fk integer not null, qualitative_value_fk integer, quality_flag_fk integer not null, recorder_department_fk integer not null, primary key (id));
 create table system_version (id integer not null, comments varchar(2000), creation_date timestamp not null, description varchar(255), label varchar(50) not null, update_date timestamp, primary key (id));
 create table taxon_group (id integer not null, comments varchar(2000), creation_date timestamp not null, description varchar(255), label varchar(50), name varchar(100) not null, update_date timestamp, parent_taxon_group_fk integer, status_fk integer not null, taxon_group_type_fk integer not null, primary key (id));
@@ -633,6 +635,8 @@ alter table strategy2department add constraint strategy2department_program_privi
 alter table strategy2department add constraint strategy2department_strategy_fkc foreign key (strategy_fk) references strategy;
 alter table strategy2gear add constraint strategy2gear_gear_fkc foreign key (gear_fk) references gear;
 alter table strategy2gear add constraint strategy2gear_strategy_fkc foreign key (strategy_fk) references strategy;
+alter table strategy_property add constraint strategy_property_strategy_fkc foreign key (strategy_fk) references strategy;
+alter table strategy_property add constraint strategy_property_status_fkc foreign key (status_fk) references status;
 alter table survey_measurement add constraint survey_measurement_activity_calendar_fkc foreign key (activity_calendar_fk) references activity_calendar;
 alter table survey_measurement add constraint survey_measurement_daily_activity_calendar_fkc foreign key (daily_activity_calendar_fk) references daily_activity_calendar;
 alter table survey_measurement add constraint survey_measurement_landing_fkc foreign key (landing_fk) references landing;
