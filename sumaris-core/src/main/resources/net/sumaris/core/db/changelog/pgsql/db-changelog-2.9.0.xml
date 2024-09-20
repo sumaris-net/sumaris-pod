@@ -1,5 +1,7 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd"
                    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/pgsql/db-changelog-2.9.0.xml">
 
     <changeSet author="benoit.lavenier@e-is.pro" id="1702548457172-001">
@@ -64,12 +66,12 @@
             <where>LABEL='2.9.0'</where>
         </delete>
         <insert tableName="SYSTEM_VERSION">
-            <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+            <column name="ID" valueComputed="nextval('system_version_seq')"/>
             <column name="LABEL">2.9.0</column>
             <column name="DESCRIPTION">
                 - Add some columns on USER_TOKEN
             </column>
-            <column name="CREATION_DATE" valueComputed="sysdate"/>
+            <column name="CREATION_DATE" valueComputed="current_timestamp"/>
             <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
             <column name="COMMENTS">
                 - Add some columns (NAME, LAST_USED_DATE, etc.) on USER_TOKEN
