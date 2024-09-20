@@ -30,6 +30,8 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.activity.ActivityCalendarRepository;
+import net.sumaris.core.dao.data.vessel.GearPhysicalFeaturesRepository;
+import net.sumaris.core.dao.data.vessel.GearUseFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselUseFeaturesRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -38,27 +40,19 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.ActivityCalendar;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.GearUseFeaturesVO;
-import net.sumaris.core.vo.data.IUseFeaturesVO;
-import net.sumaris.core.vo.data.VesselUseFeaturesVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import net.sumaris.core.vo.filter.GearPhysicalFeaturesFilterVO;
 import net.sumaris.core.vo.filter.GearUseFeaturesFilterVO;
 import net.sumaris.core.vo.filter.VesselUseFeaturesFilterVO;
-import net.sumaris.core.dao.data.vessel.GearPhysicalFeaturesRepository;
-import net.sumaris.core.dao.data.vessel.GearUseFeaturesRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -67,8 +61,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import java.text.ParseException;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -438,6 +430,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             source.setRecorderPersonId(parent.getRecorderPerson().getId());
         }
 
+        // Link to parent
         if (source instanceof VesselUseFeaturesVO vuf) {
             vuf.setActivityCalendarId(parent.getId());
         }
