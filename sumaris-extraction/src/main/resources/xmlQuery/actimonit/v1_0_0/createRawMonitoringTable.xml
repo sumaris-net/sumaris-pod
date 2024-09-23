@@ -55,8 +55,8 @@
         <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="agg,oracle11">LISTAGG(VRP.INT_REGISTRATION_CODE, ' | ')</select>
         <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="agg,oracle12">LISTAGG(VRP.INT_REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
 
-        <select alias="DIRECT_SURVEY_INVESTIGATION" group="agg">CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION IS NOT NULL THEN 'Y' ELSE 'N' END</select>
-        <select alias="ECONOMIC_SURVEY">CASE WHEN AC.ECONOMIC_SURVEY IS NOT NULL THEN 'Y' ELSE 'N' END</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION" group="agg">CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION = 1 THEN 'Y' ELSE 'N' END</select>
+        <select alias="ECONOMIC_SURVEY">CASE WHEN AC.ECONOMIC_SURVEY = 1 THEN 'Y' ELSE 'N' END</select>
         <select alias="SURVEY_QUALIFICATION">SURVEY_QUALIFICATION_QV.NAME</select>
         <select alias="RECORDER_PERSON" dbms="hsqldb,pgsql" group="agg">MIN(CONCAT(PERSON.LAST_NAME, ' ', PERSON.FIRST_NAME))</select>
         <select alias="RECORDER_PERSON" dbms="oracle" group="agg">MIN(PERSON.LAST_NAME || ' ' || PERSON.FIRST_NAME)</select>
