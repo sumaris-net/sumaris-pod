@@ -55,12 +55,12 @@
       <where>LABEL='4.3.1'</where>
     </delete>
     <insert tableName="SYSTEM_VERSION">
-      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="ID" valueComputed="nextval('system_version_seq')"/>
       <column name="LABEL">4.3.1</column>
       <column name="DESCRIPTION" >
         - Add table STRATEGY_PROPERTY
       </column>
-      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="CREATION_DATE" valueComputed="current_timestamp"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
         - Add table STRATEGY_PROPERTY

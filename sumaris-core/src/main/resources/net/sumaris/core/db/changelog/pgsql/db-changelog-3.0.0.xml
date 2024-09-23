@@ -389,13 +389,13 @@
     <addForeignKeyConstraint baseColumnNames="metier_fk" baseTableName="gear_use_features" constraintName="FKtaksgk140xe330221kxyyiix6" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Metier" validate="true"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-062" failOnError="false">
-    <dropNotNullConstraint columnDatatype="INT" columnName="landing_fk" tableName="survey_measurement"/>
+    <dropNotNullConstraint columnName="landing_fk" tableName="survey_measurement"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-063" failOnError="false">
-    <dropNotNullConstraint columnDataType="varchar(100)" columnName="name" tableName="transcribing_item"/>
+    <dropNotNullConstraint columnName="name" tableName="transcribing_item"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-064" failOnError="false">
-    <dropNotNullConstraint columnDatatype="INT" columnName="operation_fk" tableName="gear_use_measurement"/>
+    <dropNotNullConstraint columnName="operation_fk" tableName="gear_use_measurement"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1703243837449-065" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="observed_location_fk" baseTableName="daily_activity_calendar" constraintName="FKg0kkuoaq1d1su1k4au3f7b1ka" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="observed_location" validate="true"/>
@@ -1333,7 +1333,7 @@
       <column name="LABEL">3.0.0</column>
       <column name="DESCRIPTION">
         - Rename software properties;
-        - Add tables ACTIVITY_CALENDAR, DAILY_ACTIVITY_CALENDAR, CORPUS, FISHERY, NAMED_FILTER, GEAR_PHYSICAL_FEATURES, ACTIVITY_CALENDAR2PERSON;
+        - Add activity calendar tables;
         - Add missing delete cascade constrains;
         - Add column SAMPLING_STRATA_FK;
       </column>

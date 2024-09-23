@@ -78,7 +78,7 @@ import static org.nuiton.i18n.I18n.t;
 @Service("activityCalendarImportService")
 @RequiredArgsConstructor
 @Slf4j
-public class ActivityCalendarServiceImpl implements ActivityCalendarImportService {
+public class ActivityCalendarImportServiceImpl implements ActivityCalendarImportService {
     protected static final Map<String, String> headerReplacements = ImmutableMap.<String, String>builder()
             // Siop vessel synonyms (for LPDB)
             .put("ANN.E[.]DE[.]R.F.RENCE", ActivityCalendarVO.Fields.YEAR)

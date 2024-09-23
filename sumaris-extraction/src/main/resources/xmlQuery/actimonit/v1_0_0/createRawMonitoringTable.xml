@@ -27,38 +27,48 @@
 
         <select alias="OBSERVER" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) SEPARATOR ' | ')</select>
         <select alias="OBSERVER" dbms="pgsql" group="agg">STRING_AGG(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME), ' | ')</select>
-        <select alias="OBSERVER" dbms="oracle" group="agg">LISTAGG(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME), ' | ')</select>
+        <select alias="OBSERVER" dbms="oracle" group="agg,oracle11">LISTAGG(OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME, ' | ')</select>
+        <select alias="OBSERVER" dbms="oracle" group="agg,oracle12">LISTAGG(OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME, ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
 
         <select alias="VESSEL_NAME" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT REPLACE(VF.NAME, '|', 'I') ORDER BY VF.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_NAME" dbms="pgsql" group="agg">STRING_AGG(DISTINCT REPLACE(VF.NAME, '|', 'I'), ' | ' ORDER BY VF.START_DATE)</select>
-        <select alias="VESSEL_NAME" dbms="oracle" group="agg">LISTAGG(DISTINCT REPLACE(VF.NAME, '|', 'I'), ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
+        <select alias="VESSEL_NAME" dbms="oracle" group="agg,oracle11">LISTAGG(REPLACE(VF.NAME, '|', 'I'), ' | ')</select>
+        <select alias="VESSEL_NAME" dbms="oracle" group="agg,oracle12">LISTAGG(REPLACE(VF.NAME, '|', 'I'), ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
 
         <select alias="VESSEL_LENGTH" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VF.LENGTH_OVER_ALL * 0.01 ORDER BY VF.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_LENGTH" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VF.LENGTH_OVER_ALL * 0.01, ' | ' ORDER BY VF.START_DATE)</select>
-        <select alias="VESSEL_LENGTH" dbms="oracle" group="agg">LISTAGG(DISTINCT CAST(VF.LENGTH_OVER_ALL AS NUMBER(8,2)) / 100, ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
+        <select alias="VESSEL_LENGTH" dbms="oracle" group="agg,oracle11">LISTAGG(CAST(VF.LENGTH_OVER_ALL AS NUMBER(8,2)) / 100, ' | ')</select>
+        <select alias="VESSEL_LENGTH" dbms="oracle" group="agg,oracle12">LISTAGG(CAST(VF.LENGTH_OVER_ALL AS NUMBER(8,2)) / 100, ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
 
         <select alias="REGISTRATION_LOCATION_LABEL" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT L.LABEL ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
         <select alias="REGISTRATION_LOCATION_LABEL" dbms="pgsql" group="agg">STRING_AGG(DISTINCT L.LABEL, ' | ' ORDER BY VRP.START_DATE)</select>
-        <select alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="agg">LISTAGG(DISTINCT L.LABEL, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
+        <select alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="agg,oracle11">LISTAGG(L.LABEL, ' | ')</select>
+        <select alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="agg,oracle12">LISTAGG(L.LABEL, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
 
         <select alias="VESSEL_REGISTRATION_CODE" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VRP.REGISTRATION_CODE ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_REGISTRATION_CODE" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VRP.REGISTRATION_CODE, ' | ' ORDER BY VRP.START_DATE)</select>
-        <select alias="VESSEL_REGISTRATION_CODE" dbms="oracle" group="agg">LISTAGG(DISTINCT VRP.REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
+        <select alias="VESSEL_REGISTRATION_CODE" dbms="oracle" group="agg,oracle11">LISTAGG(VRP.REGISTRATION_CODE, ' | ')</select>
+        <select alias="VESSEL_REGISTRATION_CODE" dbms="oracle" group="agg,oracle12">LISTAGG(VRP.REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
 
         <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VRP.INT_REGISTRATION_CODE ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VRP.INT_REGISTRATION_CODE, ' | ' ORDER BY VRP.START_DATE)</select>
-        <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="agg">LISTAGG(DISTINCT VRP.INT_REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
+        <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="agg,oracle11">LISTAGG(VRP.INT_REGISTRATION_CODE, ' | ')</select>
+        <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="agg,oracle12">LISTAGG(VRP.INT_REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
 
-        <select alias="DIRECT_SURVEY_INVESTIGATION" group="agg">CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION THEN 'Y' ELSE 'N' END</select>
-        <select alias="ECONOMIC_SURVEY">CASE WHEN AC.ECONOMIC_SURVEY THEN 'Y' ELSE 'N' END</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="hsqldb,pgsql" group="agg">MIN(CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION THEN 'Y' ELSE 'N' END)</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="oracle" group="agg">MIN(CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END)</select>
+        <select alias="ECONOMIC_SURVEY" dbms="hsqldb,pgsql" group="agg">MIN(CASE WHEN AC.ECONOMIC_SURVEY THEN 'Y' ELSE 'N' END)</select>
+        <select alias="ECONOMIC_SURVEY" dbms="oracle" group="agg">MIN(CASE AC.ECONOMIC_SURVEY WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END)</select>
+
         <select alias="SURVEY_QUALIFICATION">SURVEY_QUALIFICATION_QV.NAME</select>
-        <select alias="RECORDER_PERSON" group="agg">MIN(CONCAT(PERSON.LAST_NAME, ' ', PERSON.FIRST_NAME))</select>
+        <select alias="RECORDER_PERSON" dbms="hsqldb,pgsql" group="agg">MIN(CONCAT(PERSON.LAST_NAME, ' ', PERSON.FIRST_NAME))</select>
+        <select alias="RECORDER_PERSON" dbms="oracle" group="agg">MIN(PERSON.LAST_NAME || ' ' || PERSON.FIRST_NAME)</select>
         <select alias="RECORDER_DEPARTMENT" group="agg">MIN(DEPARTMENT.LABEL)</select>
 
         <select alias="IS_ACTIVE" type="text">VUF.IS_ACTIVE</select>
 
-        <!-- TODO tests in Oracle/Pgsql -->
-        <select alias="MONTH" type="text">MONTH(VUF.START_DATE)</select>
+        <select alias="MONTH" dbms="hsqldb,pgsql" type="text" group="agg">MIN(MONTH(VUF.START_DATE))</select>
+        <select alias="MONTH" dbms="oracle" type="text" group="agg">MIN(EXTRACT(MONTH FROM VUF.START_DATE))</select>
         <select alias="METIER_COUNT" type="text" group="agg">COUNT(DISTINCT GUF.METIER_FK)</select>
         <select alias="ERROR" type="text" group="agg">
             MIN(TRIM(CASE
@@ -92,7 +102,8 @@
         <select alias="VESSEL_REGISTRATION_CODE_FILTERED" type="hidden" group="vesselRegistrationCodeFilter,agg">MAX(CASE WHEN VRP.REGISTRATION_CODE IN (&amp;vesselRegistrationCodes) THEN 1 ELSE 0 END)</select>
         <select alias="VESSEL_REGISTRATION_CODE_FILTERED" type="hidden" group="!vesselRegistrationCodeFilter,agg">MIN(1)</select>
 
-        <select alias="OBSERVER_FILTERED" type="hidden" group="observersFilter,agg">MAX(CASE WHEN CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) IN (&amp;observers) THEN 1 ELSE 0 END)</select>
+        <select alias="OBSERVER_FILTERED" type="hidden" dbms="hsqldb,pgsql" group="observersFilter,agg">MAX(CASE WHEN CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) IN (&amp;observers) THEN 1 ELSE 0 END)</select>
+        <select alias="OBSERVER_FILTERED" type="hidden" dbms="oracle" group="observersFilter,agg">MAX(CASE WHEN OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME IN (&amp;observers) THEN 1 ELSE 0 END)</select>
         <select alias="OBSERVER_FILTERED" type="hidden" group="!observersFilter,agg">MIN(1)</select>
 
         <from alias="AC">ACTIVITY_CALENDAR</from>

@@ -42,7 +42,7 @@
             ELSE VRP.END_DATE
           END
         ]]></select>
-        <select alias="INTERNATIONAL_REGISTRATION_CODE" type="text">VRP.INT_REGISTRATION_CODE</select>
+        <select alias="INT_REGISTRATION_CODE" type="text">VRP.INT_REGISTRATION_CODE</select>
         <select alias="REGISTRATION_CODE" type="text">VRP.REGISTRATION_CODE</select>
         <select alias="HARBOUR_LABEL" type="text">HARBOUR.LABEL</select>
         <select alias="HARBOUR_NAME" type="text">HARBOUR.NAME</select>

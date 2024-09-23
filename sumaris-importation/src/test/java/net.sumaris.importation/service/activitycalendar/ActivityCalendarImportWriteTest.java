@@ -201,7 +201,7 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
             expectedResult.setStatus(JobStatusEnum.SUCCESS);
             expectedResult.setInserts(0);
             expectedResult.setUpdates(0);
-            expectedResult.setWarnings(6214);
+            expectedResult.setWarnings(2);
             expectedResult.setErrors(0);
 
             assertEquals(expectedResult, result, false);
