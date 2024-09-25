@@ -30,7 +30,7 @@
                 <where>1=1</where>
                 <where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
                 <where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
-                <where operator="AND">VESSEL_REGISTRATION_CODE_FILTERED=1</where>
+                <where operator="AND">VESSEL_REG_CODE_FILTERED=1</where>
                 <where operator="AND">OBSERVER_FILTERED=1</where>
             </subquery>
         </with>
