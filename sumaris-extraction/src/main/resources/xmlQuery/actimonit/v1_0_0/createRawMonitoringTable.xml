@@ -99,8 +99,8 @@
         <select alias="BASE_PORT_LOCATION_FILTERED" type="hidden" group="basePortLocationFilter,agg">MAX(CASE WHEN L_PORT.LABEL IN (&amp;basePortLocationLabels) THEN 1 ELSE 0 END)</select>
         <select alias="BASE_PORT_LOCATION_FILTERED" type="hidden" group="!basePortLocationFilter,agg">MIN(1)</select>
 
-        <select alias="VESSEL_REGISTRATION_CODE_FILTERED" type="hidden" group="vesselRegistrationCodeFilter,agg">MAX(CASE WHEN VRP.REGISTRATION_CODE IN (&amp;vesselRegistrationCodes) THEN 1 ELSE 0 END)</select>
-        <select alias="VESSEL_REGISTRATION_CODE_FILTERED" type="hidden" group="!vesselRegistrationCodeFilter,agg">MIN(1)</select>
+        <select alias="VESSEL_REG_CODE_FILTERED" type="hidden" group="vesselRegistrationCodeFilter,agg">MAX(CASE WHEN VRP.REGISTRATION_CODE IN (&amp;vesselRegistrationCodes) THEN 1 ELSE 0 END)</select>
+        <select alias="VESSEL_REG_CODE_FILTERED" type="hidden" group="!vesselRegistrationCodeFilter,agg">MIN(1)</select>
 
         <select alias="OBSERVER_FILTERED" type="hidden" dbms="hsqldb,pgsql" group="observersFilter,agg">MAX(CASE WHEN CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) IN (&amp;observers) THEN 1 ELSE 0 END)</select>
         <select alias="OBSERVER_FILTERED" type="hidden" dbms="oracle" group="observersFilter,agg">MAX(CASE WHEN OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME IN (&amp;observers) THEN 1 ELSE 0 END)</select>
