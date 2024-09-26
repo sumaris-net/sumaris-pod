@@ -112,7 +112,7 @@ public class ObservedLocationServiceImpl implements ObservedLocationService {
 
 	@Override
 	public int getProgramIdById(int id) {
-		return observedLocationRepository.getProgramIdById(id);
+		return repository.getProgramIdById(id);
 	}
 
 	@Override

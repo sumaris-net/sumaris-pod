@@ -27,12 +27,13 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.data.LandingService;
 import net.sumaris.core.service.data.ObservedLocationService;
 import net.sumaris.core.vo.data.LandingFetchOptions;
+import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
-import net.sumaris.core.vo.filter.*;
+import net.sumaris.core.vo.filter.LandingFilterVO;
+import net.sumaris.core.vo.filter.SaleFilterVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service("denormalizeObservedLocationService")
 @RequiredArgsConstructor
@@ -69,7 +70,7 @@ public class DenormalizedObservedLocationServiceImpl implements DenormalizedObse
                 .withRecorderDepartment(false)
                 .withRecorderPerson(false)
                 .withSaleIds(true)
-                .build()).stream().map((landing) -> landing.getSaleIds()).collect(Collectors.toList())
+                .build()).stream().map(LandingVO::getSaleIds).toList()
                 .stream()
                 .flatMap(List::stream)
                 .distinct()
