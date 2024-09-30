@@ -85,11 +85,18 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     REGISTRATION_CONFIRM_URL(
             "sumaris.server.account.register.confirm.url",
             n("sumaris.config.option.server.account.register.confirm.url.description"),
-            "${sumarie.app.url}/confirm/{email}/{code}",
+            "${sumaris.app.url}/confirm/{email}/{code}",
             String.class,
             false),
 
-    EMAIL_ENABLED( "spring.mail.enabled",
+    RESET_PASSWORD_URL(
+            "sumaris.server.account.password.reset.url",
+            n("sumaris.config.option.server.account.password.reset.description"),
+            "${sumaris.app.url}/password/{email}/{code}",
+            String.class,
+            false),
+
+    EMAIL_ENABLED("spring.mail.enabled",
             n("sumaris.config.option.spring.mail.enabled.description"),
             "true",
             Boolean.class,
@@ -151,6 +158,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             Integer.class,
             false),
 
+    AUTH_RESET_TOKEN_LIFE_TIME(
+        "sumaris.auth.reset.token.lifeTime",
+        n("sumaris.config.option.auth.reset.token.lifeTime.description"),
+        "900", // 15 min
+        Integer.class,
+        false),
+
     ACCESS_NOT_SELF_DATA_MIN_ROLE(
             "sumaris.data.accessNotSelfData.role",
             n("sumaris.config.option.data.accessNotSelfData.role.description"),
@@ -159,51 +173,51 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             false),
 
     ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS(
-        "sumaris.data.accessNotSelfData.department.ids",
-        n("sumaris.config.option.data.accessNotSelfData.department.ids.description"),
-        null,
-        String.class,
-        false),
+            "sumaris.data.accessNotSelfData.department.ids",
+            n("sumaris.config.option.data.accessNotSelfData.department.ids.description"),
+            null,
+            String.class,
+            false),
 
     ACCESS_DATA_PROGRAM_IDS(
-        "sumaris.data.program.ids",
-        n("sumaris.config.option.data.program.ids.description"),
-        null,
-        String.class,
-        false),
+            "sumaris.data.program.ids",
+            n("sumaris.config.option.data.program.ids.description"),
+            null,
+            String.class,
+            false),
 
     ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE(ExtractionWebConfigurationOption.ACCESS_NOT_SELF_EXTRACTION_MIN_ROLE),
 
     SECURITY_AUTHENTICATION_TOKEN_ENABLED(
-        "spring.security.token.enabled",
-        n("sumaris.config.option.spring.security.token.enabled.description"),
-        "true",
-        Boolean.class),
+            "spring.security.token.enabled",
+            n("sumaris.config.option.spring.security.token.enabled.description"),
+            "true",
+            Boolean.class),
 
     SECURITY_AUTHENTICATION_LDAP_ENABLED(
-        "spring.security.ldap.enabled",
-        n("sumaris.config.option.spring.security.ldap.enabled.description"),
-        "false",
-        Boolean.class),
+            "spring.security.ldap.enabled",
+            n("sumaris.config.option.spring.security.ldap.enabled.description"),
+            "false",
+            Boolean.class),
 
     SECURITY_AUTHENTICATION_AD_ENABLED(
-        "spring.security.ad.enabled",
-        n("sumaris.config.option.spring.security.ad.enabled.description"),
-        "false",
-        Boolean.class),
+            "spring.security.ad.enabled",
+            n("sumaris.config.option.spring.security.ad.enabled.description"),
+            "false",
+            Boolean.class),
 
     AUTH_TOKEN_TYPE(
-        "sumaris.auth.token.type",
-        n("sumaris.config.option.auth.token.type.description"),
-        null, // NUll == auto detected
-        String.class),
+            "sumaris.auth.token.type",
+            n("sumaris.config.option.auth.token.type.description"),
+            null, // NUll == auto detected
+            String.class),
 
     AUTH_API_TOKEN_ENABLED(
-        "sumaris.auth.api.token.enabled",
-        n("sumaris.config.option.auth.api.token.enable"),
-        Boolean.FALSE.toString(),
-        Boolean.class,
-        false),
+            "sumaris.auth.api.token.enabled",
+            n("sumaris.config.option.auth.api.token.enable"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
 
     APP_MIN_VERSION(
             "sumaris.app.version.min",
@@ -267,43 +281,54 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             false),
 
     ENABLE_GRAVATAR(
-        "sumaris.gravatar.enable",
-        n("sumaris.config.option.gravatar.enable.description"),
-        "false",
-        Boolean.class,
-        false),
+            "sumaris.gravatar.enable",
+            n("sumaris.config.option.gravatar.enable.description"),
+            "false",
+            Boolean.class,
+            false),
 
     GRAVATAR_URL(
-        "sumaris.gravatar.url",
-        n("sumaris.config.option.gravatar.url.description"),
-        "https://www.gravatar.com/avatar/{md5}",
-        String.class,
-        false)
-    ;
+            "sumaris.gravatar.url",
+            n("sumaris.config.option.gravatar.url.description"),
+            "https://www.gravatar.com/avatar/{md5}",
+            String.class,
+            false);
 
-    /** Configuration key. */
+    /**
+     * Configuration key.
+     */
     private final String key;
 
-    /** I18n key of option description */
+    /**
+     * I18n key of option description
+     */
     private final String description;
 
-    /** Type of option */
+    /**
+     * Type of option
+     */
     private final Class<?> type;
 
-    /** Default value of option. */
+    /**
+     * Default value of option.
+     */
     private String defaultValue;
 
-    /** Flag to not keep option value on disk */
+    /**
+     * Flag to not keep option value on disk
+     */
     private boolean isTransient;
 
-    /** Flag to not allow option value modification */
+    /**
+     * Flag to not allow option value modification
+     */
     private boolean isFinal;
 
     SumarisServerConfigurationOption(String key,
-                               String description,
-                               String defaultValue,
-                               Class<?> type,
-                               boolean isTransient) {
+                                     String description,
+                                     String defaultValue,
+                                     Class<?> type,
+                                     boolean isTransient) {
         this.key = key;
         this.description = description;
         this.defaultValue = defaultValue;
@@ -313,9 +338,9 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     }
 
     SumarisServerConfigurationOption(String key,
-                               String description,
-                               String defaultValue,
-                               Class<?> type) {
+                                     String description,
+                                     String defaultValue,
+                                     Class<?> type) {
         this(key, description, defaultValue, type, true);
     }
 
@@ -326,55 +351,73 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
         this.type = bean.getType();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getKey() {
         return key;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Class<?> getType() {
         return type;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getDescription() {
         return description;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getDefaultValue() {
         return defaultValue;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isTransient() {
         return isTransient;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isFinal() {
         return isFinal;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setTransient(boolean newValue) {
         // not used
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setFinal(boolean newValue) {
         // not used

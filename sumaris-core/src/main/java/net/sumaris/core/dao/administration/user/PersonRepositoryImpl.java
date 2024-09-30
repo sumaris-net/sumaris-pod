@@ -116,10 +116,13 @@ public class PersonRepositoryImpl
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, key = "#username", unless="#result==null")
-    public Optional<PersonVO> findByUsername(String username) {
-        return findAll(hasUsername(username)).stream()
-            .filter(p -> StatusEnum.ENABLE.getId().equals(p.getStatus().getId()))
-            .findFirst().map(this::toVO);
+    public Optional<PersonVO> findByUsername(@NonNull String username) {
+        return findAll(
+                hasUsername(username)
+                    // Allow INVITE or active user
+                .and(inStatusIds(StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId()))
+        ).stream()
+        .findFirst().map(this::toVO);
     }
 
     @Override
@@ -166,6 +169,7 @@ public class PersonRepositoryImpl
             .and(hasEmail(filter.getEmail()))
             .and(hasFirstName(filter.getFirstName()))
             .and(hasLastName(filter.getLastName()))
+            .and(hasUsername(filter.getUsername()))
             .and(searchText(filter))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludedIds(filter.getExcludedIds()))
@@ -187,12 +191,13 @@ public class PersonRepositoryImpl
     @Override
     @Caching(
         evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#source.id", condition = "#source != null && #source.id != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#source.id", condition = "#source != null && #source.id != null")
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#source.id", condition = "#source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#source.id", condition = "#source.id != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, key = "#source.pubkey", condition = "#source.pubkey != null")
         },
         put = {
-            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#source.id", condition = "#source != null && #source.id != null"),
-            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source != null && #source.id != null && #source.pubkey != null")
+            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#source.id", condition = "#source.id != null"),
+            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source.id != null && #source.pubkey != null")
         })
     public PersonVO save(PersonVO source) {
         return super.save(source);

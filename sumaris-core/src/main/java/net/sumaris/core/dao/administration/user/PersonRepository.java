@@ -25,8 +25,21 @@ package net.sumaris.core.dao.administration.user;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.vo.administration.user.PersonVO;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 public interface PersonRepository extends SumarisJpaRepository<Person, Integer, PersonVO>, PersonSpecifications {
 
     boolean existsByEmailMD5(String emailMD5);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByPubkey(String pubkey);
+
+    Person findByEmailMD5(String emailMD5);
+
+    @Query("select min(p.avatar.id) from Person p where p.pubkey = :pubkey and p.avatar.id is not null")
+    Optional<Integer> findAvatarIdByPubkey(@Param("pubkey") String pubkey);
 }

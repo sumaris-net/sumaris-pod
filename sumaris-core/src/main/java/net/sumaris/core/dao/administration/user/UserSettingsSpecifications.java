@@ -23,7 +23,6 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import org.springframework.data.jpa.domain.Specification;

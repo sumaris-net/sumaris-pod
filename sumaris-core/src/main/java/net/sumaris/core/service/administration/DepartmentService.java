@@ -26,10 +26,10 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 public interface DepartmentService {
@@ -46,7 +46,7 @@ public interface DepartmentService {
     List<DepartmentVO> getByIds(int[] ids);
 
     @Transactional(readOnly = true)
-    ImageAttachmentVO getLogoByLabel(String label);
+    Optional<ImageAttachmentVO> findLogoByLabel(String label);
 
     void delete(int id);
 

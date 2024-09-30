@@ -50,6 +50,7 @@ public interface RestPaths {
 
     String APP_SHARE_PATH = "/share/{uuid:[a-zA-Z0-9-_$.]+}";
     String APP_EMAIL_CONFIRM_PATH = "/confirm/{email}/{code}";
+    String APP_RESET_PASSWORD_PATH = "/password/{email}/{code}";
 
 
     static void checkSecuredPath(String path) throws InvalidPathException {
@@ -57,7 +58,7 @@ public interface RestPaths {
     }
 
     static boolean isSecuredPath(@NonNull String path) throws InvalidPathException {
-        Preconditions.checkArgument(path.trim().length() > 0);
+        Preconditions.checkArgument(!path.trim().isEmpty());
         // Check if the file's name contains invalid characters
         return !path.contains("..");
     }

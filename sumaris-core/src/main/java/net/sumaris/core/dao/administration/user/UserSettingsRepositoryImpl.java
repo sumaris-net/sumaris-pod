@@ -24,7 +24,6 @@ package net.sumaris.core.dao.administration.user;
 
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -54,11 +53,12 @@ public class UserSettingsRepositoryImpl
         if (CollectionUtils.isEmpty(settings)) {
             return Optional.empty();
         }
-        if (settings.size() > 1)
+        if (settings.size() > 1) {
             throw new NonUniqueResultException("should not happened because issuer has a unique index");
+        }
         return Optional.of(toVO(settings.get(0)));
     }
-
+    
     @Override
     public UserSettingsVO save(UserSettingsVO source) {
         Preconditions.checkNotNull(source);

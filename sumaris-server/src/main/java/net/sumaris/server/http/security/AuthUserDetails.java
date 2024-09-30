@@ -64,6 +64,10 @@ public class AuthUserDetails implements UserDetails {
         return authData != null ? authData.getPubkey() : null;
     }
 
+    public String getChallenge() {
+        return authData != null ? authData.getChallenge() : null;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
