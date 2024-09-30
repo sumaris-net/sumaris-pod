@@ -43,6 +43,4 @@ public interface UserTokenRepository
 
     List<UserToken> findByPubkey(String pubkey);
 
-    void deleteAllByPubkey(String pubkey);
-
 }

@@ -28,14 +28,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import it.ozimov.springboot.mail.model.Email;
 import it.ozimov.springboot.mail.model.defaultimpl.DefaultEmail;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.administration.user.UserTokenRepository;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
-import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
 import net.sumaris.core.model.administration.user.UserToken;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -44,6 +45,7 @@ import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.social.UserEventService;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
@@ -51,7 +53,6 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.exception.ErrorCodes;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
-import net.sumaris.server.http.security.ValidationExpiredCache;
 import net.sumaris.server.service.crypto.ServerCryptoService;
 import net.sumaris.server.service.social.UserMessageService;
 import org.apache.commons.collections.CollectionUtils;
@@ -63,6 +64,7 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
@@ -81,7 +83,6 @@ public class AccountServiceImpl implements AccountService {
     private final UserMessageService userMessageService;
     private final ServerCryptoService serverCryptoService;
     private final UserEventService userEventService;
-    private ValidationExpiredCache tokenExpiredCache;
 
     private String serverUrl;
 
@@ -234,28 +235,42 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void changePasswordByAccountId(Integer idAccount, String newPubkey) {
-        Preconditions.checkNotNull(idAccount);
+    public void updatePubkeyById(Integer id, String newPubkey) {
+        Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(newPubkey);
-        PersonVO account = personRepository.get(idAccount);
-        if (account == null) {
-            throw new SumarisTechnicalException("account not found");
-        }
+        Preconditions.checkArgument(CryptoUtils.isValidPubkey(newPubkey), "Invalid new pubkey: " + newPubkey);
 
-        String oldPubkey = account.getPubkey();
+        PersonVO user = personService.getById(id);
 
-        account.setPubkey(newPubkey);
-        personRepository.save(account);
+        // Check user is enable or temporary
+        Preconditions.checkArgument(
+            Objects.equals(user.getStatusId(), StatusEnum.ENABLE.getId())
+            || Objects.equals(user.getStatusId(), StatusEnum.TEMPORARY.getId())
+        );
 
-        updateWithNewPubkey(oldPubkey, newPubkey);
+        // Check old pubkey is valid, and not same
+        String oldPubkey = user.getPubkey();
+        Preconditions.checkArgument(CryptoUtils.isValidPubkey(oldPubkey), "Invalid old pubkey: " + oldPubkey);
+        Preconditions.checkArgument(!Objects.equals(oldPubkey, newPubkey), "Cannot replace with the same pubkey");
+
+        // Check new pubkey is not already used
+        boolean alreadyExists = personService.findByPubkey(newPubkey).isPresent();
+        Preconditions.checkArgument(!alreadyExists, "New pubkey already used by another account.");
+
+        // Update pubkey
+        user.setPubkey(newPubkey);
+        personService.save(user);
+
+        // Replace pubkey in other tables (e.g. UserSettings, UserEvent)
+        updatePubkey(oldPubkey, newPubkey);
     }
 
     @Override
     public void confirmEmail(String email, String signatureHash) throws InvalidEmailConfirmationException {
         Preconditions.checkNotNull(email);
-        Preconditions.checkArgument(email.trim().length() > 0);
+        Preconditions.checkArgument(!email.trim().isEmpty());
         Preconditions.checkNotNull(signatureHash);
-        Preconditions.checkArgument(signatureHash.trim().length() > 0);
+        Preconditions.checkArgument(!signatureHash.trim().isEmpty());
 
         String validSignatureHash = serverCryptoService.hash(serverCryptoService.sign(email.trim()));
 
@@ -294,59 +309,30 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void sendChangePassword(String email, String locale) throws InvalidEmailConfirmationException {
+    public void sendResetPasswordEmail(@NonNull String username,
+                                       String token,
+                                       String locale) throws InvalidEmailConfirmationException {
+        Preconditions.checkArgument(!username.trim().isEmpty());
 
-        if (!personRepository.existsByEmail(email)) {
-            throw new InvalidEmailConfirmationException((I18n.t("sumaris.server.account.change.notexist")));
+        String email;
+        // Test if username = email
+        if (personService.existsByEmail(username)) {
+            email = username;
+        }
+        else {
+            email = personService.findEmailByUsername(username)
+                .orElseThrow(() -> new DataNotFoundException(I18n.t("sumaris.error.person.notFound")));
         }
 
-        sendEmailChangePassword(email, I18nUtil.toI18nLocale(locale));
+        sendResetPasswordEmail(email,
+            token,
+            I18nUtil.toI18nLocale(locale));
 
     }
 
     @Override
-    public void confirmChangePassword(String token, String toAddress, String newPubkey) {
-        Preconditions.checkNotNull(token);
-        Preconditions.checkNotNull(toAddress.trim());
-        Preconditions.checkNotNull(newPubkey);
-        String[] splitToken = token.trim().split(":");
-
-        if (!tokenExpiredCache.contains(token)) {
-            throw new UnauthorizedException();
-        }
-
-        if (!personRepository.existsByEmail(toAddress)) {
-            throw new UnauthorizedException();
-        }
-        boolean valid = serverCryptoService.hash(serverCryptoService.sign(toAddress + ":" + splitToken[1])).equals(splitToken[0]);
-
-        if (!valid) {
-            log.warn(I18n.t("sumaris.error.account.register.badEmailOrToken", toAddress));
-            throw new InvalidEmailConfirmationException("Invalid confirmation: bad email or token.");
-        }
-
-        // Log success
-        log.info(I18n.t("sumaris.server.account.change.confirmed", toAddress));
-
-
-        PersonVO personToUpdate = personService.getByEmail(toAddress);
-        if (personToUpdate == null) {
-            log.warn(I18n.t("sumaris.error.account.change.badEmailOrToken", toAddress));
-            throw new InvalidEmailConfirmationException("This account does not exist");
-        }
-
-        String oldPubkey = personToUpdate.getPubkey();
-        personToUpdate.setPubkey(newPubkey);
-        personService.save(personToUpdate);
-
-        updateWithNewPubkey(oldPubkey, newPubkey);
-    }
-
-
-    @Override
-    public void sendConfirmationEmail(String email, String locale) throws InvalidEmailConfirmationException {
-        Preconditions.checkNotNull(email);
-        Preconditions.checkArgument(email.trim().length() > 0);
+    public void sendConfirmationEmail(@NonNull String email, String locale) throws InvalidEmailConfirmationException {
+        Preconditions.checkArgument(!email.trim().isEmpty());
 
         // Mark account as temporary
         PersonFilterVO filter = new PersonFilterVO();
@@ -466,10 +452,10 @@ public class AccountServiceImpl implements AccountService {
         try {
 
             String signatureHash = serverCryptoService.hash(serverCryptoService.sign(toAddress));
-
+            String encodedSignatureHash = URLEncoder.encode(signatureHash, StandardCharsets.UTF_8);
             String confirmationLinkURL = configuration.getRegistrationConfirmUrlPattern()
                     .replace("{email}", toAddress)
-                    .replace("{code}", signatureHash);
+                    .replace("{code}", encodedSignatureHash);
 
             Email email = DefaultEmail.builder()
                     .from(userMessageService.getEmailDefaultFrom())
@@ -490,38 +476,35 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    private void sendEmailChangePassword(String toAddress, Locale locale) {
+    private void sendResetPasswordEmail(@NonNull String toAddress,
+                                        @NonNull String token, Locale locale) {
         if (!userMessageService.isEmailEnabled()) {
             log.warn(I18n.t("sumaris.error.account.register.sentConfirmation.skipped"));
             return; // Skip if disable
         }
 
-
         try {
-            String time = String.valueOf(System.currentTimeMillis());
-            String token = serverCryptoService.hash(serverCryptoService.sign(toAddress.trim() + ":" + time)) + ":" +
-                    time;
-            String changePasswordLinkURL = configuration.getChangePasswordUrlPattern()
-                    .replace("{token}", token)
-                    .replace("{email}", toAddress);
+            String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
+            String resetPasswordLinkURL = configuration.getResetPasswordUrlPattern()
+                .replace("{email}", toAddress)
+                .replace("{code}", encodedToken);
 
+            Integer tokenLifeTimeInMinutes = Math.round((float) configuration.getAuthResetTokenLifeTime() / 60);
             Email email = DefaultEmail.builder()
                     .from(userMessageService.getEmailDefaultFrom())
                     .replyTo(userMessageService.getEmailDefaultFrom())
                     .to(Lists.newArrayList(new InternetAddress(toAddress)))
                     .subject(I18n.l(locale, "sumaris.server.mail.subject.prefix", configuration.getAppName())
-                            + " " + I18n.l(locale, "sumaris.server.account.change.mail.subject"))
-                    .body(I18n.l(locale, "sumaris.server.account.change.mail.body",
-                            serverUrl,
-                            changePasswordLinkURL,
-                            configuration.getEmailChangePasswordDuration(),
-                            configuration.getAppName()))
+                            + " " + I18n.l(locale, "sumaris.server.account.reset.mail.subject"))
+                    .body(I18n.l(locale, "sumaris.server.account.reset.mail.body",
+                        serverUrl,
+                        resetPasswordLinkURL,
+                        tokenLifeTimeInMinutes,
+                        configuration.getAppName()))
                     .encoding(StandardCharsets.UTF_8.name())
                     .build();
 
             userMessageService.send(email);
-            tokenExpiredCache = new ValidationExpiredCache(configuration.getEmailChangePasswordDuration() * 60);
-            tokenExpiredCache.add(token);
         } catch (AddressException e) {
             throw new SumarisTechnicalException(ErrorCodes.INTERNAL_ERROR, I18n.t("sumaris.error.account.register.sendEmailFailed", e.getMessage()), e);
         }
@@ -589,9 +572,8 @@ public class AccountServiceImpl implements AccountService {
                 .collect(Collectors.toList());
     }
 
-    private void updateWithNewPubkey(String oldPubkey, String newPubkey) {
-        userTokenRepository.deleteAllByPubkey(oldPubkey);
-        userSettingsService.changePubkeyByIssuer(newPubkey, oldPubkey);
-        userEventService.changeIssuerAndRecipient(newPubkey, oldPubkey);
+    private void updatePubkey(@NonNull String oldPubkey, @NonNull String newPubkey) {
+        userSettingsService.updatePubkey(oldPubkey, newPubkey);
+        userEventService.updatePubkey(oldPubkey, newPubkey);
     }
 }

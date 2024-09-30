@@ -85,23 +85,17 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
     REGISTRATION_CONFIRM_URL(
             "sumaris.server.account.register.confirm.url",
             n("sumaris.config.option.server.account.register.confirm.url.description"),
-            "${sumarie.app.url}/confirm/{email}/{code}",
+            "${sumaris.app.url}/confirm/{email}/{code}",
             String.class,
             false),
 
-    PASSWORD_CHANGE_URL(
-            "sumaris.server.account.change.confirm.url",
-            n("sumaris.config.option.server.account.change.password.url.description"),
-            "${server.url}/api/confirmPassword/?token={token}&email={email}",
+    RESET_PASSWORD_URL(
+            "sumaris.server.account.password.reset.url",
+            n("sumaris.config.option.server.account.password.reset.description"),
+            "${sumaris.app.url}/password/{email}/{code}",
             String.class,
             false),
 
-    PASSWORD_CHANGE_DURATION(
-            "sumaris.server.account.change.confirm.duration",
-            n("sumaris.config.option.server.account.confirm.change.duration.description"),
-            "15",
-            Integer.class,
-            false),
     EMAIL_ENABLED("spring.mail.enabled",
             n("sumaris.config.option.spring.mail.enabled.description"),
             "true",
@@ -163,6 +157,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "14400", // = 4 hours
             Integer.class,
             false),
+
+    AUTH_RESET_TOKEN_LIFE_TIME(
+        "sumaris.auth.reset.token.lifeTime",
+        n("sumaris.config.option.auth.reset.token.lifeTime.description"),
+        "900", // 15 min
+        Integer.class,
+        false),
 
     ACCESS_NOT_SELF_DATA_MIN_ROLE(
             "sumaris.data.accessNotSelfData.role",

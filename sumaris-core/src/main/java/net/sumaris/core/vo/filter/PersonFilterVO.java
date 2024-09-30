@@ -22,7 +22,10 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -60,6 +63,7 @@ public class PersonFilterVO implements IReferentialFilter {
     private String pubkey;
     private String firstName;
     private String lastName;
+    private String username;
 
     private Integer[] includedIds;
     private Integer[] excludedIds;

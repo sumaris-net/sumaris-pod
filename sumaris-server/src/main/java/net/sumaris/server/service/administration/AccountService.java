@@ -45,16 +45,13 @@ public interface AccountService {
 
     AccountVO updateAccount(AccountVO account);
 
-    void changePasswordByAccountId(Integer idAccount, String pubkey);
+    void updatePubkeyById(Integer id, String pubkey);
 
     void confirmEmail(String email, String signatureHash) throws InvalidEmailConfirmationException;
 
-    void confirmChangePassword(String token, String toAddress, String pubkey);
-
-    void sendChangePassword(String email, String locale);
-
     void sendConfirmationEmail(String email, String locale) throws InvalidEmailConfirmationException;
 
+    void sendResetPasswordEmail(String email, String token, String locale);
 
     @Transactional(readOnly = true)
     List<String> getAllTokensByPubkey(String pubkey);

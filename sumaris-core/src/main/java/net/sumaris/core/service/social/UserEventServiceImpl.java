@@ -24,6 +24,7 @@ package net.sumaris.core.service.social;
 
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
@@ -141,17 +142,11 @@ public class UserEventServiceImpl implements UserEventService {
     }
 
     @Override
-    public void changeIssuerAndRecipient(String newPubkey, String oldPubkey) {
+    public void updatePubkey(@NonNull String oldPubkey, @NonNull String newPubkey) {
 
-        List<UserEvent> listUserEventByIssuer = userEventRepository.findAllByIssuer(oldPubkey);
+        log.info("Updating pubkey in user events... old: '{}' - new: '{}'", oldPubkey, newPubkey);
 
-        List<UserEvent> listUserEventByRecipient = userEventRepository.findAllByRecipient(oldPubkey);
-        if (!CollectionUtils.isEmpty(listUserEventByIssuer)) {
-            listUserEventByIssuer.forEach(userEvent -> userEvent.setIssuer(newPubkey));
-        }
-
-        if (!CollectionUtils.isEmpty(listUserEventByRecipient)) {
-            listUserEventByRecipient.forEach(userEvent -> userEvent.setRecipient(newPubkey));
-        }
+        userEventRepository.updateIssuerPubkey(oldPubkey, newPubkey);
+        userEventRepository.updateRecipientPubkey(oldPubkey, newPubkey);
     }
 }

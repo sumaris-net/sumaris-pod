@@ -182,17 +182,16 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         return applicationConfig.getOption(SumarisServerConfigurationOption.REGISTRATION_CONFIRM_URL.getKey());
     }
 
-    public String getChangePasswordUrlPattern() {
-        return applicationConfig.getOption(SumarisServerConfigurationOption.PASSWORD_CHANGE_URL.getKey());
+    public String getResetPasswordUrlPattern() {
+        return applicationConfig.getOption(SumarisServerConfigurationOption.RESET_PASSWORD_URL.getKey());
     }
 
     public boolean enableMailService() {
         return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.EMAIL_ENABLED.getKey());
     }
 
-    public Integer getEmailChangePasswordDuration() {
-        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.PASSWORD_CHANGE_DURATION.getKey());
-
+    public Integer getAuthResetTokenLifeTime() {
+        return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.AUTH_RESET_TOKEN_LIFE_TIME.getKey());
     }
 
     /**

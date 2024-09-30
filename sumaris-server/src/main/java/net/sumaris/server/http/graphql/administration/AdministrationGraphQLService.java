@@ -122,7 +122,7 @@ public class AdministrationGraphQLService {
         else {
             log.debug(String.format("Checking if email exists from hash {%s}...", hash));
         }
-        boolean result = personService.isExistsByEmailHash(hash);
+        boolean result = personService.existsByEmailMD5(hash);
         if (result) {
             log.warn(String.format("Email hash {%s} already used !", hash));
         }

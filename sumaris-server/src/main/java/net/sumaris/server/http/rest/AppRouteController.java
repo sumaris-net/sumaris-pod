@@ -50,6 +50,7 @@ public class AppRouteController {
     @RequestMapping(value= {
         RestPaths.APP_SHARE_PATH,
         RestPaths.APP_EMAIL_CONFIRM_PATH,
+        RestPaths.APP_RESET_PASSWORD_PATH
     })
     public ResponseEntity<?> redirectToApp(HttpServletRequest httpServletRequest) {
 

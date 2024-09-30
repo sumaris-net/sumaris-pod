@@ -27,6 +27,10 @@ import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 /**
  * @author peck7 on 20/08/2020.
@@ -35,4 +39,6 @@ public interface DepartmentRepository
     extends ReferentialRepository<Integer, Department, DepartmentVO, DepartmentFilterVO, ReferentialFetchOptions>,
     DepartmentSpecifications {
 
+    @Query("select min(d.logo.id) from Department d where d.label = :label and d.logo.id is not null")
+    Optional<Integer> findLogoIdByLabel(@Param("label") String label);
 }

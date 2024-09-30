@@ -28,7 +28,10 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.DepartmentFilterVO;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -85,11 +88,11 @@ public class DepartmentServiceTest extends AbstractServiceTest {
 
     @Test
     public void d_getLogo() {
-        ImageAttachmentVO image = service.getLogoByLabel("Ifremer");
+        ImageAttachmentVO image = service.findLogoByLabel("Ifremer").orElse(null);
         Assert.assertNotNull(image);
 
         try {
-            service.getLogoByLabel("_____");
+            service.findLogoByLabel("_____");
             Assert.fail("should throw exception");
         } catch (Exception e) {
             Assert.assertNotNull(e);

@@ -85,26 +85,18 @@ public class ImageRestController implements ResourceLoaderAware {
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) throws IOException {
-        try {
-            ImageAttachmentVO image = personService.getAvatarByPubkey(pubkey, ImageAttachmentFetchOptions.WITH_CONTENT);
-            return getImageResponse(image);
-        } catch(Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-
+        return personService.findAvatarByPubkey(pubkey)
+            .map(this::getImageResponse)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @ResponseBody
     @RequestMapping(value = RestPaths.DEPARTMENT_LOGO_PATH, method = RequestMethod.GET,
             produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getDepartmentLogo(@PathVariable(name="label") String label) throws IOException {
-        try {
-            ImageAttachmentVO image = departmentService.getLogoByLabel(label);
-            return getImageResponse(image);
-        } catch (Exception e) {
-            log.error("Cannot load logo of department '{}': {}", label, e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return departmentService.findLogoByLabel(label)
+            .map(this::getImageResponse)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @ResponseBody
@@ -168,7 +160,7 @@ public class ImageRestController implements ResourceLoaderAware {
 
     }
 
-    protected ResponseEntity<?> getImageResponse(ImageAttachmentVO image) throws IOException {
+    protected ResponseEntity<?> getImageResponse(ImageAttachmentVO image) {
         if (image == null) {
             return ResponseEntity.notFound().build();
         }
@@ -196,7 +188,13 @@ public class ImageRestController implements ResourceLoaderAware {
             }
 
             log.debug("Request to image {} of type {}", filename, mediaType);
-            InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
+            InputStreamResource resource = null;
+            try {
+                resource = new InputStreamResource(new FileInputStream(file));
+            } catch (FileNotFoundException e) {
+                log.error("Cannot read image file: {}", file.getAbsolutePath(), e);
+                ResponseEntity.internalServerError().build();
+            }
 
             return ResponseEntity.ok()
                 // Content-Type

@@ -25,6 +25,7 @@ package net.sumaris.server.service.administration;
 import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.user.UserSettingsRepository;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ import java.util.Optional;
 
 @Service("userSettingsService")
 @RequiredArgsConstructor
+@Slf4j
 public class UserSettingsServiceImpl implements UserSettingsService {
 
     private final UserSettingsRepository userSettingsRepository;
@@ -49,11 +51,8 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     }
 
     @Override
-    public void changePubkeyByIssuer(@NonNull String newIssuer, @NonNull String oldIssuer) {
-        Optional<UserSettingsVO> userSettings = userSettingsRepository.findByIssuer(oldIssuer);
-        if (userSettings.isPresent()) {
-            userSettings.get().setIssuer(newIssuer);
-            userSettingsRepository.save(userSettings.get());
-        }
+    public void updatePubkey(@NonNull String oldIssuer, @NonNull String newIssuer) {
+        log.info("Updating issuer in user settings... old: '{}' - new: '{}'", oldIssuer, newIssuer);
+        userSettingsRepository.updateIssuerPubkey(oldIssuer, newIssuer);
     }
 }

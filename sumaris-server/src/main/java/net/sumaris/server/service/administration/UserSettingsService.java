@@ -36,5 +36,5 @@ public interface UserSettingsService {
 
     UserSettingsVO save(@NonNull UserSettingsVO settings);
 
-    void changePubkeyByIssuer(@NonNull String newIssuer, @NonNull String oldIssuer);
+    void updatePubkey(@NonNull String oldIssuer, @NonNull String newIssuer);
 }

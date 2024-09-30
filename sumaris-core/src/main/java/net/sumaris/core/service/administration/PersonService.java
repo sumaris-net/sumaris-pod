@@ -23,10 +23,10 @@ package net.sumaris.core.service.administration;
  */
 
 
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.springframework.data.domain.Page;
@@ -62,6 +62,9 @@ public interface PersonService {
 	String findByEmailMD5(String emailMD5);
 
 	@Transactional(readOnly = true)
+	String findByEmail(String email);
+
+	@Transactional(readOnly = true)
 	Long countByFilter(PersonFilterVO filter);
 
 	@Transactional(readOnly = true)
@@ -89,10 +92,16 @@ public interface PersonService {
 	Optional<PersonVO> findByUsername(String username);
 
 	@Transactional(readOnly = true)
-	boolean isExistsByEmailHash(String hash);
+	boolean existsByEmailMD5(String hash);
 
 	@Transactional(readOnly = true)
-	ImageAttachmentVO getAvatarByPubkey(String pubkey, ImageAttachmentFetchOptions fetchOptions);
+	boolean existsByEmail(String email);
+
+	@Transactional(readOnly = true)
+	Optional<ImageAttachmentVO> findAvatarByPubkey(@NonNull String pubkey);
+
+	@Transactional(readOnly = true)
+	Optional<String> findEmailByUsername(@NonNull String username);
 
 	@Transactional(readOnly = true)
 	List<String> getEmailsByProfiles(UserProfileEnum... userProfiles);
