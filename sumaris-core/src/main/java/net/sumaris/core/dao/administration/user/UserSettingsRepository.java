@@ -25,6 +25,9 @@ package net.sumaris.core.dao.administration.user;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.administration.user.UserSettings;
 import net.sumaris.core.vo.administration.user.UserSettingsVO;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @author peck7 on 20/08/2020.
@@ -32,5 +35,7 @@ import net.sumaris.core.vo.administration.user.UserSettingsVO;
 public interface UserSettingsRepository
     extends SumarisJpaRepository<UserSettings, Integer, UserSettingsVO>, UserSettingsSpecifications {
 
-
+    @Modifying
+    @Query("update UserSettings e set e.issuer = :newPubkey where e.issuer = :oldPubkey")
+    void updateIssuerPubkey(@Param("oldPubkey") String oldPubkey, @Param("newPubkey") String newPubkey);
 }

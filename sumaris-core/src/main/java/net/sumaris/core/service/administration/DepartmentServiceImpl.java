@@ -29,8 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.administration.user.Department;
-import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
@@ -39,7 +37,6 @@ import net.sumaris.core.vo.filter.DepartmentFilterVO;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -79,15 +76,9 @@ public class DepartmentServiceImpl implements DepartmentService {
 
 	@Override
 	@Cacheable(cacheNames = CacheConfiguration.Names.DEPARTMENT_LOGO_BY_LABEL, key = "#label", unless="#result==null")
-	public ImageAttachmentVO getLogoByLabel(@NonNull final String label) {
-		Optional<Department> department = Optional.of(departmentRepository.getById(departmentRepository.getByLabel(label).getId()));
-
-		int logoId = department
-			.map(Department::getLogo)
-			.map(ImageAttachment::getId)
-			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.department.logo.notFound")));
-
-		return imageAttachmentService.find(logoId, ImageAttachmentFetchOptions.WITH_CONTENT);
+	public Optional<ImageAttachmentVO> findLogoByLabel(@NonNull final String label) {
+		return departmentRepository.findLogoIdByLabel(label)
+			.map(logoId -> imageAttachmentService.find(logoId, ImageAttachmentFetchOptions.WITH_CONTENT));
 	}
 
 	@Override

@@ -70,12 +70,12 @@ public class AuthServiceImpl implements AuthService {
     private final ValidationExpiredCache challenges;
     private final ValidationExpiredCacheMap<AuthUserDetails> checkedTokens;
     private final ValidationExpiredCacheMap<AuthUserDetails> checkedUsernames;
+    private final ValidationExpiredCacheMap<AuthUserDetails> resetTokens;
     private final boolean debug;
 
     private final ServerCryptoService cryptoService;
 
     private final AccountService accountService;
-
 
     private final PersonService personService;
 
@@ -101,6 +101,9 @@ public class AuthServiceImpl implements AuthService {
         int tokenLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getDefaultValue()));
         this.checkedTokens = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
         this.checkedUsernames = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
+
+        int resetTokenLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_RESET_TOKEN_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_RESET_TOKEN_LIFE_TIME.getDefaultValue()));
+        this.resetTokens = new ValidationExpiredCacheMap<>(resetTokenLifeTimeInSeconds);
 
         authoritiesMapper = new SimpleAttributes2GrantedAuthoritiesMapper();
 
@@ -239,70 +242,12 @@ public class AuthServiceImpl implements AuthService {
         return userDetails;
     }
 
-    /* -- internal methods -- */
-
-    private void onPersonChangeEvent(AbstractEntityEvent event) {
-        Object data = event.getData();
-        PersonVO person;
-        if (data instanceof PersonVO) {
-            person = (PersonVO)data;
-        }
-        else {
-            Integer id = (Integer) event.getId();
-            person = personService.getById(id);
-        }
-        cleanCacheForUser(person);
+    @Override
+    public void invalidateToken(String token) {
+        Preconditions.checkArgument(enableAuthToken);
+        checkedTokens.remove(token);
     }
 
-    private PersonVO validateToken(AuthTokenVO authData) throws AuthenticationException {
-        String pubkey = authData != null ? authData.getPubkey() : null;
-
-        // Check pubkey is valid
-        if (!CryptoUtils.isValidPubkey(pubkey)) {
-            throw new BadCredentialsException("Authentication failed. Bad pubkey format: " + pubkey);
-        }
-
-        // Check user exists
-        PersonVO user = personService.findByPubkey(pubkey)
-            .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + pubkey));
-
-        // Check account is enable (or temporary)
-        checkEnabledAccount(user);
-
-        // Token exists on database: check as new challenge response
-        final String token = authData.asToken();
-        boolean isStoredToken = accountService.isStoredToken(token, pubkey);
-        if (!isStoredToken) {
-            log.debug("Unknown token. Check if response to new challenge...");
-
-            // Make sure the challenge exists and not expired
-            if (!challenges.contains(authData.getChallenge())) {
-                throw new BadCredentialsException("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
-            }
-        }
-
-        // Check signature
-        if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), pubkey)) {
-            throw new BadCredentialsException("Authentication failed. Bad challenge signature in token: " + authData);
-        }
-
-        // Auth success !
-
-        // Remove from the challenge list
-        challenges.remove(authData.getChallenge());
-
-        // Save this new token to database
-        if (!isStoredToken) {
-            try {
-                accountService.addToken(token, pubkey);
-            } catch (RuntimeException e) {
-                // Log then continue
-                log.error("Could not save auth token.", e);
-            }
-        }
-
-        return user;
-    }
 
     @Override
     public Optional<PersonVO> getAuthenticatedUser() {
@@ -341,13 +286,63 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public Optional<String> getAuthenticatedUserPubkey() {
+        return getAuthenticatedUser().map(PersonVO::getPubkey);
+    }
+
+    @Override
     public boolean hasAuthority(String authority) {
         return hasUpperOrEqualsAuthority(getAuthorities(), authority);
     }
 
+    public AuthTokenVO createResetToken(@NonNull String username) {
+        String challenge = newChallenge();
+        String signature = cryptoService.sign(challenge);
+
+        AuthTokenVO result = AuthTokenVO.builder()
+            .pubkey(cryptoService.getServerPubkey())
+            .challenge(challenge)
+            .signature(signature)
+            .username(username)
+            .build();
+
+        if (debug) log.debug("New reset pubkey challenge: " + result.toString());
+
+        // Remove previous reset tokens
+        resetTokens.remove(username);
+
+        // Add token to cache
+        AuthUserDetails userDetails = new AuthUserDetails(result, null/*not need*/);
+        resetTokens.add(username, userDetails);
+
+        return result;
+    }
+
+    @Override
+    public AuthUserDetails validateResetToken(@NonNull AuthTokenVO token) {
+        Preconditions.checkArgument(enableAuthToken);
+        Preconditions.checkNotNull(token.getUsername());
+
+        String username = token.getUsername();
+        AuthUserDetails details = resetTokens.get(username);
+
+        if (details == null || !Objects.equals(details.getChallenge(), token.getChallenge())) {
+            throw new BadCredentialsException("Invalid reset token");
+        }
+
+        if (!cryptoService.verify(token.getChallenge(), token.getSignature(), token.getPubkey())) {
+            throw new BadCredentialsException("Authentication failed. Bad challenge signature in token: " + token);
+        }
+
+        // Invalidate this token (unique usage)
+        resetTokens.remove(username);
+
+        return details;
+    }
+
     /* -- internal methods -- */
 
-    public Optional<AuthUserDetails> getAuthPrincipal() {
+    protected Optional<AuthUserDetails> getAuthPrincipal() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         if (securityContext != null && securityContext.getAuthentication() != null
             && securityContext.getAuthentication() instanceof UsernamePasswordAuthenticationToken) {
@@ -364,6 +359,69 @@ public class AuthServiceImpl implements AuthService {
             return Optional.ofNullable(this.checkedUsernames.get(authToken.getName()));
         }
         return Optional.empty(); // Not auth
+    }
+
+    protected void onPersonChangeEvent(AbstractEntityEvent event) {
+        Object data = event.getData();
+        PersonVO person;
+        if (data instanceof PersonVO) {
+            person = (PersonVO)data;
+        }
+        else {
+            Integer id = (Integer) event.getId();
+            person = personService.getById(id);
+        }
+        cleanCacheForUser(person);
+    }
+
+    protected PersonVO validateToken(AuthTokenVO authData) throws AuthenticationException {
+        String pubkey = authData != null ? authData.getPubkey() : null;
+
+        // Check pubkey is valid
+        if (!CryptoUtils.isValidPubkey(pubkey)) {
+            throw new BadCredentialsException("Authentication failed. Bad pubkey format: " + pubkey);
+        }
+
+        // Check user exists
+        PersonVO user = personService.findByPubkey(pubkey)
+            .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + pubkey));
+
+        // Check account is enable (or temporary)
+        checkEnabledAccount(user);
+
+        // Token exists on database: check as new challenge response
+        final String token = authData.asToken();
+        boolean isStoredToken = accountService.isStoredToken(token, pubkey);
+        if (!isStoredToken) {
+            log.debug("Unknown or expired token. Checking if this is a response to new challenge...");
+
+            // Make sure the challenge exists and not expired
+            if (!challenges.contains(authData.getChallenge())) {
+                throw new BadCredentialsException("Authentication failed. Challenge not found or expired: " + authData.getChallenge());
+            }
+        }
+
+        // Check signature
+        if (!cryptoService.verify(authData.getChallenge(), authData.getSignature(), pubkey)) {
+            throw new BadCredentialsException("Authentication failed. Bad challenge signature in token: " + authData);
+        }
+
+        // Auth success !
+
+        // Remove from the challenge list
+        challenges.remove(authData.getChallenge());
+
+        // Save this new token to database
+        if (!isStoredToken) {
+            try {
+                accountService.addToken(token, pubkey);
+            } catch (RuntimeException e) {
+                // Log then continue
+                log.error("Could not save auth token.", e);
+            }
+        }
+
+        return user;
     }
 
     protected String getMainAuthority(Collection<? extends GrantedAuthority> authorities) {
@@ -420,8 +478,6 @@ public class AuthServiceImpl implements AuthService {
 
         return result;
     }
-
-    /* -- new challenge -- */
 
     private String newChallenge() {
         byte[] randomNonce = cryptoService.getBoxRandomNonce();

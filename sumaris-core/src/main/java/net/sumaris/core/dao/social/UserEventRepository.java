@@ -25,11 +25,13 @@ package net.sumaris.core.dao.social;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepository;
 import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.vo.social.UserEventVO;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.List;
 
 public interface UserEventRepository
     extends SumarisJpaRepository<UserEvent, Integer, UserEventVO>, UserEventSpecifications {
@@ -42,4 +44,17 @@ public interface UserEventRepository
 
     @Query("from UserEvent where source = :source")
     UserEvent getBySource(@Param("source") String source);
+
+    List<UserEvent> findAllByIssuer(String issuer);
+
+    List<UserEvent> findAllByRecipient(String recipient);
+
+    @Modifying
+    @Query("update UserEvent e set e.issuer = :newPubkey where e.issuer = :oldPubkey")
+    void updateIssuerPubkey(@Param("oldPubkey") String oldPubkey, @Param("newPubkey") String newPubkey);
+
+    @Modifying
+    @Query("update UserEvent e set e.recipient = :newPubkey where e.recipient = :oldPubkey")
+    void updateRecipientPubkey(@Param("oldPubkey") String oldPubkey, @Param("newPubkey") String newPubkey);
 }
+

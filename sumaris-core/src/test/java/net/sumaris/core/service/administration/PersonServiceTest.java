@@ -31,7 +31,6 @@ import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -104,13 +103,13 @@ public class PersonServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void isExistsByEmailHash() {
+    public void existsByEmailMD5() {
 
         PersonVO person = service.getById(fixtures.getPersonId(0));
         Assume.assumeNotNull(person);
         String emailHash = MD5Util.md5Hex(person.getEmail());
 
-        boolean isExists = service.isExistsByEmailHash(emailHash);
+        boolean isExists = service.existsByEmailMD5(emailHash);
         Assert.assertTrue(isExists);
     }
 
@@ -202,20 +201,16 @@ public class PersonServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void getAvatarByPubkey() {
+    public void findAvatarByPubkey() {
 
         // Observer (has an avatar)
-        ImageAttachmentVO avatar = service.getAvatarByPubkey(fixtures.getObserverPubkey(), ImageAttachmentFetchOptions.WITH_CONTENT);
+        ImageAttachmentVO avatar = service.findAvatarByPubkey(fixtures.getObserverPubkey()).orElse(null);
         Assert.assertNotNull(avatar);
         Assert.assertNotNull(avatar.getContentType());
         Assert.assertNotNull(avatar.getContent());
 
         // Admin (no avatar)
-        try {
-            service.getAvatarByPubkey(fixtures.getAdminPubkey(), ImageAttachmentFetchOptions.WITH_CONTENT);
-            Assert.fail("should throw exception");
-        } catch (Exception e) {
-            Assert.assertNotNull(e);
-        }
+        ImageAttachmentVO nullAvatar = service.findAvatarByPubkey(fixtures.getAdminPubkey()).orElse(null);
+        Assert.assertNull(nullAvatar);
     }
 }

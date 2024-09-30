@@ -10,24 +10,21 @@ package net.sumaris.server.service.administration;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
  * #L%
  */
 
-import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.administration.user.UserSettingsVO;
 import net.sumaris.server.exception.InvalidEmailConfirmationException;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -48,11 +45,13 @@ public interface AccountService {
 
     AccountVO updateAccount(AccountVO account);
 
+    void updatePubkeyById(Integer id, String pubkey);
 
     void confirmEmail(String email, String signatureHash) throws InvalidEmailConfirmationException;
 
     void sendConfirmationEmail(String email, String locale) throws InvalidEmailConfirmationException;
 
+    void sendResetPasswordEmail(String email, String token, String locale);
 
     @Transactional(readOnly = true)
     List<String> getAllTokensByPubkey(String pubkey);
