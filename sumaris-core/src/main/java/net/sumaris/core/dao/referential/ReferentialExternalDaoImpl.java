@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.nuiton.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
@@ -57,6 +56,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -141,11 +142,11 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
         // load analyticReferences if not loaded or too old
         if (StringUtils.isNotBlank(urlStr) && (delta > delay || analyticReferences == null)) {
-            log.info(String.format("Loading analytic references from {%s}", urlStr));
+            log.info("Loading analytic references from {{}}", urlStr);
             BufferedReader content = requestAnalyticReferenceService(urlStr, authStr);
             analyticReferences = parseAnalyticReferencesToVO(content, filter);
             analyticReferencesUpdateDate = updateDate;
-            log.info(String.format("Analytic references loaded {%s}", analyticReferences.size()));
+            log.info("Analytic references loaded {{}}", analyticReferences.size());
         }
     }
 
@@ -156,13 +157,15 @@ public class ReferentialExternalDaoImpl implements ReferentialExternalDao {
 
         try {
             URL url = new URL(urlStr);
-            String encoding = Base64.getEncoder().encodeToString(authStr.getBytes("utf-8"));
+            String encoding = Base64.getEncoder().encodeToString(authStr.getBytes(StandardCharsets.UTF_8));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("Authorization", "Basic " + encoding);
             InputStream input = connection.getInputStream();
             content = new BufferedReader(new InputStreamReader(input));
+        } catch (UnknownHostException e) {
+            throw new SumarisTechnicalException(String.format("Unable to get analytic references: Unknown host {%s}", e.getMessage()));
         } catch (Exception e) {
-            throw new SumarisTechnicalException(String.format("Unable to get analytic references"), e);
+            throw new SumarisTechnicalException("Unable to get analytic references", e);
         }
 
         return content;
