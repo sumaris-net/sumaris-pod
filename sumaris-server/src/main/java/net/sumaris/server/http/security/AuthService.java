@@ -91,5 +91,5 @@ public interface AuthService extends ISecurityContext<PersonVO> {
 
     AuthTokenVO createResetToken(String username);
 
-    AuthUserDetails validateResetToken(@NonNull AuthTokenVO token);
+    AuthUserDetails validateResetPasswordToken(@NonNull AuthTokenVO token);
 }

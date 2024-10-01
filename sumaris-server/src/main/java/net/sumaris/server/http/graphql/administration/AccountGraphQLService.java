@@ -177,7 +177,7 @@ public class AccountGraphQLService {
         }
 
         // Validate the token
-        authService.validateResetToken(authData);
+        authService.validateResetPasswordToken(authData);
         // OK: token is valid
 
         try {
@@ -194,12 +194,18 @@ public class AccountGraphQLService {
             Preconditions.checkArgument(CryptoUtils.isValidPubkey(oldPubkey), "Invalid pubkey: " + oldPubkey);
             String newPubkey = authData.getPubkey();
 
-            // Do the replacement
+            // Update pubkey in DB
             accountService.updatePubkeyById(user.getId(), newPubkey);
 
             // Clean existing auth tokens
             List<String> deletedTokens = accountService.deleteAllTokensByPubkey(oldPubkey);
+
+            // Invalidate each deleted tokens
             deletedTokens.forEach(authService::invalidateToken);
+
+            // Clean auth cache (using old user.pubkey)
+            authService.cleanCacheForUser(user);
+
         } catch (Exception e) {
             log.error("Error while trying to update pubkey of {}", username, e);
             return false;

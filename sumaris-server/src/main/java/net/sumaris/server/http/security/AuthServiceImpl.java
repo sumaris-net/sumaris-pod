@@ -70,7 +70,8 @@ public class AuthServiceImpl implements AuthService {
     private final ValidationExpiredCache challenges;
     private final ValidationExpiredCacheMap<AuthUserDetails> checkedTokens;
     private final ValidationExpiredCacheMap<AuthUserDetails> checkedUsernames;
-    private final ValidationExpiredCacheMap<AuthUserDetails> resetTokens;
+    private final ValidationExpiredCacheMap<AuthUserDetails> checkedPubkeys;
+    private final ValidationExpiredCacheMap<AuthUserDetails> resetPasswordTokens;
     private final boolean debug;
 
     private final ServerCryptoService cryptoService;
@@ -101,9 +102,10 @@ public class AuthServiceImpl implements AuthService {
         int tokenLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_TOKEN_LIFE_TIME.getDefaultValue()));
         this.checkedTokens = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
         this.checkedUsernames = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
+        this.checkedPubkeys = new ValidationExpiredCacheMap<>(tokenLifeTimeInSeconds);
 
         int resetTokenLifeTimeInSeconds = Integer.parseInt(environment.getProperty(SumarisServerConfigurationOption.AUTH_RESET_TOKEN_LIFE_TIME.getKey(), SumarisServerConfigurationOption.AUTH_RESET_TOKEN_LIFE_TIME.getDefaultValue()));
-        this.resetTokens = new ValidationExpiredCacheMap<>(resetTokenLifeTimeInSeconds);
+        this.resetPasswordTokens = new ValidationExpiredCacheMap<>(resetTokenLifeTimeInSeconds);
 
         authoritiesMapper = new SimpleAttributes2GrantedAuthoritiesMapper();
 
@@ -131,7 +133,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void cleanCacheForUser(@NonNull PersonVO person) {
 
-        // Clean cached tokens (because user can be disabled)
+        // Clean cached tokens (e.g. when user has been disabled)
         if (StringUtils.isNotBlank(person.getPubkey())) {
 
             if (Persons.isDisableOrDeleted(person)) {
@@ -144,9 +146,12 @@ public class AuthServiceImpl implements AuthService {
                 log.info("Clean authentication cache, for user with pubkey {{}}", person.getPubkey());
 
                 // Clean all tokens cache, to force user profile to be reload
+                // But keep existing token in database
                 List<String> tokens =  accountService.getAllTokensByPubkey(person.getPubkey());
                 Beans.getStream(tokens).forEach(checkedTokens::remove);
             }
+
+            checkedPubkeys.remove(person.getPubkey());
         }
         else {
             log.info("Clean authentication cache, for user with id {{}}", person.getId());
@@ -239,6 +244,11 @@ public class AuthServiceImpl implements AuthService {
 
         checkedUsernames.add(username, userDetails);
 
+        // Remember the pubkey (to be able to retrieve the user id, after a pubkey changes)
+        if (userDetails.getPubkey() != null) {
+            checkedPubkeys.add(userDetails.getPubkey(), userDetails);
+        }
+
         return userDetails;
     }
 
@@ -247,7 +257,6 @@ public class AuthServiceImpl implements AuthService {
         Preconditions.checkArgument(enableAuthToken);
         checkedTokens.remove(token);
     }
-
 
     @Override
     public Optional<PersonVO> getAuthenticatedUser() {
@@ -309,22 +318,22 @@ public class AuthServiceImpl implements AuthService {
         if (debug) log.debug("New reset pubkey challenge: " + result.toString());
 
         // Remove previous reset tokens
-        resetTokens.remove(username);
+        resetPasswordTokens.remove(username);
 
         // Add token to cache
         AuthUserDetails userDetails = new AuthUserDetails(result, null/*not need*/);
-        resetTokens.add(username, userDetails);
+        resetPasswordTokens.add(username, userDetails);
 
         return result;
     }
 
     @Override
-    public AuthUserDetails validateResetToken(@NonNull AuthTokenVO token) {
+    public AuthUserDetails validateResetPasswordToken(@NonNull AuthTokenVO token) {
         Preconditions.checkArgument(enableAuthToken);
         Preconditions.checkNotNull(token.getUsername());
 
         String username = token.getUsername();
-        AuthUserDetails details = resetTokens.get(username);
+        AuthUserDetails details = resetPasswordTokens.get(username);
 
         if (details == null || !Objects.equals(details.getChallenge(), token.getChallenge())) {
             throw new BadCredentialsException("Invalid reset token");
@@ -335,7 +344,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Invalidate this token (unique usage)
-        resetTokens.remove(username);
+        resetPasswordTokens.remove(username);
 
         return details;
     }
@@ -375,16 +384,19 @@ public class AuthServiceImpl implements AuthService {
     }
 
     protected PersonVO validateToken(AuthTokenVO authData) throws AuthenticationException {
-        String pubkey = authData != null ? authData.getPubkey() : null;
+        final String pubkey = authData != null ? authData.getPubkey() : null;
 
         // Check pubkey is valid
         if (!CryptoUtils.isValidPubkey(pubkey)) {
             throw new BadCredentialsException("Authentication failed. Bad pubkey format: " + pubkey);
         }
 
-        // Check user exists
-        PersonVO user = personService.findByPubkey(pubkey)
-            .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + pubkey));
+        // Check user exists in checked pubkeys
+        PersonVO user = Optional.ofNullable(checkedPubkeys.get(pubkey))
+            // Find by checked pubkey (e.g. if already authenticated by username, but pubkey just changed)
+            .map(AuthUserDetails::getUsername).filter(StringUtils::isNotBlank).flatMap(personService::findByUsername)
+            .orElseGet(() -> personService.findByPubkey(pubkey)
+                .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + pubkey)));
 
         // Check account is enable (or temporary)
         checkEnabledAccount(user);
