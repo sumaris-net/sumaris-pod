@@ -26,8 +26,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.ForbiddenException;
@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 
 @Service("dataAccessControlService")
 @RequiredArgsConstructor
+@Slf4j
 public class DataAccessControlServiceImpl implements DataAccessControlService {
 
 
@@ -72,10 +73,14 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        authorizedProgramIds = toListOrNull(configuration.getAuthorizedProgramIds());
+        ImmutableList<Integer> authorizedProgramIds = toListOrNull(configuration.getAuthorizedProgramIds());
+        if (!CollectionUtils.isEqualCollection(this.authorizedProgramIds, authorizedProgramIds)) {
+            this.authorizedProgramIds = authorizedProgramIds;
+            log.info("List of authorized programs: {}", authorizedProgramIds);
+        }
         accessNotSelfDataDepartmentIds = toListOrNull(configuration.getAccessNotSelfDataDepartmentIds());
         accessNotSelfDataMinRole = StringUtils.trimToNull(configuration.getAccessNotSelfDataMinRole());
-        writeProgramPrivilegeIds = ProgramPrivilegeUtils.getWriteIds(); // Refresh this list, because enums can has changed
+        writeProgramPrivilegeIds = ProgramPrivilegeUtils.getWriteIds(); // Refresh this list, because enums can have changed
     }
 
     @Override
