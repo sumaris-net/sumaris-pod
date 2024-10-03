@@ -27,33 +27,21 @@
 
         <select alias="OBSERVER" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) SEPARATOR ' | ')</select>
         <select alias="OBSERVER" dbms="pgsql" group="agg">STRING_AGG(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME), ' | ')</select>
-        <select alias="OBSERVER" dbms="oracle" group="agg,oracle11">LISTAGG(OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME, ' | ')</select>
-        <select alias="OBSERVER" dbms="oracle" group="agg,oracle12">LISTAGG(OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME, ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
 
         <select alias="VESSEL_NAME" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT REPLACE(VF.NAME, '|', 'I') ORDER BY VF.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_NAME" dbms="pgsql" group="agg">STRING_AGG(DISTINCT REPLACE(VF.NAME, '|', 'I'), ' | ' ORDER BY VF.START_DATE)</select>
-        <select alias="VESSEL_NAME" dbms="oracle" group="agg,oracle11">LISTAGG(REPLACE(VF.NAME, '|', 'I'), ' | ')</select>
-        <select alias="VESSEL_NAME" dbms="oracle" group="agg,oracle12">LISTAGG(REPLACE(VF.NAME, '|', 'I'), ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
 
         <select alias="VESSEL_LENGTH" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VF.LENGTH_OVER_ALL * 0.01 ORDER BY VF.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_LENGTH" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VF.LENGTH_OVER_ALL * 0.01, ' | ' ORDER BY VF.START_DATE)</select>
-        <select alias="VESSEL_LENGTH" dbms="oracle" group="agg,oracle11">LISTAGG(CAST(VF.LENGTH_OVER_ALL AS NUMBER(8,2)) / 100, ' | ')</select>
-        <select alias="VESSEL_LENGTH" dbms="oracle" group="agg,oracle12">LISTAGG(CAST(VF.LENGTH_OVER_ALL AS NUMBER(8,2)) / 100, ' | ') WITHIN GROUP (ORDER BY VF.START_DATE)</select>
 
         <select alias="REGISTRATION_LOCATION_LABEL" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT L.LABEL ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
         <select alias="REGISTRATION_LOCATION_LABEL" dbms="pgsql" group="agg">STRING_AGG(DISTINCT L.LABEL, ' | ' ORDER BY VRP.START_DATE)</select>
-        <select alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="agg,oracle11">LISTAGG(L.LABEL, ' | ')</select>
-        <select alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="agg,oracle12">LISTAGG(L.LABEL, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
 
         <select alias="VESSEL_REGISTRATION_CODE" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VRP.REGISTRATION_CODE ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_REGISTRATION_CODE" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VRP.REGISTRATION_CODE, ' | ' ORDER BY VRP.START_DATE)</select>
-        <select alias="VESSEL_REGISTRATION_CODE" dbms="oracle" group="agg,oracle11">LISTAGG(VRP.REGISTRATION_CODE, ' | ')</select>
-        <select alias="VESSEL_REGISTRATION_CODE" dbms="oracle" group="agg,oracle12">LISTAGG(VRP.REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
 
         <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VRP.INT_REGISTRATION_CODE ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
         <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VRP.INT_REGISTRATION_CODE, ' | ' ORDER BY VRP.START_DATE)</select>
-        <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="agg,oracle11">LISTAGG(VRP.INT_REGISTRATION_CODE, ' | ')</select>
-        <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="agg,oracle12">LISTAGG(VRP.INT_REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY VRP.START_DATE)</select>
 
         <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="hsqldb,pgsql" group="agg">MIN(CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION THEN 'Y' ELSE 'N' END)</select>
         <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="oracle" group="agg">MIN(CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END)</select>
@@ -67,8 +55,9 @@
 
         <select alias="IS_ACTIVE" type="text">VUF.IS_ACTIVE</select>
 
-        <select alias="MONTH" dbms="hsqldb,pgsql" type="text" group="agg">MIN(MONTH(VUF.START_DATE))</select>
-        <select alias="MONTH" dbms="oracle" type="text" group="agg">MIN(EXTRACT(MONTH FROM VUF.START_DATE))</select>
+        <select alias="MONTH" dbms="hsqldb,pgsql" type="text">MONTH(VUF.START_DATE)</select>
+        <select alias="MONTH" dbms="oracle" type="text">EXTRACT(MONTH FROM VUF.START_DATE)</select>
+
         <select alias="METIER_COUNT" type="text" group="agg">COUNT(DISTINCT GUF.METIER_FK)</select>
         <select alias="ERROR" type="text" group="agg">
             MIN(TRIM(CASE
@@ -116,7 +105,7 @@
             LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VESSEL.ID = VRP.VESSEL_FK
                 AND NOT(
                     COALESCE(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY'))  < &startDate
-                    AND VRP.START_DATE > &endDate
+                    OR VRP.START_DATE > &endDate
                 )
             ]]>
         </from>
@@ -124,7 +113,7 @@
             LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VESSEL.ID = VRP.VESSEL_FK
                 AND NOT(
                     NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY'))  < &startDate
-                    AND VRP.START_DATE > &endDate
+                    OR VRP.START_DATE > &endDate
                 )
             ]]></from>
 
@@ -134,7 +123,7 @@
             LEFT OUTER JOIN VESSEL_FEATURES VF ON VESSEL.ID = VF.VESSEL_FK
                 AND NOT(
                     COALESCE(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
-                    AND VF.START_DATE > &endDate
+                    OR VF.START_DATE > &endDate
                 )
             ]]>
         </from>
@@ -142,7 +131,7 @@
             LEFT OUTER JOIN VESSEL_FEATURES VF ON VESSEL.ID = VF.VESSEL_FK
                 AND NOT(
                     NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
-                    AND VF.START_DATE > &endDate
+                    OR VF.START_DATE > &endDate
                 )
             ]]>
         </from>
@@ -180,11 +169,18 @@
         <where group="yearFilter" operator="AND">
             AC.YEAR = &amp;year
         </where>
+        <where group="registrationLocationFilter" operator="AND" dbms="oracle">
+            <in field="L.LABEL">&amp;registrationLocationLabels</in>
+        </where>
+        <where group="basePortLocationFilter" operator="AND" dbms="oracle">
+            <in field="L_PORT.LABEL">&amp;basePortLocationLabels</in>
+        </where>
+        <where group="vesselRegistrationCodeFilter" operator="AND" dbms="oracle">
+            <in field="VRP.REGISTRATION_CODE">&amp;vesselRegistrationCodes</in>
+        </where>
 
         <groupby>&amp;groupByColumns</groupby>
+        <groupby dbms="oracle">VUF.START_DATE</groupby>
 
-        <orderby>
-            AC.ID, AC.YEAR, MONTH
-        </orderby>
     </query>
 </queries>

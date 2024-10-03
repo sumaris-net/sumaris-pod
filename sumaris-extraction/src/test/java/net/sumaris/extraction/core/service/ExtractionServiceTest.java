@@ -57,6 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -649,25 +650,39 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    public void executeActivityMonitoringTest() throws IOException, ParseException {
+    public void executeActivityMonitoringTest(String vesselRegistrationCode) throws IOException, ParseException {
         IExtractionType type = LiveExtractionTypeEnum.ACTIVITY_MONITORING;
+
+        List<ExtractionFilterCriterionVO> criteria = new ArrayList<>();
+        criteria.add(
+            // Program
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
+                .build());
+        criteria.add(
+            // Year
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_YEAR)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("2023")
+                .build()
+        );
+        if (vesselRegistrationCode != null) {
+            criteria.add(
+                // Vessel registration code
+                ExtractionFilterCriterionVO.builder()
+                    .name(ActivityMonitoringSpecification.COLUMN_VESSEL_CODE)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(vesselRegistrationCode)
+                    .build()
+            );
+        }
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
                 .sheetName(ActivityMonitoringSpecification.AM_SHEET_NAME)
-                .criteria(ImmutableList.of(
-                        // Program
-                        ExtractionFilterCriterionVO.builder()
-                                .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
-                                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                                .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
-                                .build(),
-                        // Year
-                        ExtractionFilterCriterionVO.builder()
-                                .name(ActivityMonitoringSpecification.COLUMN_YEAR)
-                                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                                .value("2023")
-                                .build()
-                ))
+                .criteria(criteria)
                 .build();
 
         try {

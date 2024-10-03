@@ -133,10 +133,9 @@ public class ExtractionServiceHsqlDbTest extends ExtractionServiceTest {
         super.executeAggRjbTrip();
     }
 
-    @Override
     @Test
     public void executeActivityMonitoringTest() throws IOException, ParseException {
-        super.executeActivityMonitoringTest();
+        super.executeActivityMonitoringTest(null);
     }
 
     @Override @Test

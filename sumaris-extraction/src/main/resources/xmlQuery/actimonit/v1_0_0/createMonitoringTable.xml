@@ -22,50 +22,136 @@
 
 <queries name="createMonitoringTable">
 
-    <query type="create" temp="false" table="&amp;monitoringTableName" option="distinct">
-        <with alias="TMP_ACTIVITY_CALENDAR">
-            <subquery option="distinct">
-                <select alias="ID" type="number">ID</select>
-                <from>&amp;rawMonitoringTableName</from>
-                <where>1=1</where>
-                <where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
-                <where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
-                <where operator="AND">VESSEL_REG_CODE_FILTERED=1</where>
-                <where operator="AND">OBSERVER_FILTERED=1</where>
-            </subquery>
-        </with>
-        <select type="hidden" alias="ID">T.ID</select>
-        <select type="text" alias="YEAR">T.YEAR</select>
-        <select type="text" alias="OBSERVER">T.OBSERVER</select>
-        <select type="text" alias="VESSEL_REGISTRATION_CODE">T.VESSEL_REGISTRATION_CODE</select>
-        <select type="text" alias="VESSEL_INT_REGISTRATION_CODE">T.VESSEL_INT_REGISTRATION_CODE</select>
-        <select type="text" alias="VESSEL_NAME">T.VESSEL_NAME</select>
-        <select type="text" alias="VESSEL_LENGTH">T.VESSEL_LENGTH</select>
-        <select type="text" alias="REGISTRATION_LOCATION_LABEL">T.REGISTRATION_LOCATION_LABEL</select>
-        <select alias="DIRECT_SURVEY_INVESTIGATION">T.DIRECT_SURVEY_INVESTIGATION</select>
-        <select alias="ECONOMIC_SURVEY">T.ECONOMIC_SURVEY</select>
-        <select type="text" alias="SURVEY_QUALIFICATION">T.SURVEY_QUALIFICATION</select>
-        <select type="text" alias="RECORDER_PERSON">T.RECORDER_PERSON</select>
-        <select type="text" alias="RECORDER_DEPARTMENT">T.RECORDER_DEPARTMENT</select>
-        <select type="number" alias="EMPTY_MONTH_COUNT" group="agg">(12 - COUNT(DISTINCT T.MONTH))</select>
-        <select type="number" alias="ERROR_MONTH_COUNT" group="agg">COUNT(T.ERROR)</select>
-        <select type="text" alias="QUALITY_STATUS">T.QUALITY_STATUS</select>
-        <select type="number" alias="STATUS" group="agg">
-            TRIM(CASE COUNT(T.MONTH)
-                    WHEN 0 THEN 'EMPTY'
-                    WHEN 12 THEN
-                        (CASE COUNT(T.ERROR)
-                            WHEN 0 THEN 'COMPLETE'
-                            ELSE 'INCOMPLETE'
-                        END)
-                    ELSE 'INCOMPLETE'
-                END)
-        </select>
+	<query type="create" temp="false" table="&amp;monitoringTableName" option="distinct">
+		<with alias="TMP_ACTIVITY_CALENDAR" dbms="hsqldb,pgsql">
+			<subquery option="distinct">
+				<select alias="ID" type="number">ID</select>
+				<from>&amp;rawMonitoringTableName</from>
+				<where>1=1</where>
+				<where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
+				<where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
+				<where operator="AND">VESSEL_REG_CODE_FILTERED=1</where>
+				<where operator="AND">OBSERVER_FILTERED=1</where>
+			</subquery>
+		</with>
+		<with alias="T" dbms="oracle">
+			<subquery>
+				<select type="hidden">*</select>
+				<from>&amp;rawMonitoringTableName</from>
+				<where>1=1</where>
+				<where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
+				<where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
+				<where operator="AND">VESSEL_REG_CODE_FILTERED=1</where>
+				<where operator="AND">OBSERVER_FILTERED=1</where>
+			</subquery>
+		</with>
+		<with alias="VF" dbms="oracle">
+			<subquery>
+				<select alias="VESSEL_FK">VESSEL_FK</select>
+				<select alias="NAME">REPLACE(VF.NAME, '|', 'I')</select>
+				<select alias="LOA">CAST(VF.LENGTH_OVER_ALL AS NUMBER(8, 2)) / 100</select>
+				<from alias="VF">VESSEL_FEATURES</from>
+				<from join="true">INNER JOIN T ON T.VESSEL_IDENTIFIER = VF.VESSEL_FK</from>
+				<where><![CDATA[
+								NOT(
+                    NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
+                    OR VF.START_DATE > &endDate
+                )
+            ]]></where>
+			</subquery>
+		</with>
+		<with alias="VRP" dbms="oracle">
+			<subquery>
+				<select alias="VESSEL_FK">VRP.VESSEL_FK</select>
+				<select alias="REGISTRATION_CODE">VRP.REGISTRATION_CODE</select>
+				<select alias="INT_REGISTRATION_CODE">VRP.INT_REGISTRATION_CODE</select>
+				<select alias="LOCATION_LABEL">L.LABEL</select>
+				<from alias="VRP">VESSEL_REGISTRATION_PERIOD</from>
+				<from join="true">INNER JOIN T ON T.VESSEL_IDENTIFIER = VRP.VESSEL_FK</from>
+				<from join="true">LEFT OUTER JOIN LOCATION L ON VRP.REGISTRATION_LOCATION_FK = L.ID</from>
+				<where><![CDATA[
+								NOT(
+                    NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
+                    OR VRP.START_DATE > &endDate
+                )
+            ]]></where>
+			</subquery>
+		</with>
+		<select type="hidden" alias="ID">T.ID</select>
+		<select type="text" alias="YEAR">T.YEAR</select>
 
-        <from alias="AC">TMP_ACTIVITY_CALENDAR</from>
-        <from join="true">INNER JOIN &amp;rawMonitoringTableName T on T.ID = AC.ID</from>
+		<select type="text" alias="OBSERVER" dbms="hsqldb,pgsql">T.OBSERVER</select>
+		<select type="text" alias="OBSERVER" dbms="oracle" group="agg">
+			LISTAGG(
+			(SELECT DISTINCT LAST_NAME || ' ' || FIRST_NAME
+			FROM ACTIVITY_CALENDAR2PERSON AC2P
+			LEFT OUTER JOIN PERSON ON PERSON.ID = AC2P.PERSON_FK
+			WHERE AC2P.ACTIVITY_CALENDAR_FK = T.ID)
+			, ' | ') WITHIN GROUP (ORDER BY T.ID)
+		</select>
 
-        <groupby>&amp;groupByColumns</groupby>
-    </query>
+		<select type="text" alias="VESSEL_REGISTRATION_CODE" dbms="hsqldb,pgsql">T.VESSEL_REGISTRATION_CODE</select>
+		<select type="text" alias="VESSEL_REGISTRATION_CODE" dbms="oracle">
+			(SELECT LISTAGG(REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY REGISTRATION_CODE)
+			FROM (SELECT DISTINCT VESSEL_FK, REGISTRATION_CODE FROM VRP) V
+			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
+		</select>
+
+		<select type="text" alias="VESSEL_INT_REGISTRATION_CODE" dbms="hsqldb,pgsql">T.VESSEL_INT_REGISTRATION_CODE</select>
+		<select type="text" alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle">
+			(SELECT LISTAGG(INT_REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY INT_REGISTRATION_CODE)
+			FROM (SELECT DISTINCT VESSEL_FK, INT_REGISTRATION_CODE FROM VRP) V
+			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
+		</select>
+
+		<select type="text" alias="VESSEL_NAME" dbms="hsqldb,pgsql">T.VESSEL_NAME</select>
+		<select type="text" alias="VESSEL_NAME" dbms="oracle">
+			(SELECT LISTAGG(NAME, ' | ') WITHIN GROUP (ORDER BY NAME)
+			FROM (SELECT DISTINCT VESSEL_FK, NAME FROM VF) V
+			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
+		</select>
+
+		<select type="text" alias="VESSEL_LENGTH" dbms="hsqldb,pgsql">T.VESSEL_LENGTH</select>
+		<select type="text" alias="VESSEL_LENGTH" dbms="oracle">
+			(SELECT LISTAGG(LOA, ' | ') WITHIN GROUP (ORDER BY LOA)
+			FROM (SELECT DISTINCT VESSEL_FK, LOA FROM VF) V
+			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
+		</select>
+
+		<select type="text" alias="REGISTRATION_LOCATION_LABEL" dbms="hsqldb,pgsql">T.REGISTRATION_LOCATION_LABEL</select>
+		<select type="text" alias="REGISTRATION_LOCATION_LABEL" dbms="oracle">
+			(SELECT LISTAGG(LOCATION_LABEL, ' | ') WITHIN GROUP (ORDER BY LOCATION_LABEL)
+			FROM (SELECT DISTINCT VESSEL_FK, LOCATION_LABEL FROM VRP) V
+			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
+		</select>
+
+		<select alias="DIRECT_SURVEY_INVESTIGATION">T.DIRECT_SURVEY_INVESTIGATION</select>
+		<select alias="ECONOMIC_SURVEY">T.ECONOMIC_SURVEY</select>
+		<select type="text" alias="SURVEY_QUALIFICATION">T.SURVEY_QUALIFICATION</select>
+		<select type="text" alias="RECORDER_PERSON">T.RECORDER_PERSON</select>
+		<select type="text" alias="RECORDER_DEPARTMENT">T.RECORDER_DEPARTMENT</select>
+		<select type="number" alias="EMPTY_MONTH_COUNT" group="agg">(12 - COUNT(DISTINCT T.MONTH))</select>
+		<select type="number" alias="ERROR_MONTH_COUNT" group="agg">COUNT(T.ERROR)</select>
+		<select type="text" alias="QUALITY_STATUS">T.QUALITY_STATUS</select>
+		<select type="number" alias="STATUS" group="agg">
+			TRIM(CASE COUNT(T.MONTH)
+			WHEN 0 THEN 'EMPTY'
+			WHEN 12 THEN
+			(CASE COUNT(T.ERROR)
+			WHEN 0 THEN 'COMPLETE'
+			ELSE 'INCOMPLETE'
+			END)
+			ELSE 'INCOMPLETE'
+			END)
+		</select>
+
+		<from alias="AC" dbms="hsqldb,pgsql">TMP_ACTIVITY_CALENDAR</from>
+		<from join="true" dbms="hsqldb,pgsql">INNER JOIN &amp;rawMonitoringTableName T on T.ID = AC.ID</from>
+
+		<from dbms="oracle">T</from>
+
+		<groupby>&amp;groupByColumns</groupby>
+		<groupby dbms="oracle">T.VESSEL_IDENTIFIER</groupby>
+	</query>
 
 </queries>
