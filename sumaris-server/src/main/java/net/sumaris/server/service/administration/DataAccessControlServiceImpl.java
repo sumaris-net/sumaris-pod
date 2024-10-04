@@ -45,6 +45,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -74,7 +75,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         ImmutableList<Integer> authorizedProgramIds = toListOrNull(configuration.getAuthorizedProgramIds());
-        if (!CollectionUtils.isEqualCollection(this.authorizedProgramIds, authorizedProgramIds)) {
+        if (!Objects.equals(this.authorizedProgramIds, authorizedProgramIds)) {
             this.authorizedProgramIds = authorizedProgramIds;
             log.info("List of authorized programs: {}", authorizedProgramIds);
         }
