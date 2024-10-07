@@ -48,6 +48,28 @@
     <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="strategy_property" constraintName="strategy_property_strategy_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Strategy" />
   </changeSet>
 
+  <!-- Add unique constraint on VESSEL_USE_FEATURES -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-005" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="vessel_use_features"/>
+    </preConditions>
+
+    <addUniqueConstraint
+        tableName="vessel_use_features"
+        constraintName="vessel_use_feat_unique_key"
+        columnNames="vessel_fk, program_fk, start_date, end_date, activity_calendar_fk, daily_activity_calendar_fk"/>
+  </changeSet>
+  <!-- Add unique constraint on GEAR_USE_FEATURES -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-006" failOnError="false">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="gear_use_features"/>
+    </preConditions>
+    <addUniqueConstraint
+        tableName="gear_use_features"
+        constraintName="gear_use_feat_unique_key"
+        columnNames="vessel_fk, program_fk, gear_fk, metier_fk, start_date, end_date, activity_calendar_fk, daily_activity_calendar_fk"/>
+  </changeSet>
+
   <!-- Update SYSTEM_VERSION -->
   <changeSet author="jv.famy@codra.fr" id="1722000410026-300" runOnChange="true">
     <delete tableName="SYSTEM_VERSION">
@@ -57,12 +79,14 @@
       <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
       <column name="LABEL">3.1.0</column>
       <column name="DESCRIPTION" >
-        - Add table STRATEGY_PROPERTY
+        - Add table STRATEGY_PROPERTY;
+        - Add unique constraints on VESSEL_USE_FEATURES and GEAR_USE_FEATURES
       </column>
       <column name="CREATION_DATE" valueComputed="sysdate"/>
       <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
       <column name="COMMENTS">
-        - Add table STRATEGY_PROPERTY
+        - Add table STRATEGY_PROPERTY;
+        - Add unique constraints on VESSEL_USE_FEATURES and GEAR_USE_FEATURES
       </column>
     </insert>
   </changeSet>

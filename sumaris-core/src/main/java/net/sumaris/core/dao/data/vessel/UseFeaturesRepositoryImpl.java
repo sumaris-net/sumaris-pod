@@ -236,6 +236,9 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
         
         if (CollectionUtils.isNotEmpty(remoteIdsToDelete)) {
             this.deleteAllById(remoteIdsToDelete);
+
+            // Flush, to make sure dleteion will be done before insertion, to avoid unique constraint error
+            this.getEntityManager().flush();
             dirty = true;
         }
         // Get current update date
