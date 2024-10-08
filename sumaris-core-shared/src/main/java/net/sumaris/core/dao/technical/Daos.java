@@ -25,15 +25,16 @@ package net.sumaris.core.dao.technical;
  */
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jdbc.PostgresqlStatements;
-import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.exception.BadUpdateDateException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Geometries;
@@ -103,6 +104,9 @@ public class Daos {
     private final static String JDBC_URL_PREFIX_ORACLE = JDBC_URL_PREFIX + DatabaseType.oracle.name() + ":";
     private final static String JDBC_URL_PREFIX_POSTGRESQL = JDBC_URL_PREFIX + DatabaseType.postgresql.name() + ":";
 
+    public final static Integer NO_DATA_FAKE_ID = -999;
+    public final static Integer[] NO_DATA_FAKE_IDS = new Integer[]{NO_DATA_FAKE_ID};
+    public final static List<Integer> NO_DATA_FAKE_IDS_LIST = ImmutableList.of(NO_DATA_FAKE_ID);
 
     /**
      * Constant <code>DB_DIRECTORY="db"</code>
@@ -115,6 +119,11 @@ public class Daos {
      */
     protected Daos() {
         // helper class does not instantiate
+    }
+
+    public static List<Integer> fakeIdIfEmpty(List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) return NO_DATA_FAKE_IDS_LIST;
+        return ids;
     }
 
     public static Session getSession(EntityManager entityManager) {

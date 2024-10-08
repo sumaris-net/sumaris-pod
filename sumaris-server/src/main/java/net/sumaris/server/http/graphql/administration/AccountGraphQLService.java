@@ -31,6 +31,8 @@ import io.reactivex.rxjava3.core.BackpressureStrategy;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.service.administration.PersonServiceImpl;
+import net.sumaris.core.util.crypto.CryptoUtils;
 import net.sumaris.core.vo.administration.user.AccountVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.administration.user.Persons;
@@ -43,8 +45,10 @@ import net.sumaris.server.service.administration.AccountService;
 import net.sumaris.server.service.administration.ImageService;
 import net.sumaris.server.service.administration.UserSettingsService;
 import net.sumaris.server.service.technical.EntityWatchService;
+import net.sumaris.server.util.security.AuthTokenVO;
 import org.nuiton.i18n.I18n;
 import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.parameters.P;
@@ -52,6 +56,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.util.List;
 
 @Service
 @GraphQLApi
@@ -74,21 +80,21 @@ public class AccountGraphQLService {
     @Resource
     private ImageService imageService;
 
+    @Autowired
+    private PersonServiceImpl personService;
+
     @GraphQLQuery(name = "account", description = "Load a user account")
     @Transactional(readOnly = true)
     public AccountVO loadAccount(
-        @GraphQLArgument(name = "pubkey") String pubkey // Deprecated in 1.8.0
+            @GraphQLArgument(name = "pubkey") String pubkey // Deprecated in 1.8.0
     ) {
-        if (pubkey != null) {
+        if (pubkey != null)
             log.warn("Deprecated used of GraphQL 'account' query. Since version 1.8.0, the 'pubkey' argument has been deprecated, and will be ignored.");
-        }
 
-        PersonVO person = this.authService.getAuthenticatedUser().orElse(null);
+        PersonVO person = authService.getAuthenticatedUser().orElse(null);
 
         // Check if user exists
-        if (person == null) {
-            throw new UnauthorizedException(I18n.t("sumaris.error.account.unauthorized"));
-        }
+        if (person == null) throw new UnauthorizedException(I18n.t("sumaris.error.account.unauthorized"));
 
         // Check if user has been disabled
         if (Persons.isDisableOrDeleted(person)) {
@@ -115,24 +121,24 @@ public class AccountGraphQLService {
         return accountService.saveAccount(account);
     }
 
-    @GraphQLMutation(name = "confirmAccountEmail", description = "Confirm an account email")
-    public boolean confirmEmail(@GraphQLArgument(name="email") String email,
-                                @GraphQLArgument(name="code") String signatureHash) {
+    @GraphQLQuery(name = "confirmAccountEmail", description = "Confirm an account email")
+    public boolean confirmAccountEmail(@GraphQLArgument(name = "email") String email,
+                                @GraphQLArgument(name = "code") String signatureHash) {
         accountService.confirmEmail(email, signatureHash);
         return true;
     }
 
-    @GraphQLMutation(name = "sendAccountConfirmationEmail", description = "Resent confirmation email")
+    @GraphQLQuery(name = "sendAccountConfirmationEmail", description = "Resent confirmation email")
     @IsGuest
-    public boolean sendConfirmationEmail(@GraphQLArgument(name="email") String email,
-                                         @GraphQLArgument(name="locale", defaultValue = "en_GB") String locale) {
+    public boolean sendAccountConfirmationEmail(@GraphQLArgument(name = "email") String email,
+                                                @GraphQLArgument(name = "locale", defaultValue = "en_GB") String locale) {
         accountService.sendConfirmationEmail(email, locale);
         return true;
     }
 
     @GraphQLMutation(name = "saveSettings", description = "Save user settings")
     @IsGuest
-    public UserSettingsVO saveSettings(@GraphQLArgument(name="settings") UserSettingsVO settings) {
+    public UserSettingsVO saveSettings(@GraphQLArgument(name = "settings") UserSettingsVO settings) {
         Preconditions.checkNotNull(settings);
 
         // Set account pubkey into issuer
@@ -142,18 +148,104 @@ public class AccountGraphQLService {
         return userSettingsService.save(settings);
     }
 
+
+    @GraphQLQuery(name = "sendResetPasswordEmail", description = "Send an email to be able to reset account password")
+    public boolean sendResetPasswordEmail(@GraphQLArgument(name = "username") String username,
+                                          @GraphQLArgument(name = "locale", defaultValue = "en_GB") String locale) {
+        AuthTokenVO token = authService.createResetToken(username);
+        try {
+            accountService.sendResetPasswordEmail(username, token.toString(), locale);
+        } catch (Exception e) {
+            log.error("Error while trying to send reset password email to {}", username, e);
+            //Silent
+        }
+
+        // /!\ Always return true, to avoid app to known is username exists or not.
+        return true;
+    }
+
+    @GraphQLQuery(name = "resetAccountPubkey", description = "Reset account pubkey")
+    public boolean resetAccountPubkey(@GraphQLArgument(name = "username") String username,
+                                      @GraphQLArgument(name = "token") String token
+                                      ) {
+        AuthTokenVO authData;
+        try {
+            authData = AuthTokenVO.parse(token);
+            authData.setUsername(username);
+        } catch (ParseException e) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        // Validate the token
+        authService.validateResetPasswordToken(authData);
+        // OK: token is valid
+
+        try {
+            // Get user
+            PersonVO user;
+            if (personService.existsByEmail(username)) {
+                user = personService.getByEmail(username);
+            } else {
+                user = personService.getByUsername(username);
+            }
+
+            // Remember old pubkey (need to remove auth tokens)
+            String oldPubkey = user.getPubkey();
+            Preconditions.checkArgument(CryptoUtils.isValidPubkey(oldPubkey), "Invalid pubkey: " + oldPubkey);
+            String newPubkey = authData.getPubkey();
+
+            // Update pubkey in DB
+            accountService.updatePubkeyById(user.getId(), newPubkey);
+
+            // Clean existing auth tokens
+            List<String> deletedTokens = accountService.deleteAllTokensByPubkey(oldPubkey);
+
+            // Invalidate each deleted tokens
+            deletedTokens.forEach(authService::invalidateToken);
+
+            // Clean auth cache (using old user.pubkey)
+            authService.cleanCacheForUser(user);
+
+        } catch (Exception e) {
+            log.error("Error while trying to update pubkey of {}", username, e);
+            return false;
+        }
+        return true;
+    }
+
+    @IsUser
+    @GraphQLQuery(name = "updateAccountPubkey", description = "Update account pubkey")
+    public boolean updateAccountPubkey(@GraphQLArgument(name = "pubkey") String pubkey) {
+
+        PersonVO user = authService.getAuthenticatedUser()
+            .orElseThrow(() -> new AccessDeniedException("Forbidden"));
+
+        // Remember old pubkey (need to remove auth tokens)
+        String oldPubkey = user.getPubkey();
+        Preconditions.checkArgument(CryptoUtils.isValidPubkey(oldPubkey), "Invalid pubkey: " + oldPubkey);
+
+        // Do the replacement
+        accountService.updatePubkeyById(user.getId(), pubkey);
+
+        // Clean existing auth tokens
+        List<String> deletedTokens = accountService.deleteAllTokensByPubkey(oldPubkey);
+        deletedTokens.forEach(authService::invalidateToken);
+
+        return true;
+    }
+
     /* -- Subscriptions -- */
 
     @GraphQLSubscription(name = "updateAccount", description = "Subscribe to any account update")
     @IsGuest
     @Transactional(readOnly = true)
     public Publisher<AccountVO> updateAccount(
-        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer intervalInSecond
+            @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") Integer intervalInSecond
     ) {
 
-        Integer personId = this.authService.getAuthenticatedUserId().orElse(null);
+        Integer personId = authService.getAuthenticatedUserId().orElse(null);
         return entityWatchService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
-            .toFlowable(BackpressureStrategy.LATEST);
+                .toFlowable(BackpressureStrategy.LATEST);
     }
 
 }

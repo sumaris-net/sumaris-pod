@@ -175,7 +175,6 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         } finally {
             if (startTime != null) {
                 log.info("Extraction #{} finished in {}", context.getId(), TimeUtils.printDurationFrom(startTime));
-
             }
         }
     }
@@ -345,6 +344,10 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         XMLQuery xmlQuery = createXMLQuery(context, "createMonitoringTable");
         xmlQuery.bind("rawMonitoringTableName", context.getRawMonitoringTableName());
         xmlQuery.bind("monitoringTableName", context.getMonitoringTableName());
+
+        // Date Filter
+        xmlQuery.bind("startDate", Daos.getSqlToDate(context.getStartDate()));
+        xmlQuery.bind("endDate", Daos.getSqlToDate(context.getEndDate()));
 
         URL injectionQuery = getXMLQueryURL(context, "injectionMonitoringMonthTable");
 

@@ -23,6 +23,7 @@
 package net.sumaris.server.http.security;
 
 import com.google.common.collect.ImmutableList;
+import lombok.NonNull;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.server.security.ISecurityContext;
@@ -77,10 +78,18 @@ public interface AuthService extends ISecurityContext<PersonVO> {
 
     Optional<String> getAuthenticatedUsername();
 
+    Optional<String> getAuthenticatedUserPubkey();
+
     UserDetails authenticateByToken(String token) throws AuthenticationException;
 
     UserDetails authenticateByUsername(String username, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void cleanCacheForUser(PersonVO user);
+
+    void invalidateToken(String token);
+
+    AuthTokenVO createResetToken(String username);
+
+    AuthUserDetails validateResetPasswordToken(@NonNull AuthTokenVO token);
 }

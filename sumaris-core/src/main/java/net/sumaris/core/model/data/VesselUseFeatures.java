@@ -31,7 +31,6 @@ import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.location.Location;
-import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -42,7 +41,14 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "vessel_use_features")
+@Table(name = "vessel_use_features",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "vessel_use_feat_unique_key",
+            columnNames = {"vessel_fk", "program_fk", "start_date", "end_date", "activity_calendar_fk", "daily_activity_calendar_fk"}
+        )
+    }
+)
 public class VesselUseFeatures implements IUseFeaturesEntity {
 
     @Id

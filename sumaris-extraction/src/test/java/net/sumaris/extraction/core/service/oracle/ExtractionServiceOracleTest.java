@@ -23,7 +23,6 @@
 package net.sumaris.extraction.core.service.oracle;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -43,6 +42,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +50,7 @@ import java.util.Map;
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-@Ignore("Use only Ifremer Oracle database")
+//@Ignore("Use only Ifremer Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
 public class ExtractionServiceOracleTest extends ExtractionServiceTest {
@@ -139,6 +139,16 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
         Assert.assertNotNull(array);
         String jsonStr = this.objectMapper.writeValueAsString(array);
         Assert.assertTrue(jsonStr.length() > 10);
+    }
+
+    @Test
+    public void executeActivityMonitoringOneVesselTest() throws IOException, ParseException {
+        super.executeActivityMonitoringTest("804688"); // VESSEL.ID = 296426
+    }
+
+    @Test
+    public void executeActivityMonitoringAllVesselTest() throws IOException, ParseException {
+        super.executeActivityMonitoringTest(null);
     }
 
     /* -- protected methods -- */

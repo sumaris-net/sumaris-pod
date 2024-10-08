@@ -51,6 +51,7 @@
         align (left | right | center) #IMPLIED
         width CDATA #IMPLIED
         group CDATA #IMPLIED
+		    dbms CDATA #IMPLIED
         >
     <!ELEMENT select (#PCDATA | link)*>
     <!ATTLIST select

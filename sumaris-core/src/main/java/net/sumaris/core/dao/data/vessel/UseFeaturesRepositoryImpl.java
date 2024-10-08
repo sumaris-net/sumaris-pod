@@ -230,6 +230,17 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
                                     List<V> sources) {
         final boolean trace = log.isTraceEnabled();
         List<Integer> remoteIds = Beans.collectIds(targets);
+        List<Integer> sourceIds = Beans.collectIds(sources);
+        List<Integer> remoteIdsToDelete =  remoteIds.stream().filter((remoteId) -> !sourceIds.contains(remoteId)).toList();
+        boolean dirty = false;
+        
+        if (CollectionUtils.isNotEmpty(remoteIdsToDelete)) {
+            this.deleteAllById(remoteIdsToDelete);
+
+            // Flush, to make sure dleteion will be done before insertion, to avoid unique constraint error
+            this.getEntityManager().flush();
+            dirty = true;
+        }
         // Get current update date
         Date newUpdateDate = getDatabaseCurrentDate();
 
@@ -252,12 +263,7 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
         // Count updates
         .filter(Boolean::booleanValue).count();
 
-        boolean dirty = updatesCount > 0;
-
-        if (CollectionUtils.isNotEmpty(remoteIds)) {
-            this.deleteAllById(remoteIds);
-            dirty = true;
-        }
+         dirty = dirty || updatesCount > 0;
 
         return dirty;
     }

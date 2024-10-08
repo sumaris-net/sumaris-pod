@@ -66,7 +66,7 @@ public class ProgramPrivilegeRepositoryImpl
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, allEntries = true)
     })
     protected void clearCache() {
-        log.debug("Cleaning Program privilege's cache...", createEntity());
+        log.debug("Cleaning Program privilege's cache...");
     }
 
 

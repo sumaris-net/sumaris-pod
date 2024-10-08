@@ -24,7 +24,7 @@
     <SOFTWARE_PROPERTY ID="13" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.map.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="14" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.product.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="15" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="16" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.forum.url" NAME="https://forum.sumaris.net/"/>
+    <!--<SOFTWARE_PROPERTY ID="16" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.forum.url" NAME="https://forum.sumaris.net/"/> FIXME: to reinstall -->
     <SOFTWARE_PROPERTY ID="17" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.help.url" NAME="https://github.com/sumaris-net/sumaris-doc/blob/master/user-manual/index.md"/>
     <SOFTWARE_PROPERTY ID="18" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2022-11-11" LABEL="sumaris.data.images.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="19" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.import.enable" NAME="true"/> <!-- DEV only, not in production (option for ADAP only) -->
@@ -133,11 +133,11 @@
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
     <!-- ****** OBSMER properties ****** -->
-    <SOFTWARE_PROPERTY ID="159" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-15" LABEL="sumaris.activityCalendar.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="159" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="162" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="163" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.vessel.filter.type.id" NAME="1"/> <!-- FISHING VESSEL -->
+    <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="162" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-15" LABEL="sumaris.activityCalendar.enable" NAME="true"/>
+    <SOFTWARE_PROPERTY ID="163" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.vessel.filter.type.id" NAME="1,2"/> <!-- FISHING VESSEL, SCIENTIFIC -->
     <SOFTWARE_PROPERTY ID="164" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="165" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.logo" NAME="image:57"/>
     <SOFTWARE_PROPERTY ID="166" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.logo.large" NAME="image:57"/>
@@ -153,5 +153,6 @@
     <SOFTWARE_PROPERTY ID="176" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-13" LABEL="sumaris.referential.vessel.registration.location.level.ids" NAME="1,8"/>
     <SOFTWARE_PROPERTY ID="177" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-05-03" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="178" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-06-24" LABEL="sumaris.data.vessel.unknown.id" NAME="5"/>
+    <SOFTWARE_PROPERTY ID="179" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.vessel.filter.searchAttributes" NAME="registrationCode,name"/>
 
 </dataset>

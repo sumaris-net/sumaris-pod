@@ -24,6 +24,7 @@ package net.sumaris.core.service.social;
 
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
@@ -36,7 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author <benoit.lavenier@e-is.pro> on 08/07/2020.
@@ -122,7 +126,9 @@ public class UserEventServiceImpl implements UserEventService {
 
     @Override
     public void markAsRead(List<Integer> userEventIds) {
-        if (CollectionUtils.isEmpty(userEventIds)) return;
+        if (CollectionUtils.isEmpty(userEventIds)) {
+            return;
+        }
 
         Timestamp readDate = userEventRepository.getDatabaseCurrentTimestamp();
         userEventIds.stream()
@@ -133,5 +139,14 @@ public class UserEventServiceImpl implements UserEventService {
                 userEventVO.setReadDate(readDate);
                 userEventRepository.save(userEventVO);
             });
+    }
+
+    @Override
+    public void updatePubkey(@NonNull String oldPubkey, @NonNull String newPubkey) {
+
+        log.info("Updating pubkey in user events... old: '{}' - new: '{}'", oldPubkey, newPubkey);
+
+        userEventRepository.updateIssuerPubkey(oldPubkey, newPubkey);
+        userEventRepository.updateRecipientPubkey(oldPubkey, newPubkey);
     }
 }

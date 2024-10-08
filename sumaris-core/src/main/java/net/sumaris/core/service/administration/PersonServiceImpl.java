@@ -33,8 +33,6 @@ import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.exception.DataNotFoundException;
-import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.data.ImageAttachment;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.data.ImageAttachmentService;
@@ -46,9 +44,7 @@ import net.sumaris.core.vo.filter.PersonFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -69,8 +65,6 @@ public class PersonServiceImpl implements PersonService {
 
 	private final ImageAttachmentService imageAttachmentService;
 
-
-
 	@Override
 	public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
 		return personRepository.findByFilter(PersonFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection);
@@ -90,7 +84,17 @@ public class PersonServiceImpl implements PersonService {
 	@Override
 	public Page<String> findPubkeysByFilter(PersonFilterVO filter, Pageable page) {
 		return findByFilter(filter, page)
-			.map(PersonVO::getEmail);
+			.map(PersonVO::getPubkey);
+	}
+
+	@Override
+	public String findByEmailMD5(String emailMD5) {
+		return personRepository.findByEmailMD5(emailMD5).getEmail();
+	}
+
+	@Override
+	public String findByEmail(String email) {
+		return personRepository.findByEmailMD5(email).getEmail();
 	}
 
 	@Override
@@ -148,23 +152,32 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
-    public boolean isExistsByEmailHash(final String hash) {
+    public boolean existsByEmailMD5(final String hash) {
         Preconditions.checkArgument(StringUtils.isNotBlank(hash));
         return personRepository.existsByEmailMD5(hash);
     }
 
-    @Override
-	@Cacheable(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, unless = "#result==null")
-	public ImageAttachmentVO getAvatarByPubkey(@NonNull final String pubkey, ImageAttachmentFetchOptions fetchOptions) {
-		Optional<Person> person = personRepository.findByPubkey(pubkey)
-			.flatMap(vo -> personRepository.findById(vo.getId()));
+	@Override
+	public boolean existsByEmail(String email) {
+		Preconditions.checkArgument(StringUtils.isNotBlank(email));
+		return personRepository.existsByEmail(email);
+	}
 
-		int avatarId = person
-			.map(Person::getAvatar)
-			.map(ImageAttachment::getId)
-			.orElseThrow(() -> new DataRetrievalFailureException(I18n.t("sumaris.error.person.avatar.notFound")));
+	@Override
+	@Cacheable(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, key = "#pubkey")
+	public Optional<ImageAttachmentVO> findAvatarByPubkey(@NonNull String pubkey) {
+		return personRepository.findAvatarIdByPubkey(pubkey)
+			.map(avatarId -> imageAttachmentService.find(avatarId, ImageAttachmentFetchOptions.WITH_CONTENT));
+	}
 
-		return imageAttachmentService.find(avatarId, fetchOptions);
+	@Override
+	public Optional<String> findEmailByUsername(@NonNull String username) {
+		return findEmailsByFilter(PersonFilterVO.builder()
+			.username(username) // Username (or extranet username)
+			.statusIds(new Integer[]{ StatusEnum.ENABLE.getId(), StatusEnum.TEMPORARY.getId() }) // Enabled accounts
+			.build(),
+			Pageable.ofSize(1))
+			.stream().findFirst();
 	}
 
 	@Override

@@ -43,7 +43,13 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "gear_use_features")
+@Table(name = "gear_use_features",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "gear_use_feat_unique_key",
+            columnNames = {"vessel_fk", "program_fk", "gear_fk", "metier_fk", "start_date", "end_date", "activity_calendar_fk", "daily_activity_calendar_fk"}
+        )
+    })
 public class GearUseFeatures implements IUseFeaturesEntity {
 
     @Id

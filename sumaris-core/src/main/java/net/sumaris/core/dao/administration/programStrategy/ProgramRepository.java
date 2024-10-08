@@ -45,20 +45,20 @@ public interface ProgramRepository
     ProgramSpecifications {
 
 
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#p0", unless = "#result==null")
-    default List<Integer> getReadableProgramIdsByUserId(int userId) {
-        return getProgramIdsByUserIdAndPrivilegeIds(userId, Daos.SQL_TRUE, null);
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#userId", unless = "#result==null")
+    default List<Integer> getReadableProgramIdsByUserId(@Param("userId") int userId) {
+        return getProgramIdsByUserIdAndPrivilegeIds(userId, Daos.SQL_TRUE, Daos.NO_DATA_FAKE_IDS_LIST);
     }
 
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#p0", unless = "#result==null")
-    default List<Integer> getWritableProgramIdsByUserId(int userId) {
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#userId", unless = "#result==null")
+    default List<Integer> getWritableProgramIdsByUserId(@Param("userId") int userId) {
         return getProgramIdsByUserIdAndPrivilegeIds(userId, Daos.SQL_FALSE, ProgramPrivilegeUtils.getWriteIds());
     }
 
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#p0", condition = "#p1==null", unless = "#result==null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#userId", condition = "#programPrivilegeIds==null", unless = "#result==null")
     default List<Integer> getProgramIdsByUserIdAndPrivilegeIds(@Param("userId") int userId,
                                                                @Param("programPrivilegeIds") List<Integer> programPrivilegeIds) {
-        return getProgramIdsByUserIdAndPrivilegeIds(userId, CollectionUtils.isEmpty(programPrivilegeIds) ? Daos.SQL_TRUE : Daos.SQL_FALSE, programPrivilegeIds);
+        return getProgramIdsByUserIdAndPrivilegeIds(userId, CollectionUtils.isEmpty(programPrivilegeIds) ? Daos.SQL_TRUE : Daos.SQL_FALSE, Daos.fakeIdIfEmpty(programPrivilegeIds));
     }
 
 
@@ -69,8 +69,8 @@ public interface ProgramRepository
         "           left outer join PROGRAM2PERSON P2P on PROGRAM.ID = P2P.PROGRAM_FK" +
         "   where P.ID = :userId " +
         "       AND (" +
-        "           (P2D.DEPARTMENT_FK = P.DEPARTMENT_FK AND (:anyProgramPrivilege OR P2D.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds))) " +
-        "           OR (P2P.PERSON_FK = P.ID AND (:anyProgramPrivilege OR P2P.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds)))" +
+        "           (P2D.DEPARTMENT_FK = P.DEPARTMENT_FK AND (:anyProgramPrivilege = "+ Daos.SQL_TRUE +" OR P2D.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds))) " +
+        "           OR (P2P.PERSON_FK = P.ID AND (:anyProgramPrivilege = "+ Daos.SQL_TRUE + " OR P2P.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds)))" +
         "       )" +
         " union" +
         "   select distinct STRATEGY.PROGRAM_FK" +
@@ -81,7 +81,7 @@ public interface ProgramRepository
         "       AND (:anyProgramPrivilege = " + Daos.SQL_TRUE + " OR S2D.PROGRAM_PRIVILEGE_FK in (:programPrivilegeIds))", nativeQuery = true)
     List<Integer> getProgramIdsByUserIdAndPrivilegeIds(@Param("userId") int userId,
                                                        @Param("anyProgramPrivilege") int anyProgramPrivilege,
-                                                       @Param("programPrivilegeIds") List<Integer> programPrivilegeIds
+                                                       @Param("programPrivilegeIds") Iterable<? extends Integer> programPrivilegeIds
     );
 
     @Query(value = "select distinct P2D.LOCATION_FK AS LOCATION_FK" +

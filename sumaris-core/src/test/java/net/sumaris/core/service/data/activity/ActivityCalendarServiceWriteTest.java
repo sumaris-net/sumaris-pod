@@ -33,10 +33,14 @@ import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.data.DataTestUtils;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.data.*;
+import net.sumaris.core.vo.data.DataOriginVO;
+import net.sumaris.core.vo.data.FishingAreaVO;
+import net.sumaris.core.vo.data.GearUseFeaturesVO;
+import net.sumaris.core.vo.data.VesselUseFeaturesVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -188,6 +192,46 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
         }
     }
 
+    @Test
+    public void fixSaveUniqueConstraint(){
+        ActivityCalendarVO calendar = createActivityCalendar(2001, 1);
+
+        // Save
+        calendar = service.save(calendar);
+
+        // Get metier 1
+        GearUseFeaturesVO guf1 = calendar.getGearUseFeatures().get(0);
+        guf1.setId(null); // Clean id to simulate a cut/paste
+        guf1.setUpdateDate(null);
+        guf1.setRankOrder((short)2); // change order
+        MetierVO metier1 = guf1.getMetier();
+        int metierId1 = metier1.getId();
+        FishingAreaVO fa1 = guf1.getFishingAreas().get(0);
+        fa1.setId(null);
+
+        // Create metier 2
+        int metierId2 = fixtures.getMetierIdForFPO(0);
+        Assume.assumeTrue("Should use distinct metier for this test", metierId1 !=  metierId2);
+        GearUseFeaturesVO guf2 = new GearUseFeaturesVO();
+        Beans.copyProperties(guf1, guf2,
+            // Exclude some properties
+            GearUseFeaturesVO.Fields.ID, GearUseFeaturesVO.Fields.UPDATE_DATE, GearUseFeaturesVO.Fields.METIER, GearUseFeaturesVO.Fields.RANK_ORDER);
+        guf2.setRankOrder((short)1);
+        MetierVO metier2 = new MetierVO();
+        metier2.setId(metierId2);
+        guf2.setMetier(metier2);
+        FishingAreaVO fa2 = createFishingArea(2);
+        guf2.setFishingAreas(ImmutableList.of(fa2));
+
+        // Inverse metier  order (metier 2 before metier 1)
+        calendar.setGearUseFeatures(
+            ImmutableList.of(guf2, guf1)
+        );
+
+        service.save(calendar);
+
+    }
+
     /* -- Protected -- */
 
     protected ActivityCalendarVO createActivityCalendar(int year, int monthCount) {
@@ -241,14 +285,19 @@ public class ActivityCalendarServiceWriteTest extends AbstractServiceTest{
     protected GearUseFeaturesVO createGearUseFeatures(int year, int month) {
         GearUseFeaturesVO vo = DataTestUtils.createActivityCalendarGearUseFeatures(fixtures, year, month);
 
-        FishingAreaVO fa = new FishingAreaVO();
-        LocationVO rectangle = new LocationVO();
-        rectangle.setId(fixtures.getRectangleId(month % 5));
-        fa.setLocation(rectangle);
+        FishingAreaVO fa = createFishingArea(month);
 
         vo.setFishingAreas(ImmutableList.of(fa));
 
         return vo;
+    }
+
+    protected FishingAreaVO createFishingArea(int month) {
+        FishingAreaVO fa = new FishingAreaVO();
+        LocationVO rectangle = new LocationVO();
+        rectangle.setId(fixtures.getRectangleId(month % 5));
+        fa.setLocation(rectangle);
+        return fa;
     }
 
     protected void assertValidVesselUseFeatures(ActivityCalendarVO vo, int expectedMonth) {
