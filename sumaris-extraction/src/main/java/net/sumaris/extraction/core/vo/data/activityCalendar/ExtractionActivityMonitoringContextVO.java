@@ -68,6 +68,10 @@ public class ExtractionActivityMonitoringContextVO extends ExtractionContextVO {
         return year != null || this.getActivityCalendarFilter() == null ? year : this.getActivityCalendarFilter().getYear();
     }
 
+    public List<Integer> getInclucedIds() {
+        return activityCalendarFilter != null && activityCalendarFilter.getIncludedIds() != null ? Arrays.stream(activityCalendarFilter.getIncludedIds()).toList() : null;
+    }
+
     public List<String> getRegistrationLocationLabels() {
         return activityCalendarFilter != null && activityCalendarFilter.getRegistrationLocationLabels() != null ? activityCalendarFilter.getRegistrationLocationLabels() : null;
     }

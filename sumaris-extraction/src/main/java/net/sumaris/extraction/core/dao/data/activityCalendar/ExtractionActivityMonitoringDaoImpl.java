@@ -297,6 +297,15 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
             xmlQuery.setGroup("filterYear", false);
         }
 
+        // Ids
+        {
+            List<Integer> inclucedIds  = context.getInclucedIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(inclucedIds);
+            xmlQuery.setGroup("included_ids", enableFilter);
+            xmlQuery.setGroup("!included_ids", !enableFilter);
+            if (enableFilter) xmlQuery.bind("included_ids", Daos.getSqlInNumbers(inclucedIds));
+        }
+
         // Registration location
         {
             List<String> registrationLocationLabels = context.getRegistrationLocationLabels();

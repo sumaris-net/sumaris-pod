@@ -101,6 +101,9 @@ public interface ExtractionActivityMonitoringDao<C extends ExtractionActivityMon
             // many values with the operator IN
             else if (operator == ExtractionFilterOperatorEnum.IN && ArrayUtils.isNotEmpty(criterion.getValues())) {
                 switch (criterion.getName().toLowerCase()) {
+                    case ActivityMonitoringSpecification.COLUMN_INCLUDED_IDS:
+                        target.setIncludedIds(Arrays.stream(criterion.getValues()).mapToInt(Integer::parseInt).boxed().toArray(Integer[]::new));
+                        break;
                     case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_LABEL:
                         target.setBasePortLocationLabels(Arrays.asList(criterion.getValues()));
                         break;

@@ -169,6 +169,9 @@
         <where group="yearFilter" operator="AND">
             AC.YEAR = &amp;year
         </where>
+        <where group="included_ids" operator="AND">
+            <in field="AC.ID">&amp;included_ids</in>
+        </where>
         <where group="registrationLocationFilter" operator="AND" dbms="oracle">
             <in field="L.LABEL">&amp;registrationLocationLabels</in>
         </where>
