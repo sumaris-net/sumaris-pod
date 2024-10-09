@@ -147,6 +147,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     REFUSED_SURVEY(266, "REFUSED_SURVEY"),
     GPS_USED(188, "GPS_USED"),
+    CAMERA_USED(514, "CAMERA_USED"),
 
     // ObsMer
     EMV_CATEGORY(437, "EMV_CATEGORY"),
