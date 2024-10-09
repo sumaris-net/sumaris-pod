@@ -52,7 +52,7 @@ JAVA_OPTS="$JAVA_OPTS -Dspring.main.banner-mode=off"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.basedir=${APP_BASEDIR}"
 JAVA_OPTS="$JAVA_OPTS -Dsumaris.log.file=${LOG_DIR}"
 JAVA_OPTS="$JAVA_OPTS -Dspring.datasource.url=${DB_URL}"
-JAVA_OPTS="$JAVA_OPTS -Dspring.mail.enabled=false"
+#JAVA_OPTS="$JAVA_OPTS -Dspring.mail.enabled=false"
 #JAVA_OPTS="$JAVA_OPTS -Drdf.enabled=true"
 if [[ -d "${CONFIG_DIR}" ]]; then
   echo "Local config: $CONFIG_DIR"

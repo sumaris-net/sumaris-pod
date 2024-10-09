@@ -166,6 +166,11 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     FISHING_DURATION_DAYS(450, "FISHING_DURATION_DAYS"),
     SURVEY_QUALIFICATION(446, "SURVEY_QUALIFICATION"),
     SURVEY_RELIABILITY(447, "SURVEY_RELIABILITY"),
+
+    // DolphinFree
+    CAMERA_USED(550, "CAMERA_USED"),
+    NET_STRING_LAYOUT(551, "NET_STRING_LAYOUT"),
+
     ;
 
     public static PmfmEnum valueOf(final int id) {
