@@ -87,6 +87,7 @@ public class ActivityCalendarRepositoryImpl
             .and(atYear(filter.getYear()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
+            .and(hasVesselTypeId(filter.getVesselTypeId()))
             .and(hasRegistrationLocationIds(concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds())))
             .and(hasBasePortLocationIds(filter.getBasePortLocationIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))

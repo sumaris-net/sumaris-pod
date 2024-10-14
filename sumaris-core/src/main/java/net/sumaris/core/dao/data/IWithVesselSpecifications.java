@@ -45,6 +45,7 @@ public interface IWithVesselSpecifications<ID extends Serializable, E extends IW
 
     String VESSEL_ID_PARAM = "vesselId";
     String VESSEL_IDS_PARAM = "vesselIds";
+    String VESSEL_TYPE_ID_PARAM = "vesselTypeId";
 
     default <T> Join<T, Vessel> composeVesselJoin(Root<T> root) {
         return Daos.composeJoin(root, IWithVesselEntity.Fields.VESSEL, JoinType.INNER);
@@ -108,6 +109,15 @@ public interface IWithVesselSpecifications<ID extends Serializable, E extends IW
             return cb.in(vessel.get(Vessel.Fields.ID)).value(param);
         })
         .addBind(VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
+    }
+
+    default Specification<E> hasVesselTypeId(Integer vesselTypeId) {
+        if (vesselTypeId == null) return null;
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_TYPE_ID_PARAM);
+            Join<E, Vessel> vessel = composeVesselJoin(root);
+            return cb.equal(vessel.get(Vessel.Fields.VESSEL_TYPE).get(IEntity.Fields.ID), param);
+        }).addBind(VESSEL_TYPE_ID_PARAM, vesselTypeId);
     }
 
 
