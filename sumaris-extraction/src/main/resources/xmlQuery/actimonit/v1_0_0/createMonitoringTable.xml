@@ -27,27 +27,25 @@
 			<subquery option="distinct">
 				<select alias="ID" type="number">ID</select>
 				<from>&amp;rawMonitoringTableName</from>
-				<where>1=1</where>
-				<where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
-				<where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
-				<where operator="AND">VESSEL_REG_CODE_FILTERED=1</where>
-				<where operator="AND">OBSERVER_FILTERED=1</where>
 			</subquery>
 		</with>
-		<with alias="T" dbms="oracle">
+		<with alias="T" dbms="oracle" group="!adagio">
 			<subquery>
 				<select type="hidden">*</select>
 				<from>&amp;rawMonitoringTableName</from>
-				<where>1=1</where>
-				<where operator="AND">REGISTRATION_LOCATION_FILTERED=1</where>
-				<where operator="AND">BASE_PORT_LOCATION_FILTERED=1</where>
-				<where operator="AND">VESSEL_REG_CODE_FILTERED=1</where>
-				<where operator="AND">OBSERVER_FILTERED=1</where>
 			</subquery>
 		</with>
-		<with alias="VF" dbms="oracle">
+		<with alias="T" dbms="oracle" group="adagio">
 			<subquery>
-				<select alias="VESSEL_FK">VESSEL_FK</select>
+				<select type="hidden">R.*</select>
+				<select alias="VESSEL_FK" type="hidden">V.CODE</select>
+				<from alias="R">&amp;rawMonitoringTableName</from>
+				<from join="true">INNER JOIN &amp;adagioSchema.M_VESSEL V ON V.ID = R.VESSEL_IDENTIFIER</from>
+			</subquery>
+		</with>
+		<with alias="VF" dbms="oracle" group="!adagio">
+			<subquery>
+				<select alias="VESSEL_FK">VF.VESSEL_FK</select>
 				<select alias="NAME">REPLACE(VF.NAME, '|', 'I')</select>
 				<select alias="LOA">CAST(VF.LENGTH_OVER_ALL AS NUMBER(8, 2)) / 100</select>
 				<from alias="VF">VESSEL_FEATURES</from>
@@ -60,7 +58,22 @@
             ]]></where>
 			</subquery>
 		</with>
-		<with alias="VRP" dbms="oracle">
+		<with alias="VF" dbms="oracle" group="adagio">
+			<subquery>
+				<select alias="VESSEL_FK">VF.VESSEL_FK</select>
+				<select alias="NAME">REPLACE(VF.NAME, '|', 'I')</select>
+				<select alias="LOA">CAST(VF.LOA AS NUMBER(8, 2)) / 100</select>
+				<from alias="VF">&amp;adagioSchema.VESSEL_FEATURES</from>
+				<from join="true">INNER JOIN T ON T.VESSEL_FK = VF.VESSEL_FK</from>
+				<where><![CDATA[
+								NOT(
+                    NVL(VF.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
+                    OR VF.START_DATE_TIME > &endDate
+                )
+            ]]></where>
+			</subquery>
+		</with>
+		<with alias="VRP" dbms="oracle" group="!adagio">
 			<subquery>
 				<select alias="VESSEL_FK">VRP.VESSEL_FK</select>
 				<select alias="REGISTRATION_CODE">VRP.REGISTRATION_CODE</select>
@@ -77,58 +90,105 @@
             ]]></where>
 			</subquery>
 		</with>
+		<with alias="VRP" dbms="oracle" group="adagio">
+			<subquery>
+				<select alias="VESSEL_FK">VRP.VESSEL_FK</select>
+				<select alias="REGISTRATION_CODE">VRP.REGISTRATION_CODE</select>
+				<select alias="INT_REGISTRATION_CODE">VRP.INT_REGISTRATION_CODE</select>
+				<select alias="LOCATION_LABEL">L.LABEL</select>
+				<from alias="VRP">&amp;adagioSchema.VESSEL_REGISTRATION_PERIOD</from>
+				<from join="true">INNER JOIN T ON T.VESSEL_FK = VRP.VESSEL_FK</from>
+				<from join="true">LEFT OUTER JOIN LOCATION L ON VRP.REGISTRATION_LOCATION_FK = L.ID</from>
+				<where><![CDATA[
+								NOT(
+                    NVL(VRP.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
+                    OR VRP.START_DATE_TIME > &endDate
+                )
+            ]]></where>
+			</subquery>
+		</with>
+		<with alias="OBS" dbms="oracle">
+			<subquery option="DISTINCT">
+				<select>T.ID</select>
+				<select alias="OBSERVER">LAST_NAME || ' ' || FIRST_NAME</select>
+				<from>T</from>
+				<from join="true">INNER JOIN ACTIVITY_CALENDAR2PERSON AC2P ON AC2P.ACTIVITY_CALENDAR_FK = T.ID</from>
+				<from join="true">LEFT OUTER JOIN PERSON ON PERSON.ID = AC2P.PERSON_FK</from>
+				<where>AC2P.ACTIVITY_CALENDAR_FK = T.ID</where>
+			</subquery>
+		</with>
 		<select type="hidden" alias="ID">T.ID</select>
 		<select type="text" alias="YEAR">T.YEAR</select>
 
-		<select type="text" alias="OBSERVER" dbms="hsqldb,pgsql">T.OBSERVER</select>
-		<select type="text" alias="OBSERVER" dbms="oracle" group="agg">
-			LISTAGG(
-			(SELECT DISTINCT LAST_NAME || ' ' || FIRST_NAME
-			FROM ACTIVITY_CALENDAR2PERSON AC2P
-			LEFT OUTER JOIN PERSON ON PERSON.ID = AC2P.PERSON_FK
-			WHERE AC2P.ACTIVITY_CALENDAR_FK = T.ID)
-			, ' | ') WITHIN GROUP (ORDER BY T.ID)
+		<select type="text" alias="OBSERVER_NAME" dbms="hsqldb,pgsql">T.OBSERVER_NAME</select>
+		<select type="text" alias="OBSERVER_NAME" dbms="oracle" group="agg">
+			(SELECT LISTAGG(OBSERVER, ' | ') WITHIN GROUP (ORDER BY OBSERVER) FROM OBS WHERE OBS.ID = T.ID)
 		</select>
 
 		<select type="text" alias="VESSEL_REGISTRATION_CODE" dbms="hsqldb,pgsql">T.VESSEL_REGISTRATION_CODE</select>
-		<select type="text" alias="VESSEL_REGISTRATION_CODE" dbms="oracle">
+		<select type="text" alias="VESSEL_REGISTRATION_CODE" dbms="oracle" group="!adagio">
 			(SELECT LISTAGG(REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY REGISTRATION_CODE)
 			FROM (SELECT DISTINCT VESSEL_FK, REGISTRATION_CODE FROM VRP) V
 			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
 		</select>
+		<select type="text" alias="VESSEL_REGISTRATION_CODE" dbms="oracle" group="adagio">
+			(SELECT LISTAGG(REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY REGISTRATION_CODE)
+			FROM (SELECT DISTINCT VESSEL_FK, REGISTRATION_CODE FROM VRP) V
+			WHERE V.VESSEL_FK = T.VESSEL_FK)
+		</select>
 
 		<select type="text" alias="VESSEL_INT_REGISTRATION_CODE" dbms="hsqldb,pgsql">T.VESSEL_INT_REGISTRATION_CODE</select>
-		<select type="text" alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle">
+		<select type="text" alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="!adagio">
 			(SELECT LISTAGG(INT_REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY INT_REGISTRATION_CODE)
 			FROM (SELECT DISTINCT VESSEL_FK, INT_REGISTRATION_CODE FROM VRP) V
 			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
 		</select>
+		<select type="text" alias="VESSEL_INT_REGISTRATION_CODE" dbms="oracle" group="adagio">
+			(SELECT LISTAGG(INT_REGISTRATION_CODE, ' | ') WITHIN GROUP (ORDER BY INT_REGISTRATION_CODE)
+			FROM (SELECT DISTINCT VESSEL_FK, INT_REGISTRATION_CODE FROM VRP) V
+			WHERE V.VESSEL_FK = T.VESSEL_FK)
+		</select>
 
 		<select type="text" alias="VESSEL_NAME" dbms="hsqldb,pgsql">T.VESSEL_NAME</select>
-		<select type="text" alias="VESSEL_NAME" dbms="oracle">
+		<select type="text" alias="VESSEL_NAME" dbms="oracle" group="!adagio">
 			(SELECT LISTAGG(NAME, ' | ') WITHIN GROUP (ORDER BY NAME)
 			FROM (SELECT DISTINCT VESSEL_FK, NAME FROM VF) V
 			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
 		</select>
+		<select type="text" alias="VESSEL_NAME" dbms="oracle" group="adagio">
+			(SELECT LISTAGG(NAME, ' | ') WITHIN GROUP (ORDER BY NAME)
+			FROM (SELECT DISTINCT VESSEL_FK, NAME FROM VF) V
+			WHERE V.VESSEL_FK = T.VESSEL_FK)
+		</select>
 
 		<select type="text" alias="VESSEL_LENGTH" dbms="hsqldb,pgsql">T.VESSEL_LENGTH</select>
-		<select type="text" alias="VESSEL_LENGTH" dbms="oracle">
+		<select type="text" alias="VESSEL_LENGTH" dbms="oracle" group="!adagio">
 			(SELECT LISTAGG(LOA, ' | ') WITHIN GROUP (ORDER BY LOA)
 			FROM (SELECT DISTINCT VESSEL_FK, LOA FROM VF) V
 			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
 		</select>
+		<select type="text" alias="VESSEL_LENGTH" dbms="oracle" group="adagio">
+			(SELECT LISTAGG(LOA, ' | ') WITHIN GROUP (ORDER BY LOA)
+			FROM (SELECT DISTINCT VESSEL_FK, LOA FROM VF) V
+			WHERE V.VESSEL_FK = T.VESSEL_FK)
+		</select>
 
 		<select type="text" alias="REGISTRATION_LOCATION_LABEL" dbms="hsqldb,pgsql">T.REGISTRATION_LOCATION_LABEL</select>
-		<select type="text" alias="REGISTRATION_LOCATION_LABEL" dbms="oracle">
+		<select type="text" alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="!adagio">
 			(SELECT LISTAGG(LOCATION_LABEL, ' | ') WITHIN GROUP (ORDER BY LOCATION_LABEL)
 			FROM (SELECT DISTINCT VESSEL_FK, LOCATION_LABEL FROM VRP) V
 			WHERE V.VESSEL_FK = T.VESSEL_IDENTIFIER)
+		</select>
+		<select type="text" alias="REGISTRATION_LOCATION_LABEL" dbms="oracle" group="adagio">
+			(SELECT LISTAGG(LOCATION_LABEL, ' | ') WITHIN GROUP (ORDER BY LOCATION_LABEL)
+			FROM (SELECT DISTINCT VESSEL_FK, LOCATION_LABEL FROM VRP) V
+			WHERE V.VESSEL_FK = T.VESSEL_FK)
 		</select>
 
 		<select alias="DIRECT_SURVEY_INVESTIGATION">T.DIRECT_SURVEY_INVESTIGATION</select>
 		<select alias="ECONOMIC_SURVEY">T.ECONOMIC_SURVEY</select>
 		<select type="text" alias="SURVEY_QUALIFICATION">T.SURVEY_QUALIFICATION</select>
-		<select type="text" alias="RECORDER_PERSON">T.RECORDER_PERSON</select>
+		<select type="text" alias="RECORDER_PERSON_NAME">T.RECORDER_PERSON_NAME</select>
 		<select type="text" alias="RECORDER_DEPARTMENT">T.RECORDER_DEPARTMENT</select>
 		<select type="number" alias="EMPTY_MONTH_COUNT" group="agg">(12 - COUNT(DISTINCT T.MONTH))</select>
 		<select type="number" alias="ERROR_MONTH_COUNT" group="agg">COUNT(T.ERROR)</select>
@@ -151,7 +211,8 @@
 		<from dbms="oracle">T</from>
 
 		<groupby>&amp;groupByColumns</groupby>
-		<groupby dbms="oracle">T.VESSEL_IDENTIFIER</groupby>
+		<groupby dbms="oracle" group="!adagio">T.VESSEL_IDENTIFIER</groupby>
+		<groupby dbms="oracle" group="adagio">T.VESSEL_FK</groupby>
 	</query>
 
 </queries>

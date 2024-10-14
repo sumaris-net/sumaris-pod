@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  Dali :: Core
+  %%
+  Copyright (C) 2017 Ifremer
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+<queries name="createCalendarTable">
+    <query type="create" temp="false" table="&amp;calendarTableName" option="DISTINCT">
+        <select alias="ID" type="number">AC.ID</select>
+        <select alias="YEAR" type="text">AC.YEAR</select>
+        <select alias="VESSEL_IDENTIFIER" type="hidden" group="!adagio">AC.VESSEL_FK</select>
+        <select alias="VESSEL_IDENTIFIER" type="hidden" group="adagio">V.ID</select>
+
+        <select alias="OBSERVER_NAME" dbms="hsqldb,pgsql">CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME)</select>
+        <select alias="OBSERVER_NAME" dbms="oracle">OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME</select>
+        <select alias="OBSERVER_ID">OBSERVER.ID</select>
+
+        <select alias="VESSEL_NAME">REPLACE(VF.NAME, '|', 'I') </select>
+
+        <select alias="VESSEL_LENGTH" dbms="hsqldb,pgsql">VF.LENGTH_OVER_ALL * 0.01</select>
+        <select alias="VESSEL_LENGTH" dbms="oracle" group="!adagio">CAST(VF.LENGTH_OVER_ALL AS NUMBER(8, 2)) / 100</select>
+        <select alias="VESSEL_LENGTH" dbms="oracle" group="adagio">CAST(VF.LOA AS NUMBER(8, 2)) / 100</select>
+
+        <select alias="BASE_PORT_LOCATION_LABEL">BASE_PORT.LABEL</select>
+        <select alias="BASE_PORT_LOCATION_ID">BASE_PORT.ID</select>
+
+        <select alias="REGISTRATION_LOCATION_LABEL">L.LABEL</select>
+        <select alias="REGISTRATION_LOCATION_ID">L.ID</select>
+
+        <select alias="VESSEL_REGISTRATION_CODE">VRP.REGISTRATION_CODE</select>
+        <select alias="VESSEL_INT_REGISTRATION_CODE">VRP.INT_REGISTRATION_CODE</select>
+
+        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="hsqldb,pgsql">CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION THEN 'Y' ELSE 'N' END</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="oracle">CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END</select>
+        <select alias="ECONOMIC_SURVEY" dbms="hsqldb,pgsql">CASE WHEN AC.ECONOMIC_SURVEY THEN 'Y' ELSE 'N' END</select>
+        <select alias="ECONOMIC_SURVEY" dbms="oracle">CASE AC.ECONOMIC_SURVEY WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END</select>
+        <select alias="SURVEY_QUALIFICATION">SURVEY_QUALIFICATION_QV.NAME</select>
+
+        <select alias="RECORDER_PERSON_NAME" dbms="hsqldb,pgsql">CONCAT(RP.LAST_NAME, ' ', RP.FIRST_NAME)</select>
+        <select alias="RECORDER_PERSON_NAME" dbms="oracle">RP.LAST_NAME || ' ' || RP.FIRST_NAME</select>
+        <select alias="RECORDER_PERSON_ID">RP.ID</select>
+
+        <select alias="RECORDER_DEPARTMENT">DEPARTMENT.LABEL</select>
+
+        <select type="text" alias="QUALITY_STATUS">
+            TRIM(
+                CASE
+                WHEN AC.QUALIFICATION_DATE IS NOT NULL OR AC.QUALITY_FLAG_FK != &amp;qualityFlagNotQualified THEN 'QUALIFIED'
+                WHEN AC.VALIDATION_DATE IS NOT NULL THEN 'VALIDATED'
+                WHEN AC.CONTROL_DATE IS NOT NULL THEN 'CONTROLLED'
+                ELSE 'MODIFIED'
+                END
+            )
+        </select>
+
+        <from alias="AC" group="!adagio">ACTIVITY_CALENDAR</from>
+        <from alias="AC" group="adagio">&amp;adagioSchema.ACTIVITY_CALENDAR</from>
+        <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.M_VESSEL V ON V.CODE = AC.VESSEL_FK</from>
+
+        <from join="true" group="!adagio">INNER JOIN PROGRAM P on P.ID = AC.PROGRAM_FK</from>
+        <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.PROGRAM P on P.CODE = AC.PROGRAM_FK</from>
+
+        <from join="true">LEFT OUTER JOIN ACTIVITY_CALENDAR2PERSON AC2P ON AC2P.ACTIVITY_CALENDAR_FK = AC.ID</from>
+        <from join="true">LEFT OUTER JOIN PERSON OBSERVER ON OBSERVER.ID = AC2P.PERSON_FK</from>
+        <from join="true" dbms="hsqldb,pgsql"><![CDATA[
+            LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON AC.VESSEL_FK = VRP.VESSEL_FK
+                AND VRP.START_DATE <= &startDate
+                AND COALESCE(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+            ]]>
+        </from>
+        <from join="true" dbms="oracle" group="!adagio"><![CDATA[
+            LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON AC.VESSEL_FK = VRP.VESSEL_FK
+                AND VRP.START_DATE <= &startDate
+                AND NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+            ]]></from>
+        <from join="true" dbms="oracle" group="adagio"><![CDATA[
+            LEFT OUTER JOIN &adagioSchema.VESSEL_REGISTRATION_PERIOD VRP ON AC.VESSEL_FK = VRP.VESSEL_FK
+                AND VRP.START_DATE_TIME <= &startDate
+                AND NVL(VRP.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+            ]]></from>
+
+        <from join="true">LEFT OUTER JOIN LOCATION L ON VRP.REGISTRATION_LOCATION_FK = L.ID</from>
+
+        <from join="true" dbms="hsqldb,pgsql"><![CDATA[
+            LEFT OUTER JOIN VESSEL_FEATURES VF ON AC.VESSEL_FK = VF.VESSEL_FK
+                AND VF.START_DATE <= &startDate
+                AND COALESCE(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+            ]]>
+        </from>
+        <from join="true" dbms="oracle" group="!adagio"><![CDATA[
+            LEFT OUTER JOIN VESSEL_FEATURES VF ON AC.VESSEL_FK = VF.VESSEL_FK
+                AND VF.START_DATE <= &startDate
+                AND NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+            ]]>
+        </from>
+        <from join="true" dbms="oracle" group="adagio"><![CDATA[
+            LEFT OUTER JOIN &adagioSchema.VESSEL_FEATURES VF ON AC.VESSEL_FK = VF.VESSEL_FK
+                AND VF.START_DATE_TIME <= &startDate
+                AND NVL(VF.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+            ]]>
+        </from>
+        <from join="true">
+            LEFT OUTER JOIN PERSON RP ON RP.ID = AC.RECORDER_PERSON_FK
+        </from>
+        <from join="true">
+            LEFT OUTER JOIN DEPARTMENT ON DEPARTMENT.ID = AC.RECORDER_DEPARTMENT_FK
+        </from>
+        <from join="true">
+            LEFT OUTER JOIN SURVEY_MEASUREMENT ON AC.ID = SURVEY_MEASUREMENT.ACTIVITY_CALENDAR_FK
+            AND PMFM_FK = &amp;surveyQualificationPmfmId
+        </from>
+        <from join="true">
+            LEFT OUTER JOIN QUALITATIVE_VALUE SURVEY_QUALIFICATION_QV ON SURVEY_MEASUREMENT.QUALITATIVE_VALUE_FK = SURVEY_QUALIFICATION_QV.ID
+        </from>
+        <from join="true" group="!adagio">
+            LEFT OUTER JOIN	VESSEL_USE_FEATURES VUF ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
+        </from>
+        <from join="true" group="adagio">
+            LEFT OUTER JOIN	&amp;adagioSchema.VESSEL_USE_FEATURES VUF ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN LOCATION BASE_PORT ON VUF.BASE_PORT_LOCATION_FK = BASE_PORT.ID</from>
+
+        <where>1=1</where>
+
+        <where operator="AND" group="programFilter,!adagio">
+            <in field="P.LABEL">&amp;progLabels</in>
+        </where>
+        <where operator="AND" group="programFilter,adagio">
+            <in field="P.CODE">&amp;progLabels</in>
+        </where>
+        <where group="yearFilter" operator="AND">
+            AC.YEAR = &amp;year
+        </where>
+        <where group="includedIds" operator="AND">
+            <in field="AC.ID">&amp;includedIds</in>
+        </where>
+        <where group="registrationLocationFilter" operator="AND">
+            <in field="L.ID">&amp;registrationLocationIds</in>
+        </where>
+        <where group="basePortLocationFilter" operator="AND">
+            <in field="BASE_PORT.ID">&amp;basePortLocationIds</in>
+        </where>
+        <where group="vesselFilter,!adagio" operator="AND">
+            <in field="AC.VESSEL_FK">&amp;vesselIds</in>
+        </where>
+        <where group="vesselFilter,adagio" operator="AND">
+            <in field="V.ID">&amp;vesselIds</in>
+        </where>
+        <where group="observersFilter" operator="AND">
+            <in field="OBSERVER.ID">&amp;observerPersonIds</in>
+        </where>
+        <where group="recordersFilter" operator="AND">
+            <in field="RP.ID">&amp;recorderPersonIds</in>
+        </where>
+
+    </query>
+</queries>

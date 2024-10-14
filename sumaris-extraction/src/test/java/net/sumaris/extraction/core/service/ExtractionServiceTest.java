@@ -50,6 +50,7 @@ import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.*;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -650,32 +651,24 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    public void executeActivityMonitoringTest(String vesselRegistrationCode) throws IOException, ParseException {
+    public void executeActivityMonitoringTest(List<ExtractionFilterCriterionVO> criteria) throws IOException, ParseException {
         IExtractionType type = LiveExtractionTypeEnum.ACTIVITY_MONITORING;
 
-        List<ExtractionFilterCriterionVO> criteria = new ArrayList<>();
-        criteria.add(
-            // Program
-            ExtractionFilterCriterionVO.builder()
-                .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
-                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
-                .build());
-        criteria.add(
-            // Year
-            ExtractionFilterCriterionVO.builder()
-                .name(ActivityMonitoringSpecification.COLUMN_YEAR)
-                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                .value("2023")
-                .build()
-        );
-        if (vesselRegistrationCode != null) {
+        if (CollectionUtils.isEmpty(criteria)) {
+            criteria = new ArrayList<>();
             criteria.add(
-                // Vessel registration code
+                // Program
                 ExtractionFilterCriterionVO.builder()
-                    .name(ActivityMonitoringSpecification.COLUMN_VESSEL_CODE)
+                    .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
                     .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value(vesselRegistrationCode)
+                    .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
+                    .build());
+            criteria.add(
+                // Year
+                ExtractionFilterCriterionVO.builder()
+                    .name(ActivityMonitoringSpecification.COLUMN_YEAR)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value("2023")
                     .build()
             );
         }

@@ -126,6 +126,14 @@ public class PersonRepositoryImpl
     }
 
     @Override
+    public Optional<PersonVO> findByFullName(String fullName) {
+        return findAll(
+            hastFullName(fullName)
+        ).stream()
+            .findFirst().map(this::toVO);
+    }
+
+    @Override
     public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .stream()

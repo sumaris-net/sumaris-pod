@@ -40,7 +40,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Nullable;
 import javax.persistence.criteria.ParameterExpression;
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,6 +58,7 @@ public interface PersonSpecifications extends ReferentialSpecifications<Integer,
     String FIRST_NAME_PARAMETER = "firstName";
     String LAST_NAME_PARAMETER = "lastName";
     String USERNAME_PARAMETER = "username";
+    String FULL_NAME_PARAMETER = "fullName";
 
     String[] DEFAULT_SEARCH_ATTRIBUTES = new String[]{
         Person.Fields.PUBKEY,
@@ -140,6 +140,18 @@ public interface PersonSpecifications extends ReferentialSpecifications<Integer,
         }).addBind(LAST_NAME_PARAMETER, lastName.toUpperCase());
     }
 
+    default Specification<Person> hastFullName(String fullName) {
+        if (fullName == null) return null;
+        // Search by concatenation of last name and first name
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<String> searchTextParam = cb.parameter(String.class, FULL_NAME_PARAMETER);
+            return cb.equal(
+                cb.upper(cb.concat(cb.concat(root.get(Person.Fields.LAST_NAME), " "), root.get(Person.Fields.FIRST_NAME))),
+                searchTextParam
+            );
+        }).addBind(FULL_NAME_PARAMETER, fullName.toUpperCase());
+    }
+
     default Specification<Person> searchText(PersonFilterVO filter) {
         if (StringUtils.isBlank(filter.getSearchText())) return null;
 
@@ -162,6 +174,8 @@ public interface PersonSpecifications extends ReferentialSpecifications<Integer,
     Optional<PersonVO> findByPubkey(String pubkey);
 
     Optional<PersonVO> findByUsername(String username);
+
+    Optional<PersonVO> findByFullName(String lastAndFirstName);
 
     List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection);
 
