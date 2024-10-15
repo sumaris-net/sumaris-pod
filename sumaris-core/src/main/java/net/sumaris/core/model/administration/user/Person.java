@@ -22,11 +22,11 @@ package net.sumaris.core.model.administration.user;
  * #L%
  */
 
-import lombok.*;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.ImageAttachment;
-import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.UserProfile;
@@ -91,7 +91,6 @@ public class Person implements IReferentialWithStatusEntity<Integer> {
     private String lastName;
 
     @Column(name="email", nullable = false, unique = true)
-    
     private String email;
 
     @Column(name="email_md5", unique = true)

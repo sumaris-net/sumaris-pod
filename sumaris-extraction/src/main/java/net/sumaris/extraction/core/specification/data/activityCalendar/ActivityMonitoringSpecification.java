@@ -26,6 +26,7 @@ public interface ActivityMonitoringSpecification {
     String FORMAT = "ACTIMONIT";
     String VERSION = "1.0.0";
 
+    String AC_SHEET_NAME = "AC";
     String AM_RAW_SHEET_NAME = "AM_RAW";
     String AM_SHEET_NAME = "AM";
 
@@ -34,17 +35,23 @@ public interface ActivityMonitoringSpecification {
     String COLUMN_YEAR = "year";
     String COLUMN_INCLUDED_IDS = "included_ids";
     String COLUMN_REGISTRATION_LOCATION_LABEL = "registration_location_label";
+    String COLUMN_REGISTRATION_LOCATION_ID = "registration_location_id";
     String COLUMN_BASE_PORT_LOCATION_LABEL = "base_port_location_label";
+    String COLUMN_BASE_PORT_LOCATION_ID = "base_port_location_id";
     String COLUMN_VESSEL_CODE = "vessel_registration_code";
-    String COLUMN_OBSERVER = "observer";
+    String COLUMN_OBSERVER_NAME = "observer_name";
+    String COLUMN_OBSERVER_ID = "observer_id";
+    String COLUMN_RECORDER_NAME = "recorder_person_name";
+    String COLUMN_RECORDER_ID = "recorder_person_id";
 
     String COLUMN_MONTH_PREFIX = "month";
 
-    String[] SHEET_NAMES = {AM_SHEET_NAME};
+    String[] SHEET_NAMES = {AC_SHEET_NAME, AM_SHEET_NAME};
 
     // For DEBUG only
     String[] SHEET_NAMES_DEBUG = {
-            AM_RAW_SHEET_NAME,
-            AM_SHEET_NAME
+        AC_SHEET_NAME,
+        AM_RAW_SHEET_NAME,
+        AM_SHEET_NAME
     };
 }

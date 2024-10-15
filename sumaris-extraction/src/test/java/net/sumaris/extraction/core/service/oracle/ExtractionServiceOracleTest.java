@@ -26,16 +26,23 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.extraction.core.DatabaseResource;
 import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
+import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.ExtractionFilterCriterionVO;
+import net.sumaris.extraction.core.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -143,12 +150,47 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
 
     @Test
     public void executeActivityMonitoringOneVesselTest() throws IOException, ParseException {
-        super.executeActivityMonitoringTest("804688"); // VESSEL.ID = 296426
+        super.executeActivityMonitoringTest(List.of(
+            // Year
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_YEAR)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("2023")
+                .build(),
+            // Program
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
+                .build(),
+            // Vessel registration code
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_VESSEL_CODE)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("804688") // VESSEL.ID = 296426
+                .build()
+        ));
     }
 
+    /**
+     * Test issue: <a href="https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/744">...</a>
+     */
     @Test
-    public void executeActivityMonitoringAllVesselTest() throws IOException, ParseException {
-        super.executeActivityMonitoringTest(null);
+    public void executeActivityMonitoringByObserverTest() throws IOException, ParseException {
+        super.executeActivityMonitoringTest(List.of(
+            // Year
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_YEAR)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("2023")
+                .build(),
+            // Observer
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_RECORDER_NAME)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("ROVILLON Georges-Augustin")
+                .build()
+        ));
     }
 
     /* -- protected methods -- */

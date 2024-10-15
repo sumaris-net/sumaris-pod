@@ -22,7 +22,6 @@ package net.sumaris.extraction.core.vo.data.activityCalendar;
  * #L%
  */
 
-import com.google.common.base.Joiner;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -30,8 +29,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import org.apache.activemq.store.kahadb.disk.page.Page;
-
-import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -45,14 +42,6 @@ public class ExtractionActivityCalendarFilterVO extends ActivityCalendarFilterVO
 
     private Page page;
 
-    List<String> registrationLocationLabels;
-
-    List<String> basePortLocationLabels;
-
-    List<String> vesselRegistrationCodes;
-
-    List<String> observers;
-
     public String toString(String separator) {
         separator = (separator == null) ? ", " : separator;
         StringBuilder sb = new StringBuilder();
@@ -60,10 +49,6 @@ public class ExtractionActivityCalendarFilterVO extends ActivityCalendarFilterVO
         if (this.getYear() != null) sb.append(separator).append("Year: ").append(this.getYear());
         if (this.getStartDate() != null) sb.append(separator).append("Start date: ").append(this.getStartDate());
         if (this.getEndDate() != null) sb.append(separator).append("End date: ").append(this.getEndDate());
-        if (! this.registrationLocationLabels.isEmpty()) sb.append(separator).append("Registration location (labels): ").append(Joiner.on(",").join(this.getRegistrationLocationLabels()));
-        if (! this.basePortLocationLabels.isEmpty()) sb.append(separator).append("Base port location (labels): ").append(Joiner.on(",").join(this.getBasePortLocationLabels()));
-        if (! this.vesselRegistrationCodes.isEmpty()) sb.append(separator).append("Base port location (labels): ").append(Joiner.on(",").join(this.getBasePortLocationLabels()));
-        if (! this.observers.isEmpty()) sb.append(separator).append("Observers: ").append(Joiner.on(",").join(this.getObservers()));
         return sb.toString();
     }
 }

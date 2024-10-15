@@ -283,13 +283,13 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     }
 
     protected long queryCount(String query) {
-        if (log.isDebugEnabled()) log.debug("count: " + query);
         Query nativeQuery = createNativeQuery(query);
         Object result = nativeQuery.getSingleResult();
         if (result == null)
             throw new DataRetrievalFailureException(String.format("query count result is null.\nquery: %s", query));
-        if (result instanceof Number) {
-            return ((Number) result).longValue();
+        if (result instanceof Number number) {
+            if (log.isDebugEnabled()) log.debug("count: {} : {}", query, number);
+            return number.longValue();
         } else {
             throw new DataRetrievalFailureException(String.format("query count result is not a number: %s \nquery: %s", result, query));
         }

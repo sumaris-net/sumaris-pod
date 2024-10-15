@@ -28,6 +28,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.dao.administration.user.PersonRepository;
+import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -35,33 +38,41 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.administration.user.PersonVO;
+import net.sumaris.core.vo.data.VesselSnapshotVO;
+import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.filter.VesselFilterVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.data.activityCalendar.ExtractionActivityCalendarFilterVO;
 import net.sumaris.extraction.core.vo.data.activityCalendar.ExtractionActivityMonitoringContextVO;
 import net.sumaris.xml.query.XMLQuery;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.persistence.PersistenceException;
 import java.net.URL;
 import java.text.ParseException;
 import java.time.Month;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.time.Year;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Repository("extractionActivityMonitoringDao")
 @ConditionalOnBean({ExtractionAutoConfiguration.class})
@@ -69,12 +80,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMonitoringContextVO, F extends ExtractionFilterVO>
-        extends ExtractionBaseDaoImpl<C, F>
-        implements ExtractionActivityMonitoringDao<C, F> {
+    extends ExtractionBaseDaoImpl<C, F>
+    implements ExtractionActivityMonitoringDao<C, F> {
 
+    private static final String AC_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ActivityMonitoringSpecification.AC_SHEET_NAME + "_%s";
     private static final String AM_RAW_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ActivityMonitoringSpecification.AM_RAW_SHEET_NAME + "_%s";
     private static final String AM_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ActivityMonitoringSpecification.AM_SHEET_NAME + "_%s";
 
+    private final LocationRepository locationRepository;
+    private final VesselSnapshotRepository vesselSnapshotRepository;
+    private final PersonRepository personRepository;
 
     private boolean enableAdagioOptimization = false;
     private String adagioSchema;
@@ -85,12 +100,12 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         // Read some config options
         String adagioSchema = this.configuration.getAdagioSchema();
         boolean enableAdagioOptimization = StringUtils.isNotBlank(adagioSchema)
-                && this.configuration.enableAdagioOptimization()
-                && this.databaseType == DatabaseType.oracle;
+                                           && this.configuration.enableAdagioOptimization()
+                                           && this.databaseType == DatabaseType.oracle;
 
         // Check if there is some changes
         boolean hasChanges = !Objects.equals(this.adagioSchema, adagioSchema)
-                || this.enableAdagioOptimization != enableAdagioOptimization;
+                             || this.enableAdagioOptimization != enableAdagioOptimization;
 
         // Apply changes if need
         if (hasChanges) {
@@ -134,7 +149,7 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         context.setUpdateDate(new Date());
         context.setType(LiveExtractionTypeEnum.ACTIVITY_MONITORING);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
-        context.addTableName(ActivityMonitoringSpecification.AM_RAW_SHEET_NAME, ActivityMonitoringSpecification.AM_RAW_SHEET_NAME);
+
         Long startTime = null;
 
 
@@ -155,15 +170,32 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         // Fill context table names
         fillContextTableNames(context);
 
+        // Expected sheet name
+        String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
+
         // -- Execute the extraction --
         try {
+            // Calendar table
+            long t = System.currentTimeMillis();
+            long rowCount = createCalendarTable(context);
+            if (log.isDebugEnabled()) log.debug("{} created in {}", context.getCalendarTableName(), TimeUtils.printDurationFrom(t));
+            if (sheetName != null && context.hasSheet(sheetName)) return context;
+
             // Raw monitoring table
-            long rowCount = createRawMonitoringTable(context);
-            if (rowCount == 0) return context;
+            if (rowCount > 0) {
+                t = System.currentTimeMillis();
+                rowCount = createRawMonitoringTable(context);
+                if (log.isDebugEnabled()) log.debug("{} created in {}", context.getRawMonitoringTableName(), TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
 
             // Monitoring table
-            rowCount = createMonitoringTable(context);
-            if (rowCount == 0) return context;
+            if (rowCount > 0) {
+                t = System.currentTimeMillis();
+                rowCount = createMonitoringTable(context);
+                if (log.isDebugEnabled()) log.debug("{} created in {}", context.getMonitoringTableName(), TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
 
             return context;
         } catch (PersistenceException | ParseException e) {
@@ -179,6 +211,267 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         }
     }
     /* -- protected methods -- */
+
+    protected ExtractionActivityCalendarFilterVO toActivityCalendarFilterVO(@Nullable ExtractionFilterVO source) {
+        ExtractionActivityCalendarFilterVO
+            target = new ExtractionActivityCalendarFilterVO();
+        if (source == null) {
+            return target;
+        }
+
+        Beans.copyProperties(source, target);
+
+        Beans.getStream(source.getCriteria()).forEach(criterion -> {
+            ExtractionFilterOperatorEnum operator = ExtractionFilterOperatorEnum.fromSymbol(criterion.getOperator());
+
+            // One value
+            if (StringUtils.isNotBlank(criterion.getValue())) {
+                switch (criterion.getName().toLowerCase()) {
+                    case ActivityMonitoringSpecification.COLUMN_YEAR:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setYear(Integer.valueOf(criterion.getValue()));
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_PROJECT:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setProgramLabel(criterion.getValue());
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_LABEL:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setBasePortLocationIds(
+                                Stream.of(
+                                        locationRepository.findByLabel(criterion.getValue())
+                                            .map(ReferentialVO::getId)
+                                            .orElse(null)
+                                    )
+                                    .filter(Objects::nonNull)
+                                    .toArray(Integer[]::new)
+                            );
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_ID:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setBasePortLocationIds(ArrayUtils.toArray(Integer.valueOf(criterion.getValue())));
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_REGISTRATION_LOCATION_LABEL:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setRegistrationLocationIds(
+                                Stream.of(
+                                        locationRepository.findByLabel(criterion.getValue())
+                                            .map(ReferentialVO::getId)
+                                            .orElse(null)
+                                    )
+                                    .filter(Objects::nonNull)
+                                    .toArray(Integer[]::new)
+                            );
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_REGISTRATION_LOCATION_ID:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setRegistrationLocationIds(ArrayUtils.toArray(Integer.valueOf(criterion.getValue())));
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_VESSEL_CODE:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            vesselSnapshotRepository.findAll(
+                                    VesselFilterVO.builder()
+                                        .searchText(criterion.getValue())
+                                        .build(),
+                                    VesselFetchOptions.builder()
+                                        .withVesselFeatures(false)
+                                        .withVesselRegistrationPeriod(false)
+                                        .build()
+                                ).stream()
+                                .findFirst()
+                                .map(VesselSnapshotVO::getVesselId)
+                                .ifPresent(vesselId -> {
+                                    target.setVesselIds(ArrayUtils.toArray(vesselId));
+                                    // Clean the criterion (to avoid clean to exclude too many data)
+                                    criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                                    criterion.setValue(null);
+                                });
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_OBSERVER_NAME:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setObserverPersonIds(
+                                Stream.of(
+                                        personRepository.findByFullName(criterion.getValue())
+                                            .map(PersonVO::getId)
+                                            .orElse(null)
+                                    )
+                                    .filter(Objects::nonNull)
+                                    .toArray(Integer[]::new)
+                            );
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_OBSERVER_ID:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setObserverPersonIds(ArrayUtils.toArray(Integer.valueOf(criterion.getValue())));
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_RECORDER_NAME:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setRecorderPersonIds(
+                                Stream.of(
+                                        personRepository.findByFullName(criterion.getValue())
+                                            .map(PersonVO::getId)
+                                            .orElse(null)
+                                    )
+                                    .filter(Objects::nonNull)
+                                    .toArray(Integer[]::new)
+                            );
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_RECORDER_ID:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setRecorderPersonIds(ArrayUtils.toArray(Integer.valueOf(criterion.getValue())));
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
+                }
+            }
+
+            // many values with the operator IN
+            else if (operator == ExtractionFilterOperatorEnum.IN && ArrayUtils.isNotEmpty(criterion.getValues())) {
+                switch (criterion.getName().toLowerCase()) {
+                    case ActivityMonitoringSpecification.COLUMN_INCLUDED_IDS:
+                        target.setIncludedIds(Arrays.stream(criterion.getValues()).mapToInt(Integer::parseInt).boxed().toArray(Integer[]::new));
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_LABEL:
+                        target.setBasePortLocationIds(
+                            Arrays.stream(criterion.getValues()).map(
+                                    label -> locationRepository.findByLabel(label).map(ReferentialVO::getId).orElse(null)
+                                )
+                                .filter(Objects::nonNull)
+                                .toArray(Integer[]::new)
+                        );
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_ID:
+                        target.setBasePortLocationIds(Arrays.stream(criterion.getValues()).map(Integer::valueOf).toArray(Integer[]::new));
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_REGISTRATION_LOCATION_LABEL:
+                        target.setRegistrationLocationIds(
+                            Arrays.stream(criterion.getValues()).map(
+                                    label -> locationRepository.findByLabel(label).map(ReferentialVO::getId).orElse(null)
+                                )
+                                .filter(Objects::nonNull)
+                                .toArray(Integer[]::new)
+                        );
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_REGISTRATION_LOCATION_ID:
+                        target.setRegistrationLocationIds(
+                            Arrays.stream(criterion.getValues()).map(Integer::valueOf).toArray(Integer[]::new)
+                        );
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_VESSEL_CODE:
+                        target.setVesselIds(
+                            Arrays.stream(criterion.getValues()).flatMap(
+                                    code -> vesselSnapshotRepository.findAll(
+                                            VesselFilterVO.builder()
+                                                .searchText(code)
+                                                .build(),
+                                            VesselFetchOptions.builder()
+                                                .withVesselFeatures(false)
+                                                .withVesselRegistrationPeriod(false)
+                                                .build()
+                                        )
+                                        .stream()
+                                )
+                                .map(VesselSnapshotVO::getVesselId)
+                                .filter(Objects::nonNull)
+                                .distinct()
+                                .toArray(Integer[]::new)
+                        );
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_OBSERVER_NAME:
+                        target.setObserverPersonIds(
+                            Arrays.stream(criterion.getValues()).flatMap(
+                                    s -> personRepository.findByFullName(s).stream()
+                                )
+                                .map(PersonVO::getId)
+                                .filter(Objects::nonNull)
+                                .distinct()
+                                .toArray(Integer[]::new)
+                        );
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_OBSERVER_ID:
+                        target.setObserverPersonIds(
+                            Arrays.stream(criterion.getValues()).map(Integer::valueOf).toArray(Integer[]::new)
+                        );
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_RECORDER_NAME:
+                        target.setRecorderPersonIds(
+                            Arrays.stream(criterion.getValues()).flatMap(
+                                    s -> personRepository.findByFullName(s).stream()
+                                )
+                                .map(PersonVO::getId)
+                                .filter(Objects::nonNull)
+                                .distinct()
+                                .toArray(Integer[]::new)
+                        );
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_RECORDER_ID:
+                        target.setRecorderPersonIds(
+                            Arrays.stream(criterion.getValues()).map(Integer::valueOf).toArray(Integer[]::new)
+                        );
+                        // Clean the criterion (to avoid clean to exclude too many data)
+                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                        criterion.setValues(null);
+                        break;
+                }
+            }
+        });
+
+        // If year is not set, set by default current year -1
+        if (target.getYear() == null) {
+            target.setYear(Year.now().getValue() - 1);
+        }
+
+        // Clean criteria, to avoid reapply on cleanRow
+        if (CollectionUtils.size(source.getCriteria()) == 1) {
+            source.getCriteria().clear();
+        }
+
+        return target;
+    }
 
     protected Class<? extends ExtractionActivityMonitoringContextVO> getContextClass() {
         return ExtractionActivityMonitoringContextVO.class;
@@ -198,12 +491,35 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
     protected void fillContextTableNames(C context) {
 
         // Set unique table names
+        context.setCalendarTableName(formatTableName(AC_TABLE_NAME_PATTERN, context.getId()));
         context.setRawMonitoringTableName(formatTableName(AM_RAW_TABLE_NAME_PATTERN, context.getId()));
         context.setMonitoringTableName(formatTableName(AM_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet name
+        context.setCalendarSheetName(ActivityMonitoringSpecification.AC_SHEET_NAME);
         context.setRawMonitoringSheetName(ActivityMonitoringSpecification.AM_RAW_SHEET_NAME);
         context.setMonitoringSheetName(ActivityMonitoringSpecification.AM_SHEET_NAME);
+    }
+
+    protected long createCalendarTable(C context) throws PersistenceException, ParseException {
+        String tableName = context.getCalendarTableName();
+
+        // Create Calendar Table
+        XMLQuery xmlQuery = createCalendarQuery(context);
+        execute(context, xmlQuery);
+
+        // Clean row using generic filter
+        long count = countFrom(tableName);
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getCalendarSheetName());
+        }
+
+        context.addTableName(tableName,
+            context.getCalendarSheetName(),
+            xmlQuery.getHiddenColumnNames(),
+            xmlQuery.hasDistinctOption());
+
+        return count;
     }
 
     protected long createRawMonitoringTable(C context) throws PersistenceException, ParseException {
@@ -226,9 +542,9 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         // Keep raw table (for DEBUG only)
         else {
             context.addTableName(tableName,
-                    context.getRawMonitoringSheetName(),
-                    xmlQuery.getHiddenColumnNames(),
-                    xmlQuery.hasDistinctOption());
+                context.getRawMonitoringSheetName(),
+                xmlQuery.getHiddenColumnNames(),
+                xmlQuery.hasDistinctOption());
         }
 
         return count;
@@ -250,26 +566,25 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         if (count > 0) {
             // Add result table to context
             context.addTableName(tableName,
-                    context.getMonitoringSheetName(),
-                    xmlQuery.getHiddenColumnNames(),
-                    xmlQuery.hasDistinctOption());
+                context.getMonitoringSheetName(),
+                xmlQuery.getHiddenColumnNames(),
+                xmlQuery.hasDistinctOption());
             log.debug("Monitoring table: {} rows inserted", count);
-        }
-        else {
+        } else {
             context.addRawTableName(tableName);
         }
 
         return count;
     }
 
-    protected XMLQuery createRawMonitoringQuery(C context) throws PersistenceException {
+    protected XMLQuery createCalendarQuery(C context) throws PersistenceException {
 
         Integer year = context.getYear();
         context.setStartDate(Dates.getFirstDayOfYear(year));
         context.setEndDate(Dates.getLastSecondOfYear(year));
 
-        XMLQuery xmlQuery = createXMLQuery(context, "createRawMonitoringTable");
-        xmlQuery.bind("rawMonitoringTableName", context.getRawMonitoringTableName());
+        XMLQuery xmlQuery = createXMLQuery(context, "createCalendarTable");
+        xmlQuery.bind("calendarTableName", context.getCalendarTableName());
 
         // Pmfms
         xmlQuery.bind("surveyQualificationPmfmId", PmfmEnum.SURVEY_QUALIFICATION.getId());
@@ -299,51 +614,77 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
 
         // Ids
         {
-            List<Integer> inclucedIds  = context.getInclucedIds();
-            boolean enableFilter = CollectionUtils.isNotEmpty(inclucedIds);
-            xmlQuery.setGroup("included_ids", enableFilter);
-            xmlQuery.setGroup("!included_ids", !enableFilter);
-            if (enableFilter) xmlQuery.bind("included_ids", Daos.getSqlInNumbers(inclucedIds));
+            List<Integer> includedIds = context.getIncludedIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(includedIds);
+            xmlQuery.setGroup("includedIds", enableFilter);
+            xmlQuery.setGroup("!includedIds", !enableFilter);
+            if (enableFilter) xmlQuery.bind("includedIds", Daos.getSqlInNumbers(includedIds));
         }
 
         // Registration location
         {
-            List<String> registrationLocationLabels = context.getRegistrationLocationLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(registrationLocationLabels);
+            List<Integer> registrationLocationIds = context.getRegistrationLocationIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(registrationLocationIds);
             xmlQuery.setGroup("registrationLocationFilter", enableFilter);
             xmlQuery.setGroup("!registrationLocationFilter", !enableFilter);
-            if (enableFilter) xmlQuery.bind("registrationLocationLabels", Daos.getSqlInEscapedStrings(registrationLocationLabels));
+            if (enableFilter) xmlQuery.bind("registrationLocationIds", Daos.getSqlInNumbers(registrationLocationIds));
         }
 
         // Base port location
         {
-            List<String> basePortLocationLabels = context.getBasePortLocationLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(basePortLocationLabels);
+            List<Integer> basePortLocationIds = context.getBasePortLocationIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(basePortLocationIds);
             xmlQuery.setGroup("basePortLocationFilter", enableFilter);
             xmlQuery.setGroup("!basePortLocationFilter", !enableFilter);
-            if (enableFilter) xmlQuery.bind("basePortLocationLabels", Daos.getSqlInEscapedStrings(basePortLocationLabels));
+            if (enableFilter) xmlQuery.bind("basePortLocationIds", Daos.getSqlInNumbers(basePortLocationIds));
         }
 
         // Vessel code
         {
-            List<String> vesselRegistrationCodes = context.getVesselRegistrationCodes();
-            boolean enableFilter = CollectionUtils.isNotEmpty(vesselRegistrationCodes);
-            xmlQuery.setGroup("vesselRegistrationCodeFilter", enableFilter);
-            xmlQuery.setGroup("!vesselRegistrationCodeFilter", !enableFilter);
-            if (enableFilter) xmlQuery.bind("vesselRegistrationCodes", Daos.getSqlInEscapedStrings(vesselRegistrationCodes));
+            List<Integer> vesselIds = context.getVesselIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(vesselIds);
+            xmlQuery.setGroup("vesselFilter", enableFilter);
+            xmlQuery.setGroup("!vesselFilter", !enableFilter);
+            if (enableFilter) xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(vesselIds));
         }
 
         // Observers
         {
-            List<String> observers = context.getObservers();
-            boolean enableFilter = CollectionUtils.isNotEmpty(observers);
+            List<Integer> observerPersonIds = context.getObserverPersonIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(observerPersonIds);
             xmlQuery.setGroup("observersFilter", enableFilter);
             xmlQuery.setGroup("!observersFilter", !enableFilter);
-            if (enableFilter) xmlQuery.bind("observers", Daos.getSqlInEscapedStrings(observers));
+            if (enableFilter) xmlQuery.bind("observerPersonIds", Daos.getSqlInNumbers(observerPersonIds));
         }
+
+        // Recorders
+        {
+            List<Integer> recorderPersonIds = context.getRecorderPersonIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(recorderPersonIds);
+            xmlQuery.setGroup("recordersFilter", enableFilter);
+            xmlQuery.setGroup("!recordersFilter", !enableFilter);
+            if (enableFilter) xmlQuery.bind("recorderPersonIds", Daos.getSqlInNumbers(recorderPersonIds));
+        }
+
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
+        return xmlQuery;
+    }
+
+    protected XMLQuery createRawMonitoringQuery(C context) throws PersistenceException {
+
+        XMLQuery xmlQuery = createXMLQuery(context, "createRawMonitoringTable");
+        xmlQuery.bind("rawMonitoringTableName", context.getRawMonitoringTableName());
+        xmlQuery.bind("calendarTableName", context.getCalendarTableName());
 
         // Bind group by columns
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
+
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
 
         return xmlQuery;
     }
@@ -368,9 +709,12 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         // Bind group by columns
         xmlQuery.bindGroupBy(GROUP_BY_PARAM_NAME);
 
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
         return xmlQuery;
     }
-
 
     protected void injectMonitoringMonthQuery(C context,
                                               XMLQuery xmlQuery,
