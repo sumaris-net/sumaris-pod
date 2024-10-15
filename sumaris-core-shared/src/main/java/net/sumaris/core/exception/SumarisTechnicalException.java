@@ -115,8 +115,27 @@ public class SumarisTechnicalException extends RuntimeException {
 	}
 
 	public Map<String, Object> toSpecification() {
-		return ImmutableMap
+		String message = getJsonMessage();
+		if (message != null) {
+			return ImmutableMap
 				.of("code", getCode(),
-						"message", getMessage());
+					"message", getJsonMessage());
+		}
+		else {
+			return ImmutableMap
+				.of("code", getCode());
+		}
+	}
+
+	/**
+	 * Return string compatible with a JSON serialization (remove newline characters)
+	 */
+	private String getJsonMessage() {
+		String message = this.getMessage();
+		if (message == null) return null;
+
+		// Remove special characters before parsing (e.g. SQL errors from an Oracle database)
+		return message.replaceAll("\n+", " ")
+			.replaceAll("\r", "");
 	}
 }
