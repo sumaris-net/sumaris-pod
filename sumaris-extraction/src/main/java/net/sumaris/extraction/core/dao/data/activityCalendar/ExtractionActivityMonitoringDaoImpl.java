@@ -149,7 +149,7 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
         context.setUpdateDate(new Date());
         context.setType(LiveExtractionTypeEnum.ACTIVITY_MONITORING);
         context.setTableNamePrefix(TABLE_NAME_PREFIX);
-//        context.addTableName(ActivityMonitoringSpecification.AM_RAW_SHEET_NAME, ActivityMonitoringSpecification.AM_RAW_SHEET_NAME);
+
         Long startTime = null;
 
 
