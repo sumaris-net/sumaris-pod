@@ -165,6 +165,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     FISHING_DURATION_DAYS(450, "FISHING_DURATION_DAYS"),
     SURVEY_QUALIFICATION(446, "SURVEY_QUALIFICATION"),
     SURVEY_RELIABILITY(447, "SURVEY_RELIABILITY"),
+    INACTIVTY_YEAR(452, "INACTIVTY_YEAR"),
     ;
 
     public static PmfmEnum valueOf(final int id) {
