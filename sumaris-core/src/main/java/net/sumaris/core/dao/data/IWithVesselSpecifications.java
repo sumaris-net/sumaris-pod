@@ -46,7 +46,6 @@ import java.util.Date;
 public interface IWithVesselSpecifications<ID extends Serializable, E extends IWithVesselEntity<ID, Vessel>>
         extends IEntitySpecifications<ID, E> {
 
-    String VESSEL_ID_PARAM = "vesselId";
     String VESSEL_IDS_PARAM = "vesselIds";
     String VESSEL_TYPE_IDS_PARAM = "vesselTypeIds";
 
@@ -97,11 +96,7 @@ public interface IWithVesselSpecifications<ID extends Serializable, E extends IW
 
     default Specification<E> hasVesselId(Integer vesselId) {
         if (vesselId == null) return null;
-        return BindableSpecification.<E>where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_ID_PARAM);
-            Join<E, Vessel> vessel = composeVesselJoin(root);
-            return cb.equal(vessel.get(IEntity.Fields.ID), param);
-        }).addBind(VESSEL_ID_PARAM, vesselId);
+        return hasVesselIds(new Integer[]{vesselId});
     }
 
     default Specification<E> hasVesselIds(Integer[] vesselIds) {

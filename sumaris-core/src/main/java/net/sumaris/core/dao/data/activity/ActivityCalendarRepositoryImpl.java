@@ -79,6 +79,7 @@ public class ActivityCalendarRepositoryImpl
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
+        this.enableImageAttachments = configuration.enableDataImages();
     }
 
     @Override
