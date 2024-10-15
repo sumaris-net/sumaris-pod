@@ -98,6 +98,7 @@ public class TripRepositoryImpl
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationIds(concat(filter.getLocationId(), filter.getLocationIds())))
             .and(hasObservedLocationId(filter.getObservedLocationId()))
+            .and(hasVesselTypeIds(concat(filter.getVesselTypeId(), filter.getVesselTypeIds())))
             .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
