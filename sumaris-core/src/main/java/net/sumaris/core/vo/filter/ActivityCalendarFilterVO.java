@@ -50,6 +50,8 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     private String programLabel;
     private Integer[] programIds;
 
+    private Integer vesselTypeId;
+    private Integer[] vesselTypeIds;
     private Integer vesselId;
     private Integer[] vesselIds;
     private Integer registrationLocationId;

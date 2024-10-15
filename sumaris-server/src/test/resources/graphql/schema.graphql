@@ -2427,6 +2427,8 @@ input ActivityCalendarFilterVOInput {
     registrationLocationId: Int
     registrationLocationIds: [Int]
     startDate: Date
+    vesselTypeId: Int
+    vesselTypeIds: [Int]
     vesselId: Int
     vesselIds: [Int]
     year: Int
@@ -3000,6 +3002,8 @@ input LandingFilterVOInput {
     startDate: Date
     strategyLabels: [String]
     tripId: Int
+    vesselTypeId: Int
+    vesselTypeIds: [Int]
     vesselId: Int
     vesselIds: [Int]
 }
@@ -4025,6 +4029,8 @@ input TripFilterVOInput {
     recorderPersonId: Int
     startDate: Date
     tripId: Int
+    vesselTypeId: Int
+    vesselTypeIds: [Int]
     vesselId: Int
     vesselIds: [Int]
 }

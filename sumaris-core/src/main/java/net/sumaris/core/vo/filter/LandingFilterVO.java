@@ -22,19 +22,14 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
-import net.sumaris.core.util.StringUtils;
-import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
@@ -54,6 +49,9 @@ public class LandingFilterVO implements IRootDataFilter, IVesselFilter {
     private String[] strategyLabels;
     private Date startDate;
     private Date endDate;
+
+    private Integer vesselTypeId;
+    private Integer[] vesselTypeIds;
     private Integer vesselId;
     private Integer[] vesselIds;
     private Integer locationId;

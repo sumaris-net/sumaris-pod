@@ -30,7 +30,10 @@ import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.ActivityCalendar;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
@@ -76,6 +79,7 @@ public class ActivityCalendarRepositoryImpl
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
+        this.enableImageAttachments = configuration.enableDataImages();
     }
 
     @Override
@@ -86,6 +90,7 @@ public class ActivityCalendarRepositoryImpl
             .and(includedIds(filter.getIncludedIds()))
             .and(atYear(filter.getYear()))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+            .and(hasVesselTypeIds(concat(filter.getVesselTypeId(), filter.getVesselTypeIds())))
             .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             .and(hasRegistrationLocationIds(concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds())))
             .and(hasBasePortLocationIds(filter.getBasePortLocationIds()))
