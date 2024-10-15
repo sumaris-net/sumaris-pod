@@ -22,12 +22,15 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import lombok.NonNull;
 import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.data.*;
+import net.sumaris.core.model.data.IWithVesselEntity;
+import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.data.VesselFeatures;
+import net.sumaris.core.model.data.VesselRegistrationPeriod;
+import net.sumaris.core.util.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -45,7 +48,7 @@ public interface IWithVesselSpecifications<ID extends Serializable, E extends IW
 
     String VESSEL_ID_PARAM = "vesselId";
     String VESSEL_IDS_PARAM = "vesselIds";
-    String VESSEL_TYPE_ID_PARAM = "vesselTypeId";
+    String VESSEL_TYPE_IDS_PARAM = "vesselTypeIds";
 
     default <T> Join<T, Vessel> composeVesselJoin(Root<T> root) {
         return Daos.composeJoin(root, IWithVesselEntity.Fields.VESSEL, JoinType.INNER);
@@ -111,14 +114,12 @@ public interface IWithVesselSpecifications<ID extends Serializable, E extends IW
         .addBind(VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
     }
 
-    default Specification<E> hasVesselTypeId(Integer vesselTypeId) {
-        if (vesselTypeId == null) return null;
+    default Specification<E> hasVesselTypeIds(Integer[] vesselTypeIds) {
+        if (ArrayUtils.isEmpty(vesselTypeIds)) return null;
         return BindableSpecification.<E>where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, VESSEL_TYPE_ID_PARAM);
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, VESSEL_TYPE_IDS_PARAM);
             Join<E, Vessel> vessel = composeVesselJoin(root);
-            return cb.equal(vessel.get(Vessel.Fields.VESSEL_TYPE).get(IEntity.Fields.ID), param);
-        }).addBind(VESSEL_TYPE_ID_PARAM, vesselTypeId);
+            return cb.in(Daos.composePath(vessel, StringUtils.doting(Vessel.Fields.VESSEL_TYPE, IEntity.Fields.ID))).value(param);
+        }).addBind(VESSEL_TYPE_IDS_PARAM, Arrays.asList(vesselTypeIds));
     }
-
-
 }

@@ -2427,9 +2427,10 @@ input ActivityCalendarFilterVOInput {
     registrationLocationId: Int
     registrationLocationIds: [Int]
     startDate: Date
+    vesselTypeId: Int
+    vesselTypeIds: [Int]
     vesselId: Int
     vesselIds: [Int]
-    vesselTypeId: Int
     year: Int
 }
 
