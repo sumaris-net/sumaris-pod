@@ -53,10 +53,10 @@
   <PROGRAM_PROPERTY ID="603" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-03-19"  LABEL="sumaris.activityCalendar.metier.taxonGroupType.ids" NAME="4"/> <!-- National metier -->
   <PROGRAM_PROPERTY ID="604" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-07-15"  LABEL="sumaris.activityCalendar.predoc.program.labels" NAME="SIH-ACTIPRED"/>
   <PROGRAM_PROPERTY ID="605" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.extraction.formats" NAME="ACTIMONIT,VESSEL"/>
-  <PROGRAM_PROPERTY ID="606" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-ifremer.png"/>
-  <PROGRAM_PROPERTY ID="607" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-sih.png"/>
-
-
+  <PROGRAM_PROPERTY ID="606" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="607" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.types" NAME="blank-form,form,progress"/>
+  <PROGRAM_PROPERTY ID="608" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-ifremer.png"/>
+  <PROGRAM_PROPERTY ID="609" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-sih.png"/>
 
   <!-- strategies -->
   <STRATEGY ID="110" PROGRAM_FK="110" LABEL="ACTIFLOT-2023" NAME="ACTIFLOT démarrage le 01/01/2023" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
