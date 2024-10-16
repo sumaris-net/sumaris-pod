@@ -108,6 +108,7 @@ public class LandingRepositoryImpl
             .and(hasObserverPersonIds(filter))
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
             .and(hasLocationIds(concat(filter.getLocationId(), filter.getLocationIds())))
+            .and(hasVesselTypeIds(concat(filter.getVesselTypeId(), filter.getVesselTypeIds())))
             .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             .and(hasExcludeVesselIds(filter.getExcludeVesselIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))

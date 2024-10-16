@@ -25,12 +25,15 @@ import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -38,6 +41,7 @@ import java.util.*;
 public class ExtractionActivityMonitoringContextVO extends ExtractionContextVO {
     //    ActivityCalendarFilterVO activityFilter;
     // Table names
+    String calendarTableName;
     String rawMonitoringTableName;
     String monitoringTableName;
     String sheetName;
@@ -52,13 +56,9 @@ public class ExtractionActivityMonitoringContextVO extends ExtractionContextVO {
     String programFilter;
 
     // Sheet names
+    String calendarSheetName; // AC
     String rawMonitoringSheetName; // AM_RAW
     String monitoringSheetName; // AM
-
-    @Override
-    public Optional<String> findTableNameBySheetName(@NonNull String sheetName) {
-        return Optional.of(monitoringTableName);
-    }
 
     public List<String> getProgramLabels() {
         return activityCalendarFilter != null && StringUtils.isNotBlank(activityCalendarFilter.getProgramLabel()) ? ImmutableList.of(activityCalendarFilter.getProgramLabel()) : null;
@@ -68,19 +68,27 @@ public class ExtractionActivityMonitoringContextVO extends ExtractionContextVO {
         return year != null || this.getActivityCalendarFilter() == null ? year : this.getActivityCalendarFilter().getYear();
     }
 
-    public List<String> getRegistrationLocationLabels() {
-        return activityCalendarFilter != null && activityCalendarFilter.getRegistrationLocationLabels() != null ? activityCalendarFilter.getRegistrationLocationLabels() : null;
+    public List<Integer> getIncludedIds() {
+        return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getIncludedIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
     }
 
-    public List<String> getBasePortLocationLabels() {
-        return activityCalendarFilter != null && activityCalendarFilter.getBasePortLocationLabels() != null ? activityCalendarFilter.getBasePortLocationLabels() : null;
+    public List<Integer> getRegistrationLocationIds() {
+        return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getRegistrationLocationIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
     }
 
-    public List<String> getVesselRegistrationCodes() {
-        return activityCalendarFilter != null && activityCalendarFilter.getVesselRegistrationCodes() != null ? activityCalendarFilter.getVesselRegistrationCodes() : null;
+    public List<Integer> getBasePortLocationIds() {
+        return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getBasePortLocationIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
     }
 
-    public List<String> getObservers() {
-        return activityCalendarFilter != null && activityCalendarFilter.getObservers() != null ? activityCalendarFilter.getObservers() : null;
+    public List<Integer> getVesselIds() {
+        return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getVesselIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
+    }
+
+    public List<Integer> getObserverPersonIds() {
+        return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getObserverPersonIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
+    }
+
+    public List<Integer> getRecorderPersonIds() {
+        return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getRecorderPersonIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
     }
 }

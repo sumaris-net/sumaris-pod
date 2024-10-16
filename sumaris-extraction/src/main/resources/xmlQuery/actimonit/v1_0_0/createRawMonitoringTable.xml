@@ -23,35 +23,19 @@
     <query type="create" temp="false" table="&amp;rawMonitoringTableName">
         <select alias="ID" type="number">AC.ID</select>
         <select alias="YEAR" type="text">AC.YEAR</select>
-        <select alias="VESSEL_IDENTIFIER" type="hidden">AC.VESSEL_FK</select>
-
-        <select alias="OBSERVER" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) SEPARATOR ' | ')</select>
-        <select alias="OBSERVER" dbms="pgsql" group="agg">STRING_AGG(DISTINCT CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME), ' | ')</select>
-
-        <select alias="VESSEL_NAME" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT REPLACE(VF.NAME, '|', 'I') ORDER BY VF.START_DATE SEPARATOR ' | ')</select>
-        <select alias="VESSEL_NAME" dbms="pgsql" group="agg">STRING_AGG(DISTINCT REPLACE(VF.NAME, '|', 'I'), ' | ' ORDER BY VF.START_DATE)</select>
-
-        <select alias="VESSEL_LENGTH" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VF.LENGTH_OVER_ALL * 0.01 ORDER BY VF.START_DATE SEPARATOR ' | ')</select>
-        <select alias="VESSEL_LENGTH" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VF.LENGTH_OVER_ALL * 0.01, ' | ' ORDER BY VF.START_DATE)</select>
-
-        <select alias="REGISTRATION_LOCATION_LABEL" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT L.LABEL ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
-        <select alias="REGISTRATION_LOCATION_LABEL" dbms="pgsql" group="agg">STRING_AGG(DISTINCT L.LABEL, ' | ' ORDER BY VRP.START_DATE)</select>
-
-        <select alias="VESSEL_REGISTRATION_CODE" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VRP.REGISTRATION_CODE ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
-        <select alias="VESSEL_REGISTRATION_CODE" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VRP.REGISTRATION_CODE, ' | ' ORDER BY VRP.START_DATE)</select>
-
-        <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="hsqldb" group="agg">GROUP_CONCAT(DISTINCT VRP.INT_REGISTRATION_CODE ORDER BY VRP.START_DATE SEPARATOR ' | ')</select>
-        <select alias="VESSEL_INT_REGISTRATION_CODE" dbms="pgsql" group="agg">STRING_AGG(DISTINCT VRP.INT_REGISTRATION_CODE, ' | ' ORDER BY VRP.START_DATE)</select>
-
-        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="hsqldb,pgsql" group="agg">MIN(CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION THEN 'Y' ELSE 'N' END)</select>
-        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="oracle" group="agg">MIN(CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END)</select>
-        <select alias="ECONOMIC_SURVEY" dbms="hsqldb,pgsql" group="agg">MIN(CASE WHEN AC.ECONOMIC_SURVEY THEN 'Y' ELSE 'N' END)</select>
-        <select alias="ECONOMIC_SURVEY" dbms="oracle" group="agg">MIN(CASE AC.ECONOMIC_SURVEY WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END)</select>
-
-        <select alias="SURVEY_QUALIFICATION">SURVEY_QUALIFICATION_QV.NAME</select>
-        <select alias="RECORDER_PERSON" dbms="hsqldb,pgsql" group="agg">MIN(CONCAT(PERSON.LAST_NAME, ' ', PERSON.FIRST_NAME))</select>
-        <select alias="RECORDER_PERSON" dbms="oracle" group="agg">MIN(PERSON.LAST_NAME || ' ' || PERSON.FIRST_NAME)</select>
-        <select alias="RECORDER_DEPARTMENT" group="agg">MIN(DEPARTMENT.LABEL)</select>
+        <select alias="VESSEL_IDENTIFIER" type="hidden">AC.VESSEL_IDENTIFIER</select>
+        <select alias="OBSERVER_NAME">AC.OBSERVER_NAME</select>
+        <select alias="VESSEL_NAME">AC.VESSEL_NAME</select>
+        <select alias="VESSEL_LENGTH">AC.VESSEL_LENGTH</select>
+        <select alias="REGISTRATION_LOCATION_LABEL">AC.REGISTRATION_LOCATION_LABEL</select>
+        <select alias="VESSEL_REGISTRATION_CODE">AC.VESSEL_REGISTRATION_CODE</select>
+        <select alias="VESSEL_INT_REGISTRATION_CODE">AC.VESSEL_INT_REGISTRATION_CODE</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION">AC.DIRECT_SURVEY_INVESTIGATION</select>
+        <select alias="ECONOMIC_SURVEY">AC.ECONOMIC_SURVEY</select>
+        <select alias="SURVEY_QUALIFICATION">AC.SURVEY_QUALIFICATION</select>
+        <select alias="RECORDER_PERSON_NAME">AC.RECORDER_PERSON_NAME</select>
+        <select alias="RECORDER_DEPARTMENT">AC.RECORDER_DEPARTMENT</select>
+        <select alias="QUALITY_STATUS">AC.QUALITY_STATUS</select>
 
         <select alias="IS_ACTIVE" type="text">VUF.IS_ACTIVE</select>
 
@@ -70,114 +54,28 @@
             END))
         </select>
 
-        <select type="text" alias="QUALITY_STATUS" group="agg">
-            MIN(TRIM(
-                CASE
-                WHEN AC.QUALIFICATION_DATE IS NOT NULL OR AC.QUALITY_FLAG_FK != &amp;qualityFlagNotQualified THEN 'QUALIFIED'
-                WHEN AC.VALIDATION_DATE IS NOT NULL THEN 'VALIDATED'
-                WHEN AC.CONTROL_DATE IS NOT NULL THEN 'CONTROLLED'
-                ELSE 'MODIFIED'
-                END
-            ))
-        </select>
 
-        <!-- Technical columns for filter -->
-        <select alias="REGISTRATION_LOCATION_FILTERED" type="hidden" group="registrationLocationFilter,agg">MAX(CASE WHEN L.LABEL IN (&amp;registrationLocationLabels) THEN 1 ELSE 0 END)</select>
-        <select alias="REGISTRATION_LOCATION_FILTERED" type="hidden" group="!registrationLocationFilter,agg">MIN(1)</select>
+        <from alias="AC">&amp;calendarTableName</from>
 
-        <select alias="BASE_PORT_LOCATION_FILTERED" type="hidden" group="basePortLocationFilter,agg">MAX(CASE WHEN L_PORT.LABEL IN (&amp;basePortLocationLabels) THEN 1 ELSE 0 END)</select>
-        <select alias="BASE_PORT_LOCATION_FILTERED" type="hidden" group="!basePortLocationFilter,agg">MIN(1)</select>
-
-        <select alias="VESSEL_REG_CODE_FILTERED" type="hidden" group="vesselRegistrationCodeFilter,agg">MAX(CASE WHEN VRP.REGISTRATION_CODE IN (&amp;vesselRegistrationCodes) THEN 1 ELSE 0 END)</select>
-        <select alias="VESSEL_REG_CODE_FILTERED" type="hidden" group="!vesselRegistrationCodeFilter,agg">MIN(1)</select>
-
-        <select alias="OBSERVER_FILTERED" type="hidden" dbms="hsqldb,pgsql" group="observersFilter,agg">MAX(CASE WHEN CONCAT(OBSERVER.LAST_NAME, ' ', OBSERVER.FIRST_NAME) IN (&amp;observers) THEN 1 ELSE 0 END)</select>
-        <select alias="OBSERVER_FILTERED" type="hidden" dbms="oracle" group="observersFilter,agg">MAX(CASE WHEN OBSERVER.LAST_NAME || ' ' || OBSERVER.FIRST_NAME IN (&amp;observers) THEN 1 ELSE 0 END)</select>
-        <select alias="OBSERVER_FILTERED" type="hidden" group="!observersFilter,agg">MIN(1)</select>
-
-        <from alias="AC">ACTIVITY_CALENDAR</from>
-
-        <from join="true">INNER JOIN PROGRAM P on P.ID = AC.PROGRAM_FK</from>
-        <from join="true">LEFT OUTER JOIN ACTIVITY_CALENDAR2PERSON AC2P ON AC2P.ACTIVITY_CALENDAR_FK = AC.ID</from>
-        <from join="true">LEFT OUTER JOIN PERSON OBSERVER ON OBSERVER.ID = AC2P.PERSON_FK</from>
-        <from join="true">INNER JOIN VESSEL on AC.VESSEL_FK = VESSEL.ID</from>
-        <from join="true" dbms="hsqldb,pgsql"><![CDATA[
-            LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VESSEL.ID = VRP.VESSEL_FK
-                AND NOT(
-                    COALESCE(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY'))  < &startDate
-                    OR VRP.START_DATE > &endDate
-                )
-            ]]>
-        </from>
-        <from join="true" dbms="oracle"><![CDATA[
-            LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON VESSEL.ID = VRP.VESSEL_FK
-                AND NOT(
-                    NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY'))  < &startDate
-                    OR VRP.START_DATE > &endDate
-                )
-            ]]></from>
-
-        <from join="true">LEFT OUTER JOIN LOCATION L ON VRP.REGISTRATION_LOCATION_FK = L.ID</from>
-
-        <from join="true" dbms="hsqldb,pgsql"><![CDATA[
-            LEFT OUTER JOIN VESSEL_FEATURES VF ON VESSEL.ID = VF.VESSEL_FK
-                AND NOT(
-                    COALESCE(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
-                    OR VF.START_DATE > &endDate
-                )
-            ]]>
-        </from>
-        <from join="true" dbms="oracle"><![CDATA[
-            LEFT OUTER JOIN VESSEL_FEATURES VF ON VESSEL.ID = VF.VESSEL_FK
-                AND NOT(
-                    NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) < &startDate
-                    OR VF.START_DATE > &endDate
-                )
-            ]]>
-        </from>
-        <from join="true">
-            LEFT OUTER JOIN PERSON ON PERSON.ID = AC.RECORDER_PERSON_FK
-        </from>
-        <from join="true">
-            LEFT OUTER JOIN DEPARTMENT ON DEPARTMENT.ID = AC.RECORDER_DEPARTMENT_FK
-        </from>
-        <from join="true">
-            LEFT OUTER JOIN SURVEY_MEASUREMENT ON AC.ID = SURVEY_MEASUREMENT.ACTIVITY_CALENDAR_FK
-            AND PMFM_FK = &amp;surveyQualificationPmfmId
-        </from>
-        <from join="true">
-            LEFT OUTER JOIN QUALITATIVE_VALUE SURVEY_QUALIFICATION_QV ON SURVEY_MEASUREMENT.QUALITATIVE_VALUE_FK = SURVEY_QUALIFICATION_QV.ID
-        </from>
-        <from join="true">
+        <from join="true" group="!adagio">
             LEFT OUTER JOIN	VESSEL_USE_FEATURES VUF ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
         </from>
-        <from join="true">LEFT OUTER JOIN LOCATION L_PORT ON VUF.BASE_PORT_LOCATION_FK = L_PORT.ID</from>
+        <from join="true" group="adagio">
+            LEFT OUTER JOIN	&amp;adagioSchema.VESSEL_USE_FEATURES VUF ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
+        </from>
 
-        <from join="true">
+        <from join="true" group="!adagio">
             LEFT OUTER JOIN GEAR_USE_FEATURES GUF ON GUF.ACTIVITY_CALENDAR_FK = AC.ID AND GUF.START_DATE = VUF.START_DATE AND GUF.END_DATE = VUF.END_DATE
         </from>
-        <from join="true">
+        <from join="true" group="adagio">
+            LEFT OUTER JOIN &amp;adagioSchema.GEAR_USE_FEATURES GUF ON GUF.ACTIVITY_CALENDAR_FK = AC.ID AND GUF.START_DATE = VUF.START_DATE AND GUF.END_DATE = VUF.END_DATE
+        </from>
+        <from join="true" group="!adagio">
             LEFT OUTER JOIN FISHING_AREA FA ON FA.GEAR_USE_FEATURES_FK = GUF.ID
         </from>
-
-
-        <where>1=1</where>
-
-        <where operator="AND" group="programFilter">
-            <in field="P.LABEL">&amp;progLabels</in>
-        </where>
-        <where group="yearFilter" operator="AND">
-            AC.YEAR = &amp;year
-        </where>
-        <where group="registrationLocationFilter" operator="AND" dbms="oracle">
-            <in field="L.LABEL">&amp;registrationLocationLabels</in>
-        </where>
-        <where group="basePortLocationFilter" operator="AND" dbms="oracle">
-            <in field="L_PORT.LABEL">&amp;basePortLocationLabels</in>
-        </where>
-        <where group="vesselRegistrationCodeFilter" operator="AND" dbms="oracle">
-            <in field="VRP.REGISTRATION_CODE">&amp;vesselRegistrationCodes</in>
-        </where>
+        <from join="true" group="adagio">
+            LEFT OUTER JOIN &amp;adagioSchema.FISHING_AREA FA ON FA.GEAR_USE_FEATURES_FK = GUF.ID
+        </from>
 
         <groupby>&amp;groupByColumns</groupby>
         <groupby dbms="oracle">VUF.START_DATE</groupby>
