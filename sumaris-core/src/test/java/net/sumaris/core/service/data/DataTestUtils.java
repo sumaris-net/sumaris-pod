@@ -506,7 +506,7 @@ public class DataTestUtils {
 
         // Other properties
         vo.setYear(year);
-        vo.setDirectSurveyInvestigation(Boolean.TRUE);
+        vo.setDirectSurveyInvestigation(1);
 
         // Recorder
         DepartmentVO recorderDepartment = new DepartmentVO();

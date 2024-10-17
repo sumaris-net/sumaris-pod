@@ -407,7 +407,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
         //directSurveyInvestigation
         String directSurveyInvestigation = source.get(ActivityCalendarVO.Fields.DIRECT_SURVEY_INVESTIGATION);
-        target.setDirectSurveyInvestigation(Boolean.parseBoolean(directSurveyInvestigation));
+        target.setDirectSurveyInvestigation(Integer.parseInt(directSurveyInvestigation));
 
         //economicSurvey
         String economicSurvey = source.get(ActivityCalendarVO.Fields.ECONOMIC_SURVEY);
