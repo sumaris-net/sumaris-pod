@@ -39,10 +39,7 @@ import net.sumaris.extraction.core.vo.ExtractionFilterCriterionVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.extraction.core.vo.ExtractionResultVO;
 import net.sumaris.extraction.core.vo.administration.ExtractionStrategyFilterVO;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -57,7 +54,7 @@ import java.util.Map;
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-//@Ignore("Use only Ifremer Oracle database")
+@Ignore("Use only on Ifremer Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
 public class ExtractionServiceOracleTest extends ExtractionServiceTest {

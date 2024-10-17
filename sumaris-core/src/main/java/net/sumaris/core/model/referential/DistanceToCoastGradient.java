@@ -22,9 +22,9 @@ package net.sumaris.core.model.referential;
  * #L%
  */
 
-import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 import javax.persistence.*;
@@ -40,6 +40,8 @@ import java.util.Date;
 @Entity
 @Table(name = "distance_to_coast_gradient")
 public class DistanceToCoastGradient implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
+
+    public static final String ENTITY_NAME = "DistanceToCoastGradient";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "distance_to_coast_gradient_seq")

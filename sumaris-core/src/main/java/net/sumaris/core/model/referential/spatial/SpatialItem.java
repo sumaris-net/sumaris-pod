@@ -46,7 +46,11 @@ import java.util.List;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "spatial_item")
+@Table(name = "spatial_item",
+    uniqueConstraints = @UniqueConstraint(name="spatial_item_unique_key",
+        columnNames = {"spatial_item_type_fk", "object_id"}),
+    indexes = @Index(name="spatial_item_obj_idx", columnList = "object_id")
+)
 public class SpatialItem implements IReferentialEntity<Integer> {
 
     public static final String ENTITY_NAME = "SpatialItem";
@@ -57,16 +61,12 @@ public class SpatialItem implements IReferentialEntity<Integer> {
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = SpatialItemType.class)
     @JoinColumn(name = "spatial_item_type_fk", nullable = false)
     private SpatialItemType spatialItemType;
 
     @Column(name = "object_id", nullable = false)
     private Integer objectId;
-
-    @Column(name = "creation_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date creationDate;
 
     @Column(name = "update_date")
     @Temporal(TemporalType.TIMESTAMP)

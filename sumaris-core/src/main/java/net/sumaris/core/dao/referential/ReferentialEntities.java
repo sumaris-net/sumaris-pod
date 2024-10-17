@@ -251,7 +251,6 @@ public class ReferentialEntities {
         SamplingStrata.class,
         // Spatial
         SpatialItemType.class,
-        SpatialItem.class,
         // Technical
         SystemVersion.class,
         UnitConversion.class,

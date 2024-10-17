@@ -127,8 +127,10 @@ public interface MetierSpecifications
     }
 
     default Specification<Metier> inLocationIds(IReferentialFilter filter) {
-        if (!(filter instanceof ReferentialFilterVO metierFilter)) return null;
-        return inLocationIds(SpatialItemTypeEnum.METIER.getId(), metierFilter.getLocationIds());
+        if (filter instanceof ReferentialFilterVO referentialFilter) {
+            return inLocationIds(SpatialItemTypeEnum.METIER.getId(), referentialFilter.getLocationIds());
+        }
+        return null;
     }
 
     default List<MetierVO> findByFilter(

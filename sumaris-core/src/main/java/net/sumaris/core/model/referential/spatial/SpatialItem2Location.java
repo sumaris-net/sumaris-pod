@@ -43,7 +43,8 @@ import java.io.Serializable;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @FieldNameConstants
 @Entity
-@Table(name = "spatial_item2location")
+@Table(name = "spatial_item2location",
+    indexes = @Index(name = "spatial_item2location_idx", columnList = "location_fk"))
 @IdClass(SpatialItem2LocationId.class)
 public class SpatialItem2Location implements Serializable {
 

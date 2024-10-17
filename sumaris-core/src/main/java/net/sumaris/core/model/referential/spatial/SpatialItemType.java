@@ -27,12 +27,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.IWithDescriptionAndCommentEntity;
 import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.model.referential.Status;
+import org.hibernate.annotations.Cascade;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Type de régionalisation d'une liste du référentiel.
@@ -51,7 +53,7 @@ import java.util.Date;
 @FieldNameConstants
 @Entity
 @Table(name = "spatial_item_type")
-public class SpatialItemType implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
+public class SpatialItemType implements IItemReferentialEntity<Integer> {
 
     public static final String ENTITY_NAME = "SpatialItemType";
 
@@ -61,22 +63,6 @@ public class SpatialItemType implements IItemReferentialEntity<Integer>, IWithDe
     @EqualsAndHashCode.Include
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_fk", nullable = false)
-    private Status status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "object_type_fk", nullable = false)
-    private ObjectType objectType;
-
-    @Column(name = "creation_date", nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date creationDate;
-
-    @Column(name = "update_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updateDate;
-
     @Column(length = LENGTH_LABEL)
     private String label;
 
@@ -85,6 +71,24 @@ public class SpatialItemType implements IItemReferentialEntity<Integer>, IWithDe
 
     private String description;
 
-    @Column(length = LENGTH_COMMENTS)
-    private String comments;
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
+    @JoinColumn(name = "object_type_fk", nullable = false)
+    private ObjectType objectType;
+
+    @Column(name = "creation_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date creationDate;
+
+    @Column(name = "update_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date updateDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_fk", nullable = false)
+    private Status status;
+
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SpatialItem.class, mappedBy = SpatialItem.Fields.SPATIAL_ITEM_TYPE)
+    @Cascade(org.hibernate.annotations.CascadeType.DELETE)
+    private List<SpatialItem> items = new ArrayList<>();
+
 }

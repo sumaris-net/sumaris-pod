@@ -27,8 +27,8 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
+import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -38,6 +38,7 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
@@ -59,6 +60,9 @@ import java.util.stream.Collectors;
 public class ReferentialServiceImpl implements ReferentialService {
 
 	protected final ReferentialDao referentialDao;
+
+	private final MetierRepository metierRepository;
+
 	private final ApplicationEventPublisher publisher;
 
 	private boolean enableTrash = false;
@@ -66,9 +70,11 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Autowired
 	public ReferentialServiceImpl(ReferentialDao referentialDao,
+								  MetierRepository metierRepository,
 								  GenericConversionService conversionService,
 								  ApplicationEventPublisher publisher) {
 		this.referentialDao = referentialDao;
+		this.metierRepository = metierRepository;
 		this.publisher = publisher;
 
 		// Entity->ReferentialVO converters
@@ -76,6 +82,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 			conversionService.addConverter(entityClass, ReferentialVO.class, this.referentialDao::toVO);
 		});
 	}
+
 	@EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
 	public void onConfigurationReady(ConfigurationEvent event) {
 		this.enableTrash = event.getConfiguration().enableEntityTrash();
@@ -102,12 +109,12 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
-	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id) {
+	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity<Integer>> entityClass, int id) {
 		return referentialDao.get(entityClass, id);
 	}
 
 	@Override
-	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id, ReferentialFetchOptions fetchOptions) {
+	public ReferentialVO get(Class<? extends IReferentialWithStatusEntity<Integer>> entityClass, int id, ReferentialFetchOptions fetchOptions) {
 		return referentialDao.get(entityClass, id, fetchOptions);
 	}
 
@@ -126,7 +133,16 @@ public class ReferentialServiceImpl implements ReferentialService {
 											IReferentialFilter filter, int offset, int size,
 											String sortAttribute, SortDirection sortDirection,
 											ReferentialFetchOptions fetchOptions) {
-		return referentialDao.findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size, sortAttribute,
+
+		// Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
+		if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
+			return metierRepository.findByFilter(
+				IReferentialFilter.nullToEmpty(filter),
+				offset, size, sortAttribute, sortDirection, fetchOptions)
+				.stream().map(item -> (ReferentialVO)item).toList();
+		}
+
+		return referentialDao.findByFilter(entityName, IReferentialFilter.nullToEmpty(filter), offset, size, sortAttribute,
 				sortDirection,
 				fetchOptions);
 	}

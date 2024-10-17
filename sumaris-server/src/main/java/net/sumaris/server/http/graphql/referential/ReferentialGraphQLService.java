@@ -128,19 +128,8 @@ public class ReferentialGraphQLService {
                 .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
                 .build();
 
-        // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
-        if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
-            return metierRepository.findByFilter(
-                    MetierFilterVO.nullToEmpty(filter),
-                    offset == null ? 0 : offset,
-                    size == null ? 1000 : size,
-                    sort == null ? ReferentialVO.Fields.LABEL : sort,
-                    SortDirection.fromString(direction, SortDirection.ASC), fetchOptions);
-        }
-
         // Restrict access
         restrictFilter(entityName, filter);
-
 
         return referentialService.findByFilter(entityName,
                 ReferentialFilterVO.nullToEmpty(filter),

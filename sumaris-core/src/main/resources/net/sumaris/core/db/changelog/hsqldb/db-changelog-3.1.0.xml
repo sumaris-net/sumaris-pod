@@ -26,7 +26,7 @@
       <column name="creation_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
-      <column name="label" type="VARCHAR(255)">
+      <column name="label" type="VARCHAR(50)">
         <constraints nullable="false"/>
       </column>
       <column name="name" type="VARCHAR(255)">
@@ -59,6 +59,7 @@
         constraintName="vessel_use_feat_unique_key"
         columnNames="vessel_fk, program_fk, start_date, end_date, activity_calendar_fk, daily_activity_calendar_fk"/>
   </changeSet>
+
   <!-- Add unique constraint on GEAR_USE_FEATURES -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-006" failOnError="false">
     <preConditions onFail="MARK_RAN">
@@ -68,6 +69,178 @@
         tableName="gear_use_features"
         constraintName="gear_use_feat_unique_key"
         columnNames="vessel_fk, program_fk, gear_fk, metier_fk, start_date, end_date, activity_calendar_fk, daily_activity_calendar_fk"/>
+  </changeSet>
+
+  <!-- Create table SPATIAL_ITEM_TYPE -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-007" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="spatial_item_type"/>
+      </not>
+    </preConditions>
+    <createTable tableName="spatial_item_type">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item_type_pk"/>
+      </column>
+      <column name="label" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="name" type="VARCHAR(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="description" type="VARCHAR(255)"/>
+      <column name="status_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="object_type_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="creation_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <addForeignKeyConstraint baseTableName="spatial_item_type"
+                             baseColumnNames="status_fk"
+                             constraintName="spatial_item_type_status_fkc"
+                             referencedTableName="status"
+                             referencedColumnNames="id"/>
+
+    <addForeignKeyConstraint baseTableName="spatial_item_type"
+                             baseColumnNames="object_type_fk"
+                             constraintName="spatial_item_type_object_type_fkc"
+                             referencedTableName="object_type"
+                             referencedColumnNames="id"/>
+
+    <createSequence sequenceName="SPATIAL_ITEM_TYPE_SEQ"
+                    startValue="1"
+                    incrementBy="1"/>
+  </changeSet>
+
+  <!-- Create table SPATIAL_ITEM -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-008" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="spatial_item"/>
+      </not>
+    </preConditions>
+    <createTable tableName="spatial_item">
+      <column name="id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item_pk"/>
+      </column>
+      <column name="spatial_item_type_fk" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="object_id" type="INT">
+        <constraints nullable="false"/>
+      </column>
+      <column name="update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <addForeignKeyConstraint baseTableName="spatial_item"
+                             baseColumnNames="spatial_item_type_fk"
+                             constraintName="fk_spatial_item_spatial_item_type"
+                             referencedTableName="spatial_item_type"
+                             referencedColumnNames="id"/>
+    <addUniqueConstraint
+        columnNames="spatial_item_type_fk, object_id"
+        tableName="spatial_item"
+        constraintName="spatial_item_unique_key"/>
+
+    <createIndex
+        indexName="spatial_item_obj_idx"
+        tableName="spatial_item">
+      <column name="object_id"/>
+    </createIndex>
+
+    <createSequence sequenceName="SPATIAL_ITEM_SEQ"
+                    startValue="1"
+                    incrementBy="1"/>
+  </changeSet>
+
+  <!-- Create table SPATIAL_ITEM2LOCATION -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-009" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not><tableExists tableName="spatial_item2location"/></not>
+    </preConditions>
+    <createTable tableName="spatial_item2location">
+      <column name="spatial_item_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item2location_pk"/>
+      </column>
+      <column name="location_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item2location_pk" />
+      </column>
+      <column name="localized_name" type="VARCHAR(255)"/>
+    </createTable>
+    <addForeignKeyConstraint baseTableName="spatial_item2location"
+                             baseColumnNames="spatial_item_fk"
+                             constraintName="fk_spatial_item2location_spatial_item"
+                             referencedTableName="spatial_item"
+                             referencedColumnNames="id"/>
+    <addForeignKeyConstraint baseTableName="spatial_item2location"
+                             baseColumnNames="location_fk"
+                             constraintName="fk_spatial_item2location_location"
+                             referencedTableName="location"
+                             referencedColumnNames="id"/>
+    <createIndex
+        indexName="spatial_item2location_idx"
+        tableName="spatial_item2location">
+      <column name="location_fk"/>
+    </createIndex>
+  </changeSet>
+  
+  <!-- Create table DENORMALIZED_SPATIAL_ITEM -->
+  <changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-010" runOnChange="true">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="denormalized_spatial_item"/>
+      </not>
+    </preConditions>
+    <createTable tableName="denormalized_spatial_item">
+      <column name="spatial_item_type_fk" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="denormalized_spatial_item_pk"/>
+      </column>
+      <column name="spatial_item_type_label" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="spatial_item_type_name" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="spatial_item_type_status" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="spatial_item_type_update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="spatial_item_update_date" type="TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="object_table" type="VARCHAR(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="object_table_filter" type="VARCHAR(100)"/>
+      <column name="object_id" type="INT">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="denormalized_spatial_item_pk"/>
+      </column>
+      <column name="object_label" type="VARCHAR(50)"/>
+      <column name="object_name" type="VARCHAR(100)"/>
+      <column name="object_status" type="VARCHAR(1)"/>
+      <column name="min_value" type="DOUBLE"/>
+      <column name="max_value" type="DOUBLE"/>
+      <column name="localized_name" type="VARCHAR(255)"/>
+      <column name="localized_location_fk" type="INT"/>
+      <column name="localized_location_level_fk" type="INT"/>
+      <column name="localized_loc_class_level_fk" type="INT"/>
+      <column name="localized_location_label" type="VARCHAR(50)"/>
+      <column name="localized_location_name" type="VARCHAR(100)"/>
+      <column name="localized_location_status" type="VARCHAR(1)"/> <!-- keep VARCHAR for compatibility with Oracle Ifremer BDD -->
+
+    </createTable>
   </changeSet>
 
   <!-- Update SYSTEM_VERSION -->
