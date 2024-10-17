@@ -32,8 +32,6 @@ import net.sumaris.core.service.data.BatchService;
 import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
-import net.sumaris.core.vo.data.batch.DenormalizedBatches;
-import net.sumaris.core.vo.data.batch.TempDenormalizedBatchVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -43,7 +41,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Slf4j
-@Ignore("Use only SFA Oracle database")
+@Ignore("Use only on SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-test-oracle-sfa.properties")
 public class DenormalizeBatchWriteOracleSFATest extends AbstractServiceTest {

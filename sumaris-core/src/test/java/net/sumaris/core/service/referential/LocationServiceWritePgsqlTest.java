@@ -33,17 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @ActiveProfiles("pgsql")
 @TestPropertySource(locations = "classpath:application-pgsql.properties")
-@Ignore("Use only Pgsql database")
+@Ignore("Use only on Pgsql database")
 public class LocationServiceWritePgsqlTest extends AbstractServiceTest{
 
     @Autowired

@@ -276,6 +276,9 @@ public class DatabaseFixtures {
             case 3 -> 113; // 65F4
             case 4 -> 114; // 65F5
 
+			case 5 -> 115; // 24E4
+			case 6 -> 116; // 25E4
+
             default -> 110;
         };
 	}

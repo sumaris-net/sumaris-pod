@@ -40,10 +40,13 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Date;
 import java.util.List;
 
+
+@TestPropertySource(locations = "classpath:application-test-hsqldb.properties")
 public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @ClassRule
@@ -214,16 +217,33 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByLocationIds() {
-        String entityName = DistanceToCoastGradient.class.getSimpleName();
-        Long countAll = service.countByFilter(entityName, null);
+        int icesRectangleId = fixtures.getRectangleId(5); // 24E4 (zone FAO 27)
 
-        int rectangle = fixtures.getRectangleId(0); // 65F1
-        List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
-                .locationIds(new Integer[]{rectangle})
+        // Metier
+        {
+            String entityName = Metier.ENTITY_NAME;
+            Long countAll = service.count(entityName);
+
+            List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{icesRectangleId})
                 .build(), 0, 100);
-        Assert.assertNotNull(items);
-        Assert.assertTrue(CollectionUtils.isNotEmpty(items));
-        Assert.assertTrue(CollectionUtils.size(items) < countAll);
+            Assert.assertNotNull(items);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(items));
+            Assert.assertTrue(CollectionUtils.size(items) < countAll);
+        }
+
+        // Distance to coast gradient
+        {
+            String entityName = DistanceToCoastGradient.ENTITY_NAME;
+            Long countAll = service.count(entityName);
+
+            List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{icesRectangleId})
+                .build(), 0, 100);
+            Assert.assertNotNull(items);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(items));
+            Assert.assertTrue(CollectionUtils.size(items) < countAll);
+        }
 
     }
 

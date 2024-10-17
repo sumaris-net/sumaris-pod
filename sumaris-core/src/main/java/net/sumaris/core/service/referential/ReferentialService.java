@@ -49,11 +49,11 @@ public interface ReferentialService {
     ReferentialVO get(String entityName, int id, ReferentialFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id);
+    ReferentialVO get(Class<? extends IReferentialWithStatusEntity<Integer>> entityClass, int id);
 
     @Transactional(readOnly = true)
 
-    ReferentialVO get(Class<? extends IReferentialWithStatusEntity> entityClass, int id, ReferentialFetchOptions fetchOptions);
+    ReferentialVO get(Class<? extends IReferentialWithStatusEntity<Integer>> entityClass, int id, ReferentialFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
     List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size);

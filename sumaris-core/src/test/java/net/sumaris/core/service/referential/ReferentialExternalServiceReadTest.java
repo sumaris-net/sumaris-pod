@@ -45,7 +45,7 @@ public class ReferentialExternalServiceReadTest extends AbstractServiceTest{
     private ReferentialExternalService service;
 
     @Test
-    @Ignore("Use only Ifremer webservice")
+    @Ignore("Use only on Ifremer webservice")
     public void findByFilter() {
         ReferentialFilterVO filter = ReferentialFilterVO.builder()
                 .searchText("*P101**-MS")

@@ -22,21 +22,19 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.model.referential.spatial.SpatialItem;
 import net.sumaris.core.model.referential.spatial.SpatialItem2Location;
 import net.sumaris.core.model.referential.spatial.SpatialItemType;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,8 +43,6 @@ import javax.persistence.criteria.*;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public interface ReferentialSpecifications<ID extends Serializable, E extends IReferentialWithStatusEntity<ID>>
     extends IEntityWithStatusSpecifications<ID, E>,
@@ -145,11 +141,18 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
                 if (sit.getOn() == null) {
                     sit.on(cb.equal(sit.get(IEntity.Fields.ID), spatialItemTypeIdParameter));
                 }
-                ListJoin<SpatialItem, SpatialItem2Location> si2l = Daos.composeJoinList(si, SpatialItem.Fields.SPATIAL_ITEM_TYPE, JoinType.INNER);
+                ListJoin<SpatialItem, SpatialItem2Location> si2l = Daos.composeJoinList(si, SpatialItem.Fields.LOCATIONS, JoinType.INNER);
+
+                Root<LocationHierarchy> lh = Daos.getRoot(query, LocationHierarchy.class);
 
                 return cb.and(
                     cb.equal(si.get(SpatialItem.Fields.OBJECT_ID), root.get(IEntity.Fields.ID)),
-                    cb.in(si2l.get(SpatialItem2Location.Fields.LOCATION).get(IEntity.Fields.ID)).value(locationIdsParameter)
+
+                    // LH.PARENT_LOCATION_FK = SI2L.LOCATION_FK
+                    cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), si2l.get(SpatialItem2Location.Fields.LOCATION)),
+
+                    // AND LH.CHILD_LOCATION_FK IN (:locationIdsParameter)
+                    cb.in(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.CHILD_LOCATION, Location.Fields.ID))).value(locationIdsParameter)
                 );
             })
             .addBind(spatialItemTypeIdParameterName, spatialItemTypeId)
