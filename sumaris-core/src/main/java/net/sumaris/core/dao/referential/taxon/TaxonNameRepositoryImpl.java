@@ -23,12 +23,12 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.referential.spatial.SpatialItemTypeEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
@@ -106,7 +106,7 @@ public class TaxonNameRepositoryImpl
     }
 
     @Override
-    protected Specification<TaxonName> toSpecification(TaxonNameFilterVO filter, TaxonNameFetchOptions fetchOptions) {
+    protected Specification<TaxonName> toSpecification(@NonNull TaxonNameFilterVO filter, TaxonNameFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
                 .and(withTaxonGroupId(filter.getTaxonGroupId()))
                 .and(withTaxonGroupIds(filter.getTaxonGroupIds()))

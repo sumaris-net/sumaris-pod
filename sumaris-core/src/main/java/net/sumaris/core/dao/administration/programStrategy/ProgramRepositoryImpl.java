@@ -181,7 +181,7 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    protected Specification<Program> toSpecification(ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
+    protected Specification<Program> toSpecification(@NonNull ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))
             .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevelLabels()))

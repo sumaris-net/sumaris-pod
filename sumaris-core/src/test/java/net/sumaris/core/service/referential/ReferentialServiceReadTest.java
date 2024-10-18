@@ -24,11 +24,11 @@ package net.sumaris.core.service.referential;
 
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.ReferentialEntities;
-import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.AbstractServiceTest;

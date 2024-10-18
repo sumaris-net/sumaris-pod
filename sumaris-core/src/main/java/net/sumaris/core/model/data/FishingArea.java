@@ -22,14 +22,16 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
-import net.sumaris.core.model.referential.DepthGradient;
-import net.sumaris.core.model.referential.DistanceToCoastGradient;
-import net.sumaris.core.model.referential.NearbySpecificArea;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.gradient.DepthGradient;
+import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
+import net.sumaris.core.model.referential.gradient.NearbySpecificArea;
 import net.sumaris.core.model.referential.location.Location;
 
 import javax.persistence.*;

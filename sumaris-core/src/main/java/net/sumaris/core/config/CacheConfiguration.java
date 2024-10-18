@@ -64,6 +64,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
     public interface Names {
         String REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE = "net.sumaris.core.dao.referential.maxUpdateDateByType";
         String REFERENTIAL_TYPES = "net.sumaris.core.dao.referential.allTypes";
+        String REFERENTIALS_BY_FILTER = "net.sumaris.core.dao.referential.referentialsByFilter";
 
         // Department
         String DEPARTMENT_BY_ID = "net.sumaris.core.dao.administration.user.departmentById";
@@ -169,6 +170,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Referential
             Caches.createEternalCollectionHeapCache(cacheManager, Names.REFERENTIAL_TYPES, ReferentialTypeVO.class, 600);
             Caches.createHeapCache(cacheManager, Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, String.class, Date.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createCollectionHeapCache(cacheManager, Names.REFERENTIALS_BY_FILTER, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+
 
             // Department
             Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_ID, Integer.class, DepartmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);

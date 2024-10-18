@@ -27,7 +27,9 @@ import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
+import net.sumaris.core.dao.referential.gradient.DistanceToCoastGradientRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -38,6 +40,7 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -63,6 +66,8 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	private final MetierRepository metierRepository;
 
+	private final DistanceToCoastGradientRepository distanceToCoastGradientRepository;
+
 	private final ApplicationEventPublisher publisher;
 
 	private boolean enableTrash = false;
@@ -70,12 +75,14 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Autowired
 	public ReferentialServiceImpl(ReferentialDao referentialDao,
-								  MetierRepository metierRepository,
-								  GenericConversionService conversionService,
-								  ApplicationEventPublisher publisher) {
+                                  MetierRepository metierRepository,
+								  DistanceToCoastGradientRepository distanceToCoastGradientRepository,
+                                  GenericConversionService conversionService,
+                                  ApplicationEventPublisher publisher) {
 		this.referentialDao = referentialDao;
 		this.metierRepository = metierRepository;
-		this.publisher = publisher;
+        this.distanceToCoastGradientRepository = distanceToCoastGradientRepository;
+        this.publisher = publisher;
 
 		// Entity->ReferentialVO converters
 		ReferentialEntities.ROOT_CLASSES.forEach(entityClass -> {
@@ -129,6 +136,8 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
+	// TODO enable this cache
+	//@Cacheable(cacheNames = CacheConfiguration.Names.REFERENTIALS_BY_FILTER)
 	public List<ReferentialVO> findByFilter(String entityName,
 											IReferentialFilter filter, int offset, int size,
 											String sortAttribute, SortDirection sortDirection,
@@ -138,8 +147,15 @@ public class ReferentialServiceImpl implements ReferentialService {
 		if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
 			return metierRepository.findByFilter(
 				IReferentialFilter.nullToEmpty(filter),
-				offset, size, sortAttribute, sortDirection, fetchOptions)
+					Page.create(offset, size, sortAttribute, sortDirection), fetchOptions)
 				.stream().map(item -> (ReferentialVO)item).toList();
+		}
+
+		// Gradient
+		if (entityName.equalsIgnoreCase(DistanceToCoastGradient.ENTITY_NAME)) {
+			return distanceToCoastGradientRepository.findAll(
+				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
+				Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
 		}
 
 		return referentialDao.findByFilter(entityName, IReferentialFilter.nullToEmpty(filter), offset, size, sortAttribute,

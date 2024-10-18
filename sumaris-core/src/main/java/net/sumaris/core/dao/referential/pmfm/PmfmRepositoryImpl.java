@@ -271,7 +271,7 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    protected Specification<Pmfm> toSpecification(IReferentialFilter filter, PmfmFetchOptions fetchOptions) {
+    protected Specification<Pmfm> toSpecification(@NonNull IReferentialFilter filter, PmfmFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions);
     }
 

@@ -23,8 +23,8 @@ package net.sumaris.core.service.referential;
  */
 
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.metier.Metier;

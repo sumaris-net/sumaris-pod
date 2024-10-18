@@ -679,7 +679,7 @@ public class StrategyRepositoryImpl
     }
 
     @Override
-    protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
+    protected Specification<Strategy> toSpecification(@NonNull StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
         Specification<Strategy> specification = super.toSpecification(filter, fetchOptions);
         if (filter.getId() != null) return specification;
         return specification
