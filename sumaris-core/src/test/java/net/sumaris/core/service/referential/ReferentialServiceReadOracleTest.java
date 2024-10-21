@@ -22,6 +22,7 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
@@ -61,31 +62,35 @@ public class ReferentialServiceReadOracleTest extends AbstractServiceTest{
 
     @Test
     public void findAllByLocationIds() {
-        List<ReferentialVO> rectangles = service.findByFilter(Location.class.getSimpleName(),
-            ReferentialFilterVO.builder()
-            .label("24E5")
-            .levelId(LocationLevelEnum.RECTANGLE_ICES.getId())
-            .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
-            .build(), 0, 1 );
-        Assume.assumeFalse(rectangles.isEmpty());
-        Integer icesRectangleId = rectangles.get(0).getId();
-
-
         // Metier
         {
             String entityName = Metier.ENTITY_NAME;
             Long countAll = service.count(entityName);
 
-            List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
-                .locationIds(new Integer[]{icesRectangleId})
-                .build(), 0, 100);
-            Assert.assertNotNull(items);
-            Assert.assertTrue(CollectionUtils.isNotEmpty(items));
-            Assert.assertTrue(CollectionUtils.size(items) < countAll);
+            // Get FAO Zone "27" (Atlantic North East)
+            int atlanticNorthEastId = getLocationIdByLabel(LocationLevelEnum.AREA_FAO, "27", false);
+            List<ReferentialVO> atlanticNorthEastMetiers = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{atlanticNorthEastId})
+                .build(), 0, 1000);
+            Assert.assertNotNull(atlanticNorthEastMetiers);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(atlanticNorthEastMetiers));
+            Assert.assertTrue(CollectionUtils.size(atlanticNorthEastMetiers) < countAll);
+
+            // Get FAO Zone "37" (Mediterranean sea)
+            int mediterraneanId = getLocationIdByLabel(LocationLevelEnum.AREA_FAO, "37", false);
+            List<ReferentialVO> mediterraneanMetiers = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{mediterraneanId})
+                .build(), 0, 1000);
+            Assert.assertNotNull(mediterraneanMetiers);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(mediterraneanMetiers));
+            Assert.assertTrue(CollectionUtils.size(mediterraneanMetiers) < countAll);
+            Assert.assertTrue(CollectionUtils.size(mediterraneanMetiers) < CollectionUtils.size(atlanticNorthEastMetiers));
         }
 
         // Distance to coast gradient
         {
+            int icesRectangleId = getLocationIdByLabel(LocationLevelEnum.RECTANGLE_ICES, "24E5", true);
+
             String entityName = DistanceToCoastGradient.ENTITY_NAME;
             Long countAll = service.count(entityName);
 
@@ -96,5 +101,19 @@ public class ReferentialServiceReadOracleTest extends AbstractServiceTest{
             Assert.assertTrue(CollectionUtils.isNotEmpty(items));
             Assert.assertTrue(CollectionUtils.size(items) < countAll);
         }
+    }
+
+    private int getLocationIdByLabel(@NonNull LocationLevelEnum locationLevel, @NonNull String label, boolean onlyEnableStatus) {
+        Assume.assumeTrue(String.format("LocationLevelEnum.%s not resolved. Please set enumeration option in config", locationLevel.name()), locationLevel.getId() != -1);
+        List<ReferentialVO> rectangles = service.findByFilter(Location.class.getSimpleName(),
+            ReferentialFilterVO.builder()
+                .label(label)
+                .levelIds(new Integer[]{locationLevel.getId()})
+                .statusIds(onlyEnableStatus ? new Integer[]{StatusEnum.ENABLE.getId()} : null)
+                .build(), 0, 1 );
+        Assume.assumeFalse(String.format("Cannot found the %slocation with label '%s'",
+            onlyEnableStatus ? "enabled ": "",
+            label), rectangles.isEmpty());
+        return rectangles.get(0).getId();
     }
 }

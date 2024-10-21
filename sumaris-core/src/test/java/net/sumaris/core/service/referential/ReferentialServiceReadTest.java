@@ -22,6 +22,7 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.model.referential.SaleType;
@@ -30,6 +31,7 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -37,6 +39,7 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,23 +220,37 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByLocationIds() {
-        int icesRectangleId = fixtures.getRectangleId(5); // 24E4 (zone FAO 27)
 
         // Metier
         {
             String entityName = Metier.ENTITY_NAME;
             Long countAll = service.count(entityName);
 
-            List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
-                .locationIds(new Integer[]{icesRectangleId})
-                .build(), 0, 100);
-            Assert.assertNotNull(items);
-            Assert.assertTrue(CollectionUtils.isNotEmpty(items));
-            Assert.assertTrue(CollectionUtils.size(items) < countAll);
+            // Get FAO Zone "27" (Atlantic North East)
+            int atlanticNorthEastId = getLocationIdByLabel(LocationLevelEnum.AREA_FAO, "27", false);
+            List<ReferentialVO> atlanticNorthEastItems = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{atlanticNorthEastId})
+                .build(), 0, 1000);
+            Assert.assertNotNull(atlanticNorthEastItems);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(atlanticNorthEastItems));
+            Assert.assertTrue(CollectionUtils.size(atlanticNorthEastItems) < countAll);
+
+            // Get FAO Zone "57" (Indian Ocean East)
+            int indianOceanEastId = getLocationIdByLabel(LocationLevelEnum.AREA_FAO, "57", false);
+            List<ReferentialVO> indianOceanEastItems = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{indianOceanEastId})
+                .build(), 0, 1000);
+            Assert.assertNotNull(indianOceanEastItems);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(indianOceanEastItems));
+            Assert.assertTrue(CollectionUtils.size(indianOceanEastItems) < countAll);
+            Assert.assertTrue(CollectionUtils.size(indianOceanEastItems) < CollectionUtils.size(atlanticNorthEastItems));
+
         }
 
         // Distance to coast gradient
         {
+            int icesRectangleId = fixtures.getRectangleId(5); // 24E4 (zone FAO 27)
+
             String entityName = DistanceToCoastGradient.ENTITY_NAME;
             Long countAll = service.count(entityName);
 
@@ -245,6 +262,22 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
             Assert.assertTrue(CollectionUtils.size(items) < countAll);
         }
 
+    }
+
+    /* -- private functions -- */
+
+    private int getLocationIdByLabel(@NonNull LocationLevelEnum locationLevel, @NonNull String label, boolean onlyEnableStatus) {
+        Assume.assumeTrue(String.format("LocationLevelEnum.%s not resolved. Please set enumeration option in config", locationLevel.name()), locationLevel.getId() != -1);
+        List<ReferentialVO> rectangles = service.findByFilter(Location.class.getSimpleName(),
+            ReferentialFilterVO.builder()
+                .label(label)
+                .levelIds(new Integer[]{locationLevel.getId()})
+                .statusIds(onlyEnableStatus ? new Integer[]{StatusEnum.ENABLE.getId()} : null)
+                .build(), 0, 1 );
+        Assume.assumeFalse(String.format("Cannot found the %slocation with label '%s'",
+            onlyEnableStatus ? "enabled ": "",
+            label), rectangles.isEmpty());
+        return rectangles.get(0).getId();
     }
 
 }
