@@ -24,10 +24,14 @@ package net.sumaris.core.service.referential;
 
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
+import net.sumaris.core.dao.referential.ReferentialRepository;
+import net.sumaris.core.dao.referential.gradient.DepthGradientRepository;
 import net.sumaris.core.dao.referential.gradient.DistanceToCoastGradientRepository;
+import net.sumaris.core.dao.referential.gradient.NearbySpecificAreaRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -40,7 +44,9 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.model.referential.gradient.DepthGradient;
 import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
+import net.sumaris.core.model.referential.gradient.NearbySpecificArea;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -56,6 +62,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service("referentialService")
@@ -67,6 +74,13 @@ public class ReferentialServiceImpl implements ReferentialService {
 	private final MetierRepository metierRepository;
 
 	private final DistanceToCoastGradientRepository distanceToCoastGradientRepository;
+	private final DepthGradientRepository depthGradientRepository;
+	private final NearbySpecificAreaRepository nearbySpecificAreaRepository;
+
+	private final Map<String, ReferentialRepository<Integer,
+		? extends IItemReferentialEntity<Integer>,
+		? extends ReferentialVO, ? extends IReferentialFilter,
+		ReferentialFetchOptions>> repositoriesMap = Maps.newHashMap();
 
 	private final ApplicationEventPublisher publisher;
 
@@ -76,13 +90,23 @@ public class ReferentialServiceImpl implements ReferentialService {
 	@Autowired
 	public ReferentialServiceImpl(ReferentialDao referentialDao,
                                   MetierRepository metierRepository,
-								  DistanceToCoastGradientRepository distanceToCoastGradientRepository,
-                                  GenericConversionService conversionService,
-                                  ApplicationEventPublisher publisher) {
+                                  DistanceToCoastGradientRepository distanceToCoastGradientRepository,
+								  DepthGradientRepository depthGradientRepository,
+								  NearbySpecificAreaRepository nearbySpecificAreaRepository,
+								  GenericConversionService conversionService,
+								  ApplicationEventPublisher publisher) {
 		this.referentialDao = referentialDao;
 		this.metierRepository = metierRepository;
         this.distanceToCoastGradientRepository = distanceToCoastGradientRepository;
+        this.depthGradientRepository = depthGradientRepository;
+        this.nearbySpecificAreaRepository = nearbySpecificAreaRepository;
         this.publisher = publisher;
+
+		// Register repositories, by entity name
+		repositoriesMap.put(Metier.ENTITY_NAME, metierRepository);
+		repositoriesMap.put(DistanceToCoastGradient.ENTITY_NAME, distanceToCoastGradientRepository);
+		repositoriesMap.put(DepthGradient.ENTITY_NAME, depthGradientRepository);
+		repositoriesMap.put(NearbySpecificArea.ENTITY_NAME, nearbySpecificAreaRepository);
 
 		// Entity->ReferentialVO converters
 		ReferentialEntities.ROOT_CLASSES.forEach(entityClass -> {
@@ -143,17 +167,32 @@ public class ReferentialServiceImpl implements ReferentialService {
 											String sortAttribute, SortDirection sortDirection,
 											ReferentialFetchOptions fetchOptions) {
 
-		// Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
+
+		// Métier: special case to be able to sort on join attribute (e.g. taxonGroup)
 		if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
-			return metierRepository.findByFilter(
-				IReferentialFilter.nullToEmpty(filter),
+			return metierRepository.findAll(
+					IReferentialFilter.nullToEmpty(filter),
 					Page.create(offset, size, sortAttribute, sortDirection), fetchOptions)
 				.stream().map(item -> (ReferentialVO)item).toList();
 		}
 
-		// Gradient
+		// Distance To Coast Gradient
 		if (entityName.equalsIgnoreCase(DistanceToCoastGradient.ENTITY_NAME)) {
 			return distanceToCoastGradientRepository.findAll(
+				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
+				Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
+		}
+
+		// Depth Gradient
+		if (entityName.equalsIgnoreCase(DepthGradient.ENTITY_NAME)) {
+			return depthGradientRepository.findAll(
+				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
+				Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
+		}
+
+		// Nearby Specific Area
+		if (entityName.equalsIgnoreCase(NearbySpecificArea.ENTITY_NAME)) {
+			return nearbySpecificAreaRepository.findAll(
 				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
 				Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
 		}

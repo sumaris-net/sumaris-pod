@@ -45,6 +45,8 @@ import java.util.Date;
 @Table(name = "nearby_specific_area")
 public class NearbySpecificArea implements IItemReferentialEntity<Integer>, IWithDescriptionAndCommentEntity<Integer> {
 
+    public static final String ENTITY_NAME = "NearbySpecificArea";
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "nearby_specific_area_seq")
     @SequenceGenerator(name = "nearby_specific_area_seq", sequenceName="nearby_specific_area_seq", allocationSize = SEQUENCE_ALLOCATION_SIZE)

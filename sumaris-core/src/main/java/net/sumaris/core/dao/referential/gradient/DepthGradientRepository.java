@@ -22,11 +22,17 @@
 
 package net.sumaris.core.dao.referential.gradient;
 
+import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
-import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
+import net.sumaris.core.model.referential.gradient.DepthGradient;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
+import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro> on 18/20/2024
  */
-public interface DistanceToCoastGradientSpecifications extends ReferentialSpecifications<Integer, DistanceToCoastGradient> {
+public interface DepthGradientRepository
+    extends ReferentialRepository<Integer, DepthGradient, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions>,
+    ReferentialSpecifications<Integer, DepthGradient> {
 }

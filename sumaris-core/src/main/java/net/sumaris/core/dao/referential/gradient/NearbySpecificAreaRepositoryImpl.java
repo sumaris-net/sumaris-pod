@@ -26,7 +26,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
-import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
+import net.sumaris.core.model.referential.gradient.NearbySpecificArea;
 import net.sumaris.core.model.referential.location.LocationHierarchyMode;
 import net.sumaris.core.model.referential.spatial.SpatialItemTypeEnum;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -40,19 +40,19 @@ import javax.persistence.EntityManager;
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro> on 18/20/2024
  */
 @Slf4j
-public class DistanceToCoastGradientRepositoryImpl
-    extends ReferentialRepositoryImpl<Integer, DistanceToCoastGradient, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions>
-    implements ReferentialSpecifications<Integer, DistanceToCoastGradient> {
+public class NearbySpecificAreaRepositoryImpl
+    extends ReferentialRepositoryImpl<Integer, NearbySpecificArea, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions>
+    implements ReferentialSpecifications<Integer, NearbySpecificArea> {
 
-    public DistanceToCoastGradientRepositoryImpl(EntityManager entityManager) {
-        super(DistanceToCoastGradient.class, ReferentialVO.class, entityManager);
+    public NearbySpecificAreaRepositoryImpl(EntityManager entityManager) {
+        super(NearbySpecificArea.class, ReferentialVO.class, entityManager);
     }
 
     @Override
-    protected Specification<DistanceToCoastGradient> toSpecification(
+    protected Specification<NearbySpecificArea> toSpecification(
         @NonNull ReferentialFilterVO filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(inSpatialLocationIds(SpatialItemTypeEnum.DISTANCE_TO_COAST_GRADIENT,
+            .and(inSpatialLocationIds(SpatialItemTypeEnum.NEARBY_SPECIFIC_AREA,
                 LocationHierarchyMode.BOTTOM_UP,
                 filter.getLocationIds()))
             ;
