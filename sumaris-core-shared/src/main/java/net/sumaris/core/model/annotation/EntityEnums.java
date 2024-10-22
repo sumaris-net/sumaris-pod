@@ -146,6 +146,10 @@ public final class EntityEnums {
         return id == null || id == UNRESOLVED_ENUMERATION_ID;
     }
 
+    public static boolean isResolvedId(Integer id) {
+        return !isUnresolvedId(id);
+    }
+
     @Data
     @AllArgsConstructor
     public static class ConfigOption implements ConfigOptionDef {

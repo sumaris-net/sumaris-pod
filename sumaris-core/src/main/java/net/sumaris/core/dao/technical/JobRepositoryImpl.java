@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.exception.DataNotFoundException;
+import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingStatusEnum;
 import net.sumaris.core.model.referential.ProcessingType;
@@ -179,16 +180,16 @@ public class JobRepositoryImpl
 
         // Type
         Integer processingTypeId = ProcessingTypeEnum.byLabelOrName(source.getType())
+            .filter(EntityEnums::isResolved) // Skip if unresolved
             .map(ProcessingTypeEnum::getId)
-            .filter(id -> id >= 0) // Skip if unresolved
             .orElseGet(() -> {
                 if (target.getProcessingType() != null && target.getProcessingType().getId() >= 0) {
                     return target.getProcessingType().getId(); // Keep existing
                 }
                 return ProcessingTypeEnum.UNKNOWN.getId();
             });
-        if (processingTypeId <= 0) {
-            throw new DataNotFoundException("Unknown ProcessingType with label: " + source.getType());
+        if (EntityEnums.isUnresolvedId(processingTypeId)) {
+            throw new DataNotFoundException("Cannot resolved ProcessingType from job type: " + source.getType());
         }
         target.setProcessingType(getReference(ProcessingType.class, processingTypeId));
 
