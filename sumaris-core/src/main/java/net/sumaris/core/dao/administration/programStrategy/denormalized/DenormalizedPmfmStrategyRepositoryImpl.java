@@ -162,7 +162,13 @@ public class DenormalizedPmfmStrategyRepositoryImpl
 
         // Label
         if (StringUtils.isBlank(target.getLabel())) {
-            target.setLabel(parameter.getLabel() + (StringUtils.isNotBlank(target.getUnitLabel()) ? "_" + target.getUnitLabel() : ""));
+            String label = parameter.getLabel();
+            if (StringUtils.isNotBlank(target.getUnitLabel())) {
+                String labelSuffix = StringUtils.changeCaseToUnderscore(target.getUnitLabel().replaceAll("/", "_"))
+                    .toUpperCase();
+                label += "_" + labelSuffix;
+            }
+            target.setLabel(label);
         }
 
         // Qualitative values (from Pmfm if any, or from Parameter)
