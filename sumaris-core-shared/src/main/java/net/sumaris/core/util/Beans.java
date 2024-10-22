@@ -29,8 +29,8 @@ import com.google.common.collect.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ComparatorUtils;
@@ -49,6 +49,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -396,6 +397,31 @@ public class Beans {
         }
     }
 
+    /**
+     * Retrieves a property collector for a specified target class and key.
+     *
+     * @param <T> the type of the referential entity
+     * @param targetClass the class of the target referential entity
+     * @param key the key representing the property to collect
+     * @return a Collector for the specified property of the target class
+     */
+    public static <T> Collector<T, ?, ?> getPropertyCollector(Class<?> targetClass, String key) {
+        try {
+            Field field = targetClass.getDeclaredField(key);
+            Class<?> fieldType = field.getType();
+
+            if (Set.class.isAssignableFrom(fieldType)) {
+                return Collectors.toSet();
+            } else if (List.class.isAssignableFrom(fieldType)) {
+                return Collectors.toList();
+            } else {
+                throw new IllegalArgumentException("Unsupported field type: " + fieldType.getName());
+            }
+        } catch (NoSuchFieldException e) {
+            throw new IllegalArgumentException("Field with key " + key + " not found in class " + targetClass.getName(), e);
+        }
+    }
+
     public static Integer[] asIntegerArray(Collection<Integer> values) {
         if (CollectionUtils.isEmpty(values)) {
             return null;
@@ -436,6 +462,7 @@ public class Beans {
     public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> function) {
         return Beans.getStream(collection).map(function).collect(Collectors.toList());
     }
+
 
     public static <K, V> Map<K, V> mergeMap(Map<K, V> map1, Map<K, V> map2) {
         if (MapUtils.isEmpty(map1)) return map2;

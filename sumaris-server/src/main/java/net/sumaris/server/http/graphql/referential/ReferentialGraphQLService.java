@@ -125,6 +125,8 @@ public class ReferentialGraphQLService {
 
         Set<String> fields = GraphQLUtils.fields(env);
         ReferentialFetchOptions fetchOptions = ReferentialFetchOptions.builder()
+                .withLevelId(fields.contains(ReferentialVO.Fields.LEVEL_ID) || fields.contains(ReferentialVO.Fields.LEVEL))
+                .withParentId(fields.contains(ReferentialVO.Fields.PARENT_ID) || fields.contains(ReferentialVO.Fields.PARENT))
                 .withProperties(fields.contains(ReferentialVO.Fields.PROPERTIES))
                 .build();
 
@@ -293,7 +295,7 @@ public class ReferentialGraphQLService {
             filter.setIncludedIds(authorizedProgramIds);
         }
 
-        // TODO: other entities ? e.g. 'Location' ?
+        // TODO: restrict other entities ? e.g. 'Location' ?
 
     }
 

@@ -53,6 +53,7 @@ import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.regulation.Corpus;
 import net.sumaris.core.model.referential.regulation.CorpusType;
 import net.sumaris.core.model.referential.regulation.Fishery;
+import net.sumaris.core.model.referential.spatial.ExpertiseArea;
 import net.sumaris.core.model.referential.spatial.SpatialItem;
 import net.sumaris.core.model.referential.spatial.SpatialItemType;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
@@ -91,6 +92,8 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.gearLevel");
         I18n.n("sumaris.persistence.table.parameter");
         I18n.n("sumaris.persistence.table.userProfile");
+        I18n.n("sumaris.persistence.table.userSettings");
+        I18n.n("sumaris.persistence.table.expertiseArea");
         I18n.n("sumaris.persistence.table.saleType");
         I18n.n("sumaris.persistence.table.taxonGroup");
         I18n.n("sumaris.persistence.table.taxonGroupType");
@@ -155,6 +158,7 @@ public class ReferentialEntities {
                 Gear.class,
                 GearClassification.class,
                 UserProfile.class,
+                ExpertiseArea.class,
                 SaleType.class,
                 VesselType.class,
                 ObjectType.class,

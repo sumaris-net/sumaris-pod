@@ -22,9 +22,9 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IWithValidityStatusEntity;
@@ -44,6 +44,7 @@ import java.util.Date;
 })
 @Cacheable
 public class Location implements IItemReferentialEntity<Integer>, IWithValidityStatusEntity<Integer, ValidityStatus> {
+    public static final String ENTITY_NAME = "Location";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "LOCATION_SEQ")

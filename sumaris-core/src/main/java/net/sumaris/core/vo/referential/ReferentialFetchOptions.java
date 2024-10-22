@@ -38,5 +38,11 @@ public class ReferentialFetchOptions implements IFetchOptions {
     public static final ReferentialFetchOptions DEFAULT = ReferentialFetchOptions.builder().build();
 
     @Builder.Default
+    private boolean withLevelId = true;
+
+    @Builder.Default
+    private boolean withParentId = true;
+
+    @Builder.Default
     private boolean withProperties = false;
 }
