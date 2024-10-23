@@ -26,7 +26,7 @@ import net.sumaris.core.dao.referential.IEntityWithStatusSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
-import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;

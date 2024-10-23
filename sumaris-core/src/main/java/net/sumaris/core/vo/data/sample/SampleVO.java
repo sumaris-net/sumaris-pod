@@ -23,10 +23,8 @@
 package net.sumaris.core.vo.data.sample;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Preconditions;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.ITreeNodeEntity;
@@ -38,14 +36,12 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
-import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Data
 @ToString(onlyExplicitlyIncluded = true)

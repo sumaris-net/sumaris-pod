@@ -26,9 +26,9 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 
 import java.util.Date;
 

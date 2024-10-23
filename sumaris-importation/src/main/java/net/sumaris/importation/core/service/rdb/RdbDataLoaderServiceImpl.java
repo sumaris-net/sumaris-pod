@@ -36,7 +36,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.rdb.*;
 import net.sumaris.core.service.referential.taxon.TaxonNameService;
 import net.sumaris.core.util.Files;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 import net.sumaris.importation.core.exception.FileValidationException;
 import net.sumaris.importation.core.service.DataLoaderService;
 import net.sumaris.importation.core.util.csv.CSVFileReader;

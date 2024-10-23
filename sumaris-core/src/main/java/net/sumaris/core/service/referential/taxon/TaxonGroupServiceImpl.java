@@ -32,30 +32,21 @@ import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.VersionNotFoundException;
-import net.sumaris.core.model.IProgressionModel;
-import net.sumaris.core.model.ProgressionModel;
-import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import org.nuiton.i18n.I18n;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 import org.nuiton.version.Version;
 import org.nuiton.version.VersionBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Future;
 
 @Service("taxonGroupService")
 @Slf4j

@@ -43,10 +43,10 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.conversion.UnitConversions;
 import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFetchOptions;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionFilterVO;
 import net.sumaris.core.vo.referential.conversion.WeightLengthConversionVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -62,7 +62,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service("weightLengthConversionService")
 public class WeightLengthConversionServiceImpl implements WeightLengthConversionService {

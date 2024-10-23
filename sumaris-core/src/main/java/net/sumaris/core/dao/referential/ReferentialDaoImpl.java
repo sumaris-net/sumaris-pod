@@ -279,11 +279,13 @@ public class ReferentialDaoImpl
 
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_ITEMS_BY_FILTER, key = "#entityName"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, allEntries = true, condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_LABEL, allEntries = true, condition = "#entityName == 'Department'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.EXPERTISE_AREAS_ENABLED, allEntries = true, condition = "#entityName == 'ExpertiseArea'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, allEntries = true, condition = "#entityName == 'Pmfm'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM, allEntries = true, condition = "#entityName == 'Pmfm'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_COMPLETE_NAME_BY_ID, allEntries = true, condition = "#entityName == 'Pmfm'"),
@@ -307,6 +309,10 @@ public class ReferentialDaoImpl
         log.debug("Cleaning {}'s cache...", entityName);
     }
 
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_ITEMS_BY_FILTER, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_COUNT_BY_FILTER, allEntries = true)
+    })
     public void clearCache() {
         log.debug("Cleaning all referential cache...");
 
@@ -317,6 +323,7 @@ public class ReferentialDaoImpl
 
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.EXPERTISE_AREAS_ENABLED, allEntries = true, condition = "#entityName == 'ExpertiseArea'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, allEntries = true, condition = "#entityName == 'Person'"),
@@ -348,6 +355,7 @@ public class ReferentialDaoImpl
 
     @Override
     @Caching(evict = {
+        @CacheEvict(cacheNames = CacheConfiguration.Names.EXPERTISE_AREAS_ENABLED, allEntries = true, condition = "#entityName == 'ExpertiseArea'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id", condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, key = "#id", condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_BY_ID, key = "#id", condition = "#entityName == 'Pmfm'"),

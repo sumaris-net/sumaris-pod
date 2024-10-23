@@ -26,7 +26,7 @@ import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.vo.referential.ReferenceTaxonVO;
+import net.sumaris.core.vo.referential.taxon.ReferenceTaxonVO;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.persistence.EntityManager;

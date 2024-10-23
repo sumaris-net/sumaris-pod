@@ -34,7 +34,7 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrategyVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.core.vo.referential.pmfm.PmfmValueType;
 import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.dao.trip.rdb.ExtractionRdbTripDaoImpl;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;

@@ -27,7 +27,7 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;

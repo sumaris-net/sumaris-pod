@@ -56,7 +56,7 @@ import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptio
 import net.sumaris.core.vo.data.batch.DenormalizedBatchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.core.vo.referential.pmfm.PmfmValueType;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.dao.technical.Daos;

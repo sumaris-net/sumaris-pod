@@ -26,6 +26,7 @@ package net.sumaris.core.service.referential;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.ReferentialRepository;
@@ -55,6 +56,7 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -160,8 +162,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
-	// TODO enable this cache
-	//@Cacheable(cacheNames = CacheConfiguration.Names.REFERENTIALS_BY_FILTER)
+	@Cacheable(cacheNames = CacheConfiguration.Names.REFERENTIAL_ITEMS_BY_FILTER)
 	public List<ReferentialVO> findByFilter(String entityName,
 											IReferentialFilter filter, int offset, int size,
 											String sortAttribute, SortDirection sortDirection,
@@ -210,11 +211,37 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = CacheConfiguration.Names.REFERENTIAL_COUNT_BY_FILTER)
 	public Long countByFilter(String entityName, IReferentialFilter filter) {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
 			return count(entityName);
 		}
+
+		// Métier: special case to be able to sort on join attribute (e.g. taxonGroup)
+		if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
+			return metierRepository.count(
+					IReferentialFilter.nullToEmpty(filter));
+		}
+
+		// Distance To Coast Gradient
+		if (entityName.equalsIgnoreCase(DistanceToCoastGradient.ENTITY_NAME)) {
+			return distanceToCoastGradientRepository.count(
+				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter));
+		}
+
+		// Depth Gradient
+		if (entityName.equalsIgnoreCase(DepthGradient.ENTITY_NAME)) {
+			return depthGradientRepository.count(
+				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter));
+		}
+
+		// Nearby Specific Area
+		if (entityName.equalsIgnoreCase(NearbySpecificArea.ENTITY_NAME)) {
+			return nearbySpecificAreaRepository.count(
+				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter));
+		}
+
 		return referentialDao.countByFilter(entityName, filter);
 	}
 

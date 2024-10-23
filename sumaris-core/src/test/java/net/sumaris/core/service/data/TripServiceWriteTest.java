@@ -23,21 +23,16 @@ package net.sumaris.core.service.data;
  */
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.referential.pmfm.PmfmService;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.referential.LocationVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
 import java.util.List;
 
 public class TripServiceWriteTest extends AbstractServiceTest{

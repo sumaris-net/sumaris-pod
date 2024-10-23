@@ -23,10 +23,9 @@ package net.sumaris.core.service.referential.taxon;
  */
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameFetchOptions;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

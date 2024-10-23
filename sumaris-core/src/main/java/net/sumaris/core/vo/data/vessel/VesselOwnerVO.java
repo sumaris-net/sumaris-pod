@@ -27,21 +27,16 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.model.administration.programStrategy.Program;
-import net.sumaris.core.model.data.IDataEntity;
 import net.sumaris.core.model.data.IWithProgramEntity;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Setting;
 
-import javax.persistence.*;
+import javax.persistence.Id;
 import java.util.Date;
 
 @Getter

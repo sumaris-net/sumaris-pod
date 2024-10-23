@@ -26,8 +26,8 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
-import net.sumaris.core.vo.referential.PmfmFetchOptions;
-import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmFetchOptions;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;

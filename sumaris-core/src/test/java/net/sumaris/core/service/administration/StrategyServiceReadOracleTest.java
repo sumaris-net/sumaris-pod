@@ -39,7 +39,7 @@ import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;

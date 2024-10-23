@@ -25,9 +25,8 @@ package net.sumaris.core.dao.referential.taxon;
 import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.ReferentialFetchOptions;
-import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameFetchOptions;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 
 import java.util.Collection;
 import java.util.List;

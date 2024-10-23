@@ -25,7 +25,7 @@ package net.sumaris.core.service.data;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
-import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;

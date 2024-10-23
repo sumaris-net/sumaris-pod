@@ -29,10 +29,13 @@ import io.leangen.graphql.annotations.GraphQLMutation;
 import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.model.referential.spatial.ExpertiseAreaUtils;
 import net.sumaris.core.service.administration.DepartmentService;
+import net.sumaris.core.service.referential.ExpertiseAreaService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.referential.spatial.ExpertiseAreaVO;
 import net.sumaris.core.vo.technical.ConfigurationVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
@@ -44,7 +47,6 @@ import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +89,9 @@ public class ConfigurationGraphQLService {
 
     @Resource
     private AuthService authService;
+
+    @Resource
+    private ExpertiseAreaService expertiseAreaService;
 
     @GraphQLQuery(name = "configuration", description = "Load pod configuration")
     public ConfigurationVO getConfiguration(
@@ -259,6 +264,16 @@ public class ConfigurationGraphQLService {
             properties.computeIfAbsent(
                 SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey(),
                 (key) -> Boolean.toString(configuration.enableEntityTrash()));
+
+            // Expertise Areas (when inherited)
+            if (withInherited) {
+                properties.computeIfAbsent(
+                    SumarisConfigurationOption.DATA_EXPERTISE_AREAS.getKey(),
+                    (key) -> {
+                        List<ExpertiseAreaVO> items = expertiseAreaService.findAllEnabled();
+                        return ExpertiseAreaUtils.serialize(items);
+                    });
+            }
         }
 
         // Fill enumeration properties, if inherited=true

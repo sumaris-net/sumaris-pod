@@ -31,11 +31,14 @@ import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.*;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.util.Lists;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 

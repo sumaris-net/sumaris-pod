@@ -253,6 +253,14 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         boolean.class,
         false),
 
+    DATA_EXPERTISE_AREAS(
+        "sumaris.data.expertiseAreas",
+        n("sumaris.config.option.data.expertiseAreas.description"),
+        null,
+        String.class,
+        false),
+
+
     IMPORT_NB_YEARS_DATA_HISTORY(
         "sumaris.synchro.import.nbYearDataHistory",
         n("sumaris.config.option.synchro.import.nbYearDataHistory.description"),

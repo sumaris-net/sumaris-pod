@@ -23,16 +23,14 @@ package net.sumaris.core.model.referential.pmfm;
  */
 
 import com.google.common.collect.Sets;
-import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.Status;
 import org.hibernate.annotations.Formula;
-import org.springframework.data.jpa.repository.EntityGraph;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -58,7 +56,7 @@ import java.util.Set;
 )
 public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithStatusEntity<Integer> {
 
-
+    public static final String ENTITY_NAME = "Pmfm";
     public static final String GRAPH_QUALITATIVE_VALUES = "Pmfm.qualitativeValues";
 
     @Id

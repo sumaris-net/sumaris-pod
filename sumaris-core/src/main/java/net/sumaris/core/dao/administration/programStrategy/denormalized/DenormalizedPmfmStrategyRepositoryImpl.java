@@ -41,7 +41,7 @@ import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrate
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.core.vo.referential.pmfm.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;

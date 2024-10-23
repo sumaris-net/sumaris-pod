@@ -23,18 +23,14 @@ package net.sumaris.core.service.referential;
  */
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.service.referential.location.LocationByPositionService;
 import net.sumaris.core.vo.filter.LocationFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
-import org.springframework.scheduling.annotation.Async;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.concurrent.Future;
 
 @Transactional
 public interface LocationService extends LocationByPositionService  {

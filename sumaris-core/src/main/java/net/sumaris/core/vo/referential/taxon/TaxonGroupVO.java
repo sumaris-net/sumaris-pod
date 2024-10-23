@@ -20,18 +20,28 @@
  * #L%
  */
 
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.vo.referential.taxon;
 
 import lombok.Data;
-import net.sumaris.core.model.IUpdateDateEntity;
-import net.sumaris.core.model.IValueObject;
+import lombok.EqualsAndHashCode;
+import net.sumaris.core.model.referential.taxon.TaxonGroup;
+import net.sumaris.core.vo.referential.IReferentialVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.util.Date;
+import java.util.List;
 
 @Data
-public class ReferenceTaxonVO implements IValueObject<Integer>,
-    IUpdateDateEntity<Integer, Date> {
+@EqualsAndHashCode(callSuper = true)
+public class TaxonGroupVO extends ReferentialVO {
 
-    private Integer id;
-    private Date updateDate;
+    public interface Fields extends IReferentialVO.Fields {
+        String TAXON_NAMES = "taxonNames";
+    }
+
+    // Fill using TaxonGroup2TaxonHierarchy (filled from TaxonGroupHistoricalRecord)
+    List<TaxonNameVO> taxonNames;
+
+    public TaxonGroupVO() {
+        this.setEntityName(TaxonGroup.class.getSimpleName()); // Need by client (e.f. GraphQL cache)
+    }
 }

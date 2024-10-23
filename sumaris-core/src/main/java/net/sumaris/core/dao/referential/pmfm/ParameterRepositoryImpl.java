@@ -29,10 +29,10 @@ import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.ParameterVO;
-import net.sumaris.core.vo.referential.ParameterValueType;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.pmfm.ParameterVO;
+import net.sumaris.core.vo.referential.pmfm.ParameterValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 

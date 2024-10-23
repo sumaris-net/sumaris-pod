@@ -42,15 +42,13 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.OperationFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
-import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;

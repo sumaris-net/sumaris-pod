@@ -36,8 +36,8 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevelEnum;
 import net.sumaris.core.vo.filter.TaxonNameFilterVO;
-import net.sumaris.core.vo.referential.TaxonNameFetchOptions;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameFetchOptions;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
