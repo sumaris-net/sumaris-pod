@@ -167,7 +167,7 @@ public interface VesselSnapshotElasticsearchSpecifications extends IVesselSnapsh
 
     default ElasticsearchSpecification<QueryBuilder> searchText(String[] searchAttributes, String searchText) {
         if (StringUtils.isBlank(searchText)) return null;
-        String escapedSearchText = ElasticsearchUtils.getEscapedSearchText(searchText, false);
+        String escapedSearchText = ElasticsearchUtils.getEscapedSearchText(searchText,false);
         return () -> {
             boolean enableRegistrationCodeSearchAsPrefix = enableRegistrationCodeSearchAsPrefix();
 
@@ -185,7 +185,10 @@ public interface VesselSnapshotElasticsearchSpecifications extends IVesselSnapsh
                     if (isPrefixMatch && noWildcard) {
                         attrQuery.should(QueryBuilders.prefixQuery(attr, ElasticsearchUtils.trimWildcard(word)));
                     } else {
-                        String pattern = (isPrefixMatch || word.startsWith("*") ? "" : "*") + word + "*";
+                        String pattern = (isPrefixMatch || word.startsWith("*") ? "" : "*")
+                            // Force lower case when using wildcard search - fix issue #737
+                            + word.toLowerCase()
+                            + "*";
                         attrQuery.should(QueryBuilders.wildcardQuery(attr, pattern));
                     }
                 }
