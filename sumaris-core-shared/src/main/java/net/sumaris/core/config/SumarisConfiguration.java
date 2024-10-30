@@ -698,14 +698,6 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     }
 
     /**
-     * Get expertise area (as serialized format, for the app)
-     *
-     * @return
-     */
-    public String getDataExpertiseAreas() {
-        return applicationConfig.getOption(SumarisConfigurationOption.DATA_EXPERTISE_AREAS.getKey());
-    }
-    /**
      * <p>getDbName.</p>
      *
      * @return a {@link String} object.

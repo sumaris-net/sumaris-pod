@@ -22,7 +22,6 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

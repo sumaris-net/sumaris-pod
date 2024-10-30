@@ -33,6 +33,7 @@ import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.dao.referential.gradient.DepthGradientRepository;
 import net.sumaris.core.dao.referential.gradient.DistanceToCoastGradientRepository;
 import net.sumaris.core.dao.referential.gradient.NearbySpecificAreaRepository;
+import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -48,8 +49,11 @@ import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
 import net.sumaris.core.model.referential.gradient.DepthGradient;
 import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.gradient.NearbySpecificArea;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
@@ -74,7 +78,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 	protected final ReferentialDao referentialDao;
 
 	private final MetierRepository metierRepository;
-
+	private final LocationRepository locationRepository;
 	private final DistanceToCoastGradientRepository distanceToCoastGradientRepository;
 	private final DepthGradientRepository depthGradientRepository;
 	private final NearbySpecificAreaRepository nearbySpecificAreaRepository;
@@ -92,13 +96,15 @@ public class ReferentialServiceImpl implements ReferentialService {
 	@Autowired
 	public ReferentialServiceImpl(ReferentialDao referentialDao,
                                   MetierRepository metierRepository,
+								  LocationRepository locationRepository,
                                   DistanceToCoastGradientRepository distanceToCoastGradientRepository,
-								  DepthGradientRepository depthGradientRepository,
-								  NearbySpecificAreaRepository nearbySpecificAreaRepository,
-								  GenericConversionService conversionService,
-								  ApplicationEventPublisher publisher) {
+                                  DepthGradientRepository depthGradientRepository,
+                                  NearbySpecificAreaRepository nearbySpecificAreaRepository,
+                                  GenericConversionService conversionService,
+                                  ApplicationEventPublisher publisher) {
 		this.referentialDao = referentialDao;
 		this.metierRepository = metierRepository;
+        this.locationRepository = locationRepository;
         this.distanceToCoastGradientRepository = distanceToCoastGradientRepository;
         this.depthGradientRepository = depthGradientRepository;
         this.nearbySpecificAreaRepository = nearbySpecificAreaRepository;
@@ -168,6 +174,14 @@ public class ReferentialServiceImpl implements ReferentialService {
 											String sortAttribute, SortDirection sortDirection,
 											ReferentialFetchOptions fetchOptions) {
 
+		// Location: use locationIds to find descendant locations
+		if (entityName.equalsIgnoreCase(Location.ENTITY_NAME)) {
+			return locationRepository.findAll(
+					toLocationFilterVO(filter),
+					Page.create(offset, size, sortAttribute, sortDirection),
+					fetchOptions)
+				.stream().map(item -> (ReferentialVO)item).toList();
+		}
 
 		// Métier: special case to be able to sort on join attribute (e.g. taxonGroup)
 		if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
@@ -216,6 +230,11 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
 			return count(entityName);
+		}
+
+		// Location: use locationIds to find descendant locations
+		if (entityName.equalsIgnoreCase(Location.ENTITY_NAME)) {
+			return locationRepository.count(toLocationFilterVO(filter));
 		}
 
 		// Métier: special case to be able to sort on join attribute (e.g. taxonGroup)
@@ -315,5 +334,12 @@ public class ReferentialServiceImpl implements ReferentialService {
 		return beans.stream()
 				.map(this::save)
 				.collect(Collectors.toList());
+	}
+
+	private LocationFilterVO toLocationFilterVO(IReferentialFilter filter) {
+		LocationFilterVO locationFilter = new LocationFilterVO();
+		Beans.copyProperties(filter, locationFilter);
+		locationFilter.setAncestorIds(((ReferentialFilterVO) filter).getLocationIds());
+		return locationFilter;
 	}
 }
