@@ -45,7 +45,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.ProductVO;
 import net.sumaris.core.vo.filter.ProductFilterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;

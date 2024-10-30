@@ -5,7 +5,7 @@
     <SOFTWARE ID="4" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="OBSDEB" NAME="Application de saisie des débarquements observés" />
     <SOFTWARE ID="5" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="IMAGINE" NAME="Suivi des paramètres biologique" />
     <SOFTWARE ID="6" STATUS_FK="1" CREATION_DATE="2021-08-01" LABEL="OPEN" NAME="Base de données ouverte, pour la collecte de données halieutiques" />
-    <SOFTWARE ID="7" STATUS_FK="1" CREATION_DATE="2023-10-18" LABEL="OBSMER" NAME="Marées observées en mer" />
+    <SOFTWARE ID="7" STATUS_FK="1" CREATION_DATE="2023-10-18" LABEL="OBSMER" NAME="Refonte Allegro" />
 
     <!-- ****** SUMARiS properties ****** -->
 
@@ -41,7 +41,6 @@
     <SOFTWARE_PROPERTY ID="30" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2023-11-07" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="31" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2024-02-15" LABEL="sumaris.activityCalendar.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="32" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2024-04-24" LABEL="sumaris.referential.vessel.registration.location.level.ids" NAME="1,8"/>
-    <SOFTWARE_PROPERTY ID="33" STATUS_FK="1" SOFTWARE_FK="1" CREATION_DATE="2024-06-24" LABEL="sumaris.data.vessel.unknown.id" NAME="5"/>
 
     <!-- ****** ADAP properties ****** -->
 
@@ -132,7 +131,7 @@
     <SOFTWARE_PROPERTY ID="143" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
-    <!-- ****** OBSMER properties ****** -->
+    <!-- ****** OBSMER/OBSVENTE properties ****** -->
     <SOFTWARE_PROPERTY ID="159" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="true"/>
@@ -144,7 +143,7 @@
     <SOFTWARE_PROPERTY ID="167" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.partner.departments" NAME="department:3"/>
     <SOFTWARE_PROPERTY ID="168" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.favicon" NAME="image:58"/>
     <SOFTWARE_PROPERTY ID="169" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00681/79280/md/32118.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00735/84699/md/40390.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36575.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36572.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36565.jpg|Crédit Ifremer"/>
-    <SOFTWARE_PROPERTY ID="170" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.data.program.ids" NAME="40,80,90,100,110"/> <!-- Ifremer programs -->
+    <SOFTWARE_PROPERTY ID="170" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.data.program.ids" NAME="40,80,90,100,110,111"/> <!-- Ifremer programs -->
     <SOFTWARE_PROPERTY ID="171" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.data.images.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="172" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.batch.hashOptimization" NAME="true"/>
     <SOFTWARE_PROPERTY ID="173" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.physicalGear.hashOptimization" NAME="true"/>
@@ -152,7 +151,6 @@
     <SOFTWARE_PROPERTY ID="175" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-13" LABEL="sumaris.social.notification.icons.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="176" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-13" LABEL="sumaris.referential.vessel.registration.location.level.ids" NAME="1,8"/>
     <SOFTWARE_PROPERTY ID="177" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-05-03" LABEL="sumaris.observedLocation.landings.tab.enable" NAME="true"/>
-    <SOFTWARE_PROPERTY ID="178" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-06-24" LABEL="sumaris.data.vessel.unknown.id" NAME="5"/>
     <SOFTWARE_PROPERTY ID="179" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-11-29" LABEL="sumaris.vessel.filter.searchAttributes" NAME="registrationCode,name"/>
 
 </dataset>

@@ -23,14 +23,10 @@ package net.sumaris.core.vo.filter;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.ArrayUtils;
-
-import java.util.Arrays;
 
 @Data
 @FieldNameConstants
@@ -42,6 +38,7 @@ public class ReferentialFilterVO implements IReferentialFilter {
     public static ReferentialFilterVO nullToEmpty(ReferentialFilterVO filter) {
         return filter == null ? new ReferentialFilterVO() : filter;
     }
+
 
     @Deprecated // used includedIds
     private Integer id;
@@ -61,8 +58,12 @@ public class ReferentialFilterVO implements IReferentialFilter {
     private Integer[] includedIds;
     private Integer[] excludedIds;
 
+    private Integer[] locationIds;
+
     @Deprecated
     private Integer levelId;
+
     @Deprecated
     private String levelLabel;
+
 }

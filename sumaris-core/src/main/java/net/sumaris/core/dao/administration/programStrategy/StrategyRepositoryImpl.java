@@ -60,9 +60,9 @@ import net.sumaris.core.vo.administration.programStrategy.*;
 import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.hibernate.jpa.QueryHints;
@@ -679,7 +679,7 @@ public class StrategyRepositoryImpl
     }
 
     @Override
-    protected Specification<Strategy> toSpecification(StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
+    protected Specification<Strategy> toSpecification(@NonNull StrategyFilterVO filter, StrategyFetchOptions fetchOptions) {
         Specification<Strategy> specification = super.toSpecification(filter, fetchOptions);
         if (filter.getId() != null) return specification;
         return specification

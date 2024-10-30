@@ -24,17 +24,13 @@ package net.sumaris.core.service.referential.taxon;
 
 
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import org.springframework.scheduling.annotation.Async;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Future;
 
 @Transactional
 public interface TaxonGroupService {

@@ -26,8 +26,8 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IUpdateDateEntity;
 import net.sumaris.core.model.IValueObject;
-import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 
 import java.util.Date;
 import java.util.List;

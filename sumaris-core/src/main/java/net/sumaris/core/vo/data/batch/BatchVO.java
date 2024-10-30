@@ -34,7 +34,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;

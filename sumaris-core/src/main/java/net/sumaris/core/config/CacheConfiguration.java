@@ -35,7 +35,12 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.referential.*;
+import net.sumaris.core.vo.referential.ReferentialTypeVO;
+import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
+import net.sumaris.core.vo.referential.spatial.ExpertiseAreaVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import org.hibernate.cache.jcache.ConfigSettings;
 import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer;
@@ -64,6 +69,11 @@ public class CacheConfiguration extends CachingConfigurerSupport {
     public interface Names {
         String REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE = "net.sumaris.core.dao.referential.maxUpdateDateByType";
         String REFERENTIAL_TYPES = "net.sumaris.core.dao.referential.allTypes";
+        String REFERENTIAL_ITEMS_BY_FILTER = "net.sumaris.core.dao.referential.referentialItemsByFilter";
+        String REFERENTIAL_COUNT_BY_FILTER = "net.sumaris.core.dao.referential.referentialCountByFilter";
+
+        // Expertise areas
+        String EXPERTISE_AREAS_ENABLED = "net.sumaris.core.dao.referential.spatial.expertiseAreasEnabled";
 
         // Department
         String DEPARTMENT_BY_ID = "net.sumaris.core.dao.administration.user.departmentById";
@@ -169,6 +179,11 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Referential
             Caches.createEternalCollectionHeapCache(cacheManager, Names.REFERENTIAL_TYPES, ReferentialTypeVO.class, 600);
             Caches.createHeapCache(cacheManager, Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, String.class, Date.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createCollectionHeapCache(cacheManager, Names.REFERENTIAL_ITEMS_BY_FILTER, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createHeapCache(cacheManager, Names.REFERENTIAL_COUNT_BY_FILTER, Long.class, CacheTTL.DEFAULT.asDuration(), 600);
+
+            // Expertise Areas
+            Caches.createEternalCollectionHeapCache(cacheManager, Names.EXPERTISE_AREAS_ENABLED, ExpertiseAreaVO.class, 1);
 
             // Department
             Caches.createHeapCache(cacheManager, Names.DEPARTMENT_BY_ID, Integer.class, DepartmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);

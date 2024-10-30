@@ -23,6 +23,7 @@ package net.sumaris.core.dao.administration.user;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.model.administration.user.Department;
@@ -93,7 +94,7 @@ public class DepartmentRepositoryImpl
     }
 
     @Override
-    protected Specification<Department> toSpecification(DepartmentFilterVO filter, ReferentialFetchOptions fetchOptions) {
+    protected Specification<Department> toSpecification(@NonNull DepartmentFilterVO filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(withLogo(filter.getWithLogo()));
     }

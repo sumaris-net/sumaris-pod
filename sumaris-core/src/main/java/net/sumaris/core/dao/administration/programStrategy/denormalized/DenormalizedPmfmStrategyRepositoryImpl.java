@@ -41,7 +41,7 @@ import net.sumaris.core.vo.administration.programStrategy.DenormalizedPmfmStrate
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptions;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.core.vo.referential.pmfm.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,7 +162,13 @@ public class DenormalizedPmfmStrategyRepositoryImpl
 
         // Label
         if (StringUtils.isBlank(target.getLabel())) {
-            target.setLabel(parameter.getLabel() + (StringUtils.isNotBlank(target.getUnitLabel()) ? "_" + target.getUnitLabel() : ""));
+            String label = parameter.getLabel();
+            if (StringUtils.isNotBlank(target.getUnitLabel())) {
+                String labelSuffix = StringUtils.changeCaseToUnderscore(target.getUnitLabel().replaceAll("/", "_"))
+                    .toUpperCase();
+                label += "_" + labelSuffix;
+            }
+            target.setLabel(label);
         }
 
         // Qualitative values (from Pmfm if any, or from Parameter)

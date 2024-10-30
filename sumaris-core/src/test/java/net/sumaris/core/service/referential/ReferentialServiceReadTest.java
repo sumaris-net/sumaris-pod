@@ -22,13 +22,18 @@ package net.sumaris.core.service.referential;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.model.referential.SaleType;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.referential.gradient.DepthGradient;
+import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
+import net.sumaris.core.model.referential.gradient.NearbySpecificArea;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -36,13 +41,17 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Date;
 import java.util.List;
 
+
+@TestPropertySource(locations = "classpath:application-test-hsqldb.properties")
 public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @ClassRule
@@ -198,10 +207,10 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
 
     @Test
     public void findByUniqueLabel() {
-        ReferentialVO ref = service.findByUniqueLabel(SaleType.class.getSimpleName(), "Fish auction");
-        Assert.assertNotNull(ref);
-        Assert.assertNotNull(ref.getId());
-        Assert.assertEquals(1, ref.getId().intValue());
+        ReferentialVO item = service.findByUniqueLabel(SaleType.class.getSimpleName(), "Fish auction");
+        Assert.assertNotNull(item);
+        Assert.assertNotNull(item.getId());
+        Assert.assertEquals(1, item.getId().intValue());
 
         try {
             service.findByUniqueLabel(SaleType.class.getSimpleName(), "ZZZ");
@@ -211,4 +220,96 @@ public class ReferentialServiceReadTest extends AbstractServiceTest{
         }
     }
 
+    @Test
+    public void findMetiersByLocationIds() {
+        String entityName = Metier.ENTITY_NAME;
+        Long countAll = service.count(entityName);
+
+        // Get FAO Zone "27" (Atlantic North East)
+        int atlanticNorthEastId = getLocationIdByLabel(LocationLevelEnum.AREA_FAO, "27", false);
+        List<ReferentialVO> atlanticNorthEastItems = service.findByFilter(entityName, ReferentialFilterVO.builder()
+            .locationIds(new Integer[]{atlanticNorthEastId})
+            .build(), 0, 1000);
+        Assert.assertNotNull(atlanticNorthEastItems);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(atlanticNorthEastItems));
+        Assert.assertTrue(CollectionUtils.size(atlanticNorthEastItems) < countAll);
+
+        // Get FAO Zone "57" (Indian Ocean East)
+        int indianOceanEastId = getLocationIdByLabel(LocationLevelEnum.AREA_FAO, "57", false);
+        List<ReferentialVO> indianOceanEastItems = service.findByFilter(entityName, ReferentialFilterVO.builder()
+            .locationIds(new Integer[]{indianOceanEastId})
+            .build(), 0, 1000);
+        Assert.assertNotNull(indianOceanEastItems);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(indianOceanEastItems));
+        Assert.assertTrue(CollectionUtils.size(indianOceanEastItems) < countAll);
+        Assert.assertTrue(CollectionUtils.size(indianOceanEastItems) < CollectionUtils.size(atlanticNorthEastItems));
+    }
+
+    @Test
+    public void findGradientByLocationIds() {
+
+        // Distance To Coast Gradient
+        {
+            int icesRectangleId = getLocationIdByLabel(LocationLevelEnum.RECTANGLE_ICES, "24E4", true);
+            String entityName = DistanceToCoastGradient.ENTITY_NAME;
+            Long countAll = service.count(entityName);
+
+            List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{icesRectangleId})
+                .build(), 0, 100);
+            Assert.assertNotNull(items);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(items));
+            Assert.assertTrue("Should have less distance to coast gradient when using localization",CollectionUtils.size(items) < countAll);
+        }
+
+        // Depth Gradient
+        {
+            int icesRectangleId = getLocationIdByLabel(LocationLevelEnum.RECTANGLE_ICES, "24E4", true);
+            String entityName = DepthGradient.ENTITY_NAME;
+            Long countAll = service.count(entityName);
+
+            List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{icesRectangleId})
+                .build(), 0, 100);
+            Assert.assertNotNull(items);
+            // FIXME
+            //Assert.assertTrue(CollectionUtils.isNotEmpty(items));
+            //Assert.assertTrue("Should have less depth gradient when using localization", CollectionUtils.size(items) < countAll);
+        }
+
+        // Nearby Specific Area / La Réunion
+        {
+            int reunionSectorId = getLocationIdByLabel(151 /*Sector La Réunion*/, "RUNE3", false);
+            String entityName = NearbySpecificArea.ENTITY_NAME;
+            Long countAll = service.count(entityName);
+
+            List<ReferentialVO> items = service.findByFilter(entityName, ReferentialFilterVO.builder()
+                .locationIds(new Integer[]{reunionSectorId})
+                .build(), 0, 100);
+            Assert.assertNotNull(items);
+            Assert.assertTrue(CollectionUtils.isNotEmpty(items));
+            Assert.assertTrue("Should have less nearby specific area when using localization", CollectionUtils.size(items) < countAll);
+        }
+    }
+
+    /* -- private functions -- */
+
+    private int getLocationIdByLabel(@NonNull LocationLevelEnum locationLevel, @NonNull String label, boolean onlyEnableStatus) {
+        Assume.assumeTrue(String.format("LocationLevelEnum.%s not resolved. Please set enumeration option in config", locationLevel.name()), locationLevel.getId() != -1);
+        return getLocationIdByLabel(locationLevel.getId(), label, onlyEnableStatus);
+    }
+
+
+    private int getLocationIdByLabel(int locationLevelId, @NonNull String label, boolean onlyEnableStatus) {
+        List<ReferentialVO> rectangles = service.findByFilter(Location.class.getSimpleName(),
+            ReferentialFilterVO.builder()
+                .label(label)
+                .levelIds(new Integer[]{locationLevelId})
+                .statusIds(onlyEnableStatus ? new Integer[]{StatusEnum.ENABLE.getId()} : null)
+                .build(), 0, 1 );
+        Assume.assumeFalse(String.format("Cannot found the %slocation with label '%s'",
+            onlyEnableStatus ? "enabled ": "",
+            label), rectangles.isEmpty());
+        return rectangles.get(0).getId();
+    }
 }

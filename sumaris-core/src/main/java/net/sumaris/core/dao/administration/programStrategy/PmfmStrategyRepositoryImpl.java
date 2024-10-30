@@ -40,7 +40,7 @@ import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyFetchOptio
 import net.sumaris.core.vo.administration.programStrategy.PmfmStrategyVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.PmfmVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.cache.annotation.CacheEvict;

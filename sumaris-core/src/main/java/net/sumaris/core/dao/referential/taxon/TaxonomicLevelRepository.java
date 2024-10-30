@@ -23,16 +23,10 @@ package net.sumaris.core.dao.referential.taxon;
  */
 
 import net.sumaris.core.dao.referential.ReferentialRepository;
-import net.sumaris.core.model.referential.taxon.TaxonName;
 import net.sumaris.core.model.referential.taxon.TaxonomicLevel;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.filter.TaxonNameFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author blavenie

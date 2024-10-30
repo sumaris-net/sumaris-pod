@@ -22,7 +22,7 @@
 
 package net.sumaris.core.service.referential.pmfm;
 
-import net.sumaris.core.vo.referential.ParameterVO;
+import net.sumaris.core.vo.referential.pmfm.ParameterVO;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional

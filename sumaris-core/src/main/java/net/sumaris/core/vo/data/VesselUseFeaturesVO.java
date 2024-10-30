@@ -23,10 +23,12 @@
 package net.sumaris.core.vo.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 

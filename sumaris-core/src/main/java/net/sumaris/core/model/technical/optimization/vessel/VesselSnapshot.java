@@ -34,19 +34,13 @@ import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.VesselType;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.administration.user.DepartmentVO;
-import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.data.MeasurementVO;
-import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import org.hibernate.annotations.Cascade;
 import org.springframework.data.elasticsearch.annotations.Document;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter

@@ -22,7 +22,9 @@ package net.sumaris.core.dao.referential.location;
  * #L%
  */
 
-import com.google.common.collect.*;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
@@ -35,11 +37,10 @@ import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.LocationFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
@@ -88,7 +89,7 @@ public class LocationRepositoryImpl
     }
 
     @Override
-    protected Specification<Location> toSpecification(LocationFilterVO filter, ReferentialFetchOptions fetchOptions) {
+    protected Specification<Location> toSpecification(@NonNull LocationFilterVO filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(inLevelIds(Location.class, filter.getLevelIds()))
             .and(hasAncestors(filter.getAncestorIds()))

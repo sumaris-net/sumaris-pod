@@ -24,19 +24,23 @@ package net.sumaris.core.dao.referential.metier;
 
 import net.sumaris.core.dao.referential.ReferentialSpecifications;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Trip;
 import net.sumaris.core.model.data.Vessel;
+import net.sumaris.core.model.referential.location.LocationHierarchyMode;
 import net.sumaris.core.model.referential.metier.Metier;
+import net.sumaris.core.model.referential.spatial.SpatialItemTypeEnum;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
-import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -124,6 +128,15 @@ public interface MetierSpecifications
         .addBind(EXCLUDED_TRIP_ID_PARAMETER, filter.getExcludedTripId());
     }
 
+    default Specification<Metier> inSpatialLocationIds(IReferentialFilter filter) {
+        if (filter instanceof ReferentialFilterVO referentialFilter) {
+            return inSpatialLocationIds(SpatialItemTypeEnum.METIER,
+                LocationHierarchyMode.BOTTOM_UP,
+                referentialFilter.getLocationIds());
+        }
+        return null;
+    }
+
     default List<MetierVO> findByFilter(
             IReferentialFilter filter,
             int offset,
@@ -132,6 +145,14 @@ public interface MetierSpecifications
             SortDirection sortDirection) {
         return findByFilter(filter, offset, size, sortAttribute, sortDirection, ReferentialFetchOptions.DEFAULT);
     }
+
+    default List<MetierVO> findByFilter(
+        IReferentialFilter filter,
+        Page page,
+        ReferentialFetchOptions fetchOptions) {
+        return findByFilter(filter, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), ReferentialFetchOptions.DEFAULT);
+    }
+
 
     List<MetierVO> findByFilter(
             IReferentialFilter filter,

@@ -45,6 +45,7 @@ import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.filter.SaleFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.jpa.domain.Specification;
@@ -58,6 +59,10 @@ import java.util.List;
 public class SaleRepositoryImpl
     extends RootDataRepositoryImpl<Sale, SaleVO, SaleFilterVO, SaleFetchOptions>
     implements SaleSpecifications {
+
+    static {
+        I18n.n("sumaris.persistence.table.sale");
+    }
 
     @Autowired
     private LocationRepository locationRepository;

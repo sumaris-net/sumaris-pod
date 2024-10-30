@@ -35,10 +35,10 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.PmfmPartsVO;
-import net.sumaris.core.vo.referential.PmfmFetchOptions;
-import net.sumaris.core.vo.referential.PmfmVO;
-import net.sumaris.core.vo.referential.PmfmValueType;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmFetchOptions;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmValueType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.jpa.QueryHints;
@@ -271,7 +271,7 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    protected Specification<Pmfm> toSpecification(IReferentialFilter filter, PmfmFetchOptions fetchOptions) {
+    protected Specification<Pmfm> toSpecification(@NonNull IReferentialFilter filter, PmfmFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions);
     }
 
