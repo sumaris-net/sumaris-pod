@@ -70,7 +70,7 @@ public class ActivityCalendarFilterVO implements IRootDataFilter, IVesselFilter 
     private Integer[] recorderPersonIds;
     private Integer[] observerPersonIds;
 
-    private Boolean directSurveyInvestigation;
+    private Integer directSurveyInvestigation;
     private Boolean economicSurvey;
 
     @Override
