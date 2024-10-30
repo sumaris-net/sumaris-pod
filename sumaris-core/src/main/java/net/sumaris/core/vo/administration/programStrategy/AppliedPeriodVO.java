@@ -25,11 +25,9 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.TaxonNameVO;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 @Data
 @FieldNameConstants

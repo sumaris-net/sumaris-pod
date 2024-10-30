@@ -22,27 +22,29 @@ package net.sumaris.core.dao.referential;
  * #L%
  */
 
-import com.google.common.base.Preconditions;
+import lombok.NonNull;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationHierarchy;
+import net.sumaris.core.model.referential.location.LocationHierarchyMode;
+import net.sumaris.core.model.referential.spatial.SpatialItem;
+import net.sumaris.core.model.referential.spatial.SpatialItem2Location;
+import net.sumaris.core.model.referential.spatial.SpatialItemType;
+import net.sumaris.core.model.referential.spatial.SpatialItemTypeEnum;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.filter.IReferentialFilter;
+import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public interface ReferentialSpecifications<ID extends Serializable, E extends IReferentialWithStatusEntity<ID>>
     extends IEntityWithStatusSpecifications<ID, E>,
@@ -123,6 +125,102 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
             .map(levelPath -> StringUtils.doting(StringUtils.uncapitalize(searchJoin), levelPath)) // Create the full path
             .map(fullLevelPath -> inJoinPropertyIds(fullLevelPath, joinLevelIds))
             .orElse(null);
+    }
+
+    default Specification<E> inSpatialLocationIds(@NonNull SpatialItemTypeEnum spatialItemType, @NonNull LocationHierarchyMode locationHierarchyMode, Integer... ids) {
+        return inSpatialLocationIds(spatialItemType.getId(), locationHierarchyMode, ids);
+    }
+
+    default Specification<E> inSpatialLocationIds(@NonNull Integer spatialItemTypeId, @NonNull LocationHierarchyMode locationHierarchyMode, Integer... ids) {
+        // If empty: skip to avoid an unused join
+        if (ArrayUtils.isEmpty(ids)) return null;
+
+        String locationIdsParameterName =  ReferentialFilterVO.Fields.LOCATION_IDS;
+        String spatialItemTypeIdParameterName =  SpatialItem.Fields.SPATIAL_ITEM_TYPE;
+
+        return BindableSpecification.<E>where((root, query, cb) -> {
+            ParameterExpression<Integer> spatialItemTypeIdParameter = cb.parameter(Integer.class, spatialItemTypeIdParameterName);
+            ParameterExpression<Collection> locationIdsParameter = cb.parameter(Collection.class, locationIdsParameterName);
+
+            Root<SpatialItem> si = Daos.getRoot(query, SpatialItem.class);
+            Join<SpatialItem, SpatialItemType> sit = Daos.composeJoin(si, SpatialItem.Fields.SPATIAL_ITEM_TYPE, JoinType.INNER);
+            if (sit.getOn() == null) {
+                sit.on(cb.equal(sit.get(IEntity.Fields.ID), spatialItemTypeIdParameter));
+            }
+            ListJoin<SpatialItem, SpatialItem2Location> si2l = Daos.composeJoinList(si, SpatialItem.Fields.LOCATIONS, JoinType.INNER);
+
+            // Force a distinct, if using location hierarchy
+            if (locationHierarchyMode != LocationHierarchyMode.NONE) {
+                query.distinct(true);
+            }
+
+            switch (locationHierarchyMode) {
+                // Without location hierarchy: join spatial item using the exact location
+                case NONE -> {
+                    return cb.and(
+                        cb.equal(si.get(SpatialItem.Fields.OBJECT_ID), root.get(IEntity.Fields.ID)),
+                        cb.in(si2l.get(SpatialItem2Location.Fields.LOCATION)).value(locationIdsParameter)
+                    );
+                }
+
+                // Spatial item's locations should be an ancestor of input locations
+                case BOTTOM_UP -> {
+                    Root<LocationHierarchy> lh = Daos.getRoot(query, LocationHierarchy.class);
+                    return cb.and(
+                        cb.equal(si.get(SpatialItem.Fields.OBJECT_ID), root.get(IEntity.Fields.ID)),
+
+                        // LH.PARENT_LOCATION_FK = SI2L.LOCATION_FK
+                        cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), si2l.get(SpatialItem2Location.Fields.LOCATION)),
+
+                        // AND LH.CHILD_LOCATION_FK IN (:locationIdsParameter)
+                        cb.in(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.CHILD_LOCATION, Location.Fields.ID))).value(locationIdsParameter)
+                    );
+                }
+
+                // Spatial item's locations should be descendents of input locations
+                case TOP_DOWN -> {
+                    Root<LocationHierarchy> lh = Daos.getRoot(query, LocationHierarchy.class);
+                    return cb.and(
+                        cb.equal(si.get(SpatialItem.Fields.OBJECT_ID), root.get(IEntity.Fields.ID)),
+
+                        // LH.CHILD_LOCATION_FK = SI2L.LOCATION_FK
+                        cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), si2l.get(SpatialItem2Location.Fields.LOCATION)),
+
+                        // AND LH.PARENT_LOCATION_FK IN (:locationIdsParameter)
+                        cb.in(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID))).value(locationIdsParameter)
+                    );
+                }
+
+                // Spatial item's locations can be ancestors or descendents of input locations
+                case BOTH -> {
+                    Root<LocationHierarchy> lh = Daos.getRoot(query, LocationHierarchy.class);
+                    return cb.and(
+                        cb.equal(si.get(SpatialItem.Fields.OBJECT_ID), root.get(IEntity.Fields.ID)),
+
+                        cb.or(
+                            cb.and(
+                                // LH.PARENT_LOCATION_FK = SI2L.LOCATION_FK
+                                cb.equal(lh.get(LocationHierarchy.Fields.PARENT_LOCATION), si2l.get(SpatialItem2Location.Fields.LOCATION)),
+
+                                // AND LH.CHILD_LOCATION_FK IN (:locationIdsParameter)
+                                cb.in(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.CHILD_LOCATION, Location.Fields.ID))).value(locationIdsParameter)
+                            ),
+                            cb.and(
+                                // LH.CHILD_LOCATION_FK = SI2L.LOCATION_FK
+                                cb.equal(lh.get(LocationHierarchy.Fields.CHILD_LOCATION), si2l.get(SpatialItem2Location.Fields.LOCATION)),
+
+                                // AND LH.PARENT_LOCATION_FK IN (:locationIdsParameter)
+                                cb.in(Daos.composePath(lh, StringUtils.doting(LocationHierarchy.Fields.PARENT_LOCATION, Location.Fields.ID))).value(locationIdsParameter)
+                            )
+                        )
+                    );
+                }
+                default -> throw new IllegalArgumentException("Unknown LocationHierarchyMode: " + locationHierarchyMode.name());
+            }
+        })
+        .addBind(spatialItemTypeIdParameterName, spatialItemTypeId)
+        .addBind(locationIdsParameterName, Arrays.asList(ids))
+        ;
     }
 
     default boolean shouldQueryDistinct(String joinProperty) {

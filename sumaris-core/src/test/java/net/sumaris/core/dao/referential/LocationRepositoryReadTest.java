@@ -29,7 +29,7 @@ import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.vo.filter.LocationFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;

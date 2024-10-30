@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-@Ignore("Use only SFA Oracle database")
+@Ignore("Use only on SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

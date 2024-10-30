@@ -26,13 +26,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.referential.DepthGradient;
-import net.sumaris.core.model.referential.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
-import net.sumaris.core.model.referential.NearbySpecificArea;
+import net.sumaris.core.model.referential.gradient.DepthGradient;
+import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
+import net.sumaris.core.model.referential.gradient.NearbySpecificArea;
 import net.sumaris.core.model.referential.grouping.Grouping;
 import net.sumaris.core.model.referential.location.Location;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
 import javax.persistence.*;
 import java.util.Set;

@@ -22,7 +22,10 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
@@ -38,6 +41,10 @@ public class MetierFilterVO extends ReferentialFilterVO {
         return filter == null ? new MetierFilterVO() : filter;
     }
 
+    public static MetierFilterVO nullToEmpty(IReferentialFilter filter) {
+        return filter == null ? new MetierFilterVO() : (MetierFilterVO)filter;
+    }
+
     // options used for predocumentation
     private Date startDate;
     private Date endDate;
@@ -46,5 +53,4 @@ public class MetierFilterVO extends ReferentialFilterVO {
     private Integer excludedTripId; // optional
     private Integer[] gearIds;
     private Integer[] taxonGroupTypeIds; // optional
-
 }

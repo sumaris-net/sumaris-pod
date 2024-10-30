@@ -25,7 +25,7 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 
 import java.io.Serializable;
 

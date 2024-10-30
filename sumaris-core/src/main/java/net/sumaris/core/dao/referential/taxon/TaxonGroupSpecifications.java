@@ -31,7 +31,7 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.NoRepositoryBean;

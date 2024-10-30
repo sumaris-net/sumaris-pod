@@ -20,18 +20,28 @@
  * #L%
  */
 
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.vo.referential.location;
 
 import lombok.Data;
-import net.sumaris.core.model.IUpdateDateEntity;
-import net.sumaris.core.model.IValueObject;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldNameConstants;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.vo.referential.ReferentialVO;
 
-import java.util.Date;
+import java.util.List;
 
 @Data
-public class ReferenceTaxonVO implements IValueObject<Integer>,
-    IUpdateDateEntity<Integer, Date> {
+@FieldNameConstants
+@EqualsAndHashCode(callSuper = true)
+public class LocationVO extends ReferentialVO {
 
-    private Integer id;
-    private Date updateDate;
+    private Integer validityStatusId;
+
+    private List<LocationAssociationVO> parents;
+
+    private List<LocationAssociationVO> children;
+
+    public LocationVO() {
+        this.setEntityName(Location.ENTITY_NAME);
+    }
 }

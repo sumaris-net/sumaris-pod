@@ -35,7 +35,7 @@ import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.SaleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonNameVO;
+import net.sumaris.core.vo.referential.taxon.TaxonNameVO;
 
 import java.util.Date;
 import java.util.List;

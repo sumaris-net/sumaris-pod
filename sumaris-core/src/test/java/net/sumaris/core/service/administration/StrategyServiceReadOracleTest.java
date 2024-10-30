@@ -25,14 +25,11 @@ package net.sumaris.core.service.administration;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevelEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
 import net.sumaris.core.service.referential.LocationService;
-import net.sumaris.core.service.referential.ReferentialService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
@@ -42,8 +39,7 @@ import net.sumaris.core.vo.administration.programStrategy.StrategyVO;
 import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.PeriodVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +48,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
-@Ignore("Use only Ifremer Oracle database")
+@Ignore("Use only on Ifremer Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-test-oracle.properties")
 @Slf4j

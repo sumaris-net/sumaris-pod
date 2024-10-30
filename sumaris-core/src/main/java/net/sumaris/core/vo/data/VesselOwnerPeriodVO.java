@@ -22,7 +22,6 @@ package net.sumaris.core.vo.data;
  * #L%
  */
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -32,7 +31,6 @@ import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.annotation.Comment;
 import net.sumaris.core.model.data.VesselOwnerPeriodId;
 import net.sumaris.core.vo.data.vessel.VesselOwnerVO;
-import net.sumaris.core.vo.referential.LocationVO;
 
 import java.util.Date;
 

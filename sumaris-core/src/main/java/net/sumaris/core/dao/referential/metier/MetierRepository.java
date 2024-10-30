@@ -25,9 +25,8 @@ package net.sumaris.core.dao.referential.metier;
 import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.filter.IReferentialFilter;
-import net.sumaris.core.vo.filter.ReferentialFilterVO;
-import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 
 public interface MetierRepository
     extends ReferentialRepository<Integer, Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>,

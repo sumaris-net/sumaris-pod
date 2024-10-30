@@ -26,10 +26,7 @@ import net.sumaris.core.dao.referential.ReferentialRepository;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
-import org.springframework.data.jpa.repository.Lock;
-
-import javax.persistence.LockModeType;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 
 public interface TaxonGroupRepository
     extends ReferentialRepository<Integer, TaxonGroup, TaxonGroupVO, ReferentialFilterVO, ReferentialFetchOptions>,

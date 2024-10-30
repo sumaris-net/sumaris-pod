@@ -29,7 +29,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.annotation.Comment;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 
 import java.util.Date;
 

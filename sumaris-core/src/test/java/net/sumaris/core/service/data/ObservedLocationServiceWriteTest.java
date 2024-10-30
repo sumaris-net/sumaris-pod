@@ -35,7 +35,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.filter.LandingFilterVO;
 import net.sumaris.core.vo.filter.ObservedLocationFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;

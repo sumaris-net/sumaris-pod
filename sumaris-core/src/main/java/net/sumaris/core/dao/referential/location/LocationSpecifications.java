@@ -28,8 +28,6 @@ import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationHierarchy;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.referential.LocationVO;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -37,7 +35,6 @@ import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author peck7 on 18/08/2020.

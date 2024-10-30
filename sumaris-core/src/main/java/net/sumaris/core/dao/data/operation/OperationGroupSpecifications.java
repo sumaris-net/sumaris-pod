@@ -27,7 +27,7 @@ import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.OperationGroupVO;
-import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 

@@ -29,7 +29,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.LandingVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
-import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;

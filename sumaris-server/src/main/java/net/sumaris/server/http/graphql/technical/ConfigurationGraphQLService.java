@@ -30,6 +30,7 @@ import io.leangen.graphql.annotations.GraphQLQuery;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.service.administration.DepartmentService;
+import net.sumaris.core.service.referential.ExpertiseAreaService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.service.technical.SoftwareService;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -44,7 +45,6 @@ import net.sumaris.server.service.administration.ImageService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +87,9 @@ public class ConfigurationGraphQLService {
 
     @Resource
     private AuthService authService;
+
+    @Resource
+    private ExpertiseAreaService expertiseAreaService;
 
     @GraphQLQuery(name = "configuration", description = "Load pod configuration")
     public ConfigurationVO getConfiguration(
@@ -270,9 +273,7 @@ public class ConfigurationGraphQLService {
     }
 
     /**
-     * Clean configuraiton properties for NON admin users
-     * @param configuration
-     * @return
+     * Clean configuration properties for NON admin users
      */
     protected ConfigurationVO sanitizeConfiguration(ConfigurationVO configuration) {
 

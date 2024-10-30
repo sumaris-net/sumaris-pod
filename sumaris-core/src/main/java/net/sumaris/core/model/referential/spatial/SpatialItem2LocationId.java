@@ -1,10 +1,10 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.model.referential.spatial;
 
 /*-
  * #%L
  * SUMARiS:: Core
  * %%
- * Copyright (C) 2018 SUMARiS Consortium
+ * Copyright (C) 2018 - 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,25 +22,19 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.referential.taxon.TaxonGroup;
 
-import java.util.List;
+import java.io.Serializable;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class TaxonGroupVO extends ReferentialVO {
+@Getter
+@Setter
 
-    public interface Fields extends IReferentialVO.Fields {
-        String TAXON_NAMES = "taxonNames";
-    }
-
-    // Fill using TaxonGroup2TaxonHierarchy (filled from TaxonGroupHistoricalRecord)
-    List<TaxonNameVO> taxonNames;
-
-    public TaxonGroupVO() {
-        this.setEntityName(TaxonGroup.class.getSimpleName()); // Need by client (e.f. GraphQL cache)
-    }
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@FieldNameConstants
+public class SpatialItem2LocationId implements Serializable {
+    private int spatialItem;
+    private int location;
 }
