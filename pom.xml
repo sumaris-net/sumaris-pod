@@ -84,7 +84,7 @@
     <file.encoding>UTF-8</file.encoding>
 
     <!-- Project properties -->
-    <javaVersion>17</javaVersion>
+    <javaVersion>21</javaVersion>
 
     <!-- Commons versions -->
     <hsqldb.version>2.4.1</hsqldb.version>
@@ -1268,7 +1268,7 @@
             <debug>true</debug>
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
-              <arg>--enable-preview</arg>
+              <!--<arg>&#45;&#45;enable-preview</arg>-->
               <arg>-parameters</arg>
             </compilerArgs>
             <testCompilerArgument>-parameters</testCompilerArgument>
