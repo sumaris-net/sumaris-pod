@@ -188,7 +188,7 @@ public class ActivityCalendarRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<ActivityCalendar> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends ActivityCalendar> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 
