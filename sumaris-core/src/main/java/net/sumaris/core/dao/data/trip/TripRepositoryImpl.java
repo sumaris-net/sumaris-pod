@@ -204,7 +204,7 @@ public class TripRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<Trip> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends Trip> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 
@@ -286,5 +286,8 @@ public class TripRepositoryImpl
 
             query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
         }
+
+        // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT)
+        query.setHint("hibernate.query.passDistinctThrough", false);
     }
 }

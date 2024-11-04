@@ -186,10 +186,9 @@ public class JobExecutionServiceImpl implements JobExecutionService {
             // Create listener on bean property and emit the value
             PropertyChangeListener listener = evt -> {
                 ProgressionModel progression = (ProgressionModel) evt.getSource();
-                JobProgressionVO jobProgression = JobProgressionVO.fromModelBuilder(progression)
-                    .id(jobId)
-                    .name(job.getName())
-                    .build();
+                JobProgressionVO jobProgression = JobProgressionVO.fromModel(progression);
+                jobProgression.setId(jobId);
+                jobProgression.setName(job.getName());
                 emitter.onNext(jobProgression);
 
                 if (progression.isCompleted()) {
