@@ -121,7 +121,7 @@
     <javassist.version>3.29.2-GA</javassist.version>
     <cglib.version>3.3.0</cglib.version>
     <ehcache.version>3.8.1</ehcache.version>
-    <lombok.version>1.18.24</lombok.version>
+    <lombok.version>1.18.30</lombok.version>
     <xmlquery.version>3.8</xmlquery.version>
     <jdom2.version>2.0.6.1</jdom2.version>
     <jaxen.version>1.2.0</jaxen.version>
@@ -1268,7 +1268,7 @@
             <debug>true</debug>
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
-              <arg>--enable-preview</arg>
+              <!--<arg>&#45;&#45;enable-preview</arg>-->
               <arg>-parameters</arg>
             </compilerArgs>
             <testCompilerArgument>-parameters</testCompilerArgument>

@@ -40,10 +40,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -182,14 +178,4 @@ public class VesselOwnerPeriodRepositoryImpl
         }
     }
 
-    @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<VesselOwnerPeriod> root, CriteriaBuilder cb, String property) {
-
-        // Rename sort on 'startDate' into 'id.startDate'
-//        if (property == null || property.endsWith(VesselOwnerPeriod.Fields.START_DATE)) {
-//            property = StringUtils.doting(VesselOwnerPeriod.Fields.ID, VesselOwnerPeriod.Fields.START_DATE);
-//        }
-
-        return super.toSortExpressions(query, root, cb, property);
-    }
 }

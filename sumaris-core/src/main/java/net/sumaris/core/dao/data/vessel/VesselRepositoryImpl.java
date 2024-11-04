@@ -29,7 +29,6 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -59,7 +58,6 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -241,7 +239,7 @@ public class VesselRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<Vessel> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends Vessel> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 
