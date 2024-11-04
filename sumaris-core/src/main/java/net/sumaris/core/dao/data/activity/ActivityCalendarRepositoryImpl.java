@@ -197,5 +197,8 @@ public class ActivityCalendarRepositoryImpl
 
             query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
         }
+
+        // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
+        query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
     }
 }
