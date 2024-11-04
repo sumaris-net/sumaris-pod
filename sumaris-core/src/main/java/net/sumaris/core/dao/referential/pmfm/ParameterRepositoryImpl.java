@@ -92,7 +92,8 @@ public class ParameterRepositoryImpl
                     target.setIsDate(false);
                     target.setIsQualitative(true);
                 }
-                case DOUBLE, default -> {
+                // DOUBLE or other
+                default -> {
                     target.setIsAlphanumeric(false);
                     target.setIsBoolean(false);
                     target.setIsDate(false);
