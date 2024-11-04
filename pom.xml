@@ -1268,7 +1268,7 @@
             <debug>true</debug>
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
-              <!--<arg>&#45;&#45;enable-preview</arg>-->
+              <arg>--enable-preview</arg>
               <arg>-parameters</arg>
             </compilerArgs>
             <testCompilerArgument>-parameters</testCompilerArgument>
