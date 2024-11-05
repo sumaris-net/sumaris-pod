@@ -290,15 +290,15 @@ public class Beans {
     }
 
     /**
-     * <p>splitByProperty.</p>
+     * <p>collectIds.</p>
      *
      * @param list a {@link Iterable} object.
      * @param <K>  a K object.
      * @param <V>  a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(Collection<V> list) {
-        return transformCollection(list, IEntity::getId);
+    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(Collection<V> entities) {
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toList());
     }
 
     /**
@@ -309,8 +309,34 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
+    @SafeVarargs
     public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(V... entities) {
-        return transformCollection(ArrayUtils.asList(entities), IEntity::getId);
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toList());
+    }
+
+    /**
+     * <p>collectIdsAsSetcollectIdsAsSet.</p>
+     *
+     * @param list a {@link Iterable} object.
+     * @param <K>  a K object.
+     * @param <V>  a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K extends Serializable, V extends IEntity<K>> Set<K> collectIdsAsSet(Collection<V> entities) {
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toSet());
+    }
+
+    /**
+     * <p>collectIdsAsSet.</p>
+     *
+     * @param entities list of entities.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    @SafeVarargs
+    public static <K extends Serializable, V extends IEntity<K>> Set<K> collectIdsAsSet(V... entities) {
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toSet());
     }
 
     /**
