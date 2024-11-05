@@ -286,7 +286,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             activityByVesselId.keySet().forEach(vesselId -> {
                 Collection<VesselActivityVO> activities = activityByVesselId.get(vesselId);
                 List<LandingVO> landingsToSave = new ArrayList<>(landingsByVesselId.removeAll(vesselId));
-                List<Integer> landingIdsToRemove = Beans.collectIds(landingsToSave);
+                Set<Integer> landingIdsToRemove = Beans.collectIdsAsSet(landingsToSave);
                 AtomicBoolean landingsDirty = new AtomicBoolean(false);
                 // Part 1 : Landings
                 activities.forEach(activity -> {
@@ -301,7 +301,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 }
                 if (!landingIdsToRemove.isEmpty()) {
                     // Delete remaining landings
-                    landingService.delete(landingIdsToRemove);
+                    landingService.deleteAll(landingIdsToRemove);
 
                     // Add the observed location to check list
                     observationIdsToCheck.add(observedLocation.getId());
@@ -321,7 +321,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             });
             // Delete remaining landings
             if (!landingsByVesselId.isEmpty()) {
-                landingService.delete(Beans.collectIds(landingsByVesselId.values()));
+                landingService.deleteAll(Beans.collectIdsAsSet(landingsByVesselId.values()));
             }
         });
 
@@ -377,7 +377,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
                 .build());
         }));
 
-        updateOrDeleteEmptyObservedLocations(Beans.collectIds(observedLocations));
+        updateOrDeleteEmptyObservedLocations(Beans.collectIdsAsSet(observedLocations));
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Deleting done in %s ms", System.currentTimeMillis() - start));
@@ -448,7 +448,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             landings = getLandingsByObservedLocationId(observedLocationId);
         }
         // Delete landings
-        landingService.delete(Beans.collectIds(landings));
+        landingService.deleteAll(Beans.collectIdsAsSet(landings));
 
         // Delete observed location
         observedLocationService.delete(observedLocationId);
@@ -473,7 +473,7 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
         return observedLocationService.save(observedLocation, null);
     }
 
-    private boolean createOrUpdateLandings(ObservedLocationVO observedLocation, List<LandingVO> landings, List<Integer> landingIdsToRemove, Integer vesselId, VesselActivityVO activity) {
+    private boolean createOrUpdateLandings(ObservedLocationVO observedLocation, List<LandingVO> landings, Set<Integer> landingIdsToRemove, Integer vesselId, VesselActivityVO activity) {
         boolean landingsDirty = false;
 
         LandingVO landing = landings.stream().filter(landingVO -> Objects.equals(landingVO.getRankOrder(), activity.getRankOrder())).findFirst().orElse(null);
@@ -597,12 +597,12 @@ public class AggregatedLandingServiceImpl implements AggregatedLandingService {
             }
 
             // Collect metiers to remove
-            List<Integer> activityMetierIds = Beans.collectIds(activity.getMetiers());
+            Set<Integer> activityMetierIds = Beans.collectIdsAsSet(activity.getMetiers());
             List<Integer> metierIdsToRemove = trip.getMetiers() == null ? null :
                 trip.getMetiers().stream()
                     .map(MetierVO::getId)
                     .filter(metierId -> !activityMetierIds.contains(metierId))
-                    .collect(Collectors.toList());
+                    .toList();
 
             // Iterate over missing metier to add
             for (ReferentialVO metierRef : activity.getMetiers()) {

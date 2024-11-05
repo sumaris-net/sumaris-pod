@@ -190,7 +190,7 @@ public class StrategyRepositoryImpl
         Program parent = getById(Program.class, programId);
 
         // Remember existing entities
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getStrategies()));
+        final Set<Integer> sourcesIdsToRemove = Beans.collectIdsAsSet(Beans.getList(parent.getStrategies()));
 
         // Save each entity
         List<StrategyVO> result = sources.stream().map(source -> {

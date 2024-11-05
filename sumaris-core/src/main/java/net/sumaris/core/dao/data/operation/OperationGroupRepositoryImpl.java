@@ -56,6 +56,7 @@ import javax.persistence.criteria.ParameterExpression;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -152,7 +153,7 @@ public class OperationGroupRepositoryImpl
 
         // Remember existing entities
         final List<OperationGroupVO> existingOperationGroups = findAll(OperationGroupFilterVO.builder().tripId(tripId).onlyDefined(true).build());
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(existingOperationGroups);
+        final Set<Integer> sourcesIdsToRemove = Beans.collectIdsAsSet(existingOperationGroups);
 
         // Save each operation group
         List<OperationGroupVO> result = operationGroups.stream().map(operationGroup -> {

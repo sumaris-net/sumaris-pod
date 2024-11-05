@@ -37,7 +37,6 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
@@ -52,17 +51,15 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service("landingService")
@@ -281,8 +278,7 @@ public class LandingServiceImpl implements LandingService {
     }
 
     @Override
-    public void delete(List<Integer> ids) {
-        Preconditions.checkNotNull(ids);
+    public void deleteAll(@NonNull Collection<Integer> ids) {
         ids.stream()
             .filter(Objects::nonNull)
             .forEach(this::delete);

@@ -53,6 +53,7 @@ import javax.persistence.criteria.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @NoRepositoryBean
 @Slf4j
@@ -229,8 +230,8 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
     protected boolean saveAllByList(List<E> targets,
                                     List<V> sources) {
         final boolean trace = log.isTraceEnabled();
-        List<Integer> remoteIds = Beans.collectIds(targets);
-        List<Integer> sourceIds = Beans.collectIds(sources);
+        Set<Integer> remoteIds = Beans.collectIdsAsSet(targets);
+        Set<Integer> sourceIds = Beans.collectIdsAsSet(sources);
         List<Integer> remoteIdsToDelete =  remoteIds.stream().filter((remoteId) -> !sourceIds.contains(remoteId)).toList();
         boolean dirty = false;
         

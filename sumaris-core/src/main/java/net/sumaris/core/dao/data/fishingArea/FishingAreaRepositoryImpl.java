@@ -46,6 +46,7 @@ import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -266,7 +267,7 @@ public class FishingAreaRepositoryImpl
 
 
         // Get existing fishing areas
-        List<Integer> existingIds = Beans.collectIds(target);
+        Set<Integer> existingIds = Beans.collectIdsAsSet(target);
 
         // Save
         sources.forEach(fishingArea -> {

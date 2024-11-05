@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationContext;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ExpectedSaleRepositoryImpl
@@ -133,7 +134,7 @@ public class ExpectedSaleRepositoryImpl
 
         // Get existing fishing areas
         Trip parent = getById(Trip.class, tripId);
-        final List<Integer> existingIds = Beans.collectIds(parent.getExpectedSales());
+        final Set<Integer> existingIds = Beans.collectIdsAsSet(parent.getExpectedSales());
 
         // Save
         sales.forEach(sale -> {

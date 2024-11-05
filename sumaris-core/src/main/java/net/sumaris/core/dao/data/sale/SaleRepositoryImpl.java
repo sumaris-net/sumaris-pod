@@ -52,6 +52,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author peck7 on 01/09/2020.
@@ -250,7 +251,7 @@ public class SaleRepositoryImpl
     protected List<SaleVO> saveAllByParent(IWithSalesEntity<Integer, Sale> parent, List<SaleVO> sales) {
 
         // Remember existing entities
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getSales()));
+        final Set<Integer> sourcesIdsToRemove = Beans.collectIdsAsSet(parent.getSales());
 
         // Save each entity
         List<SaleVO> result = sales.stream().map(source -> {

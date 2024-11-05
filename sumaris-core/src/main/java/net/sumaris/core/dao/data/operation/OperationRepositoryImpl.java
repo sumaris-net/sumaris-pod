@@ -56,6 +56,7 @@ import org.springframework.data.jpa.domain.Specification;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -202,7 +203,7 @@ public class OperationRepositoryImpl
         Trip parent = getById(Trip.class, tripId);
 
         // Remember existing entities
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getOperations()));
+        final Set<Integer> sourcesIdsToRemove = Beans.collectIdsAsSet(Beans.getList(parent.getOperations()));
 
         // Save each operation
         List<OperationVO> result = operations.stream().map(source -> {

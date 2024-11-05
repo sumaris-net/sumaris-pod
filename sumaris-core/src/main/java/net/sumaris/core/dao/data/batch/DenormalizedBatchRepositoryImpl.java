@@ -315,7 +315,7 @@ public class DenormalizedBatchRepositoryImpl
     protected void onAfterSaveEntity(DenormalizedBatchVO vo, DenormalizedBatch savedEntity, boolean isNew) {
         super.onAfterSaveEntity(vo, savedEntity, isNew);
 
-        List<Integer> existingSvIds = Beans.collectIds(savedEntity.getSortingValues());
+        Set<Integer> existingSvIds = Beans.collectIdsAsSet(savedEntity.getSortingValues());
 
         Beans.getStream(vo.getSortingValues())
             .forEach(source -> {

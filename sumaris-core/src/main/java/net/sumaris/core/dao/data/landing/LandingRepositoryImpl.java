@@ -54,6 +54,7 @@ import javax.persistence.criteria.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -126,7 +127,7 @@ public class LandingRepositoryImpl
         parentProgram.setId(parent.getProgram().getId());
 
         // Remember existing entities
-        final List<Integer> sourcesIdsToRemove = Beans.collectIds(Beans.getList(parent.getLandings()));
+        final Set<Integer> sourcesIdsToRemove = Beans.collectIdsAsSet(Beans.getList(parent.getLandings()));
 
         // Save each landing
         List<LandingVO> result = sources.stream().map(source -> {
