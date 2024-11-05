@@ -39,11 +39,12 @@ import net.sumaris.core.model.IValueObject;
 @ToString
 public class JobProgressionVO implements IValueObject<Integer> {
 
-    public static JobProgressionVO.JobProgressionVOBuilder fromModelBuilder(IProgressionModel progression) {
-        return JobProgressionVO.builder()
-            .message(progression.getMessage())
-            .current(progression.getCurrent())
-            .total(progression.getTotal());
+    public static JobProgressionVO fromModel(IProgressionModel progression) {
+        JobProgressionVO result = new JobProgressionVO();
+        result.setMessage(progression.getMessage());
+        result.setCurrent(progression.getCurrent());
+        result.setTotal(progression.getTotal());
+        return result;
     }
 
     @EqualsAndHashCode.Include
