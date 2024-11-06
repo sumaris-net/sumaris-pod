@@ -176,6 +176,8 @@ public class SaleServiceImpl implements SaleService {
 		// Reset control date
 		source.setControlDate(null);
 
+		saveMetiers(source);
+
 		boolean isNew = source.getId() == null;
 
 		SaleVO result = saleRepository.save(source);
