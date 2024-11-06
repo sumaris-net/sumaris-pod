@@ -31,14 +31,11 @@ import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.operation.OperationGroupRepository;
 import net.sumaris.core.dao.data.sale.SaleRepository;
-<<<<<<< HEAD
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-=======
->>>>>>> f9c4fc47de39b42f73c96bea6e6235b3f50d3624
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.Sale;
@@ -51,7 +48,6 @@ import net.sumaris.core.vo.data.aggregatedLanding.VesselActivityVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.filter.OperationGroupFilterVO;
 import net.sumaris.core.vo.filter.SaleFilterVO;
-<<<<<<< HEAD
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,14 +59,6 @@ import javax.annotation.PostConstruct;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-=======
-import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
->>>>>>> f9c4fc47de39b42f73c96bea6e6235b3f50d3624
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
@@ -189,13 +177,8 @@ public class SaleServiceImpl implements SaleService {
 		// Reset control date
 		source.setControlDate(null);
 
-<<<<<<< HEAD
 		saveMetiers(source);
-=======
-		saveMetiers(sale);
 
-		SaleVO savedSale = saleRepository.save(sale);
->>>>>>> f9c4fc47de39b42f73c96bea6e6235b3f50d3624
 
 		boolean isNew = source.getId() == null;
 
