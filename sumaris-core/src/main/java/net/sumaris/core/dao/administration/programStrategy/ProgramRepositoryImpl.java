@@ -36,6 +36,7 @@ import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.technical.SoftwareRepository;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -43,6 +44,8 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.administration.programStrategy.*;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
+import net.sumaris.core.model.referential.ObjectType;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.gear.Gear;
@@ -51,6 +54,8 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
+import net.sumaris.core.model.technical.configuration.Software;
+import net.sumaris.core.model.technical.configuration.SoftwareProperty;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.administration.programStrategy.ProgramDepartmentVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
@@ -102,6 +107,8 @@ public class ProgramRepositoryImpl
 
     protected final AcquisitionLevelRepository acquisitionLevelRepository;
 
+    protected final SoftwareRepository softwareRepository;
+
     public Logger getLogger() {
         return log;
     }
@@ -116,7 +123,8 @@ public class ProgramRepositoryImpl
                                  DepartmentRepository departmentRepository,
                                  PersonRepository personRepository,
                                  ProgramPrivilegeRepository programPrivilegeRepository,
-                                 AcquisitionLevelRepository acquisitionLevelRepository) {
+                                 AcquisitionLevelRepository acquisitionLevelRepository,
+                                 SoftwareRepository softwareRepository) {
         super(Program.class, ProgramVO.class, entityManager);
         this.referentialDao = referentialDao;
         this.taxonGroupRepository = taxonGroupRepository;
@@ -126,6 +134,7 @@ public class ProgramRepositoryImpl
         this.personRepository = personRepository;
         this.programPrivilegeRepository = programPrivilegeRepository;
         this.acquisitionLevelRepository = acquisitionLevelRepository;
+        this.softwareRepository = softwareRepository;
         setLockForUpdate(true);
         setPublishEvent(true);
         conversionService.addConverter(Program.class, ProgramVO.class, this::toVO);
@@ -534,33 +543,38 @@ public class ProgramRepositoryImpl
         final EntityManager em = getEntityManager();
         if (MapUtils.isEmpty(source)) {
             if (parent.getProperties() != null) {
-                List<ProgramProperty> toRemove = ImmutableList.copyOf(parent.getProperties());
+                List<SoftwareProperty> toRemove = ImmutableList.copyOf(parent.getProperties());
                 parent.getProperties().clear();
                 toRemove.forEach(em::remove);
             }
         } else {
             // WARN: database can stored many values for the same keys.
             // Only the first existing instance will be reused. Duplicate properties will be removed
-            ListMultimap<String, ProgramProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
+            ListMultimap<String, SoftwareProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
                 Beans.getList(parent.getProperties()),
-                ProgramProperty.Fields.LABEL);
-            List<ProgramProperty> existingValues = Beans.getList(existingPropertiesMap.values());
+                SoftwareProperty.Fields.LABEL);
+            List<SoftwareProperty> existingValues = Beans.getList(existingPropertiesMap.values());
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
                 parent.setProperties(Lists.newArrayList());
             }
-            final List<ProgramProperty> targetProperties = parent.getProperties();
+            final List<SoftwareProperty> targetProperties = parent.getProperties();
             targetProperties.clear();
+
+            // Get software
+            final Software software = this.softwareRepository.getByLabel(getConfig().getAppName());
 
             // Transform each entry into ProgramProperty
             source.keySet().stream()
                 .map(key -> {
-                    ProgramProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
+                    SoftwareProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
                     boolean isNew = (prop == null);
                     if (isNew) {
-                        prop = new ProgramProperty();
+                        prop = new SoftwareProperty();
                         prop.setLabel(key);
-                        prop.setProgram(parent);
+                        prop.setSoftware(software);
+                        prop.setObjectType(getReference(ObjectType.class, ObjectTypeEnum.PROGRAM.getId()));
+                        prop.setObjectId(parent.getId());
                         prop.setCreationDate(updateDate);
                     } else {
                         existingValues.remove(prop);
