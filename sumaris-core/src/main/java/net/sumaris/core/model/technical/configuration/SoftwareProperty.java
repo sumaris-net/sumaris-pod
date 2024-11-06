@@ -27,6 +27,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
+import net.sumaris.core.model.referential.ObjectType;
 import net.sumaris.core.model.referential.Status;
 
 import javax.persistence.*;
@@ -71,5 +72,12 @@ public class SoftwareProperty implements IItemReferentialEntity<Integer>  {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "software_fk", nullable = false)
     private Software software;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = ObjectType.class)
+    @JoinColumn(name = "object_type_fk", referencedColumnName = "id")
+    private ObjectType objectType;
+
+    @Column(name = "object_id")
+    private Integer objectId;
 
 }

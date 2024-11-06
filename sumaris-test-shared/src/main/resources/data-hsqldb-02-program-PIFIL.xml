@@ -34,54 +34,6 @@
   <PROGRAM2DEPARTMENT ID="61" PROGRAM_FK="60" DEPARTMENT_FK="13" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2021-11-18"/>
   <PROGRAM2DEPARTMENT ID="62" PROGRAM_FK="60" DEPARTMENT_FK="3"  PROGRAM_PRIVILEGE_FK="3" UPDATE_DATE="2021-11-18"/> <!-- Ifremer as OBservers -->
 
-  <PROGRAM_PROPERTY ID="100" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.gear.rankOrder.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="101" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.observers.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="102" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.sale.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="103" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.map.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="104" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.metier.filter" NAME="true"/>
-  <PROGRAM_PROPERTY ID="105" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.metiers.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="106" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.allowParent" NAME="true"/>
-  <PROGRAM_PROPERTY ID="107" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.distanceMaxError" NAME="200"/>
-  <PROGRAM_PROPERTY ID="108" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.distanceMaxWarning" NAME="150"/>
-  <PROGRAM_PROPERTY ID="109" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.latitude.defaultSign" NAME="+"/>
-  <PROGRAM_PROPERTY ID="110" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-"/>
-  <PROGRAM_PROPERTY ID="111" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.batch.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="112" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.dateTime.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="113" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.taxonName.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="114" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.taxonGroup.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="115" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.i18nSuffix" NAME="ACCIDENTAL_CATCH."/>
-  <PROGRAM_PROPERTY ID="116" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.location.filter.searchText.minLength" NAME="2"/>
-  <PROGRAM_PROPERTY ID="117" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.metier.taxonGroupType.ids" NAME="4"/>
-  <PROGRAM_PROPERTY ID="118" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.sample.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="119" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.maxShootingDurationInHours" NAME="12"/><!-- 12 hours -->
-  <PROGRAM_PROPERTY ID="120" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.maxTotalDurationInHours" NAME="2400"/><!-- 100 days -->
-  <PROGRAM_PROPERTY ID="121" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.fishingStartDateEnable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="122" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.fishingEndDateEnable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="123" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.endDateEnable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="124" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.extraction.formats" NAME="PMFM_TRIP,VESSEL"/>
-  <PROGRAM_PROPERTY ID="125" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.autoFillNextDate" NAME="true"/>
-  <PROGRAM_PROPERTY ID="126" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2019-02-11" LABEL="sumaris.trip.operation.fishingArea.inline" NAME="true"/>Ò
-  <PROGRAM_PROPERTY ID="127" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2024-11-29" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-pifil-square.png"/>
-  <PROGRAM_PROPERTY ID="128" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2024-11-29" LABEL="sumaris.trip.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-dgampa.png"/>
-  <PROGRAM_PROPERTY ID="129" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2024-11-29" LABEL="sumaris.trip.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-pifil.png"/>
-  <PROGRAM_PROPERTY ID="130" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.help.url" NAME="https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/raw/master/projects/pifil/man/manuel_utilisateur-pifil.md"/>
-  <PROGRAM_PROPERTY ID="131" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.operation.skipDates.tripPmfm.id" NAME="550"/>
-  <PROGRAM_PROPERTY ID="132" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.sample.taxonGroup.help" NAME="&lt;b&gt;DCO&lt;/b&gt; : Dauphin Commun &lt;b&gt;PHR&lt;/b&gt; : Marsouin commun &lt;b&gt;DBO&lt;/b&gt; : Grand dauphin &lt;b&gt;DST&lt;/b&gt; : Dauphin bleu et blanc &lt;b&gt;PIW&lt;/b&gt; : Globicéphale commun &lt;b&gt;UNK&lt;/b&gt; : Dauphin non-identifié"/>
-  <PROGRAM_PROPERTY ID="133" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.operation.comment.help.text" NAME="(ex : dysfonctionnements éventuels, situation particulière en mer, captures accidentelles d'autres espèces...)"/>
-  <PROGRAM_PROPERTY ID="134" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.type" NAME="form,blank-form"/>
-  <PROGRAM_PROPERTY ID="135" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.showQualitativeValuesCheckBox" NAME="false"/>
-  <PROGRAM_PROPERTY ID="136" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.tipsLimitToShowOn_annex" NAME="20"/>
-  <PROGRAM_PROPERTY ID="137" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.showSampleRankOrder" NAME="false"/>
-  <PROGRAM_PROPERTY ID="138" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.physicalGearsShowByTable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="139" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.operation.comment.help.text" NAME="(ex : dysfonctionnements éventuels, situation particulière en mer, captures accidentelles d'autres espèces...)"/>
-  <PROGRAM_PROPERTY ID="140" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-pifil-square.png"/>
-  <PROGRAM_PROPERTY ID="141" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-dgampa.png"/>
-  <PROGRAM_PROPERTY ID="142" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.multiTrip" NAME="true"/>
-  <PROGRAM_PROPERTY ID="143" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.sampleMultiOp" NAME="true"/>
-  <PROGRAM_PROPERTY ID="144" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="145" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.pmfm.hiddenIds" NAME="188,550"/>
-
-
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="60" LOCATION_CLASSIFICATION_FK="2"/>
 
   <!-- strategies -->

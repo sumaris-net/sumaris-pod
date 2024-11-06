@@ -30,7 +30,9 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.model.technical.configuration.SoftwareProperty;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -118,8 +120,10 @@ public class Strategy implements IItemReferentialEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<TaxonGroupStrategy> taxonGroups = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = StrategyProperty.class, mappedBy = StrategyProperty.Fields.STRATEGY, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SoftwareProperty.class, cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JoinColumn(name = "object_id")
+    @Where(clause = "object_type_fk = (select ot.id from object_type ot where ot.label = 'STRATEGY')")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<StrategyProperty> properties = new ArrayList<>();
+    private List<SoftwareProperty> properties = new ArrayList<>();
 
 }

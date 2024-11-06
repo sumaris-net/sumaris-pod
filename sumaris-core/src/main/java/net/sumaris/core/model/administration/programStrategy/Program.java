@@ -34,8 +34,10 @@ import net.sumaris.core.model.referential.gear.GearClassification;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationClassification;
 import net.sumaris.core.model.referential.taxon.TaxonGroupType;
+import net.sumaris.core.model.technical.configuration.SoftwareProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.util.*;
@@ -86,9 +88,11 @@ public class Program implements IItemReferentialEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Strategy> strategies = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = ProgramProperty.class, mappedBy = ProgramProperty.Fields.PROGRAM)
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SoftwareProperty.class)
+    @JoinColumn(name = "object_id")
+    @Where(clause = "object_type_fk = (select ot.id from object_type ot where ot.label = 'PROGRAM')")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
-    private List<ProgramProperty> properties = new ArrayList<>();
+    private List<SoftwareProperty> properties = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = TaxonGroupType.class)
     @JoinColumn(name = "taxon_group_type_fk", nullable = false)

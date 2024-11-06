@@ -25,6 +25,7 @@ package net.sumaris.core.dao.administration.programStrategy;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.administration.programStrategy.*;
+import net.sumaris.core.model.technical.configuration.SoftwareProperty;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramDepartmentVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
@@ -55,7 +56,7 @@ public interface ProgramSpecifications {
         if (propertyLabel == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<String> param = cb.parameter(String.class, PROPERTY_LABEL_PARAM);
-            return cb.equal(root.join(Program.Fields.PROPERTIES, JoinType.LEFT).get(ProgramProperty.Fields.LABEL), param);
+            return cb.equal(root.join(Program.Fields.PROPERTIES, JoinType.LEFT).get(SoftwareProperty.Fields.LABEL), param);
         })
         .addBind(PROPERTY_LABEL_PARAM, propertyLabel);
     }

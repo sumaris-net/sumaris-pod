@@ -49,7 +49,11 @@ public enum ObjectTypeEnum implements Serializable, IEntityEnum {
     GEAR(12, "GEAR"),
     METIER(13, "METIER"),
     LOCATION(14, "LOCATION"),
-    GROUPING(15, "GROUPING")
+    GROUPING(15, "GROUPING"),
+
+    // Properties
+    PROGRAM(16, "PROGRAM"),
+    STRATEGY(17, "STRATEGY")
     ;
 
     public static ObjectTypeEnum valueOf(final int id) {
