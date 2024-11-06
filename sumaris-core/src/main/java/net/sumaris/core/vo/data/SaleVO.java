@@ -32,6 +32,11 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
+<<<<<<< HEAD
+=======
+import net.sumaris.core.vo.referential.LocationVO;
+import net.sumaris.core.vo.referential.MetierVO;
+>>>>>>> f9c4fc47de39b42f73c96bea6e6235b3f50d3624
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.location.LocationVO;
 import net.sumaris.core.vo.referential.metier.MetierVO;
