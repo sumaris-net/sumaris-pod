@@ -36,6 +36,7 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StreamUtils;
 import net.sumaris.core.util.StringUtils;
@@ -108,33 +109,35 @@ public class ActivityCalendarRepositoryImpl
 
     @Override
     public List<ActivityCalendarVO> findAll(@Nullable ActivityCalendarFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, ActivityCalendarFetchOptions fetchOptions) {
+        // Fetch the page (without any distinct - see applySelect())
         List<ActivityCalendarVO> result = super.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions);
 
         String sortEntityProperty = sortAttribute != null ? toEntityProperty(sortAttribute) : null;
 
-        // If sort by vessel, then remove potential duplicated elements
-        // This can occur because distinct has been disabled by configureQuery() - to avoid SQL error (see issue sumaris-app#723)
+        // If sort by vessel.*
         if (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.')) {
             int originalSize = result.size();
 
-            // Remove duplicates
+            // Remove potential duplicates
+            // This can occur because distinct has been disabled by configureQuery() - to avoid SQL error (see issue sumaris-app#723)
             result = Beans.removeDuplicatesById(result);
 
-            // If limit was badly apply by the SGBDR, then truncate the result
-            if (result.size() > size) {
-                result = result.subList(0, size);
-                return result; // OK enough elements
-            }
+            // Original page was full, check if need to fetch more
+            if (originalSize >= size) {
 
-            int missingSize = originalSize - result.size();
+                // Count max missing elements for this page
+                int missingSize = originalSize - result.size();
 
-            // Try to complete with more elements
-            if (missingSize > 0 && originalSize >= size) {
-                List<ActivityCalendarVO> missingElements = findAll(filter, offset + originalSize, missingSize, sortAttribute, sortDirection, fetchOptions);
-                if (CollectionUtils.isNotEmpty(missingElements)) {
+                // If missing element in the page, try to complete with more elements
+                if (missingSize > 0) {
+                    // Fetch more elements (recursive call)
+                    List<ActivityCalendarVO> missingElements = findAll(filter, offset + size, missingSize, sortAttribute, sortDirection, fetchOptions);
 
-                    return StreamUtils.concat(result.stream(), missingElements.stream())
-                        .toList();
+                    // Concat missing elements (if any) to the result
+                    if (CollectionUtils.isNotEmpty(missingElements)) {
+                        result = StreamUtils.concat(result.stream(), missingElements.stream())
+                            .toList();
+                    }
                 }
             }
         }
@@ -178,6 +181,9 @@ public class ActivityCalendarRepositoryImpl
         if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
             return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
         }
+        if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)) {
+            return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION);
+        }
         if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
             return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING);
         }
@@ -194,15 +200,24 @@ public class ActivityCalendarRepositoryImpl
 
         // Add left join on vessel registration period (VRP)
         if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-            || property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+            || property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)
+            || property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)) {
 
             ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
-            expression = vrp.get(property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-                ? VesselRegistrationPeriod.Fields.REGISTRATION_CODE
-                : VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
-            // Natural sort
-            if (enableVesselRegistrationNaturalOrder) {
-                expression = Daos.naturalSort(cb, expression);
+            if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)) {
+                expression = vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION).get(Location.Fields.LABEL);
+            }
+            else {
+                if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+                    expression = vrp.get(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+                }
+                else if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
+                    expression = vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+                }
+                // Natural sort
+                if (enableVesselRegistrationNaturalOrder) {
+                    expression = Daos.naturalSort(cb, expression);
+                }
             }
         }
 
@@ -210,9 +225,12 @@ public class ActivityCalendarRepositoryImpl
         if (property.endsWith(VesselFeatures.Fields.NAME)
             || property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
             ListJoin<Vessel, VesselFeatures> vf = composeVfJoin(root, cb);
-            expression = vf.get(property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)
-                ? VesselFeatures.Fields.EXTERIOR_MARKING
-                : VesselFeatures.Fields.NAME);
+            if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+                expression = vf.get(VesselFeatures.Fields.EXTERIOR_MARKING);
+            }
+            else if (property.endsWith(VesselFeatures.Fields.NAME)) {
+                expression = vf.get(VesselFeatures.Fields.NAME);
+            }
 
             // Natural sort on exterior marking
             if (enableVesselRegistrationNaturalOrder && property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
@@ -221,6 +239,14 @@ public class ActivityCalendarRepositoryImpl
         }
 
         return (expression != null) ? ImmutableList.of(expression) : super.toSortExpressions(query, root, cb, property);
+    }
+
+    @Override
+    protected <S extends ActivityCalendar> void applySelect(CriteriaQuery<S> query, Root<S> root) {
+        super.applySelect(query, root);
+
+        // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
+        query.distinct(false);
     }
 
     @Override
