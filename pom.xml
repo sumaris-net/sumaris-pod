@@ -1270,7 +1270,7 @@
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
               <!-- Required for Java 17 only - FIXME: remove after migrate to Java 21 -->
-              <!--<arg>&#45;&#45;enable-preview</arg>-->
+              <arg>--enable-preview</arg>
               <arg>-parameters</arg>
             </compilerArgs>
             <testCompilerArgument>-parameters</testCompilerArgument>

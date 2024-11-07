@@ -211,7 +211,7 @@ public class VesselFeaturesRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<VesselFeatures> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends VesselFeatures> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 

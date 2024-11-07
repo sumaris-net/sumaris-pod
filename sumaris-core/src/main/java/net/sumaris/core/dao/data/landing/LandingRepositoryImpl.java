@@ -224,7 +224,7 @@ public class LandingRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<Landing> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends Landing> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 

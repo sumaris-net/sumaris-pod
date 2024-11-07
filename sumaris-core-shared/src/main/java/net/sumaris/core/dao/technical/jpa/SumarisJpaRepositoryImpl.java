@@ -66,6 +66,7 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.*;
@@ -94,7 +95,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     private boolean lockForUpdate = false;
     private LockModeType lockForUpdateMode;
     private Map<String, Object> lockForUpdateProperties;
-    private EntityManager entityManager;
+    private final EntityManager em;
     private Class<V> voClass;
     private final String entityName;
 
@@ -121,7 +122,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         this.hasIdGenerator = Entities.hasIdGenerator(domainClass);
 
         // This is the recommended method for accessing inherited class dependencies.
-        this.entityManager = entityManager;
+        this.em = entityManager;
     }
 
     @PostConstruct
@@ -371,7 +372,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     /* -- protected method -- */
 
     protected EntityManager getEntityManager() {
-        return entityManager;
+        return em;
     }
 
     protected Session getSession() {
@@ -385,12 +386,12 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     protected <C> C getReference(Class<C> clazz, Serializable id) {
 
         if (debugEntityLoad) {
-            C load = entityManager.find(clazz, id);
+            C load = em.find(clazz, id);
             if (load == null) {
                 throw new EntityNotFoundException("Unable to load entity " + clazz.getName() + " with identifier '" + id + "': not found in database.");
             }
         }
-        return entityManager.getReference(clazz, id);
+        return em.getReference(clazz, id);
     }
 
     /**
@@ -460,7 +461,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      */
     @SuppressWarnings("unchecked")
     protected <C> C find(Class<C> clazz, Serializable id) {
-        return this.entityManager.find(clazz, id, null, null);
+        return this.em.find(clazz, id, null, null);
     }
 
     /**
@@ -474,7 +475,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      */
     @SuppressWarnings("unchecked")
     protected <C> C find(Class<C> clazz, Serializable id, LockModeType lockModeType) {
-        return this.entityManager.find(clazz, id, lockModeType);
+        return this.em.find(clazz, id, lockModeType);
     }
 
     /**
@@ -489,7 +490,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     @SuppressWarnings("unchecked")
     protected <C> C getById(Class<? extends C> clazz, Serializable id, LockModeType lockModeType) throws DataNotFoundException  {
         C entity = getById(clazz, id);
-        entityManager.lock(entity, lockModeType);
+        em.lock(entity, lockModeType);
         return entity;
     }
 
@@ -502,7 +503,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @return a C object.
      */
     protected <C> C getById(Class<? extends C> clazz, Serializable id) throws DataNotFoundException {
-        C entity = this.entityManager.find(clazz, id); // Can be null
+        C entity = this.em.find(clazz, id); // Can be null
         if (entity == null) throw new DataNotFoundException(I18n.t("sumaris.persistence.error.entityNotFound", clazz.getSimpleName(), id));
         return entity;
     }
@@ -529,31 +530,47 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         return getQuery(spec, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), domainClass);
     }
 
-    protected TypedQuery<E> getQuery(@Nullable Specification<E> spec,
+    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec,
                                    int offset, int size,
                                    String sortBy, SortDirection sortDirection,
-                                   Class<E> domainClass) {
-        CriteriaBuilder builder = this.getEntityManager().getCriteriaBuilder();
-        CriteriaQuery<E> criteriaQuery = builder.createQuery(domainClass);
-        Root<E> root = criteriaQuery.from(domainClass);
-        criteriaQuery.select(root);
+                                   Class<S> domainClass) {
+        CriteriaBuilder builder = em.getCriteriaBuilder();
+        CriteriaQuery<S> query = builder.createQuery(domainClass);
+        Root<S> root = this.applySpecificationToCriteria(spec, domainClass, query);
 
-        Predicate predicate = spec != null ? spec.toPredicate(root, criteriaQuery, builder) : null;
-        if (predicate != null) criteriaQuery.where(predicate);
+        applySelect(query, root);
 
         // Add sorting
-        addSorting(criteriaQuery, root, builder, sortBy, sortDirection);
+        addSorting(query, root, builder, sortBy, sortDirection);
 
-        TypedQuery<E> query = getEntityManager().createQuery(criteriaQuery);
+        TypedQuery<S> typedQuery = this.applyRepositoryMethodMetadata(em.createQuery(query));
 
         // Bind parameters
-        applyBindings(query, spec);
+        applyBindings(typedQuery, spec);
 
         // Set page
-        query.setFirstResult(offset);
-        query.setMaxResults(size);
+        typedQuery.setFirstResult(offset);
+        typedQuery.setMaxResults(size);
 
-        return query;
+        return typedQuery;
+    }
+
+
+    @Override
+    protected <S extends E> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
+
+        CriteriaBuilder builder = this.em.getCriteriaBuilder();
+        CriteriaQuery<S> query = builder.createQuery(domainClass);
+        Root<S> root = this.applySpecificationToCriteria(spec, domainClass, query);
+
+        applySelect(query, root);
+
+        // Add sorting
+        addSorting(query, root, builder, sort);
+
+        TypedQuery<S> typedQuery = this.applyRepositoryMethodMetadata(this.em.createQuery(query));
+
+        return applyBindings(typedQuery, spec);
     }
 
     protected <T> Page<T> readPage(TypedQuery<T> query, Pageable pageable, LongSupplier totalSupplier) {
@@ -570,7 +587,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected void lockForUpdate(IEntity<?> entity, LockModeType modeType) {
-        lockForUpdate(entity, modeType, (Map)null);
+        lockForUpdate(entity, modeType, null);
     }
 
     protected void lockForUpdate(IEntity<?> entity, LockModeType modeType, Map<String, Object> properties) {
@@ -579,7 +596,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         properties = properties != null ? properties : lockForUpdateProperties;
         // Lock entityName
         try {
-            entityManager.lock(entity, modeType, properties);
+            em.lock(entity, modeType, properties);
         } catch (LockTimeoutException e) {
             throw new DataLockedException(I18n.t("sumaris.persistence.error.locked",
                 getTableName(Daos.getEntityName(entity)), entity.getId()), e);
@@ -615,12 +632,11 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected <T> JPAQuery<T> createQuery() {
-        return new JPAQuery<>(entityManager);
+        return new JPAQuery<>(em);
     }
 
-    @Override
-    protected <S extends E> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Sort sort) {
-        return applyBindings(super.getQuery(spec, domainClass, sort), spec);
+    protected <S extends E> void applySelect(CriteriaQuery<S> query, Root<S> root) {
+        query.select(root);
     }
 
     @Override
@@ -642,6 +658,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
                 log.warn(message);
             }
         }
+
         return query;
     }
 
@@ -655,9 +672,9 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @return the query itself
      */
     protected void addSorting(CriteriaQuery<?> query,
-                                          Root<E> from,
-                                          CriteriaBuilder cb,
-                                          Pageable pageable) {
+                              Root<? extends E> from,
+                              CriteriaBuilder cb,
+                              Pageable pageable) {
         Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
         if (sort.isSorted()) {
             List<javax.persistence.criteria.Order> orders = new ArrayList<>();
@@ -677,15 +694,25 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param cb       criteria builder
      * @param from          the root of the query
      * @param page  a page
-     * @param <T>           type of query
      */
     protected void addSorting(CriteriaQuery<?> query,
-                              Root<E> from,
+                              Root<? extends E> from,
                               CriteriaBuilder cb,
                               @Nullable net.sumaris.core.dao.technical.Page page) {
         // Add sorting
         if (page != null) {
             query.orderBy(toOrders(query, from, cb, page.getSortBy(), page.getSortDirection()));
+        }
+    }
+
+    /**
+     * Add a orderBy on query
+     */
+    protected void addSorting(CriteriaQuery<?> query,
+               Root<? extends E> from,
+               CriteriaBuilder cb, Sort sort) {
+        if (sort.isSorted()) {
+            query.orderBy(toOrders(query, from, cb, sort));
         }
     }
 
@@ -697,10 +724,10 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
      * @param from          the root of the query
      * @param sortAttribute the sort attribute (can be a nested attribute)
      * @param sortDirection the direction
-     * @param <T>           type of query
+     * @param <S>           type of query
      */
     protected void addSorting(CriteriaQuery<?> query,
-                              Root<E> from,
+                              Root<? extends E> from,
                               CriteriaBuilder cb,
                               String sortAttribute,
                               SortDirection sortDirection) {
@@ -711,7 +738,16 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected List<Order> toOrders(CriteriaQuery<?> query,
-                                   Root<E> from,
+                                   Root<? extends E> from,
+                                   CriteriaBuilder cb,
+                                   Sort sort) {
+        return sort.stream()
+                .flatMap(s -> toOrders(query, from, cb, s.getProperty(), s.getDirection()).stream())
+                .toList();
+    }
+
+    protected List<Order> toOrders(CriteriaQuery<?> query,
+                                   Root<? extends E> from,
                                    CriteriaBuilder cb,
                                    String property,
                                    SortDirection direction) {
@@ -719,7 +755,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected List<Order> toOrders(CriteriaQuery<?> query,
-                                   Root<E> from,
+                                   Root<? extends E> from,
                                    CriteriaBuilder cb,
                                    String property,
                                    Sort.Direction direction) {
@@ -736,7 +772,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
     }
 
     protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query,
-                                                    Root<E> from,
+                                                    Root<? extends E> from,
                                                     CriteriaBuilder cb,
                                                     String property) {
         return ImmutableList.of(Daos.composePath(from, property));
@@ -810,5 +846,37 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         }
 
         return CollectionUtils.isEmpty(sources) ? null : sources;
+    }
+
+    private <S, U extends E> Root<U> applySpecificationToCriteria(@Nullable Specification<U> spec, Class<U> domainClass, CriteriaQuery<S> query) {
+        Assert.notNull(domainClass, "Domain class must not be null!");
+        Assert.notNull(query, "CriteriaQuery must not be null!");
+        Root<U> root = query.from(domainClass);
+        if (spec == null) {
+            return root;
+        } else {
+            CriteriaBuilder builder = this.em.getCriteriaBuilder();
+            Predicate predicate = spec.toPredicate(root, query, builder);
+            if (predicate != null) {
+                query.where(predicate);
+            }
+
+            return root;
+        }
+    }
+
+    private <S> TypedQuery<S> applyRepositoryMethodMetadata(TypedQuery<S> query) {
+        if (this.getRepositoryMethodMetadata() == null) {
+            return query;
+        } else {
+            LockModeType type = this.getRepositoryMethodMetadata().getLockModeType();
+            TypedQuery<S> toReturn = type == null ? query : query.setLockMode(type);
+            this.applyQueryHints(toReturn);
+            return toReturn;
+        }
+    }
+
+    private void applyQueryHints(Query query) {
+        this.getQueryHints().withFetchGraphs(em).forEach(query::setHint);
     }
 }
