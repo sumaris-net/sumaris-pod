@@ -340,6 +340,22 @@ public class Beans {
     }
 
     /**
+     * Removes duplicated entities from a collection, preserving the first occurrence of each entity based on its ID.
+     *
+     * @param entities the collection of entities to be processed
+     * @return a list of entities with duplicates removed, or null if the input collection is null
+     */
+    public static <K extends Serializable, V extends IEntity<K>> List<V> removeDuplicatesById(Collection<V> entities) {
+        if (entities == null) return null;
+        return getList(getStream(entities)
+            .collect(Collectors.toMap(IEntity::getId, Function.identity(),
+                (existing, replacement) -> existing, // Keep first occurrence
+                LinkedHashMap::new // Keep existing order
+            ))
+            .values());
+    }
+
+    /**
      * <p>collectProperties.</p>
      *
      * @param collection   a {@link Collection} object.
