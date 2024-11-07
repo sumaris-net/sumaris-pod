@@ -42,10 +42,10 @@ import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
-import net.sumaris.core.vo.referential.LocationVO;
-import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -506,7 +506,7 @@ public class DataTestUtils {
 
         // Other properties
         vo.setYear(year);
-        vo.setDirectSurveyInvestigation(Boolean.TRUE);
+        vo.setDirectSurveyInvestigation(1);
 
         // Recorder
         DepartmentVO recorderDepartment = new DepartmentVO();

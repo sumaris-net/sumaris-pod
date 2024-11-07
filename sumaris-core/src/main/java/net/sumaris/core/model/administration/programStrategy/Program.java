@@ -49,6 +49,8 @@ import java.util.*;
 @Cacheable
 public class Program implements IItemReferentialEntity<Integer> {
 
+    public static final String ENTITY_NAME = "Program";
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PROGRAM_SEQ")
     @SequenceGenerator(name = "PROGRAM_SEQ", sequenceName="PROGRAM_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)

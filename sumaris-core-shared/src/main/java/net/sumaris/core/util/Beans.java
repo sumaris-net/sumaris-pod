@@ -29,8 +29,8 @@ import com.google.common.collect.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ComparatorUtils;
@@ -49,6 +49,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -289,15 +290,15 @@ public class Beans {
     }
 
     /**
-     * <p>splitByProperty.</p>
+     * <p>collectIds.</p>
      *
      * @param list a {@link Iterable} object.
      * @param <K>  a K object.
      * @param <V>  a V object.
      * @return a {@link Map} object.
      */
-    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(Collection<V> list) {
-        return transformCollection(list, IEntity::getId);
+    public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(Collection<V> entities) {
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toList());
     }
 
     /**
@@ -308,8 +309,50 @@ public class Beans {
      * @param <V> a V object.
      * @return a {@link Map} object.
      */
+    @SafeVarargs
     public static <K extends Serializable, V extends IEntity<K>> List<K> collectIds(V... entities) {
-        return transformCollection(ArrayUtils.asList(entities), IEntity::getId);
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toList());
+    }
+
+    /**
+     * <p>collectIdsAsSetcollectIdsAsSet.</p>
+     *
+     * @param list a {@link Iterable} object.
+     * @param <K>  a K object.
+     * @param <V>  a V object.
+     * @return a {@link Map} object.
+     */
+    public static <K extends Serializable, V extends IEntity<K>> Set<K> collectIdsAsSet(Collection<V> entities) {
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toSet());
+    }
+
+    /**
+     * <p>collectIdsAsSet.</p>
+     *
+     * @param entities list of entities.
+     * @param <K> a K object.
+     * @param <V> a V object.
+     * @return a {@link Map} object.
+     */
+    @SafeVarargs
+    public static <K extends Serializable, V extends IEntity<K>> Set<K> collectIdsAsSet(V... entities) {
+        return Beans.getStream(entities).map(IEntity::getId).collect(Collectors.toSet());
+    }
+
+    /**
+     * Removes duplicated entities from a collection, preserving the first occurrence of each entity based on its ID.
+     *
+     * @param entities the collection of entities to be processed
+     * @return a list of entities with duplicates removed, or null if the input collection is null
+     */
+    public static <K extends Serializable, V extends IEntity<K>> List<V> removeDuplicatesById(Collection<V> entities) {
+        if (entities == null) return null;
+        return getList(getStream(entities)
+            .collect(Collectors.toMap(IEntity::getId, Function.identity(),
+                (existing, replacement) -> existing, // Keep first occurrence
+                LinkedHashMap::new // Keep existing order
+            ))
+            .values());
     }
 
     /**
@@ -396,6 +439,31 @@ public class Beans {
         }
     }
 
+    /**
+     * Retrieves a property collector for a specified target class and key.
+     *
+     * @param <T> the type of the referential entity
+     * @param targetClass the class of the target referential entity
+     * @param key the key representing the property to collect
+     * @return a Collector for the specified property of the target class
+     */
+    public static <T> Collector<T, ?, ?> getPropertyCollector(Class<?> targetClass, String key) {
+        try {
+            Field field = targetClass.getDeclaredField(key);
+            Class<?> fieldType = field.getType();
+
+            if (Set.class.isAssignableFrom(fieldType)) {
+                return Collectors.toSet();
+            } else if (List.class.isAssignableFrom(fieldType)) {
+                return Collectors.toList();
+            } else {
+                throw new IllegalArgumentException("Unsupported field type: " + fieldType.getName());
+            }
+        } catch (NoSuchFieldException e) {
+            throw new IllegalArgumentException("Field with key " + key + " not found in class " + targetClass.getName(), e);
+        }
+    }
+
     public static Integer[] asIntegerArray(Collection<Integer> values) {
         if (CollectionUtils.isEmpty(values)) {
             return null;
@@ -434,7 +502,7 @@ public class Beans {
     }
 
     public static <O, E> List<O> transformCollection(Collection<? extends E> collection, Function<E, O> function) {
-        return Beans.getStream(collection).map(function).collect(Collectors.toList());
+        return Beans.getStream(collection).map(function).toList();
     }
 
     public static <K, V> Map<K, V> mergeMap(Map<K, V> map1, Map<K, V> map2) {

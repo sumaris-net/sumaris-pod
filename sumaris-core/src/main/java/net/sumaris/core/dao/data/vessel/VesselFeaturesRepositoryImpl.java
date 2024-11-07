@@ -43,8 +43,9 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.VesselFeaturesVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import net.sumaris.core.vo.referential.LocationVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.location.LocationVO;
+import org.nuiton.i18n.I18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.jpa.domain.Specification;
@@ -58,6 +59,10 @@ import java.util.List;
 public class VesselFeaturesRepositoryImpl
         extends DataRepositoryImpl<VesselFeatures, VesselFeaturesVO, VesselFilterVO, DataFetchOptions>
         implements VesselFeaturesSpecifications<VesselFeatures, VesselFeaturesVO, VesselFilterVO, DataFetchOptions> {
+
+    static {
+        I18n.n("sumaris.persistence.table.vesselFeatures");
+    }
 
     private final ReferentialDao referentialDao;
     private final LocationRepository locationRepository;
@@ -206,7 +211,7 @@ public class VesselFeaturesRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<VesselFeatures> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends VesselFeatures> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 

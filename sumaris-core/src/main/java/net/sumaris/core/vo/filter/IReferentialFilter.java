@@ -29,6 +29,10 @@ import java.io.Serializable;
  */
 public interface IReferentialFilter extends Serializable, ISearchTextFilter {
 
+    static IReferentialFilter nullToEmpty(IReferentialFilter filter) {
+        return filter == null ? new ReferentialFilterVO() : filter;
+    }
+
     Integer getId();
 
     void setId(Integer id);
@@ -88,4 +92,5 @@ public interface IReferentialFilter extends Serializable, ISearchTextFilter {
     Integer[] getExcludedIds();
 
     void setExcludedIds(Integer[] excludedIds);
+
 }

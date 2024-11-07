@@ -130,7 +130,7 @@ public class DailyActivityCalendarRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<DailyActivityCalendar> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends DailyActivityCalendar> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 

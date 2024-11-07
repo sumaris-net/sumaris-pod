@@ -1,4 +1,4 @@
-package net.sumaris.core.vo.referential;
+package net.sumaris.core.vo.referential.spatial;
 
 /*-
  * #%L
@@ -22,25 +22,25 @@ package net.sumaris.core.vo.referential;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.model.referential.location.Location;
+import lombok.NoArgsConstructor;
+import net.sumaris.core.dao.technical.jpa.IFetchOptions;
 
-import java.util.List;
 
+@Builder
 @Data
-@FieldNameConstants
-@EqualsAndHashCode(callSuper = true)
-public class LocationVO extends ReferentialVO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class ExpertiseAreaFetchOptions implements IFetchOptions {
 
-    private Integer validityStatusId;
+    public static final ExpertiseAreaFetchOptions DEFAULT = ExpertiseAreaFetchOptions.builder().build();
 
-    private List<LocationAssociationVO> parents;
+    public static final ExpertiseAreaFetchOptions FULL = ExpertiseAreaFetchOptions.builder()
+        .withLocations(true)
+        .build();
 
-    private List<LocationAssociationVO> children;
-
-    public LocationVO() {
-        this.setEntityName(Location.class.getSimpleName());
-    }
+    @Builder.Default
+    private boolean withLocations = true;
 }

@@ -58,7 +58,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramPersonVO;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import net.sumaris.core.vo.referential.TaxonGroupVO;
+import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -181,7 +181,7 @@ public class ProgramRepositoryImpl
     }
 
     @Override
-    protected Specification<Program> toSpecification(ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
+    protected Specification<Program> toSpecification(@NonNull ProgramFilterVO filter, ProgramFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))
             .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevelLabels()))

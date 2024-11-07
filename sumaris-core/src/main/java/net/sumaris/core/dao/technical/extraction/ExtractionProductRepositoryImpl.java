@@ -27,11 +27,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
-import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.data.DataDaos;
-import net.sumaris.core.dao.referential.IEntitySpecifications;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
 import net.sumaris.core.exception.SumarisTechnicalException;
@@ -54,7 +53,10 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Root;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +93,7 @@ public class ExtractionProductRepositoryImpl
     }
 
     @Override
-    protected Specification<ExtractionProduct> toSpecification(ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
+    protected Specification<ExtractionProduct> toSpecification(@NonNull ExtractionTypeFilterVO filter, ExtractionProductFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(withPropertyValue(ExtractionProduct.Fields.FORMAT, String.class, filter.getFormat()))
             .and(withPropertyValue(ExtractionProduct.Fields.VERSION, String.class, filter.getVersion()))

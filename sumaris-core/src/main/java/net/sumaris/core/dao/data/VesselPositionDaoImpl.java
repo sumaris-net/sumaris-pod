@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data;
  */
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.technical.Daos;
@@ -37,7 +38,7 @@ import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.VesselPositionVO;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.nuiton.i18n.I18n;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -50,11 +51,15 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Repository("vesselPositionDao")
+@RequiredArgsConstructor
 @Slf4j
 public class VesselPositionDaoImpl extends HibernateDaoSupport implements VesselPositionDao {
 
-    @Autowired
-    private ReferentialDao referentialDao;
+    static {
+        I18n.n("sumaris.persistence.table.vesselPosition");
+    }
+
+    private final ReferentialDao referentialDao;
 
     @Override
     public List<VesselPositionVO> getAllByOperationId(int operationId) {

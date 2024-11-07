@@ -171,7 +171,7 @@ public abstract class UseFeaturesRepositoryImpl<E extends IUseFeaturesEntity, V 
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<E> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends E> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 

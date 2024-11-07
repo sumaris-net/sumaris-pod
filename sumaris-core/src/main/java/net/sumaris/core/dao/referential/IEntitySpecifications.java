@@ -26,14 +26,13 @@ import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
 import javax.persistence.criteria.ParameterExpression;
 import java.io.Serializable;
-import net.sumaris.core.util.ArrayUtils;
-
 import java.util.Collection;
 
 public interface IEntitySpecifications<ID extends Serializable, E extends IEntity<ID>> {
@@ -108,6 +107,11 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
     @Nullable
     default Integer[] concat(@Nullable Integer value, @Nullable Integer[] values) {
         return ArrayUtils.concat(value, values);
+    }
+
+    @Nullable
+    default <T> T[] concat(@Nullable T value, @Nullable T[] values, Class<T[]> clazz) {
+        return ArrayUtils.concat(value, values, clazz);
     }
 
     DatabaseType getDatabaseType();

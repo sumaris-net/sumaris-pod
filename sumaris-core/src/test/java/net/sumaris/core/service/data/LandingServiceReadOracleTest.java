@@ -29,7 +29,6 @@ import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.service.AbstractServiceTest;
-import net.sumaris.core.service.data.vessel.VesselService;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.LandingVO;
@@ -46,7 +45,7 @@ import org.springframework.test.context.TestPropertySource;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Ignore("Use only SFA Oracle database")
+@Ignore("Use only on SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
 @Slf4j

@@ -26,7 +26,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.FieldNameConstants;
-import net.sumaris.core.vo.referential.PmfmValueType;
+import net.sumaris.core.vo.referential.pmfm.PmfmValueType;
 
 /**
  * @author peck7 on 18/12/2018.

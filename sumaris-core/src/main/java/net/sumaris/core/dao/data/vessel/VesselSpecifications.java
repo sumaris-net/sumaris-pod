@@ -67,19 +67,19 @@ public interface VesselSpecifications extends RootDataSpecifications<Vessel> {
 
     boolean enableRegistrationCodeSearchAsPrefix();
 
-    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<Vessel> root) {
+    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<? extends Vessel> root) {
         return composeVrpJoin(root, JoinType.LEFT);
     }
 
-    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<Vessel> root, JoinType joinType) {
+    default ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<? extends Vessel> root, JoinType joinType) {
         return Daos.composeJoinList(root, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, joinType);
     }
 
-    default ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<Vessel> root) {
+    default ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<? extends Vessel> root) {
         return composeVfJoin(root, JoinType.LEFT);
     }
 
-    default ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<Vessel> root, JoinType joinType) {
+    default ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<? extends Vessel> root, JoinType joinType) {
         return Daos.composeJoinList(root, Vessel.Fields.VESSEL_FEATURES, joinType);
     }
 

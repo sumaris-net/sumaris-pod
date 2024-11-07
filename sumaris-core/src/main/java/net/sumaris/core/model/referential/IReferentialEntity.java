@@ -36,8 +36,7 @@ public interface IReferentialEntity<ID extends Serializable>
         String CREATION_DATE = "creationDate";
     }
 
-    Date getCreationDate();
+    default Date getCreationDate() {return null;}
 
-    void setCreationDate(Date creationDate);
-
+    default void setCreationDate(Date creationDate) {}
 }

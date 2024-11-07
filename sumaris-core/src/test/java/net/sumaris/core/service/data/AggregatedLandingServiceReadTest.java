@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * @author peck7 on 13/06/2020.
  */
-@Ignore("Use only SFA Oracle database")
+@Ignore("Use only on SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
 @Slf4j

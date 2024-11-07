@@ -24,13 +24,17 @@ package net.sumaris.core.model.referential;
 
 import lombok.NonNull;
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.IEntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Optional;
 
-@EntityEnum(entity = ProcessingType.class, resolveAttributes = {IItemReferentialEntity.Fields.LABEL})
-public enum ProcessingTypeEnum implements Serializable {
+@EntityEnum(entity = ProcessingType.class,
+    configAttributes = {IItemReferentialEntity.Fields.ID},
+    resolveAttributes = {IItemReferentialEntity.Fields.LABEL}
+)
+public enum ProcessingTypeEnum implements IEntityEnum, Serializable {
 
     DENORMALIZE_BATCH(1, "DENORMALIZE_BATCH"),
     SUMARIS_EXTRACTION(2, "SUMARIS_EXTRACTION"),

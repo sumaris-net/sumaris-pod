@@ -22,7 +22,6 @@ package net.sumaris.core.model.referential.location;
  * #L%
  */
 
-import lombok.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

@@ -69,9 +69,9 @@ import net.sumaris.core.vo.data.batch.*;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.filter.*;
-import net.sumaris.core.vo.referential.MetierVO;
-import net.sumaris.core.vo.referential.PmfmVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
+import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
@@ -1963,11 +1963,32 @@ public class DataGraphQLService {
         // Add vessel if need
         vesselGraphQLService.fillVesselSnapshot(activityCalendar, fields);
 
-        // get vessel id
-        int vesselId =  activityCalendar.getVesselId() != null ? activityCalendar.getVesselId() : activityCalendar.getVesselSnapshot().getId();
+        // Add registrationsPeriods if needed
+        fillActivityCalendarsVesselRegistrationPeriods(activityCalendar, fields);
 
+        return activityCalendar;
+    }
+
+    protected List<ActivityCalendarVO> fillActivityCalendarsFields(List<ActivityCalendarVO> activityCalendars, Set<String> fields) {
+        // Add image if need
+        fillImages(activityCalendars, fields);
+
+        // Add vessel if need
+        vesselGraphQLService.fillVesselSnapshot(activityCalendars, fields);
+
+        // Add vesselRegistrationPeriods if needed
+        activityCalendars.forEach((activityCalendar) -> fillActivityCalendarsVesselRegistrationPeriods(activityCalendar, fields));
+
+        return activityCalendars;
+    }
+
+    protected ActivityCalendarVO fillActivityCalendarsVesselRegistrationPeriods(ActivityCalendarVO activityCalendar, Set<String> fields) {
         // Add authorized locations (if need)
         if (fields.contains(StringUtils.doting(ActivityCalendarVO.Fields.VESSEL_REGISTRATION_PERIODS))) {
+
+            // get vessel id
+            int vesselId =  activityCalendar.getVesselId() != null ? activityCalendar.getVesselId() : activityCalendar.getVesselSnapshot().getId();
+
             // Load vessel registration periods
             Date startDate = Dates.getFirstDayOfYear(activityCalendar.getYear());
             Date endDate = Dates.getLastSecondOfYear(activityCalendar.getYear());
@@ -1983,8 +2004,8 @@ public class DataGraphQLService {
                     .toArray(Integer[]::new);
 
             Set<Integer> authorizedLocationIds = dataAccessControlService.getAuthorizedLocationIds(
-                    new Integer[]{activityCalendar.getProgram().getId()},
-                    registrationLocationIds).map(ArrayUtils::asSet)
+                            new Integer[]{activityCalendar.getProgram().getId()},
+                            registrationLocationIds).map(ArrayUtils::asSet)
                     .orElseThrow(UnauthorizedException::new) // TODO check if works in App, and if Forbidden is better (in app)
                     ;
 
@@ -1997,16 +2018,6 @@ public class DataGraphQLService {
         }
 
         return activityCalendar;
-    }
-
-    protected List<ActivityCalendarVO> fillActivityCalendarsFields(List<ActivityCalendarVO> activityCalendars, Set<String> fields) {
-        // Add image if need
-        fillImages(activityCalendars, fields);
-
-        // Add vessel if need
-        vesselGraphQLService.fillVesselSnapshot(activityCalendars, fields);
-
-        return activityCalendars;
     }
 
     protected boolean hasImageField(Set<String> fields) {

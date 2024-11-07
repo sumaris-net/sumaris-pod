@@ -29,7 +29,8 @@ import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.MetierFilterVO;
-import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -97,6 +98,16 @@ public class MetierRepositoryReadTest extends AbstractDaoTest {
 
     }
 
+    @Test
+    public void findByFilterLocationIds() throws ParseException {
 
+        int locationId = fixtures.getLocationCountryId(0); // FRA
+        MetierFilterVO filter = new MetierFilterVO();
+        filter.setLocationIds(new Integer[]{locationId});
+
+        List<MetierVO> metiers = metierRepository.findByFilter(filter, 0, 100, null, null);
+        Assert.assertNotNull(metiers);
+        Assert.assertTrue(CollectionUtils.isNotEmpty(metiers));
+    }
 
 }

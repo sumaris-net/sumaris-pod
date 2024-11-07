@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
 /**
  * @author peck7 on 09/04/2020.
  */
-@Ignore("Use only SFA Oracle database")
+@Ignore("Use only on SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle.properties")
 @Slf4j

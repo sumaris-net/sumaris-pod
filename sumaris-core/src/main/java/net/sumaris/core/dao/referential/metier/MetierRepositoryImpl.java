@@ -22,6 +22,7 @@ package net.sumaris.core.dao.referential.metier;
  * #L%
  */
 
+import lombok.NonNull;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
@@ -34,9 +35,9 @@ import net.sumaris.core.util.MapUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.MetierFilterVO;
-import net.sumaris.core.vo.referential.MetierVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,7 +46,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
@@ -118,7 +118,7 @@ public class MetierRepositoryImpl
                     })
                     // If join search: sort using a comparator (sort was skipped in query)
                     .sorted(sortingOutsideQuery ? Beans.naturalComparator(sortAttribute, sortDirection) : Beans.unsortedComparator())
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 
@@ -154,30 +154,28 @@ public class MetierRepositoryImpl
     /* -- protected method -- */
 
     @Override
-    protected Specification<Metier> toSpecification(IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
+    protected Specification<Metier> toSpecification(@NonNull IReferentialFilter filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
                 .and(alreadyPracticedMetier(filter))
                 .and(inGearIds(filter))
+                .and(inSpatialLocationIds(filter))
                 .and(inTaxonGroupTypeIds(filter));
     }
 
     private Specification<Metier> alreadyPracticedMetier(IReferentialFilter filter) {
-        if (!(filter instanceof MetierFilterVO)) return null;
-        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+        if (!(filter instanceof MetierFilterVO metierFilter)) return null;
 
         return alreadyPracticedMetier(metierFilter);
     }
 
     private Specification<Metier> inGearIds(IReferentialFilter filter) {
-        if (!(filter instanceof MetierFilterVO)) return null;
-        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+        if (!(filter instanceof MetierFilterVO metierFilter)) return null;
 
         return inGearIds(metierFilter.getGearIds());
     }
 
     private Specification<Metier> inTaxonGroupTypeIds(IReferentialFilter filter) {
-        if (!(filter instanceof MetierFilterVO)) return null;
-        MetierFilterVO metierFilter = (MetierFilterVO) filter;
+        if (!(filter instanceof MetierFilterVO metierFilter)) return null;
 
         return inTaxonGroupTypeIds(metierFilter.getTaxonGroupTypeIds());
     }

@@ -25,7 +25,7 @@ package net.sumaris.core.service.referential.pmfm;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.pmfm.ParameterRepository;
-import net.sumaris.core.vo.referential.ParameterVO;
+import net.sumaris.core.vo.referential.pmfm.ParameterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -28,7 +28,7 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
-import net.sumaris.core.vo.referential.MetierVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 
 import java.util.Date;
 import java.util.List;

@@ -42,7 +42,7 @@
       <column name="creation_date" type="TIMESTAMP">
         <constraints nullable="false"/>
       </column>
-      <column name="direct_survey_investigation" type="BOOLEAN">
+      <column name="direct_survey_investigation" type="INTEGER">
         <constraints nullable="false"/>
       </column>
       <column name="qualification_comments" type="VARCHAR(2000)"/>

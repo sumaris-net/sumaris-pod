@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.ActivityCalendar;
@@ -35,6 +36,9 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StreamUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -42,6 +46,7 @@ import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -103,6 +108,45 @@ public class ActivityCalendarRepositoryImpl
     }
 
     @Override
+    public List<ActivityCalendarVO> findAll(@Nullable ActivityCalendarFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, ActivityCalendarFetchOptions fetchOptions) {
+        // Fetch the page (without any distinct - see applySelect())
+        List<ActivityCalendarVO> result = super.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions);
+
+        String sortEntityProperty = sortAttribute != null ? toEntityProperty(sortAttribute) : null;
+
+        // If sort by vessel.*
+        if (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.')) {
+            int originalSize = result.size();
+
+            // Remove potential duplicates
+            // This can occur because distinct has been disabled by configureQuery() - to avoid SQL error (see issue sumaris-app#723)
+            result = Beans.removeDuplicatesById(result);
+
+            // Original page was full, check if need to fetch more
+            if (originalSize >= size) {
+
+                // Count max missing elements for this page
+                int missingSize = originalSize - result.size();
+
+                // If missing element in the page, try to complete with more elements
+                if (missingSize > 0) {
+                    // Fetch more elements (recursive call)
+                    List<ActivityCalendarVO> missingElements = findAll(filter, offset + size, missingSize, sortAttribute, sortDirection, fetchOptions);
+
+                    // Concat missing elements (if any) to the result
+                    if (CollectionUtils.isNotEmpty(missingElements)) {
+                        result = StreamUtils.concat(result.stream(), missingElements.stream())
+                            .toList();
+                    }
+                }
+            }
+        }
+
+
+        return result;
+    }
+
+    @Override
     public void toVO(ActivityCalendar source, ActivityCalendarVO target, ActivityCalendarFetchOptions fetchOptions, boolean copyIfNull) {
         super.toVO(source, target, fetchOptions, copyIfNull);
 
@@ -137,6 +181,9 @@ public class ActivityCalendarRepositoryImpl
         if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
             return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
         }
+        if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)) {
+            return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION);
+        }
         if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
             return StringUtils.doting(ActivityCalendar.Fields.VESSEL, Vessel.Fields.VESSEL_FEATURES, VesselFeatures.Fields.EXTERIOR_MARKING);
         }
@@ -147,21 +194,30 @@ public class ActivityCalendarRepositoryImpl
     }
 
     @Override
-    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<ActivityCalendar> root, CriteriaBuilder cb, String property) {
+    protected List<Expression<?>> toSortExpressions(CriteriaQuery<?> query, Root<? extends ActivityCalendar> root, CriteriaBuilder cb, String property) {
 
         Expression<?> expression = null;
 
         // Add left join on vessel registration period (VRP)
         if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-            || property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+            || property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)
+            || property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)) {
 
             ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
-            expression = vrp.get(property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)
-                ? VesselRegistrationPeriod.Fields.REGISTRATION_CODE
-                : VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
-            // Natural sort
-            if (enableVesselRegistrationNaturalOrder) {
-                expression = Daos.naturalSort(cb, expression);
+            if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)) {
+                expression = vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION).get(Location.Fields.LABEL);
+            }
+            else {
+                if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
+                    expression = vrp.get(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
+                }
+                else if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
+                    expression = vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
+                }
+                // Natural sort
+                if (enableVesselRegistrationNaturalOrder) {
+                    expression = Daos.naturalSort(cb, expression);
+                }
             }
         }
 
@@ -169,9 +225,12 @@ public class ActivityCalendarRepositoryImpl
         if (property.endsWith(VesselFeatures.Fields.NAME)
             || property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
             ListJoin<Vessel, VesselFeatures> vf = composeVfJoin(root, cb);
-            expression = vf.get(property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)
-                ? VesselFeatures.Fields.EXTERIOR_MARKING
-                : VesselFeatures.Fields.NAME);
+            if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
+                expression = vf.get(VesselFeatures.Fields.EXTERIOR_MARKING);
+            }
+            else if (property.endsWith(VesselFeatures.Fields.NAME)) {
+                expression = vf.get(VesselFeatures.Fields.NAME);
+            }
 
             // Natural sort on exterior marking
             if (enableVesselRegistrationNaturalOrder && property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
@@ -180,6 +239,14 @@ public class ActivityCalendarRepositoryImpl
         }
 
         return (expression != null) ? ImmutableList.of(expression) : super.toSortExpressions(query, root, cb, property);
+    }
+
+    @Override
+    protected <S extends ActivityCalendar> void applySelect(CriteriaQuery<S> query, Root<S> root) {
+        super.applySelect(query, root);
+
+        // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
+        query.distinct(false);
     }
 
     @Override
@@ -197,5 +264,8 @@ public class ActivityCalendarRepositoryImpl
 
             query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
         }
+
+        // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
+        query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
     }
 }
