@@ -145,7 +145,7 @@
     <jnr-ffi.version>2.2.16</jnr-ffi.version>
     <kalium.version>0.8.3</kalium.version>
     <scrypt.version>1.4.0</scrypt.version>
-    <graphql-java.version>19.3</graphql-java.version>
+    <graphql-java.version>19.11</graphql-java.version>
     <graphql-java-tools.version>13.0.2</graphql-java-tools.version>
     <graphiql-spring-boot.version>11.1.0</graphiql-spring-boot.version>
     <graphql-java-servlet.version>14.0.0</graphql-java-servlet.version>
