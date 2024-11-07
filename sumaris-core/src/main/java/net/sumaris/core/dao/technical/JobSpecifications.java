@@ -24,9 +24,9 @@ package net.sumaris.core.dao.technical;
 
 import net.sumaris.core.dao.referential.IEntityWithJoinSpecifications;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
-import net.sumaris.core.model.referential.ProcessingStatus;
 import net.sumaris.core.model.referential.ProcessingStatusEnum;
 import net.sumaris.core.model.referential.ProcessingType;
+import net.sumaris.core.model.referential.ProcessingTypeEnum;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.util.StringUtils;
@@ -39,13 +39,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.ParameterExpression;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ *
  */
 public interface JobSpecifications extends IEntityWithJoinSpecifications<Integer, ProcessingHistory> {
 
@@ -63,6 +61,9 @@ public interface JobSpecifications extends IEntityWithJoinSpecifications<Integer
     }
 
     default Specification<ProcessingHistory> hasTypes(String... types) {
+        if (ArrayUtils.isEmpty(types)) {
+            types = Arrays.stream(ProcessingTypeEnum.values()).map(ProcessingTypeEnum::getLabel).toArray(String[]::new);
+        }
         return hasInnerJoinValues(
             StringUtils.doting(ProcessingHistory.Fields.PROCESSING_TYPE, ProcessingType.Fields.LABEL),
             types);
@@ -80,6 +81,24 @@ public interface JobSpecifications extends IEntityWithJoinSpecifications<Integer
         return hasInnerJoinIds(
             ProcessingHistory.Fields.PROCESSING_STATUS,
             statusIds.toArray(new Integer[0]));
+    }
+
+    default Specification<ProcessingHistory> updatedAfter(Date updateDate) {
+        if (updateDate == null) return null;
+        return (root, query, criteriaBuilder) ->
+            criteriaBuilder.greaterThan(
+                root.get(ProcessingHistory.Fields.UPDATE_DATE),
+                criteriaBuilder.literal(updateDate)
+            );
+    }
+
+    default Specification<ProcessingHistory> startedBefore(Date startDate) {
+        if (startDate == null) return null;
+        return (root, query, criteriaBuilder) ->
+            criteriaBuilder.lessThan(
+                root.get(ProcessingHistory.Fields.PROCESSING_DATE), // fixme: seems to be an end date, not a start date
+                criteriaBuilder.literal(startDate)
+            );
     }
 
     List<JobVO> findAll(JobFilterVO filter);

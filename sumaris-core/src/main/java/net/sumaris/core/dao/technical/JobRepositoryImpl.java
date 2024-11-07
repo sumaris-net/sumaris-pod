@@ -102,6 +102,8 @@ public class JobRepositoryImpl
             .and(hasJobStatus(filter.getStatus()))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludedIds(filter.getExcludedIds()))
+            .and(updatedAfter(filter.getLastUpdateDate()))
+            .and(startedBefore(filter.getStartedBefore()))
         ;
     }
 
