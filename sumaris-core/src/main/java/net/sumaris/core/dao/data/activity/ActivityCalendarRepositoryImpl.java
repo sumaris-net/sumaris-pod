@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.data.ActivityCalendar;
@@ -35,6 +36,8 @@ import net.sumaris.core.model.data.Vessel;
 import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StreamUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -42,6 +45,7 @@ import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -100,6 +104,43 @@ public class ActivityCalendarRepositoryImpl
             .and(hasEconomicSurvey(filter.getEconomicSurvey()))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             ;
+    }
+
+    @Override
+    public List<ActivityCalendarVO> findAll(@Nullable ActivityCalendarFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection, ActivityCalendarFetchOptions fetchOptions) {
+        List<ActivityCalendarVO> result = super.findAll(filter, offset, size, sortAttribute, sortDirection, fetchOptions);
+
+        String sortEntityProperty = sortAttribute != null ? toEntityProperty(sortAttribute) : null;
+
+        // If sort by vessel, then remove potential duplicated elements
+        // This can occur because distinct has been disabled by configureQuery() - to avoid SQL error (see issue sumaris-app#723)
+        if (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.')) {
+            int originalSize = result.size();
+
+            // Remove duplicates
+            result = Beans.removeDuplicatesById(result);
+
+            // If limit was badly apply by the SGBDR, then truncate the result
+            if (result.size() > size) {
+                result = result.subList(0, size);
+                return result; // OK enough elements
+            }
+
+            int missingSize = originalSize - result.size();
+
+            // Try to complete with more elements
+            if (missingSize > 0 && originalSize >= size) {
+                List<ActivityCalendarVO> missingElements = findAll(filter, offset + originalSize, missingSize, sortAttribute, sortDirection, fetchOptions);
+                if (CollectionUtils.isNotEmpty(missingElements)) {
+
+                    return StreamUtils.concat(result.stream(), missingElements.stream())
+                        .toList();
+                }
+            }
+        }
+
+
+        return result;
     }
 
     @Override
