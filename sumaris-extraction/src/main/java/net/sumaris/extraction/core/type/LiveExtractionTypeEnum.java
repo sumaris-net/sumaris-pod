@@ -27,6 +27,7 @@ import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
+import net.sumaris.extraction.core.specification.data.observedLocation.ObservedLocationSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -56,7 +57,10 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
     RJB_TRIP(RjbTripSpecification.FORMAT, RjbTripSpecification.SHEET_NAMES, RjbTripSpecification.VERSION_1_0),
     APASE(ApaseSpecification.FORMAT, ApaseSpecification.SHEET_NAMES, ApaseSpecification.VERSION_1_0),
     ACOST(AcostSpecification.FORMAT, AcostSpecification.SHEET_NAMES, AcostSpecification.VERSION_1_0),
-    ACTIVITY_MONITORING(ActivityMonitoringSpecification.FORMAT, ActivityMonitoringSpecification.SHEET_NAMES, ActivityMonitoringSpecification.VERSION)
+    ACTIVITY_MONITORING(ActivityMonitoringSpecification.FORMAT, ActivityMonitoringSpecification.SHEET_NAMES, ActivityMonitoringSpecification.VERSION),
+
+    // ObservedLocation
+    OBSERVED_LOCATION(ObservedLocationSpecification.FORMAT, ObservedLocationSpecification.SHEET_NAMES, ObservedLocationSpecification.VERSION)
     ;
 
     private Integer id;

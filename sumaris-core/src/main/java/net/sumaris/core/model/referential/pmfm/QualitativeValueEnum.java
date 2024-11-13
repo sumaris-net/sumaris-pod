@@ -41,6 +41,8 @@ public enum QualitativeValueEnum implements Serializable, IEntityEnum {
     PRESERVATION_FRESH(332, "FRE"), // Frais - Adagio => 142
     PRESERVATION_ALIVE(338, "ALI"), // Vivant - Adagio => 148
     SIZE_CATEGORY_NONE(435, "UNS"),
+    REFUSED_SURVEY_NO(310, "REFUSED_SURVEY_NO"),
+    REFUSED_SURVEY_YES(311, "REFUSED_SURVEY_YES"),
 
     /*PACKAGING*/
     WEIGHT(399, "WEI"),

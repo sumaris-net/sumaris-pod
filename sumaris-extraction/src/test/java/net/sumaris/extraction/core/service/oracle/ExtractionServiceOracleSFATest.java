@@ -28,8 +28,8 @@ import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.extraction.core.DatabaseResource;
-import net.sumaris.extraction.core.service.AbstractServiceTest;
 import net.sumaris.extraction.core.service.ExtractionService;
+import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
@@ -40,15 +40,16 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 
 /**
  * @author peck7 on 17/12/2018.
  */
 @Slf4j
-@Ignore("Use only on SFA Oracle database")
+//@Ignore("Use only on SFA Oracle database")
 @ActiveProfiles("oracle")
 @TestPropertySource(locations = "classpath:application-oracle-sfa.properties")
-public class ExtractionServiceOracleSFATest extends AbstractServiceTest {
+public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb("oracle-sfa");
 
@@ -225,6 +226,12 @@ public class ExtractionServiceOracleSFATest extends AbstractServiceTest {
             Assert.assertTrue(!Files.exists(speciesLengthFile.toPath()) || countLineInCsvFile(speciesLengthFile) == 0);
         }
     }
+
+    @Test
+    public void executeObservedLocation() throws IOException, ParseException {
+        super.executeObservedLocationTest(null);
+    }
+
 
     /* -- protected methods -- */
 

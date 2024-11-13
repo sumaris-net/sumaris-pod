@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queries name="createObservedLocationTable">
+
+	<query type="create" temp="false" table="&amp;vesselTableName" option="DISTINCT">
+
+		<select alias="ID_OBSERVATION" type="number">OL.ID_OBSERVATION</select>
+		<select alias="PROGRAMME" type="text">max(OL.PROGRAMME)</select>
+		<select alias="DATE_DEBUT" type="date">max(OL.DATE_DEBUT)</select>
+		<select alias="DATE_FIN" type="date">max(OL.DATE_FIN)</select>
+		<select alias="PORTOBS_COD" type="text">max(OL.PORTOBS_COD)</select>
+		<select alias="PORTOBS_LIB" type="text">max(OL.PORTOBS_LIB)</select>
+		<select alias="QUARTIER_COD" type="text">max(OL.QUARTIER_COD)</select>
+		<select alias="QUARTIER_LIB" type="text">max(OL.QUARTIER_LIB)</select>
+		<select alias="ATELIER_COD" type="text">max(OL.ATELIER_COD)</select>
+		<select alias="ATELIER_LIB" type="text">max(OL.ATELIER_LIB)</select>
+
+		<select alias="NAVIRE" type="text">L.VESSEL_FK</select>
+		<select alias="IMMATRICULATION" type="text">VRP.REGISTRATION_CODE</select>
+		<select alias="TYPE_NAVIRE" type="text">max(VT.NAME)</select>
+		<select alias="DATE_DEBARQ" type="date">max(L.LANDING_DATE_TIME)</select>
+		<select alias="VESSEL_PORT_STATE" type="text">max(QV_STATE.NAME)</select>
+		<select alias="VESSEL_PORT_STATE_DESC" type="text">max(QV_STATE.DESCRIPTION)</select>
+		<select alias="DONNEE" type="text">case when (count(distinct FT.ID)>0 or count(distinct AC.ID)>0) then 'true' else 'false' end</select>
+		<select alias="NB_MAREE" type="number">count(distinct FT.ID)</select>
+		<select alias="NB_CALENDRIER" type="number">count(distinct AC.ID)</select>
+		<select alias="REFUS" type="text">case when max(SM_REFUS.QUALITATIVE_VALUE_FK)=&amp;qualitativeValueRefusedSurveyYes then 'true' else 'false' end</select>
+
+		<from alias="OL">&amp;observedLocationTableName</from>
+
+		<!-- jointure LANDING / FISHING_TRIP / DAILY_ACTIVITY_CALENDAR -->
+		<from join="true">inner join &amp;adagioSchema.LANDING L on L.OBSERVED_LOCATION_FK = OL.ID_OBSERVATION</from>
+		<from join="true">inner join &amp;adagioSchema.VESSEL V on V.CODE = L.VESSEL_FK</from>
+		<from join="true">inner join &amp;adagioSchema.VESSEL_TYPE VT on VT.ID = V.VESSEL_TYPE_FK</from>
+		<from join="true">inner join &amp;adagioSchema.VESSEL_REGISTRATION_PERIOD VRP on VRP.VESSEL_FK = L.VESSEL_FK</from>
+		<from join="true">left outer join &amp;adagioSchema.FISHING_TRIP FT on FT.ID = L.FISHING_TRIP_FK</from>
+		<from join="true">left outer join &amp;adagioSchema.DAILY_ACTIVITY_CALENDAR AC on AC.OBSERVED_LOCATION_FK = OL.ID_OBSERVATION and AC.VESSEL_FK = L.VESSEL_FK</from>
+
+		<!-- jointure SURVEY_MEASUREMENT-->
+		<from join="true">left outer join &amp;adagioSchema.SURVEY_MEASUREMENT SM_REFUS on SM_REFUS.LANDING_FK = L.ID and SM_REFUS.PMFM_FK = &amp;pmfmRefusedSurvey</from>
+		<from join="true">left outer join &amp;adagioSchema.LANDING_MEASUREMENT LM_STATE on LM_STATE.LANDING_FK = L.ID and LM_STATE.PMFM_FK = &amp;pmfmVesselPortState</from>
+		<from join="true">left outer join &amp;adagioSchema.QUALITATIVE_VALUE QV_STATE on QV_STATE.ID = LM_STATE.QUALITATIVE_VALUE_FK</from>
+
+		<where>1=1</where>
+		<where operator="AND" group="programFilter">
+			<in field="OL.PROGRAMME">&amp;programLabels</in>
+		</where>
+		<where operator="AND" group="yearFilter">
+			extract(year from OL.DATE_DEBUT) = &amp;year
+		</where>
+		<where operator="AND" group="includedIds">
+			<in field="OL.ID_OBSERVATION">&amp;includedIds</in>
+		</where>
+
+		<groupby>OL.ID_OBSERVATION</groupby>
+		<groupby>L.VESSEL_FK</groupby>
+		<groupby>VRP.REGISTRATION_CODE</groupby>
+	</query>
+
+</queries>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queries name="createObservedLocationTable">
+
+	<query type="create" temp="false" table="&amp;observedLocationTableName">
+
+		<select alias="ID_OBSERVATION" type="number">OL.ID</select>
+		<select alias="PROGRAMME" type="text">OL.PROGRAM_FK</select>
+		<select alias="DATE_DEBUT" type="date">OL.START_DATE_TIME</select>
+		<select alias="DATE_FIN" type="date">OL.END_DATE_TIME</select>
+		<select alias="PORTOBS_COD" type="text">case when LOCOBS.LOCATION_LEVEL_FK=&amp;locationLevelHarbour then LOCOBS.LABEL else null end</select>
+		<select alias="PORTOBS_LIB" type="text">case when LOCOBS.LOCATION_LEVEL_FK=&amp;locationLevelHarbour then LOCOBS.NAME else null end</select>
+		<select alias="QUARTIER_COD" type="text">LOCQ.LABEL</select>
+		<select alias="QUARTIER_LIB" type="text">LOCQ.NAME</select>
+		<select alias="ATELIER_COD" type="text">LOCR.LABEL</select>
+		<select alias="ATELIER_LIB" type="text">LOCR.NAME</select>
+		<select alias="SAISISSEUR_COD" type="text">P.EMPLOYEE_NUMBER</select>
+		<select alias="SAISISSEUR_LIB" type="text" dbms="oracle">P.LASTNAME || ' ' || P.FIRSTNAME</select>
+		<select alias="SAISISSEUR_LIB" type="text" dbms="hsqldb,pgsql">CONCAT(P.LASTNAME, ' ', P.FIRSTNAME)</select>
+		<select alias="OBSERVATEUR_COD" type="text">O.EMPLOYEE_NUMBER</select>
+		<select alias="OBSERVATEUR_LIB" type="text" dbms="oracle">O.LASTNAME || ' ' || O.FIRSTNAME</select>
+		<select alias="OBSERVATEUR_LIB" type="text" dbms="hsqldb,pgsql">CONCAT(O.LASTNAME, ' ', O.FIRSTNAME)</select>
+		<select alias="COMMENTAIRES" type="text">OL.COMMENTS</select>
+
+		<from alias="OL">&amp;adagioSchema.OBSERVED_LOCATION</from>
+		<!-- jointure LOCATION et PARENT_LOCATION -->
+		<from join="true">inner join &amp;adagioSchema.LOCATION LOCOBS on LOCOBS.ID = OL.LOCATION_FK</from>
+		<from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK = OL.LOCATION_FK</from>
+		<from join="true">inner join &amp;adagioSchema.LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK</from>
+		<from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK = OL.LOCATION_FK</from>
+		<from join="true">inner join &amp;adagioSchema.LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK</from>
+
+		<!-- jointure PERSON (recorder) -->
+		<from join="true">left outer join &amp;adagioSchema.PERSON P on P.ID = OL.RECORDER_PERSON_FK</from>
+
+		<!-- jointure PERSON (observer) -->
+		<from join="true">left outer join &amp;adagioSchema.OBSERVED_LOCATION2PERSON OL2P on OL2P.OBSERVED_LOCATION_FK = OL.ID</from>
+		<from join="true">left outer join &amp;adagioSchema.PERSON O on O.ID = OL2P.OBSERVER_PERSON_FK</from>
+
+		<where>1=1</where>
+		<where operator="AND">
+			LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelDistrict
+		</where>
+		<where operator="AND">
+			LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion
+		</where>
+		<where operator="AND" group="programFilter">
+			<in field="OL.PROGRAM_FK">&amp;programLabels</in>
+		</where>
+		<where operator="AND" group="yearFilter">
+			extract(year from OL.START_DATE_TIME) = &amp;year
+		</where>
+		<where operator="AND" group="includedIds">
+			<in field="OL.ID">&amp;includedIds</in>
+		</where>
+		<where operator="AND" group="locationFilter">
+			<in field="OL.LOCATION_FK">&amp;locationIds</in>
+		</where>
+		<where operator="AND" group="recordersFilter">
+			<in field="OL.RECORDER_PERSON_FK">&amp;recorderPersonIds</in>
+		</where>
+		<where operator="AND" group="observersFilter">
+			<in field="OL2P.OBSERVER_PERSON_FK">&amp;observerPersonIds</in>
+		</where>
+
+	</query>
+
+</queries>

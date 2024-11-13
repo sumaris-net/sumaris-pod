@@ -42,8 +42,9 @@ import net.sumaris.core.vo.technical.extraction.AggregationStrataVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductSaveOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
 import net.sumaris.extraction.core.config.ExtractionConfiguration;
-import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
+import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
+import net.sumaris.extraction.core.specification.data.observedLocation.ObservedLocationSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.type.AggExtractionTypeEnum;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
@@ -694,6 +695,48 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
         }
         return 0;
+    }
+
+    public void executeObservedLocationTest(List<ExtractionFilterCriterionVO> criteria) throws IOException, ParseException {
+        IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
+
+        if (CollectionUtils.isEmpty(criteria)) {
+            criteria = new ArrayList<>();
+            criteria.add(
+                // Program
+                ExtractionFilterCriterionVO.builder()
+                    .name(ObservedLocationSpecification.COLUMN_PROJECT)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value(ProgramEnum.SIH_OBSDEB.getLabel())
+                    .build());
+            criteria.add(
+                // Year
+                ExtractionFilterCriterionVO.builder()
+                    .name(ObservedLocationSpecification.COLUMN_YEAR)
+                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                    .value("2023")
+                    .build()
+            );
+        }
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .sheetName(ObservedLocationSpecification.OL_SHEET_NAME)
+                .criteria(criteria)
+                .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, null);
+            Assert.assertTrue(outputFile.exists());
+
+            File root = unpack(outputFile, type);
+
+            // AM.csv
+            File monitoringFile = new File(root, ObservedLocationSpecification.OL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+
+        } catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
     }
 
 

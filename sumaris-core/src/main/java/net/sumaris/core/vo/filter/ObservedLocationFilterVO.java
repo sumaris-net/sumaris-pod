@@ -58,6 +58,10 @@ public class ObservedLocationFilterVO implements IRootDataFilter {
     private Integer samplingStrataId;
     private Integer[] samplingStrataIds;
 
+    private Integer[] excludedIds;
+    private Integer[] includedIds;
+    private Integer observedLocationId;
+
     // Quality
     private Integer[] qualityFlagIds;
     private DataQualityStatusEnum[] dataQualityStatus;

@@ -145,6 +145,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     STRATEGY_LABEL(359, "STRATEGY_LABEL"),
 
+    VESSEL_PORT_STATE(265, "VESSEL_PORT_STATE"),
     REFUSED_SURVEY(266, "REFUSED_SURVEY"),
     GPS_USED(188, "GPS_USED"),
 

@@ -41,6 +41,8 @@ public enum LocationLevelEnum implements Serializable {
     SQUARE_10(6, "SQUARE_10"), // 10' x 10'
     SQUARE_3(7, "SQUARE_3"), // 3' x 3'
 
+    REGION(31, "Region"),
+    DISTRICT(32, "District"),
 
     AREA_FAO(101, "FAO_AREA"),  // Zone FAO
     SUB_AREA_ICES(110, "ICES_SUB_AREA"), // Sous-zone CIEM (=ICES)
