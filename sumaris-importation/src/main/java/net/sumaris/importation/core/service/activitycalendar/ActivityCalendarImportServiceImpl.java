@@ -119,6 +119,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
         try {
             // Init progression model
+            progressionModel.setTotal(1);
             progressionModel.setMessage(t("sumaris.import.start", context.getProcessingFile().getName()));
             PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
             File tempFile = null;
