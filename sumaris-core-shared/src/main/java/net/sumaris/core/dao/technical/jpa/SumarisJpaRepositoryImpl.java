@@ -90,7 +90,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
 
     private boolean debugEntityLoad = false;
     private boolean checkUpdateDate = true;
-    private boolean hasIdGenerator = true;
+    private boolean hasIdGenerator;
     private boolean publishEvent = false;
     private boolean lockForUpdate = false;
     private LockModeType lockForUpdateMode;
@@ -209,7 +209,7 @@ public abstract class SumarisJpaRepositoryImpl<E extends IEntity<ID>, ID extends
         Preconditions.checkNotNull(vo);
         E entity;
         if (vo.getId() != null) {
-            if (hasIdGenerator) {
+            if (hasIdGenerator()) {
                 entity = getById(vo.getId());
             }
             else {
