@@ -98,6 +98,7 @@ public class PersonServiceImpl implements PersonService {
 	}
 
 	@Override
+	@Cacheable(cacheNames = CacheConfiguration.Names.PERSON_COUNT_BY_FILTER, condition = "#filter != null", key = "#filter.hashCode()")
 	public Long countByFilter(PersonFilterVO filter) {
 		return personRepository.countByFilter(PersonFilterVO.nullToEmpty(filter));
 	}
@@ -141,7 +142,7 @@ public class PersonServiceImpl implements PersonService {
 		List<PersonVO> matches = findByFilter(
 			PersonFilterVO.builder()
 				.email(email)
-				.build(), Pageable.unpaged()).getContent();
+				.build(), 0, 1, null, null);
 		if (CollectionUtils.size(matches) != 1) throw new DataNotFoundException(I18n.t("sumaris.error.person.notFound"));
 		return matches.get(0);
 	}

@@ -44,6 +44,7 @@ public class PersonFilterVO implements IReferentialFilter {
     private Integer id;
     private String label;
     private String name;
+    private String fullName;
 
     private Integer[] statusIds;
     private Integer[] levelIds;

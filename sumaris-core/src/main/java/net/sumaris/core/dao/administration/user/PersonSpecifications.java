@@ -140,8 +140,9 @@ public interface PersonSpecifications extends ReferentialSpecifications<Integer,
         }).addBind(LAST_NAME_PARAMETER, lastName.toUpperCase());
     }
 
-    default Specification<Person> hastFullName(String fullName) {
+    default Specification<Person> hasFullName(String fullName) {
         if (fullName == null) return null;
+
         // Search by concatenation of last name and first name
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<String> searchTextParam = cb.parameter(String.class, FULL_NAME_PARAMETER);
