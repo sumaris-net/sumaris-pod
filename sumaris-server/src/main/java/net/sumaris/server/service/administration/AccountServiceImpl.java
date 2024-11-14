@@ -289,7 +289,7 @@ public class AccountServiceImpl implements AccountService {
             if (valid) {
                 // Mark account status as valid
                 account.setStatusId(StatusEnum.ENABLE.getId());
-
+                account.setProfiles(Lists.newArrayList(UserProfileEnum.USER.label));
                 // Save account
                 personService.save(account);
             }
