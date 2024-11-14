@@ -279,10 +279,13 @@ public class ReferentialDaoImpl
 
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_ITEMS_BY_FILTER, key = "#entityName"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_ITEMS_BY_FILTER, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_COUNT_BY_FILTER, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, allEntries = true, condition = "#entityName == 'Person'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Person'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_COUNT_BY_FILTER, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, allEntries = true, condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_LABEL, allEntries = true, condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.EXPERTISE_AREAS_ENABLED, allEntries = true, condition = "#entityName == 'ExpertiseArea'"),

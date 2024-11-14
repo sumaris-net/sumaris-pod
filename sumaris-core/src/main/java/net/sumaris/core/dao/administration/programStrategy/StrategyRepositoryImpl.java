@@ -1003,19 +1003,6 @@ public class StrategyRepositoryImpl
         }
     }
 
-    protected void configureQuery(TypedQuery<Strategy> query, net.sumaris.core.dao.technical.Page page, @Nullable StrategyFetchOptions fetchOptions) {
-        super.configureQuery(query, page, fetchOptions);
-
-        if (page == null) {
-            // Prepare load graph
-            EntityManager em = getEntityManager();
-            if (fetchOptions != null && (fetchOptions.isWithPmfms() || fetchOptions.isWithDenormalizedPmfms())) {
-                EntityGraph<?> entityGraph = em.getEntityGraph(Strategy.GRAPH_PMFMS);
-                query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
-            }
-        }
-    }
-
     protected void saveProperties(Map<String, String> source, Strategy parent, Date updateDate) {
         final EntityManager em = getEntityManager();
         if (MapUtils.isEmpty(source)) {
@@ -1070,4 +1057,18 @@ public class StrategyRepositoryImpl
 
         }
     }
+
+    protected void configureQuery(TypedQuery<Strategy> query, @Nullable net.sumaris.core.dao.technical.Page page, @Nullable StrategyFetchOptions fetchOptions) {
+        super.configureQuery(query, page, fetchOptions);
+
+        if (page == null) {
+            // Prepare load graph
+            EntityManager em = getEntityManager();
+            if (fetchOptions != null && (fetchOptions.isWithPmfms() || fetchOptions.isWithDenormalizedPmfms())) {
+                EntityGraph<?> entityGraph = em.getEntityGraph(Strategy.GRAPH_PMFMS);
+                query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
+            }
+        }
+    }
+
 }

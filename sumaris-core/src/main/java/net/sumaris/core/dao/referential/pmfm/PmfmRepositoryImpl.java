@@ -49,6 +49,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
+import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.*;
@@ -178,12 +179,18 @@ public class PmfmRepositoryImpl
         }
 
         // Unit symbol
-        Unit unit = source.getUnit();
-        if (unit != null && unit.getId() != null) {
-            target.setUnitId(unit.getId());
-            if (!Objects.equals(UnitEnum.NONE.getId(), unit.getId())) {
-                target.setUnitLabel(unit.getLabel());
+        if (type != PmfmValueType.QUALITATIVE_VALUE) {
+            Unit unit = source.getUnit();
+            if (unit != null && unit.getId() != null) {
+                target.setUnitId(unit.getId());
+                if (!Objects.equals(UnitEnum.NONE.getId(), unit.getId())) {
+                    target.setUnitLabel(unit.getLabel());
+                }
             }
+        }
+        else {
+            // Avoid to fetch unit, if pmfm has a qualitative value type
+            target.setUnitLabel(null);
         }
 
         // Qualitative values: from pmfm first, or (if empty) from parameter
@@ -206,6 +213,7 @@ public class PmfmRepositoryImpl
                 }
             }
             else {
+                // Avoid qualitative values if not need
                 target.setQualitativeValues(null);
             }
         }
@@ -313,12 +321,34 @@ public class PmfmRepositoryImpl
     }
 
     @Override
-    protected void configureQuery(TypedQuery<Pmfm> query, Page page, @Nullable PmfmFetchOptions fetchOptions) {
+    protected void configureQuery(TypedQuery<Pmfm> query, @Nullable Page page, @Nullable PmfmFetchOptions fetchOptions) {
         super.configureQuery(query, page, fetchOptions);
+        EntityManager em = getEntityManager();
 
-        // Fetch all pmfms (if no page)
-        if (page == null && fetchOptions != null && fetchOptions.isWithQualitativeValue()) {
-            query.setHint(QueryHints.HINT_LOADGRAPH, getEntityManager().getEntityGraph(Pmfm.GRAPH_QUALITATIVE_VALUES));
+        // Fetch all pmfm (if no page)
+        if (page == null) {
+            if (fetchOptions != null && fetchOptions.isWithQualitativeValue()) {
+                EntityGraph<?> entityGraph = em.getEntityGraph(Pmfm.GRAPH_QUALITATIVE_VALUES);
+
+                entityGraph.addSubgraph(Pmfm.Fields.PARAMETER);
+                entityGraph.addSubgraph(Pmfm.Fields.MATRIX);
+                entityGraph.addSubgraph(Pmfm.Fields.FRACTION);
+                entityGraph.addSubgraph(Pmfm.Fields.METHOD);
+                entityGraph.addSubgraph(Pmfm.Fields.UNIT);
+
+                query.setHint(QueryHints.HINT_FETCHGRAPH, entityGraph);
+            }
+        }
+        else if (fetchOptions != null && fetchOptions.isWithInheritance()) {
+                EntityGraph<?> entityGraph = em.createEntityGraph(Pmfm.class);
+
+                entityGraph.addSubgraph(Pmfm.Fields.PARAMETER);
+                entityGraph.addSubgraph(Pmfm.Fields.MATRIX);
+                entityGraph.addSubgraph(Pmfm.Fields.FRACTION);
+                entityGraph.addSubgraph(Pmfm.Fields.METHOD);
+                entityGraph.addSubgraph(Pmfm.Fields.UNIT);
+
+                query.setHint(QueryHints.HINT_FETCHGRAPH, entityGraph);
         }
     }
 }

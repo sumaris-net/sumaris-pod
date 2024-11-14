@@ -54,7 +54,7 @@ import java.util.Set;
 @Cacheable
 public class Strategy implements IItemReferentialEntity<Integer> {
 
-    public static final String GRAPH_PMFMS = "Strategy.pmfm";
+    public static final String GRAPH_PMFMS = "Strategy.pmfms";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "STRATEGY_SEQ")
