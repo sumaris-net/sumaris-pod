@@ -219,6 +219,12 @@ public class PersonRepositoryImpl
             @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_USERNAME, key="#source.usernameExtranet", condition = "#source.id != null && #source.usernameExtranet != null")
         })
     public PersonVO save(PersonVO source) {
+        if (source.getId() == null) {
+            log.debug("Creating person (email: {}, username: {}, usernameExtranet: {})", source.getEmail(), source.getUsername(), source.getUsernameExtranet());
+        }
+        else {
+            log.debug("Updating person (id: {})", source.getId());
+        }
         return super.save(source);
     }
 
