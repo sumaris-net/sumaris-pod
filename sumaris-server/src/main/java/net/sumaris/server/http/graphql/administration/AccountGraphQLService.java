@@ -243,7 +243,9 @@ public class AccountGraphQLService {
             @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") Integer intervalInSecond
     ) {
 
-        Integer personId = authService.getAuthenticatedUserId().orElseThrow(() -> new AccessDeniedException("Forbidden"));
+        Integer personId = authService.getAuthenticatedUserId()
+            // After a first successful auth, user can be disconnected - see sumaris-app#787
+            .orElseThrow(() -> new AccessDeniedException("Forbidden"));
         Preconditions.checkArgument(personId >= 0, "Invalid user id");
         return entityWatchService.watchEntity(Person.class, AccountVO.class, personId, intervalInSecond, true)
             .toFlowable(BackpressureStrategy.LATEST);
