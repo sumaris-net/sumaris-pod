@@ -140,7 +140,8 @@ public class ActivityCalendarRepositoryImpl
 
                     // Concat missing elements (if any) to the result
                     if (CollectionUtils.isNotEmpty(missingElements)) {
-                        result = StreamUtils.concat(result.stream(), missingElements.stream())
+                        final List<ActivityCalendarVO> finalResult = result;
+                        result = StreamUtils.concat(finalResult.stream(), missingElements.stream().filter(e -> !finalResult.contains(e)))
                             .toList();
                     }
                 }
