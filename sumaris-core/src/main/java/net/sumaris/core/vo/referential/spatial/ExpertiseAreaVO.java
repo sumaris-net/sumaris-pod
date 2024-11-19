@@ -36,6 +36,7 @@ import java.util.List;
 public class ExpertiseAreaVO extends ReferentialVO {
 
     private List<ReferentialVO> locations;
+    private List<ReferentialVO> locationLevels;
 
     public ExpertiseAreaVO() {
         this.setEntityName(ExpertiseArea.ENTITY_NAME);

@@ -216,6 +216,7 @@
 
     <!-- v3.1 = ObsVentes and ObsMer-->
     <include relativeToChangelogFile="true" file="db-changelog-3.1.0.xml"/>
+    <include relativeToChangelogFile="true" file="db-changelog-3.1.1.xml"/>
 
     <!-- Refresh schema objects (functions, procedures, triggers, ...) -->
     <include relativeToChangelogFile="true" file="db-changelog-refresh.xml"/>

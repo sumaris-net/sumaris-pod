@@ -44,6 +44,7 @@ import net.sumaris.core.model.administration.samplingScheme.DenormalizedSampling
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.spatial.ExpertiseArea;
@@ -1086,6 +1087,11 @@ public class ReferentialDaoImpl
                     // Locations
                     .put(ExpertiseArea.Fields.LOCATIONS, Beans.getStream(((ExpertiseArea)source).getLocations())
                         .map(location -> this.toVO(Location.ENTITY_NAME, location, locationFetchOptions))
+                        .toList()
+                    )
+                    // Location Levels
+                    .put(ExpertiseArea.Fields.LOCATION_LEVELS, Beans.getStream(((ExpertiseArea)source).getLocationLevels())
+                        .map(locationLevel -> this.toVO(LocationLevel.ENTITY_NAME, locationLevel, locationFetchOptions))
                         .toList()
                     )
                     .build()
