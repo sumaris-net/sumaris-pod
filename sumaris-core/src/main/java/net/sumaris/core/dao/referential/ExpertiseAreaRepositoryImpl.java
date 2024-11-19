@@ -64,6 +64,12 @@ public class ExpertiseAreaRepositoryImpl
             } else if (copyIfNull) {
                 target.setLocations(null);
             }
+            if (CollectionUtils.isNotEmpty(source.getLocationLevels())) {
+                List<ReferentialVO> locationLevels = Beans.transformCollection(source.getLocationLevels(), referentialDao::toVO);
+                target.setLocationLevels(locationLevels);
+            } else if (copyIfNull) {
+                target.setLocationLevels(null);
+            }
         }
     }
 }
