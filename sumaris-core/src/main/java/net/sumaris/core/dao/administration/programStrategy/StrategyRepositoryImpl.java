@@ -755,7 +755,7 @@ public class StrategyRepositoryImpl
         // Properties
         if (fetchOptions.isWithProperties()) {
             Map<String, String> properties = Maps.newHashMap();
-            Beans.getStream(source.getProperties())
+            this.getPropertiesByStrategyId(source.getId())
                 .filter(prop -> Objects.nonNull(prop)
                     && Objects.nonNull(prop.getLabel())
                     && Objects.nonNull(prop.getName())
@@ -1082,5 +1082,27 @@ public class StrategyRepositoryImpl
             }
 
         }
+    }
+
+    protected Stream<SoftwareProperty> getPropertiesByStrategyId(int strategyId) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<SoftwareProperty> query = builder.createQuery(SoftwareProperty.class);
+        Root<SoftwareProperty> root = query.from(SoftwareProperty.class);
+
+        ParameterExpression<Integer> strategyIdParam = builder.parameter(Integer.class);
+
+        Join<SoftwareProperty, ObjectType> objectTypeJoin = root.join(SoftwareProperty.Fields.OBJECT_TYPE);
+
+        query.select(root)
+                .where(
+                        builder.and(
+                                builder.equal(root.get(SoftwareProperty.Fields.OBJECT_ID), strategyIdParam),
+                                builder.equal(objectTypeJoin.get(ObjectType.Fields.LABEL), ObjectTypeEnum.STRATEGY.getLabel())
+                        )
+                );
+
+        return getEntityManager().createQuery(query)
+                .setParameter(strategyIdParam, strategyId)
+                .getResultStream();
     }
 }

@@ -211,7 +211,7 @@ public class ProgramRepositoryImpl
         // properties
         if (fetchOptions.isWithProperties()) {
             Map<String, String> properties = Maps.newHashMap();
-            Beans.getStream(source.getProperties())
+            this.getPropertiesByProgramId(source.getId())
                 .filter(prop -> Objects.nonNull(prop)
                     && Objects.nonNull(prop.getLabel())
                     && Objects.nonNull(prop.getName())
@@ -597,6 +597,28 @@ public class ProgramRepositoryImpl
             }
 
         }
+    }
+
+    protected Stream<SoftwareProperty> getPropertiesByProgramId(int programId) {
+        CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
+        CriteriaQuery<SoftwareProperty> query = builder.createQuery(SoftwareProperty.class);
+        Root<SoftwareProperty> root = query.from(SoftwareProperty.class);
+
+        ParameterExpression<Integer> programIdParam = builder.parameter(Integer.class);
+
+        Join<SoftwareProperty, ObjectType> objectTypeJoin = root.join(SoftwareProperty.Fields.OBJECT_TYPE);
+
+        query.select(root)
+                .where(
+                        builder.and(
+                                builder.equal(root.get(SoftwareProperty.Fields.OBJECT_ID), programIdParam),
+                                builder.equal(objectTypeJoin.get(ObjectType.Fields.LABEL), ObjectTypeEnum.PROGRAM.getLabel())
+                        )
+                );
+
+        return getEntityManager().createQuery(query)
+                .setParameter(programIdParam, programId)
+                .getResultStream();
     }
 
     protected List<ProgramDepartmentVO> getDepartments(Program source) {
