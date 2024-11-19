@@ -300,6 +300,15 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                                 });
                         }
                         break;
+                    case ActivityMonitoringSpecification.COLUMN_VESSEL_TYPE_ID:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            if (criterion.getValue() != null) {
+                                target.setVesselTypeId(Integer.parseInt(criterion.getValue()));
+                                criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                                criterion.setValue(null);
+                            }
+                        }
+                        break;
                     case ActivityMonitoringSpecification.COLUMN_OBSERVER_NAME:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setObserverPersonIds(
@@ -646,6 +655,15 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
             xmlQuery.setGroup("vesselFilter", enableFilter);
             xmlQuery.setGroup("!vesselFilter", !enableFilter);
             if (enableFilter) xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(vesselIds));
+        }
+
+        // Vessel type
+        {
+            Integer vesselTypeId = context.getVesselTypeId();
+            boolean enableFilter = vesselTypeId != null;
+            xmlQuery.setGroup("vesselTypeFilter", enableFilter);
+            xmlQuery.setGroup("!vesselTypeFilter", !enableFilter);
+            if (enableFilter) xmlQuery.bind("vesselTypeId", Daos.getSqlInNumbers(vesselTypeId));
         }
 
         // Observers
