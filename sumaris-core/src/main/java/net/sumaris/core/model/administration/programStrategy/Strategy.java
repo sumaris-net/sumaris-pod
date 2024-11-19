@@ -122,7 +122,6 @@ public class Strategy implements IItemReferentialEntity<Integer> {
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = SoftwareProperty.class, cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JoinColumn(name = "object_id")
-    @Where(clause = "object_type_fk = (select ot.id from object_type ot where ot.label = 'STRATEGY')")
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SoftwareProperty> properties = new ArrayList<>();
 
