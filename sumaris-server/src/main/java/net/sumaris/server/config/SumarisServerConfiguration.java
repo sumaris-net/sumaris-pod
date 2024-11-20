@@ -25,6 +25,7 @@ package net.sumaris.server.config;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.server.http.security.AuthTokenTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.config.ApplicationConfig;
@@ -180,6 +181,10 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
      */
     public String getRegistrationConfirmUrlPattern() {
         return applicationConfig.getOption(SumarisServerConfigurationOption.REGISTRATION_CONFIRM_URL.getKey());
+    }
+
+    public UserProfileEnum getConfirmedUserProfile() {
+        return applicationConfig.getOption(UserProfileEnum.class, SumarisServerConfigurationOption.REGISTRATION_CONFIRM_USER_PROFILE.getKey());
     }
 
     public String getResetPasswordUrlPattern() {
