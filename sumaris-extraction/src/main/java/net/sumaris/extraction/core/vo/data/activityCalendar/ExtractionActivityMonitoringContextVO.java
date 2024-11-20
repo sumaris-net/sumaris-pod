@@ -84,8 +84,8 @@ public class ExtractionActivityMonitoringContextVO extends ExtractionContextVO {
         return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getVesselIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
     }
 
-    public Integer getVesselTypeId() {
-        return this.getActivityCalendarFilter() != null ? this.getActivityCalendarFilter().getVesselTypeId() : null;
+    public List<Integer> getVesselTypeIds() {
+        return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getVesselTypeIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
     }
 
     public List<Integer> getObserverPersonIds() {

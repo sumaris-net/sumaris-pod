@@ -74,8 +74,9 @@
         <from join="true" group="!adagio">INNER JOIN PROGRAM P on P.ID = AC.PROGRAM_FK</from>
         <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.PROGRAM P on P.CODE = AC.PROGRAM_FK</from>
 
-        <from join="true">INNER JOIN SIH2_ADAGIO_DBA.VESSEL VS ON AC.VESSEL_FK = VS.CODE</from>
-        <from join="true">INNER JOIN SIH2_ADAGIO_DBA.VESSEL_TYPE VT ON VS.VESSEL_TYPE_FK = VT.ID</from>
+        <from join="true" group="vesselTypeFilter,!adagio">INNER JOIN VESSEL VS ON AC.VESSEL_FK = VS.ID</from>
+        <from join="true" group="vesselTypeFilter,adagio">INNER JOIN &amp;adagioSchema.VESSEL VS ON AC.VESSEL_FK = VS.CODE</from>
+        <from join="true" group="vesselTypeFilter">INNER JOIN VESSEL_TYPE VT ON VS.VESSEL_TYPE_FK = VT.ID</from>
 
         <from join="true">LEFT OUTER JOIN ACTIVITY_CALENDAR2PERSON AC2P ON AC2P.ACTIVITY_CALENDAR_FK = AC.ID</from>
         <from join="true">LEFT OUTER JOIN PERSON OBSERVER ON OBSERVER.ID = AC2P.PERSON_FK</from>
@@ -161,7 +162,7 @@
             <in field="AC.VESSEL_FK">&amp;vesselIds</in>
         </where>
         <where group="vesselTypeFilter" operator="AND">
-            <in field="VT.ID">&amp;vesselTypeId</in>
+            <in field="VT.ID">&amp;vesselTypeIds</in>
         </where>
         <where group="vesselFilter,adagio" operator="AND">
             <in field="V.ID">&amp;vesselIds</in>
