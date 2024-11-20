@@ -88,8 +88,7 @@ public class Program implements IItemReferentialEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<Strategy> strategies = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, targetEntity = SoftwareProperty.class)
-    @JoinColumn(name = "object_id")
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = SoftwareProperty.class, mappedBy = SoftwareProperty.Fields.OBJECT_ID)
     @Cascade(org.hibernate.annotations.CascadeType.DELETE)
     private List<SoftwareProperty> properties = new ArrayList<>();
 
