@@ -38,6 +38,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.IRootDataVO;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.security.AuthService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.event.EventListener;
@@ -64,7 +65,7 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
 
     private ImmutableList<Integer> writeProgramPrivilegeIds = ProgramPrivilegeUtils.getWriteIds();
 
-    private String accessNotSelfDataMinRole = "ROLE_ADMIN";
+    private String accessNotSelfDataMinRole = SumarisServerConfigurationOption.ACCESS_NOT_SELF_DATA_MIN_ROLE.getDefaultValue();
 
     protected final SumarisServerConfiguration configuration;
 
