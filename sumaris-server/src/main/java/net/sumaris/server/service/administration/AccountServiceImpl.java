@@ -43,6 +43,7 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.social.UserEventService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.I18nUtil;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.crypto.CryptoUtils;
@@ -85,6 +86,7 @@ public class AccountServiceImpl implements AccountService {
     private final UserEventService userEventService;
 
     private String serverUrl;
+    private UserProfileEnum confirmedUserProfile;
 
     public AccountServiceImpl(SumarisServerConfiguration serverConfiguration,
                               PersonService personService,
@@ -112,6 +114,9 @@ public class AccountServiceImpl implements AccountService {
     public void onConfigurationReady(ConfigurationEvent event) {
         // Get server URL
         serverUrl = configuration.getServerUrl();
+
+        // Get the default
+        confirmedUserProfile = configuration.getConfirmedUserProfile();
     }
 
     @Override
@@ -177,7 +182,7 @@ public class AccountServiceImpl implements AccountService {
             account.setStatusId(StatusEnum.TEMPORARY.getId());
         }
 
-        // Set default profile
+        // Set default profile as guest (will be changed later, when received the email confirmation)
         account.setProfiles(Lists.newArrayList(UserProfileEnum.GUEST.label));
 
         // Normalize email
@@ -289,6 +294,17 @@ public class AccountServiceImpl implements AccountService {
             if (valid) {
                 // Mark account status as valid
                 account.setStatusId(StatusEnum.ENABLE.getId());
+
+                // Set confirmed user profile (instead of GUEST)
+                if (confirmedUserProfile != UserProfileEnum.GUEST) {
+                    List<String> actualProfiles = Beans.getList(account.getProfiles());
+                    // Process only if no profiles, or if profiles was still GUEST
+                    // (e.g. keep any other profiles, given by the admin BEFORE received the email confirmation)
+                    if (CollectionUtils.isEmpty(actualProfiles) || (
+                        actualProfiles.size() == 1 && actualProfiles.contains(UserProfileEnum.GUEST.label))) {
+                        account.setProfiles(Lists.newArrayList(confirmedUserProfile.label));
+                    }
+                }
 
                 // Save account
                 personService.save(account);
