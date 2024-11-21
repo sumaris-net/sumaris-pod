@@ -89,7 +89,6 @@ public class ExtractionTypeFilterVO implements IReferentialFilter {
     private Integer[] includedIds;
     private Integer[] excludedIds;
 
-
     private Boolean isSpatial;
 
     public String getCategory() {

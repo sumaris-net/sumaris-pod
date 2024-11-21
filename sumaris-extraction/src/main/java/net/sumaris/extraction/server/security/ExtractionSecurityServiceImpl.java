@@ -22,34 +22,30 @@ package net.sumaris.extraction.server.security;
  * #L%
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.model.technical.extraction.ExtractionCategoryEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.core.service.social.UserEventService;
-import net.sumaris.core.service.technical.JobService;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductFetchOptions;
 import net.sumaris.core.vo.technical.extraction.ExtractionProductVO;
+import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.service.ExtractionProductService;
 import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.util.ExtractionTypes;
-import net.sumaris.core.vo.technical.extraction.ExtractionTypeFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import net.sumaris.server.security.ISecurityContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.event.EventListener;
@@ -115,7 +111,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
         // Get extraction type recorder
         PersonVO user = getAuthenticatedUser().orElse(null);
-        if (user == null) throw new UnauthorizedException("User not login");
+        if (user == null) throw new UnauthorizedException("User not login or guest");
 
         if (!(type instanceof IWithRecorderPersonEntity)) {
             log.warn("Invalid ExtractionType class: {}. Should implement IWithRecorderPersonEntity.class", type.getClass().getSimpleName());
@@ -149,7 +145,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
         // Get extraction type recorder
         PersonVO user = getAuthenticatedUser().orElse(null);
-        if (user == null) throw new UnauthorizedException("User not login");
+        if (user == null) throw new UnauthorizedException("User not login or guest");
 
         // OK if same issuer
         Integer recorderPersonId = type.getRecorderPerson() != null ? type.getRecorderPerson().getId() : null;
@@ -170,7 +166,11 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
 
     @Override
     public Optional<PersonVO> getAuthenticatedUser() {
-        return securityContext.getAuthenticatedUser();
+        return securityContext.getAuthenticatedUser().flatMap(user -> {
+            if (securityContext.isUser()) return Optional.of(user);
+            // Guest not allow
+            return Optional.empty();
+        });
     }
 
     @Override
@@ -181,7 +181,6 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
         if (canReadAll()) return result;
 
         return getAuthenticatedUser()
-
             // Known user: restrict to self data - issue #199
             .map(user -> {
                 result.setRecorderPersonId(user.getId());
@@ -189,7 +188,7 @@ public class ExtractionSecurityServiceImpl implements ExtractionSecurityService 
                 return result;
             })
 
-            // Anonymous user: limit to public extraction
+            // Anonymous or guest user: limit to public extraction
             .orElseGet(() -> {
                 result.setCategory(ExtractionCategoryEnum.PRODUCT.name());
                 result.setStatusIds(new Integer[]{StatusEnum.ENABLE.getId()});

@@ -39,6 +39,7 @@ import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.importation.core.service.activitycalendar.ActivityCalendarImportService;
 import net.sumaris.importation.core.service.activitycalendar.vo.ActivityCalendarImportContextVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -72,6 +73,7 @@ public class ActivityCalendarImportGraphQLService {
 
 
     @GraphQLQuery(name = "importActivityCalendars", description = "Import a list of activity calendar from a CSV file")
+    @IsUser
     public JobVO importActivityCalendars(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 

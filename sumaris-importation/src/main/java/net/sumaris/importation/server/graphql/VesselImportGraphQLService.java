@@ -36,6 +36,7 @@ import net.sumaris.core.vo.technical.job.JobVO;
 import net.sumaris.importation.core.service.vessel.SiopVesselsImportService;
 import net.sumaris.importation.core.service.vessel.vo.SiopVesselImportContextVO;
 import net.sumaris.server.http.graphql.GraphQLApi;
+import net.sumaris.server.http.security.IsAdmin;
 import net.sumaris.server.security.IFileController;
 import net.sumaris.server.security.ISecurityContext;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -68,6 +69,7 @@ public class VesselImportGraphQLService {
     }
 
     @GraphQLQuery(name = "importSiopVessels", description = "Import vessels from a SIOP file")
+    @IsAdmin
     public JobVO importSiopVessels(@GraphQLArgument(name = "fileName") String fileName) {
         Preconditions.checkNotNull(fileName, "Argument 'fileName' must not be null.");
 
