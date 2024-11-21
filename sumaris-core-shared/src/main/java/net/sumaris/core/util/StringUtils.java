@@ -80,7 +80,20 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     }
 
     public static String removeTrailingSlash(String path) {
-        return path != null && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+        return removeTrailing(path, "/");
+    }
+
+    public static String removeTrailing(String path, String suffix) {
+        return path != null && path.endsWith(suffix) ? path.substring(0, path.length() - 1) : path;
+    }
+
+    public static String addTrailingIfNotBlank(String value, String suffix) {
+        if (isBlank(value)) return value;
+        return addTrailing(value, suffix);
+    }
+
+    public static String addTrailing(String value, String suffix) {
+        return value == null || value.endsWith(suffix) ? value : value + suffix;
     }
 
     /**

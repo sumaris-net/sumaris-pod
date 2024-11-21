@@ -25,6 +25,7 @@ package net.sumaris.core.model.annotation;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IModel;
@@ -32,12 +33,14 @@ import net.sumaris.core.util.StringUtils;
 import org.reflections.Reflections;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Helper class for enumerations
  */
+@Slf4j
 public final class OntologyEntities {
 
 
@@ -48,7 +51,17 @@ public final class OntologyEntities {
     public static Set<Class<?>> getOntologyEntityClasses(SumarisConfiguration config) {
 
         // Add annotations entities
-        Reflections reflections = (config != null && config.isProduction() ? Reflections.collect() : new Reflections(IModel.MODEL_PACKAGE_NAME));
+        Reflections reflections = null;
+        // Try to use saved reflexions file from classpath
+        if (config != null && config.isProduction()) {
+            reflections = Reflections.collect();
+            if (reflections == null) {
+                log.warn("Reflections.collect() in production mode returned null. Fallback to default scanner");
+            }
+        }
+        // Or use reflexions scanner
+        reflections = Optional.ofNullable(reflections).orElse(new Reflections(IModel.MODEL_PACKAGE_NAME));
+
         return reflections.getTypesAnnotatedWith(OntologyEntity.class);
     }
 
