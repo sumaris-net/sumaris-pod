@@ -95,8 +95,10 @@ public class RdfConfiguration  {
         String modelPrefix = getApplicationConfig().getOption(RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey());
         Preconditions.checkNotNull(modelPrefix, String.format("Missing configuration option {%s}", RdfConfigurationOption.RDF_MODEL_BASE_URI.getKey()));
 
-        if (modelPrefix.endsWith("#")) modelPrefix = modelPrefix.substring(0, modelPrefix.length() -1); // Remove last '#'
-        if (!modelPrefix.endsWith("/")) modelPrefix += "/"; // Add trailing slash
+        // Remove last '#'
+        if (modelPrefix.endsWith("#")) modelPrefix = modelPrefix.substring(0, modelPrefix.length() -1);
+        // Add trailing slash
+        if (!modelPrefix.endsWith("/")) modelPrefix += "/";
 
         // Add to cache
         this.cachedModelBaseUri = modelPrefix;

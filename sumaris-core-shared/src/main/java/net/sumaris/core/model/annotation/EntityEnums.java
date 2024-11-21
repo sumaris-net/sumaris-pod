@@ -29,6 +29,7 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
+import net.sumaris.core.model.IModel;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,7 +50,6 @@ public final class EntityEnums {
 
     public static final int UNRESOLVED_ENUMERATION_ID = -1;
 
-    public static final String MODEL_PACKAGE_NAME = "net.sumaris.core.model";
     public static final String DESCRIPTION_PROPERTY_PREFIX = "sumaris.config.option.enumeration.";
 
     private EntityEnums() {
@@ -68,7 +68,7 @@ public final class EntityEnums {
             }
         }
         // Or use reflexions scanner
-        reflections = Optional.ofNullable(reflections).orElse(new Reflections(MODEL_PACKAGE_NAME));
+        reflections = Optional.ofNullable(reflections).orElse(new Reflections(IModel.MODEL_PACKAGE_NAME));
         return reflections.getTypesAnnotatedWith(EntityEnum.class);
     }
 
@@ -85,9 +85,7 @@ public final class EntityEnums {
             // Compute a option key (e.g. 'sumaris.enumeration.MyEntity.MY_ENUM_VALUE.id')
             String configPrefixTemp = StringUtils.defaultIfBlank(annotation.configPrefix(), "");
             // Add trailing point
-            if (configPrefixTemp.length() > 0  && configPrefixTemp.lastIndexOf(".") != configPrefixTemp.length() - 1) {
-                configPrefixTemp += ".";
-            }
+            configPrefixTemp = StringUtils.addTrailingIfNotBlank(configPrefixTemp, ".");
             final String configPrefix = configPrefixTemp;
 
             final String[] attributes = ArrayUtils.isNotEmpty(configAttributes) ? configAttributes : resolveAttributes;

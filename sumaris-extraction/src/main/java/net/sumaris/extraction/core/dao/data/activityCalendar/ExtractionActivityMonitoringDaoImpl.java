@@ -300,6 +300,16 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                                 });
                         }
                         break;
+                    case ActivityMonitoringSpecification.COLUMN_VESSEL_TYPE_ID:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            try {
+                                Integer vesselTypeId = Integer.parseInt(criterion.getValue());
+                                target.setVesselTypeIds(ArrayUtils.toArray(vesselTypeId));
+                            } catch (NumberFormatException e) {
+                                // Skip
+                            }
+                        }
+                        break;
                     case ActivityMonitoringSpecification.COLUMN_OBSERVER_NAME:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setObserverPersonIds(
@@ -411,6 +421,17 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                         // Clean the criterion (to avoid clean to exclude too many data)
                         criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
                         criterion.setValues(null);
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_VESSEL_TYPE_ID:
+                            target.setVesselTypeIds(
+                                Arrays.stream(criterion.getValues()).map(value -> {
+                                    try {
+                                        return Integer.parseInt(value);
+                                    } catch (NumberFormatException e) {
+                                        // Skip
+                                        return null;
+                                    }
+                                }).filter(Objects::nonNull).toArray(Integer[]::new));
                         break;
                     case ActivityMonitoringSpecification.COLUMN_OBSERVER_NAME:
                         target.setObserverPersonIds(
@@ -646,6 +667,15 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
             xmlQuery.setGroup("vesselFilter", enableFilter);
             xmlQuery.setGroup("!vesselFilter", !enableFilter);
             if (enableFilter) xmlQuery.bind("vesselIds", Daos.getSqlInNumbers(vesselIds));
+        }
+
+        // Vessel type
+        {
+            List<Integer> vesselTypeIds = context.getVesselTypeIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(vesselTypeIds);
+            xmlQuery.setGroup("vesselTypeFilter", enableFilter);
+            xmlQuery.setGroup("!vesselTypeFilter", !enableFilter);
+            if (enableFilter) xmlQuery.bind("vesselTypeIds", Daos.getSqlInNumbers(vesselTypeIds));
         }
 
         // Observers
