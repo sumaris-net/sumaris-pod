@@ -37,6 +37,7 @@ import net.sumaris.core.model.data.VesselFeatures;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StreamUtils;
 import net.sumaris.core.util.StringUtils;
@@ -114,8 +115,12 @@ public class ActivityCalendarRepositoryImpl
 
         String sortEntityProperty = sortAttribute != null ? toEntityProperty(sortAttribute) : null;
 
-        // If sort by vessel.*
-        if (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.')) {
+        // If sort by vessel.* or filter on base port location
+        // should remove duplication (because of distinct that has been disabled)
+        boolean needDistinct = (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.'))
+            || (filter != null && ArrayUtils.isNotEmpty(filter.getBasePortLocationIds()))
+            || (filter != null && ArrayUtils.isNotEmpty(filter.getObserverPersonIds()));
+        if (needDistinct) {
             int originalSize = result.size();
 
             // Remove potential duplicates
@@ -135,7 +140,8 @@ public class ActivityCalendarRepositoryImpl
 
                     // Concat missing elements (if any) to the result
                     if (CollectionUtils.isNotEmpty(missingElements)) {
-                        result = StreamUtils.concat(result.stream(), missingElements.stream())
+                        final List<ActivityCalendarVO> finalResult = result;
+                        result = StreamUtils.concat(finalResult.stream(), missingElements.stream().filter(e -> !finalResult.contains(e)))
                             .toList();
                     }
                 }
@@ -265,7 +271,10 @@ public class ActivityCalendarRepositoryImpl
             query.setHint(QueryHints.HINT_LOADGRAPH, entityGraph);
         }
 
-        // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
-        query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
+        if (query.getMaxResults() > 1) {
+            // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
+            query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
+        }
+
     }
 }

@@ -56,6 +56,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
@@ -144,7 +145,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 	@Override
 	@Cacheable(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, key = "#filter.hashCode()")
-	public Long countByFilter(@NonNull VesselFilterVO filter) {
+	public Long countByFilter(@Param("filter") @NonNull VesselFilterVO filter) {
 		long startTime = TimeLog.getTime();
 		try {
 			if (isElasticsearchEnableAndReady()) {
@@ -162,7 +163,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 			@CachePut(cacheNames = CacheConfiguration.Names.VESSEL_SNAPSHOTS_COUNT_BY_FILTER, key = "#filter.hashCode()")
 		}
 	)
-	public long putCountByFilterInCache(VesselFilterVO filter, Long total) {
+	public long putCountByFilterInCache(@Param("filter") VesselFilterVO filter, Long total) {
 		return total;
 	}
 

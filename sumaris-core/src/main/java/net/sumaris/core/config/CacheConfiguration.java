@@ -84,13 +84,13 @@ public class CacheConfiguration extends CachingConfigurerSupport {
         String PERSON_BY_ID = "net.sumaris.core.dao.administration.user.personById";
         String PERSON_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personByPubkey";
         String PERSON_BY_USERNAME = "net.sumaris.core.dao.administration.user.personByUsername";
-
         String PERSON_AVATAR_BY_PUBKEY = "net.sumaris.core.dao.administration.user.personAvatarByPubkey";
+        String PERSONS_BY_FILTER = "net.sumaris.core.dao.administration.user.personsByFilter";
+        String PERSON_COUNT_BY_FILTER = "net.sumaris.core.dao.administration.user.personCountByFilter";
 
         // Location
         String LOCATION_LEVEL_BY_LABEL = "net.sumaris.core.dao.referential.location.locationLevelByLabel";
         String LOCATION_BY_ID = "net.sumaris.core.dao.referential.location.locationById";
-
         String LOCATIONS_BY_FILTER = "net.sumaris.core.dao.referential.location.locationsByFilter";
 
         // Program
@@ -195,6 +195,9 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_PUBKEY, String.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_BY_USERNAME, String.class, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 600);
             Caches.createHeapCache(cacheManager, Names.PERSON_AVATAR_BY_PUBKEY, String.class, ImageAttachmentVO.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createCollectionHeapCache(cacheManager, Names.PERSONS_BY_FILTER, PersonVO.class, CacheTTL.DEFAULT.asDuration(), 100);
+            Caches.createHeapCache(cacheManager, Names.PERSON_COUNT_BY_FILTER, Integer.class, Long.class, CacheTTL.DEFAULT.asDuration(), 100);
+
 
             // Location
             Caches.createEternalHeapCache(cacheManager, Names.LOCATION_LEVEL_BY_LABEL, String.class, ReferentialVO.class, 600);

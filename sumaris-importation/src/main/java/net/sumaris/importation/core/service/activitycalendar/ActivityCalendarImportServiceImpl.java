@@ -110,8 +110,8 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
         // Make sure this job run once, to avoid duplication
         if (running) {
             String message = t("sumaris.import.error.alreadyRunning");
-            progressionModel.setMessage(message);
             progressionModel.setTotal(1);
+            progressionModel.setMessage(message);
             progressionModel.setCurrent(1);
             throw new ActivityCalendarImportAlreadyRunningException(message);
         }
@@ -119,6 +119,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
         try {
             // Init progression model
+            progressionModel.setTotal(1);
             progressionModel.setMessage(t("sumaris.import.start", context.getProcessingFile().getName()));
             PersonVO recorderPerson = personService.getById(context.getRecorderPersonId());
             File tempFile = null;
@@ -447,9 +448,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
         if (target.getRecorderDepartment() == null) {
             target.setRecorderDepartment(person.getDepartment());
         }
-
     }
-
 
     protected List<VesselSnapshotVO> findVesselByRegistrationCode(int year, String registrationCode) {
         Date startDate = Dates.getFirstDayOfYear(year);

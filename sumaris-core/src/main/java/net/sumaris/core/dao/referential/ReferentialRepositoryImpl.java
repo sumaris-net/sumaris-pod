@@ -303,7 +303,7 @@ public abstract class ReferentialRepositoryImpl<
             .and(excludedIds((ID[])filter.getExcludedIds()));
     }
 
-    protected void configureQuery(TypedQuery<E> query, net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions) {
+    protected void configureQuery(TypedQuery<E> query, @Nullable net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions) {
         // Can be override by subclasses
     }
 }

@@ -68,7 +68,6 @@ public class Person implements IReferentialWithStatusEntity<Integer> {
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "PERSON_SEQ")
     @SequenceGenerator(name = "PERSON_SEQ", sequenceName="PERSON_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
-    
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -110,7 +109,7 @@ public class Person implements IReferentialWithStatusEntity<Integer> {
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Department department;
 
-    @ManyToMany(fetch = FetchType.EAGER, targetEntity = UserProfile.class)
+    @ManyToMany(fetch = FetchType.LAZY, targetEntity = UserProfile.class)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @JoinTable(name = "person2user_profile",
             joinColumns = {

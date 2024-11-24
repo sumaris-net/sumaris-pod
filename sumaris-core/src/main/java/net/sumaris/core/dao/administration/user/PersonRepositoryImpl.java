@@ -84,14 +84,18 @@ public class PersonRepositoryImpl
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady(ConfigurationEvent event) {
-        // Force clear cache, because UserProfileEnum can have changed, to VO profiles can changed also
+        // Force clear cache, because UserProfileEnum can have changed, to VO profiles can have changed also
         clearCache();
     }
 
     @Override
     @Caching(evict = {
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSONS_BY_FILTER, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_COUNT_BY_FILTER, allEntries = true)
     })
     public void clearCache() {
         log.debug("Cleaning Person's cache...");
@@ -127,18 +131,20 @@ public class PersonRepositoryImpl
 
     @Override
     public Optional<PersonVO> findByFullName(String fullName) {
-        return findAll(
-            hastFullName(fullName)
-        ).stream()
-            .findFirst().map(this::toVO);
+        return findByFilter(
+            PersonFilterVO.builder().
+            fullName(fullName)
+            .build(), 0, 1, null, null
+        ).stream().findFirst();
     }
 
     @Override
+    @Cacheable(cacheNames = CacheConfiguration.Names.PERSONS_BY_FILTER)
     public List<PersonVO> findByFilter(PersonFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection) {
         return findAll(toSpecification(filter), Pageables.create(offset, size, sortAttribute, sortDirection))
             .stream()
             .map(this::toVO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -178,6 +184,7 @@ public class PersonRepositoryImpl
             .and(hasFirstName(filter.getFirstName()))
             .and(hasLastName(filter.getLastName()))
             .and(hasUsername(filter.getUsername()))
+            .and(hasFullName(filter.getFullName()))
             .and(searchText(filter))
             .and(includedIds(filter.getIncludedIds()))
             .and(excludedIds(filter.getExcludedIds()))
@@ -201,13 +208,23 @@ public class PersonRepositoryImpl
         evict = {
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#source.id", condition = "#source.id != null"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#source.id", condition = "#source.id != null"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, key = "#source.pubkey", condition = "#source.pubkey != null")
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, key = "#source.pubkey", condition = "#source.pubkey != null"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSONS_BY_FILTER, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_COUNT_BY_FILTER, allEntries = true)
         },
         put = {
             @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_ID, key="#source.id", condition = "#source.id != null"),
-            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source.id != null && #source.pubkey != null")
+            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_PUBKEY, key="#source.pubkey", condition = "#source.id != null && #source.pubkey != null"),
+            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_USERNAME, key="#source.username", condition = "#source.id != null && #source.username != null"),
+            @CachePut(cacheNames= CacheConfiguration.Names.PERSON_BY_USERNAME, key="#source.usernameExtranet", condition = "#source.id != null && #source.usernameExtranet != null")
         })
     public PersonVO save(PersonVO source) {
+        if (source.getId() == null) {
+            log.debug("Creating person (email: {}, username: {}, usernameExtranet: {})", source.getEmail(), source.getUsername(), source.getUsernameExtranet());
+        }
+        else {
+            log.debug("Updating person (id: {})", source.getId());
+        }
         return super.save(source);
     }
 
@@ -273,10 +290,14 @@ public class PersonRepositoryImpl
     @Override
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, key = "#id"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_READ_USER_ID, key = "#id"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_IDS_BY_WRITE_USER_ID, key = "#id"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true)
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_LOCATION_IDS_BY_USER_ID, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSONS_BY_FILTER, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_COUNT_BY_FILTER, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_AVATAR_BY_PUBKEY, allEntries = true),
     })
     public void deleteById(Integer id) {
         super.deleteById(id);
@@ -307,7 +328,7 @@ public class PersonRepositoryImpl
         target.setStatusId(source.getStatus().getId());
 
         // Profiles (keep only label)
-        if (fetchOptions.isWithUserProfiles()) {
+        if (fetchOptions != null && fetchOptions.isWithUserProfiles()) {
             if (CollectionUtils.isNotEmpty(source.getUserProfiles())) {
                 List<String> profiles = source.getUserProfiles().stream()
                     .map(UserProfile::getLabel)

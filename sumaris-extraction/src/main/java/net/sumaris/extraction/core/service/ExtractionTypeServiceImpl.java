@@ -176,6 +176,7 @@ public class ExtractionTypeServiceImpl implements ExtractionTypeService {
 
         // Add product types
         if (enableProduct && (filterCategory == null || filterCategory == ExtractionCategoryEnum.PRODUCT)) {
+            filter.setCategory(null); // Avoid to filter on levelLabels
             types.addAll(findProductsByFilter(filter));
         }
 

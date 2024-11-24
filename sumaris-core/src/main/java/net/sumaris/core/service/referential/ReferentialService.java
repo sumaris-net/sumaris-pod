@@ -28,6 +28,7 @@ import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -64,7 +65,7 @@ public interface ReferentialService {
                                      ReferentialFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    Long countByFilter(String entityName, IReferentialFilter filter);
+    Long countByFilter(String entityName, @Nullable IReferentialFilter filter);
 
     @Transactional(readOnly = true)
     ReferentialVO findByUniqueLabel(String entityName, String label);

@@ -30,6 +30,7 @@ import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevel;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -77,4 +78,11 @@ public class ExpertiseArea implements IItemReferentialEntity<Integer>  {
         inverseJoinColumns = {
             @JoinColumn(name = "location_fk", nullable = false, updatable = false) })
     private Set<Location> locations = Sets.newHashSet();
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    @JoinTable(name = "expertise_area2location_level", joinColumns = {
+        @JoinColumn(name = "expertise_area_fk", nullable = false, updatable = false) },
+        inverseJoinColumns = {
+            @JoinColumn(name = "location_level_fk", nullable = false, updatable = false) })
+    private Set<LocationLevel> locationLevels = Sets.newHashSet();
 }

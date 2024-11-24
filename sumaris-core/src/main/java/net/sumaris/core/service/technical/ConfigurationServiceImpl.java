@@ -353,7 +353,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             String tempConfigPrefix = StringUtils.defaultIfBlank(annotation.configPrefix(), "");
 
             // Add trailing point
-            if (tempConfigPrefix.lastIndexOf(".") != tempConfigPrefix.length() - 1) tempConfigPrefix += ".";
+            tempConfigPrefix = StringUtils.addTrailingIfNotBlank(tempConfigPrefix, ".");
 
             final String configPrefix = tempConfigPrefix;
 

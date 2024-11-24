@@ -44,6 +44,7 @@ import net.sumaris.core.model.administration.samplingScheme.DenormalizedSampling
 import net.sumaris.core.model.referential.*;
 import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
+import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.spatial.ExpertiseArea;
@@ -279,10 +280,13 @@ public class ReferentialDaoImpl
 
     @Caching(evict = {
         @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, key = "#entityName"),
-        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_ITEMS_BY_FILTER, key = "#entityName"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_ITEMS_BY_FILTER, allEntries = true),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.REFERENTIAL_COUNT_BY_FILTER, allEntries = true),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_ID, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_PUBKEY, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_BY_USERNAME, allEntries = true, condition = "#entityName == 'Person'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSONS_BY_FILTER, allEntries = true, condition = "#entityName == 'Person'"),
+        @CacheEvict(cacheNames = CacheConfiguration.Names.PERSON_COUNT_BY_FILTER, allEntries = true, condition = "#entityName == 'Person'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_ID, allEntries = true, condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.DEPARTMENT_BY_LABEL, allEntries = true, condition = "#entityName == 'Department'"),
         @CacheEvict(cacheNames = CacheConfiguration.Names.EXPERTISE_AREAS_ENABLED, allEntries = true, condition = "#entityName == 'ExpertiseArea'"),
@@ -1083,6 +1087,11 @@ public class ReferentialDaoImpl
                     // Locations
                     .put(ExpertiseArea.Fields.LOCATIONS, Beans.getStream(((ExpertiseArea)source).getLocations())
                         .map(location -> this.toVO(Location.ENTITY_NAME, location, locationFetchOptions))
+                        .toList()
+                    )
+                    // Location Levels
+                    .put(ExpertiseArea.Fields.LOCATION_LEVELS, Beans.getStream(((ExpertiseArea)source).getLocationLevels())
+                        .map(locationLevel -> this.toVO(LocationLevel.ENTITY_NAME, locationLevel, locationFetchOptions))
                         .toList()
                     )
                     .build()

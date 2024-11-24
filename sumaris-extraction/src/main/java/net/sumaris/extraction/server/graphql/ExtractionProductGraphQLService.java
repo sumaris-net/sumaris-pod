@@ -25,8 +25,8 @@ package net.sumaris.extraction.server.graphql;
 import io.leangen.graphql.annotations.*;
 import io.leangen.graphql.execution.ResolutionEnvironment;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.IWithRecorderDepartmentEntity;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
 import net.sumaris.core.model.referential.StatusEnum;
@@ -34,14 +34,16 @@ import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.technical.extraction.*;
-import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionProductService;
+import net.sumaris.extraction.core.service.ExtractionService;
 import net.sumaris.extraction.core.service.ExtractionTypeService;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.ExtractionTypeVO;
 import net.sumaris.extraction.server.security.ExtractionSecurityService;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLUtils;
+import net.sumaris.server.http.security.IsGuest;
+import net.sumaris.server.http.security.IsUser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;
@@ -77,6 +79,7 @@ public class ExtractionProductGraphQLService {
 
     @GraphQLQuery(name = "extractionProduct", description = "Get one extraction product")
     @Transactional(readOnly = true)
+    @IsGuest
     public ExtractionProductVO getProduct(@GraphQLArgument(name = "id") int id,
                                           @GraphQLEnvironment ResolutionEnvironment env) {
         extractionSecurityService.checkReadAccess(id);
@@ -85,6 +88,7 @@ public class ExtractionProductGraphQLService {
 
     @GraphQLQuery(name = "extractionProducts", description = "Get all available extraction products")
     @Transactional(readOnly = true)
+    @IsGuest
     public List<ExtractionProductVO> findProductsByFilter(@GraphQLArgument(name = "filter") ExtractionTypeFilterVO filter,
                                                           @GraphQLEnvironment ResolutionEnvironment env) {
         filter = fillFilterDefaults(filter);
@@ -92,6 +96,7 @@ public class ExtractionProductGraphQLService {
     }
 
     @GraphQLMutation(name = "saveExtractionProduct", description = "Create or update a extraction product")
+    @IsUser
     public ExtractionProductVO saveProduct(@GraphQLNonNull @GraphQLArgument(name = "product") ExtractionProductVO source) {
 
         boolean isNew = source.getId() == null;

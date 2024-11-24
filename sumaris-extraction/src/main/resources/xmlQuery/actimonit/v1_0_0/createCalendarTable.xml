@@ -45,8 +45,7 @@
         <select alias="VESSEL_REGISTRATION_CODE">VRP.REGISTRATION_CODE</select>
         <select alias="VESSEL_INT_REGISTRATION_CODE">VRP.INT_REGISTRATION_CODE</select>
 
-        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="hsqldb,pgsql">CASE WHEN AC.DIRECT_SURVEY_INVESTIGATION THEN 'Y' ELSE 'N' END</select>
-        <select alias="DIRECT_SURVEY_INVESTIGATION" dbms="oracle">CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION">CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END</select>
         <select alias="ECONOMIC_SURVEY" dbms="hsqldb,pgsql">CASE WHEN AC.ECONOMIC_SURVEY THEN 'Y' ELSE 'N' END</select>
         <select alias="ECONOMIC_SURVEY" dbms="oracle">CASE AC.ECONOMIC_SURVEY WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END</select>
         <select alias="SURVEY_QUALIFICATION">SURVEY_QUALIFICATION_QV.NAME</select>
@@ -74,6 +73,10 @@
 
         <from join="true" group="!adagio">INNER JOIN PROGRAM P on P.ID = AC.PROGRAM_FK</from>
         <from join="true" group="adagio">INNER JOIN &amp;adagioSchema.PROGRAM P on P.CODE = AC.PROGRAM_FK</from>
+
+        <from join="true" group="vesselTypeFilter,!adagio">INNER JOIN VESSEL VS ON AC.VESSEL_FK = VS.ID</from>
+        <from join="true" group="vesselTypeFilter,adagio">INNER JOIN &amp;adagioSchema.VESSEL VS ON AC.VESSEL_FK = VS.CODE</from>
+        <from join="true" group="vesselTypeFilter">INNER JOIN VESSEL_TYPE VT ON VS.VESSEL_TYPE_FK = VT.ID</from>
 
         <from join="true">LEFT OUTER JOIN ACTIVITY_CALENDAR2PERSON AC2P ON AC2P.ACTIVITY_CALENDAR_FK = AC.ID</from>
         <from join="true">LEFT OUTER JOIN PERSON OBSERVER ON OBSERVER.ID = AC2P.PERSON_FK</from>
@@ -157,6 +160,9 @@
         </where>
         <where group="vesselFilter,!adagio" operator="AND">
             <in field="AC.VESSEL_FK">&amp;vesselIds</in>
+        </where>
+        <where group="vesselTypeFilter" operator="AND">
+            <in field="VT.ID">&amp;vesselTypeIds</in>
         </where>
         <where group="vesselFilter,adagio" operator="AND">
             <in field="V.ID">&amp;vesselIds</in>

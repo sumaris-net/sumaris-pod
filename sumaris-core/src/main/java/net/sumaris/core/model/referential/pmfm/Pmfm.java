@@ -146,7 +146,7 @@ public class Pmfm implements IItemReferentialEntity<Integer>, IReferentialWithSt
     @JoinColumn(name = "unit_fk", nullable = false)
     private Unit unit;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     @JoinTable(name = "pmfm2qualitative_value", joinColumns = {
             @JoinColumn(name = "pmfm_fk", nullable = false, updatable = false) },
             inverseJoinColumns = {

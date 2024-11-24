@@ -22,6 +22,7 @@
 
 package net.sumaris.server.config;
 
+import net.sumaris.core.model.referential.UserProfileEnum;
 import net.sumaris.core.util.Beans;
 import net.sumaris.extraction.server.config.ExtractionWebConfigurationOption;
 import org.nuiton.config.ConfigOptionDef;
@@ -88,6 +89,13 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             "${sumaris.app.url}/confirm/{email}/{code}",
             String.class,
             false),
+
+    REGISTRATION_CONFIRM_USER_PROFILE(
+        "sumaris.server.account.register.confirm.userProfile",
+        n("sumaris.config.option.server.account.register.confirm.userProfile.description"),
+        UserProfileEnum.GUEST.name(),
+        UserProfileEnum.class,
+        false),
 
     RESET_PASSWORD_URL(
             "sumaris.server.account.password.reset.url",
