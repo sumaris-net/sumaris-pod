@@ -23,6 +23,9 @@
 package net.sumaris.server.util.node;
 
 import lombok.Data;
+import net.sumaris.core.vo.capabilities.NodeFeatureVO;
+
+import java.util.List;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -34,4 +37,9 @@ public class NodeSummaryVO {
 
     private String nodeLabel;
     private String nodeName;
+
+    private String registrationUri;
+    private String registrationManager;
+
+    private List<NodeFeatureVO> features;
 }

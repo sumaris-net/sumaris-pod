@@ -75,6 +75,9 @@ public interface ProgramService {
 	List<ProgramVO> getAll();
 
 	@Transactional(readOnly = true)
+	List<ProgramVO> getAll(@Nullable ProgramFilterVO filter);
+
+	@Transactional(readOnly = true)
 	List<ProgramVO> findByFilter(@Nullable ProgramFilterVO filter,
 								 @Nullable Page page,
 								 @Nullable ProgramFetchOptions fetchOptions);

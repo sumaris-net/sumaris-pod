@@ -26,14 +26,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.capabilities.NodeFeatureVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.util.node.NodeSummaryVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -69,7 +73,10 @@ public class NodeInfoRestController {
             result.setNodeLabel(software.getLabel());
             result.setNodeName(software.getName());
         }
-
+        List<NodeFeatureVO> features = configurationService.getFeatures();
+        if (features != null) {
+            result.setFeatures(features);
+        }
         return result;
     }
 }

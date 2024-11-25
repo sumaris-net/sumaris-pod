@@ -24,13 +24,13 @@ package net.sumaris.core.service.technical;
 
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.event.config.ConfigurationEventListener;
+import net.sumaris.core.vo.capabilities.NodeFeatureVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.PersistenceException;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 @Transactional(readOnly = true)
 public interface ConfigurationService {
@@ -49,6 +49,9 @@ public interface ConfigurationService {
     void removeListener(ConfigurationEventListener listener);
 
     Map<String, String> getEnumerationProperties();
+
+    List<NodeFeatureVO> getFeatures();
+
 
 }
 
