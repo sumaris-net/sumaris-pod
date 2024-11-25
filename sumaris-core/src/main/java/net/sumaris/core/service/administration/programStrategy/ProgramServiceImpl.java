@@ -60,7 +60,7 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
-	public List<ProgramVO> getAll(@Nullable ProgramFilterVO filter) {
+	public List<ProgramVO> findAll(@Nullable ProgramFilterVO filter) {
 		return programRepository.findAll(ProgramFilterVO.nullToEmpty(filter));
 
 	}

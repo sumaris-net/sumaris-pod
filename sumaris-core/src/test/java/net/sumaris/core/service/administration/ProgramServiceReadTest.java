@@ -26,7 +26,7 @@ import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
-import net.sumaris.core.model.referential.UserProfileEnum;
+import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.vo.administration.programStrategy.ProgramFetchOptions;
@@ -35,6 +35,7 @@ import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +127,20 @@ public class ProgramServiceReadTest extends AbstractServiceTest{
         List<ProgramVO> programs = service.getAll();
         Assert.assertNotNull(programs);
         Assert.assertTrue(programs.size() >= 11);
+
+    }
+
+    @Test
+    public void findAll() {
+
+        List<ProgramVO> allPrograms = service.getAll();
+        Assume.assumeTrue(!allPrograms.isEmpty());
+
+        List<ProgramVO> enabledPrograms = service.findAll(ProgramFilterVO.builder()
+            .statusIds(new Integer[]{StatusEnum.DISABLE.getId()})
+            .build());
+        Assert.assertNotNull(enabledPrograms);
+        Assert.assertTrue(enabledPrograms.size() < allPrograms.size());
 
     }
 

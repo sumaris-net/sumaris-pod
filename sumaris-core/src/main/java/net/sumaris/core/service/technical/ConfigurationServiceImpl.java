@@ -290,7 +290,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     public List<NodeFeatureVO> getFeatures() {
 
-        List<ProgramVO> programs = this.programService.getAll(ProgramFilterVO.builder()
+        List<ProgramVO> programs = this.programService.findAll(ProgramFilterVO.builder()
                 .statusIds(new Integer[]{StatusEnum.ENABLE.getId()}).build());
         List<NodeFeatureVO> features = new ArrayList<>();
         if (!programs.isEmpty()) {
