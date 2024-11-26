@@ -136,13 +136,17 @@ public class ActivityCalendarRepositoryImpl
                 // If missing element in the page, try to complete with more elements
                 if (missingSize > 0) {
                     // Fetch more elements (recursive call)
+                    // But exclude already fetched elements
+                    filter = ActivityCalendarFilterVO.nullToEmpty(filter);
+                    Integer[] excludedIds = ArrayUtils.addAll(ArrayUtils.nullToEmpty(filter.getExcludedIds()), StreamUtils.getStream(result).map(ActivityCalendarVO::getId).toArray(Integer[]::new));
+                    filter.setExcludedIds(excludedIds);
+
                     List<ActivityCalendarVO> missingElements = findAll(filter, offset + size, missingSize, sortAttribute, sortDirection, fetchOptions);
 
                     // Concat missing elements (if any) to the result
                     if (CollectionUtils.isNotEmpty(missingElements)) {
-                        final List<ActivityCalendarVO> finalResult = result;
-                        result = StreamUtils.concat(finalResult.stream(), missingElements.stream().filter(e -> !finalResult.contains(e)))
-                            .toList();
+                        result = StreamUtils.concat(result.stream(), missingElements.stream())
+                                .toList();
                     }
                 }
             }
