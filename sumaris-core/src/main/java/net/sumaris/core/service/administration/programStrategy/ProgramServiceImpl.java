@@ -60,6 +60,12 @@ public class ProgramServiceImpl implements ProgramService {
 	}
 
 	@Override
+	public List<ProgramVO> findAll(@Nullable ProgramFilterVO filter) {
+		return programRepository.findAll(ProgramFilterVO.nullToEmpty(filter));
+
+	}
+
+	@Override
 	public List<ProgramVO> findByFilter(@Nullable ProgramFilterVO filter,
 										@Nullable Page page,
 										@Nullable ProgramFetchOptions fetchOptions) {
