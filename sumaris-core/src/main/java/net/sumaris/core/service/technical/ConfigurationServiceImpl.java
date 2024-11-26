@@ -42,14 +42,9 @@ import net.sumaris.core.exception.DenyDeletionException;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.annotation.EntityEnum;
 import net.sumaris.core.model.annotation.EntityEnums;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
-import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
-import net.sumaris.core.vo.capabilities.NodeFeatureVO;
-import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -97,9 +92,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private final ApplicationEventPublisher publisher;
 
-    private final ProgramService programService;
-
-
     private Version dbVersion;
 
     private final List<ConfigurationEventListener> listeners = new CopyOnWriteArrayList<>();
@@ -110,15 +102,13 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                                     EntityManager entityManager,
                                     SoftwareService softwareService,
                                     DatabaseSchemaService databaseSchemaService,
-                                    ApplicationEventPublisher publisher,
-                                    ProgramService programService) {
+                                    ApplicationEventPublisher publisher) {
         this.configuration = configuration;
         this.entityManager = entityManager;
         this.softwareService = softwareService;
         this.databaseSchemaService = databaseSchemaService;
         this.publisher = publisher;
         this.currentSoftwareLabel = configuration.getAppName();
-        this.programService = programService;
         Preconditions.checkNotNull(currentSoftwareLabel);
         this.ready = !configuration.enableConfigurationDbPersistence(); // Mark as ready, if configuration not loaded from DB
     }
@@ -287,29 +277,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         updateModelEnumerations();
     }
 
-    @Override
-    public List<NodeFeatureVO> getFeatures() {
 
-        List<ProgramVO> programs = this.programService.findAll(ProgramFilterVO.builder()
-                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()}).build());
-        List<NodeFeatureVO> features = new ArrayList<>();
-        if (!programs.isEmpty()) {
-            for (ProgramVO program : programs) {
-                NodeFeatureVO feature = NodeFeatureVO.builder()
-                        .id(program.getId())
-                        .name(program.getName())
-                        .label(program.getLabel())
-                        .description(program.getDescription())
-                        .updateDate(program.getUpdateDate())
-                        .creationDate(program.getCreationDate())
-                        .statusId(program.getStatusId())
-                        .build();
-
-                features.add(feature);
-            }
-        }
-        return features;
-    }
 
     /* -- protected methods -- */
 
