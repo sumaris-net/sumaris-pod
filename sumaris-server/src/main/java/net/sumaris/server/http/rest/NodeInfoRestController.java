@@ -24,16 +24,23 @@ package net.sumaris.server.http.rest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.util.node.NodeFeatureVO;
 import net.sumaris.server.util.node.NodeSummaryVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +50,9 @@ public class NodeInfoRestController {
     private final SumarisServerConfiguration configuration;
 
     private final ConfigurationService configurationService;
+
+    private final ProgramService programService;
+
 
     @ResponseBody
     @GetMapping(value = RestPaths.NODE_INFO_PATH,
@@ -70,6 +80,31 @@ public class NodeInfoRestController {
             result.setNodeName(software.getName());
         }
 
+        // Add features
+        List<NodeFeatureVO> features = getFeatures();
+        if (features != null) {
+            result.setFeatures(features);
+        }
+
         return result;
+    }
+
+
+    private List<NodeFeatureVO> getFeatures() {
+
+        // Use programs as features
+        return this.programService.findAll(ProgramFilterVO.builder()
+                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()}).build())
+            .stream()
+            .map(program -> NodeFeatureVO.builder()
+                .id(program.getId())
+                .name(program.getName())
+                .label(program.getLabel())
+                .description(program.getDescription())
+                .updateDate(program.getUpdateDate())
+                .creationDate(program.getCreationDate())
+                .statusId(program.getStatusId())
+                .build()
+            ).toList();
     }
 }
