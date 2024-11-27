@@ -1706,6 +1706,7 @@
         <os>
           <family>mac</family>
         </os>
+        <jdk>21</jdk>
       </activation>
       <properties>
         <javaSourceVersion>21</javaSourceVersion>
