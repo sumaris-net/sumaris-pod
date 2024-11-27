@@ -117,7 +117,7 @@
     <select alias="VESSEL_FLAG_COUNTRY" type="text">V.VESSEL_FLAG_COUNTRY</select>
     <select alias="START_DATE" type="text" group="agg">TO_CHAR(MIN(V.START_DATE), 'DD/MM/YYYY')</select>
     <select alias="END_DATE" type="text" group="agg">TO_CHAR(MIN(V.END_DATE), 'DD/MM/YYYY')</select>
-    <select alias="INTERNATIONAL_REGISTRATION_CODE" type="text">V.INTERNATIONAL_REGISTRATION_CODE</select>
+    <select alias="INTERNATIONAL_REGISTRATION_CODE" type="text">V.INT_REGISTRATION_CODE</select>
     <select alias="REGISTRATION_CODE" type="text">V.REGISTRATION_CODE</select>
     <select alias="HARBOUR_LABEL" type="text">V.HARBOUR_LABEL</select>
     <select alias="HARBOUR_NAME" type="text">V.HARBOUR_NAME</select>
