@@ -118,7 +118,6 @@ public class ActivityCalendarRepositoryImpl
         // If sort by vessel.* or filter on base port location
         // should remove duplication (because of distinct that has been disabled)
         boolean needDistinct = (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.'))
-            || (filter != null && ArrayUtils.isNotEmpty(filter.getBasePortLocationIds()))
             || (filter != null && ArrayUtils.isNotEmpty(filter.getObserverPersonIds()));
         if (needDistinct) {
             int originalSize = result.size();
@@ -136,11 +135,6 @@ public class ActivityCalendarRepositoryImpl
                 // If missing element in the page, try to complete with more elements
                 if (missingSize > 0) {
                     // Fetch more elements (recursive call)
-                    // But exclude already fetched elements
-                    filter = ActivityCalendarFilterVO.nullToEmpty(filter);
-                    Integer[] excludedIds = ArrayUtils.addAll(ArrayUtils.nullToEmpty(filter.getExcludedIds()), StreamUtils.getStream(result).map(ActivityCalendarVO::getId).toArray(Integer[]::new));
-                    filter.setExcludedIds(excludedIds);
-
                     List<ActivityCalendarVO> missingElements = findAll(filter, offset + size, missingSize, sortAttribute, sortDirection, fetchOptions);
 
                     // Concat missing elements (if any) to the result

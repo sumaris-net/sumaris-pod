@@ -80,10 +80,17 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
         if (ArrayUtils.isEmpty(locationIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
             query.distinct(true);
-            Join<ActivityCalendar, VesselUseFeatures> vuf = Daos.composeJoinList(root, ActivityCalendar.Fields.VESSEL_USE_FEATURES, JoinType.INNER);
             ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS);
             // TODO use LocationHierarchy ?
-            return cb.in(vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID)).value(param);
+
+            Subquery<ActivityCalendar> subQuery = query.subquery(ActivityCalendar.class);
+            Root<VesselUseFeatures> vesselUseFeaturesRoot = subQuery.from(VesselUseFeatures.class);
+            subQuery.select(vesselUseFeaturesRoot.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR).get(IEntity.Fields.ID));
+            subQuery.where(
+                    cb.equal(vesselUseFeaturesRoot.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR), root),
+                    vesselUseFeaturesRoot.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
+            );
+            return cb.exists(subQuery);
         }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds));
     }
 
