@@ -73,8 +73,7 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
         try {
             // force apply software configuration
             configurationService.applySoftwareProperties();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // Continue
         }
     }
@@ -112,8 +111,7 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
                     if (realizedEffort > 0) {
                         log.info(String.format("%s - %s - %s/%s", strategyLabel, startDate, realizedEffortStr, expectedEffortEffortStr));
                     }
-                }
-                catch (NumberFormatException e) {
+                } catch (NumberFormatException e) {
                     log.error("Invalid realized_effort value. Should be a number: " + realizedEffortStr, e);
                     Assert.fail("Invalid realized_effort value. Should be a number: " + realizedEffortStr);
                 }
@@ -131,11 +129,11 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
         //filter.setStrategyLabels(ImmutableList.of("22SOLESOL004"));
 
         ExtractionResultVO result = service.executeAndReadStrategies(LiveExtractionTypeEnum.STRAT, filter,
-                Page.builder()
-                        .size(1000)
-                        .offset(0)
-                        .sortBy(StratSpecification.COLUMN_END_DATE)
-                        .sortDirection(SortDirection.ASC)
+            Page.builder()
+                .size(1000)
+                .offset(0)
+                .sortBy(StratSpecification.COLUMN_END_DATE)
+                .sortDirection(SortDirection.ASC)
                 .build());
         Assert.assertNotNull(result);
 
@@ -188,6 +186,34 @@ public class ExtractionServiceOracleTest extends ExtractionServiceTest {
                 .value("ROVILLON Georges-Augustin")
                 .build()
         ));
+    }
+
+    /**
+     * Test issue: <a href="https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/835">...</a>
+     */
+    @Test
+    public void executeActivityMonitoringByQIM() throws IOException, ParseException {
+        int nbLines = super.executeActivityMonitoringTest(List.of(
+            // Program
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
+                .build(),
+            // Year
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_YEAR)
+                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                .value("2022")
+                .build(),
+            // Registration locations
+            ExtractionFilterCriterionVO.builder()
+                .name(ActivityMonitoringSpecification.COLUMN_REGISTRATION_LOCATION_LABEL)
+                .operator(ExtractionFilterOperatorEnum.IN.getSymbol())
+                .values(new String[]{"LH" /*Le Havre*/, "AD" /*Audierne*/})
+                .build()
+        ));
+        Assert.assertEquals(84, nbLines);
     }
 
     /* -- protected methods -- */

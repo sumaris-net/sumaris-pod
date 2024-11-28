@@ -28,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.DataNotFoundException;
@@ -38,9 +37,7 @@ import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.referential.ProcessingType;
-import net.sumaris.core.model.referential.ProcessingTypeEnum;
 import net.sumaris.core.model.referential.VesselTypeEnum;
-import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.referential.ReferentialService;
@@ -65,7 +62,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -262,6 +258,7 @@ public class VesselSnapshotJob {
 		List<JobVO> lastJobs = jobService.findAll(JobFilterVO.builder()
 			.types(new String[]{JobTypeEnum.VESSEL_SNAPSHOTS_INDEXATION.name()})
 			.status(new JobStatusEnum[]{JobStatusEnum.SUCCESS, JobStatusEnum.WARNING})
+			.lastUpdateDate(Dates.addDays(new Date(), -1))
 			.build(), Page.builder()
 			.offset(0)
 			.size(1)

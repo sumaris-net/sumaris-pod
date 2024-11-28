@@ -82,39 +82,39 @@
         <from join="true">LEFT OUTER JOIN PERSON OBSERVER ON OBSERVER.ID = AC2P.PERSON_FK</from>
         <from join="true" dbms="hsqldb,pgsql"><![CDATA[
             LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON AC.VESSEL_FK = VRP.VESSEL_FK
-                AND VRP.START_DATE <= &startDate
-                AND COALESCE(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+                AND VRP.START_DATE <= &endDate
+                AND COALESCE(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) >= &startDate
             ]]>
         </from>
         <from join="true" dbms="oracle" group="!adagio"><![CDATA[
             LEFT OUTER JOIN VESSEL_REGISTRATION_PERIOD VRP ON AC.VESSEL_FK = VRP.VESSEL_FK
-                AND VRP.START_DATE <= &startDate
-                AND NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+                AND VRP.START_DATE <= &endDate
+                AND NVL(VRP.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) >= &startDate
             ]]></from>
         <from join="true" dbms="oracle" group="adagio"><![CDATA[
             LEFT OUTER JOIN &adagioSchema.VESSEL_REGISTRATION_PERIOD VRP ON AC.VESSEL_FK = VRP.VESSEL_FK
-                AND VRP.START_DATE_TIME <= &startDate
-                AND NVL(VRP.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+                AND VRP.START_DATE_TIME <= &endDate
+                AND NVL(VRP.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) >= &startDate
             ]]></from>
 
         <from join="true">LEFT OUTER JOIN LOCATION L ON VRP.REGISTRATION_LOCATION_FK = L.ID</from>
 
         <from join="true" dbms="hsqldb,pgsql"><![CDATA[
             LEFT OUTER JOIN VESSEL_FEATURES VF ON AC.VESSEL_FK = VF.VESSEL_FK
-                AND VF.START_DATE <= &startDate
-                AND COALESCE(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+                AND VF.START_DATE <= &endDate
+                AND COALESCE(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) >= &startDate
             ]]>
         </from>
         <from join="true" dbms="oracle" group="!adagio"><![CDATA[
             LEFT OUTER JOIN VESSEL_FEATURES VF ON AC.VESSEL_FK = VF.VESSEL_FK
-                AND VF.START_DATE <= &startDate
-                AND NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+                AND VF.START_DATE <= &endDate
+                AND NVL(VF.END_DATE, to_date('01-01-2100','DD-MM-YYYY')) >= &startDate
             ]]>
         </from>
         <from join="true" dbms="oracle" group="adagio"><![CDATA[
             LEFT OUTER JOIN &adagioSchema.VESSEL_FEATURES VF ON AC.VESSEL_FK = VF.VESSEL_FK
-                AND VF.START_DATE_TIME <= &startDate
-                AND NVL(VF.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) > &startDate
+                AND VF.START_DATE_TIME <= &endDate
+                AND NVL(VF.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) >= &startDate
             ]]>
         </from>
         <from join="true">
