@@ -23,6 +23,7 @@ package net.sumaris.core.dao.data.activity;
  */
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.ImageAttachmentRepository;
@@ -39,7 +40,6 @@ import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.StreamUtils;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -118,8 +118,9 @@ public class ActivityCalendarRepositoryImpl
         // If sort by vessel.* or filter on base port location
         // should remove duplication (because of distinct that has been disabled)
         boolean needDistinct = (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.'))
-            || (filter != null && ArrayUtils.isNotEmpty(filter.getBasePortLocationIds()))
             || (filter != null && ArrayUtils.isNotEmpty(filter.getObserverPersonIds()));
+
+        // /!\ FIXME - this workaround can be removed safely, since we only use `EXISTS` instead of `LEFT OUTER JOIN` - see issue sumaris-pod#65
         if (needDistinct) {
             int originalSize = result.size();
 
@@ -129,20 +130,24 @@ public class ActivityCalendarRepositoryImpl
 
             // Original page was full, check if need to fetch more
             if (originalSize >= size) {
+                log.warn("Detecting duplicated calendars returned by findAll() - Should not append since resolution of the issue sumaris-pod#65 !!\nApplying a workaround...");
 
                 // Count max missing elements for this page
                 int missingSize = originalSize - result.size();
 
                 // If missing element in the page, try to complete with more elements
                 if (missingSize > 0) {
-                    // Fetch more elements (recursive call)
-                    List<ActivityCalendarVO> missingElements = findAll(filter, offset + size, missingSize, sortAttribute, sortDirection, fetchOptions);
+                    // Fetch more (recursive call) but exclude already fetched items
+                    filter = ActivityCalendarFilterVO.nullToEmpty(filter);
+                    Integer[] ids = Beans.collectIds(result).toArray(Integer[]::new);
+                    filter.setExcludedIds(ArrayUtils.addAll(filter.getExcludedIds(), ids));
+
+                    List<ActivityCalendarVO> missingElements = findAll(filter, offset, missingSize, sortAttribute, sortDirection, fetchOptions);
 
                     // Concat missing elements (if any) to the result
                     if (CollectionUtils.isNotEmpty(missingElements)) {
-                        final List<ActivityCalendarVO> finalResult = result;
-                        result = StreamUtils.concat(finalResult.stream(), missingElements.stream().filter(e -> !finalResult.contains(e)))
-                            .toList();
+                        result = Lists.newArrayList(result);
+                        result.addAll(missingElements);
                     }
                 }
             }
@@ -273,7 +278,8 @@ public class ActivityCalendarRepositoryImpl
 
         if (query.getMaxResults() > 1) {
             // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
-            query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
+            // /!\ This workaround can be removed safely, since we only use `EXISTS` instead of `LEFT OUTER JOIN` - see issue sumaris-pod#65
+            //query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
         }
 
     }
