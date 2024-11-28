@@ -119,6 +119,8 @@ public class ActivityCalendarRepositoryImpl
         // should remove duplication (because of distinct that has been disabled)
         boolean needDistinct = (sortEntityProperty != null && sortEntityProperty.startsWith(ActivityCalendar.Fields.VESSEL + '.'))
             || (filter != null && ArrayUtils.isNotEmpty(filter.getObserverPersonIds()));
+
+        // /!\ FIXME - this workaround can be removed safely, since we only use `EXISTS` instead of `LEFT OUTER JOIN` - see issue sumaris-pod#65
         if (needDistinct) {
             int originalSize = result.size();
 
@@ -128,6 +130,7 @@ public class ActivityCalendarRepositoryImpl
 
             // Original page was full, check if need to fetch more
             if (originalSize >= size) {
+                log.warn("Detecting duplicated calendars returned by findAll() - Should not append since resolution of the issue sumaris-pod#65 !!\nApplying a workaround...");
 
                 // Count max missing elements for this page
                 int missingSize = originalSize - result.size();
@@ -275,7 +278,8 @@ public class ActivityCalendarRepositoryImpl
 
         if (query.getMaxResults() > 1) {
             // Fix sorting on vessel fields (that are not in the select, but need a DISTINCT) - see issue sumaris-app#723
-            query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
+            // /!\ This workaround can be removed safely, since we only use `EXISTS` instead of `LEFT OUTER JOIN` - see issue sumaris-pod#65
+            //query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
         }
 
     }

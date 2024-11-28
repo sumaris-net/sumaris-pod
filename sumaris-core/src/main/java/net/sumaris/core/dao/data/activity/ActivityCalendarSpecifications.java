@@ -29,7 +29,6 @@ import net.sumaris.core.dao.technical.hibernate.AdditionalSQLFunctions;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
@@ -43,8 +42,14 @@ import java.util.Date;
 public interface ActivityCalendarSpecifications extends RootDataSpecifications<ActivityCalendar>,
     IWithVesselSpecifications<Integer, ActivityCalendar> {
 
-    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
+    default <T extends ActivityCalendar> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
+        return composeVrpJoinBetweenDate(root, cb, vessel);
+    }
+
+    default <T extends ActivityCalendar> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoinBetweenDate(Root<T> root,
+                                                                                     CriteriaBuilder cb,
+                                                                                     From<?, Vessel> vessel) {
         Expression<Date> startDate = cb.function(AdditionalSQLFunctions.first_day_of_year.name(),
             Date.class,
             root.get(ActivityCalendar.Fields.YEAR)
@@ -56,7 +61,22 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
         return composeVrpJoinBetweenDate(vessel, cb, startDate, endDate, JoinType.LEFT);
     }
 
-    default <T> ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<T> root, CriteriaBuilder cb) {
+    default <T extends ActivityCalendar> Predicate vrpPredicate(Root<T> root,
+                                   CriteriaBuilder cb,
+                                   From<?, VesselRegistrationPeriod> vrp
+    ) {
+        Expression<Date> startDate = cb.function(AdditionalSQLFunctions.first_day_of_year.name(),
+            Date.class,
+            root.get(ActivityCalendar.Fields.YEAR)
+        );
+        Expression<Date> endDate = cb.function(AdditionalSQLFunctions.last_day_of_year.name(),
+            Date.class,
+            root.get(ActivityCalendar.Fields.YEAR)
+        );
+        return vrpBetweenDatePredicate(vrp, cb, startDate, endDate);
+    }
+
+    default <T extends ActivityCalendar> ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
         Expression<Date> firstDayOfYear = cb.function(AdditionalSQLFunctions.first_day_of_year.name(),
             Date.class,
@@ -67,28 +87,34 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
 
     default Specification<ActivityCalendar> hasRegistrationLocationIds(Integer[] locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            query.distinct(true);
+        return BindableSpecification.<ActivityCalendar>where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.REGISTRATION_LOCATION_IDS);
-            ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
-            Join<VesselRegistrationPeriod, Location> registrationLocation = Daos.composeJoin(vrp, VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION);
-            return cb.in(registrationLocation.get(IEntity.Fields.ID)).value(param);
+            Join<ActivityCalendar, Vessel> vessel = composeVesselJoin(root);
+
+            Subquery<VesselRegistrationPeriod> subQuery = query.subquery(VesselRegistrationPeriod.class);
+            Root<VesselRegistrationPeriod> vrp = subQuery.from(VesselRegistrationPeriod.class);
+            subQuery.select(vrp.get(VesselRegistrationPeriod.Fields.ID));
+
+            subQuery.where(
+                vrpPredicate(root, cb, vrp),
+                cb.equal(vessel, vrp.get(VesselRegistrationPeriod.Fields.VESSEL)),
+                cb.in(vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION).get(IEntity.Fields.ID)).value(param)
+            );
+            return cb.exists(subQuery);
         }).addBind(ActivityCalendarFilterVO.Fields.REGISTRATION_LOCATION_IDS, Arrays.asList(locationIds));
     }
 
     default Specification<ActivityCalendar> hasBasePortLocationIds(Integer[] locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-            query.distinct(true);
             ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS);
-            // TODO use LocationHierarchy ?
 
-            Subquery<ActivityCalendar> subQuery = query.subquery(ActivityCalendar.class);
-            Root<VesselUseFeatures> vesselUseFeaturesRoot = subQuery.from(VesselUseFeatures.class);
-            subQuery.select(vesselUseFeaturesRoot.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR).get(IEntity.Fields.ID));
+            Subquery<VesselUseFeatures> subQuery = query.subquery(VesselUseFeatures.class);
+            Root<VesselUseFeatures> vuf = subQuery.from(VesselUseFeatures.class);
+            subQuery.select(vuf.get(VesselUseFeatures.Fields.ID));
             subQuery.where(
-                    cb.equal(vesselUseFeaturesRoot.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR), root),
-                    vesselUseFeaturesRoot.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
+                    cb.equal(vuf.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR), root),
+                    vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
             );
             return cb.exists(subQuery);
         }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds));
@@ -150,12 +176,17 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
 
         return BindableSpecification.where((root, query, cb) -> {
 
-            // Avoid duplicated entries (because of inner join)
-            query.distinct(true);
-
             ParameterExpression<Collection> parameter = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.OBSERVER_PERSON_IDS);
-            return cb.in(Daos.composeJoin(root, ObservedLocation.Fields.OBSERVERS).get(IEntity.Fields.ID))
-                    .value(parameter);
+
+            Subquery<ActivityCalendar> subQuery = query.subquery(ActivityCalendar.class);
+            Root<ActivityCalendar> subRoot = subQuery.from(ActivityCalendar.class);
+            subQuery.select(subRoot.get(ActivityCalendar.Fields.ID));
+            subQuery.where(
+                cb.equal(root, subRoot),
+                cb.in(Daos.composeJoin(subRoot, ObservedLocation.Fields.OBSERVERS).get(IEntity.Fields.ID))
+                    .value(parameter)
+            );
+            return cb.exists(subQuery);
         }).addBind(ActivityCalendarFilterVO.Fields.OBSERVER_PERSON_IDS, Arrays.asList(observerPersonIds));
     }
 
