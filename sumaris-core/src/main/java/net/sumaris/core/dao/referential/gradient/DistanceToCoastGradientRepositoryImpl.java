@@ -53,7 +53,7 @@ public class DistanceToCoastGradientRepositoryImpl
         @NonNull ReferentialFilterVO filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(inSpatialLocationIds(SpatialItemTypeEnum.DISTANCE_TO_COAST_GRADIENT,
-                LocationHierarchyMode.TOP_DOWN,
+                LocationHierarchyMode.NONE,
                 filter.getLocationIds()))
             ;
     }
