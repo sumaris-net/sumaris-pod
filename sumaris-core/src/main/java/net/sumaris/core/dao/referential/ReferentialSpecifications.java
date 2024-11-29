@@ -159,7 +159,7 @@ public interface ReferentialSpecifications<ID extends Serializable, E extends IR
                 case NONE -> {
                     return cb.and(
                         cb.equal(si.get(SpatialItem.Fields.OBJECT_ID), root.get(IEntity.Fields.ID)),
-                        cb.in(si2l.get(SpatialItem2Location.Fields.LOCATION)).value(locationIdsParameter)
+                        cb.in(si2l.get(SpatialItem2Location.Fields.LOCATION).get(IEntity.Fields.ID)).value(locationIdsParameter)
                     );
                 }
 

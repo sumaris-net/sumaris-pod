@@ -651,7 +651,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-    public void executeActivityMonitoringTest(List<ExtractionFilterCriterionVO> criteria) throws IOException, ParseException {
+    public int executeActivityMonitoringTest(List<ExtractionFilterCriterionVO> criteria) throws IOException, ParseException {
         IExtractionType type = LiveExtractionTypeEnum.ACTIVITY_MONITORING;
 
         if (CollectionUtils.isEmpty(criteria)) {
@@ -685,12 +685,15 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             File root = unpack(outputFile, type);
 
             // AM.csv
-            File monitoringFile = new File(root, ActivityMonitoringSpecification.AM_SHEET_NAME + ".csv");
-            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+            File resultFile = new File(root, ActivityMonitoringSpecification.AM_SHEET_NAME + ".csv");
+            int nbLines = countLineInCsvFile(resultFile);
+            Assert.assertTrue(nbLines > 1);
+            return nbLines;
 
         } catch (DataNotFoundException e) {
             Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
         }
+        return 0;
     }
 
 

@@ -22,23 +22,32 @@
 
 package net.sumaris.server.util.node;
 
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.FieldNameConstants;
 
-import java.util.List;
+import java.util.Date;
 
-/**
- * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
- */
 @Data
-public class NodeSummaryVO {
-    private String softwareName;
-    private String softwareVersion;
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldNameConstants
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
+public class NodeFeatureVO {
+    @EqualsAndHashCode.Include
+    @ToString.Include
+    private Integer id;
+    @ToString.Include
+    private String label;
+    @ToString.Include
+    private String name;
+    private String description;
 
-    private String nodeLabel;
-    private String nodeName;
+    private String logo;
 
-    private String registrationUri;
-    private String registrationManager;
+    private Date updateDate;
+    private Date creationDate;
 
-    private List<NodeFeatureVO> features;
+    private Integer statusId;
 }

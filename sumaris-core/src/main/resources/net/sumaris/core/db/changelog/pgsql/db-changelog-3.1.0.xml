@@ -1,71 +1,287 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
-    logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/pgsql/db-changelog-3.1.0.xml">
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd" logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/pgsql/db-changelog-3.1.0.xml">
 
-  <changeSet author="jv.famy@codra.fr" id="1722000410026-001">
-    <preConditions onFail="MARK_RAN">
-      <not>
-        <sequenceExists sequenceName="STRATEGY_PROPERTY_SEQ"/>
-      </not>
-    </preConditions>
-    <createSequence sequenceName="STRATEGY_PROPERTY_SEQ"/>
-  </changeSet>
-  <changeSet author="jv.famy@codra.fr" id="1722000410026-002">
-    <preConditions onFail="MARK_RAN">
-      <not>
-        <tableExists tableName="strategy_property"/>
-      </not>
-    </preConditions>
-    <createTable tableName="strategy_property">
-      <column name="id" type="INT">
-        <constraints primaryKey="true" primaryKeyName="strategy_property_pk"/>
-      </column>
-      <column name="creation_date" type="TIMESTAMP">
-        <constraints nullable="false"/>
-      </column>
-      <column name="label" type="VARCHAR(255)">
-        <constraints nullable="false"/>
-      </column>
-      <column name="name" type="VARCHAR(255)">
-        <constraints nullable="false"/>
-      </column>
-      <column name="update_date" type="TIMESTAMP"/>
-      <column name="strategy_fk" type="INT">
-        <constraints nullable="false"/>
-      </column>
-      <column name="status_fk" type="INT">
-        <constraints nullable="false"/>
-      </column>
-    </createTable>
-  </changeSet>
-  <changeSet author="jv.famy@codra.fr" id="1722000410026-003" failOnError="false">
-    <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="strategy_property" constraintName="strategy_property_status_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" />
-  </changeSet>
-  <changeSet author="jv.famy@codra.fr" id="1722000410026-004" failOnError="false">
-    <addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="strategy_property" constraintName="strategy_property_strategy_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Strategy" />
-  </changeSet>
+	<changeSet author="jv.famy@codra.fr" id="1722000410026-001">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<sequenceExists sequenceName="STRATEGY_PROPERTY_SEQ" />
+			</not>
+		</preConditions>
+		<createSequence sequenceName="STRATEGY_PROPERTY_SEQ" />
+	</changeSet>
+	<changeSet author="jv.famy@codra.fr" id="1722000410026-002">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="strategy_property" />
+			</not>
+		</preConditions>
+		<createTable tableName="strategy_property">
+			<column name="id" type="INT">
+				<constraints primaryKey="true" primaryKeyName="strategy_property_pk" />
+			</column>
+			<column name="creation_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+			<column name="label" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="name" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="update_date" type="TIMESTAMP" />
+			<column name="strategy_fk" type="INT">
+				<constraints nullable="false" />
+			</column>
+			<column name="status_fk" type="INT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="jv.famy@codra.fr" id="1722000410026-003" failOnError="false">
+		<addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="strategy_property" constraintName="strategy_property_status_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Status" />
+	</changeSet>
+	<changeSet author="jv.famy@codra.fr" id="1722000410026-004" failOnError="false">
+		<addForeignKeyConstraint baseColumnNames="strategy_fk" baseTableName="strategy_property" constraintName="strategy_property_strategy_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Strategy" />
+	</changeSet>
 
+	<!-- Add unique constraint on VESSEL_USE_FEATURES -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-005" failOnError="false">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="vessel_use_features" />
+		</preConditions>
 
-  <!-- Update SYSTEM_VERSION -->
-  <changeSet author="jv.famy@codra.fr" id="1722000410026-300" runOnChange="true">
-    <delete tableName="SYSTEM_VERSION">
-      <where>LABEL='4.3.1'</where>
-    </delete>
-    <insert tableName="SYSTEM_VERSION">
-      <column name="ID" valueComputed="nextval('system_version_seq')"/>
-      <column name="LABEL">4.3.1</column>
-      <column name="DESCRIPTION" >
-        - Add table STRATEGY_PROPERTY
-      </column>
-      <column name="CREATION_DATE" valueComputed="current_timestamp"/>
-      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
-      <column name="COMMENTS">
-        - Add table STRATEGY_PROPERTY
-      </column>
-    </insert>
-  </changeSet>
+		<addUniqueConstraint tableName="vessel_use_features" constraintName="vessel_use_feat_unique_key" columnNames="vessel_fk, program_fk, start_date, end_date, activity_calendar_fk, daily_activity_calendar_fk" />
+	</changeSet>
+
+	<!-- Add unique constraint on GEAR_USE_FEATURES -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-006" failOnError="false">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="gear_use_features" />
+		</preConditions>
+		<addUniqueConstraint tableName="gear_use_features" constraintName="gear_use_feat_unique_key" columnNames="vessel_fk, program_fk, gear_fk, metier_fk, start_date, end_date, activity_calendar_fk, daily_activity_calendar_fk" />
+	</changeSet>
+
+	<!-- Create table SPATIAL_ITEM_TYPE -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-007" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="spatial_item_type" />
+			</not>
+		</preConditions>
+		<createTable tableName="spatial_item_type">
+			<column name="id" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item_type_pk" />
+			</column>
+			<column name="label" type="VARCHAR(50)">
+				<constraints nullable="false" />
+			</column>
+			<column name="name" type="VARCHAR(100)">
+				<constraints nullable="false" />
+			</column>
+			<column name="description" type="VARCHAR(255)" />
+			<column name="status_fk" type="INT">
+				<constraints nullable="false" />
+			</column>
+			<column name="object_type_fk" type="INT">
+				<constraints nullable="false" />
+			</column>
+			<column name="creation_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+			<column name="update_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+
+		<addForeignKeyConstraint baseTableName="spatial_item_type" baseColumnNames="status_fk" constraintName="spatial_item_type_status_fkc" referencedTableName="status" referencedColumnNames="id" />
+
+		<addForeignKeyConstraint baseTableName="spatial_item_type" baseColumnNames="object_type_fk" constraintName="spatial_item_type_object_type_fkc" referencedTableName="object_type" referencedColumnNames="id" />
+
+		<createSequence sequenceName="SPATIAL_ITEM_TYPE_SEQ" startValue="1" incrementBy="1" />
+	</changeSet>
+
+	<!-- Create table SPATIAL_ITEM -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-008" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="spatial_item" />
+			</not>
+		</preConditions>
+		<createTable tableName="spatial_item">
+			<column name="id" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item_pk" />
+			</column>
+			<column name="spatial_item_type_fk" type="INT">
+				<constraints nullable="false" />
+			</column>
+			<column name="object_id" type="INT">
+				<constraints nullable="false" />
+			</column>
+			<column name="update_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+
+		<addForeignKeyConstraint baseTableName="spatial_item" baseColumnNames="spatial_item_type_fk" constraintName="fk_spatial_item_spatial_item_type" referencedTableName="spatial_item_type" referencedColumnNames="id" />
+		<addUniqueConstraint columnNames="spatial_item_type_fk, object_id" tableName="spatial_item" constraintName="spatial_item_unique_key" />
+
+		<createIndex indexName="spatial_item_obj_idx" tableName="spatial_item">
+			<column name="object_id" />
+		</createIndex>
+
+		<createSequence sequenceName="SPATIAL_ITEM_SEQ" startValue="1" incrementBy="1" />
+	</changeSet>
+
+	<!-- Create table SPATIAL_ITEM2LOCATION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-009" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="spatial_item2location" />
+			</not>
+		</preConditions>
+		<createTable tableName="spatial_item2location">
+			<column name="spatial_item_fk" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item2location_pk" />
+			</column>
+			<column name="location_fk" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="spatial_item2location_pk" />
+			</column>
+			<column name="localized_name" type="VARCHAR(255)" />
+		</createTable>
+		<addForeignKeyConstraint baseTableName="spatial_item2location" baseColumnNames="spatial_item_fk" constraintName="fk_spatial_item2location_spatial_item" referencedTableName="spatial_item" referencedColumnNames="id" />
+		<addForeignKeyConstraint baseTableName="spatial_item2location" baseColumnNames="location_fk" constraintName="fk_spatial_item2location_location" referencedTableName="location" referencedColumnNames="id" />
+		<createIndex indexName="spatial_item2location_idx" tableName="spatial_item2location">
+			<column name="location_fk" />
+		</createIndex>
+	</changeSet>
+
+	<!-- Create table DENORMALIZED_SPATIAL_ITEM -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-010" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="denormalized_spatial_item" />
+			</not>
+		</preConditions>
+		<createTable tableName="denormalized_spatial_item">
+			<column name="spatial_item_type_fk" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="denormalized_spatial_item_pk" />
+			</column>
+			<column name="spatial_item_type_label" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="spatial_item_type_name" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="spatial_item_type_status" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="spatial_item_type_update_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+			<column name="spatial_item_update_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+			<column name="object_table" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="object_table_filter" type="VARCHAR(100)" />
+			<column name="object_id" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="denormalized_spatial_item_pk" />
+			</column>
+			<column name="object_label" type="VARCHAR(50)" />
+			<column name="object_name" type="VARCHAR(100)" />
+			<column name="object_status" type="VARCHAR(1)" />
+			<column name="min_value" type="DOUBLE" />
+			<column name="max_value" type="DOUBLE" />
+			<column name="localized_name" type="VARCHAR(255)" />
+			<column name="localized_location_fk" type="INT" />
+			<column name="localized_location_level_fk" type="INT" />
+			<column name="localized_loc_class_level_fk" type="INT" />
+			<column name="localized_location_label" type="VARCHAR(50)" />
+			<column name="localized_location_name" type="VARCHAR(100)" />
+			<column name="localized_location_status" type="VARCHAR(1)" /> <!-- keep VARCHAR for compatibility with Oracle Ifremer BDD -->
+
+		</createTable>
+	</changeSet>
+
+	<!-- Add table expertise_area -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-011" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="expertise_area" />
+			</not>
+		</preConditions>
+		<createTable tableName="expertise_area">
+			<column name="id" type="INT" remarks="Identifiant">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="expertise_area_pk" />
+			</column>
+			<column name="label" type="VARCHAR(40)" />
+			<column name="name" type="VARCHAR(100)">
+				<constraints nullable="false" />
+			</column>
+			<column name="description" type="VARCHAR(255)" />
+			<column name="creation_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+			<column name="update_date" type="TIMESTAMP">
+				<constraints nullable="false" />
+			</column>
+			<column name="status_fk" type="INT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+		<addForeignKeyConstraint baseTableName="expertise_area" baseColumnNames="status_fk" constraintName="expertise_area_status_fkc" referencedTableName="status" referencedColumnNames="id" />
+	</changeSet>
+
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-012" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<sequenceExists sequenceName="expertise_area_seq" />
+			</not>
+		</preConditions>
+		<createSequence sequenceName="EXPERTISE_AREA_SEQ" startValue="1" incrementBy="1" />
+	</changeSet>
+
+	<!-- Add table EXPERTISE_AREA2LOCATION -->
+	<changeSet author="benoit.lavenier@e-is.pro" id="1722000410026-013" runOnChange="true">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="expertise_area2location" />
+			</not>
+		</preConditions>
+		<createTable tableName="expertise_area2location">
+			<column name="expertise_area_fk" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="expertise_area2location_pk" />
+			</column>
+			<column name="location_fk" type="INT">
+				<constraints nullable="false" primaryKey="true" primaryKeyName="expertise_area2location_pk" />
+			</column>
+		</createTable>
+		<addForeignKeyConstraint baseTableName="expertise_area2location" baseColumnNames="expertise_area_fk" constraintName="expertise_area2loc_area_fkc" referencedTableName="expertise_area" referencedColumnNames="id" />
+		<addForeignKeyConstraint baseTableName="expertise_area2location" baseColumnNames="location_fk" constraintName="expertise_area2loc_loc_fkc" referencedTableName="location" referencedColumnNames="id" />
+	</changeSet>
+
+	<!-- Update SYSTEM_VERSION -->
+	<changeSet author="jv.famy@codra.fr" id="1722000410026-300" runOnChange="true">
+		<delete tableName="SYSTEM_VERSION">
+			<where>LABEL='3.1.0'</where>
+		</delete>
+		<insert tableName="SYSTEM_VERSION">
+			<column name="ID" valueComputed="nextval('system_version_seq')" />
+			<column name="LABEL">3.1.0</column>
+			<column name="DESCRIPTION">
+				- Add table STRATEGY_PROPERTY;
+				- Add unique constraints on VESSEL_USE_FEATURES and GEAR_USE_FEATURES
+				- Add column SPATIAL_ITEM and EXPERTISE_AREA tables
+			</column>
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
+			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
+			<column name="COMMENTS">
+				- Add table STRATEGY_PROPERTY;
+				- Add unique constraints on VESSEL_USE_FEATURES and GEAR_USE_FEATURES
+				- Add column SPATIAL_ITEM and EXPERTISE_AREA tables
+			</column>
+		</insert>
+	</changeSet>
 
 </databaseChangeLog>

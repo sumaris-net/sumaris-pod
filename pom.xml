@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>2.9.25</version>
+  <version>2.9.25.4</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -86,6 +86,7 @@
     <!-- Project properties -->
     <javaSourceVersion>17</javaSourceVersion>
     <javaVersion>17</javaVersion>
+    <javaCompilerOptions>--enable-preview</javaCompilerOptions>
 
     <!-- Commons versions -->
     <hsqldb.version>2.4.1</hsqldb.version>
@@ -1276,7 +1277,7 @@
             <encoding>${project.build.sourceEncoding}</encoding>
             <compilerArgs>
               <!-- Required for Java 17 only - FIXME: remove after migrate to Java 21 -->
-              <arg>--enable-preview</arg>
+              <arg>${javaCompilerOptions}</arg>
               <arg>-parameters</arg>
             </compilerArgs>
             <testCompilerArgument>-parameters</testCompilerArgument>
@@ -1697,6 +1698,21 @@
   </distributionManagement>
 
   <profiles>
+
+    <!-- Compiler options for Mac -->
+    <profile>
+      <id>mac</id>
+      <activation>
+        <os>
+          <family>mac</family>
+        </os>
+        <jdk>21</jdk>
+      </activation>
+      <properties>
+        <javaSourceVersion>21</javaSourceVersion>
+        <javaCompilerOptions/>
+      </properties>
+    </profile>
 
     <!-- use this profile to run the main class -->
     <profile>

@@ -277,6 +277,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         updateModelEnumerations();
     }
 
+
+
     /* -- protected methods -- */
 
     protected void applySoftwareProperties(ApplicationConfig appConfig, SoftwareVO software) {

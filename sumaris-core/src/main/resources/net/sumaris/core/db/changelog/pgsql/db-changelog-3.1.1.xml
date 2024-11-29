@@ -1,8 +1,8 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
-<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd" logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-3.1.1.xml">
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd" logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/pgsql/db-changelog-3.1.1.xml">
 
 	<!-- Add table EXPERTISE_AREA2LOCATION_LEVEL -->
-	<changeSet author="benoit.lavenier@e-is.pro" id="1731922590511-001" runOnChange="true">
+	<changeSet author="benoit.lavenier@e-is.pro" id="1732542585-004" runOnChange="true">
 		<preConditions onFail="MARK_RAN">
 			<not>
 				<tableExists tableName="expertise_area2location_level" />
@@ -16,7 +16,7 @@
 				<constraints nullable="false" primaryKey="true" primaryKeyName="expertise_area2loc_level_pk" />
 			</column>
 		</createTable>
-		<addForeignKeyConstraint baseTableName="expertise_area2location_level" baseColumnNames="expertise_area_fk" constraintName="exp_area2loc_lev_exp_area_fkc" referencedTableName="expertise_area" referencedColumnNames="id" />
+		<addForeignKeyConstraint baseTableName="expertise_area2location_level" baseColumnNames="expertise_area_fk" constraintName="exp_area2loc_lev_exp_area_fkc" referencedTableName="expertise_areajj" referencedColumnNames="id" />
 		<addForeignKeyConstraint baseTableName="expertise_area2location_level" baseColumnNames="location_level_fk" constraintName="exp_area2loc_level_loc_lev_fkc" referencedTableName="location_level" referencedColumnNames="id" />
 	</changeSet>
 
@@ -26,12 +26,12 @@
 			<where>LABEL='3.1.1'</where>
 		</delete>
 		<insert tableName="SYSTEM_VERSION">
-			<column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ" />
+			<column name="ID" valueComputed="nextval('system_version_seq')" />
 			<column name="LABEL">3.1.1</column>
 			<column name="DESCRIPTION">
 				- Add EXPERTISE_AREA2LOCATION_LEVEL tables
 			</column>
-			<column name="CREATION_DATE" valueComputed="sysdate" />
+			<column name="CREATION_DATE" valueComputed="current_timestamp" />
 			<column name="UPDATE_DATE" valueComputed="current_timestamp" />
 			<column name="COMMENTS">
 				- Add EXPERTISE_AREA2LOCATION_LEVEL tables

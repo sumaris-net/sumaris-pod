@@ -46,7 +46,7 @@ import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.location.LocationLevel;
 import net.sumaris.core.model.referential.metier.Metier;
-import net.sumaris.core.model.referential.pmfm.Method;
+import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.spatial.ExpertiseArea;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
@@ -133,7 +133,7 @@ public class ReferentialDaoImpl
         return streamByFilter(entityClass, filter, offset, size, sortAttribute, sortDirection)
             .map(s -> toVO(entityName, s, fetchOptions))
             .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -1057,6 +1057,16 @@ public class ReferentialDaoImpl
     protected void copyProperties(final IReferentialEntity source, ReferentialVO target) {
 
         switch (source.getClass().getSimpleName()) {
+            case Pmfm.ENTITY_NAME -> {
+                target.setProperties(ImmutableMap.<String, Object>builder()
+                    .put(Pmfm.Fields.PARAMETER, toVO(Parameter.ENTITY_NAME, ((Pmfm)source).getParameter()))
+                    .put(Pmfm.Fields.MATRIX, toVO(Matrix.ENTITY_NAME, ((Pmfm)source).getMatrix()))
+                    .put(Pmfm.Fields.FRACTION, toVO(Fraction.ENTITY_NAME, ((Pmfm)source).getFraction()))
+                    .put(Pmfm.Fields.METHOD, toVO(Method.ENTITY_NAME, ((Pmfm)source).getMethod()))
+                    .put(Pmfm.Fields.UNIT, toVO(Unit.ENTITY_NAME, ((Pmfm)source).getUnit()))
+                    .build()
+                );
+            }
             case Method.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.of(
                     Method.Fields.IS_CALCULATED, ((Method)source).getIsCalculated(),

@@ -61,22 +61,31 @@ public interface IWithVesselSpecifications<ID extends Serializable, E extends IW
         return composeVrpJoinBetweenDate(vessel, cb, dateExpression, dateExpression, joinType);
     }
 
-    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoinBetweenDate(Join<T, Vessel> vessel, CriteriaBuilder cb,
+    default <T> ListJoin<Vessel, VesselRegistrationPeriod> composeVrpJoinBetweenDate(From<?, Vessel> vessel, CriteriaBuilder cb,
                                                                                      Expression<Date> startDateExpression,
                                                                                      Expression<Date> endDateExpression,
                                                                                      JoinType joinType) {
         ListJoin<Vessel, VesselRegistrationPeriod> vrp = Daos.composeJoinList(vessel, Vessel.Fields.VESSEL_REGISTRATION_PERIODS, joinType);
         if (vrp.getOn() == null && startDateExpression != null) {
-            if (endDateExpression == null) endDateExpression = startDateExpression;
-            Predicate vrpCondition = cb.not(
-                cb.or(
-                    cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDateExpression),
-                    cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDateExpression)
-                )
-            );
-            vrp.on(vrpCondition);
+            Predicate vrpOnCondition = vrpBetweenDatePredicate(vrp, cb, startDateExpression, endDateExpression);
+            vrp.on(vrpOnCondition);
         }
         return vrp;
+    }
+
+    default Predicate vrpBetweenDatePredicate(From<?, VesselRegistrationPeriod> vrp,
+                                              CriteriaBuilder cb,
+                                              Expression<Date> startDateExpression,
+                                              Expression<Date> endDateExpression) {
+        if (startDateExpression == null)  return null;
+        if (endDateExpression == null) endDateExpression = startDateExpression;
+
+        return cb.not(
+            cb.or(
+                cb.lessThan(Daos.nvlEndDate(vrp.get(VesselRegistrationPeriod.Fields.END_DATE), cb, getDatabaseType()), startDateExpression),
+                cb.greaterThan(vrp.get(VesselRegistrationPeriod.Fields.START_DATE), endDateExpression)
+            )
+        );
     }
 
     default ListJoin<Vessel, VesselFeatures> composeVfJoin(Join<?, Vessel> vessel, CriteriaBuilder cb, Expression<Date> dateExpression) {
