@@ -106,7 +106,7 @@ public class NodeInfoRestController {
                 .updateDate(program.getUpdateDate())
                 .creationDate(program.getCreationDate())
                 .statusId(program.getStatusId())
-                    .logo(Programs.getProperty(program, ProgramPropertyEnum.PROGRAM_LOGO))
+                .logo(Programs.getProperty(program, ProgramPropertyEnum.PROGRAM_LOGO))
                 .build()
             ).toList();
     }

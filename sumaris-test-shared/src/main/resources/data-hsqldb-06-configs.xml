@@ -5,7 +5,7 @@
     <SOFTWARE ID="4" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="OBSDEB" NAME="Application de saisie des débarquements observés" />
     <SOFTWARE ID="5" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="IMAGINE" NAME="Suivi des paramètres biologique" />
     <SOFTWARE ID="6" STATUS_FK="1" CREATION_DATE="2021-08-01" LABEL="OPEN" NAME="Base de données ouverte, pour la collecte de données halieutiques" />
-    <SOFTWARE ID="7" STATUS_FK="1" CREATION_DATE="2023-10-18" LABEL="OBSMER" NAME="Refonte Allegro" />
+    <SOFTWARE ID="7" STATUS_FK="1" CREATION_DATE="2023-10-18" LABEL="OPUS" NAME="OPUS - Refonte SIH-Allegro" />
 
     <!-- ****** SUMARiS properties ****** -->
 
@@ -131,7 +131,7 @@
     <SOFTWARE_PROPERTY ID="143" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
-    <!-- ****** OBSMER/OBSVENTE properties ****** -->
+    <!-- ****** OPUS properties ****** -->
     <SOFTWARE_PROPERTY ID="159" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="true"/>
