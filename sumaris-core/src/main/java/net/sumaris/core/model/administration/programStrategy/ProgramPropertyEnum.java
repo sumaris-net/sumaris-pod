@@ -29,6 +29,8 @@ import java.util.Arrays;
 
 public enum ProgramPropertyEnum implements Serializable {
 
+    PROGRAM_LOGO("sumaris.program.logo", String.class, null),
+
     TRIP_OPERATION_ALLOW_PARENT("sumaris.trip.operation.allowParent", Boolean.class, Boolean.FALSE.toString()),
     TRIP_OPERATION_ENABLE_SAMPLE("sumaris.trip.operation.sample.enable", Boolean.class, Boolean.FALSE.toString()),
 

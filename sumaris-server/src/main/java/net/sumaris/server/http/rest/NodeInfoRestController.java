@@ -24,10 +24,12 @@ package net.sumaris.server.http.rest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.programStrategy.Programs;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.ServerCacheConfiguration;
@@ -104,6 +106,7 @@ public class NodeInfoRestController {
                 .updateDate(program.getUpdateDate())
                 .creationDate(program.getCreationDate())
                 .statusId(program.getStatusId())
+                    .logo(Programs.getProperty(program, ProgramPropertyEnum.PROGRAM_LOGO))
                 .build()
             ).toList();
     }
