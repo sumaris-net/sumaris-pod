@@ -22,9 +22,9 @@ package net.sumaris.core.model.referential.pmfm;
  * #L%
  */
 
-import lombok.*;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.Status;
@@ -51,6 +51,7 @@ import java.util.Date;
 @Entity
 @Cacheable
 public class Fraction implements IItemReferentialEntity<Integer> {
+    public static final String ENTITY_NAME = "Fraction";
 
     @Id
     @GeneratedValue(strategy=GenerationType.SEQUENCE, generator = "FRACTION_SEQ")
