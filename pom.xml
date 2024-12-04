@@ -238,7 +238,7 @@
     <wagonPluginVersion>1.0</wagonPluginVersion>
     <versionsPluginVersion>2.16.0</versionsPluginVersion>
     <findbugsPluginVersion>3.0.5</findbugsPluginVersion>
-    <markdowndocPluginVersion>3.1.0_17</markdowndocPluginVersion>
+    <markdowndocPluginVersion>3.1.11</markdowndocPluginVersion>
 
     <!-- web site -->
     <locales>en,fr</locales>
