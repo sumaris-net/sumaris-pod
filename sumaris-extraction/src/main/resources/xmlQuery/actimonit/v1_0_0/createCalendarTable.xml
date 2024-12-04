@@ -45,7 +45,7 @@
         <select alias="VESSEL_REGISTRATION_CODE">VRP.REGISTRATION_CODE</select>
         <select alias="VESSEL_INT_REGISTRATION_CODE">VRP.INT_REGISTRATION_CODE</select>
 
-        <select alias="DIRECT_SURVEY_INVESTIGATION">CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END</select>
+        <select alias="DIRECT_SURVEY_INVESTIGATION">CASE AC.DIRECT_SURVEY_INVESTIGATION WHEN 2 THEN 'OPPORTUNISTIC' WHEN 1 THEN 'YES' WHEN 0 THEN 'NO' ELSE CAST(NULL AS VARCHAR(1)) END</select>
         <select alias="ECONOMIC_SURVEY" dbms="hsqldb,pgsql">CASE WHEN AC.ECONOMIC_SURVEY THEN 'Y' ELSE 'N' END</select>
         <select alias="ECONOMIC_SURVEY" dbms="oracle">CASE AC.ECONOMIC_SURVEY WHEN 1 THEN 'Y' WHEN 0 THEN 'N' ELSE CAST(NULL AS VARCHAR(1)) END</select>
         <select alias="SURVEY_QUALIFICATION">SURVEY_QUALIFICATION_QV.NAME</select>
@@ -172,6 +172,9 @@
         </where>
         <where group="recordersFilter" operator="AND">
             <in field="RP.ID">&amp;recorderPersonIds</in>
+        </where>
+        <where group="directSurveyInvestigationFilter" operator="AND">
+            AC.DIRECT_SURVEY_INVESTIGATION = &amp;directSurveyInvestigation
         </where>
 
     </query>
