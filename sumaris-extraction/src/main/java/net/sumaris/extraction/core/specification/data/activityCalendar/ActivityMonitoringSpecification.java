@@ -44,6 +44,7 @@ public interface ActivityMonitoringSpecification {
     String COLUMN_OBSERVER_ID = "observer_id";
     String COLUMN_RECORDER_NAME = "recorder_person_name";
     String COLUMN_RECORDER_ID = "recorder_person_id";
+    String COLUMN_DIRECT_SURVEY_INVESTIGATION = "direct_survey_investigation";
 
     String COLUMN_MONTH_PREFIX = "month";
 
