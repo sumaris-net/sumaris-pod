@@ -35,6 +35,7 @@ import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.data.ActivityCalendarDirectSurveyInvestigationEnum;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
@@ -353,6 +354,17 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                     case ActivityMonitoringSpecification.COLUMN_RECORDER_ID:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setRecorderPersonIds(ArrayUtils.toArray(Integer.valueOf(criterion.getValue())));
+                            // Clean the criterion (to avoid clean to exclude too many data)
+                            criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                            criterion.setValue(null);
+                        }
+                        break;
+                    case ActivityMonitoringSpecification.COLUMN_DIRECT_SURVEY_INVESTIGATION:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            target.setDirectSurveyInvestigation(
+                                    ActivityCalendarDirectSurveyInvestigationEnum.findByLabel(criterion.getValue())
+                                            .map(ActivityCalendarDirectSurveyInvestigationEnum::getId)
+                                            .orElse(null));
                             // Clean the criterion (to avoid clean to exclude too many data)
                             criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
                             criterion.setValue(null);
@@ -694,6 +706,13 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
             xmlQuery.setGroup("recordersFilter", enableFilter);
             xmlQuery.setGroup("!recordersFilter", !enableFilter);
             if (enableFilter) xmlQuery.bind("recorderPersonIds", Daos.getSqlInNumbers(recorderPersonIds));
+        }
+
+        // DirectSurveyInvestigation
+        {
+            boolean enableFilter = context.getDirectSurveyInvestigation() != null;
+            xmlQuery.setGroup("directSurveyInvestigationFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("directSurveyInvestigation", context.getDirectSurveyInvestigation());
         }
 
         xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
