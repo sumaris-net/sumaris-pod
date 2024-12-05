@@ -22,7 +22,6 @@
 
 package net.sumaris.server.service.administration;
 
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilegeEnum;
 import net.sumaris.core.vo.data.IRootDataVO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +58,8 @@ public interface DataAccessControlService {
 
     @Transactional(readOnly = true)
     List<Integer> getAuthorizedProgramIdsByUserId(int userId);
+
+    Optional<List<Integer>> getAuthorizedProgramIds();
 
     @Transactional(readOnly = true)
     Optional<Integer[]> getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds);
