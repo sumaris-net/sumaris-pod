@@ -362,7 +362,7 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                     case ActivityMonitoringSpecification.COLUMN_DIRECT_SURVEY_INVESTIGATION:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setDirectSurveyInvestigation(
-                                    ActivityCalendarDirectSurveyInvestigationEnum.findByLabel(criterion.getValue()).get().getId()
+                                    ActivityCalendarDirectSurveyInvestigationEnum.findByCode(criterion.getValue()).get().getId()
 );
                             // Clean the criterion (to avoid clean to exclude too many data)
                             criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
