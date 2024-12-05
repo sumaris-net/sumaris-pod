@@ -59,7 +59,7 @@ public class ServerCacheConfiguration {
             Caches.createHeapCache(cacheManager, Names.IMAGE_BY_ID, Object.class, Duration.ofSeconds(600) /*10 min*/, 50);
 
             // Node info
-            Caches.createHeapCache(cacheManager, Names.NODE_INFO, Object.class, Duration.ofHours(1),1);
+            Caches.createHeapCache(cacheManager, Names.NODE_INFO, Object.class, Duration.ofSeconds(600) /*10 min*/,1);
 
             // Change listener
             Caches.createHeapCache(cacheManager, Names.CHANGES_PUBLISHER_FIND_IF_NEWER, Optional.class, Duration.ofSeconds(5), 600);
