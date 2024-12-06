@@ -146,6 +146,11 @@ public class DataAccessControlServiceImpl implements DataAccessControlService {
     }
 
     @Override
+    public Optional<List<Integer>> getAuthorizedProgramIds() {
+        return Optional.ofNullable(authorizedProgramIds);
+    }
+
+    @Override
     public Optional<Integer[]> getAuthorizedProgramIdsByUserId(int userId, Integer[] programIds) {
         return getAuthorizedProgramIdsByUserId(userId, programIds, null);
     }

@@ -95,4 +95,8 @@ public class ExtractionActivityMonitoringContextVO extends ExtractionContextVO {
     public List<Integer> getRecorderPersonIds() {
         return Optional.ofNullable(activityCalendarFilter).map(ActivityCalendarFilterVO::getRecorderPersonIds).filter(ArrayUtils::isNotEmpty).map(List::of).orElse(null);
     }
+
+    public Integer getDirectSurveyInvestigation() {
+        return this.getActivityCalendarFilter() == null ? null : this.getActivityCalendarFilter().getDirectSurveyInvestigation();
+    }
 }

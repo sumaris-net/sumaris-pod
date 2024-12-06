@@ -29,11 +29,13 @@ import net.sumaris.core.model.referential.StatusEnum;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.technical.ConfigurationService;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.programStrategy.Programs;
 import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.technical.SoftwareVO;
 import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
+import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.util.node.NodeFeatureVO;
 import net.sumaris.server.util.node.NodeSummaryVO;
 import org.springframework.cache.annotation.Cacheable;
@@ -55,6 +57,7 @@ public class NodeInfoRestController {
 
     private final ProgramService programService;
 
+    private final DataAccessControlService accessControlService;
 
     @ResponseBody
     @GetMapping(value = RestPaths.NODE_INFO_PATH,
@@ -94,20 +97,28 @@ public class NodeInfoRestController {
 
     private List<NodeFeatureVO> getFeatures() {
 
+        Integer[] authorizedProgramIds = this.accessControlService.getAuthorizedProgramIds()
+                .map(list -> list.toArray(new Integer[0]))
+                .orElse(new Integer[0]);
+
+        List<ProgramVO> programsVO = this.programService.findAll(ProgramFilterVO.builder()
+                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+                .includedIds(authorizedProgramIds)
+                .build());
+
         // Use programs as features
-        return this.programService.findAll(ProgramFilterVO.builder()
-                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()}).build())
-            .stream()
-            .map(program -> NodeFeatureVO.builder()
-                .id(program.getId())
-                .name(program.getName())
-                .label(program.getLabel())
-                .description(program.getDescription())
-                .updateDate(program.getUpdateDate())
-                .creationDate(program.getCreationDate())
-                .statusId(program.getStatusId())
-                .logo(Programs.getProperty(program, ProgramPropertyEnum.PROGRAM_LOGO))
-                .build()
-            ).toList();
+        return
+                programsVO.stream()
+                        .map(authorizedProgram -> NodeFeatureVO.builder()
+                                .id(authorizedProgram.getId())
+                                .name(authorizedProgram.getName())
+                                .label(authorizedProgram.getLabel())
+                                .description(authorizedProgram.getDescription())
+                                .updateDate(authorizedProgram.getUpdateDate())
+                                .creationDate(authorizedProgram.getCreationDate())
+                                .statusId(authorizedProgram.getStatusId())
+                                .logo(Programs.getProperty(authorizedProgram, ProgramPropertyEnum.PROGRAM_LOGO))
+                                .build()
+                        ).toList();
     }
 }

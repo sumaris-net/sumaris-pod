@@ -80,7 +80,6 @@
   <PROGRAM_PROPERTY ID="441" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="442" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-obsmer-square.png"/>
 
-
   <!-- strategies -->
   <STRATEGY ID="90" PROGRAM_FK="90" LABEL="OBSMER-2023" NAME="OBSMER démarrage le 01/11/2023" STATUS_FK="1" CREATION_DATE="2023-11-07" UPDATE_DATE="2023-11-07"/>
 
