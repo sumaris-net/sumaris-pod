@@ -150,7 +150,7 @@ public interface MetierSpecifications
         IReferentialFilter filter,
         Page page,
         ReferentialFetchOptions fetchOptions) {
-        return findByFilter(filter, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), ReferentialFetchOptions.DEFAULT);
+        return findByFilter(filter, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), fetchOptions);
     }
 
 
