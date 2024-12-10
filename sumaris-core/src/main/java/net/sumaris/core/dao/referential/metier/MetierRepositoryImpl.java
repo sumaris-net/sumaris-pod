@@ -26,6 +26,7 @@ import lombok.NonNull;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
+import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -64,6 +65,11 @@ public class MetierRepositoryImpl
     }
 
     @Override
+    public List<MetierVO> findAll(IReferentialFilter filter, Page page, ReferentialFetchOptions fetchOptions) {
+        return findByFilter(filter, (int)page.getOffset(), page.getSize(), page.getSortBy(), page.getSortDirection(), fetchOptions);
+    }
+
+    @Override
     public List<MetierVO> findByFilter(
             IReferentialFilter filter,
             int offset,
@@ -72,10 +78,11 @@ public class MetierRepositoryImpl
             SortDirection sortDirection,
             ReferentialFetchOptions fetchOptions) {
 
+        final boolean enableSearchOnJoin = (filter.getSearchJoin() != null);
+
         // Prepare query parameters
         String searchJoinClass = StringUtils.capitalize(filter.getSearchJoin());
         String searchJoinProperty = StringUtils.uncapitalize(filter.getSearchJoin());
-        final boolean enableSearchOnJoin = (searchJoinProperty != null);
 
         // Compute sort (do NOT sort if searchJoin : will be done later)
         boolean sortingOutsideQuery = enableSearchOnJoin && !ReferentialVO.Fields.ID.equals(sortAttribute);
@@ -90,7 +97,7 @@ public class MetierRepositoryImpl
         // Create the query
         TypedQuery<Metier> query = getQuery(toSpecification(filter), Metier.class, sort);
 
-        try (Stream<Metier> stream = query.setFirstResult((int) offset).setMaxResults(size).getResultStream()) {
+        try (Stream<Metier> stream = query.setFirstResult(offset).setMaxResults(size).getResultStream()) {
             return stream
                     .map(source -> {
                         MetierVO target = this.toVO(source, fetchOptions);

@@ -3,7 +3,7 @@
 
   <groupId>net.sumaris</groupId>
   <artifactId>sumaris-pod</artifactId>
-  <version>2.9.25.6</version>
+  <version>2.9.25.7</version>
   <packaging>pom</packaging>
   <name>SUMARiS</name>
   <description>SUMARiS :: Maven parent</description>
@@ -1962,12 +1962,13 @@
                           </fileset>
                         </copy>
 
-                        <!-- Fix path to use the temp directory -->
-                        <replaceregexp match="\]\(./" replace="](${project.build.directory}/site/temp/" flags="g" byline="false" >
-                          <fileset dir="${project.build.directory}/site/temp">
-                            <include name="**/*.md"/>
+                        <echo>Copying .mss</echo>
+                        <copy todir="${project.build.directory}/site/temp" flatten="true">
+                          <fileset dir="src/site/resources/css">
+                            <include name="**/*.mss"/>
                           </fileset>
-                        </replaceregexp>
+                        </copy>
+
                       </then>
                     </if>
                   </target>
@@ -2036,8 +2037,11 @@
                     </inputPaths>
                   </generatorOptions>
                   <pdfGeneratorOptions>
+                    <rootDir>
+                      ${project.build.directory}/site/temp/
+                    </rootDir>
                     <mss>
-                      ${project.basedir}/src/site/resources/css/pdf-generator-style.mss
+                      pdf-generator-style.mss
                     </mss>
                     <generateTOC>
                       true
@@ -2061,7 +2065,7 @@
                       true
                     </generateTitlePage>
                     <titlePageImage>
-                      ${project.basedir}/src/site/resources/images/sumaris-doc_screen-fr-v0.2.png:110:400
+                      ./src/site/resources/images/sumaris-doc_screen-fr-v0.2.png:110:400
                     </titlePageImage>
                     <version>
                       Version : ${project.version} - ${current.date.fr}
@@ -2092,8 +2096,11 @@
                     </inputPaths>
                   </generatorOptions>
                   <pdfGeneratorOptions>
+                    <rootDir>
+                      ${project.build.directory}/site/temp/
+                    </rootDir>
                     <mss>
-                      ${project.basedir}/src/site/resources/css/pdf-generator-style.mss
+                      pdf-generator-style.mss
                     </mss>
                     <generateTOC>
                       true
@@ -2117,7 +2124,7 @@
                       true
                     </generateTitlePage>
                     <titlePageImage>
-                      ${project.basedir}/src/site/resources/images/sumaris-doc_screen-en-v0.2.png:110:400
+                      ./src/site/resources/images/sumaris-doc_screen-en-v0.2.png:110:400
                     </titlePageImage>
                     <version>
                       Version: ${project.version} - ${current.date.en}
