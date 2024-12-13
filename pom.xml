@@ -89,7 +89,7 @@
     <javaCompilerOptions>--enable-preview</javaCompilerOptions>
 
     <!-- Commons versions -->
-    <hsqldb.version>2.4.1</hsqldb.version>
+    <hsqldb.version>2.7.1</hsqldb.version>
     <h2.version>1.4.199</h2.version>
     <ojdbc11.version>23.3.0.23.09</ojdbc11.version>
     <pgsql.version>42.6.0</pgsql.version>
