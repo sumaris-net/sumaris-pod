@@ -72,13 +72,14 @@
   <PROGRAM_PROPERTY ID="433" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-03-08" LABEL="sumaris.trip.operation.metier.taxonGroupType.ids" NAME="4"/><!-- National metier -->
   <PROGRAM_PROPERTY ID="434" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.report.form.subtitle" NAME="Formulaire ObsMer - Programme 2024 - 2027"/>
   <PROGRAM_PROPERTY ID="435" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.report.form.footer" NAME="OBSMER Forms V1-2023 by SIH IFREMER is licensed under a CC-BY-SA 4.0 International License"/>
-  <PROGRAM_PROPERTY ID="436" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.report.form.logo.head.left.url" NAME="/assets/img/logo/logo-sih-black.png"/>
-  <PROGRAM_PROPERTY ID="437" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.report.form.logo.head.right.url" NAME="/assets/img/logo/logo-obsmer-square.png"/>
+  <PROGRAM_PROPERTY ID="436" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-sih-black.png"/>
+  <PROGRAM_PROPERTY ID="437" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-sih-obsmer.png"/>
   <PROGRAM_PROPERTY ID="438" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.gears.columns.pmfmIds" NAME="3"/> <!-- always show SMALLER_MESH_GAUGE -->
   <PROGRAM_PROPERTY ID="439" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.trip.gears.columns.pmfm.hideIfEmpty" NAME="true"/>
   <PROGRAM_PROPERTY ID="440" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
   <PROGRAM_PROPERTY ID="441" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="442" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-obsmer-square.png"/>
+  <PROGRAM_PROPERTY ID="442" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-obsmer-square.png"/>
+  <PROGRAM_PROPERTY ID="443" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-12-11" LABEL="sumaris.trip.operation.batch.ichthyometer.enable" NAME="true"/>
 
   <!-- strategies -->
   <STRATEGY ID="90" PROGRAM_FK="90" LABEL="OBSMER-2023" NAME="OBSMER démarrage le 01/11/2023" STATUS_FK="1" CREATION_DATE="2023-11-07" UPDATE_DATE="2023-11-07"/>

@@ -131,7 +131,7 @@
     <SOFTWARE_PROPERTY ID="143" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.referential.vessel.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="144" STATUS_FK="1" SOFTWARE_FK="6" CREATION_DATE="2019-02-11" LABEL="sumaris.analyticReferences.enable" NAME="false"/>
 
-    <!-- ****** OPUS properties ****** -->
+    <!-- ****** OPUS properties (OBSMER, OBSVENTES) ****** -->
     <SOFTWARE_PROPERTY ID="159" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.scientificCruise.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="160" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.trip.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="161" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-10-18" LABEL="sumaris.observedLocation.enable" NAME="true"/>
@@ -141,8 +141,8 @@
     <SOFTWARE_PROPERTY ID="165" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-12-12" LABEL="sumaris.logo" NAME="https://test.sumaris.net/assets/img/logo/logo-sih.png"/>
     <SOFTWARE_PROPERTY ID="166" STATUS_FK="1" SOFTWARE_FK="5" CREATION_DATE="2023-12-12" LABEL="sumaris.logo.large" NAME="https://test.sumaris.net/assets/img/logo/logo-sih.png"/>
     <SOFTWARE_PROPERTY ID="167" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.partner.departments" NAME="department:3"/>
-    <SOFTWARE_PROPERTY ID="168" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.favicon" NAME="image:58"/>
-    <SOFTWARE_PROPERTY ID="169" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00681/79280/md/32118.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00735/84699/md/40390.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36575.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36572.jpg|Crédit Ifremer,https://image.ifremer.fr/data/00727/83871/md/36565.jpg|Crédit Ifremer"/>
+    <SOFTWARE_PROPERTY ID="168" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.favicon" NAME="https://sih.ifremer.fr/public/sih/favicon/favicon.ico"/>
+    <SOFTWARE_PROPERTY ID="169" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.background.images" NAME="https://image.ifremer.fr/data/00681/79280/md/32118.jpg"/>
     <SOFTWARE_PROPERTY ID="170" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2023-12-12" LABEL="sumaris.data.program.ids" NAME="40,80,90,100,110,111"/> <!-- Ifremer programs -->
     <SOFTWARE_PROPERTY ID="171" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.data.images.enable" NAME="true"/>
     <SOFTWARE_PROPERTY ID="172" STATUS_FK="1" SOFTWARE_FK="7" CREATION_DATE="2024-02-01" LABEL="sumaris.persistence.batch.hashOptimization" NAME="true"/>

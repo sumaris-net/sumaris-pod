@@ -795,14 +795,14 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
     public <T extends IMeasurementEntity, V extends MeasurementVO> List<V> saveMeasurements(
             final Class<? extends IMeasurementEntity> entityClass,
             List<V> sources,
-            List<T> target,
+            List<T> targets,
             final IEntity<?> parent) {
 
         final EntityManager em = getEntityManager();
 
         // Remember existing measurements, to be able to remove unused measurements
         // note: Need Beans.getList() to avoid NullPointerException if target=null
-        final Map<Integer, T> sourceToRemove = Beans.splitById(Beans.getList(target));
+        final Map<Integer, T> targetsToRemove = Beans.splitById(Beans.getList(targets));
 
         boolean hasRankOrder = (ISortedMeasurementEntity.class).isAssignableFrom(entityClass);
         boolean isQuantification = !hasRankOrder && (IQuantifiedMeasurementEntity.class).isAssignableFrom(entityClass);
@@ -818,15 +818,15 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         String entityName = getEntityName(entityClass);
         for (V source: sources) {
             if (isNotEmpty(source)) {
-                IMeasurementEntity entity = null;
+                T entity = null;
 
                 // Get existing meas and remove it from list to remove
                 if (source.getId() != null) {
-                    entity = sourceToRemove.remove(source.getId());
+                    entity = targetsToRemove.remove(source.getId());
                 }
                 boolean isNew = (entity == null);
                 if (isNew) {
-                    entity = Beans.newInstance(entityClass);
+                    entity = (T)Beans.newInstance(entityClass);
                 }
 
                 // Fill default properties
@@ -863,6 +863,7 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
 
                 // Save entityName
                 if (isNew) {
+                    entity.setId(null); // Avoid error "Detached Entity Passed to Persist"
                     em.persist(entity);
                     source.setId(entity.getId());
                 } else {
@@ -875,8 +876,13 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
         }
 
         // Remove unused measurements
-        if (MapUtils.isNotEmpty(sourceToRemove)) {
-            sourceToRemove.values().forEach(em::remove);
+        if (MapUtils.isNotEmpty(targetsToRemove)) {
+            targetsToRemove.values().forEach(target -> {
+                // Update parent's list
+                targets.remove(target);
+                // Delete the entity
+                em.remove(target);
+            });
         }
 
         return sources;

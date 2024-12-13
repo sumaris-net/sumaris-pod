@@ -74,6 +74,8 @@
 <!--  <PROGRAM_PROPERTY ID="537" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.landing.topPmfmIds" NAME="503"/> &lt;!&ndash; SALE_TYPE &ndash;&gt;-->
   <PROGRAM_PROPERTY ID="538" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.rows.divider.pmfmId" NAME="512"/> <!-- SPECIES_LIST_ORIGIN -->
   <PROGRAM_PROPERTY ID="539" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-09-18" LABEL="sumaris.trip.operation.batch.taxonGroup.enable" NAME="false"/>
+  <PROGRAM_PROPERTY ID="540" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-12-10" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-obsventes.png"/>
+  <PROGRAM_PROPERTY ID="541" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-12-11" LABEL="sumaris.trip.operation.batch.ichthyometer.enable" NAME="true"/>
 
 
   <!-- Strategy métropole -->
