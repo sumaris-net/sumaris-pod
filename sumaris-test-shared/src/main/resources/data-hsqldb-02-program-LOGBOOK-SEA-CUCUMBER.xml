@@ -29,7 +29,7 @@
     <DEPARTMENT ID="2011" LABEL="SFA" NAME="Seychelles Fishing Authority" SITE_URL="http://www.sfa.sc/"
                 LOGO_FK="2022" LOCATION_FK="204" STATUS_FK="1" CREATION_DATE="2024-08-01" UPDATE_DATE="2024-08-01"/>
 
-    <!-- SIH-OBSDEB Programs -->
+    <!-- LOGBOOK-SEA-CUCUMBER Programs -->
     <PROGRAM ID="2030" LABEL="LOGBOOK-SEA-CUCUMBER" NAME="Logbook for sea cucumbers"
              DESCRIPTION="Logbook for sea cucumbers, for SFA" STATUS_FK="1" CREATION_DATE="2024-08-01"
              UPDATE_DATE="2024-08-01" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
