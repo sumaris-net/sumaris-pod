@@ -273,8 +273,17 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 		// Nearby Specific Area
 		if (entityName.equalsIgnoreCase(NearbySpecificArea.ENTITY_NAME)) {
-			return nearbySpecificAreaRepository.count(
-				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter));
+			ReferentialFilterVO referentialFilter = (ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter);
+			if (ArrayUtils.isNotEmpty(referentialFilter.getLocationIds())) {
+				// Try to find with location ids
+				long count = nearbySpecificAreaRepository.count(referentialFilter);
+				if (count > 0) {
+					return count;
+				}
+				// If no result, try without location ids
+				referentialFilter.setLocationIds(null);
+			}
+			return nearbySpecificAreaRepository.count(referentialFilter);
 		}
 
 		return referentialDao.countByFilter(entityName, filter);
