@@ -73,7 +73,6 @@ public interface ActivityCalendarService extends IRootDataQualityService<Activit
 
 	List<ActivityCalendarVO> save(List<ActivityCalendarVO> sources);
 
-
 	@Async
 	CompletableFuture<Boolean> asyncDelete(int id);
 
@@ -84,4 +83,5 @@ public interface ActivityCalendarService extends IRootDataQualityService<Activit
 
 	void delete(int id);
 
+	void updateCommentsFromPreviousYearByIds(List<Integer> ids);
 }

@@ -81,7 +81,6 @@ public class ActivityCalendarImportWriteTest extends AbstractServiceTest {
         assertLoadFromFile(file);
     }
 
-    // wait fix bla  delete cascade
     @Test
     public void importListActivityCalendars() {
         String fileName = "activity-calendars-list-test.csv";
