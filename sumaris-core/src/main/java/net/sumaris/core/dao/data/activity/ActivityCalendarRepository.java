@@ -27,8 +27,11 @@ import net.sumaris.core.model.data.ActivityCalendar;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface ActivityCalendarRepository extends
     RootDataRepository<ActivityCalendar, ActivityCalendarVO, ActivityCalendarFilterVO, ActivityCalendarFetchOptions>,
@@ -37,4 +40,19 @@ public interface ActivityCalendarRepository extends
     @Query("select p.id from ActivityCalendar t inner join t.program p where t.id = :id")
     int getProgramIdById(@Param("id") int id);
 
+    @Modifying
+    @Query(value =
+        "UPDATE ACTIVITY_CALENDAR a " +
+            "SET a.comments = ( " +
+            "    SELECT b.comments " +
+            "    FROM ACTIVITY_CALENDAR b " +
+            "    WHERE b.vessel_fk = a.vessel_fk " +
+            "      AND b.program_fk = a.program_fk " +
+            "      AND b.year = a.year - 1 " +
+            ") " +
+            "WHERE a.id IN :ids " +
+            "AND a.comments IS NULL",
+        nativeQuery = true
+    )
+    int updateCommentsFromPreviousYearByIds(@Param("ids") List<Integer> ids);
 }

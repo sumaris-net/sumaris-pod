@@ -357,6 +357,13 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         return result;
     }
 
+    @Override
+    public void updateCommentsFromPreviousYearByIds(@NonNull List<Integer> ids) {
+        log.debug("Updating {} activity calendars comments...", ids.size());
+        int count = repository.updateCommentsFromPreviousYearByIds(ids);
+        log.debug("Updating {} activity calendars comments [OK] - {} comments updated", ids.size(), count);
+    }
+
 
     /* -- protected methods -- */
 
