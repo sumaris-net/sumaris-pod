@@ -58,7 +58,7 @@
                       LABEL="sumaris.trip.observers.enable" NAME="true"/>
     <PROGRAM_PROPERTY ID="2051" STATUS_FK="1" PROGRAM_FK="2030" CREATION_DATE="2024-08-01"
                       LABEL="sumaris.trip.expenses.enable" NAME="true"/>
-    
+
     <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="2030" LOCATION_CLASSIFICATION_FK="2"/>
 
     <!-- strategies -->
