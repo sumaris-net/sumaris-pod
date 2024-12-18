@@ -22,8 +22,9 @@ package net.sumaris.core.model.data;
  * #L%
  */
 
-import lombok.*;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
@@ -45,7 +46,7 @@ import java.util.List;
 @Entity
 @Table(name = "vessel")
 /**
- * A vessel is fishing vessel or scientific vessel, or any halieutic resources user
+ * A vessel is fishing vessel or scientific vessel, or any marine resources user
  */
 public class Vessel implements IRootDataEntity<Integer> {
 

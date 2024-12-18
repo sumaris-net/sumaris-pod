@@ -1,11 +1,11 @@
 <dataset>
     
-    <SOFTWARE ID="1" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="SUMARiS" NAME="European shared database for management of skate stocks." />
+    <SOFTWARE ID="1" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="SUMARiS" NAME="Test // Shared database for management of fisheries resources." />
     <SOFTWARE ID="2" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="ADAP" NAME="Application d’assistance à l’auto-échantillonnage en mer et aux contrôles en criées." />
     <SOFTWARE ID="4" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="OBSDEB" NAME="Application de saisie des débarquements observés" />
     <SOFTWARE ID="5" STATUS_FK="1" CREATION_DATE="2019-02-11" LABEL="IMAGINE" NAME="Suivi des paramètres biologique" />
     <SOFTWARE ID="6" STATUS_FK="1" CREATION_DATE="2021-08-01" LABEL="OPEN" NAME="Base de données ouverte, pour la collecte de données halieutiques" />
-    <SOFTWARE ID="7" STATUS_FK="1" CREATION_DATE="2023-10-18" LABEL="OPUS" NAME="OPUS - Refonte SIH-Allegro" />
+    <SOFTWARE ID="7" STATUS_FK="1" CREATION_DATE="2023-10-18" LABEL="OPUS" NAME="Test // OPUS - Refonte SIH-Allegro" />
 
     <!-- ****** SUMARiS properties ****** -->
 

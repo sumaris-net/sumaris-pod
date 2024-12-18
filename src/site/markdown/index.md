@@ -6,7 +6,7 @@ Welcome to the **documentation web site of SUMARiS tools**!
 
 Originally, the [SUMARiS project](www.sumaris.net) aimed to build a shared database of complete skate stocks.
 
-However, these tools are now reusable **to collect many kind of halieutic data**, for many purposes such as fisheries stock assessment.
+However, these tools are now reusable **to collect many kind of data**, for many purposes such as fisheries stock assessment.
 
 
 ## Main features
@@ -15,7 +15,7 @@ SUMARiS tools comes with:
 
  - Data entry web forms for desktop:
   
-    * **halieutic data entry** for scientific purpose (concept of trip, fishing operation, species catch, vessel...);
+    * **Data entry** for scientific purpose (concept of trip, fishing operation, species catch, vessel...);
     
     * manage users (access rights per data collection program) ;
     
