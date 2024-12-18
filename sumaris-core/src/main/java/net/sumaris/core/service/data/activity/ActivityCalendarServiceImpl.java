@@ -33,6 +33,7 @@ import net.sumaris.core.dao.data.activity.ActivityCalendarRepository;
 import net.sumaris.core.dao.data.vessel.GearPhysicalFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.GearUseFeaturesRepository;
 import net.sumaris.core.dao.data.vessel.VesselUseFeaturesRepository;
+import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -358,10 +359,13 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     }
 
     @Override
-    public void updateCommentsFromPreviousYearByIds(@NonNull List<Integer> ids) {
-        log.debug("Updating {} activity calendars comments...", ids.size());
-        int count = repository.updateCommentsFromPreviousYearByIds(ids);
-        log.debug("Updating {} activity calendars comments [OK] - {} comments updated", ids.size(), count);
+    public void copyPreviousYearCommentsByIds(@NonNull List<Integer> ids) {
+        log.debug("Copying previous year comments of {} activity calendar(s)...", ids.size());
+
+        int count = Daos.streamByChunk(ids, 500) // Chunk of 500 items, because of IN operator
+                .mapToInt(repository::copyPreviousYearCommentsByIds)
+                .sum();
+        log.debug("Copying previous year comments of {} activity calendar(s) [OK] - {} updates", ids.size(), count);
     }
 
 

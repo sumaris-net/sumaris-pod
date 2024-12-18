@@ -50,9 +50,9 @@ public interface ActivityCalendarRepository extends
             "      AND b.program_fk = a.program_fk " +
             "      AND b.year = a.year - 1 " +
             ") " +
-            "WHERE a.id IN :ids " +
+            "WHERE a.id IN (:ids) " +
             "AND a.comments IS NULL",
         nativeQuery = true
     )
-    int updateCommentsFromPreviousYearByIds(@Param("ids") List<Integer> ids);
+    int copyPreviousYearCommentsByIds(@Param("ids") List<Integer> ids);
 }

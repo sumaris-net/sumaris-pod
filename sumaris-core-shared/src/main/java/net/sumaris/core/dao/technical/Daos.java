@@ -1804,6 +1804,38 @@ public class Daos {
             Spliterator.ORDERED | Spliterator.IMMUTABLE), false);
     }
 
+    /**
+     * Splits a given list into chunks of the specified size and returns a {@link Stream} of these chunks.
+     * This method is useful for processing large datasets in smaller manageable chunks.
+     * It leverages the {@link #streamByPageIteration} method to handle the iteration lazily and efficiently.
+     *
+     * @param <T>       The type of elements in the list.
+     * @param list      The list to be divided into chunks. Must not be null or empty.
+     * @param chunkSize The size of each chunk. Must be greater than 0.
+     * @return A {@link Stream} of sublists, where each sublist has at most {@code chunkSize} elements.
+     *         If the input {@code list} is empty or null, the method returns an empty {@link Stream}.
+     * @throws IllegalArgumentException If {@code chunkSize} is less than or equal to 0.
+     */
+    public static <T> Stream<List<T>> streamByChunk(List<T> list, int chunkSize) {
+        if (CollectionUtils.isEmpty(list)) return Stream.empty();
+        if (chunkSize <= 0) throw new IllegalArgumentException("Chunk size must be greater than 0");
+        if (list.size() <= chunkSize) return Stream.of(list);
+
+        // Use streamByPageIteration to generate chunks
+        return streamByPageIteration(
+                // Function to generate a chunk for the current page
+                page -> {
+                    int start = (int)page.getOffset();
+                    int end = Math.min(start + page.getSize(), list.size());
+                    return list.subList(start, end); // Return a sublist (chunk)
+                },
+                // Function to check if there are more elements to process
+                chunk -> !chunk.isEmpty(),
+                chunkSize, // Page size (chunk size)
+                list.size() // Max limit equals the size of the list
+        );
+    }
+
 
     /**
      * Fill a property, as an entity
