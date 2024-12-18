@@ -60,9 +60,17 @@ public interface ReferentialService {
     List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size);
 
     @Transactional(readOnly = true)
+    List<ReferentialVO> findByFilterNoCache(String entityName, IReferentialFilter filter, int offset, int size,
+                                     String sortAttribute, SortDirection sortDirection,
+                                     ReferentialFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
     List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size,
                                      String sortAttribute, SortDirection sortDirection,
                                      ReferentialFetchOptions fetchOptions);
+
+    @Transactional(readOnly = true)
+    Long countByFilterNoCache(String entityName, @Nullable IReferentialFilter filter);
 
     @Transactional(readOnly = true)
     Long countByFilter(String entityName, @Nullable IReferentialFilter filter);

@@ -125,6 +125,7 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLArgument(name = "cache", defaultValue = "true") Boolean cache,
             @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Set<String> fields = GraphQLUtils.fields(env);
@@ -136,6 +137,18 @@ public class ReferentialGraphQLService {
 
         // Restrict access
         restrictFilter(entityName, filter);
+
+        // Skip cache, if admin (e.g. for referential table)
+        if (Boolean.FALSE.equals(cache) && this.authService.isAdmin()){
+            return referentialService.findByFilterNoCache(entityName,
+                    ReferentialFilterVO.nullToEmpty(filter),
+                    offset == null ? 0 : offset,
+                    size == null ? 1000 : size,
+                    sort == null ? ReferentialVO.Fields.LABEL : sort,
+                    SortDirection.fromString(direction, SortDirection.ASC),
+                    fetchOptions
+            );
+        }
 
         return referentialService.findByFilter(entityName,
                 ReferentialFilterVO.nullToEmpty(filter),
@@ -150,7 +163,8 @@ public class ReferentialGraphQLService {
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")
     @Transactional(readOnly = true)
     public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
-                                     @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+                                     @GraphQLArgument(name = "filter") ReferentialFilterVO filter,
+                                     @GraphQLArgument(name = "cache", defaultValue = "true") Boolean cache) {
 
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
         if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
@@ -159,6 +173,11 @@ public class ReferentialGraphQLService {
 
         // Restrict access to program
         restrictFilter(entityName, filter);
+
+        // Skip cache, if admin (e.g. for referential table)
+        if (Boolean.FALSE.equals(cache) && this.authService.isAdmin()) {
+            return referentialService.countByFilterNoCache(entityName, filter);
+        }
 
         return referentialService.countByFilter(entityName, filter);
     }
@@ -271,7 +290,7 @@ public class ReferentialGraphQLService {
                 offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
-    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxon groups")
+    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxon groups", deprecationReason = "Replace by referentialsCount(entityName: \"TaxonGroup\", filter: $filter)")
     @Transactional(readOnly = true)
     public Long countTaxonGroups(@GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
         return referentialService.countByFilter("TaxonGroup", filter);
