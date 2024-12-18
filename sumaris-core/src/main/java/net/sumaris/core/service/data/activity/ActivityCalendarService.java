@@ -83,5 +83,5 @@ public interface ActivityCalendarService extends IRootDataQualityService<Activit
 
 	void delete(int id);
 
-	void updateCommentsFromPreviousYearByIds(List<Integer> ids);
+	void copyPreviousYearCommentsByIds(List<Integer> ids);
 }

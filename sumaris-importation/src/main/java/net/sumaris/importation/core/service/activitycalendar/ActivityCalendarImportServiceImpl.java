@@ -224,14 +224,14 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
                         } catch (Exception e) {
                             errors.increment();
-                            String message = t("sumaris.import.error.row", rowCounter.getValue(), e.getMessage());
+                            String message = t("sumaris.import.error.row", rowCounter, e.getMessage());
                             log.error(message);
                             messages.add(message);
                         } finally {
                             rowCounter.increment();
                             if (rowCounter.intValue() % 10 == 0) {
                                 progressionModel.setCurrent(rowCounter.intValue());
-                                progressionModel.setMessage(t("sumaris.import.activityCalendar.progress", rowCounter.intValue(), activityCalendars.size()));
+                                progressionModel.setMessage(t("sumaris.import.activityCalendar.progress", rowCounter, activityCalendars.size()));
                             }
                         }
 
@@ -245,15 +245,23 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                         ActivityCalendarVO.Fields.YEAR);
                     List<Integer> sortedYears = activityCalendarsByYear.keySet().stream().sorted().toList();
 
-                    for (Integer year: sortedYears) {
-                        List<Integer> ids = activityCalendarsByYear.get(year)
-                            .stream().filter(ac -> StringUtils.isBlank(ac.getComments()))
-                            .map(ActivityCalendarVO::getId)
-                            .filter(Objects::nonNull)
-                            .toList();
+                    try {
+                        for (Integer year : sortedYears) {
+                            List<Integer> ids = activityCalendarsByYear.get(year)
+                                    .stream().filter(ac -> StringUtils.isBlank(ac.getComments()))
+                                    .map(ActivityCalendarVO::getId)
+                                    .filter(Objects::nonNull)
+                                    .toList();
 
-                        // Update activity calendars comments, using previous year comments
-                        activityCalendarService.updateCommentsFromPreviousYearByIds(ids);
+                            // Copy previous year comments - see issue sumaris-app#866
+                            activityCalendarService.copyPreviousYearCommentsByIds(ids);
+                        }
+                    } catch (Exception e) {
+                        errors.increment();
+                        String message = t("sumaris.import.activityCalendar.error.copyComments", e.getMessage());
+                        log.error(message);
+                        messages.add(message);
+                        // Continue
                     }
 
                     // Update result
