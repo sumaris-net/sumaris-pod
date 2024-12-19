@@ -66,7 +66,7 @@ public class NodeInfoRestController {
                 MediaType.APPLICATION_JSON_UTF8_VALUE
         })
     @Cacheable(cacheNames = ServerCacheConfiguration.Names.NODE_INFO)
-    public NodeSummaryVO getNodeSummary() {
+    public NodeSummaryVO getNodeInfo() {
         NodeSummaryVO result = new NodeSummaryVO();
 
         // Set software info
@@ -85,40 +85,43 @@ public class NodeInfoRestController {
             result.setNodeName(software.getName());
         }
 
-        // Add features
-        List<NodeFeatureVO> features = getFeatures();
-        if (features != null) {
-            result.setFeatures(features);
+        // Add program as features (if enable by config)
+        if (configuration.isProduction() && configuration.shouldNodeInfoPublishPrograms()) {
+            List<NodeFeatureVO> features = getProgramsAsFeatures();
+            if (features != null) {
+                result.setFeatures(features);
+            }
         }
 
         return result;
     }
 
 
-    private List<NodeFeatureVO> getFeatures() {
+    private List<NodeFeatureVO> getProgramsAsFeatures() {
 
+        // Programs
         Integer[] authorizedProgramIds = this.accessControlService.getAuthorizedProgramIds()
-                .map(list -> list.toArray(new Integer[0]))
-                .orElse(new Integer[0]);
+            .map(list -> list.toArray(new Integer[0]))
+            .orElse(new Integer[0]);
 
         List<ProgramVO> programsVO = this.programService.findAll(ProgramFilterVO.builder()
-                .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
-                .includedIds(authorizedProgramIds)
-                .build());
+            .statusIds(new Integer[]{StatusEnum.ENABLE.getId()})
+            .includedIds(authorizedProgramIds)
+            .build());
 
         // Use programs as features
         return
-                programsVO.stream()
-                        .map(authorizedProgram -> NodeFeatureVO.builder()
-                                .id(authorizedProgram.getId())
-                                .name(authorizedProgram.getName())
-                                .label(authorizedProgram.getLabel())
-                                .description(authorizedProgram.getDescription())
-                                .updateDate(authorizedProgram.getUpdateDate())
-                                .creationDate(authorizedProgram.getCreationDate())
-                                .statusId(authorizedProgram.getStatusId())
-                                .logo(Programs.getProperty(authorizedProgram, ProgramPropertyEnum.PROGRAM_LOGO))
-                                .build()
-                        ).toList();
+            programsVO.stream()
+                .map(authorizedProgram -> NodeFeatureVO.builder()
+                    .id(authorizedProgram.getId())
+                    .name(authorizedProgram.getName())
+                    .label(authorizedProgram.getLabel())
+                    .description(authorizedProgram.getDescription())
+                    .updateDate(authorizedProgram.getUpdateDate())
+                    .creationDate(authorizedProgram.getCreationDate())
+                    .statusId(authorizedProgram.getStatusId())
+                    .logo(Programs.getProperty(authorizedProgram, ProgramPropertyEnum.PROGRAM_LOGO))
+                    .build()
+                ).toList();
     }
 }
