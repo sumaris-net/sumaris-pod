@@ -166,6 +166,16 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     FISHING_DURATION_DAYS(450, "FISHING_DURATION_DAYS"), // Adagio ID=242
     AUCTION_HABIT(451, "AUCTION_HABIT"), // 501
     INACTIVITY_YEAR(452, "INACTIVITY_YEAR"), // Adagio id=1395
+
+    // Dolphinfree
+    CAMERA_USED(1036, "CAMERA_USED"), // ID from open.sumaris.net
+    NET_STRING_LAYOUT(1044, "NET_STRING_LAYOUT"), // ID from open.sumaris.net
+    DISTANCE_TO_NEAREST_NET(1041, "DISTANCE_TO_NEAREST_NET"), // ID from open.sumaris.net
+    DISTANCE_BETWEEN_ZIGZAG_NETS(1045, "DISTANCE_BETWEEN_ZIGZAG_NETS"), // ID from open.sumaris.net
+    OTHER_NET_STRING_LAYOUT(1039, "OTHER_NET_STRING_LAYOUT"), // ID from open.sumaris.net
+    DECOMPOSITION_STATE(1046, "DECOMPOSITION_STATE"), // ID from open.sumaris.net
+    IS_ENTANGLED(1033, "IS_ENTANGLED"), // ID from open.sumaris.net
+    PINGER_ACCESSIBLE(1040, "PINGER_ACCESSIBLE"), // ID from open.sumaris.net
     ;
 
     public static PmfmEnum valueOf(final int id) {

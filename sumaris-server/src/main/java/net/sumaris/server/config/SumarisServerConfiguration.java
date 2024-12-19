@@ -156,6 +156,11 @@ public class SumarisServerConfiguration extends SumarisConfiguration {
         return applicationConfig.getOptionAsInt(SumarisServerConfigurationOption.APP_REDIRECTION_CACHE_MAX_AGE.getKey());
     }
 
+
+    public boolean shouldNodeInfoPublishPrograms() {
+        return applicationConfig.getOptionAsBoolean(SumarisServerConfigurationOption.NODE_INFO_PROGRAMS_PUBLISH.getKey());
+    }
+
     /**
      * <p>getDownloadDirectory</p>
      *

@@ -300,7 +300,15 @@ public enum SumarisServerConfigurationOption implements ConfigOptionDef {
             n("sumaris.config.option.gravatar.url.description"),
             "https://www.gravatar.com/avatar/{md5}",
             String.class,
-            false);
+            false),
+
+    NODE_INFO_PROGRAMS_PUBLISH(
+        "sumaris.node.info.programs.publish",
+        n("sumaris.config.option.node.info.programs.publish.description"),
+        "true",
+        Boolean.class,
+        false),
+    ;
 
     /**
      * Configuration key.
