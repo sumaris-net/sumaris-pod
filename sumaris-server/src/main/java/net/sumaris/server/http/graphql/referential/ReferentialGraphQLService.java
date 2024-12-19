@@ -138,8 +138,8 @@ public class ReferentialGraphQLService {
         // Restrict access
         restrictFilter(entityName, filter);
 
-        // Skip cache, if admin (e.g. for referential table)
-        if (Boolean.FALSE.equals(cache) && this.authService.isAdmin()){
+        // Skip cache (e.g. for referential table)
+        if (Boolean.FALSE.equals(cache)){
             return referentialService.findByFilterNoCache(entityName,
                     ReferentialFilterVO.nullToEmpty(filter),
                     offset == null ? 0 : offset,
@@ -175,7 +175,7 @@ public class ReferentialGraphQLService {
         restrictFilter(entityName, filter);
 
         // Skip cache, if admin (e.g. for referential table)
-        if (Boolean.FALSE.equals(cache) && this.authService.isAdmin()) {
+        if (Boolean.FALSE.equals(cache)) {
             return referentialService.countByFilterNoCache(entityName, filter);
         }
 
