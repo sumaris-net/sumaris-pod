@@ -32,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.event.config.ConfigurationReadyEvent;
+import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.referential.metier.Metier;
@@ -45,6 +47,7 @@ import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.metier.MetierVO;
 import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
+import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.http.graphql.GraphQLApi;
 import net.sumaris.server.http.graphql.GraphQLHelper;
 import net.sumaris.server.http.graphql.GraphQLUtils;
@@ -54,10 +57,12 @@ import net.sumaris.server.http.security.IsUser;
 import net.sumaris.server.service.administration.DataAccessControlService;
 import net.sumaris.server.service.technical.EntityWatchService;
 import org.reactivestreams.Publisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -80,6 +85,16 @@ public class ReferentialGraphQLService {
     private final DataAccessControlService dataAccessControlService;
 
     private final AuthService authService;
+
+    private final SumarisServerConfiguration configuration;
+
+    private boolean enableDefaultCache = false;
+
+    @PostConstruct
+    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    public void onConfigurationReady() {
+        this.enableDefaultCache = configuration.enableReferentialDefaultCache();
+    }
 
     /* -- Referential queries -- */
 
@@ -125,6 +140,7 @@ public class ReferentialGraphQLService {
             @GraphQLArgument(name = "size", defaultValue = "1000") Integer size,
             @GraphQLArgument(name = "sortBy", defaultValue = ReferentialVO.Fields.LABEL) String sort,
             @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
+            @GraphQLArgument(name = "cache") Boolean cache,
             @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Set<String> fields = GraphQLUtils.fields(env);
@@ -137,6 +153,21 @@ public class ReferentialGraphQLService {
         // Restrict access
         restrictFilter(entityName, filter);
 
+        if (cache == null) cache = this.enableDefaultCache;
+
+        // Without cache
+        if (Boolean.FALSE.equals(cache)){
+            return referentialService.findByFilterNoCache(entityName,
+                    ReferentialFilterVO.nullToEmpty(filter),
+                    offset == null ? 0 : offset,
+                    size == null ? 1000 : size,
+                    sort == null ? ReferentialVO.Fields.LABEL : sort,
+                    SortDirection.fromString(direction, SortDirection.ASC),
+                    fetchOptions
+            );
+        }
+
+        // With cache
         return referentialService.findByFilter(entityName,
                 ReferentialFilterVO.nullToEmpty(filter),
                 offset == null ? 0 : offset,
@@ -150,15 +181,23 @@ public class ReferentialGraphQLService {
     @GraphQLQuery(name = "referentialsCount", description = "Get referentials count")
     @Transactional(readOnly = true)
     public Long getReferentialsCount(@GraphQLArgument(name = "entityName") String entityName,
-                                     @GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
+                                     @GraphQLArgument(name = "filter") ReferentialFilterVO filter,
+                                     @GraphQLArgument(name = "cache") Boolean cache) {
 
         // Metier: special case to be able to sort on join attribute (e.g. taxonGroup)
         if (entityName.equalsIgnoreCase(Metier.ENTITY_NAME)) {
             return metierRepository.count(MetierFilterVO.nullToEmpty(filter));
         }
 
-        // Restrict access to program
+        // Restrict access (e.g. for program)
         restrictFilter(entityName, filter);
+
+        if (cache == null) cache = this.enableDefaultCache;
+
+        // Without cache
+        if (Boolean.FALSE.equals(cache)) {
+            return referentialService.countByFilterNoCache(entityName, filter);
+        }
 
         return referentialService.countByFilter(entityName, filter);
     }
@@ -271,7 +310,7 @@ public class ReferentialGraphQLService {
                 offset, size, sort, SortDirection.valueOf(direction.toUpperCase()));
     }
 
-    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxon groups")
+    @GraphQLQuery(name = "taxonGroupsCount", description = "Count taxon groups", deprecationReason = "Replace by referentialsCount(entityName: \"TaxonGroup\", filter: $filter)")
     @Transactional(readOnly = true)
     public Long countTaxonGroups(@GraphQLArgument(name = "filter") ReferentialFilterVO filter) {
         return referentialService.countByFilter("TaxonGroup", filter);

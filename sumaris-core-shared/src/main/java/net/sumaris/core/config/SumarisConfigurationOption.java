@@ -238,6 +238,16 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Integer.class),
 
     // ------------------------------------------------------------------------//
+    // -- REFERENTIAL CONSTANTS --------------------------------------------------//
+    // ------------------------------------------------------------------------//
+
+    REFERENTIAL_DEFAULT_CACHE_ENABLE("sumaris.referential.cache.enable",
+        n("sumaris.config.option.referential.cache.enable.description"),
+        Boolean.FALSE.toString(),
+        boolean.class,
+        false),
+
+    // ------------------------------------------------------------------------//
     // -- DATA CONSTANTS --------------------------------------------------//
     // ------------------------------------------------------------------------//
 

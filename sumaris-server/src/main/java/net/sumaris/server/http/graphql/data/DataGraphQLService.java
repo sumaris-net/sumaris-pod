@@ -34,7 +34,6 @@ import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.Pageables;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.UnauthorizedException;
@@ -91,6 +90,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Service
@@ -162,15 +162,17 @@ public class DataGraphQLService {
     private final MetierRepository metierRepository;
 
     private final ReferentialService referentialService;
+
     private final SumarisServerConfiguration configuration;
 
     private boolean enableImageAttachments = false;
 
     private final TimeLog timeLog = new TimeLog(DataGraphQLService.class);
 
+    @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
-    public void onConfigurationReady(ConfigurationEvent event) {
-        this.enableImageAttachments = event.getConfiguration().enableDataImages();
+    public void onConfigurationReady() {
+        this.enableImageAttachments = configuration.enableDataImages();
     }
 
     /* -- Trips -- */

@@ -175,6 +175,14 @@ public class ReferentialServiceImpl implements ReferentialService {
 											IReferentialFilter filter, int offset, int size,
 											String sortAttribute, SortDirection sortDirection,
 											ReferentialFetchOptions fetchOptions) {
+		return findByFilterNoCache(entityName, filter, offset, size, sortAttribute, sortDirection, fetchOptions);
+	}
+
+	@Override
+	public List<ReferentialVO> findByFilterNoCache(String entityName,
+											IReferentialFilter filter, int offset, int size,
+											String sortAttribute, SortDirection sortDirection,
+											ReferentialFetchOptions fetchOptions) {
 
 		// Location: use locationIds to find descendant locations
 		if (entityName.equalsIgnoreCase(Location.ENTITY_NAME)) {
@@ -235,7 +243,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 	@Override
 	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size) {
-		return findByFilter(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
+		return findByFilterNoCache(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
 				IItemReferentialEntity.Fields.LABEL,
 				SortDirection.ASC, null);
 	}
@@ -243,6 +251,11 @@ public class ReferentialServiceImpl implements ReferentialService {
 	@Override
 	@Cacheable(cacheNames = CacheConfiguration.Names.REFERENTIAL_COUNT_BY_FILTER)
 	public Long countByFilter(String entityName, IReferentialFilter filter) {
+		return countByFilterNoCache(entityName, filter);
+	}
+
+	@Override
+	public Long countByFilterNoCache(String entityName, IReferentialFilter filter) {
 		Preconditions.checkNotNull(entityName);
 		if (filter == null) {
 			return count(entityName);
@@ -273,8 +286,17 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 		// Nearby Specific Area
 		if (entityName.equalsIgnoreCase(NearbySpecificArea.ENTITY_NAME)) {
-			return nearbySpecificAreaRepository.count(
-				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter));
+			ReferentialFilterVO referentialFilter = (ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter);
+			if (ArrayUtils.isNotEmpty(referentialFilter.getLocationIds())) {
+				// Try to find with location ids
+				long count = nearbySpecificAreaRepository.count(referentialFilter);
+				if (count > 0) {
+					return count;
+				}
+				// If no result, try without location ids
+				referentialFilter.setLocationIds(null);
+			}
+			return nearbySpecificAreaRepository.count(referentialFilter);
 		}
 
 		return referentialDao.countByFilter(entityName, filter);

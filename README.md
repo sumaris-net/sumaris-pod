@@ -3,7 +3,7 @@
 SUMARiS Pod
 ===========
 
-[SUMARiS](http://sumaris.net) is a tool for collecting halieutic data, such as stocks, in a shared database.
+[SUMARiS](http://sumaris.net) is a tool for collecting fisheries data, as well as scientific contributions, in a shared database.
 
 ## Documentation
 
@@ -12,3 +12,7 @@ SUMARiS Pod
 ## License
 
 Free software, distributed under a [GPL v3 license](./src/site/markdown/LICENSE.md).
+
+## Partners
+
+See [Home page](https://open.sumaris.net) for details

@@ -24,10 +24,7 @@ package net.sumaris.importation.core.service.activitycalendar;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +41,7 @@ import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
@@ -156,6 +154,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                     MutableShort warnings = new MutableShort(0);
                     MutableShort rowCounter = new MutableShort(1);
                     List<String> messages = new ArrayList<>();
+                    List<ActivityCalendarVO> processedActivityCalendar = Lists.newArrayList();
 
                     //Check if headers is valid
                     if (!containsAllHeaders(reader.getHeaders(), requiredHeaders)) {
@@ -170,7 +169,8 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                             .map(this::toVO)
                             .toList();
 
-                    progressionModel.setTotal(activityCalendars.size());
+
+                    progressionModel.setTotal(activityCalendars.size() + 1 /*update comments step*/);
 
                     for (ActivityCalendarVO activityCalendar : activityCalendars) {
 
@@ -207,33 +207,61 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                                     activityCalendar.setQualificationComments(null);
 
                                     activityCalendar.setId(existingCalendar.getId());
-                                    boolean updated = update(activityCalendar, existingCalendar);
-                                    if (updated) updates.increment();
+                                    activityCalendar = update(activityCalendar, existingCalendar);
+                                    updates.increment();
                                 } else {
                                     // Clean QualificationComments
                                     activityCalendar.setQualificationComments(null);
 
-                                    insert(activityCalendar);
+                                    activityCalendar = insert(activityCalendar);
                                     inserts.increment();
                                 }
 
+                                processedActivityCalendar.add(activityCalendar);
                                 processedKeys.add(uniqueKey);
                             }
 
 
                         } catch (Exception e) {
                             errors.increment();
-                            String message = t("sumaris.import.error.row", rowCounter.getValue(), e.getMessage());
+                            String message = t("sumaris.import.error.row", rowCounter, e.getMessage());
                             log.error(message);
                             messages.add(message);
                         } finally {
                             rowCounter.increment();
                             if (rowCounter.intValue() % 10 == 0) {
                                 progressionModel.setCurrent(rowCounter.intValue());
-                                progressionModel.setMessage(t("sumaris.import.activityCalendar.progress", rowCounter.intValue(), activityCalendars.size()));
+                                progressionModel.setMessage(t("sumaris.import.activityCalendar.progress", rowCounter, activityCalendars.size()));
                             }
                         }
 
+                    }
+                    progressionModel.setCurrent(activityCalendars.size());
+
+
+                    // Update comments, using previous year comments (see issue sumaris-app#866)
+                    ListMultimap<Integer, ActivityCalendarVO> activityCalendarsByYear = Beans.splitByNotUniqueProperty(
+                        processedActivityCalendar,
+                        ActivityCalendarVO.Fields.YEAR);
+                    List<Integer> sortedYears = activityCalendarsByYear.keySet().stream().sorted().toList();
+
+                    try {
+                        for (Integer year : sortedYears) {
+                            List<Integer> ids = activityCalendarsByYear.get(year)
+                                    .stream().filter(ac -> StringUtils.isBlank(ac.getComments()))
+                                    .map(ActivityCalendarVO::getId)
+                                    .filter(Objects::nonNull)
+                                    .toList();
+
+                            // Copy previous year comments - see issue sumaris-app#866
+                            activityCalendarService.copyPreviousYearCommentsByIds(ids);
+                        }
+                    } catch (Exception e) {
+                        errors.increment();
+                        String message = t("sumaris.import.activityCalendar.error.copyComments", e.getMessage());
+                        log.error(message);
+                        messages.add(message);
+                        // Continue
                     }
 
                     // Update result
@@ -241,7 +269,6 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                     result.setUpdates(updates.intValue());
                     result.setWarnings(warnings.intValue());
                     result.setErrors(errors.intValue());
-                    result.setTotal(rowCounter.intValue() - 1);
 
                     if (CollectionUtils.isNotEmpty(messages)) {
                         result.setMessage(String.join("\n", messages));
@@ -474,7 +501,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
         return activityCalendarService.save(source);
     }
 
-    protected boolean update(ActivityCalendarVO source, ActivityCalendarVO origin) {
+    protected ActivityCalendarVO update(ActivityCalendarVO source, ActivityCalendarVO origin) {
 
         origin.setYear(source.getYear());
         origin.setDirectSurveyInvestigation(source.getDirectSurveyInvestigation());
@@ -487,8 +514,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
             origin.setVesselId(source.getVesselId());
         }
 
-        activityCalendarService.save(origin);
-        return true;
+        return activityCalendarService.save(origin);
     }
 
     protected boolean containsAllHeaders(String[] actualHeaders, Collection<String> expectedHeaders) {
