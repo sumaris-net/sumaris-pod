@@ -12,3 +12,7 @@ SUMARiS Pod
 ## License
 
 Free software, distributed under a [GPL v3 license](./src/site/markdown/LICENSE.md).
+
+## Partners
+
+See [Home page](https://open.sumaris.net) for details

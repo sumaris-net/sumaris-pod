@@ -580,14 +580,13 @@ public class ReferentialDaoImpl
         return type;
     }
 
-    protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, T source) {
+    protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, @Nullable T source) {
+        if (source == null) return null;
         return toVO(entityName, source, null);
     }
 
-    protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, T source,
+    protected <T extends IReferentialEntity> ReferentialVO toVO(@NonNull final String entityName, @NonNull T source,
                                                                 @Nullable ReferentialFetchOptions fetchOptions) {
-        Preconditions.checkNotNull(entityName);
-        Preconditions.checkNotNull(source);
 
         ReferentialVO target = new ReferentialVO();
 
