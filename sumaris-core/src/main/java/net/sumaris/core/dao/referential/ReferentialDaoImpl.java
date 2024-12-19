@@ -581,7 +581,7 @@ public class ReferentialDaoImpl
     }
 
     protected <T extends IReferentialEntity> ReferentialVO toVO(final String entityName, @Nullable T source) {
-        if (source == null) return null;
+        if (source == null) return new ReferentialVO();
         return toVO(entityName, source, null);
     }
 
