@@ -1102,6 +1102,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DATA_IMAGES_ENABLE.getKey());
     }
 
+    public boolean enableReferentialDefaultCache() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.REFERENTIAL_DEFAULT_CACHE_ENABLE.getKey());
+    }
+
     /* -- protected methods -- */
 
     /**
