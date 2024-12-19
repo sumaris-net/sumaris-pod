@@ -167,6 +167,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     AUCTION_HABIT(451, "AUCTION_HABIT"), // 501
     INACTIVITY_YEAR(452, "INACTIVITY_YEAR"), // Adagio id=1395
 
+    // Dolphinfree
     CAMERA_USED(1036, "CAMERA_USED"), // ID from open.sumaris.net
     NET_STRING_LAYOUT(1044, "NET_STRING_LAYOUT"), // ID from open.sumaris.net
     DISTANCE_TO_NEAREST_NET(1041, "DISTANCE_TO_NEAREST_NET"), // ID from open.sumaris.net
