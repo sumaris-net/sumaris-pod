@@ -53,7 +53,7 @@ public class NearbySpecificAreaRepositoryImpl
         @NonNull ReferentialFilterVO filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(inSpatialLocationIds(SpatialItemTypeEnum.NEARBY_SPECIFIC_AREA,
-                LocationHierarchyMode.BOTTOM_UP,
+                LocationHierarchyMode.NONE,
                 filter.getLocationIds()))
             ;
     }
