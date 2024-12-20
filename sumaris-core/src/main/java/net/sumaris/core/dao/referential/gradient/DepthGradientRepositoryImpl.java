@@ -53,7 +53,7 @@ public class DepthGradientRepositoryImpl
         @NonNull ReferentialFilterVO filter, ReferentialFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(inSpatialLocationIds(SpatialItemTypeEnum.DEPTH_GRADIENT,
-                LocationHierarchyMode.TOP_DOWN,
+                LocationHierarchyMode.NONE,
                 filter.getLocationIds()))
             ;
     }
