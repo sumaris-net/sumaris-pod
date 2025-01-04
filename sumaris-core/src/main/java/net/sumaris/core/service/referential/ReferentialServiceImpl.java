@@ -71,6 +71,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service("referentialService")
@@ -203,37 +204,29 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 		// Distance To Coast Gradient
 		if (entityName.equalsIgnoreCase(DistanceToCoastGradient.ENTITY_NAME)) {
-			return distanceToCoastGradientRepository.findAll(
+			return findGradientByFilter(
 				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
-				Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
+				referentialFilterVO ->
+					distanceToCoastGradientRepository.findAll(referentialFilterVO, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions)
+			);
 		}
 
 		// Depth Gradient
 		if (entityName.equalsIgnoreCase(DepthGradient.ENTITY_NAME)) {
-			return depthGradientRepository.findAll(
+			return findGradientByFilter(
 				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
-				Page.create(offset, size, sortAttribute, sortDirection), fetchOptions);
+				referentialFilterVO ->
+					depthGradientRepository.findAll(referentialFilterVO, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions)
+			);
 		}
 
 		// Nearby Specific Area
 		if (entityName.equalsIgnoreCase(NearbySpecificArea.ENTITY_NAME)) {
-			ReferentialFilterVO referentialFilter = (ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter);
-			if (ArrayUtils.isNotEmpty(referentialFilter.getLocationIds())) {
-				// Try to find with location ids
-				List<ReferentialVO> result = nearbySpecificAreaRepository.findAll(
-					referentialFilter,
-					Page.create(offset, size, sortAttribute, sortDirection),
-					fetchOptions);
-				if (CollectionUtils.isNotEmpty(result)) {
-    				return result;
-				}
-                // If no result, try without location ids
-                referentialFilter.setLocationIds(null);
-			}
-			return nearbySpecificAreaRepository.findAll(
-				referentialFilter,
-				Page.create(offset, size, sortAttribute, sortDirection),
-				fetchOptions);
+			return findGradientByFilter(
+				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
+				referentialFilterVO ->
+					nearbySpecificAreaRepository.findAll(referentialFilterVO, Page.create(offset, size, sortAttribute, sortDirection), fetchOptions)
+			);
 		}
 
 		return referentialDao.findByFilter(entityName, IReferentialFilter.nullToEmpty(filter), offset, size, sortAttribute,
@@ -274,29 +267,17 @@ public class ReferentialServiceImpl implements ReferentialService {
 
 		// Distance To Coast Gradient
 		if (entityName.equalsIgnoreCase(DistanceToCoastGradient.ENTITY_NAME)) {
-			return distanceToCoastGradientRepository.count(
-				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter));
+			return countGradientByFilter((ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter), distanceToCoastGradientRepository::count);
 		}
 
 		// Depth Gradient
 		if (entityName.equalsIgnoreCase(DepthGradient.ENTITY_NAME)) {
-			return depthGradientRepository.count(
-				(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter));
+			return countGradientByFilter((ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter), depthGradientRepository::count);
 		}
 
 		// Nearby Specific Area
 		if (entityName.equalsIgnoreCase(NearbySpecificArea.ENTITY_NAME)) {
-			ReferentialFilterVO referentialFilter = (ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter);
-			if (ArrayUtils.isNotEmpty(referentialFilter.getLocationIds())) {
-				// Try to find with location ids
-				long count = nearbySpecificAreaRepository.count(referentialFilter);
-				if (count > 0) {
-					return count;
-				}
-				// If no result, try without location ids
-				referentialFilter.setLocationIds(null);
-			}
-			return nearbySpecificAreaRepository.count(referentialFilter);
+			return countGradientByFilter((ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter), nearbySpecificAreaRepository::count);
 		}
 
 		return referentialDao.countByFilter(entityName, filter);
@@ -379,5 +360,38 @@ public class ReferentialServiceImpl implements ReferentialService {
 		Beans.copyProperties(filter, locationFilter);
 		locationFilter.setAncestorIds(((ReferentialFilterVO) filter).getLocationIds());
 		return locationFilter;
+	}
+
+	private List<ReferentialVO> findGradientByFilter(
+		ReferentialFilterVO referentialFilter,
+		Function<ReferentialFilterVO, List<ReferentialVO>> findAllFunction
+	) {
+		if (ArrayUtils.isNotEmpty(referentialFilter.getLocationIds())) {
+			// Try to find with location ids
+			List<ReferentialVO> result = findAllFunction.apply(referentialFilter);
+			if (CollectionUtils.isNotEmpty(result)) {
+				return result;
+			}
+			// If no result, try without location ids
+			referentialFilter.setLocationIds(null);
+		}
+		return findAllFunction.apply(referentialFilter);
+	}
+
+
+	private Long countGradientByFilter(
+		ReferentialFilterVO referentialFilter,
+		Function<ReferentialFilterVO, Long> countFunction
+	) {
+		if (ArrayUtils.isNotEmpty(referentialFilter.getLocationIds())) {
+			// Try to find with location ids
+			long count = countFunction.apply(referentialFilter);
+			if (count > 0) {
+				return count;
+			}
+			// If no result, try without location ids
+			referentialFilter.setLocationIds(null);
+		}
+		return countFunction.apply(referentialFilter);
 	}
 }

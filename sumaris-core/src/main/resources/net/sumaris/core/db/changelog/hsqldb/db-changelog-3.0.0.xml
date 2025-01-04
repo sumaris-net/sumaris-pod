@@ -894,9 +894,6 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-124" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="status_fk" baseTableName="fishery" constraintName="FKk173130s13o5tu1dq6dt5vxr0" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="status" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-125" failOnError="false">
-    <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="scientific_cruise" constraintName="FKke4e7129nt8vmojlce8s68o5x" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
-  </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619259850-126" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="qualitative_value_fk" baseTableName="sampling_strata_measurement" constraintName="FKkuc3t3axtlgimqw3x3n9bxb4r" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="qualitative_value" validate="true"/>
   </changeSet>
