@@ -51,8 +51,8 @@
     </createTable>
   </changeSet>
 
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-3" failOnError="false">
-    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_recorder_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-3" failOnError="false" runOnChange="true">
+    <addForeignKeyConstraint baseColumnNames="recorder_department_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_recorder_department_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="department" validate="true"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-4" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="program_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_program_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="Program" validate="true"/>
@@ -60,7 +60,7 @@
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-5" failOnError="false">
     <addForeignKeyConstraint baseColumnNames="manager_person_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_manager_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
   </changeSet>
-  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-6" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-6" failOnError="false" runOnChange="true">
     <addForeignKeyConstraint baseColumnNames="recorder_person_fk" baseTableName="scientific_cruise" constraintName="scientific_cruise_recorder_person_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="person" validate="true"/>
   </changeSet>
   <changeSet author="benoit.lavenier@e-is.pro" id="1694619250350-7" failOnError="false">
