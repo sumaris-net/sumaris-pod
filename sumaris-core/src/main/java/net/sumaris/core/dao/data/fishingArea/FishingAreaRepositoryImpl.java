@@ -278,6 +278,10 @@ public class FishingAreaRepositoryImpl
         // Delete remaining objects (BEFORE to save, because of unique key)
         existingIds.forEach(this::deleteById);
 
+        final EntityManager em = getEntityManager();
+        em.flush();
+        em.clear();
+
         // Save
         sources.forEach(this::save);
 
