@@ -29,6 +29,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
 
+import javax.annotation.Nullable;
 import java.util.Date;
 
 @Data
@@ -37,6 +38,10 @@ import java.util.Date;
 @NoArgsConstructor
 @FieldNameConstants
 public class PhysicalGearFilterVO implements IRootDataFilter, IVesselFilter {
+
+    public static PhysicalGearFilterVO nullToEmpty(@Nullable PhysicalGearFilterVO filter) {
+        return filter == null ? new PhysicalGearFilterVO() : filter;
+    }
 
     private Date startDate;
     private Date endDate;
