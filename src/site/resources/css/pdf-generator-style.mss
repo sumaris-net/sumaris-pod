@@ -1,4 +1,18 @@
 {
+"pdf": {
+    "extFonts": [
+      {
+        "family": "UBUNTU",
+        "encoding": "UTF-8",
+        "path": "fonts/Ubuntu-Regular.ttf"
+      },
+      {
+        "family": "UBUNTU_BOLD",
+        "encoding": "UTF-8",
+        "path": "fonts/Ubuntu-Bold.ttf"
+      }
+    ]
+  },
     "colors": {
         "white": "255:255:255",
         "black": "0:0:0",
@@ -146,7 +160,7 @@
         "YellowGreen": "9ACD32"
     },
     "document":{
-        "family": "HELVETICA",
+        "family": "UBUNTU",
         "color":"Black",
         "size":12,
         "leftMargin": "1cm",
@@ -160,7 +174,7 @@
         "front_page": {
             "color": "0:0:0",
             "background": "255:255:255",
-            "family": "HELVETICA",
+            "family": "UBUNTU",
             "size": 15,
             "style": "NORMAL",
             "title": {
@@ -171,15 +185,17 @@
         "toc": {
             "color": "0:0:0",
             "background": "255:255:255",
-            "family": "HELVETICA",
+            "family": "UBUNTU",
             "size": 12,
             "style": "NORMAL",
             "h1": {
+                "style": "UBUNTU_BOLD",
                 "size":14,
                 "style": "BOLD",
                 "color":"SteelBlue"
             },
             "h2": {
+                "style": "UBUNTU_BOLD",
               "style": "BOLD",
               "color":"SteelBlue"
             }
@@ -210,7 +226,17 @@
             },
             "strong": {
                 "style": "BOLD"
-            }
+            },
+
+        }
+    },
+    "divs": {
+        "icon": {
+            "imgAlign": "LEFT",
+            "imgFlow": true,
+            "imgFlowMargin": 4.0,
+            "imgX": 127.0,
+            "imgY": 430.0
         }
     }
 }

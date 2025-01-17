@@ -31,6 +31,7 @@ Logger logger = LoggerFactory.getLogger(this.class)
 // Input parameters
 def tempDirectory = "${project.build.directory}/site/temp"
 def maxWidth = 980
+def maxHeight = 450
 
 // Get the list of PNG files in the temporary directory
 def pngFiles = new File(tempDirectory).listFiles().findAll { it.name.endsWith('.png') }
@@ -47,17 +48,27 @@ for (File file: pngFiles) {
         def originalWidth = originalImage.getWidth()
         def originalHeight = originalImage.getHeight()
 
+        // Calculate new dimensions based on maxWidth and maxHeight
+        def scaleWidth = (originalWidth > maxWidth)
+        def scaleHeight = (originalHeight > maxHeight)
+
         // Check if resizing is needed
-        if (originalWidth > maxWidth) {
+        if (scaleWidth || scaleHeight) {
 
             println "    " + file.getAbsolutePath()
 
-            def newHeight = ((maxWidth / originalWidth) * originalHeight).round() as int
+            // Determine the limiting factor for resizing (width or height)
+            def widthRatio = maxWidth / originalWidth.toDouble() as double
+            def heightRatio = maxHeight / originalHeight.toDouble() as double
+            def scalingRatio = Math.min(widthRatio, heightRatio)
+
+            def newWidth = (originalWidth * scalingRatio).round() as int
+            def newHeight = (originalHeight * scalingRatio).round() as int
 
             // Resize the image
             Thumbnails.of(file)
                     .scalingMode(ScalingMode.BICUBIC)
-                    .size(maxWidth, newHeight)
+                    .size(newWidth, newHeight)
                     .outputQuality(1.0)
                     .keepAspectRatio(true)
                     .toFile(file)
