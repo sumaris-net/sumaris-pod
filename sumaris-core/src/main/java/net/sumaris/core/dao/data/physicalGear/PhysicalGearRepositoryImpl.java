@@ -86,8 +86,7 @@ public class PhysicalGearRepositoryImpl
     public Specification<PhysicalGear> toSpecification(PhysicalGearFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
             .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasVesselId(filter.getVesselId()))
-            .and(hasVesselIds(filter.getVesselIds()))
+            .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
             // Trip
             .and(hasTripId(filter.getTripId()))
             .and(excludeTripId(filter.getExcludeTripId()))

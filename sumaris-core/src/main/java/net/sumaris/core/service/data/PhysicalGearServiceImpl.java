@@ -38,7 +38,6 @@ import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -55,7 +54,7 @@ public class PhysicalGearServiceImpl implements PhysicalGearService {
 
 	@Override
 	public List<PhysicalGearVO> findAll(PhysicalGearFilterVO filter, Page page, DataFetchOptions options) {
-		return physicalGearRepository.findAll(filter != null ? filter : new PhysicalGearFilterVO(), page, options);
+		return physicalGearRepository.findAll(PhysicalGearFilterVO.nullToEmpty(filter), page, options);
 	}
 
 	@Override
