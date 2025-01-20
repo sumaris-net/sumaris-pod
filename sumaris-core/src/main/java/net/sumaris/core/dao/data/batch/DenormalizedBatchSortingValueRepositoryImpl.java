@@ -26,10 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.jpa.SumarisJpaRepositoryImpl;
 import net.sumaris.core.model.data.DenormalizedBatch;
 import net.sumaris.core.model.data.DenormalizedBatchSortingValue;
-import net.sumaris.core.model.referential.pmfm.Parameter;
-import net.sumaris.core.model.referential.pmfm.Pmfm;
-import net.sumaris.core.model.referential.pmfm.QualitativeValue;
-import net.sumaris.core.model.referential.pmfm.Unit;
+import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchSortingValueVO;
 
 import javax.persistence.EntityManager;
@@ -88,7 +85,10 @@ public class DenormalizedBatchSortingValueRepositoryImpl
         Integer unitId = source.getUnit() != null ? source.getUnit().getId() : null;
         if (unitId != null || copyIfNull) {
             if (unitId != null) target.setUnit(getReference(Unit.class, unitId));
-            else target.setUnit(null);
+            else {
+                // UNIT_FK is mandatory, so we should use None if null - Fix issue sumaris-pod#70
+                target.setUnit(getReference(Unit.class, UnitEnum.NONE.getId()));
+            }
         }
 
         // Link to parent
