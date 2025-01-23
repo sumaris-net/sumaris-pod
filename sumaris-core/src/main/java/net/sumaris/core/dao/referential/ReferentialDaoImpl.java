@@ -1067,15 +1067,17 @@ public class ReferentialDaoImpl
                 );
             }
             case Method.ENTITY_NAME -> {
-                target.setProperties(ImmutableMap.of(
-                    Method.Fields.IS_CALCULATED, ((Method)source).getIsCalculated(),
-                    Method.Fields.IS_ESTIMATED, ((Method)source).getIsEstimated()
+                target.setProperties(ImmutableMap.<String, Object>builder()
+                        .put(Method.Fields.IS_CALCULATED, ((Method)source).getIsCalculated())
+                        .put(Method.Fields.IS_ESTIMATED, ((Method)source).getIsEstimated())
+                        .build()
                 ));
             }
             case Metier.ENTITY_NAME -> {
-                target.setProperties(ImmutableMap.of(
-                    Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier)source).getTaxonGroup()),
-                    Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear())
+                target.setProperties(ImmutableMap.<String, Object>builder()
+                    .put(Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier)source).getTaxonGroup()))
+                    .put(Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear()))
+                    .build()
                 ));
             }
             case DenormalizedSamplingStrata.ENTITY_NAME -> {
