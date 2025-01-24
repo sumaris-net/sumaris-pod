@@ -23,7 +23,6 @@ package net.sumaris.core.config;
  */
 
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Beans;
@@ -100,6 +99,7 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
       // Enable SSL
       boolean useSsl = useSsl(properties);
       if (useSsl) {
+        log.info("Elastisearch client use SSL");
         clientConfiguration.usingSsl();
       }
     }

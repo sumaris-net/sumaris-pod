@@ -88,6 +88,8 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 	private final TimeLog timeLog = new TimeLog(VesselSnapshotServiceImpl.class, 500, 1000);
 
+	private final TimeLog indexationTimeLog = new TimeLog(VesselSnapshotServiceImpl.class, 60 * 1000 /*1 min*/, 5 * 60 * 1000/*5 min*/);
+
 	@Autowired
 	public VesselSnapshotServiceImpl(SumarisConfiguration configuration,
 									 VesselSnapshotRepository repository,
@@ -275,8 +277,10 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 				.withVesselRegistrationPeriod(true)
 				.withCountryRegistration(true)
 				.build();
+			// We try to reduce to 5000, because of mistake in production, when using 10000
+			// (See issue sumaris-app#915)
+			int pageSize = 5000;
 			long offset = 0;
-			int pageSize = 10000;
 			int count = 0;
 			MutableInt updates = new MutableInt(0);
 			MutableInt inserts = new MutableInt(0);
@@ -292,15 +296,19 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 					.build();
 				do {
 					try {
+
 						// Update progression
 						if (offset > 0) {
 							progression.setCurrent(offset);
-							progression.setMessage(I18n.t("sumaris.elasticsearch.vessel.snapshot.progress",
-								offset, total));
+							String message = I18n.t("sumaris.elasticsearch.vessel.snapshot.progress", offset, total);
+							progression.setMessage(message);
+							log.info(message);
 						}
 
 						// Get page's snapshots from the database
+						long findAllStartTime = TimeLog.getTime();
 						List<VesselSnapshotVO> items = repository.findAll(filter, page, fetchOptions);
+						timeLog.log(findAllStartTime, "VesselSnapshotRepository.findAll");
 
 						items.forEach(vessel -> {
 							vesselIds.add(vessel.getVesselId());
@@ -322,14 +330,22 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 						});
 
 						// Save page's snapshots into elasticsearch
+						long saveAllStartTime = TimeLog.getTime();
 						elasticsearchRepository.saveAll(items);
+						timeLog.log(saveAllStartTime, "VesselSnapshotElasticsearchRepository.saveAll");
 
 						// Increment counter
 						count += items.size();
 					} catch (Throwable e) {
-						// Log first error
+						String message = String.format("Error while indexing vessel snapshots (%s/%s): %s", offset, total, e.getMessage());
+
+						// Log first error: log with stack trace
 						if (offset == 0) {
-							log.error("Error while indexing vessel snapshots: ", e);
+							log.error(message, e);
+						}
+						else {
+							// Log without stack trace
+							log.error(message);
 						}
 						errors.add(e);
 						result.setErrors(errors.size());
@@ -365,13 +381,17 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 			// Propagate the first error, if any
 			if (!errors.isEmpty()) {
 				elasticsearchIndexationReady = false;
+				log.error(I18n.t("sumaris.elasticsearch.vessel.snapshot.failed", errors.get(0)));
 				throw new SumarisTechnicalException(errors.get(0));
 			}
 
 			progression.setCurrent(total + 1);
-			progression.setMessage(I18n.t("sumaris.elasticsearch.vessel.snapshot.success", count));
+			String finalMessage = I18n.t("sumaris.elasticsearch.vessel.snapshot.success", count);
+			progression.setMessage(finalMessage);
+			log.info(finalMessage);
+
 			elasticsearchIndexationReady = true;
-			this.timeLog.log(startTime, "indexVesselSnapshots");
+			this.indexationTimeLog.log(startTime, "indexVesselSnapshots");
 
 		} finally {
 			indexing = false;
