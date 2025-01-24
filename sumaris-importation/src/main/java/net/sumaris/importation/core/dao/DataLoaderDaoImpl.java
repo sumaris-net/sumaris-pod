@@ -28,20 +28,22 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.hibernate.HibernateDaoSupport;
-import net.sumaris.core.dao.technical.schema.*;
-import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.dao.technical.schema.DatabaseTableEnum;
+import net.sumaris.core.dao.technical.schema.SumarisColumnMetadata;
+import net.sumaris.core.dao.technical.schema.SumarisDatabaseMetadata;
+import net.sumaris.core.dao.technical.schema.SumarisTableMetadata;
 import net.sumaris.importation.core.service.vo.DataLoadError;
 import net.sumaris.importation.core.service.vo.DataLoadResult;
 import net.sumaris.importation.core.util.csv.FileMessageFormatter;
 import net.sumaris.importation.core.util.csv.FileReader;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.type.BooleanType;
 import org.hibernate.type.DoubleType;
 import org.hibernate.type.FloatType;
 import org.hibernate.type.IntegerType;
 import org.nuiton.i18n.I18n;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -168,7 +170,7 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 
 					// Generate a new id (only if the previous row was not skipped)
 					if (!rowHasErrors) {
-						Serializable id = generateIdentifier(conn, tableMetadata);
+						Serializable id = sumarisDatabaseMetadata.generateIdentifier(conn, tableMetadata);
 						insertStatement.setObject(parameterIndex++, id);
 					} else {
 						parameterIndex++;
@@ -765,23 +767,6 @@ public class DataLoaderDaoImpl extends HibernateDaoSupport implements DataLoader
 					log.error(error.getDescription());
 					break;
 			}
-		}
-	}
-
-	protected Serializable generateIdentifier(Connection conn, SumarisTableMetadata table) throws SQLException {
-		String sequenceNextValQuery = table.getSequenceNextValQuery();
-
-		if (sequenceNextValQuery == null) {
-			throw new SumarisTechnicalException(String.format("No sequence found on table {%s}. Unable to generate identifier.", table.getName()));
-		}
-		PreparedStatement statement = conn.prepareStatement(sequenceNextValQuery);
-		try {
-			ResultSet rs = statement.executeQuery();
-			rs.next();
-			return rs.getInt(1);
-		} catch(SQLException e){
-			Daos.closeSilently(statement);
-			throw e;
 		}
 	}
 }
