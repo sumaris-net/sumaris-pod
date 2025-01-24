@@ -36,7 +36,7 @@ import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
 import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
 import net.sumaris.core.model.data.VesselRegistrationPeriod;
-import net.sumaris.core.model.referential.StatusEnum;
+import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.technical.job.JobStatusEnum;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.data.activity.ActivityCalendarService;
@@ -49,6 +49,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarSaveOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
@@ -201,20 +202,24 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                                     messages.add(message);
                                     log.warn(message);
                                 }
-                                // Check if already exist in database
-                                else if (existingCalendar != null) {
-                                    // Clean QualificationComments
-                                    activityCalendar.setQualificationComments(null);
+                                else {
 
-                                    activityCalendar.setId(existingCalendar.getId());
-                                    activityCalendar = update(activityCalendar, existingCalendar);
-                                    updates.increment();
-                                } else {
-                                    // Clean QualificationComments
-                                    activityCalendar.setQualificationComments(null);
+                                    // Check if already exist in database
+                                    if (existingCalendar != null) {
+                                        activityCalendar.setId(existingCalendar.getId());
+                                        // Keep the existing qualification comments (as we use it to store the registration code)
+                                        activityCalendar.setQualificationComments(existingCalendar.getQualificationComments());
+                                        activityCalendar = update(activityCalendar, existingCalendar);
+                                        updates.increment();
+                                    }
+                                    // Not exists: create it
+                                    else {
+                                        // Clear qualification comments (as we use it to store the registration code)
+                                        activityCalendar.setQualificationComments(null);
 
-                                    activityCalendar = insert(activityCalendar);
-                                    inserts.increment();
+                                        activityCalendar = insert(activityCalendar);
+                                        inserts.increment();
+                                    }
                                 }
 
                                 processedActivityCalendar.add(activityCalendar);
@@ -390,7 +395,6 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
      *
      * @param reader CSV reader
      * @param includedHeaders headers to include
-     * @return
      */
     public List<Map<String, String>> readRows(final CSVFileReader reader,
                                               Set<String> includedHeaders) throws IOException {
@@ -441,14 +445,14 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
         String economicSurvey = source.get(ActivityCalendarVO.Fields.ECONOMIC_SURVEY);
         target.setEconomicSurvey(Boolean.parseBoolean(economicSurvey));
 
-        //updateDate
-        target.setUpdateDate(new Date());
+        // Clear control/validation
+        target.setControlDate(null);
+        target.setValidationDate(null);
 
-        //creationDate
-        target.setCreationDate(new Date());
-
-        //qualityFlagId
-        target.setQualityFlagId(StatusEnum.ENABLE.getId());
+        // Qualification
+        target.setQualityFlagId(QualityFlagEnum.NOT_QUALIFIED.getId());
+        target.setQualificationComments(null);
+        target.setQualificationDate(null);
 
         //program
         ProgramVO program = new ProgramVO();
@@ -498,23 +502,30 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
     }
 
     protected ActivityCalendarVO insert(ActivityCalendarVO source) {
-        return activityCalendarService.save(source);
+        return activityCalendarService.save(source, ActivityCalendarSaveOptions.WITHOUT_CHILDREN);
     }
 
-    protected ActivityCalendarVO update(ActivityCalendarVO source, ActivityCalendarVO origin) {
+    protected ActivityCalendarVO update(ActivityCalendarVO source, ActivityCalendarVO target) {
 
-        origin.setYear(source.getYear());
-        origin.setDirectSurveyInvestigation(source.getDirectSurveyInvestigation());
-        origin.setEconomicSurvey(source.getEconomicSurvey());
-        origin.setQualityFlagId(StatusEnum.ENABLE.getId());
-        origin.setProgram(source.getProgram());
+        target.setYear(source.getYear());
+        target.setDirectSurveyInvestigation(source.getDirectSurveyInvestigation());
+        target.setEconomicSurvey(source.getEconomicSurvey());
+        target.setControlDate(source.getControlDate());
+        target.setValidationDate(source.getValidationDate());
+        target.setQualityFlagId(source.getQualityFlagId());
+        target.setQualificationComments(source.getQualificationComments());
+        target.setQualificationDate(source.getQualificationDate());
+
+        target.setProgram(source.getProgram());
 
         //vesselId
         if (source.getVesselId() != null) {
-            origin.setVesselId(source.getVesselId());
+            target.setVesselId(source.getVesselId());
         }
 
-        return activityCalendarService.save(origin);
+        return activityCalendarService.save(target,
+            ActivityCalendarSaveOptions.WITHOUT_CHILDREN // fix issue sumaris-app#916
+        );
     }
 
     protected boolean containsAllHeaders(String[] actualHeaders, Collection<String> expectedHeaders) {

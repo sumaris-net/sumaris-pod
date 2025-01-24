@@ -59,10 +59,7 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.*;
-import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
-import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
-import net.sumaris.core.vo.data.activity.ActivityCalendarVesselRegistrationPeriodVO;
-import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
+import net.sumaris.core.vo.data.activity.*;
 import net.sumaris.core.vo.data.aggregatedLanding.AggregatedLandingVO;
 import net.sumaris.core.vo.data.batch.*;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
@@ -1366,7 +1363,7 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLQuery(name = "activityCalendarsCount", description = "Get total number of observed locations")
+    @GraphQLQuery(name = "activityCalendarsCount", description = "Get total number of activity calendars")
     @Transactional(readOnly = true)
     @IsUser
     public long countActivityCalendars(@GraphQLArgument(name = "filter") ActivityCalendarFilterVO filter,
@@ -1402,17 +1399,19 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLMutation(name = "saveActivityCalendar", description = "Create or update an observed location")
+    @GraphQLMutation(name = "saveActivityCalendar", description = "Create or update an activity calendar")
     @IsUser
     public ActivityCalendarVO saveActivityCalendar(
         @GraphQLArgument(name = "activityCalendar") ActivityCalendarVO activityCalendar,
+        @GraphQLArgument(name = "options") ActivityCalendarSaveOptions options,
         @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Make sure user can write
         dataAccessControlService.checkCanWrite(activityCalendar);
 
         // Save
-        ActivityCalendarVO result = activityCalendarService.save(activityCalendar);
+        ActivityCalendarVO result = activityCalendarService.save(activityCalendar,
+            ActivityCalendarSaveOptions.defaultIfEmpty(options));
 
         // Fill expected fields
         fillActivityCalendarFields(result, GraphQLUtils.fields(env));
@@ -1420,16 +1419,18 @@ public class DataGraphQLService {
         return result;
     }
 
-    @GraphQLMutation(name = "saveActivityCalendars", description = "Create or update many observed locations")
+    @GraphQLMutation(name = "saveActivityCalendars", description = "Create or update many activity calendars")
     @IsUser
     public List<ActivityCalendarVO> saveActivityCalendars(
         @GraphQLArgument(name = "activityCalendars") List<ActivityCalendarVO> activityCalendars,
+        @GraphQLArgument(name = "options") ActivityCalendarSaveOptions options,
         @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Make sure user can write
         dataAccessControlService.checkCanWriteAll(activityCalendars);
 
-        final List<ActivityCalendarVO> result = activityCalendarService.save(activityCalendars);
+        final List<ActivityCalendarVO> result = activityCalendarService.save(activityCalendars,
+            ActivityCalendarSaveOptions.defaultIfEmpty(options));
 
         // Fill expected fields
         fillActivityCalendarsFields(result, GraphQLUtils.fields(env));
