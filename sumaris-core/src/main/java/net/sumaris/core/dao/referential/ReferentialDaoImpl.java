@@ -1071,14 +1071,14 @@ public class ReferentialDaoImpl
                         .put(Method.Fields.IS_CALCULATED, ((Method)source).getIsCalculated())
                         .put(Method.Fields.IS_ESTIMATED, ((Method)source).getIsEstimated())
                         .build()
-                ));
+                );
             }
             case Metier.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.<String, Object>builder()
                     .put(Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier)source).getTaxonGroup()))
                     .put(Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear()))
                     .build()
-                ));
+                );
             }
             case DenormalizedSamplingStrata.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.<String, Object>builder()
