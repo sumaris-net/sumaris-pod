@@ -87,8 +87,8 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 	private Cache countByFilterCache = null;
 
 	private final TimeLog timeLog = new TimeLog(VesselSnapshotServiceImpl.class, 500, 1000);
-
-	private final TimeLog indexationTimeLog = new TimeLog(VesselSnapshotServiceImpl.class, 60 * 1000 /*1 min*/, 5 * 60 * 1000/*5 min*/);
+	private final TimeLog longTimeLog = new TimeLog(VesselSnapshotServiceImpl.class, 10 * 60 * 1000 /*10s*/, 60 * 60 * 1000 /*1min*/);
+	private final TimeLog indexationTimeLog = new TimeLog(VesselSnapshotServiceImpl.class, 5 * 60 * 1000 /*5 min*/, 20 * 60 * 1000/*20 min*/);
 
 	@Autowired
 	public VesselSnapshotServiceImpl(SumarisConfiguration configuration,
@@ -298,17 +298,17 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 					try {
 
 						// Update progression
+						String message = I18n.t("sumaris.elasticsearch.vessel.snapshot.progress", offset, total);
+						log.info(message);
 						if (offset > 0) {
 							progression.setCurrent(offset);
-							String message = I18n.t("sumaris.elasticsearch.vessel.snapshot.progress", offset, total);
 							progression.setMessage(message);
-							log.info(message);
 						}
 
 						// Get page's snapshots from the database
 						long findAllStartTime = TimeLog.getTime();
 						List<VesselSnapshotVO> items = repository.findAll(filter, page, fetchOptions);
-						timeLog.log(findAllStartTime, "VesselSnapshotRepository.findAll");
+						longTimeLog.log(findAllStartTime, "VesselSnapshotRepository.findAll");
 
 						items.forEach(vessel -> {
 							vesselIds.add(vessel.getVesselId());
@@ -332,7 +332,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 						// Save page's snapshots into elasticsearch
 						long saveAllStartTime = TimeLog.getTime();
 						elasticsearchRepository.saveAll(items);
-						timeLog.log(saveAllStartTime, "VesselSnapshotElasticsearchRepository.saveAll");
+						longTimeLog.log(saveAllStartTime, "VesselSnapshotElasticsearchRepository.saveAll");
 
 						// Increment counter
 						count += items.size();
