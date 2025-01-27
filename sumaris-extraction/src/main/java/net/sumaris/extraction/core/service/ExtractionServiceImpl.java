@@ -413,7 +413,7 @@ public class ExtractionServiceImpl implements ExtractionService {
                         throw new SumarisTechnicalException(e);
                     }
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         File outputFile;
 

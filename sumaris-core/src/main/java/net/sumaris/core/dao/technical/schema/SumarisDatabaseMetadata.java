@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.Metadata;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.io.Serializable;
 import java.sql.*;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -216,6 +218,40 @@ public class SumarisDatabaseMetadata {
 				"Could not init database meta on connection " + conn, e);
 		} finally {
 			DataSourceUtils.releaseConnection(conn, dataSource);
+		}
+	}
+
+	public Serializable generateIdentifier(SumarisTableMetadata table) throws SQLException {
+		String sequenceNextValQuery = table.getSequenceNextValQuery();
+
+		// Create a new connection then retrieve the metadata :
+		Connection conn = null;
+		try {
+			conn = DataSourceUtils.getConnection(dataSource);
+
+			return generateIdentifier(conn, table);
+		} catch (SQLException e) {
+			throw new RuntimeException(
+				"Could not init database meta on connection " + conn, e);
+		} finally {
+			DataSourceUtils.releaseConnection(conn, dataSource);
+		}
+	}
+
+	public Serializable generateIdentifier(Connection conn, SumarisTableMetadata table) throws SQLException {
+		String sequenceNextValQuery = table.getSequenceNextValQuery();
+
+		if (sequenceNextValQuery == null) {
+			throw new SumarisTechnicalException(String.format("No sequence found on table {%s}. Unable to generate identifier.", table.getName()));
+		}
+		PreparedStatement statement = conn.prepareStatement(sequenceNextValQuery);
+		try {
+			ResultSet rs = statement.executeQuery();
+			rs.next();
+			return rs.getInt(1);
+		} catch (SQLException e) {
+			Daos.closeSilently(statement);
+			throw e;
 		}
 	}
 

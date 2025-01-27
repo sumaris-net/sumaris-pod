@@ -38,7 +38,7 @@
       (SELECT COUNT(*)
         FROM operation O2
         WHERE O2.TRIP_FK = T.TRIP_CODE
-        AND O2.START_DATE_TIME <= O.START_DATE_TIME
+        AND (O2.START_DATE_TIME < O.START_DATE_TIME OR (O2.START_DATE_TIME = O.START_DATE_TIME AND O2.ID < O.ID))
         AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
       )
     ]]></select>
@@ -46,7 +46,7 @@
       (SELECT COUNT(*)
         FROM operation O2
         WHERE O2.FISHING_TRIP_FK = T.TRIP_CODE
-        AND O2.START_DATE_TIME <= O.START_DATE_TIME
+        AND (O2.START_DATE_TIME < O.START_DATE_TIME OR (O2.START_DATE_TIME = O.START_DATE_TIME AND O2.ID < O.ID))
         AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
       )
     ]]></select>
@@ -54,7 +54,7 @@
       (SELECT COUNT(*)
         FROM operation O2
         WHERE O2.TRIP_FK = T.TRIP_CODE
-        AND O2.START_DATE_TIME <= O.START_DATE_TIME
+        AND (O2.START_DATE_TIME < O.START_DATE_TIME OR (O2.START_DATE_TIME = O.START_DATE_TIME AND O2.ID < O.ID))
         AND NOT (O2.START_DATE_TIME = T.DEPARTURE_DATE_TIME AND O2.END_DATE_TIME = T.RETURN_DATE_TIME)
       )
     ]]></select>
@@ -226,7 +226,7 @@
 
     <groupby>&amp;groupByColumns</groupby>
 
-    <groupby dbms="pgsql,oracle" group="operationIdsFilter">O.START_DATE_TIME, T.DEPARTURE_DATE_TIME, T.RETURN_DATE_TIME</groupby>
+    <groupby dbms="pgsql,oracle" group="operationIdsFilter">O.START_DATE_TIME, T.DEPARTURE_DATE_TIME, T.RETURN_DATE_TIME, O.ID</groupby>
     <groupby dbms="hsqldb">STATION_NUMBER</groupby>
   </query>
 

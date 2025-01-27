@@ -49,6 +49,7 @@ import net.sumaris.core.util.DataBeans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarSaveOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import net.sumaris.core.vo.filter.GearPhysicalFeaturesFilterVO;
@@ -213,6 +214,11 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
 
     @Override
     public ActivityCalendarVO save(final ActivityCalendarVO source) {
+        return save(source, ActivityCalendarSaveOptions.DEFAULT);
+    }
+
+        @Override
+    public ActivityCalendarVO save(final ActivityCalendarVO source, @NonNull ActivityCalendarSaveOptions saveOptions) {
         checkCanSave(source);
 
         // Reset control date
@@ -227,7 +233,9 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid ActivityCalendar.id. Make sure your sequence has been well configured");
 
         // Save children entities (measurement, etc.)
-        saveChildrenEntities(target);
+        if (saveOptions == null || saveOptions.getWithChildren()) {
+            saveChildrenEntities(target);
+        }
 
         // Publish event
         if (isNew) {
@@ -243,9 +251,9 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     }
 
     @Override
-    public List<ActivityCalendarVO> save(@NonNull List<ActivityCalendarVO> sources) {
+    public List<ActivityCalendarVO> save(@NonNull List<ActivityCalendarVO> sources, @NonNull ActivityCalendarSaveOptions saveOptions) {
         return sources.stream()
-            .map(this::save)
+            .map(vo -> this.save(vo, saveOptions))
             .toList();
     }
 

@@ -26,6 +26,7 @@ import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.service.data.IRootDataQualityService;
 import net.sumaris.core.vo.data.activity.ActivityCalendarFetchOptions;
+import net.sumaris.core.vo.data.activity.ActivityCalendarSaveOptions;
 import net.sumaris.core.vo.data.activity.ActivityCalendarVO;
 import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import org.springframework.scheduling.annotation.Async;
@@ -71,7 +72,9 @@ public interface ActivityCalendarService extends IRootDataQualityService<Activit
 
 	ActivityCalendarVO save(ActivityCalendarVO source);
 
-	List<ActivityCalendarVO> save(List<ActivityCalendarVO> sources);
+	ActivityCalendarVO save(ActivityCalendarVO source, ActivityCalendarSaveOptions saveOptions);
+
+	List<ActivityCalendarVO> save(List<ActivityCalendarVO> sources, ActivityCalendarSaveOptions saveOptions);
 
 	@Async
 	CompletableFuture<Boolean> asyncDelete(int id);

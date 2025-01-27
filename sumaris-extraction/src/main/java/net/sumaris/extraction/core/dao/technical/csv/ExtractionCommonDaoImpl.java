@@ -30,6 +30,8 @@ import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
 import net.sumaris.extraction.core.vo.ExtractionContextVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -54,8 +56,17 @@ import java.util.*;
 @Slf4j
 public class ExtractionCommonDaoImpl extends ExtractionBaseDaoImpl<ExtractionContextVO, ExtractionFilterVO> implements ExtractionCommonDao {
 
+    // Additional log
+    private static final Logger hibernateLog = LoggerFactory.getLogger("org.hibernate.SQL");
+
     @Autowired
     private DataSource dataSource;
+
+    private final boolean showSql;
+
+    public ExtractionCommonDaoImpl() {
+        this.showSql = hibernateLog.isDebugEnabled();
+    }
 
     @Override
     public void dumpQueryToCSV(File file, String query,
@@ -74,9 +85,8 @@ public class ExtractionCommonDaoImpl extends ExtractionBaseDaoImpl<ExtractionCon
         CSVWriter csvWriter = new CSVWriter(fileWriter, configuration.getCsvSeparator());
 
         // fill result set
-        queryAllowEmptyResultSet(
-                query,
-                new CsvResultSetExtractor(csvWriter, true, aliasByColumnMap, dateFormatsByColumnMap, decimalFormatsByColumnMap, excludeColumnNames));
+        CsvResultSetExtractor extractor = new CsvResultSetExtractor(csvWriter, true, aliasByColumnMap, dateFormatsByColumnMap, decimalFormatsByColumnMap, excludeColumnNames);
+        queryAllowEmptyResultSet(query, extractor);
 
         // flush result set in file and close
         csvWriter.flush();
@@ -97,9 +107,14 @@ public class ExtractionCommonDaoImpl extends ExtractionBaseDaoImpl<ExtractionCon
         PreparedStatement statement = null;
         ResultSet rs = null;
         try {
+            if (showSql) {
+                hibernateLog.debug(query);
+            }
+
             statement = Daos.prepareQuery(connection, query);
             rs = statement.executeQuery();
             csvResultSetExtractor.extractData(rs);
+
         } catch (SQLException e) {
             throw new DataAccessResourceFailureException(String.format("Error while executing query [%s]: %s", query, e.getMessage()), e);
         } finally {
@@ -132,8 +147,9 @@ public class ExtractionCommonDaoImpl extends ExtractionBaseDaoImpl<ExtractionCon
         public CSVWriter extractData(ResultSet rs) throws SQLException {
             try {
                 writer.writeAll(rs, showColumnHeaders, DEFAULT_TRIM, DEFAULT_CSV_APPLY_QUOTES_TO_ALL);
+
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("%s rows written", helperService.getNbRowsWritten()));
+                    log.debug(String.format("%s rows written%s", helperService.getNbRowsWritten(), writer.checkError() ? "- with error" : ""));
                 }
             } catch (IOException e) {
                 log.error(e.getLocalizedMessage());
