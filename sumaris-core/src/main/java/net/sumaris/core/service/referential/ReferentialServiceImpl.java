@@ -53,6 +53,7 @@ import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.ArrayUtils;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
@@ -363,19 +364,43 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	private List<ReferentialVO> findGradientByFilter(
-		ReferentialFilterVO referentialFilter,
+		ReferentialFilterVO filter,
 		Function<ReferentialFilterVO, List<ReferentialVO>> findAllFunction
 	) {
-		if (ArrayUtils.isNotEmpty(referentialFilter.getLocationIds())) {
+		// If filter on location (=Régionalisation)
+		if (ArrayUtils.isNotEmpty(filter.getLocationIds())) {
+
 			// Try to find with location ids
-			List<ReferentialVO> result = findAllFunction.apply(referentialFilter);
+			List<ReferentialVO> result = findAllFunction.apply(filter);
+
+			// Has some result: OK
 			if (CollectionUtils.isNotEmpty(result)) {
 				return result;
 			}
-			// If no result, try without location ids
-			referentialFilter.setLocationIds(null);
+
+			// No result AND has search text - See issue sumaris-app#925
+			if (StringUtils.isNotBlank(filter.getSearchText())) {
+
+				// Check if there is some result, without search text (but with location only)
+				String searchText = filter.getSearchText();
+				filter.setSearchText(null);
+				List<ReferentialVO> resultWithoutSearchText = findAllFunction.apply(filter);
+
+				// We have some result without search text, so return the original (empty) result
+				// Fix issue sumaris-app#925
+				if (CollectionUtils.isNotEmpty(resultWithoutSearchText)) return result;
+
+				// Restore the search text
+				filter.setSearchText(searchText);
+
+				// Continue: we can retry without any location
+			}
+
+			// Still no result when no search text: try without location ids
+			filter.setLocationIds(null);
 		}
-		return findAllFunction.apply(referentialFilter);
+
+		return findAllFunction.apply(filter);
 	}
 
 
