@@ -187,7 +187,7 @@ public class AuthServiceImpl implements AuthService {
 
         AuthUserDetails userDetails = new AuthUserDetails(authData, getAuthorities(user));
 
-        log.debug("Authentication succeed for user with pubkey {{}}", user.getPubkey().substring(0, 8));
+        log.debug("Authentication succeed for user with pubkey {{}}", CryptoUtils.minifyPubkey(user.getPubkey()));
 
         // Add token to cache
         checkedTokens.add(token, userDetails);
@@ -228,8 +228,8 @@ public class AuthServiceImpl implements AuthService {
             if (pubkeyChanged) {
                 log.info("Updating pubkey of user {id: {}}. Previous pubkey: {{}}, new: {{}}",
                     user.getId(),
-                    user.getPubkey() != null ? user.getPubkey().substring(0, 8) : "null",
-                    pubkey.substring(0, 8));
+                    CryptoUtils.minifyPubkey(user.getPubkey()),
+                    CryptoUtils.minifyPubkey(pubkey));
 
                 user.setPubkey(pubkey);
                 user = personService.save(user);
@@ -394,7 +394,9 @@ public class AuthServiceImpl implements AuthService {
         // Check user exists in checked pubkeys
         PersonVO user = Optional.ofNullable(checkedPubkeys.get(pubkey))
             // Find by checked pubkey (e.g. if already authenticated by username, but pubkey just changed)
-            .map(AuthUserDetails::getUsername).filter(StringUtils::isNotBlank).flatMap(personService::findByUsername)
+            .map(AuthUserDetails::getUsername)
+            .filter(StringUtils::isNotBlank)
+            .flatMap(personService::findByUsername)
             .orElseGet(() -> personService.findByPubkey(pubkey)
                 .orElseThrow(() -> new BadCredentialsException("Authentication failed. User not found: " + pubkey)));
 

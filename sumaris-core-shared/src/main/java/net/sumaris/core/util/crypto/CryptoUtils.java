@@ -29,6 +29,7 @@ import net.sumaris.core.util.Files;
 import net.sumaris.core.util.StringUtils;
 import org.abstractj.kalium.crypto.Util;
 
+import javax.annotation.Nullable;
 import java.nio.charset.Charset;
 
 public class CryptoUtils extends Util {
@@ -96,5 +97,10 @@ public class CryptoUtils extends Util {
 
 		// TODO: check if 43 or 44 characters ?
 		return StringUtils.length(pubkey) >= 10;
+	}
+
+	public static String minifyPubkey(@Nullable String pubkey) {
+		if (pubkey == null || pubkey.length() < 8) return "null";
+		return pubkey.substring(0, 8);
 	}
 }
