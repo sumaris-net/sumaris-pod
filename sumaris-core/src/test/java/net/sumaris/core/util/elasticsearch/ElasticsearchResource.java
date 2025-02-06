@@ -24,11 +24,10 @@ package net.sumaris.core.util.elasticsearch;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.config.SumarisConfigurationOption;
 import net.sumaris.core.util.StringUtils;
 import org.junit.rules.ExternalResource;
-import org.springframework.beans.factory.annotation.Value;
+import org.nuiton.version.Versions;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -43,11 +42,16 @@ import org.testcontainers.shaded.com.google.common.base.Preconditions;
 @Slf4j
 public class ElasticsearchResource extends ExternalResource {
 
-	public static String ELASTICSEARCH_VERSION = "7.17.7";
+	public static String ELASTICSEARCH_VERSION = "7.5.2";
+	//public static String ELASTICSEARCH_VERSION = "7.17.7";
+	//public static String ELASTICSEARCH_VERSION = "8.17.1";
+
+	public static String ELASTICSEARCH_DEFAULT_USERNAME = "elastic";
 
 	private ElasticsearchContainer container;
 
 	private final String version;
+	private final boolean isAtLeastMajorVersion8;
 
 	private String uris;
 
@@ -57,6 +61,16 @@ public class ElasticsearchResource extends ExternalResource {
 
 	public ElasticsearchResource(@NonNull String version) {
 		this.version = version;
+		this.isAtLeastMajorVersion8 = Versions.valueOf(version).afterOrEquals(Versions.valueOf("8.0.0"));
+	}
+
+	public void waitClusterYellowStatus() {
+		waitClusterStatus("yellow", "10s");
+	}
+
+	public void waitClusterStatus(String status, String timeout) {
+		Wait.forHttp(String.format("/_cluster/health?wait_for_status=%s&timeout=%s", status, timeout))
+			.forStatusCode(200);
 	}
 
 
@@ -65,10 +79,9 @@ public class ElasticsearchResource extends ExternalResource {
 
 		log.debug("Starting Elasticsearch container {{}}...", this.version);
 		container = ElasticsearchTestUtils.createContainer(this.version);
+
 		container.start();
-		String host = container.getHost();
-		Integer port = container.getMappedPort(9200);
-		this.uris = String.format("http://%s:%s", host, port);
+		this.uris = "http://" + container.getHttpHostAddress();
 		log.info("Elasticsearch container URI {{}}", this.uris);
 
 		this.initConfiguration();
@@ -92,17 +105,18 @@ public class ElasticsearchResource extends ExternalResource {
 		}
 	}
 
+
 	private void initConfiguration() {
 		Preconditions.checkArgument(StringUtils.isNotBlank(uris), "Container not created");
-
-		// Set elasticsearch node URI
-		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_ENABLED.getKey(), Boolean.TRUE.toString());
 
 		// Set elasticsearch node URI
 		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_URIS.getKey(), uris);
 
 		// Set elasticsearch password (v8+)
-		//System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_PASSWORD.getKey(), ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
+		if (isAtLeastMajorVersion8) {
+			System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_USERNAME.getKey(), ELASTICSEARCH_DEFAULT_USERNAME);
+			System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_PASSWORD.getKey(), ElasticsearchContainer.ELASTICSEARCH_DEFAULT_PASSWORD);
+		}
 
 		// Enable elasticsearch features
 		System.setProperty(SumarisConfigurationOption.ELASTICSEARCH_ENABLED.getKey(), Boolean.TRUE.toString());

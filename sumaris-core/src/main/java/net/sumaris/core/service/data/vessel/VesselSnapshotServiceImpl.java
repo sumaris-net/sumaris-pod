@@ -51,6 +51,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.nuiton.i18n.I18n;
 import org.nuiton.util.TimeLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachePut;
@@ -85,6 +86,9 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 	private final CacheManager cacheManager;
 	private Cache countByFilterCache = null;
+
+	@Value("${sumaris.elasticsearch.vessel.snapshot.page.sleep:0}")
+	private long elasticSearchPageSleepTimeMs = 0;
 
 	private final TimeLog timeLog = new TimeLog(VesselSnapshotServiceImpl.class, 500, 1000);
 	private final TimeLog longTimeLog = new TimeLog(VesselSnapshotServiceImpl.class, 10 * 60 * 1000 /*10s*/, 60 * 60 * 1000 /*1min*/);
@@ -233,13 +237,15 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 		Preconditions.checkArgument(!indexing, "Vessels indexation already running. Please retry later");
 
 		// Force full resync if no data
-		boolean forceRecreate = filter.getMinUpdateDate() != null && elasticsearchRepository.count() == 0L;
+		boolean fullResync = filter.getMinUpdateDate() == null;
+		boolean forceRecreate = !fullResync && elasticsearchRepository.count() == 0L;
 		if (forceRecreate) {
 			filter.setMinUpdateDate(null);
+			fullResync = true;
 		}
 
 		// If full resync, then mark elasticsearch as not ready
-		if (filter.getMinUpdateDate() == null) {
+		if (fullResync) {
 			elasticsearchIndexationReady = false;
 		}
 
@@ -260,6 +266,9 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 			if (forceRecreate) {
 				elasticsearchRepository.recreate();
 			}
+			if (fullResync) {
+				elasticsearchRepository.disableReplicas();
+			}
 
 			// Collect existing ids
 			final Set<Integer> existingVesselFeaturesIds = filter.getMinUpdateDate() != null
@@ -270,7 +279,7 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 			// Compute total
 			long total = repository.count(filter);
-			progression.setTotal(total + 1 /* Add one more step, for deletion */);
+			progression.setTotal(total + 2 /* Add 2 more steps, for deletion and refresh */);
 
 			VesselFetchOptions fetchOptions = VesselFetchOptions.builder()
 				.withBasePortLocation(true)
@@ -331,8 +340,13 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 
 						// Save page's snapshots into elasticsearch
 						long saveAllStartTime = TimeLog.getTime();
-						elasticsearchRepository.saveAll(items);
-						longTimeLog.log(saveAllStartTime, "VesselSnapshotElasticsearchRepository.saveAll");
+						elasticsearchRepository.bulkIndex(items);
+						longTimeLog.log(saveAllStartTime, "VesselSnapshotElasticsearchRepository.bulkIndex");
+
+						// Sleep (wait ES finish processing bulk inserts)
+						if (elasticSearchPageSleepTimeMs > 0) {
+							Thread.sleep(elasticSearchPageSleepTimeMs);
+						}
 
 						// Increment counter
 						count += items.size();
@@ -371,12 +385,24 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 				progression.setMessage(I18n.t("sumaris.elasticsearch.vessel.snapshot.removing", existingVesselFeaturesIds.size()));
 				elasticsearchRepository.deleteAllById(existingVesselFeaturesIds);
 			}
+			progression.setCurrent(total + 1);
+
+			long deletes = CollectionUtils.size(existingVesselFeaturesIds);
+			boolean hasChanges = inserts.getValue() > 0 || updates.getValue() > 0 || deletes > 0;
 
 			result.setInserts(inserts.getValue());
 			result.setUpdates(updates.getValue());
-			result.setDeletes(CollectionUtils.size(existingVesselFeaturesIds));
+			result.setDeletes(deletes);
 			result.setVessels(vesselIds.size());
 			result.setErrors(errors.size());
+
+			// Refresh index (Make sure all changes are visible)
+			if (hasChanges) elasticsearchRepository.refresh();
+
+			// Enable replicas
+			if (fullResync) {
+				elasticsearchRepository.enableReplicas();
+			}
 
 			// Propagate the first error, if any
 			if (!errors.isEmpty()) {
@@ -385,10 +411,11 @@ public class VesselSnapshotServiceImpl implements VesselSnapshotService {
 				throw new SumarisTechnicalException(errors.get(0));
 			}
 
-			progression.setCurrent(total + 1);
+			progression.setCurrent(total + 2);
 			String finalMessage = I18n.t("sumaris.elasticsearch.vessel.snapshot.success", count);
 			progression.setMessage(finalMessage);
-			log.info(finalMessage);
+			if (hasChanges) log.info(finalMessage);
+			else log.debug(finalMessage);
 
 			elasticsearchIndexationReady = true;
 			this.indexationTimeLog.log(startTime, "indexVesselSnapshots");
