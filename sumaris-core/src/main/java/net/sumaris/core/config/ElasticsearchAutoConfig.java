@@ -26,10 +26,7 @@ package net.sumaris.core.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.util.Beans;
-import net.sumaris.core.util.converter.BigDecimalConverter;
-import net.sumaris.core.util.converter.DateToLongConverter;
-import net.sumaris.core.util.converter.IntegerToDateConverter;
-import net.sumaris.core.util.converter.LongToDateConverter;
+import net.sumaris.core.util.converter.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.client.Node;
@@ -64,7 +61,7 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
 
   private final ElasticsearchProperties properties;
 
-  @Bean(name = {"elasticsearchOperations", "elasticsearchTemplate"})
+  @Bean(name = {"elasticsearchOperations", "elasticsearchRestTemplate"})
   public ElasticsearchRestTemplate elasticsearchRestTemplate(RestHighLevelClient restHighLevelClient, ElasticsearchConverter converter) {
     return new ElasticsearchRestTemplate(restHighLevelClient, converter);
   }
@@ -92,7 +89,7 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
               .connectedTo(nodes);
 
       // Enable basic auth
-      if (StringUtils.isNotBlank(properties.getUsername())) {
+      if (StringUtils.isNotBlank(properties.getUsername()) || StringUtils.isNotBlank(properties.getPassword())) {
         clientConfiguration.withBasicAuth(properties.getUsername(), properties.getPassword());
       }
 
@@ -127,7 +124,9 @@ public class ElasticsearchAutoConfig extends ElasticsearchConfiguration {
             new BigDecimalConverter(),
             new LongToDateConverter(),
             new DateToLongConverter(),
-            new IntegerToDateConverter()
+            new IntegerToDateConverter(),
+            new TimestampToLongConverter(),
+            new LongToTimestampConverter()
         ));
   }
 

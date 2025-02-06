@@ -22,6 +22,7 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
@@ -82,11 +83,6 @@ public class VesselFilterVO implements IRootDataFilter {
 
     private Date minUpdateDate;
 
-    public void setDate(Date date) {
-        this.startDate = date;
-        this.endDate = date;
-    }
-
     /**
      * @deprecated use basePortLocationId instead
      * @return basePortLocationId
@@ -106,11 +102,24 @@ public class VesselFilterVO implements IRootDataFilter {
         basePortLocationId = locationId;
     }
 
+
     /**
      * @deprecated use startDate instead
+     */
+    @Deprecated
+    public void setDate(Date date) {
+        this.startDate = date;
+        this.endDate = date;
+    }
+
+    /**
+     * @deprecated use startDate instead
+     * We add @JsonIgnore to avoid deserialization to always set the endDate
+     * (e.g. in vessel indexation job - see {@link net.sumaris.core.service.data.vessel.VesselSnapshotJob.getJobFilter()})
      * @return startDate
      */
     @Deprecated
+    @JsonIgnore
     public Date getDate() {
         return this.startDate;
     }

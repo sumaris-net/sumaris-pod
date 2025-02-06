@@ -28,18 +28,19 @@ import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.technical.SortDirection;
 import net.sumaris.core.dao.technical.elasticsearch.vessel.VesselSnapshotElasticsearchRepository;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.elasticsearch.ElasticsearchResource;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
 import net.sumaris.core.vo.filter.VesselFilterVO;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.apache.commons.collections4.CollectionUtils;
+import org.junit.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +49,7 @@ import java.util.Optional;
  */
 @Slf4j
 @ActiveProfiles({"test"})
-public class VesselElasticsearchRepositoryReadTest extends VesselSnapshotRepositoryAbstractReadTest {
+public class VesselElasticsearchRepositoryReadTest extends VesselSnapshotRepositoryAbstractReadTest<VesselSnapshotElasticsearchRepository> {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.readDb();
@@ -69,9 +70,12 @@ public class VesselElasticsearchRepositoryReadTest extends VesselSnapshotReposit
     public void setUp() throws Exception {
         super.setUp(elasticsearchRepository);
 
+        // Disable replicas
+        elasticsearchRepository.setNumberOfReplicas(0);
+
         // Fill index
         VesselFilterVO filter = createFilterBuilder().build();
-        List<VesselSnapshotVO> vessels = databaseRepository.findAll(filter, 0, 100, VesselSnapshotVO.Fields.VESSEL_FEATURES_ID, SortDirection.ASC, VesselFetchOptions.builder()
+        List<VesselSnapshotVO> vessels = databaseRepository.findAll(filter, 0, 100, "id", SortDirection.ASC, VesselFetchOptions.builder()
                 .withBasePortLocation(true)
                 .build());
         Assume.assumeNotNull(vessels);
@@ -87,7 +91,11 @@ public class VesselElasticsearchRepositoryReadTest extends VesselSnapshotReposit
             }
             v.setProgram(filteredProgram);
         });
-        elasticsearchRepository.saveAll(vessels);
+        elasticsearchRepository.bulkIndex(vessels);
+
+        // Wait end of storage
+        Thread.sleep(5000);
+        nodeResource.waitClusterYellowStatus();
     }
 
     @Test
@@ -113,5 +121,25 @@ public class VesselElasticsearchRepositoryReadTest extends VesselSnapshotReposit
     @Test
     public void findByFilter_otherCriteria() {
         super.findByFilter_otherCriteria();
+    }
+
+    @Test
+    public void findAllVesselFeaturesIdsByFilter() throws ParseException {
+        Date minUpdateDate = Dates.parseDateStrictly("01/01/2018", "dd/MM/yyyy");
+        List<Integer> vesselFeaturesIds = elasticsearchRepository.findAllVesselFeaturesIdsByFilter(
+            VesselFilterVO.builder().minUpdateDate(minUpdateDate)
+                .build()
+        );
+        Assert.assertTrue(CollectionUtils.isNotEmpty(vesselFeaturesIds));
+
+        Date latestUpdateDate = Dates.parseDateStrictly("01/01/2023", "dd/MM/yyyy");
+        List<Integer> latestVesselFeaturesIds = elasticsearchRepository.findAllVesselFeaturesIdsByFilter(
+            VesselFilterVO.builder().minUpdateDate(latestUpdateDate)
+                .build()
+        );
+        Assert.assertTrue(CollectionUtils.isNotEmpty(latestVesselFeaturesIds));
+
+        // Compare each other
+        Assert.assertTrue(latestVesselFeaturesIds.size() < vesselFeaturesIds.size());
     }
 }

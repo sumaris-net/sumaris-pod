@@ -45,12 +45,12 @@ import java.util.List;
  * @author peck7 on 06/11/2019.
  */
 @Slf4j
-public abstract class VesselSnapshotRepositoryAbstractReadTest extends AbstractDaoTest {
+public abstract class VesselSnapshotRepositoryAbstractReadTest<T extends IVesselSnapshotSpecifications> extends AbstractDaoTest {
 
-    private IVesselSnapshotSpecifications repository;
+    private T repository;
 
 
-    protected void setUp(IVesselSnapshotSpecifications repository) throws Exception{
+    protected void setUp(T repository) throws Exception{
         super.setUp();
         this.repository = repository;
     }
@@ -176,6 +176,7 @@ public abstract class VesselSnapshotRepositoryAbstractReadTest extends AbstractD
             assertVessels(1, result);
         }
     }
+
 
     /* -- protected function -- */
 

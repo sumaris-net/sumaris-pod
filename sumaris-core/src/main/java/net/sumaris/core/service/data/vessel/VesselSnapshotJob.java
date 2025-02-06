@@ -116,7 +116,15 @@ public class VesselSnapshotJob {
 	}
 
 
-	@Scheduled(cron = "${sumaris.elasticsearch.vessel.snapshot.scheduling.cron:0 0 * * * ?}") // Daily by default
+	/**
+	 * Schedules and handles vessel snapshot updates based on predefined configurations.
+	 *
+	 * This method is configured to be executed periodically using a cron expression
+	 * as defined by the application properties:
+	 * "sumaris.elasticsearch.vessel.snapshot.scheduling.cron".
+	 * The default scheduling is daily if the property is not set.
+	 */
+	@Scheduled(cron = "${sumaris.elasticsearch.vessel.snapshot.scheduling.cron:0 */5 * * * ?}")
 	public void schedule() {
 		if (!enable) return; // Skip
 
@@ -133,8 +141,9 @@ public class VesselSnapshotJob {
 
 				if (sameFilter) {
 					if (job.getStartDate() != null) {
-						Date lastExecutionDate = Dates.addHours(job.getStartDate(), -12); //  Offset of 12 hours
-						currentFilter.setMinUpdateDate(lastExecutionDate);
+						//  Offset of 12 hours (in case long transaction was running during last indexation)
+						Date minUpdateDate = Dates.addHours(job.getStartDate(), -12);
+						currentFilter.setMinUpdateDate(minUpdateDate);
 					}
 					else {
 						Date maxIndexedUpdateDate = service.getMaxIndexedUpdateDate().orElse(null);

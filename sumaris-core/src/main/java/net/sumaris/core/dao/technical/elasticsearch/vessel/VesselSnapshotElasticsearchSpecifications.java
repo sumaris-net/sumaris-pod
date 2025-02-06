@@ -215,7 +215,18 @@ public interface VesselSnapshotElasticsearchSpecifications extends IVesselSnapsh
 
     long count(@NonNull VesselFilterVO filter);
 
+    Iterable<VesselSnapshotVO> bulkIndex(Iterable<VesselSnapshotVO> items);
+
     void recreate();
+
+    void refresh();
+
+    boolean disableReplicas();
+
+    boolean enableReplicas();
+
+    boolean setNumberOfReplicas(int value);
+
 
     Optional<Date> findMaxUpdateDate();
 
