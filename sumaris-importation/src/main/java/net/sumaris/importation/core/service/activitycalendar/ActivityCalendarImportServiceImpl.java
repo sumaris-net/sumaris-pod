@@ -143,7 +143,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
                     Map<String, ActivityCalendarVO> existingCalendarIdsByUniqueKey = findAllActivityCalendarByYears(years)
                         .stream()
-                        .filter(calendar -> calendar.getVesselSnapshot() != null)
+                        .filter(this::hasValidVessel)
                         .distinct()
                         .collect(
                             Collectors.toMap(this::getUniqueKey, calendar -> calendar)
@@ -178,7 +178,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                         try {
 
                             //  Check if is valid calendar
-                            if (activityCalendar.getVesselSnapshot() == null) {
+                            if (!hasValidVessel(activityCalendar)) {
                                 warnings.increment();
 
                                 String message = String.format(t("sumaris.import.activityCalendar.error.invalidRow", rowCounter, activityCalendar.getQualificationComments(), activityCalendar.getYear() ));
@@ -443,7 +443,8 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
         //economicSurvey
         String economicSurvey = source.get(ActivityCalendarVO.Fields.ECONOMIC_SURVEY);
-        target.setEconomicSurvey(Boolean.parseBoolean(economicSurvey));
+        Integer economicSurveyValue = StringUtils.isNotBlank(economicSurvey) ? Integer.parseInt(economicSurvey) : null;
+        target.setEconomicSurvey(economicSurveyValue != null && economicSurveyValue == 1);
 
         // Clear control/validation
         target.setControlDate(null);
@@ -532,14 +533,17 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
         return Sets.newHashSet(actualHeaders).containsAll(expectedHeaders);
     }
 
-    protected String getUniqueKey(@NonNull ActivityCalendarVO activityCalendar) {
-        VesselSnapshotVO vessel = activityCalendar.getVesselSnapshot();
-        Preconditions.checkNotNull(vessel);
-        Preconditions.checkNotNull(vessel.getRegistrationCode());
-        return getUniqueKey(activityCalendar.getYear(), vessel.getRegistrationCode());
+    protected boolean hasValidVessel(@NonNull ActivityCalendarVO activityCalendar) {
+        return activityCalendar.getVesselSnapshot() != null && activityCalendar.getVesselSnapshot().getVesselId() != null;
     }
 
-    protected String getUniqueKey(int year, String registrationCode) {
-        return String.format("%s-%s", year, registrationCode);
+    protected String getUniqueKey(@NonNull ActivityCalendarVO activityCalendar) {
+        Preconditions.checkNotNull(activityCalendar.getVesselSnapshot());
+        Preconditions.checkNotNull(activityCalendar.getVesselSnapshot().getVesselId());
+        return getUniqueKey(activityCalendar.getYear(), activityCalendar.getVesselSnapshot().getVesselId());
+    }
+
+    protected String getUniqueKey(int year, int vesselId) {
+        return String.format("%s-%s", year, vesselId);
     }
 }

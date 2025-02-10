@@ -258,6 +258,7 @@ public class VesselSnapshotJob {
 		if (this.nbYears != null && this.nbYears > 0) {
 			Date startDate = Dates.resetTime(Dates.getFirstDayOfYear(Dates.getYear(new Date()) - this.nbYears));
 			filter.startDate(startDate);
+			filter.endDate(null);
 		}
 
 		return filter.build();
@@ -283,6 +284,10 @@ public class VesselSnapshotJob {
 	protected Optional<VesselFilterVO> getJobFilter(@Nullable JobVO job) {
 		if (job == null) return Optional.empty();
 		VesselFilterVO filter = jobExecutionService.readConfiguration(job, VesselFilterVO.class);
+
+		// Ignoring endDate, restored because of 'date' setter
+		if (filter != null) filter.setEndDate(null);
+
 		return Optional.ofNullable(filter);
 	}
 
