@@ -104,7 +104,40 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
         }).addBind(ActivityCalendarFilterVO.Fields.REGISTRATION_LOCATION_IDS, Arrays.asList(locationIds));
     }
 
+    default Specification<ActivityCalendar> isEmpty() {
+        return BindableSpecification.where((root, query, cb) -> {
+            Subquery<VesselUseFeatures> subQuery = query.subquery(VesselUseFeatures.class);
+            Root<VesselUseFeatures> vuf = subQuery.from(VesselUseFeatures.class);
+            subQuery.select(vuf.get(VesselUseFeatures.Fields.ID));
+            subQuery.where(cb.equal(vuf.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR), root));
+            return cb.not(cb.exists(subQuery));
+        });
+    }
+
     default Specification<ActivityCalendar> hasBasePortLocationIds(Integer[] locationIds) {
+        if (ArrayUtils.isEmpty(locationIds)) return null;
+        return BindableSpecification.<ActivityCalendar>where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS);
+
+            Subquery<VesselUseFeatures> subQuery = query.subquery(VesselUseFeatures.class);
+            Root<VesselUseFeatures> vuf = subQuery.from(VesselUseFeatures.class);
+            subQuery.select(vuf.get(VesselUseFeatures.Fields.ID));
+            subQuery.where(
+                // Same calendar
+                cb.equal(vuf.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR), root),
+                // Base port location
+                vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
+            );
+            return cb.exists(subQuery);
+        }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds))
+            // Or check in previous year, if calendar is empty
+            .or(
+                isEmpty().and(hasPreviousCalendarBasePortLocationIds(locationIds))
+            )
+            ;
+    }
+
+    default Specification<ActivityCalendar> hasPreviousCalendarBasePortLocationIds(Integer[] locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS);
@@ -114,27 +147,18 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
             Join<VesselUseFeatures, ActivityCalendar> vufCalendar = Daos.composeJoin(vuf, VesselUseFeatures.Fields.ACTIVITY_CALENDAR, JoinType.INNER);
             subQuery.select(vuf.get(VesselUseFeatures.Fields.ID));
             subQuery.where(
-                cb.or(
-                    // Root calendar
-                    cb.equal(vufCalendar, root),
-                    // OR previous calendar
-                    cb.and(
-                        // Same program
-                        cb.equal(vufCalendar.get(ActivityCalendar.Fields.PROGRAM), root.get(ActivityCalendar.Fields.PROGRAM)),
-                        // Same vessel
-                        cb.equal(vufCalendar.get(ActivityCalendar.Fields.VESSEL), root.get(ActivityCalendar.Fields.VESSEL)),
-                        // Previous year
-                        cb.equal(vufCalendar.get(ActivityCalendar.Fields.YEAR),
-                            cb.diff(root.get(ActivityCalendar.Fields.YEAR), 1))
-                    )
-                ),
+                // Same program
+                cb.equal(vufCalendar.get(ActivityCalendar.Fields.PROGRAM), root.get(ActivityCalendar.Fields.PROGRAM)),
+                // Same vessel
+                cb.equal(vufCalendar.get(ActivityCalendar.Fields.VESSEL), root.get(ActivityCalendar.Fields.VESSEL)),
+                // Previous year
+                cb.equal(vufCalendar.get(ActivityCalendar.Fields.YEAR), cb.diff(root.get(ActivityCalendar.Fields.YEAR), 1)),
                 // Base port location
                 vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
             );
             return cb.exists(subQuery);
         }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds));
     }
-
 
     default Specification<ActivityCalendar> hasDirectSurveyInvestigation(Integer directSurveyInvestigation) {
         if (directSurveyInvestigation == null) return null;
