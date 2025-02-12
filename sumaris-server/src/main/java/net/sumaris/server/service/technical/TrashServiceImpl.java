@@ -27,20 +27,20 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.NonNull;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.event.entity.EntityEventService;
-import net.sumaris.core.model.IUpdateDateEntity;
-import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.event.config.ConfigurationEvent;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
+import net.sumaris.core.event.entity.EntityDeleteEvent;
+import net.sumaris.core.event.entity.EntityEventService;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IUpdateDateEntity;
+import net.sumaris.core.model.IValueObject;
 import net.sumaris.core.model.data.Landing;
 import net.sumaris.core.model.data.ObservedLocation;
 import net.sumaris.core.model.data.Operation;
@@ -113,8 +113,8 @@ public class TrashServiceImpl implements TrashService, EntityEventService.Listen
         // Get all files in trash
         List<File> files = FileUtils.listFiles(directory, new String[]{JSON_FILE_EXTENSION}, false).stream()
             // Sort by date
-            .sorted((f1, f2) -> Long.compare(f1.lastModified(), f2.lastModified()) * (isDescending ? 1 : -1))
-            .collect(Collectors.toList());
+            .sorted((f1, f2) -> Long.compare(f1.lastModified(), f2.lastModified()) * (isDescending ? -1 : 1))
+            .toList();
 
         // Slice result
         int total = files.size();
