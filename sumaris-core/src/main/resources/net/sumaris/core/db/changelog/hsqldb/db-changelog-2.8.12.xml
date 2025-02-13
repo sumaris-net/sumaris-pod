@@ -14,6 +14,14 @@
     <dropForeignKeyConstraint baseTableName="denormalized_batch"
                               constraintName="denormalized_batch_operation_fkc"/>
   </changeSet>
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-001-1">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyTableName="denormalized_batch"
+                                  foreignKeyName="FKDB8QUET4LG1CQ0P6MOHICMD4T" />
+    </preConditions>
+    <dropForeignKeyConstraint baseTableName="denormalized_batch"
+                              constraintName="FKDB8QUET4LG1CQ0P6MOHICMD4T"/> <!-- same as 'denormalized_batch_operation_fkc' -->
+  </changeSet>
 
   <!-- Add a new foreign key with delete cascade -->
   <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-002" runOnChange="true" failOnError="false">

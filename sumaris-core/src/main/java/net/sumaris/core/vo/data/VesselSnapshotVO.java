@@ -56,6 +56,7 @@ public class VesselSnapshotVO implements IDataVO<Integer>,
     @GraphQLIgnore
     public static final String INDEX_PREFIX_EL = "#{@environment.getProperty('spring.elasticsearch.index.prefix', '')}";
 
+
     @GraphQLIgnore
     public static final String INDEX = "vessel_snapshot";
 

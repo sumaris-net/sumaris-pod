@@ -22,27 +22,15 @@
 
 package net.sumaris.core.service.data.vessel;
 
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.DatabaseResource;
-import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.dao.technical.SortDirection;
-import net.sumaris.core.model.administration.programStrategy.ProgramEnum;
-import net.sumaris.core.model.referential.StatusEnum;
-import net.sumaris.core.model.referential.VesselTypeEnum;
-import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.util.elasticsearch.ElasticsearchResource;
-import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.UpdateVesselSnapshotsResultVO;
-import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
-import net.sumaris.core.vo.filter.VesselFilterVO;
-import org.junit.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-
-import java.util.Date;
-import java.util.List;
 
 @ActiveProfiles({"test", "elasticsearch"})
 @TestPropertySource(locations = "classpath:application-test-elasticsearch.properties")

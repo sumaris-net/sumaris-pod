@@ -179,8 +179,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             // Referential
             Caches.createEternalCollectionHeapCache(cacheManager, Names.REFERENTIAL_TYPES, ReferentialTypeVO.class, 600);
             Caches.createHeapCache(cacheManager, Names.REFERENTIAL_MAX_UPDATE_DATE_BY_TYPE, String.class, Date.class, CacheTTL.DEFAULT.asDuration(), 600);
-            Caches.createCollectionHeapCache(cacheManager, Names.REFERENTIAL_ITEMS_BY_FILTER, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 600);
-            Caches.createHeapCache(cacheManager, Names.REFERENTIAL_COUNT_BY_FILTER, Long.class, CacheTTL.DEFAULT.asDuration(), 600);
+            Caches.createCollectionHeapCache(cacheManager, Names.REFERENTIAL_ITEMS_BY_FILTER, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 1000);
+            Caches.createHeapCache(cacheManager, Names.REFERENTIAL_COUNT_BY_FILTER, Long.class, CacheTTL.DEFAULT.asDuration(), 1000);
 
             // Expertise Areas
             Caches.createEternalCollectionHeapCache(cacheManager, Names.EXPERTISE_AREAS_ENABLED, ExpertiseAreaVO.class, 1);

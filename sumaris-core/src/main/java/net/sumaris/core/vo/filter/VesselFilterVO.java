@@ -82,11 +82,6 @@ public class VesselFilterVO implements IRootDataFilter {
 
     private Date minUpdateDate;
 
-    public void setDate(Date date) {
-        this.startDate = date;
-        this.endDate = date;
-    }
-
     /**
      * @deprecated use basePortLocationId instead
      * @return basePortLocationId
@@ -104,6 +99,16 @@ public class VesselFilterVO implements IRootDataFilter {
     @Deprecated
     public void setLocationId(Integer locationId) {
         basePortLocationId = locationId;
+    }
+
+
+    /**
+     * @deprecated use startDate instead
+     */
+    @Deprecated
+    public void setDate(Date date) {
+        this.startDate = date;
+        this.endDate = date;
     }
 
     /**

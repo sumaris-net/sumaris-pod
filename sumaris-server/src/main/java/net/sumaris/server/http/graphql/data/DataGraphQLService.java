@@ -733,6 +733,7 @@ public class DataGraphQLService {
         if (landing.getId() == null) return null;
         return saleService.getAllByLandingId(landing.getId(), null);
     }
+
     /* -- Sale -- */
     @GraphQLQuery(name = "sale", description = "Get sale by id")
     public SaleVO getSaleById(@GraphQLArgument(name = "id") int id,

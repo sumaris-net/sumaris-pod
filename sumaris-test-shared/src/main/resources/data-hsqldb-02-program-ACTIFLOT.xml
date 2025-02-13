@@ -97,6 +97,6 @@
   <PROGRAM ID="111" LABEL="SIH-ACTIPRED" NAME="Prédocumentation de l'activité des flottilles" DESCRIPTION="Prédocumentation de l'activité des flottilles issue du traitement des données déclaratives"
            STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="111" LOCATION_CLASSIFICATION_FK="1"/>
-  <PROGRAM_PROPERTY ID="615" STATUS_FK="1" PROGRAM_FK="110" CREATION_DATE="2024-12-05"  LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-actiflot-square.png"/>
+  <PROGRAM_PROPERTY ID="615" STATUS_FK="1" PROGRAM_FK="111" CREATION_DATE="2024-12-05"  LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-actiflot-square.png"/>
 
 </dataset>

@@ -106,32 +106,54 @@ public interface ActivityCalendarSpecifications extends RootDataSpecifications<A
 
     default Specification<ActivityCalendar> hasBasePortLocationIds(Integer[] locationIds) {
         if (ArrayUtils.isEmpty(locationIds)) return null;
-        return BindableSpecification.where((root, query, cb) -> {
+        return BindableSpecification.<ActivityCalendar>where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS);
 
-            Subquery<VesselUseFeatures> subQuery = query.subquery(VesselUseFeatures.class);
-            Root<VesselUseFeatures> vuf = subQuery.from(VesselUseFeatures.class);
-            Join<VesselUseFeatures, ActivityCalendar> vufCalendar = Daos.composeJoin(vuf, VesselUseFeatures.Fields.ACTIVITY_CALENDAR, JoinType.INNER);
-            subQuery.select(vuf.get(VesselUseFeatures.Fields.ID));
-            subQuery.where(
-                cb.or(
-                    // Root calendar
-                    cb.equal(vufCalendar, root),
-                    // OR previous calendar
-                    cb.and(
-                        // Same program
-                        cb.equal(vufCalendar.get(ActivityCalendar.Fields.PROGRAM), root.get(ActivityCalendar.Fields.PROGRAM)),
-                        // Same vessel
-                        cb.equal(vufCalendar.get(ActivityCalendar.Fields.VESSEL), root.get(ActivityCalendar.Fields.VESSEL)),
-                        // Previous year
-                        cb.equal(vufCalendar.get(ActivityCalendar.Fields.YEAR),
-                            cb.diff(root.get(ActivityCalendar.Fields.YEAR), 1))
-                    )
-                ),
-                // Base port location
-                vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
+            // Select on VUF (current calendar)
+            Subquery<VesselUseFeatures> currentVufSubquery = query.subquery(VesselUseFeatures.class);
+            {
+                Root<VesselUseFeatures> vuf = currentVufSubquery.from(VesselUseFeatures.class);
+                currentVufSubquery.select(vuf.get(VesselUseFeatures.Fields.ID));
+                currentVufSubquery.where(
+                    // Same calendar
+                    cb.equal(vuf.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR), root),
+                    // Base port location
+                    vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
+                );
+            }
+
+            // Select on VUF (previous year calendar)
+            Subquery<VesselUseFeatures> previousVufSubquery = query.subquery(VesselUseFeatures.class);
+            {
+                Root<VesselUseFeatures> vuf = previousVufSubquery.from(VesselUseFeatures.class);
+                Join<VesselUseFeatures, ActivityCalendar> vufCalendar = Daos.composeJoin(vuf, VesselUseFeatures.Fields.ACTIVITY_CALENDAR, JoinType.INNER);
+                previousVufSubquery.select(vuf.get(VesselUseFeatures.Fields.ID));
+                previousVufSubquery.where(
+                    // Same program
+                    cb.equal(vufCalendar.get(ActivityCalendar.Fields.PROGRAM), root.get(ActivityCalendar.Fields.PROGRAM)),
+                    // Same vessel
+                    cb.equal(vufCalendar.get(ActivityCalendar.Fields.VESSEL), root.get(ActivityCalendar.Fields.VESSEL)),
+                    // Previous year
+                    cb.equal(vufCalendar.get(ActivityCalendar.Fields.YEAR), cb.diff(root.get(ActivityCalendar.Fields.YEAR), 1)),
+                    // Base port location
+                    vuf.get(VesselUseFeatures.Fields.BASE_PORT_LOCATION).get(IEntity.Fields.ID).in(param)
+                );
+            }
+
+            Subquery<VesselUseFeatures> emptyCalendarSubquery = query.subquery(VesselUseFeatures.class);
+            {
+                Root<VesselUseFeatures> vuf = emptyCalendarSubquery.from(VesselUseFeatures.class);
+                emptyCalendarSubquery.select(vuf.get(VesselUseFeatures.Fields.ID));
+                emptyCalendarSubquery.where(cb.equal(vuf.get(VesselUseFeatures.Fields.ACTIVITY_CALENDAR), root));
+            }
+
+            return  cb.or(
+                cb.exists(currentVufSubquery),
+                cb.and(
+                    cb.not(cb.exists(emptyCalendarSubquery)),
+                    cb.exists(previousVufSubquery)
+                )
             );
-            return cb.exists(subQuery);
         }).addBind(ActivityCalendarFilterVO.Fields.BASE_PORT_LOCATION_IDS, Arrays.asList(locationIds));
     }
 

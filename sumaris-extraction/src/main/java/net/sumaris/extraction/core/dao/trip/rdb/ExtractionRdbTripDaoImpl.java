@@ -46,7 +46,6 @@ import net.sumaris.core.model.referential.taxon.TaxonGroupTypeEnum;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
 import net.sumaris.core.service.administration.programStrategy.ProgramService;
 import net.sumaris.core.service.administration.programStrategy.StrategyService;
-import net.sumaris.core.service.data.denormalize.DenormalizedBatchService;
 import net.sumaris.core.service.data.denormalize.DenormalizedOperationService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.StringUtils;
@@ -115,9 +114,6 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected ExtractionConfiguration extractionConfiguration;
 
     @Autowired
-    protected DenormalizedBatchService denormalizedBatchService;
-
-    @Autowired
     protected DenormalizedOperationService denormalizedOperationService;
 
     protected boolean enableTripSamplingMethodColumn = true;
@@ -139,7 +135,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
     @Override
     public Set<IExtractionType<?, ?>> getManagedTypes() {
-        return ImmutableSet.of(LiveExtractionTypeEnum.RDB);
+        return ImmutableSet.<IExtractionType<?, ?>>of(LiveExtractionTypeEnum.RDB);
     }
 
 
@@ -274,7 +270,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
         context.setSpeciesLengthTableName(formatTableName(HL_TABLE_NAME_PATTERN, context.getId()));
         context.setSampleTableName(formatTableName(CA_TABLE_NAME_PATTERN, context.getId()));
 
-        // Set sheetname
+        // Set sheet name
         context.setTripSheetName(RdbSpecification.TR_SHEET_NAME);
         context.setStationSheetName(RdbSpecification.HH_SHEET_NAME);
         context.setSpeciesListSheetName(RdbSpecification.SL_SHEET_NAME);

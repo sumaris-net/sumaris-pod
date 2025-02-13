@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author Benoit Lavenier <benoit.lavenier@e-is.pro>*
@@ -73,5 +74,16 @@ public class StreamUtils extends org.springframework.util.StreamUtils {
             return Stream.empty();
         }
         return Arrays.stream(array);
+    }
+
+    public static <E> Stream<E> getStream(Iterable<E> iterable) {
+        return getStream(iterable, false);
+    }
+
+    public static <E> Stream<E> getStream(Iterable<E> iterable, boolean parallel) {
+        if (iterable == null) {
+            return Stream.empty();
+        }
+        return StreamSupport.stream(iterable.spliterator(), parallel);
     }
 }
