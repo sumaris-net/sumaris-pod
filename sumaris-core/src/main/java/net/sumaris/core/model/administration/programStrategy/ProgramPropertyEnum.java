@@ -23,6 +23,7 @@ package net.sumaris.core.model.administration.programStrategy;
  */
 
 import lombok.NonNull;
+import net.sumaris.core.model.referential.location.LocationLevelEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -56,7 +57,9 @@ public enum ProgramPropertyEnum implements Serializable {
     TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS("sumaris.trip.extraction.area.locationLevel.ids", String.class, ""),
     TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE("sumaris.trip.extraction.batch.denormalization.enable", Boolean.class, Boolean.FALSE.toString()),
 
-    OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM("sumaris.observedLocation.aggregatedLandings.program", String.class, "")
+    OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM("sumaris.observedLocation.aggregatedLandings.program", String.class, ""),
+    ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS("sumaris.activityCalendar.basePortLocation.level.ids",String.class, LocationLevelEnum.HARBOUR.getId().toString()), // see updateDefaults() below
+    ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS("sumaris.activityCalendar.registrationLocation.level.ids",String.class, LocationLevelEnum.MARITIME_DISTRICT.getId().toString()), // see updateDefaults() below
     ;
 
     private String key;
@@ -72,6 +75,11 @@ public enum ProgramPropertyEnum implements Serializable {
     public static ProgramPropertyEnum findByKey(@NonNull final String key) {
         return Arrays.stream(values()).filter(item -> key.equalsIgnoreCase(item.getKey())).findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown ProgramPropertyEnum with key: " + key));
+    }
+
+    public static void updateDefaults() {
+        ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS.setDefaultValue(LocationLevelEnum.HARBOUR.getId().toString());
+        ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS.setDefaultValue(LocationLevelEnum.MARITIME_DISTRICT.getId().toString());
     }
 
     public String getKey() {

@@ -40,6 +40,7 @@ import net.sumaris.core.event.schema.SchemaReadyEvent;
 import net.sumaris.core.event.schema.SchemaUpdatedEvent;
 import net.sumaris.core.exception.DenyDeletionException;
 import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.annotation.EntityEnum;
 import net.sumaris.core.model.annotation.EntityEnums;
 import net.sumaris.core.service.technical.schema.DatabaseSchemaService;
@@ -470,6 +471,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         else log.info(logMessage);
 
         this.enumerationProperties = enumerationProperties;
+
+        // Update Enum defaults
+        ProgramPropertyEnum.updateDefaults();
     }
 
 
