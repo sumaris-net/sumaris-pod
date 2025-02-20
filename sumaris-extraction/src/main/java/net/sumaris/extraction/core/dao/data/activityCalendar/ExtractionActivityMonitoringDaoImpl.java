@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.ExtractionAutoConfiguration;
+import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.administration.user.PersonRepository;
 import net.sumaris.core.dao.data.vessel.VesselSnapshotRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
@@ -35,6 +36,7 @@ import net.sumaris.core.dao.technical.DatabaseType;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.administration.programStrategy.ProgramPropertyEnum;
 import net.sumaris.core.model.data.ActivityCalendarDirectSurveyInvestigationEnum;
 import net.sumaris.core.model.referential.QualityFlagEnum;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -43,9 +45,12 @@ import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.TimeUtils;
+import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
+import net.sumaris.core.vo.administration.programStrategy.Programs;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.data.vessel.VesselFetchOptions;
+import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.VesselFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.extraction.core.dao.ExtractionBaseDaoImpl;
@@ -53,6 +58,7 @@ import net.sumaris.extraction.core.dao.technical.Daos;
 import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
+import net.sumaris.extraction.core.vo.ExtractionFilterCriterionVO;
 import net.sumaris.extraction.core.vo.ExtractionFilterOperatorEnum;
 import net.sumaris.extraction.core.vo.ExtractionFilterVO;
 import net.sumaris.extraction.core.vo.data.activityCalendar.ExtractionActivityCalendarFilterVO;
@@ -91,6 +97,7 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
     private final LocationRepository locationRepository;
     private final VesselSnapshotRepository vesselSnapshotRepository;
     private final PersonRepository personRepository;
+    private final ProgramRepository programRepository;
 
     private boolean enableAdagioOptimization = false;
     private String adagioSchema;
@@ -220,6 +227,16 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
             return target;
         }
 
+        // get program from filter
+        ProgramVO program = Beans.getStream(source.getCriteria())
+                .filter(criterion -> ActivityMonitoringSpecification.COLUMN_PROJECT.equalsIgnoreCase(criterion.getName()))
+                .map(ExtractionFilterCriterionVO::getValue)
+                .filter(StringUtils::isNotBlank)
+                .findFirst().flatMap(programRepository::findByLabel)
+                .orElseThrow(() -> new IllegalArgumentException("Missing project criterion"));
+        Integer[] basePortLocationLevelIds = Programs.getPropertyAsIntegers(program, ProgramPropertyEnum.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS);
+        Integer[] registrationLocationLevelIds = Programs.getPropertyAsIntegers(program, ProgramPropertyEnum.ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS);
+
         Beans.copyProperties(source, target);
 
         Beans.getStream(source.getCriteria()).forEach(criterion -> {
@@ -240,15 +257,13 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                         break;
                     case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_LABEL:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
-                            target.setBasePortLocationIds(
-                                Stream.of(
-                                        locationRepository.findByLabel(criterion.getValue())
-                                            .map(ReferentialVO::getId)
-                                            .orElse(null)
-                                    )
-                                    .filter(Objects::nonNull)
-                                    .toArray(Integer[]::new)
-                            );
+                            Integer[] basePortLocationIds = Beans.collectIds(
+                                locationRepository.findAll(LocationFilterVO.builder()
+                                    .levelIds(basePortLocationLevelIds)
+                                    .label(criterion.getValue())
+                                    .build())
+                            ).toArray(Integer[]::new);
+                            target.setBasePortLocationIds(basePortLocationIds);
                         }
                         break;
                     case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_ID:
@@ -258,15 +273,13 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                         break;
                     case ActivityMonitoringSpecification.COLUMN_REGISTRATION_LOCATION_LABEL:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
-                            target.setRegistrationLocationIds(
-                                Stream.of(
-                                        locationRepository.findByLabel(criterion.getValue())
-                                            .map(ReferentialVO::getId)
-                                            .orElse(null)
-                                    )
-                                    .filter(Objects::nonNull)
-                                    .toArray(Integer[]::new)
-                            );
+                            Integer[] registrationLocationIds = Beans.collectIds(
+                                locationRepository.findAll(LocationFilterVO.builder()
+                                    .levelIds(registrationLocationLevelIds)
+                                    .label(criterion.getValue())
+                                    .build())
+                            ).toArray(Integer[]::new);
+                            target.setRegistrationLocationIds(registrationLocationIds);
                             // Clean the criterion (to avoid clean to exclude too many data)
                             criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
                             criterion.setValue(null);
@@ -382,9 +395,10 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                     case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_LABEL:
                         target.setBasePortLocationIds(
                             Arrays.stream(criterion.getValues()).map(
-                                    label -> locationRepository.findByLabel(label).map(ReferentialVO::getId).orElse(null)
+                                    label -> locationRepository.findAll(
+                                            LocationFilterVO.builder().levelIds(basePortLocationLevelIds).label(label).build()
+                                    ).stream().findFirst().map(ReferentialVO::getId).orElse(null)
                                 )
-                                .filter(Objects::nonNull)
                                 .toArray(Integer[]::new)
                         );
                         break;
@@ -394,9 +408,10 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                     case ActivityMonitoringSpecification.COLUMN_REGISTRATION_LOCATION_LABEL:
                         target.setRegistrationLocationIds(
                             Arrays.stream(criterion.getValues()).map(
-                                    label -> locationRepository.findByLabel(label).map(ReferentialVO::getId).orElse(null)
+                                            label -> locationRepository.findAll(
+                                                    LocationFilterVO.builder().levelIds(registrationLocationLevelIds).label(label).build()
+                                            ).stream().findFirst().map(ReferentialVO::getId).orElse(null)
                                 )
-                                .filter(Objects::nonNull)
                                 .toArray(Integer[]::new)
                         );
                         // Clean the criterion (to avoid clean to exclude too many data)
