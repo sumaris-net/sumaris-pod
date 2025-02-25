@@ -49,18 +49,19 @@
   </changeSet>
 
   <!-- Add a new denormalized_batch_sale_fkc with delete cascade -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-004" failOnError="false">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-004" failOnError="false" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <foreignKeyConstraintExists foreignKeyName="denormalized_batch_sale_fkc" />
       </not>
     </preConditions>
-    <addForeignKeyConstraint baseTableName="denormalized_batch"
-                             baseColumnNames="sale_fk"
-                             referencedTableName="sale"
-                             referencedColumnNames="id"
-                             constraintName="denormalized_batch_sale_fkc"
-                             onDelete="CASCADE"/>
+    <sql endDelimiter=";">
+      ALTER TABLE denormalized_batch
+        ADD CONSTRAINT denormalized_batch_sale_fkc
+          FOREIGN KEY (sale_fk)
+            REFERENCES sale(id)
+            ON DELETE CASCADE;
+    </sql>
   </changeSet>
 
   <!-- Drop the denormalized_batch_sort_val_batch_fkc constraint -->
@@ -81,18 +82,19 @@
   </changeSet>
 
   <!-- Add a new denormalized_batch_sort_val_batch_fkc with delete cascade -->
-  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-006">
+  <changeSet author="benoit.lavenier@e-is.pro" id="1700496722792-006" runOnChange="true">
     <preConditions onFail="MARK_RAN">
       <not>
         <foreignKeyConstraintExists foreignKeyName="denormalized_batch_sort_val_batch_fkc" />
       </not>
     </preConditions>
-    <addForeignKeyConstraint baseTableName="denormalized_batch_sort_val"
-                             baseColumnNames="batch_fk"
-                             referencedTableName="denormalized_batch"
-                             referencedColumnNames="id"
-                             constraintName="denormalized_batch_sort_val_batch_fkc"
-                             onDelete="CASCADE"/>
+    <sql endDelimiter=";">
+      ALTER TABLE denormalized_batch_sort_val
+        ADD CONSTRAINT denormalized_batch_sort_val_batch_fkc
+          FOREIGN KEY (batch_fk)
+            REFERENCES denormalized_batch(id)
+            ON DELETE CASCADE;
+    </sql>
   </changeSet>
 
   <!-- update SYSTEM_VERSION -->

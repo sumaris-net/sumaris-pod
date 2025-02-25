@@ -51,7 +51,7 @@ public interface DenormalizedOperationService {
 	DenormalizedBatchOptions createOptionsByOperation(@NonNull OperationVO operation,
 													  @Nullable DenormalizedBatchOptions inheritedOptions);
 
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	@Transactional(propagation = Propagation.SUPPORTS)
 	DenormalizedTripResultVO denormalizeByFilter(@NonNull OperationFilterVO filter, @Nullable DenormalizedBatchOptions options);
 
 }

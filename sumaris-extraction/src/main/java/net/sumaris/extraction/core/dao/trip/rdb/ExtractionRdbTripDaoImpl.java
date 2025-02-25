@@ -464,6 +464,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
     protected DenormalizedBatchOptions createDenormalizedBatchOptions(String programLabel) {
         return denormalizedOperationService.createOptionsByProgramLabel(programLabel);
     }
+
     protected void denormalizeBatches(C context) {
         String stationsTableName = context.getStationTableName();
         Set<String> programLabels = getTripProgramLabels(context);
@@ -478,6 +479,7 @@ public class ExtractionRdbTripDaoImpl<C extends ExtractionRdbTripContextVO, F ex
 
             // Execute batch denormalization
             DenormalizedBatchOptions options = createDenormalizedBatchOptions(programLabel);
+
             // DEBUG
             //options.setEnableRtpWeight(false);
             //if (!this.production) options.setForce(true);

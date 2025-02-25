@@ -39,6 +39,8 @@ import java.util.Optional;
 @Transactional
 public interface DenormalizedBatchService {
 
+	int DENORMALIZE_TIMEOUT = 60 * 1000; // 1min
+
 	/**
 	 * Return the flat list of all denormalizedBatches (without parent/children filled, by only the parentId)
 	 * @param operationId
@@ -69,10 +71,10 @@ public interface DenormalizedBatchService {
 	@Transactional(readOnly = true)
 	List<DenormalizedBatchVO> denormalize(BatchVO catchBatch, @NotNull DenormalizedBatchOptions options);
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional(timeout = DENORMALIZE_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
 	List<DenormalizedBatchVO> denormalizeAndSaveByOperationId(int operationId, @Nullable DenormalizedBatchOptions options);
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional(timeout = DENORMALIZE_TIMEOUT, propagation = Propagation.REQUIRES_NEW)
 	List<DenormalizedBatchVO> denormalizeAndSaveBySaleId(int saleId, @Nullable DenormalizedBatchOptions options);
 
 	@Transactional(readOnly = true)

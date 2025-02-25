@@ -38,10 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public interface DenormalizedTripService {
 
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	@Transactional(propagation = Propagation.SUPPORTS)
 	DenormalizedTripResultVO denormalizeByFilter(@NonNull TripFilterVO filter);
 
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	@Transactional(propagation = Propagation.SUPPORTS)
 	DenormalizedTripResultVO denormalizeByFilter(TripFilterVO filter, IProgressionModel progression);
 
 	@Transactional

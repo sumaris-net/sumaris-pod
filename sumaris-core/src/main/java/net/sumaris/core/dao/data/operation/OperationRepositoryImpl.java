@@ -325,6 +325,7 @@ public class OperationRepositoryImpl
             .and(hasVesselIds(filter.getVesselIds()))
             .and(excludedIds(filter.getExcludedIds()))
             .and(includedIds(filter.getIncludedIds()))
+            .and(idGreaterThanOrEqual(filter.getMinId(), Integer.class))
             .and(excludeChildOperation(filter.getExcludeChildOperation()))
             .and(hasNoChildOperation(filter.getHasNoChildOperation()))
             .and(isBetweenDates(filter.getStartDate(), filter.getEndDate()))
