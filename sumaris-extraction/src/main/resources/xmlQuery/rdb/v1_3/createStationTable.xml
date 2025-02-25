@@ -35,7 +35,7 @@
     <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="!adagio,!operationIdsFilter">ROW_NUMBER() OVER (PARTITION BY O.TRIP_FK ORDER BY O.START_DATE_TIME)</select>
     <select alias="STATION_NUMBER" type="number" dbms="oracle" group="adagio,!operationIdsFilter">ROW_NUMBER() OVER (PARTITION BY O.FISHING_TRIP_FK ORDER BY O.START_DATE_TIME)</select>
     <select alias="STATION_NUMBER" type="number" dbms="oracle,pgsql" group="!adagio,agg,operationIdsFilter"><![CDATA[
-      (SELECT COUNT(*)
+      (SELECT COUNT(*) + 1
         FROM operation O2
         WHERE O2.TRIP_FK = T.TRIP_CODE
         AND (O2.START_DATE_TIME < O.START_DATE_TIME OR (O2.START_DATE_TIME = O.START_DATE_TIME AND O2.ID < O.ID))
@@ -43,7 +43,7 @@
       )
     ]]></select>
     <select alias="STATION_NUMBER" type="number" dbms="oracle" group="adagio,agg,operationIdsFilter"><![CDATA[
-      (SELECT COUNT(*)
+      (SELECT COUNT(*) + 1
         FROM operation O2
         WHERE O2.FISHING_TRIP_FK = T.TRIP_CODE
         AND (O2.START_DATE_TIME < O.START_DATE_TIME OR (O2.START_DATE_TIME = O.START_DATE_TIME AND O2.ID < O.ID))
@@ -51,7 +51,7 @@
       )
     ]]></select>
     <select alias="STATION_NUMBER" type="number" dbms="hsqldb" group="agg"><![CDATA[
-      (SELECT COUNT(*)
+      (SELECT COUNT(*) + 1
         FROM operation O2
         WHERE O2.TRIP_FK = T.TRIP_CODE
         AND (O2.START_DATE_TIME < O.START_DATE_TIME OR (O2.START_DATE_TIME = O.START_DATE_TIME AND O2.ID < O.ID))
