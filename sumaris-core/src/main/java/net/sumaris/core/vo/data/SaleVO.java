@@ -23,6 +23,7 @@ package net.sumaris.core.vo.data;
  */
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -41,13 +42,19 @@ import java.util.Set;
 
 @Data
 @FieldNameConstants
+@EqualsAndHashCode
 public class SaleVO implements IRootDataVO<Integer>,
         IWithRecorderPersonEntity<Integer, PersonVO>,
         IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Include
     private Integer id;
+
     private String comments;
     private Date creationDate;
+
+    @EqualsAndHashCode.Exclude
     private Date updateDate;
     private Date controlDate;
     private Date validationDate;
@@ -60,6 +67,7 @@ public class SaleVO implements IRootDataVO<Integer>,
 
     private Integer vesselId;
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private VesselSnapshotVO vesselSnapshot;
 
     private Date startDateTime;
@@ -70,10 +78,12 @@ public class SaleVO implements IRootDataVO<Integer>,
     private Set<PersonVO> observers;
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TripVO trip;
     private Integer tripId;
 
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private LandingVO landing;
     private Integer landingId;
 
