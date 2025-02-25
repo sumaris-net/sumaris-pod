@@ -1068,8 +1068,8 @@ public class ReferentialDaoImpl
             }
             case Method.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.<String, Object>builder()
-                        .put(Method.Fields.IS_CALCULATED, ((Method)source).getIsCalculated())
-                        .put(Method.Fields.IS_ESTIMATED, ((Method)source).getIsEstimated())
+                        .put(Method.Fields.IS_CALCULATED, Optional.ofNullable(((Method)source).getIsCalculated()).orElse(false))
+                        .put(Method.Fields.IS_ESTIMATED, Optional.ofNullable(((Method)source).getIsEstimated()).orElse(false))
                         .build()
                 );
             }
