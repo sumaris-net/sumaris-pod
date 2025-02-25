@@ -22,12 +22,23 @@
 
 <query type="select">
 
-  <!-- individualCount - only if some taxonGroupNoWeight exists -->
+  <!-- individualCount - only if some taxonGroupNoWeight exists (when weight is NULL) -->
   <select alias="INDIVIDUAL_COUNT" type="number" group="individualCount,agg">
-    MAX(ROUND(SL.INDIVIDUAL_COUNT * SL.SUBSAMPLING_RATIO * 100) / 100)
+    MAX(
+      CASE
+        WHEN SL.WEIGHT IS NULL AND SL.INDIVIDUAL_COUNT IS NOT NULL
+        THEN ROUND(SL.INDIVIDUAL_COUNT * SL.SUBSAMPLING_RATIO * 100) / 100
+        ELSE NULL
+      END
+    )
   </select>
   <select alias="SUBSAMPLE_INDIVIDUAL_COUNT" type="number" group="individualCount,agg">
-    MAX(ROUND(SL.SUBSAMPLE_INDIVIDUAL_COUNT * SL.SUBSAMPLING_RATIO * 100) / 100)
+    MAX(
+      CASE WHEN SL.WEIGHT IS NULL AND SL.SUBSAMPLE_INDIVIDUAL_COUNT IS NOT NULL
+        THEN ROUND(SL.SUBSAMPLE_INDIVIDUAL_COUNT * SL.SUBSAMPLING_RATIO * 100) / 100
+        ELSE NULL
+      END
+    )
   </select>
 
 </query>
