@@ -66,7 +66,8 @@
   <PROGRAM_PROPERTY ID="129" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2024-11-29" LABEL="sumaris.trip.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-pifil.png"/>
   <PROGRAM_PROPERTY ID="130" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.help.url" NAME="https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/raw/master/projects/pifil/man/manuel_utilisateur-pifil.md"/>
   <PROGRAM_PROPERTY ID="131" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.operation.skipDates.tripPmfm.id" NAME="550"/>
-  <PROGRAM_PROPERTY ID="132" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.sample.taxonGroup.help" NAME="<b>DCO</b> : Dauphin Commun <b>PHR</b> : Marsouin commun <b>DBO</b> : Grand dauphin <b>DST</b> : Dauphin bleu et blanc <b>PIW</b> : Globicéphale commun <b>UNK</b> : Dauphin non-identifié"/>
+  <PROGRAM_PROPERTY ID="132" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.sample.taxonGroup.help" NAME="&lt;b&gt;DCO&lt;/b&gt; : Dauphin Commun &lt;b&gt;PHR&lt;/b&gt; : Marsouin commun &lt;b&gt;DBO&lt;/b&gt; : Grand dauphin &lt;b&gt;DST&lt;/b&gt; : Dauphin bleu et blanc &lt;b&gt;PIW&lt;/b&gt; : Globicéphale commun &lt;b&gt;UNK&lt;/b&gt; : Dauphin non-identifié"/>
+  <PROGRAM_PROPERTY ID="133" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.operation.comment.help.text" NAME="(ex : dysfonctionnements éventuels, situation particulière en mer, captures accidentelles d'autres espèces...)"/>
 
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="60" LOCATION_CLASSIFICATION_FK="2"/>
