@@ -25,8 +25,8 @@ package net.sumaris.core.dao.data;
 import com.google.common.collect.Sets;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.IEntity;
 import net.sumaris.core.exception.SumarisTechnicalException;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
@@ -148,7 +148,7 @@ public class DataDaos extends Daos {
                             }
                         });
 
-                // Remove remaining observers
+                // Remove remaining observers (if any)
                 observers.removeAll(observersToRemove.values());
 
                 // affect observers
