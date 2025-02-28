@@ -42,8 +42,7 @@ public interface UserEventRepository
     @Query("select max(readDate) from UserEvent where recipient in (:recipients)")
     Timestamp getMaxReadDateByRecipient(@Param("recipients") Collection<String> recipients);
 
-    @Query("from UserEvent where source = :source")
-    UserEvent getBySource(@Param("source") String source);
+    List<UserEvent> findAllBySource(String source);
 
     List<UserEvent> findAllByIssuer(String issuer);
 
