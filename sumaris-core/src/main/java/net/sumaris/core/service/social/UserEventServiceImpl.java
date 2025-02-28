@@ -28,7 +28,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.social.UserEventRepository;
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.model.social.UserEvent;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.social.UserEventFetchOptions;
 import net.sumaris.core.vo.social.UserEventFilterVO;
 import net.sumaris.core.vo.social.UserEventVO;
@@ -85,13 +85,15 @@ public class UserEventServiceImpl implements UserEventService {
         Preconditions.checkNotNull(event.getType());
         Preconditions.checkNotNull(event.getLevel());
 
-        // Special case if link to a job: retrieve the existing event
+        // Special case if link to a job: retrieve the existing event, from the source (e.g. 'job:<ID>'
         if (event.getId() == null && event.getSource() != null) {
-            UserEvent existingEvent = userEventRepository.getBySource(event.getSource());
-            if (existingEvent != null) {
-                event.setId(existingEvent.getId());
-                event.setUpdateDate(existingEvent.getUpdateDate());
-            }
+            Beans.getStream(userEventRepository.findAllBySource(event.getSource()))
+                .filter(existingEvent -> existingEvent.getId() != null)
+                .findFirst()
+                .ifPresent(existingEvent -> {
+                    event.setId(existingEvent.getId());
+                    event.setUpdateDate(existingEvent.getUpdateDate());
+                });
         }
 
         // Mark as unread

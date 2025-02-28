@@ -31,13 +31,14 @@ import net.sumaris.core.util.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.ParameterExpression;
 import java.io.Serializable;
 import java.util.Collection;
 
 public interface IEntitySpecifications<ID extends Serializable, E extends IEntity<ID>> {
 
-    String ID_PARAMETER = "id";
+    String MIN_ID_PARAMETER = "minId";
     String EXCLUDED_IDS_PARAMETER = "excludedIds";
     String INCLUDED_IDS_PARAMETER = "includedIds";
     String PROPERTY_PARAMETER_PREFIX = "property";
@@ -46,9 +47,18 @@ public interface IEntitySpecifications<ID extends Serializable, E extends IEntit
     default Specification<E> id(ID id, Class<ID> idClass) {
         if (id == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<ID> param = cb.parameter(idClass, ID_PARAMETER);
+            ParameterExpression<ID> param = cb.parameter(idClass, IEntity.Fields.ID);
             return cb.equal(root.get(E.Fields.ID), param);
-        }).addBind(ID_PARAMETER, id);
+        }).addBind(IEntity.Fields.ID, id);
+    }
+
+    default <V extends Comparable<? super V>> Specification<E> idGreaterThanOrEqual(V minId, Class<V> idClass) {
+        if (minId == null) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<V> param = cb.parameter(idClass, MIN_ID_PARAMETER);
+            Expression<V> idPath = root.get(E.Fields.ID);
+            return cb.greaterThanOrEqualTo(idPath, param);
+        }).addBind(MIN_ID_PARAMETER, minId);
     }
 
     default Specification<E> includedIds(ID... includedIds) {

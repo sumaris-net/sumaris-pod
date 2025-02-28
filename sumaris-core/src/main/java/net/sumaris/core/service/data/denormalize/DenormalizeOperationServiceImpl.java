@@ -145,15 +145,16 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
             long operationTotal = operationService.countByFilter(operationFilter);
 
             boolean hasMoreData;
-            int offset = 0;
             int pageSize = 10;
 
             if (operationTotal > 0) {
                 do {
                     // Fetch some operations
                     List<OperationVO> operations = operationService.findAllByFilter(operationFilter,
-                        offset, pageSize, // Page
-                        OperationVO.Fields.ID, SortDirection.ASC, // Sort by id, to keep continuity between pages
+                        // IMPORTANT: offset always = 0, because the next iteration can exclude newly updated operations - See issue sumaris-app#941
+                        0, pageSize,
+                        // IMPORTANT: Sort by id ASC, to keep continuity between pages
+                        OperationVO.Fields.ID, SortDirection.ASC,
                         OperationFetchOptions.builder()
                             .withChildrenEntities(false)
                             .withMeasurementValues(false)
@@ -162,25 +163,30 @@ public class DenormalizeOperationServiceImpl implements DenormalizedOperationSer
                             .withFishingAreas(true)
                             .build());
 
-                    operations.parallelStream().forEach(operation -> {
-                        try {
-                            // Prepare options (add fishing area, date, etc.)
-                            DenormalizedBatchOptions options = createOptionsByOperation(operation, baseOptions);
+                    if (CollectionUtils.isNotEmpty(operations)) {
+                        operations.parallelStream().forEach(operation -> {
+                            try {
+                                // Prepare options (add fishing area, date, etc.)
+                                DenormalizedBatchOptions options = createOptionsByOperation(operation, baseOptions);
 
-                            List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
-                            batchesCount.add(CollectionUtils.size(batches));
-                        } catch (SumarisBusinessException be) {
-                            log.error(be.getMessage());
-                            messages.add(be.getMessage());
-                            invalidBatchesCount.increment();
-                        } catch (Exception e) {
-                            log.error(e.getMessage(), e);
-                            messages.add(e.getMessage());
-                            invalidBatchesCount.increment();
-                        }
-                    });
+                                List<?> batches = denormalizedBatchService.denormalizeAndSaveByOperationId(operation.getId(), options);
+                                batchesCount.add(CollectionUtils.size(batches));
+                            } catch (SumarisBusinessException be) {
+                                log.error(be.getMessage());
+                                messages.add(be.getMessage());
+                                invalidBatchesCount.increment();
+                            } catch (Exception e) {
+                                log.error(e.getMessage(), e);
+                                messages.add(e.getMessage());
+                                invalidBatchesCount.increment();
+                            }
+                        });
 
-                    offset += pageSize;
+                        // Prepare next page (skip previous operation)
+                        OperationVO lastOperation = operations.get(operations.size() - 1);
+                        operationFilter.setMinId(lastOperation.getId() + 1);
+                    }
+
                     operationCount.add(operations.size());
                     hasMoreData = operations.size() >= pageSize;
                     if (operationCount.intValue() > operationTotal) {
