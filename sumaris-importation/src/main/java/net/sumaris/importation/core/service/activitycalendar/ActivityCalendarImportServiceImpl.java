@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
+import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.IProgressionModel;
 import net.sumaris.core.model.ProgressionModel;
@@ -132,22 +133,6 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
                 // Do load
                 try (CSVFileReader reader = new CSVFileReader(tempFile, true, true, Charsets.UTF_8.name())) {
-                    List<Map<String, String>> rows = readRows(reader, includedHeaders);
-
-                    // Get all years in csv
-                    Set<String> years = rows.stream()
-                            .map(row -> row.get(ActivityCalendarVO.Fields.YEAR))
-                            .filter(StringUtils::isNotBlank)
-                            .collect(Collectors.toSet());
-                    Set<String> processedKeys = Sets.newHashSet();
-
-                    Map<String, ActivityCalendarVO> existingCalendarIdsByUniqueKey = findAllActivityCalendarByYears(years)
-                        .stream()
-                        .filter(this::hasValidVessel)
-                        .distinct()
-                        .collect(
-                            Collectors.toMap(this::getUniqueKey, calendar -> calendar)
-                        );
 
                     MutableShort inserts = new MutableShort(0);
                     MutableShort updates = new MutableShort(0);
@@ -157,7 +142,10 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                     List<String> messages = new ArrayList<>();
                     List<ActivityCalendarVO> processedActivityCalendar = Lists.newArrayList();
 
-                    //Check if headers is valid
+                    // Read file rows
+                    List<Map<String, String>> rows = readRows(reader, includedHeaders);
+
+                    // Check if headers is valid
                     if (!containsAllHeaders(reader.getHeaders(), requiredHeaders)) {
                         errors.increment();
                         String message = t("sumaris.import.activityCalendar.error.invalidHeaderRow");
@@ -165,40 +153,63 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                         log.warn(message);
                     }
 
+                    progressionModel.setTotal(rows.size() + 3 /*read file + get existing + update comments step*/);
+                    progressionModel.setCurrent(0);
+                    progressionModel.setMessage(t("sumaris.import.activityCalendar.readingFile"));
+
                     // Convert csv calendar to vo
-                    List<ActivityCalendarVO> activityCalendars = rows.stream()
-                            .map(this::toVO)
-                            .toList();
+                    List<ActivityCalendarVO> sources = rows.stream()
+                        .map(this::toVO)
+                        .toList();
 
+                    // Get all years in csv
+                    Set<String> years = rows.stream()
+                            .map(row -> row.get(ActivityCalendarVO.Fields.YEAR))
+                            .filter(StringUtils::isNotBlank)
+                            .collect(Collectors.toSet());
+                    Set<String> processedKeys = Sets.newHashSet();
 
-                    progressionModel.setTotal(activityCalendars.size() + 1 /*update comments step*/);
+                    progressionModel.increments(t("sumaris.import.activityCalendar.loadingExistingData"));
 
-                    for (ActivityCalendarVO activityCalendar : activityCalendars) {
+                    // Load existing activity calendars
+                    Map<String, ActivityCalendarVO> existingCalendarIdsByUniqueKey = findAllActivityCalendarByYears(years)
+                        .stream()
+                        .filter(this::hasValidVessel)
+                        .distinct()
+                        .collect(
+                            Collectors.toMap(this::getUniqueKey, calendar -> calendar,
+                                // Merge (should not occur, maybe on test data)
+                                (a1, a2) -> a1)
+                        );
+
+                    progressionModel.increments(t("sumaris.import.activityCalendar.progress", 0, sources.size()));
+
+                    for (ActivityCalendarVO source : sources) {
 
                         try {
 
                             //  Check if is valid calendar
-                            if (!hasValidVessel(activityCalendar)) {
+                            if (!hasValidVessel(source)) {
                                 warnings.increment();
 
-                                String message = String.format(t("sumaris.import.activityCalendar.error.invalidRow", rowCounter, activityCalendar.getQualificationComments(), activityCalendar.getYear() ));
+                                String message = String.format(t("sumaris.import.activityCalendar.error.invalidRow", rowCounter, source.getQualificationComments(), source.getYear() ));
                                 messages.add(message);
                                 log.warn(message);
                             }
                             else {
                                 // Fill unique key for the calendar (year + registration code)
-                                String uniqueKey = getUniqueKey(activityCalendar);
+                                String uniqueKey = getUniqueKey(source);
 
                                 // Get the ID if it exists
                                 ActivityCalendarVO existingCalendar = existingCalendarIdsByUniqueKey.get(uniqueKey);
 
                                 // Fill recorder department and person
-                                fillActivityCalendar(activityCalendar, recorderPerson);
+                                fillActivityCalendar(source, recorderPerson);
 
                                 //  Check if it has already been executed
                                 if (processedKeys.contains(uniqueKey)) {
                                     warnings.increment();
-                                    String message = String.format(t("sumaris.import.activityCalendar.error.duplicateRow", rowCounter, activityCalendar.getQualificationComments(), activityCalendar.getYear()));
+                                    String message = String.format(t("sumaris.import.activityCalendar.error.duplicateRow", rowCounter, source.getQualificationComments(), source.getYear()));
                                     messages.add(message);
                                     log.warn(message);
                                 }
@@ -206,23 +217,23 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
                                     // Check if already exist in database
                                     if (existingCalendar != null) {
-                                        activityCalendar.setId(existingCalendar.getId());
+                                        source.setId(existingCalendar.getId());
                                         // Keep the existing qualification comments (as we use it to store the registration code)
-                                        activityCalendar.setQualificationComments(existingCalendar.getQualificationComments());
-                                        activityCalendar = update(activityCalendar, existingCalendar);
+                                        source.setQualificationComments(existingCalendar.getQualificationComments());
+                                        source = update(source, existingCalendar);
                                         updates.increment();
                                     }
                                     // Not exists: create it
                                     else {
                                         // Clear qualification comments (as we use it to store the registration code)
-                                        activityCalendar.setQualificationComments(null);
+                                        source.setQualificationComments(null);
 
-                                        activityCalendar = insert(activityCalendar);
+                                        source = insert(source);
                                         inserts.increment();
                                     }
                                 }
 
-                                processedActivityCalendar.add(activityCalendar);
+                                processedActivityCalendar.add(source);
                                 processedKeys.add(uniqueKey);
                             }
 
@@ -236,37 +247,38 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                             rowCounter.increment();
                             if (rowCounter.intValue() % 10 == 0) {
                                 progressionModel.setCurrent(rowCounter.intValue());
-                                progressionModel.setMessage(t("sumaris.import.activityCalendar.progress", rowCounter, activityCalendars.size()));
+                                progressionModel.setMessage(t("sumaris.import.activityCalendar.progress", rowCounter, sources.size()));
                             }
                         }
 
                     }
-                    progressionModel.setCurrent(activityCalendars.size());
-
+                    progressionModel.setCurrent(progressionModel.getTotal() - 1);
 
                     // Update comments, using previous year comments (see issue sumaris-app#866)
-                    ListMultimap<Integer, ActivityCalendarVO> activityCalendarsByYear = Beans.splitByNotUniqueProperty(
-                        processedActivityCalendar,
-                        ActivityCalendarVO.Fields.YEAR);
-                    List<Integer> sortedYears = activityCalendarsByYear.keySet().stream().sorted().toList();
+                    {
+                        ListMultimap<Integer, ActivityCalendarVO> activityCalendarsByYear = Beans.splitByNotUniqueProperty(
+                            processedActivityCalendar,
+                            ActivityCalendarVO.Fields.YEAR);
+                        List<Integer> sortedYears = activityCalendarsByYear.keySet().stream().sorted().toList();
 
-                    try {
-                        for (Integer year : sortedYears) {
-                            List<Integer> ids = activityCalendarsByYear.get(year)
+                        try {
+                            for (Integer year : sortedYears) {
+                                List<Integer> ids = activityCalendarsByYear.get(year)
                                     .stream().filter(ac -> StringUtils.isBlank(ac.getComments()))
                                     .map(ActivityCalendarVO::getId)
                                     .filter(Objects::nonNull)
                                     .toList();
 
-                            // Copy previous year comments - see issue sumaris-app#866
-                            activityCalendarService.copyPreviousYearCommentsByIds(ids);
+                                // Copy previous year comments - see issue sumaris-app#866
+                                activityCalendarService.copyPreviousYearCommentsByIds(ids);
+                            }
+                        } catch (Exception e) {
+                            errors.increment();
+                            String message = t("sumaris.import.activityCalendar.error.copyComments", e.getMessage());
+                            log.error(message);
+                            messages.add(message);
+                            // Continue
                         }
-                    } catch (Exception e) {
-                        errors.increment();
-                        String message = t("sumaris.import.activityCalendar.error.copyComments", e.getMessage());
-                        log.error(message);
-                        messages.add(message);
-                        // Continue
                     }
 
                     // Update result
@@ -362,6 +374,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                     .offset(0)
                     .size(100)
                     .sortBy(ActivityCalendarVO.Fields.ID)
+                    .sortDirection(SortDirection.ASC)
                     .build();
             boolean fetchMore;
 
@@ -371,7 +384,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                                 .programLabel(ProgramEnum.SIH_ACTIFLOT.getLabel())
                                 .year(Integer.parseInt(year))
                                 .build(),
-                        page, ActivityCalendarFetchOptions.builder().withVesselSnapshot(true).build()
+                        page, ActivityCalendarFetchOptions.builder().withVesselSnapshot(true).withChildrenEntities(false).build()
                 );
 
                 activityCalendars.forEach(calendar -> {
@@ -379,6 +392,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                         result.addAll(activityCalendars);
 
                     } catch (NestedNullException ne) {
+                        log.debug("Getting an unexpected error NestedNullException:", ne);
                         // Skip entries with nested null exceptions
                     }
                 });
@@ -463,11 +477,16 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
 
         //vesselId
         String registrationCode = source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE);
-        List<VesselSnapshotVO> vesselSnapshots = findVesselByRegistrationCode(year, registrationCode);
-        if (CollectionUtils.isNotEmpty(vesselSnapshots)) {
-            target.setVesselSnapshot(vesselSnapshots.get(0));
-            target.setVesselId(target.getVesselSnapshot().getVesselId());
+        if (StringUtils.isNotBlank(registrationCode)) {
+            VesselSnapshotVO vesselSnapshot = new VesselSnapshotVO();
+            vesselSnapshot.setRegistrationCode(registrationCode);
+            target.setVesselSnapshot(vesselSnapshot);
         }
+//        List<VesselSnapshotVO> vesselSnapshots = findVesselByRegistrationCode(year, registrationCode);
+//        if (CollectionUtils.isNotEmpty(vesselSnapshots)) {
+//            target.setVesselSnapshot(vesselSnapshots.get(0));
+//            target.setVesselId(target.getVesselSnapshot().getVesselId());
+//        }
 
         //Use the qualificationComments for storing the registration code
         target.setQualificationComments(source.get(VesselSnapshotVO.Fields.REGISTRATION_CODE));
@@ -482,10 +501,10 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
         }
     }
 
-    protected List<VesselSnapshotVO> findVesselByRegistrationCode(int year, String registrationCode) {
+    protected VesselSnapshotVO findVesselByRegistrationCode(int year, String registrationCode) {
         Date startDate = Dates.getFirstDayOfYear(year);
         Date endDate = Dates.getLastSecondOfYear(year);
-        return VesselSnapshotService.findAll(
+        List<VesselSnapshotVO> vessels = VesselSnapshotService.findAll(
             VesselFilterVO.builder()
                 .startDate(startDate)
                 .endDate(endDate)
@@ -494,21 +513,29 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                 .build(),
             Page.builder()
                 .offset(0)
-                .size(10)
+                .size(1)
                 .sortBy(VesselSnapshotVO.Fields.START_DATE)
                 .sortDirection(SortDirection.ASC)
                 .build(),
             VesselFetchOptions.DEFAULT
         );
+        if (CollectionUtils.isNotEmpty(vessels)) return vessels.get(0);
+
+        throw new DataNotFoundException(String.format("No vessel found for registration code '%s' in year %s", registrationCode, year));
     }
 
     protected ActivityCalendarVO insert(ActivityCalendarVO source) {
+
+        // Resolve vessel
+        VesselSnapshotVO vesselSnapshot = findVesselByRegistrationCode(source.getYear(), source.getVesselSnapshot().getRegistrationCode());
+        source.setVesselSnapshot(vesselSnapshot);
+        source.setVesselId(vesselSnapshot.getVesselId());
+
         return activityCalendarService.save(source, ActivityCalendarSaveOptions.WITHOUT_CHILDREN);
     }
 
     protected ActivityCalendarVO update(ActivityCalendarVO source, ActivityCalendarVO target) {
 
-        target.setYear(source.getYear());
         target.setDirectSurveyInvestigation(source.getDirectSurveyInvestigation());
         target.setEconomicSurvey(source.getEconomicSurvey());
         target.setControlDate(source.getControlDate());
@@ -516,13 +543,6 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
         target.setQualityFlagId(source.getQualityFlagId());
         target.setQualificationComments(source.getQualificationComments());
         target.setQualificationDate(source.getQualificationDate());
-
-        target.setProgram(source.getProgram());
-
-        //vesselId
-        if (source.getVesselId() != null) {
-            target.setVesselId(source.getVesselId());
-        }
 
         return activityCalendarService.save(target,
             ActivityCalendarSaveOptions.WITHOUT_CHILDREN // fix issue sumaris-app#916
@@ -534,16 +554,16 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
     }
 
     protected boolean hasValidVessel(@NonNull ActivityCalendarVO activityCalendar) {
-        return activityCalendar.getVesselSnapshot() != null && activityCalendar.getVesselSnapshot().getVesselId() != null;
+        return activityCalendar.getVesselSnapshot() != null && StringUtils.isNotBlank(activityCalendar.getVesselSnapshot().getRegistrationCode());
     }
 
     protected String getUniqueKey(@NonNull ActivityCalendarVO activityCalendar) {
         Preconditions.checkNotNull(activityCalendar.getVesselSnapshot());
-        Preconditions.checkNotNull(activityCalendar.getVesselSnapshot().getVesselId());
-        return getUniqueKey(activityCalendar.getYear(), activityCalendar.getVesselSnapshot().getVesselId());
+        Preconditions.checkArgument(StringUtils.isNotBlank(activityCalendar.getVesselSnapshot().getRegistrationCode()), "Missing registration code");
+        return getUniqueKey(activityCalendar.getYear(), activityCalendar.getVesselSnapshot().getRegistrationCode());
     }
 
-    protected String getUniqueKey(int year, int vesselId) {
-        return String.format("%s-%s", year, vesselId);
+    protected String getUniqueKey(int year, String registrationCode) {
+        return String.format("%s-%s", year, registrationCode);
     }
 }
