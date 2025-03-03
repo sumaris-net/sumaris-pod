@@ -89,6 +89,7 @@
   <SOFTWARE_PROPERTY ID="1141" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="90" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
   <SOFTWARE_PROPERTY ID="1142" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="90" CREATION_DATE="2023-11-07" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-obsmer-square.png"/>
   <SOFTWARE_PROPERTY ID="1143" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="90" CREATION_DATE="2024-12-11" LABEL="sumaris.trip.operation.batch.ichthyometer.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1144" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="90" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.operation.comment.help.text" NAME="(Préciser si possible le temps de traitement de la capture pour les OP échantillonnées)"/>
 
   <!-- strategies -->
   <STRATEGY ID="90" PROGRAM_FK="90" LABEL="OBSMER-2023" NAME="OBSMER démarrage le 01/11/2023"

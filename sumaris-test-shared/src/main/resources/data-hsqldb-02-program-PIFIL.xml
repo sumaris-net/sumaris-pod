@@ -64,6 +64,10 @@
   <SOFTWARE_PROPERTY ID="827" STATUS_FK="1" SOFTWARE_FK="6" OBJECT_TYPE_FK="16" OBJECT_ID="60" CREATION_DATE="2024-11-29" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-pifil-square.png"/>
   <SOFTWARE_PROPERTY ID="828" STATUS_FK="1" SOFTWARE_FK="6" OBJECT_TYPE_FK="16" OBJECT_ID="60" CREATION_DATE="2024-11-29" LABEL="sumaris.trip.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-dgampa.png"/>
   <SOFTWARE_PROPERTY ID="829" STATUS_FK="1" SOFTWARE_FK="6" OBJECT_TYPE_FK="16" OBJECT_ID="60" CREATION_DATE="2024-11-29" LABEL="sumaris.trip.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-pifil.png"/>
+  <SOFTWARE_PROPERTY ID="830" STATUS_FK="1" SOFTWARE_FK="6" OBJECT_TYPE_FK="16" OBJECT_ID="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.help.url" NAME="https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/raw/master/projects/pifil/man/manuel_utilisateur-pifil.md"/>
+  <SOFTWARE_PROPERTY ID="831" STATUS_FK="1" SOFTWARE_FK="6" OBJECT_TYPE_FK="16" OBJECT_ID="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.operation.skipDates.tripPmfm.id" NAME="550"/>
+  <SOFTWARE_PROPERTY ID="832" STATUS_FK="1" SOFTWARE_FK="6" OBJECT_TYPE_FK="16" OBJECT_ID="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.sample.taxonGroup.help" NAME="&lt;b&gt;DCO&lt;/b&gt; : Dauphin Commun &lt;b&gt;PHR&lt;/b&gt; : Marsouin commun &lt;b&gt;DBO&lt;/b&gt; : Grand dauphin &lt;b&gt;DST&lt;/b&gt; : Dauphin bleu et blanc &lt;b&gt;PIW&lt;/b&gt; : Globicéphale commun &lt;b&gt;UNK&lt;/b&gt; : Dauphin non-identifié"/>
+  <SOFTWARE_PROPERTY ID="833" STATUS_FK="1" SOFTWARE_FK="6" OBJECT_TYPE_FK="16" OBJECT_ID="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.operation.comment.help.text" NAME="(ex : dysfonctionnements éventuels, situation particulière en mer, captures accidentelles d'autres espèces...)"/>
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="60" LOCATION_CLASSIFICATION_FK="2"/>
 
