@@ -47,6 +47,19 @@
 
   <PROGRAM2DEPARTMENT ID="110" PROGRAM_FK="110" DEPARTMENT_FK="16" PROGRAM_PRIVILEGE_FK="2" UPDATE_DATE="2023-12-14"/> <!-- Sinay as Observers -->
 
+  <SOFTWARE_PROPERTY ID="1300" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2023-12-14" LABEL="sumaris.data.strategy.resolution" NAME="last"/> <!-- TODO spatio-temporal -->
+  <SOFTWARE_PROPERTY ID="1301" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2023-12-14"  LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
+  <SOFTWARE_PROPERTY ID="1302" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-03-19"  LABEL="sumaris.activityCalendar.vessel.country.id" NAME="1"/>
+  <SOFTWARE_PROPERTY ID="1303" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-03-19"  LABEL="sumaris.activityCalendar.metier.taxonGroupType.ids" NAME="4"/> <!-- National metier -->
+  <SOFTWARE_PROPERTY ID="1304" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-07-15"  LABEL="sumaris.activityCalendar.predoc.program.labels" NAME="SIH-ACTIPRED"/>
+  <SOFTWARE_PROPERTY ID="1305" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.extraction.formats" NAME="ACTIMONIT,VESSEL"/>
+  <SOFTWARE_PROPERTY ID="1306" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1307" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.types" NAME="blank-form,form,progress"/>
+  <SOFTWARE_PROPERTY ID="1308" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-sih-black.png"/>
+  <SOFTWARE_PROPERTY ID="1309" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-09-16"  LABEL="sumaris.activityCalendar.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-sih-actiflot.png"/>
+  <SOFTWARE_PROPERTY ID="1310" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-12-05"  LABEL="sumaris.data.report.color.primary" NAME="#bb3388"/>
+  <SOFTWARE_PROPERTY ID="1311" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="110" CREATION_DATE="2024-12-05"  LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-actiflot-square.png"/>
+
   <!-- strategies -->
   <STRATEGY ID="110" PROGRAM_FK="110" LABEL="ACTIFLOT-2023" NAME="ACTIFLOT démarrage le 01/01/2023" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
 

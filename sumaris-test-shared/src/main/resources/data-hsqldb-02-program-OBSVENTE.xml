@@ -41,45 +41,43 @@
   <PROGRAM2DEPARTMENT ID="100" PROGRAM_FK="100" DEPARTMENT_FK="14" PROGRAM_PRIVILEGE_FK="1" UPDATE_DATE="2023-12-14"/>
   <PROGRAM2DEPARTMENT ID="101" PROGRAM_FK="100" DEPARTMENT_FK="15"  PROGRAM_PRIVILEGE_FK="3" UPDATE_DATE="2023-12-14"/> <!-- Ifremer as Observers -->
 
-  <PROGRAM_PROPERTY ID="500" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.data.strategy.resolution" NAME="spatio-temporal"/>
-  <PROGRAM_PROPERTY ID="501" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.endDateTime.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="502" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.createVessel.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="503" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.createLanding.history.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="504" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.editor" NAME="sale"/>
-  <PROGRAM_PROPERTY ID="505" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.creationDate.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="506" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.recorderPerson.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="507" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.strategy.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="508" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.observers.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="509" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.dateTime.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="510" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.location.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="511" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.sample.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="512" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.batch.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="513" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.program.strategy.predoc.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="514" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.samples.weightUnit" NAME="g"/>
-  <PROGRAM_PROPERTY ID="515" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.report.enable" NAME="true"/> <!-- DEV only - not in production -->
-  <PROGRAM_PROPERTY ID="516" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
-  <PROGRAM_PROPERTY ID="518" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.i18nSuffix" NAME="OBSERVED_SALE."/>
-  <PROGRAM_PROPERTY ID="519" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.strategyCard.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="520" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.samplingStrata.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="521" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.endDate.required" NAME="true"/>
-  <PROGRAM_PROPERTY ID="522" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.observedLocation.control.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="524" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.location.level.ids" NAME="2,3"/> <!-- PORT, AUCTION -->
-  <PROGRAM_PROPERTY ID="525" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.batch.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="526" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.metier.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="530" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="531" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.measure.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="532" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.measure.individualCountOnly.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="533" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
-  <PROGRAM_PROPERTY ID="534" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="535" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.samplingRatio.format" NAME="1/w"/>
-<!--  <PROGRAM_PROPERTY ID="537" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-05-03" LABEL="sumaris.landing.topPmfmIds" NAME="503"/> &lt;!&ndash; SALE_TYPE &ndash;&gt;-->
-  <PROGRAM_PROPERTY ID="538" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.rows.divider.pmfmId" NAME="512"/> <!-- SPECIES_LIST_ORIGIN -->
-  <PROGRAM_PROPERTY ID="539" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-09-18" LABEL="sumaris.trip.operation.batch.taxonGroup.enable" NAME="false"/>
-  <PROGRAM_PROPERTY ID="540" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-12-10" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-obsventes.png"/>
-  <PROGRAM_PROPERTY ID="541" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2024-12-11" LABEL="sumaris.trip.operation.batch.ichthyometer.enable" NAME="true"/>
-  <PROGRAM_PROPERTY ID="542" STATUS_FK="1" PROGRAM_FK="100" CREATION_DATE="2025-03-03" LABEL="sumaris.observedLocation.expertiseArea.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1200" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.data.strategy.resolution" NAME="spatio-temporal"/>
+  <SOFTWARE_PROPERTY ID="1201" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.endDateTime.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1202" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.createVessel.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1203" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.createLanding.history.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1204" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.editor" NAME="sale"/>
+  <SOFTWARE_PROPERTY ID="1205" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.creationDate.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1206" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.recorderPerson.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1207" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.strategy.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1208" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.observers.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1209" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.dateTime.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1210" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.location.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1211" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.sample.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1212" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.batch.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1213" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.program.strategy.predoc.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1214" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.samples.weightUnit" NAME="g"/>
+  <SOFTWARE_PROPERTY ID="1215" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.report.enable" NAME="true"/> <!-- DEV only - not in production -->
+  <SOFTWARE_PROPERTY ID="1216" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.program.strategy.department.enable" NAME="false"/><!-- DEV only - BUT true in production -->
+  <SOFTWARE_PROPERTY ID="1218" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.i18nSuffix" NAME="OBSERVED_SALE."/>
+  <SOFTWARE_PROPERTY ID="1219" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.strategyCard.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1220" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.samplingStrata.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1221" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.observedLocation.endDate.required" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1222" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-04-03" LABEL="sumaris.observedLocation.control.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1224" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.location.level.ids" NAME="2,3"/> <!-- PORT, AUCTION -->
+  <SOFTWARE_PROPERTY ID="1225" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-04-03" LABEL="sumaris.sale.batch.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1230" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1231" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.measure.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1232" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-04-03" LABEL="sumaris.trip.operation.batch.measure.individualCountOnly.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1233" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
+  <SOFTWARE_PROPERTY ID="1234" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
+  <SOFTWARE_PROPERTY ID="1235" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-05-03" LABEL="sumaris.trip.operation.batch.samplingRatio.format" NAME="1/w"/>
+  <!--  <SOFTWARE_PROPERTY ID="1237" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-05-03" LABEL="sumaris.landing.topPmfmIds" NAME="503"/> &lt;!&ndash; SALE_TYPE &ndash;&gt;-->
+  <SOFTWARE_PROPERTY ID="1238" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2023-12-14" LABEL="sumaris.landing.rows.divider.pmfmId" NAME="512"/> <!-- SPECIES_LIST_ORIGIN -->
+  <SOFTWARE_PROPERTY ID="1239" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-09-18" LABEL="sumaris.trip.operation.batch.taxonGroup.enable" NAME="false"/>
+  <SOFTWARE_PROPERTY ID="1240" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-12-10" LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-obsventes.png"/>
+  <SOFTWARE_PROPERTY ID="1241" STATUS_FK="1" SOFTWARE_FK="7" OBJECT_TYPE_FK="16" OBJECT_ID="100" CREATION_DATE="2024-12-11" LABEL="sumaris.trip.operation.batch.ichthyometer.enable" NAME="true"/>
 
-  <!-- Strategy métropole -->
+  <!-- strategies -->
   <STRATEGY ID="100" PROGRAM_FK="100" LABEL="OBSVENTES-2023" NAME="OBSVENTES démarrage le 01/11/2023" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
 
   <!-- PETS (taxon) -->
