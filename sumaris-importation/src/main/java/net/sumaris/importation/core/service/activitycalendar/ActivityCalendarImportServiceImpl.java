@@ -369,6 +369,12 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
     protected List<ActivityCalendarVO> findAllActivityCalendarByYears(Set<String> years) {
         List<ActivityCalendarVO> result = new ArrayList<>();
 
+        ActivityCalendarFetchOptions fetchOptions = ActivityCalendarFetchOptions.builder()
+            .withVesselSnapshot(true)
+            .withChildrenEntities(false)
+            .withObservers(true) // Required to be able to update a calendar, otherwise will be reset
+            .build();
+
         for (String year : years) {
             Page page = Page.builder()
                     .offset(0)
@@ -384,7 +390,7 @@ public class ActivityCalendarImportServiceImpl implements ActivityCalendarImport
                                 .programLabel(ProgramEnum.SIH_ACTIFLOT.getLabel())
                                 .year(Integer.parseInt(year))
                                 .build(),
-                        page, ActivityCalendarFetchOptions.builder().withVesselSnapshot(true).withChildrenEntities(false).build()
+                        page, fetchOptions
                 );
 
                 activityCalendars.forEach(calendar -> {

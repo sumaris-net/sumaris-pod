@@ -251,7 +251,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
         Date newUpdateDate = getDatabaseCurrentDate();
         entity.setUpdateDate(newUpdateDate);
 
-        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : 0;
+        int qualityFlagId = vo.getQualityFlagId() != null ? vo.getQualityFlagId() : QualityFlagEnum.NOT_QUALIFIED.getId();
 
         // If not qualify, then remove the qualification date
         if (qualityFlagId == QualityFlagEnum.NOT_QUALIFIED.getId()) {
@@ -273,7 +273,7 @@ public abstract class DataRepositoryImpl<E extends IDataEntity<Integer>, V exten
 
         // Update source
         vo.setQualificationDate(entity.getQualificationDate());
-        vo.setQualityFlagId(entity.getQualityFlag() != null ? entity.getQualityFlag().getId() : 0);
+        vo.setQualityFlagId(qualityFlagId);
         vo.setUpdateDate(newUpdateDate);
 
         return vo;
