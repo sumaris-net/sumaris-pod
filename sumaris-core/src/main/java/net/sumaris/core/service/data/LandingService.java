@@ -24,7 +24,6 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.Page;
-import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.DataControlOptions;
 import net.sumaris.core.vo.data.DataValidateOptions;
 import net.sumaris.core.vo.data.LandingFetchOptions;
@@ -75,6 +74,8 @@ public interface LandingService {
 	LandingVO validate(LandingVO data, @Nullable DataValidateOptions options);
 
 	LandingVO unvalidate(LandingVO data, @Nullable DataValidateOptions options);
+
+	LandingVO qualify(LandingVO data);
 
 	void fillVesselSnapshot(LandingVO target);
 
