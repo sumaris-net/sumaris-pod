@@ -623,7 +623,7 @@ public class TripServiceImpl implements TripService {
             if (observedLocationId != null) {
 
                 // update update_date on observed_location
-                ObservedLocationVO observedLocation = observedLocationRepository.get(observedLocationId);
+                ObservedLocationVO observedLocation = observedLocationRepository.get(observedLocationId, ObservedLocationFetchOptions.FULL_GRAPH);
                 observedLocationRepository.save(observedLocation);
                 trip.setObservedLocationId(observedLocation.getId());
 
