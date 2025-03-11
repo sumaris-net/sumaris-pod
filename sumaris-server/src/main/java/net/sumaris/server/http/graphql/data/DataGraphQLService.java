@@ -1284,6 +1284,31 @@ public class DataGraphQLService {
         return result;
     }
 
+    @GraphQLMutation(name = "unvalidateLanding", description = "Unvalidate a landing")
+    @IsSupervisor
+    public LandingVO unvalidateLanding(
+        @GraphQLArgument(name = "landing") LandingVO landing,
+        @GraphQLArgument(name = "options") DataValidateOptions options,
+        @GraphQLEnvironment ResolutionEnvironment env) {
+        final LandingVO result = landingService.unvalidate(landing, options);
+
+        // Add additional properties if needed
+        fillLandingFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
+    @GraphQLMutation(name = "qualifyLanding", description = "Qualify a landing")
+    @IsSupervisor
+    public LandingVO qualifyLanding(@GraphQLArgument(name = "landing") LandingVO landing, @GraphQLEnvironment ResolutionEnvironment env) {
+        final LandingVO result = landingService.qualify(landing);
+
+        // Add additional properties if needed
+        fillLandingFields(result, GraphQLUtils.fields(env));
+
+        return result;
+    }
+
     /* -- Aggregated landings -- */
 
     @GraphQLQuery(name = "aggregatedLandings", description = "Find aggregated landings by filter")

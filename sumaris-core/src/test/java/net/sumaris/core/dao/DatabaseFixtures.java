@@ -70,7 +70,7 @@ public class DatabaseFixtures {
 			case 1 -> 2;
 			case 2 -> 3;
 			case 3 -> 4;
-			case 5 -> 6; // 2 QIM in 2023
+			case 5 -> 6; // 2 QIM in 2023,1 QIM in 2024, and destroy on 06/2024
 			default -> 1;
 		};
 	}

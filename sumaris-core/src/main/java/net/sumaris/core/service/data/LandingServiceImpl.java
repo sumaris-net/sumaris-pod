@@ -37,7 +37,6 @@ import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.event.entity.EntityDeleteEvent;
 import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
-import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
@@ -52,8 +51,6 @@ import net.sumaris.core.vo.filter.TripFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -62,7 +59,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service("landingService")
@@ -70,7 +66,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LandingServiceImpl implements LandingService {
 
-    protected final LandingRepository landingRepository;
+    protected final LandingRepository repository;
 
     protected final TripService tripService;
 
@@ -98,7 +94,7 @@ public class LandingServiceImpl implements LandingService {
     @Override
     public List<LandingVO> findAll(@Nullable LandingFilterVO filter, @Nullable Page page, LandingFetchOptions fetchOptions) {
        filter = LandingFilterVO.nullToEmpty(filter);
-       List<LandingVO> landings = landingRepository.findAll(filter, page, fetchOptions);
+       List<LandingVO> landings = repository.findAll(filter, page, fetchOptions);
 
        // Fill vessel snapshots
        if (fetchOptions == null || fetchOptions.isWithVesselSnapshot()) fillVesselSnapshots(landings);
@@ -111,7 +107,7 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public Long countByFilter(LandingFilterVO filter) {
-        return landingRepository.count(filter);
+        return repository.count(filter);
     }
 
     @Override
@@ -121,7 +117,7 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public LandingVO get(Integer id, @NonNull LandingFetchOptions fetchOptions) {
-        LandingVO target = landingRepository.get(id, fetchOptions);
+        LandingVO target = repository.get(id, fetchOptions);
 
         // Fill vessel snapshot
         if (fetchOptions.isWithVesselSnapshot() || fetchOptions.isWithChildrenEntities()) fillVesselSnapshot(target);
@@ -200,7 +196,7 @@ public class LandingServiceImpl implements LandingService {
         boolean isNew = source.getId() == null;
 
         // Save
-        LandingVO target = landingRepository.save(source);
+        LandingVO target = repository.save(source);
 
         // Save children entities (measurement, etc.)
         saveChildrenEntities(target);
@@ -230,7 +226,7 @@ public class LandingServiceImpl implements LandingService {
         sources.forEach(this::checkCanSave);
 
         // Save entities
-        List<LandingVO> result = landingRepository.saveAllByObservedLocationId(observedLocationId, sources);
+        List<LandingVO> result = repository.saveAllByObservedLocationId(observedLocationId, sources);
 
         // Save children entities
         result.forEach(this::saveChildrenEntities);
@@ -240,7 +236,7 @@ public class LandingServiceImpl implements LandingService {
 
     @Override
     public void deleteAllByObservedLocationId(int observedLocationId) {
-        landingRepository.findAllIdsByObservedLocationId(observedLocationId)
+        repository.findAllIdsByObservedLocationId(observedLocationId)
                 .forEach(this::delete);
     }
 
@@ -274,7 +270,7 @@ public class LandingServiceImpl implements LandingService {
         measurementDao.deleteMeasurements(SurveyMeasurement.class, Landing.class, ImmutableList.of(id));
 
         // Delete landing
-        landingRepository.deleteByIds(ImmutableList.of(id));
+        repository.deleteByIds(ImmutableList.of(id));
 
         // Publish events
         publisher.publishEvent(new EntityDeleteEvent(id, Landing.class.getSimpleName(), eventData));
@@ -293,7 +289,7 @@ public class LandingServiceImpl implements LandingService {
         Preconditions.checkNotNull(landing.getId());
         Preconditions.checkArgument(landing.getValidationDate() == null);
 
-        landing = landingRepository.control(landing);
+        landing = repository.control(landing);
 
         // Also control Trip
         if (landing.getTripId() != null && options != null && options.getWithChildren()) {
@@ -317,7 +313,7 @@ public class LandingServiceImpl implements LandingService {
 
         options = DataValidateOptions.defaultIfEmpty(options);
 
-        landing = landingRepository.validate(landing);
+        landing = repository.validate(landing);
 
         // Also validate trip
         if (landing.getTripId() != null && options.getWithChildren()) {
@@ -339,7 +335,7 @@ public class LandingServiceImpl implements LandingService {
         Preconditions.checkNotNull(landing.getControlDate());
         Preconditions.checkNotNull(landing.getValidationDate());
 
-        landing = landingRepository.unValidate(landing);
+        landing = repository.unValidate(landing);
 
         options = DataValidateOptions.defaultIfEmpty(options);
 
@@ -354,6 +350,21 @@ public class LandingServiceImpl implements LandingService {
                     .forEach(tripService::unvalidate);
         }
 
+
+        return landing;
+    }
+
+    @Override
+    public LandingVO qualify(LandingVO landing) {
+        Preconditions.checkNotNull(landing);
+        Preconditions.checkNotNull(landing.getId());
+        Preconditions.checkNotNull(landing.getControlDate());
+        Preconditions.checkNotNull(landing.getValidationDate());
+
+        landing = repository.qualify(landing);
+
+        // Publish event
+        publisher.publishEvent(new EntityUpdateEvent(landing.getId(), Landing.class.getSimpleName(), landing));
 
         return landing;
     }
