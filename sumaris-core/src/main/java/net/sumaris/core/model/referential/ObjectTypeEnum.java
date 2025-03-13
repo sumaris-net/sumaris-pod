@@ -24,12 +24,14 @@ package net.sumaris.core.model.referential;
 
 import lombok.NonNull;
 import net.sumaris.core.model.annotation.EntityEnum;
+import net.sumaris.core.model.annotation.IEntityEnum;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
+
 @EntityEnum(entity = ObjectType.class, resolveAttributes = ObjectType.Fields.LABEL)
-public enum ObjectTypeEnum implements Serializable {
+public enum ObjectTypeEnum implements Serializable, IEntityEnum {
 
     VESSEL(1, "VESSEL"),
     SAMPLE(2, "SAMPLE"),

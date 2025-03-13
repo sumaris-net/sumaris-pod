@@ -28,6 +28,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
+import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.product.ProductRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
@@ -42,16 +43,20 @@ import net.sumaris.core.model.data.Batch;
 import net.sumaris.core.model.data.IWithBatchesEntity;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sale;
+import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.model.referential.taxon.ReferenceTaxon;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.TimeUtils;
 import net.sumaris.core.vo.ValueObjectFlags;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
+import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
+import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.OperationVO;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.batch.BatchFilterVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
+import net.sumaris.core.vo.filter.ImageAttachmentFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -64,36 +69,40 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 public class BatchRepositoryImpl
-        extends DataRepositoryImpl<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>
-        implements BatchSpecifications {
-
-    private boolean enableHashOptimization;
+    extends DataRepositoryImpl<Batch, BatchVO, BatchFilterVO, BatchFetchOptions>
+    implements BatchSpecifications {
 
     private final ReferentialDao referentialDao;
     private final TaxonNameRepository taxonNameRepository;
     private final MeasurementDao measurementDao;
     private final ProductRepository productRepository;
+    private final ImageAttachmentRepository imageAttachmentRepository;
+
+    private boolean enableHashOptimization;
+    private boolean enableImages;
 
     protected BatchRepositoryImpl(EntityManager entityManager,
                                   ReferentialDao referentialDao,
                                   TaxonNameRepository taxonNameRepository,
                                   MeasurementDao measurementDao,
-                                  ProductRepository productRepository) {
+                                  ProductRepository productRepository,
+                                  ImageAttachmentRepository imageAttachmentRepository) {
         super(Batch.class, BatchVO.class, entityManager);
         this.referentialDao = referentialDao;
         this.taxonNameRepository = taxonNameRepository;
         this.measurementDao = measurementDao;
         this.productRepository = productRepository;
+        this.imageAttachmentRepository = imageAttachmentRepository;
     }
 
     @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableHashOptimization = getConfig().enableBatchHashOptimization();
+        this.enableImages = configuration.enableDataImages();
     }
 
     @Override
@@ -102,25 +111,25 @@ public class BatchRepositoryImpl
         if (fetchOptions.isWithChildrenEntities()) {
             // Return all batches as tree form
             return toTree(
-                    findAllVO(
-                        BindableSpecification.where(hasOperationId(operationId)),
-                        BatchFetchOptions.builder()
-                            .withMeasurementValues(fetchOptions.isWithMeasurementValues())
-                            .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                            .withChildrenEntities(false) // Children not need (function toTree() will linked parent/children)
-                            .build()
-                    ));
+                findAllVO(
+                    BindableSpecification.where(hasOperationId(operationId)),
+                    BatchFetchOptions.builder()
+                        .withMeasurementValues(fetchOptions.isWithMeasurementValues())
+                        .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+                        .withChildrenEntities(false) // Children not need (function toTree() will linked parent/children)
+                        .build()
+                ));
         }
 
         // Return the root batch only
         try {
             return findOne(hasNoParent()
-                    .and(hasOperationId(operationId))
-                    .and(addJoinFetch(fetchOptions, false))
-                )
+                .and(hasOperationId(operationId))
+                .and(addJoinFetch(fetchOptions, false))
+            )
                 .map(source -> toVO(source, fetchOptions))
                 .orElse(null);
-        } catch (NoResultException e){
+        } catch (NoResultException e) {
             return null;
         }
     }
@@ -148,9 +157,9 @@ public class BatchRepositoryImpl
                     .and(hasSaleId(saleId))
                     .and(addJoinFetch(fetchOptions, false/*find one*/))
             )
-            .map(source -> toVO(source, fetchOptions))
-            .orElse(null);
-        } catch (NoResultException e){
+                .map(source -> toVO(source, fetchOptions))
+                .orElse(null);
+        } catch (NoResultException e) {
             return null;
         }
     }
@@ -163,11 +172,11 @@ public class BatchRepositoryImpl
         }
 
         // Load using and optimized way
-        List<BatchVO> result = super.findAllVO(spec,  BatchFetchOptions.builder()
-                .withMeasurementValues(false) // Will be just later, in an optimize way
-                .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
-                .withChildrenEntities(fetchOptions.isWithChildrenEntities())
-                .build());
+        List<BatchVO> result = super.findAllVO(spec, BatchFetchOptions.builder()
+            .withMeasurementValues(false) // Will be just later, in an optimize way
+            .withRecorderDepartment(fetchOptions.isWithRecorderDepartment())
+            .withChildrenEntities(fetchOptions.isWithChildrenEntities())
+            .build());
 
         // Optimize measurement load
         Collection<Integer> batchIds = Beans.collectIds(result);
@@ -207,7 +216,8 @@ public class BatchRepositoryImpl
             //entityManager.clear();
         }
 
-        if (log.isDebugEnabled()) log.debug("Saving batches of Operation#{} [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
+        if (log.isDebugEnabled())
+            log.debug("Saving batches of Operation#{} [OK] in {}", operationId, TimeUtils.printDurationFrom(startTime));
 
         return sources;
     }
@@ -234,7 +244,8 @@ public class BatchRepositoryImpl
             //entityManager.clear();
         }
 
-        if (log.isDebugEnabled()) log.debug("Saving batches of Sale#{} [OK] in {}", saleId, TimeUtils.printDurationFrom(startTime));
+        if (log.isDebugEnabled())
+            log.debug("Saving batches of Sale#{} [OK] in {}", saleId, TimeUtils.printDurationFrom(startTime));
 
         return sources;
     }
@@ -259,9 +270,9 @@ public class BatchRepositoryImpl
         if (CollectionUtils.isEmpty(sources)) return null;
 
         List<BatchVO> roots = sources.stream()
-                // Find the root catch
-                .filter(batch -> batch.getParentId() == null)
-                .collect(Collectors.toList());
+            // Find the root catch
+            .filter(batch -> batch.getParentId() == null)
+            .collect(Collectors.toList());
 
         if (CollectionUtils.isEmpty(roots)) {
             log.warn("No catch batches found in this source list. Will return null.");
@@ -287,10 +298,10 @@ public class BatchRepositoryImpl
     protected Specification<Batch> toSpecification(BatchFilterVO filter, BatchFetchOptions fetchOptions) {
         // default specification
         return super.toSpecification(filter, fetchOptions)
-                .and(hasOperationId(filter.getOperationId()))
-                .and(hasSaleId(filter.getSaleId()))
-                .and(addJoinFetch(fetchOptions, true))
-                ;
+            .and(hasOperationId(filter.getOperationId()))
+            .and(hasSaleId(filter.getSaleId()))
+            .and(addJoinFetch(fetchOptions, true))
+            ;
     }
 
     protected boolean saveAllByParent(IWithBatchesEntity<Integer, Batch> parent, List<BatchVO> sources) {
@@ -307,51 +318,51 @@ public class BatchRepositoryImpl
         Date newUpdateDate = getDatabaseCurrentDate();
         long updatesCount = sources.stream().map(source -> {
 
-            Batch target = null;
-            if (source.getId() != null) {
-                target = sourcesIdsToProcess.remove(source.getId());
-            }
-            // Source has no id (e.g. a sampling batch can have no ID sent by SUMARiS app)
-            else {
-                // Try to find it by hash code
-                Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
-                // Not found by hash code: try by label
-                if (CollectionUtils.isEmpty(existingBatchs) && source.getLabel() != null
-                    // /!\ Do NOT use label on individual sorting batch (individual measure)
-                    // because not unique on complex batch tree (e.g. APASE program - fix issue #498)
-                    && !source.getLabel().startsWith(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel())
-                ) {
-                    existingBatchs = sourcesByLabelMap.get(source.getLabel());
+                Batch target = null;
+                if (source.getId() != null) {
+                    target = sourcesIdsToProcess.remove(source.getId());
                 }
-                // If one on match => use it
-                if (CollectionUtils.size(existingBatchs) == 1) {
-                    target = sourcesIdsToProcess.remove(existingBatchs.iterator().next().getId());
-                    if (target != null) {
-                        source.setId(target.getId());
+                // Source has no id (e.g. a sampling batch can have no ID sent by SUMARiS app)
+                else {
+                    // Try to find it by hash code
+                    Collection<Batch> existingBatchs = sourcesByHashCode.get(source.hashCode());
+                    // Not found by hash code: try by label
+                    if (CollectionUtils.isEmpty(existingBatchs) && source.getLabel() != null
+                        // /!\ Do NOT use label on individual sorting batch (individual measure)
+                        // because not unique on complex batch tree (e.g. APASE program - fix issue #498)
+                        && !source.getLabel().startsWith(AcquisitionLevelEnum.SORTING_BATCH_INDIVIDUAL.getLabel())
+                    ) {
+                        existingBatchs = sourcesByLabelMap.get(source.getLabel());
+                    }
+                    // If one on match => use it
+                    if (CollectionUtils.size(existingBatchs) == 1) {
+                        target = sourcesIdsToProcess.remove(existingBatchs.iterator().next().getId());
+                        if (target != null) {
+                            source.setId(target.getId());
+                        }
                     }
                 }
-            }
 
-            // Check if batch save can be skipped
-            boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
-            if (!skip) {
+                // Check if batch save can be skipped
+                boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
+                if (!skip) {
 
-                // Save the batch (using a dedicated function)
-                source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
-                skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
+                    // Save the batch (using a dedicated function)
+                    source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
+                    skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
 
-                // If skipped, all children are also skipped
-                if (skip) {
-                    TreeNodeEntities.streamAllChildren(source)
+                    // If skipped, all children are also skipped
+                    if (skip) {
+                        TreeNodeEntities.streamAllChildren(source)
                             .map(BatchVO::getId)
                             .forEach(sourcesIdsToSkip::add);
+                    }
                 }
-            }
-            if (skip && trace) {
-                log.trace("Skip save {}", source);
-            }
-            return !skip;
-        })
+                if (skip && trace) {
+                    log.trace("Skip save {}", source);
+                }
+                return !skip;
+            })
             // Count updates
             .filter(Boolean::booleanValue)
             .count();
@@ -442,7 +453,7 @@ public class BatchRepositoryImpl
 
 
     @Override
-    public void toVO(Batch source,  BatchVO target, BatchFetchOptions fetchOptions, boolean copyIfNull) {
+    public void toVO(Batch source, BatchVO target, BatchFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
 
         // Taxon group
@@ -481,9 +492,18 @@ public class BatchRepositoryImpl
         // Measurement values (as map)
         if (fetchOptions.isWithMeasurementValues() && source.getId() != null) {
             target.setMeasurementValues(Beans.mergeMap(
-                    measurementDao.toMeasurementsMap(source.getSortingMeasurements()),
-                    measurementDao.toMeasurementsMap(source.getQuantificationMeasurements())
+                measurementDao.toMeasurementsMap(source.getSortingMeasurements()),
+                measurementDao.toMeasurementsMap(source.getQuantificationMeasurements())
             ));
+        }
+
+        // Fetch images
+        if (this.enableImages && fetchOptions.isWithImages() && source.getId() != null) {
+            List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
+                .objectId(source.getId())
+                .objectTypeId(ObjectTypeEnum.BATCH.getId())
+                .build(), ImageAttachmentFetchOptions.MINIMAL);
+            target.setImages(images);
         }
     }
 
@@ -505,8 +525,28 @@ public class BatchRepositoryImpl
         toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
     }
 
+    @Override
+    public void delete(Batch entity) {
+
+        if (this.enableImages) {
+            List<Integer> imageIds = imageAttachmentRepository.getIdsByObject(entity.getId(), ObjectTypeEnum.BATCH.getId());
+            if (CollectionUtils.isNotEmpty(imageIds)) {
+                imageAttachmentRepository.deleteAllByIdInBatch(imageIds);
+            }
+        }
+
+        super.delete(entity);
+    }
+
+    @Override
+    public void deleteAllByIdInBatch(Iterable<Integer> ids) {
+        imageAttachmentRepository.deleteAllByObjectIds(Beans.getList(ids), ObjectTypeEnum.BATCH.getId());
+        super.deleteAllByIdInBatch(ids);
+    }
+
+    /* -- protected functions -- */
+
     /**
-     *
      * @param source
      * @param target
      * @param copyIfNull
@@ -620,8 +660,7 @@ public class BatchRepositoryImpl
         if (copyIfNull || source.getTaxonName() != null) {
             if (source.getTaxonName() == null || source.getTaxonName().getId() == null) {
                 target.setReferenceTaxon(null);
-            }
-            else {
+            } else {
                 if (source.getTaxonName().getReferenceTaxonId() != null) {
                     target.setReferenceTaxon(getReference(ReferenceTaxon.class, source.getTaxonName().getReferenceTaxonId()));
                 } else {
@@ -663,9 +702,9 @@ public class BatchRepositoryImpl
         if (CollectionUtils.isEmpty(sources)) return null;
 
         List<BatchVO> children = sources.stream()
-                .filter(batch -> Objects.equals(batch.getParentId(), parentId))
-                .sorted(Comparator.comparing(BatchVO::getRankOrder))
-                .collect(Collectors.toList());
+            .filter(batch -> Objects.equals(batch.getParentId(), parentId))
+            .sorted(Comparator.comparing(BatchVO::getRankOrder))
+            .collect(Collectors.toList());
         children.forEach(batch -> batch.setChildren(fillRecursiveChildren(batch.getId(), sources)));
         return children;
     }

@@ -29,8 +29,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.DataQualityStatusEnum;
 
-import java.util.Date;
-
 /**
  * @author peck7 on 01/09/2020.
  */
@@ -45,11 +43,15 @@ public class ImageAttachmentFilterVO implements IDataFilter {
         return filter != null ? filter : new ImageAttachmentFilterVO();
     }
 
+    private Integer[] includeIds;
+    private Integer[] excludeIds;
+
     private Integer recorderDepartmentId;
     private Integer recorderPersonId;
 
     // Parent
     private Integer objectId;
+    private Integer[] objectIds;
     private Integer objectTypeId;
 
     // Quality

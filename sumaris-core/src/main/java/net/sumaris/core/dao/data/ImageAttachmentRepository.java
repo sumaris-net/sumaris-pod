@@ -40,7 +40,13 @@ public interface ImageAttachmentRepository
         ImageAttachmentSpecifications {
 
     @Query("select id from ImageAttachment where objectId=:objectId and objectType.id=:objectTypeId")
-    List<Integer> getIdsFromObject(@Param("objectId") int objectId, @Param("objectTypeId") int objectTypeId);
+    List<Integer> getIdsByObject(@Param("objectId") int objectId, @Param("objectTypeId") int objectTypeId);
+
+    @Query("select id from ImageAttachment where objectId in (:objectIds) and objectType.id=:objectTypeId")
+    List<Integer> getIdsByObjects(@Param("objectIds") List<Integer> objectIds, @Param("objectTypeId") int objectTypeId);
+
+    @Query("select path from ImageAttachment where id in (:ids) and path is not null")
+    List<String> getPathsByIds(@Param("ids") List<Integer> ids);
 
     @Query("from ImageAttachment where objectId=:objectId and objectType.id=:objectTypeId")
     List<ImageAttachment> findAllByObject(@Param("objectId") int objectId, @Param("objectTypeId") int objectTypeId);
@@ -48,5 +54,6 @@ public interface ImageAttachmentRepository
     @Query("update ImageAttachment t set t.comments = :comments where t.id = :id")
     @Modifying
     int updateComments(@Param("id") int id, @Param("comments") String comments);
+
 
 }

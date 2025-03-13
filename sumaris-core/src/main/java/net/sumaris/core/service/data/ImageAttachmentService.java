@@ -24,6 +24,7 @@ package net.sumaris.core.service.data;
 
 
 import net.sumaris.core.dao.technical.Page;
+import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -49,7 +50,9 @@ public interface ImageAttachmentService {
 	@Transactional(readOnly = true)
 	List<ImageAttachmentVO> findAllByObject(int objectId, ObjectTypeEnum objectType, ImageAttachmentFetchOptions fetchOptions);
 
-	ImageAttachmentVO save(ImageAttachmentVO trip);
+	ImageAttachmentVO save(ImageAttachmentVO image);
+
+	List<ImageAttachmentVO> saveAllByParent(List<ImageAttachmentVO> images, IEntity<Integer> parent, ObjectTypeEnum objectTypeEnum);
 
 	void delete(int id);
 

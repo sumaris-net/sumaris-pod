@@ -133,11 +133,11 @@ public class Application extends SpringBootServletInitializer {
             // Data directory
             FileUtils.forceMkdir(config.getDataDirectory());
 
-            // Meas files directory
-            FileUtils.forceMkdir(config.getMeasFileDirectory());
+            // Measurement files directory
+            FileUtils.forceMkdir(config.getMeasurementFilesDirectory());
 
-            // Image attachment directory
-            FileUtils.forceMkdir(config.getImageAttachmentDirectory());
+            // Images directory
+            FileUtils.forceMkdir(config.getImagesDirectory());
 
             // DB backup directory
             FileUtils.forceMkdir(config.getDbBackupDirectory());

@@ -10,12 +10,12 @@ package net.sumaris.core.dao.data.sample;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -84,9 +84,9 @@ public class SampleRepositoryImpl
     @Autowired
     private ImageAttachmentRepository imageAttachmentRepository;
 
-    private boolean enableHashOptimization;;
+    private boolean enableHashOptimization;
 
-    private boolean enableImageAttachments;
+    private boolean enableImages;
 
     @Autowired
     public SampleRepositoryImpl(EntityManager entityManager) {
@@ -100,21 +100,21 @@ public class SampleRepositoryImpl
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableHashOptimization = configuration.enableSampleHashOptimization();
-        this.enableImageAttachments = configuration.enableDataImages();
+        this.enableImages = configuration.enableDataImages();
     }
 
     @Override
     protected Specification<Sample> toSpecification(SampleFilterVO filter, SampleFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-                .and(hasOperationId(filter.getOperationId()))
-                .and(hasLandingId(filter.getLandingId()))
-                .and(hasObservedLocationId(filter.getObservedLocationId()))
-                .and(inObservedLocationIds(filter.getObservedLocationIds()))
-                .and(hasTagId(filter.getTagId()))
-                .and(withTagId(filter.getWithTagId()))
-                .and(addJoinFetch(fetchOptions, true))
-                .and(includedIds(filter.getIncludedIds()))
-                .and(excludedIds(filter.getExcludedIds()));
+            .and(hasOperationId(filter.getOperationId()))
+            .and(hasLandingId(filter.getLandingId()))
+            .and(hasObservedLocationId(filter.getObservedLocationId()))
+            .and(inObservedLocationIds(filter.getObservedLocationIds()))
+            .and(hasTagId(filter.getTagId()))
+            .and(withTagId(filter.getWithTagId()))
+            .and(addJoinFetch(fetchOptions, true))
+            .and(includedIds(filter.getIncludedIds()))
+            .and(excludedIds(filter.getExcludedIds()));
     }
 
     @Override
@@ -172,11 +172,11 @@ public class SampleRepositoryImpl
         }
 
         // Fetch images
-        if (this.enableImageAttachments && fetchOptions != null && fetchOptions.isWithImages() && sampleId != null) {
+        if (this.enableImages && fetchOptions != null && fetchOptions.isWithImages() && sampleId != null) {
             List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
-                    .objectId(sampleId)
-                    .objectTypeId(ObjectTypeEnum.SAMPLE.getId())
-                    .build(), ImageAttachmentFetchOptions.MINIMAL);
+                .objectId(sampleId)
+                .objectTypeId(ObjectTypeEnum.SAMPLE.getId())
+                .build(), ImageAttachmentFetchOptions.MINIMAL);
             target.setImages(images);
         }
     }
@@ -214,8 +214,7 @@ public class SampleRepositoryImpl
 
             if (parentId == null) {
                 target.setParent(null);
-            }
-            else {
+            } else {
                 Sample parent = getReference(Sample.class, parentId);
                 target.setParent(parent);
 
@@ -270,8 +269,7 @@ public class SampleRepositoryImpl
         if (copyIfNull || source.getMatrix() != null) {
             if (source.getMatrix() == null || source.getMatrix().getId() == null) {
                 target.setMatrix(null);
-            }
-            else {
+            } else {
                 target.setMatrix(getReference(Matrix.class, source.getMatrix().getId()));
             }
         }
@@ -280,8 +278,7 @@ public class SampleRepositoryImpl
         if (copyIfNull || source.getSizeUnit() != null) {
             if (source.getSizeUnit() == null) {
                 target.setSizeUnit(null);
-            }
-            else {
+            } else {
                 ReferentialVO unit = referentialDao.findByUniqueLabel(Unit.class.getSimpleName(), source.getSizeUnit())
                     .orElseThrow(() -> new SumarisTechnicalException(String.format("Invalid 'sample.sizeUnit': unit symbol '%s' not exists", source.getSizeUnit())));
                 target.setSizeUnit(getReference(Unit.class, unit.getId()));
@@ -292,8 +289,7 @@ public class SampleRepositoryImpl
         if (copyIfNull || source.getTaxonGroup() != null) {
             if (source.getTaxonGroup() == null || source.getTaxonGroup().getId() == null) {
                 target.setTaxonGroup(null);
-            }
-            else {
+            } else {
                 target.setTaxonGroup(getReference(TaxonGroup.class, source.getTaxonGroup().getId()));
             }
         }
@@ -302,8 +298,7 @@ public class SampleRepositoryImpl
         if (copyIfNull || source.getTaxonName() != null) {
             if (source.getTaxonName() == null || source.getTaxonName().getId() == null) {
                 target.setReferenceTaxon(null);
-            }
-            else {
+            } else {
                 // Get the taxon name, then set reference taxon
                 Integer referenceTaxonId = taxonNameRepository.getReferenceTaxonIdById(source.getTaxonName().getId());
                 target.setReferenceTaxon(getReference(ReferenceTaxon.class, referenceTaxonId));
@@ -314,8 +309,7 @@ public class SampleRepositoryImpl
         if (copyIfNull || (batchId != null)) {
             if (batchId == null) {
                 target.setBatch(null);
-            }
-            else {
+            } else {
                 target.setBatch(getReference(Batch.class, batchId));
             }
         }
@@ -345,7 +339,8 @@ public class SampleRepositoryImpl
     public List<SampleVO> saveByOperationId(int operationId, List<SampleVO> sources) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug("Saving samples of Operation#{}... {hash_optimization: {}}", operationId, enableHashOptimization);
+        if (debugTime != 0L)
+            log.debug("Saving samples of Operation#{}... {hash_optimization: {}}", operationId, enableHashOptimization);
 
         // Load parent entity
         Operation parent = getById(Operation.class, operationId);
@@ -366,7 +361,8 @@ public class SampleRepositoryImpl
             getEntityManager().clear();
         }
 
-        if (debugTime != 0L) log.debug("Saving samples of Operation#{} [OK] in {}", operationId, TimeUtils.printDurationFrom(debugTime));
+        if (debugTime != 0L)
+            log.debug("Saving samples of Operation#{} [OK] in {}", operationId, TimeUtils.printDurationFrom(debugTime));
 
         return sources;
     }
@@ -375,7 +371,8 @@ public class SampleRepositoryImpl
     public List<SampleVO> saveByLandingId(int landingId, List<SampleVO> samples) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        if (debugTime != 0L) log.debug("Saving samples of Landing#{}... {hash_optimization: {}}", landingId, enableHashOptimization);
+        if (debugTime != 0L)
+            log.debug("Saving samples of Landing#{}... {hash_optimization: {}}", landingId, enableHashOptimization);
 
         // Load parent entity
         Landing parent = getById(Landing.class, landingId);
@@ -397,7 +394,8 @@ public class SampleRepositoryImpl
             getEntityManager().clear();
         }
 
-        if (debugTime != 0L) log.debug("Saving samples of Landing#{} [OK] in {}", landingId, TimeUtils.printDurationFrom(debugTime));
+        if (debugTime != 0L)
+            log.debug("Saving samples of Landing#{} [OK] in {}", landingId, TimeUtils.printDurationFrom(debugTime));
 
         return samples;
     }
@@ -414,30 +412,30 @@ public class SampleRepositoryImpl
 
         // Save each sources
         long updatesCount = sources.stream().map(source -> {
-            Sample target = null;
-            if (source.getId() != null) {
-                target = sourcesByIds.remove(source.getId());
-            }
-            // Check can be skipped
-            boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
-            if (!skip) {
-                source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
-                skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
-
-                // If not changed, skip all children
-                if (skip) {
-                    streamRecursiveChildren(source)
-                        .map(SampleVO::getId)
-                        .forEach(sourcesIdsToSkip::add);
+                Sample target = null;
+                if (source.getId() != null) {
+                    target = sourcesByIds.remove(source.getId());
                 }
-            }
-            if (skip && trace) {
-                log.trace("Skip save {}", source);
-            }
-            return !skip;
-        })
-        // Count updates
-        .filter(Boolean::booleanValue).count();
+                // Check can be skipped
+                boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
+                if (!skip) {
+                    source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
+                    skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
+
+                    // If not changed, skip all children
+                    if (skip) {
+                        streamRecursiveChildren(source)
+                            .map(SampleVO::getId)
+                            .forEach(sourcesIdsToSkip::add);
+                    }
+                }
+                if (skip && trace) {
+                    log.trace("Skip save {}", source);
+                }
+                return !skip;
+            })
+            // Count updates
+            .filter(Boolean::booleanValue).count();
 
         boolean dirty = updatesCount > 0;
 
@@ -535,9 +533,6 @@ public class SampleRepositoryImpl
 
         return source;
     }
-
-
-
 
 
     protected Stream<SampleVO> streamRecursiveChildren(SampleVO source) {

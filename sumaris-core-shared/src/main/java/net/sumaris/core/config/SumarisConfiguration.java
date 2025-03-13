@@ -167,9 +167,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
         // Create Nuiton config instance
         applicationConfig = new ApplicationConfig(ApplicationConfigInit.forAllScopesWithout(
-                        ApplicationConfigScope.HOME
-                )
-                .setDefaults(defaults));
+                ApplicationConfigScope.HOME
+            )
+            .setDefaults(defaults));
         applicationConfig.setEncoding(Charsets.UTF_8.name());
         applicationConfig.setConfigFileName(file);
 
@@ -273,9 +273,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     protected static Set<ApplicationConfigProvider> getProviders() {
         // get allOfToList config providers
         return ApplicationConfigHelper.getProviders(null,
-                null,
-                null,
-                true);
+            null,
+            null,
+            true);
     }
 
     protected Properties getDefaults(Set<ApplicationConfigProvider> providers, ConfigurableEnvironment env) {
@@ -283,11 +283,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         // Populate defaults from providers
         Properties defaults = new Properties();
         providers
-                .stream()
-                .filter(provider -> !(provider instanceof SumarisConfigurationEntityEnumProvider))
-                .forEach(provider -> Arrays.stream(provider.getOptions())
-                        .filter(configOptionDef -> configOptionDef.getDefaultValue() != null)
-                        .forEach(configOptionDef -> defaults.setProperty(configOptionDef.getKey(), configOptionDef.getDefaultValue())));
+            .stream()
+            .filter(provider -> !(provider instanceof SumarisConfigurationEntityEnumProvider))
+            .forEach(provider -> Arrays.stream(provider.getOptions())
+                .filter(configOptionDef -> configOptionDef.getDefaultValue() != null)
+                .forEach(configOptionDef -> defaults.setProperty(configOptionDef.getKey(), configOptionDef.getDefaultValue())));
 
         // Set options from env if provided
         if (env != null) {
@@ -334,24 +334,24 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             String defaultVersion = applicationConfig.getOption(SumarisConfigurationOption.VERSION.getKey());
             String implementationVersion = sharedConfigFile.getProperty(SumarisConfigurationOption.VERSION.getKey());
             if (StringUtils.isNotBlank(implementationVersion)
-                    && StringUtils.isNotBlank(defaultVersion)
-                    && !Objects.equals(implementationVersion, defaultVersion)) {
+                && StringUtils.isNotBlank(defaultVersion)
+                && !Objects.equals(implementationVersion, defaultVersion)) {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("Replace default version option value [%s] with implementation value [%s] found in file [%s]",
-                            defaultVersion,
-                            implementationVersion,
-                            DEFAULT_SHARED_CONFIG_FILE));
+                        defaultVersion,
+                        implementationVersion,
+                        DEFAULT_SHARED_CONFIG_FILE));
                 }
                 applicationConfig.setDefaultOption(
-                        SumarisConfigurationOption.VERSION.getKey(),
-                        implementationVersion);
+                    SumarisConfigurationOption.VERSION.getKey(),
+                    implementationVersion);
             } else if (StringUtils.isNotBlank(implementationVersion)) {
                 if (log.isInfoEnabled()) {
                     log.info("Version: " + implementationVersion);
                 }
                 applicationConfig.setDefaultOption(
-                        SumarisConfigurationOption.VERSION.getKey(),
-                        implementationVersion);
+                    SumarisConfigurationOption.VERSION.getKey(),
+                    implementationVersion);
             } else if (StringUtils.isNotBlank(defaultVersion)) {
                 if (log.isInfoEnabled()) {
                     log.info("Version: " + defaultVersion);
@@ -368,7 +368,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     protected void fixBasedir(ApplicationConfig applicationConfig) {
         // TODO Review this, this is very dirty to do this...
         File appBasedir = applicationConfig.getOptionAsFile(
-                SumarisConfigurationOption.BASEDIR.getKey());
+            SumarisConfigurationOption.BASEDIR.getKey());
 
         if (appBasedir == null) {
             appBasedir = new File("");
@@ -388,8 +388,8 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             log.info(String.format("Database URL {%s}", getJdbcURL()));
         }
         applicationConfig.setOption(
-                SumarisConfigurationOption.BASEDIR.getKey(),
-                appBasedir.getAbsolutePath());
+            SumarisConfigurationOption.BASEDIR.getKey(),
+            appBasedir.getAbsolutePath());
     }
 
 
@@ -471,7 +471,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
     protected String resolvePlaceholder(String placeholder, Properties props) {
         if (applicationConfig == null) {
             throw new BeanInitializationException(
-                    "Configuration.applicationConfig must not be null. Please initialize Configuration instance with a not null applicationConfig BEFORE starting Spring.");
+                "Configuration.applicationConfig must not be null. Please initialize Configuration instance with a not null applicationConfig BEFORE starting Spring.");
         }
 
         // Try to resolve placeholder from application configuration
@@ -511,6 +511,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         applicationConfig.setOption(SumarisConfigurationOption.DB_DIRECTORY.getKey(), dbDirectory.getPath());
     }
 
+    public boolean isFileLockEnabled() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DATA_FILE_LOCK_ENABLE.getKey());
+    }
+
     /**
      * <p>setJdbcUrl.</p>
      *
@@ -545,19 +549,9 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      *
      * @return a {@link File} object.
      */
-    public File getMeasFileDirectory() {
+    public File getMeasurementFilesDirectory() {
         return applicationConfig.getOptionAsFile(SumarisConfigurationOption.MEASUREMENT_FILE_DIRECTORY.getKey());
     }
-
-    /**
-     * <p>getImageAttachmentDirectory.</p>
-     *
-     * @return a {@link File} object.
-     */
-    public File getImageAttachmentDirectory() {
-        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.IMAGE_ATTACHMENT_DIRECTORY.getKey());
-    }
-
 
     /**
      * <p>getDbBackupDirectory.</p>
@@ -794,7 +788,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public File getI18nDirectory() {
         return applicationConfig.getOptionAsFile(
-                SumarisConfigurationOption.I18N_DIRECTORY.getKey());
+            SumarisConfigurationOption.I18N_DIRECTORY.getKey());
     }
 
     /**
@@ -804,7 +798,7 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public Locale getI18nLocale() {
         return applicationConfig.getOptionAsLocale(
-                SumarisConfigurationOption.I18N_LOCALE.getKey());
+            SumarisConfigurationOption.I18N_LOCALE.getKey());
     }
 
     /**
@@ -823,12 +817,12 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
      */
     public Properties getConnectionProperties() {
         return Daos.getConnectionProperties(
-                getJdbcURL(),
-                getJdbcUsername(),
-                getJdbcPassword(),
-                null,
-                getHibernateDialect(),
-                getJdbcDriver());
+            getJdbcURL(),
+            getJdbcUsername(),
+            getJdbcPassword(),
+            null,
+            getHibernateDialect(),
+            getJdbcDriver());
     }
 
     /**
@@ -1102,6 +1096,19 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DATA_IMAGES_ENABLE.getKey());
     }
 
+    /**
+     * <p>getImagesDirectory.</p>
+     *
+     * @return a {@link File} object.
+     */
+    public File getImagesDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.DATA_IMAGES_DIRECTORY.getKey());
+    }
+
+    public boolean enableDataImagesDirectory() {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DATA_IMAGES_DIRECTORY_ENABLE.getKey());
+    }
+
     public boolean enableReferentialDefaultCache() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.REFERENTIAL_DEFAULT_CACHE_ENABLE.getKey());
     }
@@ -1169,18 +1176,18 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             } else {
                 List<String> invalidIds = Lists.newArrayList();
                 result = Splitter.on(",").omitEmptyStrings().trimResults()
-                        .splitToList(ids)
-                        .stream()
-                        .map(id -> {
-                            try {
-                                return Integer.parseInt(id);
-                            } catch (Exception e) {
-                                invalidIds.add(id);
-                                return null;
-                            }
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
+                    .splitToList(ids)
+                    .stream()
+                    .map(id -> {
+                        try {
+                            return Integer.parseInt(id);
+                        } catch (Exception e) {
+                            invalidIds.add(id);
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
 
                 if (CollectionUtils.isNotEmpty(invalidIds)) {
                     log.error("Skipping invalid values found in configuration option '{}': {}", optionKey, invalidIds);

@@ -27,7 +27,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.activity.ActivityCalendarRepository;
 import net.sumaris.core.dao.data.vessel.GearPhysicalFeaturesRepository;
@@ -43,6 +42,7 @@ import net.sumaris.core.event.entity.EntityInsertEvent;
 import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.model.data.ActivityCalendar;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
+import net.sumaris.core.service.data.ImageAttachmentService;
 import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.DataBeans;
@@ -55,14 +55,13 @@ import net.sumaris.core.vo.filter.ActivityCalendarFilterVO;
 import net.sumaris.core.vo.filter.GearPhysicalFeaturesFilterVO;
 import net.sumaris.core.vo.filter.GearUseFeaturesFilterVO;
 import net.sumaris.core.vo.filter.VesselUseFeaturesFilterVO;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -80,18 +79,16 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
     private final VesselUseFeaturesRepository vesselUseFeaturesRepository;
     private final GearUseFeaturesRepository gearUseFeaturesRepository;
     private final GearPhysicalFeaturesRepository gearPhysicalFeaturesRepository;
-    private boolean enableImageAttachments;
-
-    @Autowired
-    private ImageAttachmentRepository imageAttachmentRepository;
-
+    private final ImageAttachmentService imageAttachmentService;
 
     private boolean enableTrash = false;
+    private boolean enableImages = false;
+
     @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableTrash = configuration.enableEntityTrash();
-        this.enableImageAttachments = configuration.enableDataImages();
+        this.enableImages = configuration.enableDataImages();
     }
 
     @Override
@@ -186,24 +183,24 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         // Vessel use features
         {
             List<VesselUseFeaturesVO> vesselUseFeatures = vesselUseFeaturesRepository.findAll(VesselUseFeaturesFilterVO.builder()
-                    .activityCalendarId(target.getId())
-                    .build(), childrenFetchOptions);
+                .activityCalendarId(target.getId())
+                .build(), childrenFetchOptions);
             target.setVesselUseFeatures(vesselUseFeatures);
         }
 
         // Gear use features
         {
             List<GearUseFeaturesVO> gearUseFeatures = gearUseFeaturesRepository.findAll(GearUseFeaturesFilterVO.builder()
-                    .activityCalendarId(target.getId())
-                    .build(), childrenFetchOptions);
+                .activityCalendarId(target.getId())
+                .build(), childrenFetchOptions);
             target.setGearUseFeatures(gearUseFeatures);
         }
 
         // Gear physical features
         {
             List<GearPhysicalFeaturesVO> gearPhysicalFeatures = gearPhysicalFeaturesRepository.findAll(GearPhysicalFeaturesFilterVO.builder()
-                    .activityCalendarId(target.getId())
-                    .build(), childrenFetchOptions);
+                .activityCalendarId(target.getId())
+                .build(), childrenFetchOptions);
             target.setGearPhysicalFeatures(gearPhysicalFeatures);
         }
     }
@@ -217,7 +214,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         return save(source, ActivityCalendarSaveOptions.DEFAULT);
     }
 
-        @Override
+    @Override
     public ActivityCalendarVO save(final ActivityCalendarVO source, @NonNull ActivityCalendarSaveOptions saveOptions) {
         checkCanSave(source);
 
@@ -233,9 +230,10 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         Preconditions.checkArgument(target.getId() != null && target.getId() >= 0, "Invalid ActivityCalendar.id. Make sure your sequence has been well configured");
 
         // Save children entities (measurement, etc.)
-        if (saveOptions == null || saveOptions.getWithChildren()) {
+        if (saveOptions.getWithChildren()) {
             saveChildrenEntities(target);
         }
+
 
         // Publish event
         if (isNew) {
@@ -244,8 +242,6 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             publisher.publishEvent(new EntityUpdateEvent(target.getId(), ActivityCalendar.class.getSimpleName(), target));
         }
 
-        // Save images
-        if (enableImageAttachments) saveImageAttachments(target);
 
         return target;
     }
@@ -371,8 +367,8 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         log.debug("Copying previous year comments of {} activity calendar(s)...", ids.size());
 
         int count = Daos.streamByChunk(ids, 500) // Chunk of 500 items, because of IN operator
-                .mapToInt(repository::copyPreviousYearCommentsByIds)
-                .sum();
+            .mapToInt(repository::copyPreviousYearCommentsByIds)
+            .sum();
         log.debug("Copying previous year comments of {} activity calendar(s) [OK] - {} updates", ids.size(), count);
     }
 
@@ -425,6 +421,14 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
             source.setGearPhysicalFeatures(gearPhysicalFeatures);
         }
 
+        // Save images
+        if (enableImages) {
+            List<ImageAttachmentVO> images = Beans.getList(source.getImages());
+            images.forEach(image -> fillDefaultProperties(source, image));
+            images = imageAttachmentService.saveAllByParent(images, source, ObjectTypeEnum.ACTIVITY_CALENDAR);
+            source.setImages(images);
+        }
+
     }
 
     protected void fillDefaultProperties(ActivityCalendarVO parent, IUseFeaturesVO source) {
@@ -436,8 +440,7 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         // Same vessel
         if (parent.getVesselId() != null) {
             source.setVesselId(parent.getVesselId());
-        }
-        else if (parent.getVesselSnapshot() != null) {
+        } else if (parent.getVesselSnapshot() != null) {
             source.setVesselId(parent.getVesselSnapshot().getId());
         }
 
@@ -452,56 +455,28 @@ public class ActivityCalendarServiceImpl implements ActivityCalendarService {
         // Link to parent
         if (source instanceof VesselUseFeaturesVO vuf) {
             vuf.setActivityCalendarId(parent.getId());
-        }
-        else if (source instanceof GearUseFeaturesVO guf) {
+        } else if (source instanceof GearUseFeaturesVO guf) {
             guf.setActivityCalendarId(parent.getId());
-        }
-        else if (source instanceof GearPhysicalFeaturesVO gpf) {
+        } else if (source instanceof GearPhysicalFeaturesVO gpf) {
             gpf.setActivityCalendarId(parent.getId());
         }
     }
 
-    private void saveImageAttachments(ActivityCalendarVO activityCalendar) {
-        List<Integer> existingIdsToRemove = imageAttachmentRepository.getIdsFromObject(activityCalendar.getId(), ObjectTypeEnum.ACTIVITY_CALENDAR.getId());
-        Beans.getStream(activityCalendar.getImages())
-                .filter(Objects::nonNull)
-                .forEach(image -> {
-                    boolean exists = existingIdsToRemove.remove(image.getId());
 
-                    // Update only, when images already exists, and no content changes
-                    if (exists && image.getContent() == null) {
-                        // Update comments only
-                        log.debug("Update Image#{} comments", image.getId());
-                        imageAttachmentRepository.updateComments(image.getId(), image.getComments());
-                    }
-                    else {
-                        // Fill defaults
-                        fillDefaultProperties(image, activityCalendar);
-
-                        // Save
-                        imageAttachmentRepository.save(image);
-                    }
-                });
-
-        // Remove
-        if (CollectionUtils.isNotEmpty(existingIdsToRemove)) {
-            imageAttachmentRepository.deleteAllByIdInBatch(existingIdsToRemove);
-        }
-    }
-
-    protected void fillDefaultProperties(ImageAttachmentVO image, ActivityCalendarVO parent) {
-        if (image == null) return;
+    protected void fillDefaultProperties(ActivityCalendarVO parent, ImageAttachmentVO source) {
+        if (source == null) return;
 
         // Set default recorder department
-        DataBeans.setDefaultRecorderDepartment(image, parent.getRecorderDepartment());
+        DataBeans.setDefaultRecorderDepartment(source, parent.getRecorderDepartment());
 
         // Fill date
-        if (image.getDateTime() == null) {
-            image.setDateTime(parent.getCreationDate()); //TODO BLA CHECK THIS
+        if (source.getDateTime() == null) {
+            Date dateTime = parent.getUpdateDate() != null ? parent.getUpdateDate() : parent.getCreationDate();
+            source.setDateTime(dateTime);
         }
 
         // Link to activityCalendar
-        image.setObjectId(parent.getId());
-        image.setObjectTypeId(ObjectTypeEnum.ACTIVITY_CALENDAR.getId());
+        source.setObjectId(parent.getId());
+        source.setObjectTypeId(ObjectTypeEnum.ACTIVITY_CALENDAR.getId());
     }
 }

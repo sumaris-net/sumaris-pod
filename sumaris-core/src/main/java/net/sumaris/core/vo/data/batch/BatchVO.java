@@ -101,7 +101,10 @@ public class BatchVO implements IDataVO<Integer>,
     private List<MeasurementVO> sortingMeasurements; // = sorting_measurement_b (from a list)
     private List<QuantificationMeasurementVO> quantificationMeasurements; // = quantification_measurement_b (from a list)
 
+    private List<ImageAttachmentVO> images;
+
     @JsonIgnore
     @EqualsAndHashCode.Exclude
     private int flags = 0;
+
 }

@@ -41,6 +41,7 @@ public interface ReferentialDao {
     ReferentialVO get(String entityName, int id);
 
     ReferentialVO get(String entityName, int id, ReferentialFetchOptions fetchOptions);
+
     ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id);
 
     ReferentialVO get(Class<? extends IReferentialEntity> entityClass, int id, ReferentialFetchOptions fetchOptions);
