@@ -24,6 +24,7 @@ package net.sumaris.core.util;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.ProgressionModel;
@@ -477,8 +478,12 @@ public class Files {
 		return java.nio.file.Files.createDirectories(dir, attrs);
 	}
 
-	public static boolean exists(Path file, LinkOption... options) {
-		return java.nio.file.Files.exists(file, options);
+	public static boolean exists(@NonNull File file) {
+		return java.nio.file.Files.exists(file.toPath());
+	}
+
+	public static boolean exists(Path path, LinkOption... options) {
+		return java.nio.file.Files.exists(path, options);
 	}
 
 	public static void copyStream(final InputStream inputStream, final OutputStream outputStream) throws IOException {

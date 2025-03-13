@@ -25,11 +25,17 @@ package net.sumaris.core.dao.data;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.ImageAttachment;
+import net.sumaris.core.util.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Collection;
 
 public interface ImageAttachmentSpecifications extends IDataSpecifications<Integer, ImageAttachment> {
+
+    String OBJECT_IDS_PARAM = "objectIds";
+    String OBJECT_TYPE_IDS_PARAM = "objectTypeIds";
 
     default Specification<ImageAttachment> hasRecorderPersonId(Integer recorderPersonId) {
         if (recorderPersonId == null) return null;
@@ -47,6 +53,14 @@ public interface ImageAttachmentSpecifications extends IDataSpecifications<Integ
         }).addBind(ImageAttachment.Fields.OBJECT_ID, objectId);
     }
 
+    default Specification<ImageAttachment> hasObjectIds(Integer... objectIds) {
+        if (ArrayUtils.isEmpty(objectIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, OBJECT_IDS_PARAM);
+            return cb.in(root.get(ImageAttachment.Fields.OBJECT_ID)).value(param);
+        }).addBind(OBJECT_IDS_PARAM, ArrayUtils.asList(objectIds));
+    }
+
     default Specification<ImageAttachment> hasObjectTypeId(Integer objectTypeId) {
         if (objectTypeId == null) return null;
         return BindableSpecification.where((root, query, cb) -> {
@@ -54,4 +68,21 @@ public interface ImageAttachmentSpecifications extends IDataSpecifications<Integ
             return cb.equal(root.get(ImageAttachment.Fields.OBJECT_TYPE).get(IEntity.Fields.ID), param);
         }).addBind(ImageAttachment.Fields.OBJECT_TYPE, objectTypeId);
     }
+
+    default Specification<ImageAttachment> hasObjectTypeIds(Integer[] objectTypeIds) {
+        if (ArrayUtils.isEmpty(objectTypeIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, OBJECT_TYPE_IDS_PARAM);
+            return cb.in(root.get(ImageAttachment.Fields.OBJECT_TYPE).get(IEntity.Fields.ID)).value(param);
+        }).addBind(OBJECT_TYPE_IDS_PARAM, ArrayUtils.asList(objectTypeIds));
+    }
+
+    @Transactional
+    void deleteAllByObjectId(int objectId, int objectTypeId);
+
+    @Transactional
+    void deleteAllByObjectIds(Iterable<Integer> objectIds, int objectTypeId);
+
+    @Transactional
+    void deleteAllById(Iterable<? extends Integer> ids);
 }

@@ -162,14 +162,14 @@ public class DataGraphQLService {
 
     private final SumarisServerConfiguration configuration;
 
-    private boolean enableImageAttachments = false;
+    private boolean enableImages = false;
 
     private final TimeLog timeLog = new TimeLog(DataGraphQLService.class);
 
     @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
-        this.enableImageAttachments = configuration.enableDataImages();
+        this.enableImages = configuration.enableDataImages();
     }
 
     /* -- Trips -- */
@@ -197,8 +197,8 @@ public class DataGraphQLService {
 
             // Call the trash service
             return trashService.findAll(Trip.class.getSimpleName(),
-                    Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build(),
-                    TripVO.class);
+                Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build(),
+                TripVO.class);
         }
 
         filter = fillRootDataFilter(filter, TripFilterVO.class);
@@ -219,8 +219,8 @@ public class DataGraphQLService {
 
         long now = TimeLog.getTime();
         final List<TripVO> result = tripService.findAll(filter,
-                Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build(),
-                getTripFetchOptions(fields));
+            Page.builder().offset(offset).size(size).sortBy(sort).sortDirection(sortDirection).build(),
+            getTripFetchOptions(fields));
 
         // Add additional properties if needed
         fillTrips(result, fields);
@@ -274,8 +274,8 @@ public class DataGraphQLService {
         if (trip.getLandingId() == null) return null;
 
         LandingVO target = landingService.get(trip.getLandingId(), LandingFetchOptions.DEFAULT.toBuilder()
-                .withTrip(false)
-                .build());
+            .withTrip(false)
+            .build());
 
         // Avoid trip to be reload from landing (in GraphQL fragment)
         target.setTrip(trip);
@@ -306,8 +306,8 @@ public class DataGraphQLService {
             else if (withOperation != null) {
                 GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, withOperation)", "1.5.0");
                 options = TripSaveOptions.builder()
-                        .withOperation(withOperation)
-                        .build();
+                    .withOperation(withOperation)
+                    .build();
             }
         }
         // Make sure user can write
@@ -342,8 +342,8 @@ public class DataGraphQLService {
             else if (withOperation != null) {
                 GraphQLHelper.logDeprecatedUse(authService, "saveTrip(TripVO, withOperation)", "1.5.0");
                 options = TripSaveOptions.builder()
-                        .withOperation(withOperation)
-                        .build();
+                    .withOperation(withOperation)
+                    .build();
             }
         }
         // Make sure user can write
@@ -379,8 +379,8 @@ public class DataGraphQLService {
         Preconditions.checkArgument(id >= 0, "Invalid id");
         Set<String> fields = GraphQLUtils.fields(env);
         return entityWatchService.watchEntity(Trip.class, TripVO.class, id, minIntervalInSecond, true)
-                .toFlowable(BackpressureStrategy.LATEST)
-                .map(t -> fillTripFields(t, fields));
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(t -> fillTripFields(t, fields));
     }
 
     @GraphQLMutation(name = "controlTrip", description = "Control a trip")
@@ -452,10 +452,10 @@ public class DataGraphQLService {
         Preconditions.checkArgument(filter.getVesselId() != null || filter.getParentGearId() != null
             || ArrayUtils.isNotEmpty(filter.getVesselIds()), "Missing 'filter.vesselId', 'filter.vesselIds' or 'filter.parentGearId'");
         Page page = Page.builder().offset(offset)
-                .size(size)
-                .sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction))
-                .build();
+            .size(size)
+            .sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction))
+            .build();
         return physicalGearService.findAll(filter, page, getFetchOptions(GraphQLUtils.fields(env)));
     }
 
@@ -517,7 +517,7 @@ public class DataGraphQLService {
                                                           @GraphQLArgument(name = "sortDirection", defaultValue = "asc") String direction,
                                                           @GraphQLArgument(name = "trash", defaultValue = "false") Boolean trash,
                                                           @GraphQLEnvironment ResolutionEnvironment env
-) {
+    ) {
         SortDirection sortDirection = SortDirection.fromString(direction, SortDirection.DESC);
 
         // Read from trash
@@ -530,8 +530,8 @@ public class DataGraphQLService {
 
             // Call the trash service
             return trashService.findAll(ObservedLocation.class.getSimpleName(),
-                    Pageables.create(offset, size, sort, sortDirection),
-                    ObservedLocationVO.class).getContent();
+                Pageables.create(offset, size, sort, sortDirection),
+                ObservedLocationVO.class).getContent();
         }
 
         filter = fillRootDataFilter(filter, ObservedLocationFilterVO.class);
@@ -539,10 +539,10 @@ public class DataGraphQLService {
 
         long now = TimeLog.getTime();
         final List<ObservedLocationVO> result = observedLocationService.findAll(
-                filter,
-                offset, size, sort,
-                sortDirection,
-                getObservedLocationFetchOptions(fields));
+            filter,
+            offset, size, sort,
+            sortDirection,
+            getObservedLocationFetchOptions(fields));
 
         // Add additional properties if needed
         fillObservedLocationsFields(result, fields);
@@ -592,9 +592,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveObservedLocation", description = "Create or update an observed location")
     @IsUser
     public ObservedLocationVO saveObservedLocation(
-            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
-            @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
-            @GraphQLEnvironment ResolutionEnvironment env) {
+        @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+        @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
+        @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Make sure user can write
         dataAccessControlService.checkCanWrite(observedLocation);
@@ -611,9 +611,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "saveObservedLocations", description = "Create or update many observed locations")
     @IsUser
     public List<ObservedLocationVO> saveObservedLocations(
-            @GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations,
-            @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
-            @GraphQLEnvironment ResolutionEnvironment env) {
+        @GraphQLArgument(name = "observedLocations") List<ObservedLocationVO> observedLocations,
+        @GraphQLArgument(name = "options") ObservedLocationSaveOptions options,
+        @GraphQLEnvironment ResolutionEnvironment env) {
 
         // Make sure user can write
         dataAccessControlService.checkCanWriteAll(observedLocations);
@@ -647,16 +647,16 @@ public class DataGraphQLService {
         Preconditions.checkArgument(id >= 0, "Invalid id");
         Set<String> fields = GraphQLUtils.fields(env);
         return entityWatchService.watchEntity(ObservedLocation.class, ObservedLocationVO.class, id, minIntervalInSecond, true)
-                .toFlowable(BackpressureStrategy.LATEST)
-                .map(ol -> fillObservedLocationFields(ol, fields));
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(ol -> fillObservedLocationFields(ol, fields));
     }
 
     @GraphQLMutation(name = "controlObservedLocation", description = "Control an observed location")
     @IsUser
     public ObservedLocationVO controlObservedLocation(
-            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
-            @GraphQLArgument(name = "options") DataControlOptions options,
-            @GraphQLEnvironment ResolutionEnvironment env) {
+        @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+        @GraphQLArgument(name = "options") DataControlOptions options,
+        @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.control(observedLocation, options);
 
         // Add additional properties if needed
@@ -668,9 +668,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "validateObservedLocation", description = "Validate an observed location")
     @IsSupervisor
     public ObservedLocationVO validateObservedLocation(
-            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
-            @GraphQLArgument(name = "options") DataValidateOptions options,
-            @GraphQLEnvironment ResolutionEnvironment env) {
+        @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+        @GraphQLArgument(name = "options") DataValidateOptions options,
+        @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.validate(observedLocation, options);
 
         // Add additional properties if needed
@@ -682,9 +682,9 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "unvalidateObservedLocation", description = "Unvalidate an observed location")
     @IsSupervisor
     public ObservedLocationVO unvalidateObservedLocation(
-            @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
-            @GraphQLArgument(name = "options") DataValidateOptions options,
-            @GraphQLEnvironment ResolutionEnvironment env) {
+        @GraphQLArgument(name = "observedLocation") ObservedLocationVO observedLocation,
+        @GraphQLArgument(name = "options") DataValidateOptions options,
+        @GraphQLEnvironment ResolutionEnvironment env) {
         final ObservedLocationVO result = observedLocationService.unvalidate(observedLocation, options);
 
         // Add additional properties if needed
@@ -756,8 +756,8 @@ public class DataGraphQLService {
         Preconditions.checkArgument(id >= 0, "Invalid id");
         Set<String> fields = GraphQLUtils.fields(env);
         return entityWatchService.watchEntity(Sale.class, SaleVO.class, id, minIntervalInSecond, true)
-                .toFlowable(BackpressureStrategy.LATEST)
-                .map(t -> fillSaleFields(t, fields));
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(t -> fillSaleFields(t, fields));
     }
 
     @GraphQLMutation(name = "saveSales", description = "Create or update many sales")
@@ -771,6 +771,7 @@ public class DataGraphQLService {
 
         return result;
     }
+
     @GraphQLQuery(name = "sale", description = "Get trip's unique sale")
     public SaleVO getUniqueSaleByTrip(@GraphQLContext TripVO trip) {
         // Optimization: avoid fetching sale when not need (fix #IMAGINE-651)
@@ -830,8 +831,8 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter, "Missing filter or filter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing filter or filter.tripId");
         return operationService.findAllByTripId(filter.getTripId(), offset, size, sort,
-                SortDirection.fromString(direction),
-                OperationFetchOptions.DEFAULT);
+            SortDirection.fromString(direction),
+            OperationFetchOptions.DEFAULT);
     }
 
     @GraphQLQuery(name = "operations", description = "Get trip's operations")
@@ -862,8 +863,8 @@ public class DataGraphQLService {
         Set<String> fields = GraphQLUtils.fields(env);
 
         return operationService.findAllByFilter(filter,
-                offset, size, sort, sortDirection,
-                getOperationFetchOptions(fields));
+            offset, size, sort, sortDirection,
+            getOperationFetchOptions(fields));
     }
 
     @GraphQLQuery(name = "operationsCount", description = "Get operations count")
@@ -916,7 +917,7 @@ public class DataGraphQLService {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         return entityWatchService.watchEntity(Operation.class, OperationVO.class, id, minIntervalInSecond, true)
-                .toFlowable(BackpressureStrategy.LATEST);
+            .toFlowable(BackpressureStrategy.LATEST);
     }
 
     @GraphQLMutation(name = "controlOperation", description = "Control an operation")
@@ -946,12 +947,12 @@ public class DataGraphQLService {
         Preconditions.checkNotNull(filter, "Missing tripFilter or tripFilter.tripId");
         Preconditions.checkNotNull(filter.getTripId(), "Missing tripFilter or tripFilter.tripId");
         return operationGroupService.findAllByTripId(filter.getTripId(),
-                Page.builder()
-                        .offset(offset)
-                        .size(size)
-                        .sortBy(sort)
-                        .sortDirection(SortDirection.fromString(direction))
-                        .build(), null);
+            Page.builder()
+                .offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(SortDirection.fromString(direction))
+                .build(), null);
     }
 
     /* -- Products -- */
@@ -1094,10 +1095,10 @@ public class DataGraphQLService {
 
         // Reload, if not exist in VO
         return batchService.getAllByOperationId(operation.getId(), BatchFetchOptions.builder()
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(BatchVO.Fields.RECORDER_DEPARTMENT, ReferentialVO.Fields.ID)))
-                .withMeasurementValues(fields.contains(BatchVO.Fields.MEASUREMENT_VALUES))
-                .withChildrenEntities(false)
-                .build());
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(BatchVO.Fields.RECORDER_DEPARTMENT, ReferentialVO.Fields.ID)))
+            .withMeasurementValues(fields.contains(BatchVO.Fields.MEASUREMENT_VALUES))
+            .withChildrenEntities(false)
+            .build());
     }
 
     /* -- DenormalizedBatch -- */
@@ -1124,9 +1125,9 @@ public class DataGraphQLService {
         Set<String> fields = GraphQLUtils.fields(env);
 
         DenormalizedBatchFetchOptions fetchOptions = DenormalizedBatchFetchOptions.builder()
-                .withChildrenEntities(fields.contains(StringUtils.slashing(DenormalizedBatchVO.Fields.SORTING_VALUES, DenormalizedBatchSortingValueVO.Fields.ID)))
-                .withMeasurementValues(fields.contains(DenormalizedBatchVO.Fields.MEASUREMENT_VALUES))
-                .build();
+            .withChildrenEntities(fields.contains(StringUtils.slashing(DenormalizedBatchVO.Fields.SORTING_VALUES, DenormalizedBatchSortingValueVO.Fields.ID)))
+            .withMeasurementValues(fields.contains(DenormalizedBatchVO.Fields.MEASUREMENT_VALUES))
+            .build();
         return denormalizedBatchService.findAll(filter, offset, size, sort, sortDirection, fetchOptions);
     }
 
@@ -1164,14 +1165,14 @@ public class DataGraphQLService {
 
         long now = TimeLog.getTime();
         final List<LandingVO> result = landingService.findAll(
-                filter,
-                Page.builder()
-                        .offset(offset)
-                        .size(size)
-                        .sortBy(sort)
-                        .sortDirection(SortDirection.fromString(direction))
-                        .build(),
-                getLandingFetchOptions(fields));
+            filter,
+            Page.builder()
+                .offset(offset)
+                .size(size)
+                .sortBy(sort)
+                .sortDirection(SortDirection.fromString(direction))
+                .build(),
+            getLandingFetchOptions(fields));
 
         // Add additional properties if needed
         fillLandingsFields(result, fields);
@@ -1269,8 +1270,8 @@ public class DataGraphQLService {
         Preconditions.checkArgument(id >= 0, "Invalid id");
         Set<String> fields = GraphQLUtils.fields(env);
         return entityWatchService.watchEntity(Landing.class, LandingVO.class, id, minIntervalInSecond, true)
-                .toFlowable(BackpressureStrategy.LATEST)
-                .map(l -> fillLandingFields(l, fields));
+            .toFlowable(BackpressureStrategy.LATEST)
+            .map(l -> fillLandingFields(l, fields));
     }
 
     @GraphQLMutation(name = "controlLanding", description = "Control a landing")
@@ -1313,8 +1314,8 @@ public class DataGraphQLService {
 
     @GraphQLQuery(name = "aggregatedLandings", description = "Find aggregated landings by filter")
     public List<AggregatedLandingVO> findAggregatedLandings(
-            @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-            @GraphQLEnvironment ResolutionEnvironment env
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLEnvironment ResolutionEnvironment env
     ) {
         List<AggregatedLandingVO> result = aggregatedLandingService.findAll(filter);
         vesselGraphQLService.fillVesselSnapshot(result, GraphQLUtils.fields(env));
@@ -1323,9 +1324,9 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "saveAggregatedLandings", description = "Save aggregated landings")
     public List<AggregatedLandingVO> saveAggregatedLandings(
-            @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-            @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
-            @GraphQLEnvironment ResolutionEnvironment env
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLArgument(name = "aggregatedLandings") List<AggregatedLandingVO> aggregatedLandings,
+        @GraphQLEnvironment ResolutionEnvironment env
     ) {
         List<AggregatedLandingVO> result = aggregatedLandingService.saveAll(filter, aggregatedLandings);
 
@@ -1336,8 +1337,8 @@ public class DataGraphQLService {
 
     @GraphQLMutation(name = "deleteAggregatedLandings", description = "Delete many aggregated landings")
     public void deleteAggregatedLandings(
-            @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
-            @GraphQLArgument(name = "vesselIds") List<Integer> vesselIds
+        @GraphQLArgument(name = "filter") AggregatedLandingFilterVO filter,
+        @GraphQLArgument(name = "vesselIds") List<Integer> vesselIds
     ) {
         aggregatedLandingService.deleteAll(filter, vesselIds);
     }
@@ -1480,8 +1481,8 @@ public class DataGraphQLService {
     @GraphQLSubscription(name = "updateActivityCalendar", description = "Subscribe to changes on an activity calendar")
     @IsUser
     public Publisher<ActivityCalendarVO> updateActivityCalendar(@GraphQLNonNull @GraphQLArgument(name = "id") final int id,
-                                        @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
-                                        @GraphQLEnvironment() ResolutionEnvironment env) {
+                                                                @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to find changes, in seconds.") final Integer minIntervalInSecond,
+                                                                @GraphQLEnvironment() ResolutionEnvironment env) {
 
         Preconditions.checkArgument(id >= 0, "Invalid id");
         Set<String> fields = GraphQLUtils.fields(env);
@@ -1526,7 +1527,7 @@ public class DataGraphQLService {
     @GraphQLMutation(name = "qualifyActivityCalendar", description = "Qualify a activityCalendar")
     @IsSupervisor
     public ActivityCalendarVO qualifyActivityCalendar(@GraphQLNonNull @GraphQLArgument(name = "activityCalendar") ActivityCalendarVO activityCalendar,
-                              @GraphQLEnvironment ResolutionEnvironment env) {
+                                                      @GraphQLEnvironment ResolutionEnvironment env) {
         final ActivityCalendarVO result = activityCalendarService.qualify(activityCalendar);
 
         // Add additional properties if needed
@@ -1625,8 +1626,8 @@ public class DataGraphQLService {
         if (trip.getFishingAreas() != null) {
             // FIXME: after the first save (when id = null), the id is not set
             boolean hasAllIds = trip.getFishingAreas().stream()
-                    .map(FishingAreaVO::getId)
-                    .noneMatch(Objects::isNull);
+                .map(FishingAreaVO::getId)
+                .noneMatch(Objects::isNull);
             if (hasAllIds) return trip.getFishingAreas();
         }
 
@@ -1640,8 +1641,8 @@ public class DataGraphQLService {
         if (operation.getFishingAreas() != null) {
             // FIXME: after the first save (when id = null), the id is not set
             boolean hasAllIds = operation.getFishingAreas().stream()
-                    .map(FishingAreaVO::getId)
-                    .noneMatch(Objects::isNull);
+                .map(FishingAreaVO::getId)
+                .noneMatch(Objects::isNull);
             if (hasAllIds) return operation.getFishingAreas();
         }
 
@@ -1655,8 +1656,8 @@ public class DataGraphQLService {
         if (operationGroup.getFishingAreas() != null) {
             // FIXME: after the first save (when id = null), the id is not set
             boolean hasAllIds = operationGroup.getFishingAreas().stream()
-                    .map(FishingAreaVO::getId)
-                    .noneMatch(Objects::isNull);
+                .map(FishingAreaVO::getId)
+                .noneMatch(Objects::isNull);
             if (hasAllIds) return operationGroup.getFishingAreas();
         }
 
@@ -1847,7 +1848,7 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "images", description = "Get sample's images")
     public List<ImageAttachmentVO> getSampleImages(@GraphQLContext SampleVO sample) {
         if (sample.getImages() != null) return sample.getImages();
-        if (sample.getId() == null || !this.enableImageAttachments) return null;
+        if (sample.getId() == null || !this.enableImages) return null;
 
         return imageService.getImagesForObject(sample.getId(), ObjectTypeEnum.SAMPLE);
     }
@@ -1855,9 +1856,17 @@ public class DataGraphQLService {
     @GraphQLQuery(name = "images", description = "Get activity calendar's images")
     public List<ImageAttachmentVO> getActivityCalendarImages(@GraphQLContext ActivityCalendarVO activityCalendar) {
         if (activityCalendar.getImages() != null) return activityCalendar.getImages();
-        if (activityCalendar.getId() == null || !this.enableImageAttachments) return null;
+        if (activityCalendar.getId() == null || !this.enableImages) return null;
 
         return imageService.getImagesForObject(activityCalendar.getId(), ObjectTypeEnum.ACTIVITY_CALENDAR);
+    }
+
+    @GraphQLQuery(name = "images", description = "Get batch images")
+    public List<ImageAttachmentVO> getBatchImages(@GraphQLContext BatchVO batch) {
+        if (batch.getImages() != null) return batch.getImages();
+        if (batch.getId() == null || !this.enableImages) return null;
+
+        return imageService.getImagesForObject(batch.getId(), ObjectTypeEnum.BATCH);
     }
 
     @GraphQLQuery(name = "images", description = "Search filter")
@@ -1868,7 +1877,7 @@ public class DataGraphQLService {
                                                       @GraphQLArgument(name = "sortBy") String sort,
                                                       @GraphQLArgument(name = "sortDirection", defaultValue = "desc") String direction) {
 
-        if (!this.enableImageAttachments) return ImmutableList.of();
+        if (!this.enableImages) return ImmutableList.of();
 
         filter = ImageAttachmentFilterVO.nullToEmpty(filter);
 
@@ -1879,9 +1888,9 @@ public class DataGraphQLService {
         }
 
         return imageService.findAllByFilter(filter, Page.builder()
-                .offset(offset).size(size).sortBy(sort)
-                .sortDirection(SortDirection.fromString(direction, SortDirection.DESC))
-                .build(), null);
+            .offset(offset).size(size).sortBy(sort)
+            .sortDirection(SortDirection.fromString(direction, SortDirection.DESC))
+            .build(), null);
     }
 
     @GraphQLQuery(name = "url", description = "Get image url")
@@ -1889,7 +1898,7 @@ public class DataGraphQLService {
         if (image.getUrl() != null) return image.getUrl(); // Already fetched
         if (image.getId() == null) return null; // Cannot fetch without id
 
-        return imageService.getImageUrlById(image.getId());
+        return imageService.getImageUrl(image);
     }
 
     /* -- protected methods -- */
@@ -1902,8 +1911,8 @@ public class DataGraphQLService {
         vesselGraphQLService.fillVesselSnapshot(trip, fields);
 
         if (fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, LandingVO.Fields.ID))
-                || fields.contains(TripVO.Fields.LANDING_ID)
-                || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
+            || fields.contains(TripVO.Fields.LANDING_ID)
+            || fields.contains(TripVO.Fields.OBSERVED_LOCATION_ID)) {
             tripService.fillTripLandingLinks(trip);
         }
 
@@ -1951,8 +1960,8 @@ public class DataGraphQLService {
 
         // Add landing to child trip, if need (will avoid a reload of the same landing)
         if (landing.getTrip() != null
-                && Objects.equals(landing.getTrip().getLandingId(), landing.getId())
-                && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.LANDING, IEntity.Fields.ID))) {
+            && Objects.equals(landing.getTrip().getLandingId(), landing.getId())
+            && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.LANDING, IEntity.Fields.ID))) {
             landing.getTrip().setLanding(landing);
         }
 
@@ -2016,27 +2025,27 @@ public class DataGraphQLService {
         if (fields.contains(StringUtils.doting(ActivityCalendarVO.Fields.VESSEL_REGISTRATION_PERIODS))) {
 
             // get vessel id
-            int vesselId =  activityCalendar.getVesselId() != null ? activityCalendar.getVesselId() : activityCalendar.getVesselSnapshot().getId();
+            int vesselId = activityCalendar.getVesselId() != null ? activityCalendar.getVesselId() : activityCalendar.getVesselSnapshot().getId();
 
             // Load vessel registration periods
             Date startDate = Dates.getFirstDayOfYear(activityCalendar.getYear());
             Date endDate = Dates.getLastSecondOfYear(activityCalendar.getYear());
             List<VesselRegistrationPeriodVO> registrationPeriods = vesselService.findRegistrationPeriodsByFilter(VesselFilterVO.builder()
-                            .vesselId(vesselId)
-                            .startDate(startDate)
-                            .endDate(endDate)
-                            .build(),
-                    Page.create(0, 50, VesselRegistrationPeriodVO.Fields.START_DATE, SortDirection.ASC)
+                    .vesselId(vesselId)
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .build(),
+                Page.create(0, 50, VesselRegistrationPeriodVO.Fields.START_DATE, SortDirection.ASC)
             );
 
             Integer[] registrationLocationIds = Beans.<Integer, VesselRegistrationPeriodVO>collectDistinctProperties(registrationPeriods, StringUtils.doting(VesselRegistrationPeriodVO.Fields.REGISTRATION_LOCATION, IEntity.Fields.ID))
-                    .toArray(Integer[]::new);
+                .toArray(Integer[]::new);
 
             Set<Integer> authorizedLocationIds = dataAccessControlService.getAuthorizedLocationIds(
-                            new Integer[]{activityCalendar.getProgram().getId()},
-                            registrationLocationIds).map(ArrayUtils::asSet)
-                    .orElseThrow(UnauthorizedException::new) // TODO check if works in App, and if Forbidden is better (in app)
-                    ;
+                    new Integer[]{activityCalendar.getProgram().getId()},
+                    registrationLocationIds).map(ArrayUtils::asSet)
+                .orElseThrow(UnauthorizedException::new) // TODO check if works in App, and if Forbidden is better (in app)
+                ;
 
             activityCalendar.setVesselRegistrationPeriods(registrationPeriods.stream().map(source -> {
                 ActivityCalendarVesselRegistrationPeriodVO target = new ActivityCalendarVesselRegistrationPeriodVO();
@@ -2051,7 +2060,7 @@ public class DataGraphQLService {
 
     protected boolean hasImageField(Set<String> fields) {
         return fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_DEPARTMENT, DepartmentVO.Fields.LOGO))
-                || fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_PERSON, PersonVO.Fields.AVATAR));
+            || fields.contains(StringUtils.slashing(TripVO.Fields.RECORDER_PERSON, PersonVO.Fields.AVATAR));
     }
 
     protected <T extends IRootDataVO<?>> List<T> fillImages(final List<T> results) {
@@ -2087,34 +2096,34 @@ public class DataGraphQLService {
 
     protected DataFetchOptions getFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
-                .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
-                .build();
+            .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .build();
     }
 
 
     protected TripFetchOptions getTripFetchOptions(Set<String> fields) {
         return TripFetchOptions.builder()
-                .withLocations(fields.contains(StringUtils.slashing(TripVO.Fields.DEPARTURE_LOCATION, IEntity.Fields.ID))
-                        || fields.contains(StringUtils.slashing(TripVO.Fields.RETURN_LOCATION, IEntity.Fields.ID))
-                )
-                .withProgram(fields.contains(StringUtils.slashing(TripVO.Fields.PROGRAM, IEntity.Fields.ID)))
-                .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
-                .withGears(fields.contains(StringUtils.slashing(TripVO.Fields.GEARS, IEntity.Fields.ID)))
-                .withLanding(fields.contains(StringUtils.slashing(TripVO.Fields.LANDING_ID))
-                        || fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, IEntity.Fields.ID))
-                )
-                .withSales(fields.contains(StringUtils.slashing(TripVO.Fields.SALE, IEntity.Fields.ID))
-                        || fields.contains(StringUtils.slashing(TripVO.Fields.SALES, IEntity.Fields.ID))
-                )
-                .withExpectedSales(fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
-                        || fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID))
-                )
-                .withSamplingStrata(fields.contains(StringUtils.slashing(TripVO.Fields.SAMPLING_STRATA, IEntity.Fields.ID)))
-                .build();
+            .withLocations(fields.contains(StringUtils.slashing(TripVO.Fields.DEPARTURE_LOCATION, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(TripVO.Fields.RETURN_LOCATION, IEntity.Fields.ID))
+            )
+            .withProgram(fields.contains(StringUtils.slashing(TripVO.Fields.PROGRAM, IEntity.Fields.ID)))
+            .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withGears(fields.contains(StringUtils.slashing(TripVO.Fields.GEARS, IEntity.Fields.ID)))
+            .withLanding(fields.contains(StringUtils.slashing(TripVO.Fields.LANDING_ID))
+                || fields.contains(StringUtils.slashing(TripVO.Fields.LANDING, IEntity.Fields.ID))
+            )
+            .withSales(fields.contains(StringUtils.slashing(TripVO.Fields.SALE, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(TripVO.Fields.SALES, IEntity.Fields.ID))
+            )
+            .withExpectedSales(fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
+                || fields.contains(StringUtils.slashing(TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID))
+            )
+            .withSamplingStrata(fields.contains(StringUtils.slashing(TripVO.Fields.SAMPLING_STRATA, IEntity.Fields.ID)))
+            .build();
     }
 
 
@@ -2123,11 +2132,11 @@ public class DataGraphQLService {
         boolean withSaleIds = !withSales && fields.contains(LandingVO.Fields.SALE_IDS);
         boolean withTrip = fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, IEntity.Fields.ID));
         boolean withTripSale = withTrip && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALE, IEntity.Fields.ID))
-                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALES, IEntity.Fields.ID));
+            || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.SALES, IEntity.Fields.ID));
         boolean withTripExpectedSale = withTrip && fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALE, IEntity.Fields.ID))
-                || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID));
+            || fields.contains(StringUtils.slashing(LandingVO.Fields.TRIP, TripVO.Fields.EXPECTED_SALES, IEntity.Fields.ID));
         boolean withChildrenEntities = withTrip
-                || fields.contains(StringUtils.slashing(LandingVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID));
+            || fields.contains(StringUtils.slashing(LandingVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID));
 
         SampleFetchOptions sampleFetchOptions = getSampleFetchOptions(fields, LandingVO.Fields.SAMPLES);
         // Avoid to fetch recorder department here
@@ -2146,34 +2155,34 @@ public class DataGraphQLService {
 
     protected OperationFetchOptions getOperationFetchOptions(Set<String> fields) {
         return OperationFetchOptions.builder()
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
-                .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
-                .withParentOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.PARENT_OPERATION, IEntity.Fields.ID)))
-                .withChildOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.CHILD_OPERATION, IEntity.Fields.ID)))
-                .build();
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
+            .withParentOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.PARENT_OPERATION, IEntity.Fields.ID)))
+            .withChildOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.CHILD_OPERATION, IEntity.Fields.ID)))
+            .build();
     }
 
     protected SampleFetchOptions getSampleFetchOptions(Set<String> fields) {
         return SampleFetchOptions.builder()
 
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withMeasurementValues(fields.contains(SampleVO.Fields.MEASUREMENT_VALUES))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withMeasurementValues(fields.contains(SampleVO.Fields.MEASUREMENT_VALUES))
 
-                // Enable images only if enable in Pod configuration
-                .withImages(this.enableImageAttachments && fields.contains(StringUtils.slashing(SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
-                .build();
+            // Enable images only if enable in Pod configuration
+            .withImages(this.enableImages && fields.contains(StringUtils.slashing(SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
+            .build();
     }
 
     protected SampleFetchOptions getSampleFetchOptions(Set<String> fields, String samplePath) {
         return SampleFetchOptions.builder()
 
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withMeasurementValues(fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.MEASUREMENT_VALUES)))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withMeasurementValues(fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.MEASUREMENT_VALUES)))
 
-                // Enable images only if enable in Pod configuration
-                .withImages(this.enableImageAttachments && fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
-                .build();
+            // Enable images only if enable in Pod configuration
+            .withImages(this.enableImages && fields.contains(StringUtils.slashing(samplePath, SampleVO.Fields.IMAGES, IEntity.Fields.ID)))
+            .build();
     }
 
 
@@ -2191,15 +2200,15 @@ public class DataGraphQLService {
 
     protected SaleFetchOptions getSaleFetchOptions(Set<String> fields) {
         return SaleFetchOptions.builder()
-                .withProgram(fields.contains(StringUtils.slashing(SaleVO.Fields.PROGRAM, IEntity.Fields.ID)))
-                .withVesselSnapshot(fields.contains(StringUtils.slashing(SaleVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID)))
-                .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
-                .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
-                .withMeasurementValues(fields.contains(SaleVO.Fields.MEASUREMENT_VALUES))
-                .withFishingAreas(fields.contains(StringUtils.slashing(SaleVO.Fields.FISHING_AREAS, IEntity.Fields.ID)))
-                .withProducts(fields.contains(StringUtils.slashing(SaleVO.Fields.PRODUCTS, IEntity.Fields.ID)))
-                .withBatches(fields.contains(StringUtils.slashing(SaleVO.Fields.BATCHES, IEntity.Fields.ID)))
-                .build();
+            .withProgram(fields.contains(StringUtils.slashing(SaleVO.Fields.PROGRAM, IEntity.Fields.ID)))
+            .withVesselSnapshot(fields.contains(StringUtils.slashing(SaleVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID)))
+            .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
+            .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
+            .withMeasurementValues(fields.contains(SaleVO.Fields.MEASUREMENT_VALUES))
+            .withFishingAreas(fields.contains(StringUtils.slashing(SaleVO.Fields.FISHING_AREAS, IEntity.Fields.ID)))
+            .withProducts(fields.contains(StringUtils.slashing(SaleVO.Fields.PRODUCTS, IEntity.Fields.ID)))
+            .withBatches(fields.contains(StringUtils.slashing(SaleVO.Fields.BATCHES, IEntity.Fields.ID)))
+            .build();
     }
 
     protected ActivityCalendarFetchOptions getActivityCalendarFetchOptions(Set<String> fields) {
@@ -2208,7 +2217,7 @@ public class DataGraphQLService {
             .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
             .withRecorderPerson(fields.contains(StringUtils.slashing(IWithRecorderPersonEntity.Fields.RECORDER_PERSON, IEntity.Fields.ID)))
             .withMeasurementValues(fields.contains(ActivityCalendarVO.Fields.MEASUREMENT_VALUES))
-            .withImages(this.enableImageAttachments && fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.IMAGES, IEntity.Fields.ID)))
+            .withImages(this.enableImages && fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.IMAGES, IEntity.Fields.ID)))
             .withChildrenEntities(fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.VESSEL_USE_FEATURES, IEntity.Fields.ID))
                 || fields.contains(StringUtils.slashing(ActivityCalendarVO.Fields.GEAR_USE_FEATURES, IEntity.Fields.ID)))
             .build();
@@ -2216,7 +2225,6 @@ public class DataGraphQLService {
 
     /**
      * Restrict to self data and/or department data
-     *
      */
     protected <F extends IRootDataFilter> F fillRootDataFilter(F filter, Class<F> filterClass) {
         filter = Beans.nullToEmpty(filter, filterClass);
@@ -2234,7 +2242,7 @@ public class DataGraphQLService {
         // Admin: restrict only on programs
         if (authService.isAdmin()) {
             Integer[] authorizedProgramIds = dataAccessControlService.getAllAuthorizedProgramIds(filter.getProgramIds())
-                    .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
             filter.setProgramIds(authorizedProgramIds);
             return filter;
         }
@@ -2250,8 +2258,8 @@ public class DataGraphQLService {
 
         // Limit program access
         Integer[] programIds = dataAccessControlService.getAuthorizedProgramIdsByUserId(user.getId(), filter.getProgramIds())
-                // No access
-                .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
+            // No access
+            .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
         filter.setProgramIds(programIds);
 
         // Stop here if user has no access
@@ -2295,8 +2303,8 @@ public class DataGraphQLService {
 
             // Get authorized location ids
             Integer[] locationIds = dataAccessControlService.getAuthorizedLocationIds(
-                filter.getProgramIds(),
-                ArrayUtils.concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds()))
+                    filter.getProgramIds(),
+                    ArrayUtils.concat(filter.getRegistrationLocationId(), filter.getRegistrationLocationIds()))
                 .orElse(DataAccessControlService.NO_ACCESS_FAKE_IDS);
 
             // Has access to some locations
@@ -2323,6 +2331,6 @@ public class DataGraphQLService {
 
     private Optional<Integer> getMainUndefinedOperationGroupId(LandingVO landing) {
         return Optional.ofNullable(landing.getTripId())
-                .flatMap(operationGroupService::getMainUndefinedOperationGroupId);
+            .flatMap(operationGroupService::getMainUndefinedOperationGroupId);
     }
 }

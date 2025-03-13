@@ -10,12 +10,12 @@ package net.sumaris.core.vo.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -24,7 +24,9 @@ package net.sumaris.core.vo.data;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.model.data.IWithRecorderPersonEntity;
@@ -39,7 +41,7 @@ import java.util.Date;
 @ToString(onlyExplicitlyIncluded = true)
 @Slf4j
 public class ImageAttachmentVO implements IDataVO<Integer>,
-        IWithRecorderPersonEntity<Integer, PersonVO> {
+    IWithRecorderPersonEntity<Integer, PersonVO> {
 
     @EqualsAndHashCode.Exclude
     @ToString.Include
@@ -73,17 +75,17 @@ public class ImageAttachmentVO implements IDataVO<Integer>,
     @JsonGetter
     public String getDataUrl() {
         if (content == null || contentType == null) return null;
-        return new StringBuffer().append("data:")
-            .append(contentType).append(";base64,")
-            .append(content)
-            .toString();
+        return "data:" +
+            contentType + ";base64," +
+            content;
     }
 
     @JsonSetter
     public void setDataUrl(String dataUrl) {
         if (dataUrl == null) return;
         int separatorIndex = dataUrl.indexOf(";base64,");
-        if (!dataUrl.startsWith("data:") || separatorIndex == -1) throw new IllegalArgumentException("Invalid 'dataUrl'. Should be a base64 data URL.");
+        if (!dataUrl.startsWith("data:") || separatorIndex == -1)
+            throw new IllegalArgumentException("Invalid 'dataUrl'. Should be a base64 data URL.");
 
         this.contentType = dataUrl.substring(5, separatorIndex);
         this.content = dataUrl.substring(separatorIndex + 8);

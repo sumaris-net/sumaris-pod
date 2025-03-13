@@ -36,7 +36,9 @@ public interface RestPaths {
 
     String DEPARTMENT_LOGO_PATH = BASE_API_PATH + "/logo/{label}";
 
-    String IMAGE_PATH = BASE_API_PATH + "/image/{id}";
+    String IMAGE_PATH = BASE_API_PATH + "/image/{id:[0-9]+}";
+
+    String IMAGE_PATH_WITH_FILENAME = BASE_API_PATH + "/image/{filename:[a-zA-Z0-9-_]+\\.[a-zA-Z]+}";
 
     String FAVICON = BASE_API_PATH + "/favicon";
 

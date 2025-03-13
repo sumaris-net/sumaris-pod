@@ -96,18 +96,6 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "${sumaris.data.directory}/db",
         File.class),
 
-    MEASUREMENT_FILE_DIRECTORY(
-        "sumaris.measurement.file.directory",
-        n("sumaris.config.option.measurement.file.directory.description"),
-        "${sumaris.data.directory}/meas_files",
-        File.class),
-
-    IMAGE_ATTACHMENT_DIRECTORY(
-        "sumaris.persistence.image.directory",
-        n("sumaris.config.option.persistence.image.directory.description"),
-        "${sumaris.data.directory}/photos",
-        File.class),
-
     DB_NAME(
         "sumaris.persistence.db.name",
         n("sumaris.config.option.persistence.db.name.description"),
@@ -257,8 +245,32 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         null, // "${sumaris.enumeration.VesselType.FISHING_VESSEL.id}",
         String.class,
         false),
+
+    DATA_FILE_LOCK_ENABLE(
+        "sumaris.data.file.lock.enable",
+        n("sumaris..config.option.data.file.lock.description"),
+        Boolean.TRUE.toString(), Boolean.class, false),
+
+    MEASUREMENT_FILE_DIRECTORY(
+        "sumaris.data.measurement.directory",
+        n("sumaris.config.option.data.measurement.directory.description"),
+        "${sumaris.data.directory}/meas_files",
+        File.class),
+
     DATA_IMAGES_ENABLE("sumaris.data.images.enable",
         n("sumaris.config.option.data.images.enable.description"),
+        Boolean.FALSE.toString(),
+        boolean.class,
+        false),
+
+    DATA_IMAGES_DIRECTORY(
+        "sumaris.data.images.directory",
+        n("sumaris.config.option.data.images.directory.description"),
+        "${sumaris.data.directory}/photos",
+        File.class),
+
+    DATA_IMAGES_DIRECTORY_ENABLE("sumaris.data.images.directory.enable",
+        n("sumaris.config.option.data.images.directory.enable.description"),
         Boolean.FALSE.toString(),
         boolean.class,
         false),
@@ -656,11 +668,11 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         false),
 
     ENABLE_SAMPLE_UNIQUE_TAG(
-            "sumaris.persistence.sample.uniqueTag",
-            n("sumaris.config.option.persistence.sample.uniqueTag.description"),
-            Boolean.FALSE.toString(),
-            Boolean.class,
-            false),
+        "sumaris.persistence.sample.uniqueTag",
+        n("sumaris.config.option.persistence.sample.uniqueTag.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
 
     ENABLE_PHYSICAL_GEAR_HASH_OPTIMIZATION(
         "sumaris.persistence.physicalGear.hashOptimization",
@@ -670,31 +682,31 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         false),
 
     ENABLE_ACTIVITY_CALENDAR_HASH_OPTIMIZATION(
-            "sumaris.persistence.activityCalendar.hashOptimization",
-            n("sumaris.config.option.persistence.activityCalendar.hashOptimization.description"),
-            Boolean.TRUE.toString(), // TODO change to false
-            Boolean.class,
-            false),
+        "sumaris.persistence.activityCalendar.hashOptimization",
+        n("sumaris.config.option.persistence.activityCalendar.hashOptimization.description"),
+        Boolean.TRUE.toString(), // TODO change to false
+        Boolean.class,
+        false),
 
     ENABLE_VESSEL_USE_FEATURES_HASH_OPTIMIZATION(
-            "sumaris.persistence.vesselUseFeatures.hashOptimization",
-            n("sumaris.config.option.persistence.vesselUseFeatures.hashOptimization.description"),
-            "${sumaris.persistence.activityCalendar.hashOptimization}",
-            Boolean.class,
-            false),
+        "sumaris.persistence.vesselUseFeatures.hashOptimization",
+        n("sumaris.config.option.persistence.vesselUseFeatures.hashOptimization.description"),
+        "${sumaris.persistence.activityCalendar.hashOptimization}",
+        Boolean.class,
+        false),
     ENABLE_GEAR_USE_FEATURES_HASH_OPTIMIZATION(
-            "sumaris.persistence.gearUseFeatures.hashOptimization",
-            n("sumaris.config.option.persistence.gearUseFeatures.hashOptimization.description"),
-            "${sumaris.persistence.activityCalendar.hashOptimization}",
-            Boolean.class,
-            false),
+        "sumaris.persistence.gearUseFeatures.hashOptimization",
+        n("sumaris.config.option.persistence.gearUseFeatures.hashOptimization.description"),
+        "${sumaris.persistence.activityCalendar.hashOptimization}",
+        Boolean.class,
+        false),
 
     ENABLE_GEAR_PHYSICAL_FEATURES_HASH_OPTIMIZATION(
-            "sumaris.persistence.gearPhysicalFeatures.hashOptimization",
-            n("sumaris.config.option.persistence.gearPhysicalFeatures.hashOptimization.description"),
-            "${sumaris.persistence.activityCalendar.hashOptimization}",
-            Boolean.class,
-            false),
+        "sumaris.persistence.gearPhysicalFeatures.hashOptimization",
+        n("sumaris.config.option.persistence.gearPhysicalFeatures.hashOptimization.description"),
+        "${sumaris.persistence.activityCalendar.hashOptimization}",
+        Boolean.class,
+        false),
 
     VESSEL_DEFAULT_PROGRAM_LABEL(
         "sumaris.persistence.vessel.defaultProgram.label",
@@ -718,25 +730,25 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         false),
 
     DB_ADAGIO_SCHEMA(
-            "sumaris.persistence.adagio.schema",
-            n("sumaris.config.option.persistence.adagio.schema.description"),
-            "SIH2_ADAGIO_DBA",
-            String.class,
-            false),
+        "sumaris.persistence.adagio.schema",
+        n("sumaris.config.option.persistence.adagio.schema.description"),
+        "SIH2_ADAGIO_DBA",
+        String.class,
+        false),
 
     ENABLE_ADAGIO_OPTIMIZATION(
-            "sumaris.persistence.adagio.optimization",
-            n("sumaris.config.option.persistence.adagio.optimization.description"),
-            Boolean.FALSE.toString(),
-            Boolean.class,
-            false),
+        "sumaris.persistence.adagio.optimization",
+        n("sumaris.config.option.persistence.adagio.optimization.description"),
+        Boolean.FALSE.toString(),
+        Boolean.class,
+        false),
 
     AUTH_TOKEN_ENABLED(
-            "sumaris.auth.token.enabled",
-            n("sumaris.config.option.sumaris.account.token.enable"),
-            "false",
-            Boolean.class,
-            false),
+        "sumaris.auth.token.enabled",
+        n("sumaris.config.option.sumaris.account.token.enable"),
+        "false",
+        Boolean.class,
+        false),
 
     ELASTICSEARCH_URIS(
         "spring.elasticsearch.uris",
@@ -809,12 +821,12 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
     /**
      * Flag to not keep option value on disk
      */
-    private boolean isTransient;
+    private final boolean isTransient;
 
     /**
      * Flag to not allow option value modification
      */
-    private boolean isFinal;
+    private final boolean isFinal;
 
     SumarisConfigurationOption(String key,
                                String description,

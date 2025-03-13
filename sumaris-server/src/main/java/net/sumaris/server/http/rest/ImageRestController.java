@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.service.administration.DepartmentService;
 import net.sumaris.core.service.administration.PersonService;
 import net.sumaris.core.service.technical.ConfigurationService;
+import net.sumaris.core.util.Images;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.ImageAttachmentFetchOptions;
 import net.sumaris.core.vo.data.ImageAttachmentVO;
@@ -83,31 +84,43 @@ public class ImageRestController implements ResourceLoaderAware {
 
     @ResponseBody
     @RequestMapping(value = RestPaths.PERSON_AVATAR_PATH, method = RequestMethod.GET,
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<?> getPersonAvatar(@PathVariable(name="pubkey") String pubkey) throws IOException {
+        produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<?> getPersonAvatar(@PathVariable(name = "pubkey") String pubkey) throws IOException {
         return personService.findAvatarByPubkey(pubkey)
-            .map(this::getImageResponse)
+            .map(image -> this.getImageResponse(image, Images.ImageType.THUMBNAIL))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @ResponseBody
     @RequestMapping(value = RestPaths.DEPARTMENT_LOGO_PATH, method = RequestMethod.GET,
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<?> getDepartmentLogo(@PathVariable(name="label") String label) throws IOException {
+        produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<?> getDepartmentLogo(@PathVariable(name = "label") String label) throws IOException {
         return departmentService.findLogoByLabel(label)
-            .map(this::getImageResponse)
+            .map(image -> this.getImageResponse(image, Images.ImageType.THUMBNAIL))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @ResponseBody
-    @RequestMapping(value = RestPaths.IMAGE_PATH, method = RequestMethod.GET,
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
-    public ResponseEntity<?> getImage(@NonNull @PathVariable(name="id") Integer id) throws IOException {
+    @RequestMapping(value = {RestPaths.IMAGE_PATH, RestPaths.IMAGE_PATH_WITH_FILENAME},
+        method = RequestMethod.GET, produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<?> getImage(@PathVariable(name = "id", required = false) Integer id,
+                                      @PathVariable(name = "filename", required = false) String filename,
+                                      @RequestParam(name = "resolution", required = false) String resolution
+    ) {
         try {
+            // Convert filename into id
+            if (StringUtils.isNotBlank(filename) && StringUtils.isNumeric(filename)) {
+                id = Integer.parseInt(filename);
+                filename = null;
+            }
+
+            Images.ImageType imageType = Images.ImageType.find(resolution).orElse(Images.ImageType.DIAPO);
+            if (StringUtils.isNotBlank(filename)) {
+                return getImageResponse(filename, imageType);
+            }
             ImageAttachmentVO image = imageService.find(id, ImageAttachmentFetchOptions.WITH_CONTENT);
-            return getImageResponse(image);
-        }
-        catch (Exception e) {
+            return getImageResponse(image, imageType);
+        } catch (Exception e) {
             log.error("Error while fetching image #{}: {}", id, e.getMessage());
             return ResponseEntity.notFound().build();
         }
@@ -115,7 +128,7 @@ public class ImageRestController implements ResourceLoaderAware {
 
     @ResponseBody
     @RequestMapping(value = RestPaths.FAVICON, method = RequestMethod.GET,
-            produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+        produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     @Cacheable(cacheNames = ServerCacheConfiguration.Names.FAVICON)
     public Object getFavicon() throws IOException {
 
@@ -130,7 +143,7 @@ public class ImageRestController implements ResourceLoaderAware {
         // Parse URI like 'image:<ID>'
         if (favicon.startsWith(ImageService.URI_IMAGE_SUFFIX)) {
             String imageId = favicon.substring(ImageService.URI_IMAGE_SUFFIX.length());
-            return getImage(Integer.parseInt(imageId));
+            return getImage(Integer.parseInt(imageId), null, Images.ImageType.THUMBNAIL.getSuffix());
         }
 
         // Redirect to the URL
@@ -149,9 +162,9 @@ public class ImageRestController implements ResourceLoaderAware {
             in.close();
 
             return ResponseEntity.ok()
-                    .contentLength(faviconResource.contentLength())
-                    .body(bos.toByteArray());
-        } catch(IOException e) {
+                .contentLength(faviconResource.contentLength())
+                .body(bos.toByteArray());
+        } catch (IOException e) {
             // Not a local resource: continue
         }
 
@@ -160,48 +173,18 @@ public class ImageRestController implements ResourceLoaderAware {
 
     }
 
-    protected ResponseEntity<?> getImageResponse(ImageAttachmentVO image) {
+    protected ResponseEntity<?> getImageResponse(ImageAttachmentVO image, Images.ImageType imageType) {
         if (image == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // Read the file content
-        String filename = image.getPath();
-        if (StringUtils.isNotBlank(filename)) {
-            // Avoid '..' in the path
-            if (!RestPaths.isSecuredPath(filename)) {
-                log.warn("Reject request to a file {} - Unsecured path", filename);
-                return ResponseEntity.badRequest().build();
-            }
+        // Read the file
+        if (StringUtils.isNotBlank(image.getPath())) {
+            return getImageResponse(image.getPath(), imageType);
+        }
 
-            MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename)
-                .orElse(MediaType.APPLICATION_OCTET_STREAM);
-
-            File file = new File(configuration.getImageAttachmentDirectory(), filename);
-            if (!file.exists()) {
-                log.warn("Reject request to image {} - File not found, or invalid path", file.getAbsolutePath());
-                return ResponseEntity.notFound().build();
-            }
-            if (!file.canRead()) {
-                log.warn("Reject request to image {} - File not readable", file.getAbsolutePath());
-                return ResponseEntity.badRequest().build();
-            }
-
-            log.debug("Request to image {} of type {}", filename, mediaType);
-            InputStreamResource resource = null;
-            try {
-                resource = new InputStreamResource(new FileInputStream(file));
-            } catch (FileNotFoundException e) {
-                log.error("Cannot read image file: {}", file.getAbsolutePath(), e);
-                ResponseEntity.internalServerError().build();
-            }
-
-            return ResponseEntity.ok()
-                // Content-Type
-                .contentType(mediaType)
-                // Content-Length
-                .contentLength(file.length())
-                .body(resource);
+        if (image.getContent() == null) {
+            return ResponseEntity.notFound().build();
         }
 
         byte[] bytes = Base64.decodeBase64(image.getContent());
@@ -211,6 +194,56 @@ public class ImageRestController implements ResourceLoaderAware {
             // Content-Length
             .contentLength(bytes.length)
             .body(bytes);
+    }
+
+    protected ResponseEntity<?> getImageResponse(@NonNull String filename, Images.ImageType imageType) {
+
+        if (StringUtils.isBlank(filename)) ResponseEntity.notFound().build();
+
+        // Avoid '..' in the path
+        if (!RestPaths.isSecuredPath(filename)) {
+            log.warn("Reject request to a file {} - Unsecured path", filename);
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Normalize path (e.g. filename => relative/path/filename.ext
+        filename = Images.computePath(filename);
+
+        MediaType mediaType = MediaTypes.getMediaTypeForFileName(this.servletContext, filename)
+            .orElse(MediaType.APPLICATION_OCTET_STREAM);
+
+        File file = new File(configuration.getImagesDirectory(), filename);
+
+        if (imageType != null && imageType != Images.ImageType.BASE) {
+            file = Images.getImageFile(file, imageType);
+        }
+
+        if (!file.exists()) {
+            log.warn("Reject request to image {} - File not found, or invalid path", file.getAbsolutePath());
+            return ResponseEntity.notFound().build();
+        }
+        if (!file.canRead()) {
+            log.warn("Reject request to image {} - File not readable", file.getAbsolutePath());
+            return ResponseEntity.badRequest().build();
+        }
+
+        log.debug("Request to image {} of type {}", filename, mediaType);
+
+        // Read the file content
+        InputStreamResource resource = null;
+        try {
+            resource = new InputStreamResource(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            log.error("Cannot read image file: {}", file.getAbsolutePath(), e);
+            ResponseEntity.internalServerError().build();
+        }
+
+        return ResponseEntity.ok()
+            // Content-Type
+            .contentType(mediaType)
+            // Content-Length
+            .contentLength(file.length())
+            .body(resource);
     }
 
 }

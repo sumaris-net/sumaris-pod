@@ -52,6 +52,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * helper class for beans (split by property, make sure list exists, ...)
@@ -98,6 +99,20 @@ public class Beans {
      return values !=null ? Lists.newArrayList(values) : Lists.newArrayList();
     }
 
+    /**
+     * <p>getList.</p>
+     *
+     * @param iterable a {@link Collection} object.
+     * @param <E>  a E object.
+     * @return a {@link List} object.
+     */
+    public static <E> List<E> getList(Iterable<E> iterable) {
+        if (iterable == null) {
+            return Collections.emptyList();
+        }
+        return Lists.newArrayList(iterable);
+    }
+
     @SafeVarargs
     public static <E> Collection<E> intersection(Collection<E> ...lists) {
         Collection<E> result = null;
@@ -141,6 +156,17 @@ public class Beans {
             return Stream.empty();
         }
         return ArrayUtils.stream(array);
+    }
+
+    public static <E> Stream<E> getStream(Iterable<E> iterable) {
+        if (iterable == null) {
+            return Stream.empty();
+        }
+        return StreamSupport.stream(
+                iterable.spliterator(),
+                false
+        );
+
     }
 
     /**
@@ -464,18 +490,18 @@ public class Beans {
         }
     }
 
-    public static Integer[] asIntegerArray(Collection<Integer> values) {
-        if (CollectionUtils.isEmpty(values)) {
-            return null;
+    public static Integer[] asIntegerArray(Iterable<? extends Integer> values) {
+        if (values == null) {
+            return new Integer[0];
         }
-        return values.toArray(new Integer[0]);
+        return Iterables.toArray(values, Integer.class);
     }
 
-    public static String[] asStringArray(Collection<String> values) {
-        if (CollectionUtils.isEmpty(values)) {
-            return null;
+    public static String[] asStringArray(Collection<? extends String> values) {
+        if (values == null) {
+            return new String[0];
         }
-        return values.toArray(new String[0]);
+        return Iterables.toArray(values, String.class);
     }
 
     public static String[] asStringArray(String value, String delimiter) {

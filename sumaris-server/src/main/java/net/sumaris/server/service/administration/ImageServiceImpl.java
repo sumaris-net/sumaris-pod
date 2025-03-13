@@ -10,12 +10,12 @@ package net.sumaris.server.service.administration;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,6 +23,7 @@ package net.sumaris.server.service.administration;
  */
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.event.config.ConfigurationEvent;
@@ -30,6 +31,9 @@ import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
 import net.sumaris.core.model.referential.ObjectTypeEnum;
 import net.sumaris.core.service.data.ImageAttachmentService;
+import net.sumaris.core.util.Files;
+import net.sumaris.core.util.Images;
+import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.util.crypto.MD5Util;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
@@ -40,29 +44,26 @@ import net.sumaris.server.config.ServerCacheConfiguration;
 import net.sumaris.server.config.SumarisServerConfiguration;
 import net.sumaris.server.config.SumarisServerConfigurationOption;
 import net.sumaris.server.http.rest.RestPaths;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @Service("imageService")
 @Slf4j
+@RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService {
 
     private String personAvatarUrl;
     private String departmentLogoUrl;
     private String gravatarUrl;
     private String imageUrl;
+    private boolean enableImagesDirectory;
 
-    @Resource
-    private SumarisServerConfiguration configuration;
-
-    @Resource
-    private ImageAttachmentService imageAttachmentService;
+    private final SumarisServerConfiguration configuration;
+    private final ImageAttachmentService imageAttachmentService;
 
 
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -76,7 +77,10 @@ public class ImageServiceImpl implements ImageService {
         gravatarUrl = getAndCheckGravatarUrl(configuration);
 
         // Prepare URL for String formatter
-        imageUrl = configuration.getServerUrl() + RestPaths.IMAGE_PATH;
+        imageUrl = StringUtils.removeTrailingSlash(configuration.getServerUrl())
+            + RestPaths.IMAGE_PATH.replaceAll("\\{(\\w+):[^}]+\\}", "{$1}");
+
+        enableImagesDirectory = configuration.enableDataImagesDirectory() && Files.exists(configuration.getImagesDirectory());
     }
 
     @Override
@@ -119,14 +123,30 @@ public class ImageServiceImpl implements ImageService {
     }
 
     public void fillUrl(ImageAttachmentVO image) {
-        if (image == null || image.getId() == null) return;
-        if (image.getUrl() != null) return; // Already fill
-
-        image.setUrl(getImageUrlById(image.getId()));
+        if (image == null) return;
+        image.setUrl(getImageUrl(image));
     }
 
     public void cleanDataUrl(ImageAttachmentVO image) {
         image.setDataUrl(null);
+    }
+
+    @Override
+    public String getImageUrl(ImageAttachmentVO image) {
+        if (image == null) return null;
+        if (image.getUrl() != null) return image.getUrl(); // Already fill
+
+        // when possible, use the filename to create an URL
+        // It is better because we not need to load the ImageAttachement to get the image path (it can be computed)
+        if (enableImagesDirectory && StringUtils.isNotBlank(image.getPath())) {
+            return getImageUrlByPath(image.getPath());
+        }
+
+        if (image.getId() == null) return null;
+
+        // By default, use the id
+        // Can be slower, because need to load the ImageAttachement to get the image path or content
+        return getImageUrlById(image.getId());
     }
 
     @Override
@@ -145,6 +165,16 @@ public class ImageServiceImpl implements ImageService {
     public String getImageUrlById(int id) {
         return imageUrl.replace("{id}", String.valueOf(id));
     }
+
+    @Override
+    public String getImageUrlByPath(String filename) {
+        // Normalize the path (will check if well formatted)
+        String path = Images.computePath(filename);
+        filename = FilenameUtils.getName(path);
+
+        return imageUrl.replace("{id}", filename);
+    }
+
 
     /* -- protected methods -- */
 

@@ -64,15 +64,15 @@ import java.util.List;
 
 @Slf4j
 public class ActivityCalendarRepositoryImpl
-        extends RootDataRepositoryImpl<ActivityCalendar, ActivityCalendarVO, ActivityCalendarFilterVO, ActivityCalendarFetchOptions>
-        implements ActivityCalendarSpecifications {
+    extends RootDataRepositoryImpl<ActivityCalendar, ActivityCalendarVO, ActivityCalendarFilterVO, ActivityCalendarFetchOptions>
+    implements ActivityCalendarSpecifications {
 
     @Autowired
     private ImageAttachmentRepository imageAttachmentRepository;
 
     private boolean enableVesselRegistrationNaturalOrder;
 
-    private boolean enableImageAttachments;
+    private boolean enableImages;
 
     @Autowired
     public ActivityCalendarRepositoryImpl(EntityManager entityManager,
@@ -85,7 +85,7 @@ public class ActivityCalendarRepositoryImpl
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableVesselRegistrationNaturalOrder = configuration.enableVesselRegistrationCodeNaturalOrder();
-        this.enableImageAttachments = configuration.enableDataImages();
+        this.enableImages = configuration.enableDataImages();
     }
 
     @Override
@@ -164,11 +164,11 @@ public class ActivityCalendarRepositoryImpl
         Integer activityCalendarId = source.getId();
 
         // Fetch images
-        if (this.enableImageAttachments && fetchOptions != null && fetchOptions.isWithImages() && activityCalendarId != null) {
+        if (this.enableImages && fetchOptions != null && fetchOptions.isWithImages() && activityCalendarId != null) {
             List<ImageAttachmentVO> images = imageAttachmentRepository.findAll(ImageAttachmentFilterVO.builder()
-                    .objectId(activityCalendarId)
-                    .objectTypeId(ObjectTypeEnum.ACTIVITY_CALENDAR.getId())
-                    .build(), ImageAttachmentFetchOptions.MINIMAL);
+                .objectId(activityCalendarId)
+                .objectTypeId(ObjectTypeEnum.ACTIVITY_CALENDAR.getId())
+                .build(), ImageAttachmentFetchOptions.MINIMAL);
             target.setImages(images);
         }
 
@@ -217,12 +217,10 @@ public class ActivityCalendarRepositoryImpl
             ListJoin<Vessel, VesselRegistrationPeriod> vrp = composeVrpJoin(root, cb);
             if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION)) {
                 expression = vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_LOCATION).get(Location.Fields.LABEL);
-            }
-            else {
+            } else {
                 if (property.endsWith(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE)) {
                     expression = vrp.get(VesselRegistrationPeriod.Fields.INT_REGISTRATION_CODE);
-                }
-                else if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
+                } else if (property.endsWith(VesselRegistrationPeriod.Fields.REGISTRATION_CODE)) {
                     expression = vrp.get(VesselRegistrationPeriod.Fields.REGISTRATION_CODE);
                 }
                 // Natural sort
@@ -238,8 +236,7 @@ public class ActivityCalendarRepositoryImpl
             ListJoin<Vessel, VesselFeatures> vf = composeVfJoin(root, cb);
             if (property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
                 expression = vf.get(VesselFeatures.Fields.EXTERIOR_MARKING);
-            }
-            else if (property.endsWith(VesselFeatures.Fields.NAME)) {
+            } else if (property.endsWith(VesselFeatures.Fields.NAME)) {
                 expression = vf.get(VesselFeatures.Fields.NAME);
             }
 
