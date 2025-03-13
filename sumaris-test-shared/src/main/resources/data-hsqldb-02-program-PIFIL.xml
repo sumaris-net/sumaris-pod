@@ -68,6 +68,18 @@
   <PROGRAM_PROPERTY ID="131" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.operation.skipDates.tripPmfm.id" NAME="550"/>
   <PROGRAM_PROPERTY ID="132" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.sample.taxonGroup.help" NAME="&lt;b&gt;DCO&lt;/b&gt; : Dauphin Commun &lt;b&gt;PHR&lt;/b&gt; : Marsouin commun &lt;b&gt;DBO&lt;/b&gt; : Grand dauphin &lt;b&gt;DST&lt;/b&gt; : Dauphin bleu et blanc &lt;b&gt;PIW&lt;/b&gt; : Globicéphale commun &lt;b&gt;UNK&lt;/b&gt; : Dauphin non-identifié"/>
   <PROGRAM_PROPERTY ID="133" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.operation.comment.help.text" NAME="(ex : dysfonctionnements éventuels, situation particulière en mer, captures accidentelles d'autres espèces...)"/>
+  <PROGRAM_PROPERTY ID="134" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.type" NAME="form,blank-form"/>
+  <PROGRAM_PROPERTY ID="135" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.showQualitativeValuesCheckBox" NAME="false"/>
+  <PROGRAM_PROPERTY ID="136" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.tipsLimitToShowOn_annex" NAME="20"/>
+  <PROGRAM_PROPERTY ID="137" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.showSampleRankOrder" NAME="false"/>
+  <PROGRAM_PROPERTY ID="138" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.physicalGearsShowByTable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="139" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.operation.comment.help.text" NAME="(ex : dysfonctionnements éventuels, situation particulière en mer, captures accidentelles d'autres espèces...)"/>
+  <PROGRAM_PROPERTY ID="140" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.header.right.logo.url" NAME="/assets/img/logo/logo-pifil-square.png"/>
+  <PROGRAM_PROPERTY ID="141" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-dgampa.png"/>
+  <PROGRAM_PROPERTY ID="142" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.blank.multiTrip" NAME="true"/>
+  <PROGRAM_PROPERTY ID="143" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.sampleMultiOp" NAME="true"/>
+  <PROGRAM_PROPERTY ID="144" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.enable" NAME="true"/>
+  <PROGRAM_PROPERTY ID="145" STATUS_FK="1" PROGRAM_FK="60" CREATION_DATE="2025-02-20" LABEL="sumaris.trip.report.form.pmfm.hiddenIds" NAME="188,550"/>
 
 
   <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="60" LOCATION_CLASSIFICATION_FK="2"/>
