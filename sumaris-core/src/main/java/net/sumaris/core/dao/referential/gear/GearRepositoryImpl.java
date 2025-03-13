@@ -22,14 +22,15 @@ package net.sumaris.core.dao.referential.gear;
  * #L%
  */
 
+import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
-import net.sumaris.core.model.administration.programStrategy.ProgramPrivilege;
 import net.sumaris.core.model.referential.gear.Gear;
+import net.sumaris.core.util.Beans;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
-import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import org.springframework.cache.annotation.Cacheable;
 
 import javax.persistence.EntityManager;
@@ -37,17 +38,28 @@ import javax.persistence.EntityManager;
 /**
  * @author blavenie
  */
+@Slf4j
 public class GearRepositoryImpl
-    extends ReferentialRepositoryImpl<Integer, Gear, ReferentialVO, ReferentialFilterVO, ReferentialFetchOptions> {
+        extends ReferentialRepositoryImpl<Integer, Gear, GearVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     public GearRepositoryImpl(EntityManager entityManager) {
-        super(Gear.class, ReferentialVO.class, entityManager);
+        super(Gear.class, GearVO.class, entityManager);
     }
 
     @Override
     @Cacheable(cacheNames = CacheConfiguration.Names.GEAR_BY_ID, unless = "#result==null")
-    public ReferentialVO get(Integer id) {
+    public GearVO get(Integer id) {
         return super.get(id);
     }
 
+    protected void toVO(Gear source, GearVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
+        Beans.copyProperties(source, target);
+        target.setEntityName(Gear.ENTITY_NAME);
+        target.setStatusId(source.getStatus().getId());
+        target.setLevelId(source.getGearClassification().getId());
+        target.setProperties(ImmutableMap.<String, Object>builder()
+                .put(Gear.Fields.IS_TOWED, source.getIsTowed())
+                .put(Gear.Fields.IS_ACTIVE, source.getIsActive())
+                .build());
+    }
 }

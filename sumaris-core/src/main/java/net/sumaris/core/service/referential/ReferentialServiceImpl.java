@@ -30,6 +30,7 @@ import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialEntities;
 import net.sumaris.core.dao.referential.ReferentialRepository;
+import net.sumaris.core.dao.referential.gear.GearRepository;
 import net.sumaris.core.dao.referential.gradient.DepthGradientRepository;
 import net.sumaris.core.dao.referential.gradient.DistanceToCoastGradientRepository;
 import net.sumaris.core.dao.referential.gradient.NearbySpecificAreaRepository;
@@ -46,6 +47,7 @@ import net.sumaris.core.event.entity.EntityUpdateEvent;
 import net.sumaris.core.exception.DataNotFoundException;
 import net.sumaris.core.model.referential.IItemReferentialEntity;
 import net.sumaris.core.model.referential.IReferentialWithStatusEntity;
+import net.sumaris.core.model.referential.gear.Gear;
 import net.sumaris.core.model.referential.gradient.DepthGradient;
 import net.sumaris.core.model.referential.gradient.DistanceToCoastGradient;
 import net.sumaris.core.model.referential.gradient.NearbySpecificArea;
@@ -93,25 +95,28 @@ public class ReferentialServiceImpl implements ReferentialService {
 		ReferentialFetchOptions>> repositoriesMap = Maps.newHashMap();
 
 	private final ApplicationEventPublisher publisher;
+	private final GearRepository gearRepository;
 
 	private boolean enableTrash = false;
 
 
 	@Autowired
 	public ReferentialServiceImpl(ReferentialDao referentialDao,
-                                  MetierRepository metierRepository,
+								  MetierRepository metierRepository,
 								  LocationRepository locationRepository,
-                                  DistanceToCoastGradientRepository distanceToCoastGradientRepository,
-                                  DepthGradientRepository depthGradientRepository,
-                                  NearbySpecificAreaRepository nearbySpecificAreaRepository,
-                                  GenericConversionService conversionService,
-                                  ApplicationEventPublisher publisher) {
+								  DistanceToCoastGradientRepository distanceToCoastGradientRepository,
+								  DepthGradientRepository depthGradientRepository,
+								  NearbySpecificAreaRepository nearbySpecificAreaRepository,
+								  GenericConversionService conversionService,
+								  ApplicationEventPublisher publisher,
+								  GearRepository gearRepository) {
 		this.referentialDao = referentialDao;
 		this.metierRepository = metierRepository;
         this.locationRepository = locationRepository;
         this.distanceToCoastGradientRepository = distanceToCoastGradientRepository;
         this.depthGradientRepository = depthGradientRepository;
         this.nearbySpecificAreaRepository = nearbySpecificAreaRepository;
+		this.gearRepository = gearRepository;
         this.publisher = publisher;
 
 		// Register repositories, by entity name
@@ -119,6 +124,7 @@ public class ReferentialServiceImpl implements ReferentialService {
 		repositoriesMap.put(DistanceToCoastGradient.ENTITY_NAME, distanceToCoastGradientRepository);
 		repositoriesMap.put(DepthGradient.ENTITY_NAME, depthGradientRepository);
 		repositoriesMap.put(NearbySpecificArea.ENTITY_NAME, nearbySpecificAreaRepository);
+		repositoriesMap.put(Gear.ENTITY_NAME, gearRepository);
 
 		// Entity->ReferentialVO converters
 		ReferentialEntities.ROOT_CLASSES.forEach(entityClass -> {
@@ -203,6 +209,15 @@ public class ReferentialServiceImpl implements ReferentialService {
 				.stream().map(item -> (ReferentialVO)item).toList();
 		}
 
+		// Gear
+		if (entityName.equalsIgnoreCase(Gear.ENTITY_NAME)) {
+			return gearRepository.findAll(
+					(ReferentialFilterVO) IReferentialFilter.nullToEmpty(filter),
+					offset, size, sortAttribute, sortDirection,
+					fetchOptions)
+				.stream().map(item -> (ReferentialVO)item).toList();
+		}
+
 		// Distance To Coast Gradient
 		if (entityName.equalsIgnoreCase(DistanceToCoastGradient.ENTITY_NAME)) {
 			return findGradientByFilter(
@@ -236,10 +251,11 @@ public class ReferentialServiceImpl implements ReferentialService {
 	}
 
 	@Override
-	public List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size) {
+	public <V extends ReferentialVO> List<V> findByFilter(String entityName, IReferentialFilter filter, int offset, int size) {
 		return findByFilterNoCache(entityName, filter != null ? filter : new ReferentialFilterVO(), offset, size,
 				IItemReferentialEntity.Fields.LABEL,
-				SortDirection.ASC, null);
+				SortDirection.ASC, null)
+			.stream().map(item -> (V)item).toList();
 	}
 
 	@Override

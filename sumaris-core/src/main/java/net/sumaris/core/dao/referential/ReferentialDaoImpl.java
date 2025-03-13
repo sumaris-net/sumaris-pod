@@ -255,10 +255,15 @@ public class ReferentialDaoImpl
 
     @Override
     public <T extends IReferentialEntity> ReferentialVO toVO(T source) {
+        return toVO(source, null);
+    }
+
+    @Override
+    public <T extends IReferentialEntity> ReferentialVO toVO(T source, @Nullable ReferentialFetchOptions fetchOptions) {
         if (source == null)
             throw new EntityNotFoundException();
 
-        return toVO(getEntityName(source), source, null);
+        return toVO(getEntityName(source), source, fetchOptions);
     }
 
     @Override
@@ -605,7 +610,7 @@ public class ReferentialDaoImpl
             if (fetchOptions.isWithLevelId()) {
                 ReferentialEntities.getLevelProperty(entityName).ifPresent(levelDescriptor -> {
                     try {
-                        IReferentialEntity<Integer> level = (IReferentialEntity) levelDescriptor.getReadMethod().invoke(source, new Object[0]);
+                        IReferentialEntity<Integer> level = (IReferentialEntity<Integer>) levelDescriptor.getReadMethod().invoke(source, new Object[0]);
                         if (level != null) {
                             target.setLevelId(level.getId());
                         }
@@ -1077,6 +1082,13 @@ public class ReferentialDaoImpl
                 target.setProperties(ImmutableMap.<String, Object>builder()
                     .put(Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier)source).getTaxonGroup()))
                     .put(Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear()))
+                    .build()
+                );
+            }
+            case Gear.ENTITY_NAME -> {
+                target.setProperties(ImmutableMap.<String, Object>builder()
+                    .put(Gear.Fields.IS_TOWED, ((Gear)source).getIsTowed())
+                    .put(Gear.Fields.IS_ACTIVE, ((Gear)source).getIsActive())
                     .build()
                 );
             }

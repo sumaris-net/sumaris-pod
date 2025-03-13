@@ -22,7 +22,7 @@ package net.sumaris.core.util;
  * #L%
  */
 
-import graphql.com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -34,11 +34,14 @@ public class ApplicationUtils {
     /**
      * Transform args as expected by nuiton-config.
      * <p>
-     * E.g. <ul>
-     *     <li>the argument '--key=value' will become '--key value'</li>
-     *     <li>the argument '--key.path=value' will become '--option key.path value'</li>
-     *  </ul>
+     * E.g.
+     * <ul>
+     * <li>the argument '--key=value' will become '--key value'</li>
+     * <li>the argument '--key.path=value' will become '--option key.path
+     * value'</li>
+     * </ul>
      * </p>
+     * 
      * @param args
      * @return
      */
@@ -53,11 +56,13 @@ public class ApplicationUtils {
                         String prefix = matcher.group(1);
                         String name = matcher.group(2);
                         String value = matcher.group(3);
-                        // If composite property name (e.g. 'xxx.yyy'): add '--option' before name and value
+                        // If composite property name (e.g. 'xxx.yyy'): add '--option' before name and
+                        // value
                         if (name.contains(".")) {
                             return ImmutableList.of("--option", name, value).stream();
                         }
-                        // If simple property (e.g. 'xxx'), separate name and value (do no add '--option')
+                        // If simple property (e.g. 'xxx'), separate name and value (do no add
+                        // '--option')
                         // See alias defined in SumarisConfiguration
                         else {
                             return ImmutableList.of(prefix + name, value).stream();

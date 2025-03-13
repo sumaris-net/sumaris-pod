@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.RootDataRepositoryImpl;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.gear.GearRepository;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
 import net.sumaris.core.event.config.ConfigurationUpdatedEvent;
@@ -43,6 +44,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
 import net.sumaris.core.vo.filter.PhysicalGearFilterVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -56,28 +58,31 @@ import java.util.stream.Stream;
 
 @Slf4j
 public class PhysicalGearRepositoryImpl
-    extends RootDataRepositoryImpl<PhysicalGear, PhysicalGearVO, PhysicalGearFilterVO, DataFetchOptions>
-    implements PhysicalGearSpecifications {
+        extends RootDataRepositoryImpl<PhysicalGear, PhysicalGearVO, PhysicalGearFilterVO, DataFetchOptions>
+        implements PhysicalGearSpecifications {
 
     private final ReferentialDao referentialDao;
+    private final GearRepository gearRepository;
     private final MeasurementDao measurementDao;
 
     private boolean enableHashOptimization;
 
     @Autowired
     public PhysicalGearRepositoryImpl(EntityManager entityManager,
-                                      MeasurementDao measurementDao,
-                                      ReferentialDao referentialDao) {
+            MeasurementDao measurementDao,
+            ReferentialDao referentialDao,
+            GearRepository gearRepository) {
         super(PhysicalGear.class, PhysicalGearVO.class, entityManager);
-        this.measurementDao = measurementDao;
         this.referentialDao = referentialDao;
+        this.gearRepository = gearRepository;
+        this.measurementDao = measurementDao;
 
         // TODO: to remove after test
-        //setCheckUpdateDate(false);
+        // setCheckUpdateDate(false);
     }
 
     @PostConstruct
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    @EventListener({ ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class })
     public void onConfigurationReady() {
         this.enableHashOptimization = getConfig().enablePhysicalGearHashOptimization();
     }
@@ -85,18 +90,18 @@ public class PhysicalGearRepositoryImpl
     @Override
     public Specification<PhysicalGear> toSpecification(PhysicalGearFilterVO filter, DataFetchOptions fetchOptions) {
         return super.toSpecification(filter, fetchOptions)
-            .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
-            .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
-            // Trip
-            .and(hasTripId(filter.getTripId()))
-            .and(excludeTripId(filter.getExcludeTripId()))
-            // Parent
-            .and(hasParentGearId(filter.getParentGearId()))
-            .and(excludeParentGearId(filter.getExcludeParentGearId()))
-            .and(excludeParentGear(filter.getExcludeParentGear()))
-            .and(excludeChildGear(filter.getExcludeChildGear()))
-            // Quality
-            .and(inDataQualityStatus(filter.getDataQualityStatus()));
+                .and(betweenDate(filter.getStartDate(), filter.getEndDate()))
+                .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
+                // Trip
+                .and(hasTripId(filter.getTripId()))
+                .and(excludeTripId(filter.getExcludeTripId()))
+                // Parent
+                .and(hasParentGearId(filter.getParentGearId()))
+                .and(excludeParentGearId(filter.getExcludeParentGearId()))
+                .and(excludeParentGear(filter.getExcludeParentGear()))
+                .and(excludeChildGear(filter.getExcludeChildGear()))
+                // Quality
+                .and(inDataQualityStatus(filter.getDataQualityStatus()));
     }
 
     @Override
@@ -108,8 +113,13 @@ public class PhysicalGearRepositoryImpl
         if (copyIfNull || gear != null) {
             if (gear == null) {
                 target.setGear(null);
+                target.setFullGear(null);
+                target.setIsTowed(null);
             } else {
                 target.setGear(referentialDao.toVO(gear));
+                GearVO gearVO = gearRepository.toVO(gear);
+                target.setFullGear(gearVO);
+
             }
         }
 
@@ -140,7 +150,8 @@ public class PhysicalGearRepositoryImpl
         toEntity(source, target, copyIfNull, target.getId() != null && enableHashOptimization);
     }
 
-    protected boolean toEntity(PhysicalGearVO source, PhysicalGear target, boolean copyIfNull, boolean allowSkipSameHash) {
+    protected boolean toEntity(PhysicalGearVO source, PhysicalGear target, boolean copyIfNull,
+            boolean allowSkipSameHash) {
         Preconditions.checkNotNull(source);
         Preconditions.checkNotNull(source.getGear(), "Missing gear");
         Preconditions.checkNotNull(source.getGear().getId(), "Missing gear.id");
@@ -154,13 +165,16 @@ public class PhysicalGearRepositoryImpl
 
         // Parent
         Integer parentId = source.getParent() != null ? source.getParent().getId() : source.getParentId();
-        Integer tripId = source.getTripId() != null ? source.getTripId() : (source.getTrip() != null ? source.getTrip().getId() : null);
+        Integer tripId = source.getTripId() != null ? source.getTripId()
+                : (source.getTrip() != null ? source.getTrip().getId() : null);
         if (copyIfNull || parentId != null) {
 
             // Check if parent changed
             PhysicalGear previousParent = target.getParent();
-            if (previousParent != null && !Objects.equals(parentId, previousParent.getId()) && CollectionUtils.isNotEmpty(previousParent.getChildren())) {
-                // Remove in the parent children list (to avoid a DELETE CASCADE if the parent is delete later - fix #15)
+            if (previousParent != null && !Objects.equals(parentId, previousParent.getId())
+                    && CollectionUtils.isNotEmpty(previousParent.getChildren())) {
+                // Remove in the parent children list (to avoid a DELETE CASCADE if the parent
+                // is delete later - fix #15)
                 previousParent.getChildren().remove(target);
             }
 
@@ -170,10 +184,11 @@ public class PhysicalGearRepositoryImpl
                 PhysicalGear parent = getReference(PhysicalGear.class, parentId);
                 target.setParent(parent);
 
-                // Not need to update the children collection, because mapped by the 'parent' property
-                //if (!parent.getChildren().contains(target)) {
-                //    parent.getChildren().add(target);
-                //}
+                // Not need to update the children collection, because mapped by the 'parent'
+                // property
+                // if (!parent.getChildren().contains(target)) {
+                // parent.getChildren().add(target);
+                // }
 
                 // Force using the parent's trip
                 tripId = parent.getTrip().getId();
@@ -224,8 +239,8 @@ public class PhysicalGearRepositoryImpl
     }
 
     public List<PhysicalGearVO> saveAllByTripId(final int tripId,
-                                                final List<PhysicalGearVO> sources,
-                                                List<Integer> idsToRemoveLater) {
+            final List<PhysicalGearVO> sources,
+            List<Integer> idsToRemoveLater) {
 
         long debugTime = log.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         if (debugTime != 0L)
@@ -257,10 +272,9 @@ public class PhysicalGearRepositoryImpl
 
     /* -- protected methods -- */
 
-
     protected boolean saveAllByParent(IWithGearsEntity<Integer, PhysicalGear> parent,
-                                      List<PhysicalGearVO> sources,
-                                      List<Integer> idsToRemoveLater) {
+            List<PhysicalGearVO> sources,
+            List<Integer> idsToRemoveLater) {
         final boolean trace = log.isTraceEnabled();
 
         // Load existing entities
@@ -277,7 +291,8 @@ public class PhysicalGearRepositoryImpl
                 target = sourcesByIds.remove(source.getId());
             }
             // Check can be skipped
-            boolean skip = enableHashOptimization && source.getId() != null && sourcesIdsToSkip.contains(source.getId());
+            boolean skip = enableHashOptimization && source.getId() != null
+                    && sourcesIdsToSkip.contains(source.getId());
             if (!skip) {
                 source = optimizedSave(source, target, false, newUpdateDate, enableHashOptimization);
                 skip = !Objects.equals(source.getUpdateDate(), newUpdateDate);
@@ -285,8 +300,8 @@ public class PhysicalGearRepositoryImpl
                 // If not changed, skip all children
                 if (skip) {
                     streamRecursiveChildren(source)
-                        .map(PhysicalGearVO::getId)
-                        .forEach(sourcesIdsToSkip::add);
+                            .map(PhysicalGearVO::getId)
+                            .forEach(sourcesIdsToSkip::add);
                 }
             }
             if (skip && trace) {
@@ -294,8 +309,8 @@ public class PhysicalGearRepositoryImpl
             }
             return !skip;
         })
-        // Count updates
-        .filter(Boolean::booleanValue).count();
+                // Count updates
+                .filter(Boolean::booleanValue).count();
 
         boolean dirty = updatesCount > 0;
 
@@ -305,8 +320,7 @@ public class PhysicalGearRepositoryImpl
             // In this case, we simply add items to this list
             if (idsToRemoveLater != null) {
                 idsToRemoveLater.addAll(sourcesByIds.keySet());
-            }
-            else {
+            } else {
                 sourcesByIds.keySet().forEach(sampleId -> {
                     try {
                         this.deleteById(sampleId);
@@ -330,10 +344,10 @@ public class PhysicalGearRepositoryImpl
     }
 
     protected PhysicalGearVO optimizedSave(PhysicalGearVO source,
-                                           PhysicalGear entity,
-                                           boolean checkUpdateDate,
-                                           Date newUpdateDate,
-                                           boolean enableHashOptimization) {
+            PhysicalGear entity,
+            boolean checkUpdateDate,
+            Date newUpdateDate,
+            boolean enableHashOptimization) {
         Preconditions.checkNotNull(source);
         EntityManager em = getEntityManager();
 
@@ -351,7 +365,7 @@ public class PhysicalGearRepositoryImpl
             Daos.checkUpdateDateForUpdate(source, entity);
 
             // Lock entityName
-            //lockForUpdate(entity);
+            // lockForUpdate(entity);
         }
 
         onBeforeSaveEntity(source, entity, isNew);
@@ -402,7 +416,6 @@ public class PhysicalGearRepositoryImpl
 
         return source;
     }
-
 
     protected Stream<PhysicalGearVO> streamRecursiveChildren(PhysicalGearVO source) {
         if (CollectionUtils.isEmpty(source.getChildren())) {
