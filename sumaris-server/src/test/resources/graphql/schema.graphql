@@ -1159,6 +1159,7 @@ type PhysicalGearVO {
     tripId: Int
     updateDate: Date
     validationDate: Date
+    isTowed: Boolean
 }
 
 type PmfmStrategyVO {

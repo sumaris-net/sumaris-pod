@@ -22,9 +22,7 @@ package net.sumaris.core.service.data;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import net.sumaris.core.dao.DatabaseResource;
 import net.sumaris.core.model.TreeNodeEntities;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
@@ -40,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class PhysicalGearServiceWriteTest extends AbstractServiceTest{
+public class PhysicalGearServiceWriteTest extends AbstractServiceTest {
 
     @ClassRule
     public static final DatabaseResource dbResource = DatabaseResource.writeDb();
@@ -71,12 +69,11 @@ public class PhysicalGearServiceWriteTest extends AbstractServiceTest{
         // Reload
         {
             List<PhysicalGearVO> reloadGears = service.getAllByTripId(tripId, DataFetchOptions.builder()
-                .withChildrenEntities(true)
-                .build());
+                    .withChildrenEntities(true)
+                    .build());
             Assert.assertEquals(gears.size() + 1, reloadGears.size());
         }
     }
-
 
     protected PhysicalGearVO createPhysicalGear(int rankOrder, String label) {
         PhysicalGearVO target = new PhysicalGearVO();
@@ -89,7 +86,7 @@ public class PhysicalGearServiceWriteTest extends AbstractServiceTest{
 
     protected ReferentialVO createGear(int index) {
         return ReferentialVO.builder()
-            .id(fixtures.getGearId(0))
-            .build();
+                .id(fixtures.getGearId(0))
+                .build();
     }
 }

@@ -29,7 +29,6 @@ import net.sumaris.core.vo.referential.IReferentialVO;
 import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -73,6 +72,8 @@ public interface ReferentialDao {
     Optional<ReferentialVO> findByUniqueLabel(String entityName, String label);
 
     <T extends IReferentialEntity> ReferentialVO toVO(T source);
+
+    <T extends IReferentialEntity> ReferentialVO toVO(T source, @Nullable ReferentialFetchOptions fetchOptions);
 
     <T extends IReferentialVO, S extends IReferentialEntity> Optional<T> toTypedVO(S source, Class<T> targetClazz);
 

@@ -25,6 +25,7 @@ package net.sumaris.core.dao.referential.metier;
 import lombok.NonNull;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.referential.gear.GearRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonGroupRepository;
 import net.sumaris.core.dao.technical.Page;
 import net.sumaris.core.dao.technical.SortDirection;
@@ -53,6 +54,10 @@ import java.util.stream.Stream;
 public class MetierRepositoryImpl
         extends ReferentialRepositoryImpl<Integer, Metier, MetierVO, IReferentialFilter, ReferentialFetchOptions>
         implements MetierSpecifications {
+
+
+    @Autowired
+    private GearRepository gearRepository;
 
     @Autowired
     private ReferentialDao referentialDao;
@@ -135,7 +140,10 @@ public class MetierRepositoryImpl
 
         // Gear
         if (source.getGear() != null) {
+            // Set Gear
             target.setGear(referentialDao.toVO(source.getGear()));
+            // Set FullGear
+            target.setFullGear(gearRepository.toVO(source.getGear()));
             target.setLevelId(source.getGear().getId());
         }
 

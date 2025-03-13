@@ -27,6 +27,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 
 @Data
@@ -35,6 +36,7 @@ import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 public class MetierVO extends ReferentialVO {
 
     private ReferentialVO gear;
+    private GearVO fullGear;
     private TaxonGroupVO taxonGroup;
 
     public MetierVO() {

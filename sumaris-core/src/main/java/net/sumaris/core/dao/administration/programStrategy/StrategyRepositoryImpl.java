@@ -35,6 +35,7 @@ import net.sumaris.core.dao.administration.programStrategy.denormalized.Denormal
 import net.sumaris.core.dao.administration.user.DepartmentRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.ReferentialRepositoryImpl;
+import net.sumaris.core.dao.referential.gear.GearRepository;
 import net.sumaris.core.dao.referential.location.LocationRepository;
 import net.sumaris.core.dao.referential.taxon.TaxonNameRepository;
 import net.sumaris.core.dao.technical.Page;
@@ -61,6 +62,7 @@ import net.sumaris.core.vo.filter.LocationFilterVO;
 import net.sumaris.core.vo.filter.PmfmStrategyFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import net.sumaris.core.vo.referential.location.LocationVO;
 import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 import org.apache.commons.collections4.CollectionUtils;
@@ -95,6 +97,7 @@ public class StrategyRepositoryImpl
 
     private final DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository;
 
+    private final GearRepository gearRepository;
 
     private final TaxonNameRepository taxonNameRepository;
 
@@ -108,6 +111,7 @@ public class StrategyRepositoryImpl
 
     public StrategyRepositoryImpl(EntityManager entityManager, ReferentialDao referentialDao, PmfmStrategyRepository pmfmStrategyRepository,
                                   DenormalizedPmfmStrategyRepository denormalizedPmfmStrategyRepository, TaxonNameRepository taxonNameRepository, LocationRepository locationRepository, DepartmentRepository departmentRepository, ProgramPrivilegeRepository programPrivilegeRepository,
+                                  GearRepository gearRepository,
                                   SumarisConfiguration configuration) {
         super(Strategy.class, StrategyVO.class, entityManager);
         this.referentialDao = referentialDao;
@@ -116,6 +120,7 @@ public class StrategyRepositoryImpl
         this.taxonNameRepository = taxonNameRepository;
         this.locationRepository = locationRepository;
         this.departmentRepository = departmentRepository;
+        this.gearRepository = gearRepository;
         this.programPrivilegeRepository = programPrivilegeRepository;
         this.dbTimeZone = configuration.getDbTimezone();
         setLockForUpdate(true);
@@ -706,12 +711,23 @@ public class StrategyRepositoryImpl
 
         // Gears
         if (fetchOptions.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
-            List<ReferentialVO> gears = source.getGears()
+            // Set Gears
+            List<ReferentialVO> refGears = source.getGears()
+                    .stream()
+                    .map(referentialDao::toVO)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            target.setGears(refGears);
+
+            // Set FulGears
+            List<GearVO> gears = source.getGears()
                 .stream()
-                .map(referentialDao::toVO)
+                .map(gearRepository::toVO)
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-            target.setGears(gears);
+                .toList();
+            target.setFullGears(gears);
+
+
         }
 
         // Taxon groups

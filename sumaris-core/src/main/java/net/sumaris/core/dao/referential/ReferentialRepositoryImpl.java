@@ -49,7 +49,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -81,7 +80,7 @@ public abstract class ReferentialRepositoryImpl<
 
     @Override
     public List<V> findAll(F filter) {
-        return findAll(toSpecification(filter)).stream().map(this::toVO).collect(Collectors.toList());
+        return findAll(toSpecification(filter)).stream().map(this::toVO).toList();
     }
 
     @Override
@@ -94,7 +93,7 @@ public abstract class ReferentialRepositoryImpl<
     public List<V> findAll(F filter, O fetchOptions) {
         return findAll(toSpecification(filter)).stream()
             .map(e -> this.toVO(e, fetchOptions))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -134,7 +133,7 @@ public abstract class ReferentialRepositoryImpl<
     public List<V> findAllAsVO(Specification<E> spec) {
         return super.findAll(spec).stream()
             .map(this::toVO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override
@@ -147,7 +146,7 @@ public abstract class ReferentialRepositoryImpl<
     public List<V> findAllAsVO(Specification<E> spec, O fetchOptions) {
         return super.findAll(spec).stream()
             .map(e -> this.toVO(e, fetchOptions))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Override

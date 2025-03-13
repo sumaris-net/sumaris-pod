@@ -33,6 +33,7 @@ import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 
 import java.util.Date;
 import java.util.List;
@@ -43,9 +44,9 @@ import java.util.Map;
 @FieldNameConstants
 @EqualsAndHashCode
 public class PhysicalGearVO implements IRootDataVO<Integer>,
-    IWithFlagsValueObject<Integer>,
-    ITreeNodeEntity<Integer, PhysicalGearVO>,
-    IWithMeasurementValues {
+        IWithFlagsValueObject<Integer>,
+        ITreeNodeEntity<Integer, PhysicalGearVO>,
+        IWithMeasurementValues {
 
     @EqualsAndHashCode.Exclude
     @ToString.Include
@@ -54,6 +55,7 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     private Integer rankOrder;
     @ToString.Include
     private ReferentialVO gear;
+    private GearVO fullGear;
     private String comments;
     @EqualsAndHashCode.Exclude
     private Date creationDate;
@@ -72,11 +74,14 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     private Map<Integer, String> measurementValues;
     private List<MeasurementVO> measurements;
 
+    private Boolean isTowed;
+    private Boolean isActive;
+
     // Parent physical gear
     @EqualsAndHashCode.Exclude
     private PhysicalGearVO parent;
     private Integer parentId;
-    private List<PhysicalGearVO> children;;
+    private List<PhysicalGearVO> children;
 
     // Trip
     @EqualsAndHashCode.Exclude

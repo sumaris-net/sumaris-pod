@@ -57,7 +57,7 @@ public interface ReferentialService {
     ReferentialVO get(Class<? extends IReferentialWithStatusEntity<Integer>> entityClass, int id, ReferentialFetchOptions fetchOptions);
 
     @Transactional(readOnly = true)
-    List<ReferentialVO> findByFilter(String entityName, IReferentialFilter filter, int offset, int size);
+    <V extends ReferentialVO> List<V> findByFilter(String entityName, IReferentialFilter filter, int offset, int size);
 
     @Transactional(readOnly = true)
     List<ReferentialVO> findByFilterNoCache(String entityName, IReferentialFilter filter, int offset, int size,

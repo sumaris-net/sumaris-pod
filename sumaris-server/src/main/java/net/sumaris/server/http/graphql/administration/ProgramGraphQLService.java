@@ -206,14 +206,14 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "locationClassifications", description = "Get program's location classifications")
     public List<ReferentialVO> getProgramLocationClassifications(@GraphQLContext ProgramVO program) {
-        if (CollectionUtils.isNotEmpty(program.getLocationClassificationIds()) && CollectionUtils.isEmpty(program.getLocationClassifications())) {
-            Integer[] locationClassificationIds = program.getLocationClassificationIds().toArray(new Integer[0]);
-            return referentialService.findByFilter(LocationClassification.class.getSimpleName(),
-                ReferentialFilterVO.builder()
-                    .includedIds(locationClassificationIds)
-                    .build(), 0, locationClassificationIds.length);
-        }
-        return program.getLocationClassifications();
+        if (CollectionUtils.isNotEmpty(program.getLocationClassifications())) return program.getLocationClassifications();
+        if (CollectionUtils.isEmpty(program.getLocationClassificationIds())) return null;
+
+        Integer[] locationClassificationIds = program.getLocationClassificationIds().toArray(new Integer[0]);
+        return referentialService.findByFilter(LocationClassification.class.getSimpleName(),
+            ReferentialFilterVO.builder()
+                .includedIds(locationClassificationIds)
+                .build(), 0, locationClassificationIds.length);
     }
 
     @GraphQLQuery(name = "privileges", description = "Get current user program's privileges")

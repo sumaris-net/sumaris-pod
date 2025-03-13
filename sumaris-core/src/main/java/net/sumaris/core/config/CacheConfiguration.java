@@ -37,6 +37,7 @@ import net.sumaris.core.vo.data.ImageAttachmentVO;
 import net.sumaris.core.vo.data.VesselSnapshotVO;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import net.sumaris.core.vo.referential.location.LocationVO;
 import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import net.sumaris.core.vo.referential.spatial.ExpertiseAreaVO;
@@ -153,6 +154,7 @@ public class CacheConfiguration extends CachingConfigurerSupport {
 
         // Other
         String GEAR_BY_ID = "net.sumaris.core.dao.referential.gear.gearById";
+        String REF_GEAR_BY_ID = "net.sumaris.core.dao.referential.gear.refGearById";
         String ANALYTIC_REFERENCES_BY_FILTER = "net.sumaris.core.dao.referential.analyticReferenceByFilter";
 
 
@@ -205,7 +207,8 @@ public class CacheConfiguration extends CachingConfigurerSupport {
             Caches.createCollectionHeapCache(cacheManager, Names.LOCATIONS_BY_FILTER, LocationVO.class, CacheTTL.DEFAULT.asDuration(), 100);
 
             // Gear
-            Caches.createHeapCache(cacheManager, Names.GEAR_BY_ID, Integer.class, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 300);
+            Caches.createHeapCache(cacheManager, Names.GEAR_BY_ID, Integer.class, GearVO.class, CacheTTL.DEFAULT.asDuration(), 300);
+            Caches.createHeapCache(cacheManager, Names.REF_GEAR_BY_ID, Integer.class, ReferentialVO.class, CacheTTL.DEFAULT.asDuration(), 300);
 
             // Program
             Caches.createHeapCache(cacheManager, Names.PROGRAM_BY_ID, Integer.class, ProgramVO.class, CacheTTL.DEFAULT.asDuration(), 100);
