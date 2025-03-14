@@ -22,7 +22,6 @@ package net.sumaris.core.dao.data.vessel;
  * #L%
  */
 
-import com.google.common.collect.ImmutableList;
 import net.sumaris.core.dao.data.DataRepository;
 import net.sumaris.core.dao.data.IDataSpecifications;
 import net.sumaris.core.dao.data.IWithVesselSpecifications;
@@ -77,7 +76,7 @@ public interface VesselFeaturesSpecifications<
 
     String VRP_PATH = StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.VESSEL_REGISTRATION_PERIODS);
 
-    String[] DEFAULT_SEARCH_ATTRIBUTES = new String[] {
+    String[] DEFAULT_SEARCH_ATTRIBUTES = new String[]{
         // Label
         VesselFeatures.Fields.EXTERIOR_MARKING,
         StringUtils.doting(VRP_PATH, VesselRegistrationPeriod.Fields.REGISTRATION_CODE),
@@ -107,7 +106,7 @@ public interface VesselFeaturesSpecifications<
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_VESSEL_IDS_PARAM);
                 return cb.in(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID)).value(param);
             })
-            .addBind(INCLUDED_VESSEL_IDS_PARAM, ImmutableList.copyOf(vesselIds));
+            .addBind(INCLUDED_VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
     }
 
     default Specification<VesselFeatures> excludedVesselIds(Integer... vesselIds) {
@@ -116,7 +115,7 @@ public interface VesselFeaturesSpecifications<
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_VESSEL_IDS_PARAM);
                 return cb.not(cb.in(root.get(VesselFeatures.Fields.VESSEL).get(Vessel.Fields.ID)).value(param));
             })
-            .addBind(EXCLUDED_VESSEL_IDS_PARAM, vesselIds);
+            .addBind(EXCLUDED_VESSEL_IDS_PARAM, Arrays.asList(vesselIds));
     }
 
     default Specification<VesselFeatures> vesselTypeIds(Integer... vesselTypeIds) {
@@ -146,7 +145,7 @@ public interface VesselFeaturesSpecifications<
                 ParameterExpression<String> param = cb.parameter(String.class, PROGRAM_LABEL_PARAM);
                 return cb.equal(Daos.composePath(root,
                         StringUtils.doting(VesselFeatures.Fields.VESSEL, Vessel.Fields.PROGRAM, Program.Fields.LABEL)),
-                        param);
+                    param);
             })
             .addBind(PROGRAM_LABEL_PARAM, programLabel);
     }
@@ -297,7 +296,7 @@ public interface VesselFeaturesSpecifications<
         boolean enablePrefixSearch = enableRegistrationCodeSearchAsPrefix
             && Arrays.stream(attributes).anyMatch(attr -> !attr.endsWith(VesselFeatures.Fields.NAME));
 
-        BindableSpecification<VesselFeatures> specification =  BindableSpecification.where((root, query, cb) -> {
+        BindableSpecification<VesselFeatures> specification = BindableSpecification.where((root, query, cb) -> {
             final ParameterExpression<String> prefixParam = cb.parameter(String.class, SEARCH_TEXT_PREFIX_PARAM);
             final ParameterExpression<String> anyParam = cb.parameter(String.class, SEARCH_TEXT_ANY_PARAM);
 
@@ -330,12 +329,12 @@ public interface VesselFeaturesSpecifications<
 
     @SuppressWarnings("unchecked")
     default Optional<V> findByVesselIdAndDate(int vesselId, Date date, O fetchOptions) {
-        F filter = (F)VesselFilterVO.builder()
+        F filter = (F) VesselFilterVO.builder()
             .vesselId(vesselId)
             .startDate(date)
             .endDate(date)
             .build();
-        List<V> result = findAll((F)filter, 0, 5, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
+        List<V> result = findAll(filter, 0, 5, VesselFeatures.Fields.START_DATE, SortDirection.DESC, fetchOptions);
 
         // No result for this date:
         // => retry without date (should return the last features and period)
