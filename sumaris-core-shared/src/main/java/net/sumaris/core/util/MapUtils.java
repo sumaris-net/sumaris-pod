@@ -10,12 +10,12 @@ package net.sumaris.core.util;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,13 +23,20 @@ package net.sumaris.core.util;
  */
 
 
-import com.google.common.collect.ImmutableMap;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapUtils {
 
     private MapUtils() {
+    }
+
+    public static boolean isNotEmpty(final Map<?, ?> map) {
+        return org.apache.commons.collections4.MapUtils.isNotEmpty(map);
+    }
+
+    public static boolean isEmpty(final Map<?, ?> map) {
+        return org.apache.commons.collections4.MapUtils.isEmpty(map);
     }
 
     public static <K, V> Map<K, V> of() {

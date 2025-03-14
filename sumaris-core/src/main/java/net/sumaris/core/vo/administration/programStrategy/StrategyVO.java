@@ -10,12 +10,12 @@ package net.sumaris.core.vo.administration.programStrategy;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -34,7 +34,7 @@ import java.util.Map;
 
 @Data
 @FieldNameConstants
-public class StrategyVO implements IReferentialVO<Integer>{
+public class StrategyVO implements IReferentialVO<Integer> {
 
     private Integer id;
     private String label;
@@ -56,6 +56,8 @@ public class StrategyVO implements IReferentialVO<Integer>{
     private List<StrategyDepartmentVO> departments;
 
     private List<Integer> gearIds;
+
+    @Deprecated
     private List<ReferentialVO> gears;
     private List<GearVO> fullGears;
 
