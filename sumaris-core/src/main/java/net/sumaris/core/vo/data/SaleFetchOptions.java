@@ -50,6 +50,7 @@ public class SaleFetchOptions implements IDataFetchOptions {
         .withChildrenEntities(true)
         .withMeasurementValues(true)
         .withFishingAreas(true)
+        .withMetiers(true)
         .withProducts(true)
         .withBatches(true)
         .build();
@@ -84,4 +85,6 @@ public class SaleFetchOptions implements IDataFetchOptions {
     private boolean withBatches = false;
 
     private boolean withFishingAreas = false;
+
+    private boolean withMetiers = false;
 }

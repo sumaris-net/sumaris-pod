@@ -34,6 +34,7 @@ import net.sumaris.core.vo.administration.user.PersonVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.location.LocationVO;
+import net.sumaris.core.vo.referential.metier.MetierVO;
 
 import java.util.Date;
 import java.util.List;
@@ -93,6 +94,7 @@ public class SaleVO implements IRootDataVO<Integer>,
     private List<ProductVO> products;
 
     private List<FishingAreaVO> fishingAreas;
+    private List<MetierVO> metiers;
 
     private BatchVO catchBatch;
     private List<BatchVO> batches;

@@ -59,11 +59,13 @@ import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -75,7 +77,6 @@ public class TripServiceImpl implements TripService {
 
     private final SumarisConfiguration configuration;
     private final TripRepository repository;
-    private final SaleService saleService;
     private final ExpectedSaleService expectedSaleService;
     private final OperationService operationService;
     private final OperationGroupService operationGroupService;
@@ -88,8 +89,12 @@ public class TripServiceImpl implements TripService {
     private final ReferentialService referentialService;
     private final FishingAreaService fishingAreaService;
     private final VesselSnapshotService vesselSnapshotService;
+
     private boolean enableTrash = false;
 
+    @Resource
+    @Lazy
+    private SaleService saleService;
 
     @PostConstruct
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
@@ -138,7 +143,7 @@ public class TripServiceImpl implements TripService {
                 target.setSales(saleService.getAllByTripId(id, saleFetchOptions));
             }
             if (fetchOptions.isWithExpectedSales()) {
-              target.setExpectedSales(expectedSaleService.getAllByTripId(id));
+                target.setExpectedSales(expectedSaleService.getAllByTripId(id));
             }
 
             // Fill link to landing, if any
@@ -282,7 +287,7 @@ public class TripServiceImpl implements TripService {
             target.setFishingAreas(fishingAreas);
         }
         // Remove all
-        else  if (!isNew) {
+        else if (!isNew) {
             fishingAreaService.saveAllByFishingTripId(target.getId(), ImmutableList.of());
         }
 
@@ -297,14 +302,14 @@ public class TripServiceImpl implements TripService {
             // Fill defaults, from the trip
             gears.forEach(gear -> {
                 fillDefaultProperties(target, gear);
-                if (withOperationGroup) fillPhysicalGearMeasurementsFromOperationGroups(gear, source.getOperationGroups());
+                if (withOperationGroup)
+                    fillPhysicalGearMeasurementsFromOperationGroups(gear, source.getOperationGroups());
             });
 
             // Save
             if (withOperationGroup) {
                 gears = physicalGearService.saveAllByTripId(target.getId(), gears, physicalGearIdsToRemove);
-            }
-            else {
+            } else {
                 gears = physicalGearService.saveAllByTripId(target.getId(), gears);
             }
 
@@ -323,7 +328,7 @@ public class TripServiceImpl implements TripService {
         }
         // No gears: remove all existing
         else if (!isNew) {
-          physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
+            physicalGearService.saveAllByTripId(target.getId(), ImmutableList.of());
         }
 
         // Save operations (only if asked)
@@ -342,8 +347,7 @@ public class TripServiceImpl implements TripService {
                 // Save
                 List<OperationGroupVO> operationGroups = operationGroupService.saveAllByTripId(target.getId(), source.getOperationGroups());
                 target.setOperationGroups(operationGroups);
-            }
-            else {
+            } else {
                 operationGroupService.saveAllByTripId(target.getId(), ImmutableList.of());
             }
         }
@@ -386,7 +390,7 @@ public class TripServiceImpl implements TripService {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(physicalGearIdsToRemove)){
+        if (CollectionUtils.isNotEmpty(physicalGearIdsToRemove)) {
             physicalGearService.delete(physicalGearIdsToRemove);
         }
 
@@ -762,7 +766,7 @@ public class TripServiceImpl implements TripService {
         gear.setTripId(parent.getId());
 
         // Fill children defaults
-        if (CollectionUtils.isNotEmpty(gear.getChildren())){
+        if (CollectionUtils.isNotEmpty(gear.getChildren())) {
             gear.getChildren().forEach(child -> fillDefaultProperties(parent, child));
         }
     }

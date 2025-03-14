@@ -1658,6 +1658,7 @@ type SaleVO {
     creationDate: Date
     endDateTime: Date
     fishingAreas: [FishingAreaVO]
+    metiers: [MetierVO]
     id: Int
     landing: LandingVO
     landingId: Int
