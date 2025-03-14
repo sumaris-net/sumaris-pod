@@ -1014,6 +1014,13 @@ type OperationGroupVO {
     validationDate: Date
 }
 
+type OperationVesselAssociationVO {
+    operationId: Int
+    vesselId: Int
+    vesselSnapshot: VesselSnapshotVO
+    isCatchOnOperationVessel: Boolean
+}
+
 type OperationVO {
     "Get operation's batches"
     batches: [BatchVO]
@@ -1059,6 +1066,7 @@ type OperationVO {
     tripId: Int
     updateDate: Date
     validationDate: Date
+    operationVesselAssociations: [OperationVesselAssociationVO]
 }
 
 type PacketCompositionVO {
@@ -3281,6 +3289,13 @@ input OperationGroupVOInput {
     validationDate: Date
 }
 
+input OperationVesselAssociationVOInput {
+    operationId: Int
+    vesselId: Int
+    vesselSnapshot: VesselSnapshotVOInput
+    isCatchOnOperationVessel: Boolean
+}
+
 input OperationVOInput {
     batches: [BatchVOInput]
     catchBatch: BatchVOInput
@@ -3317,6 +3332,7 @@ input OperationVOInput {
     tripId: Int
     updateDate: Date
     validationDate: Date
+    operationVesselAssociations: [OperationVesselAssociationVOInput]
 }
 
 input PacketCompositionVOInput {
