@@ -93,4 +93,6 @@ public class OperationVO implements IDataVO<Integer>, IWithMeasurementValues {
 
     private List<FishingAreaVO> fishingAreas;
 
+    private List<OperationVesselAssociationVO> operationVesselAssociations;
+
 }

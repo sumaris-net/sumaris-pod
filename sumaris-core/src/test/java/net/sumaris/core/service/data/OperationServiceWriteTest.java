@@ -91,6 +91,7 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
         int batchCount = countBatches(vo);
         int sampleCount = countSamples(vo);
         int measurementCount = CollectionUtils.size(vo.getMeasurements());
+        int operationVesselAssociationCount = CollectionUtils.size(vo.getOperationVesselAssociations());
 
         // Save
         OperationVO savedVo = service.save(vo);
@@ -128,6 +129,11 @@ public class OperationServiceWriteTest extends AbstractServiceTest {
             Assert.assertEquals(0, CollectionUtils.size(reloadedVo.getCatchBatch()));
             List<BatchVO> reloadBatches = batchService.getAllByOperationId(savedVo.getId());
             Assert.assertEquals(batchCount, CollectionUtils.size(reloadBatches));
+        }
+
+        // Check vessel associations
+        {
+            Assert.assertEquals(operationVesselAssociationCount, CollectionUtils.size(reloadedVo.getOperationVesselAssociations()));
         }
     }
 

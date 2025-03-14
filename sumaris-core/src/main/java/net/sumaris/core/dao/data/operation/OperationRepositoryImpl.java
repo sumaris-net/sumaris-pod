@@ -22,6 +22,7 @@ package net.sumaris.core.dao.data.operation;
  * #L%
  */
 
+import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.data.DataRepositoryImpl;
 import net.sumaris.core.dao.data.MeasurementDao;
@@ -33,28 +34,27 @@ import net.sumaris.core.dao.data.sample.SampleRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.dao.technical.Daos;
-import net.sumaris.core.model.data.Operation;
-import net.sumaris.core.model.data.PhysicalGear;
-import net.sumaris.core.model.data.Trip;
+import net.sumaris.core.model.IEntity;
+import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
-import net.sumaris.core.vo.data.DataFetchOptions;
-import net.sumaris.core.vo.data.OperationFetchOptions;
-import net.sumaris.core.vo.data.OperationVO;
-import net.sumaris.core.vo.data.TripFetchOptions;
+import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchFetchOptions;
 import net.sumaris.core.vo.data.sample.SampleFetchOptions;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -193,6 +193,20 @@ public class OperationRepositoryImpl
                 target.setChildOperation(toVO(source.getChildOperation(), fetchOptions));
             }
         }
+
+        // Vessel associations
+        if (source.getOperationVesselAssociations() != null) {
+            List<OperationVesselAssociationVO> vesselAssociations = new ArrayList<>();
+            source.getOperationVesselAssociations().forEach(association -> {
+                OperationVesselAssociationVO associationVO = new OperationVesselAssociationVO();
+                associationVO.setOperationId(association.getOperation().getId());
+                associationVO.setVesselId(association.getVessel().getId());
+                associationVO.setIsCatchOnOperationVessel(association.getIsCatchOnOperationVessel());
+                vesselAssociations.add(associationVO);
+            });
+            target.setOperationVesselAssociations(vesselAssociations);
+        }
+
     }
 
     @Override
@@ -336,6 +350,48 @@ public class OperationRepositoryImpl
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
             .and(needBatchDenormalization(filter.getNeedBatchDenormalization()))
             ;
+    }
+
+    public List<OperationVesselAssociationVO> saveVesselAssociationsByOperationId(Integer operationId, List<OperationVesselAssociationVO> sources) {
+        Preconditions.checkNotNull(sources);
+
+        Operation parent = getById(Operation.class, operationId);
+
+        sources.forEach(source -> source.setOperationId(operationId));
+
+        EntityManager em = getEntityManager();
+
+        // Remember existing entities
+        Map<Integer, OperationVesselAssociation> sourcesToRemove = Beans.splitByProperty(parent.getOperationVesselAssociations(),
+                OperationVesselAssociation.Fields.VESSEL + "." + IEntity.Fields.ID);
+
+        // Save each operation vessel association
+        Beans.getList(sources).forEach(source -> {
+            Integer vesselId = source.getVesselSnapshot().getVesselId();
+            if (vesselId == null)
+                throw new DataIntegrityViolationException("Missing vesselId in a OperationVesselAssociationVO");
+
+            OperationVesselAssociation target = sourcesToRemove.remove(vesselId);
+            boolean isNew = target == null;
+            if (isNew) {
+                target = new OperationVesselAssociation();
+                target.setOperation(getReference(Operation.class, operationId));
+                target.setVessel(getReference(Vessel.class, vesselId));
+            }
+            target.setIsCatchOnOperationVessel(source.getIsCatchOnOperationVessel());
+            if (isNew) {
+                em.persist(target);
+            } else {
+                em.merge(target);
+            }
+        });
+
+        // Remove unused entities
+        if (MapUtils.isNotEmpty(sourcesToRemove)) {
+            sourcesToRemove.values().forEach(em::remove);
+        }
+
+        return sources;
     }
 
     @Override

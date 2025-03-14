@@ -38,6 +38,8 @@ public enum ProgramPropertyEnum implements Serializable {
     TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS("sumaris.trip.operation.fishingArea.locationLevel.ids",
             String.class, null),
 
+    TRIP_OPERATION_VESSEL_ASSOCIATION_GEAR_IDS("sumaris.trip.operation.vesselAssociation.gear.ids", String.class, null),
+
     TRIP_BATCH_TAXON_NAME_ENABLE("sumaris.trip.operation.batch.taxonName.enable", Boolean.class, Boolean.TRUE.toString()),
 
     TRIP_BATCH_TAXON_GROUP_ENABLE("sumaris.trip.operation.batch.taxonGroup.enable", Boolean.class, Boolean.TRUE.toString()),

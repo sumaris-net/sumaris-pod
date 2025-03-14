@@ -159,7 +159,7 @@ public class DataTestUtils {
         MeasurementVO meas1 = new MeasurementVO();
         meas1.setNumericalValue(15.0);
         meas1.setPmfmId(bottomDepthPmfm.getId());
-        meas1.setRankOrder((short)1);
+        meas1.setRankOrder((short) 1);
 
         vo.setMeasurements(ImmutableList.of(meas1));
 
@@ -180,11 +180,11 @@ public class DataTestUtils {
 
             // Measurements (as map)
             sample.setMeasurementValues(
-                    ImmutableMap.<Integer, String>builder()
-                            .put(60, "155")
-                            .put(80, "185")
-                            .put(fixtures.getPmfmSampleTagId(), "TAG-1")
-                            .build());
+                ImmutableMap.<Integer, String>builder()
+                    .put(60, "155")
+                    .put(80, "185")
+                    .put(fixtures.getPmfmSampleTagId(), "TAG-1")
+                    .build());
             samples.add(sample);
 
             // Individual monitoring, as children
@@ -200,9 +200,9 @@ public class DataTestUtils {
 
                 // Measurements (as map)
                 childSample.setMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(fixtures.getPmfmSampleIsDead(), "0")
-                                .build());
+                    ImmutableMap.<Integer, String>builder()
+                        .put(fixtures.getPmfmSampleIsDead(), "0")
+                        .build());
                 children.add(childSample);
             }
         }
@@ -211,6 +211,17 @@ public class DataTestUtils {
         {
             BatchVO catchBatch = createBatchTree(fixtures, 0);
             vo.setCatchBatch(catchBatch);
+        }
+
+        // Operation vessel association
+        {
+            OperationVesselAssociationVO operationVesselAssociation = new OperationVesselAssociationVO();
+            operationVesselAssociation.setOperationId(vo.getId());
+            VesselSnapshotVO vessel = new VesselSnapshotVO();
+            vessel.setVesselId(fixtures.getVesselId(1));
+            operationVesselAssociation.setVesselSnapshot(vessel);
+            operationVesselAssociation.setIsCatchOnOperationVessel(true);
+            vo.setOperationVesselAssociations(Lists.newArrayList(operationVesselAssociation));
         }
 
         return vo;
@@ -233,10 +244,10 @@ public class DataTestUtils {
 
         // Measurements (as map)
         catchBatch.setMeasurementValues(
-                ImmutableMap.<Integer, String>builder()
-                        .put(60, "155")
-                        .put(80, "185")
-                        .build());
+            ImmutableMap.<Integer, String>builder()
+                .put(60, "155")
+                .put(80, "185")
+                .build());
 
         // Children
         List<BatchVO> children = Lists.newArrayList();
@@ -249,10 +260,10 @@ public class DataTestUtils {
 
             // Measurements (as map)
             batch.setMeasurementValues(
-                    ImmutableMap.<Integer, String>builder()
-                            .put(60, "155") // TODO: change this
-                            .put(80, "185")
-                            .build());
+                ImmutableMap.<Integer, String>builder()
+                    .put(60, "155") // TODO: change this
+                    .put(80, "185")
+                    .build());
             children.add(batch);
         }
         catchBatch.setChildren(children);
@@ -286,10 +297,10 @@ public class DataTestUtils {
                 lanBatch.setRankOrder(1);
                 lanBatch.setExhaustiveInventory(Boolean.TRUE);
                 lanBatch.setMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "100") // Total weight
-                                .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
-                                .build());
+                    ImmutableMap.<Integer, String>builder()
+                        .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "100") // Total weight
+                        .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
+                        .build());
 
                 // Landing > Sampling batch (weight=50kg)
                 {
@@ -298,9 +309,9 @@ public class DataTestUtils {
                     samplingBatch.setLabel(lanBatch.getLabel() + "%");
                     samplingBatch.setRankOrder(1);
                     samplingBatch.setMeasurementValues(
-                            ImmutableMap.<Integer, String>builder()
-                                    .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "50") // Sample weight
-                                    .build());
+                        ImmutableMap.<Integer, String>builder()
+                            .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "50") // Sample weight
+                            .build());
 
                     // Landing > % > 7cm (1 indiv)
                     {
@@ -310,9 +321,9 @@ public class DataTestUtils {
                         lengthBatch.setRankOrder(1);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(
-                                ImmutableMap.<Integer, String>builder()
-                                        .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "7") // Total length
-                                        .build());
+                            ImmutableMap.<Integer, String>builder()
+                                .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "7") // Total length
+                                .build());
                     }
 
                     // Landing > % > 8cm (1 indiv)
@@ -323,9 +334,9 @@ public class DataTestUtils {
                         lengthBatch.setRankOrder(2);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(
-                                ImmutableMap.<Integer, String>builder()
-                                        .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "8") // Total length
-                                        .build());
+                            ImmutableMap.<Integer, String>builder()
+                                .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "8") // Total length
+                                .build());
                     }
                 }
             }
@@ -338,10 +349,10 @@ public class DataTestUtils {
                 disBatch.setRankOrder(2);
                 disBatch.setExhaustiveInventory(Boolean.TRUE);
                 disBatch.setMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "20") // Total weight
-                                .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.DISCARD.getId()))
-                                .build());
+                    ImmutableMap.<Integer, String>builder()
+                        .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "20") // Total weight
+                        .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.DISCARD.getId()))
+                        .build());
                 disBatch.setChildren(Lists.newArrayList());
 
                 // Discard > Sampling batch (ratio=50%)
@@ -361,9 +372,9 @@ public class DataTestUtils {
                         lengthBatch.setRankOrder(1);
                         lengthBatch.setIndividualCount(2);
                         lengthBatch.setMeasurementValues(
-                                ImmutableMap.<Integer, String>builder()
-                                        .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "5") // Total length
-                                        .build());
+                            ImmutableMap.<Integer, String>builder()
+                                .put(PmfmEnum.LENGTH_CARAPACE_CM.getId(), "5") // Total length
+                                .build());
                     }
                 }
             }
@@ -388,10 +399,10 @@ public class DataTestUtils {
                 lanBatch.setExhaustiveInventory(Boolean.TRUE);
                 // Measurements (as map)
                 lanBatch.setMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "50") // Total weight
-                                .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
-                                .build());
+                    ImmutableMap.<Integer, String>builder()
+                        .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "50") // Total weight
+                        .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
+                        .build());
             }
 
             // Discard
@@ -403,10 +414,10 @@ public class DataTestUtils {
                 disBatch.setExhaustiveInventory(Boolean.TRUE);
                 // Measurements (as map)
                 disBatch.setMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "10") // Total weight
-                                .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.DISCARD.getId()))
-                                .build());
+                    ImmutableMap.<Integer, String>builder()
+                        .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "10") // Total weight
+                        .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.DISCARD.getId()))
+                        .build());
 
             }
         }
@@ -429,10 +440,10 @@ public class DataTestUtils {
                 lanBatch.setExhaustiveInventory(Boolean.TRUE);
                 // Measurements (as map)
                 lanBatch.setMeasurementValues(
-                        ImmutableMap.<Integer, String>builder()
-                                .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "10") // Total weight
-                                .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
-                                .build());
+                    ImmutableMap.<Integer, String>builder()
+                        .put(PmfmEnum.BATCH_MEASURED_WEIGHT.getId(), "10") // Total weight
+                        .put(PmfmEnum.DISCARD_OR_LANDING.getId(), String.valueOf(QualitativeValueEnum.LANDING.getId()))
+                        .build());
 
                 // Discard > Sampling batch (ratio=50%)
                 {
@@ -451,10 +462,10 @@ public class DataTestUtils {
                         lengthBatch.setRankOrder(1);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(
-                                ImmutableMap.<Integer, String>builder()
-                                        .put(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(), "0.681") // 780g
-                                        .put(PmfmEnum.LENGTH_TOTAL_CM.getId(), "30") // Total length
-                                        .build());
+                            ImmutableMap.<Integer, String>builder()
+                                .put(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(), "0.681") // 780g
+                                .put(PmfmEnum.LENGTH_TOTAL_CM.getId(), "30") // Total length
+                                .build());
                     }
                     // Landing > % > 35cm (1 indiv)
                     {
@@ -464,10 +475,10 @@ public class DataTestUtils {
                         lengthBatch.setRankOrder(2);
                         lengthBatch.setIndividualCount(1);
                         lengthBatch.setMeasurementValues(
-                                ImmutableMap.<Integer, String>builder()
-                                        .put(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(), "0.780") // 780g
-                                        .put(PmfmEnum.LENGTH_TOTAL_CM.getId(), "35") // Total length
-                                        .build());
+                            ImmutableMap.<Integer, String>builder()
+                                .put(PmfmEnum.BATCH_CALCULATED_WEIGHT.getId(), "0.780") // 780g
+                                .put(PmfmEnum.LENGTH_TOTAL_CM.getId(), "35") // Total length
+                                .build());
                     }
                 }
             }
@@ -622,7 +633,7 @@ public class DataTestUtils {
         vo.setEndDate(endDate);
 
         // RankOrder
-        vo.setRankOrder((short)1);
+        vo.setRankOrder((short) 1);
 
         // Metier
         MetierVO metier = new MetierVO();

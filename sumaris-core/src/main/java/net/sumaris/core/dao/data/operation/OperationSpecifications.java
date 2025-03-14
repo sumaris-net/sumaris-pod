@@ -32,6 +32,7 @@ import net.sumaris.core.model.referential.metier.Metier;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.OperationVO;
+import net.sumaris.core.vo.data.OperationVesselAssociationVO;
 import net.sumaris.core.vo.filter.OperationFilterVO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -258,4 +259,6 @@ public interface OperationSpecifications
     }
 
     List<OperationVO> saveAllByTripId(int tripId, List<OperationVO> operations);
+
+    List<OperationVesselAssociationVO> saveVesselAssociationsByOperationId(Integer operationId, List<OperationVesselAssociationVO> sources);
 }

@@ -39,7 +39,9 @@ import net.sumaris.core.model.data.IMeasurementEntity;
 import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.VesselUseMeasurement;
 import net.sumaris.core.model.referential.pmfm.MatrixEnum;
+import net.sumaris.core.service.data.vessel.VesselSnapshotService;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.Dates;
 import net.sumaris.core.vo.data.*;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
@@ -79,15 +81,17 @@ public class OperationServiceImpl implements OperationService {
     protected FishingAreaService fishingAreaService;
 
     @Autowired
+    protected VesselSnapshotService vesselSnapshotService;
+
+    @Autowired
     private ApplicationEventPublisher publisher;
 
     private boolean enableTrash = false;
 
-    @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
+    @EventListener({ ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class })
     public void onConfigurationReady(ConfigurationEvent event) {
         this.enableTrash = event.getConfiguration().enableEntityTrash();
     }
-
 
     @Override
     public List<OperationVO> findAllByTripId(int tripId, @NonNull OperationFetchOptions fetchOptions) {
@@ -96,8 +100,8 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     public List<OperationVO> findAllByTripId(int tripId,
-                                             int offset, int size, String sortAttribute, SortDirection sortDirection,
-                                             @NonNull OperationFetchOptions fetchOptions) {
+            int offset, int size, String sortAttribute, SortDirection sortDirection,
+            @NonNull OperationFetchOptions fetchOptions) {
         return operationRepository.findAll(OperationFilterVO.builder().tripId(tripId).build(),
                 offset, size, sortAttribute, sortDirection,
                 fetchOptions);
@@ -105,14 +109,35 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     public List<OperationVO> findAllByFilter(@NonNull OperationFilterVO filter,
-                                             @NonNull OperationFetchOptions fetchOptions) {
+            @NonNull OperationFetchOptions fetchOptions) {
         return operationRepository.findAll(filter, fetchOptions);
     }
 
     @Override
-    public List<OperationVO> findAllByFilter(OperationFilterVO filter, int offset, int size, String sortAttribute, SortDirection sortDirection,
-                                             @NonNull OperationFetchOptions fetchOptions) {
-        return operationRepository.findAll(OperationFilterVO.nullToEmpty(filter), offset, size, sortAttribute, sortDirection, fetchOptions);
+    public List<OperationVO> findAllByFilter(OperationFilterVO filter, int offset, int size, String sortAttribute,
+            SortDirection sortDirection,
+            @NonNull OperationFetchOptions fetchOptions) {
+        List<OperationVO> operations = operationRepository.findAll(OperationFilterVO.nullToEmpty(filter), offset, size,
+                sortAttribute, sortDirection, fetchOptions);
+
+        // Fill vessel associations
+        fillVesselAssociations(operations);
+
+        return operations;
+
+    }
+
+    public void fillVesselAssociation(OperationVO target) {
+        if (target.getOperationVesselAssociations() != null) {
+            target.getOperationVesselAssociations().forEach(association -> {
+                association.setVesselSnapshot(vesselSnapshotService.getByIdAndDate(association.getVesselId(),
+                        Dates.resetTime(target.getStartDateTime())));
+            });
+        }
+    }
+
+    public void fillVesselAssociations(List<OperationVO> target) {
+        target.parallelStream().forEach(this::fillVesselAssociation);
     }
 
     @Override
@@ -146,9 +171,12 @@ public class OperationServiceImpl implements OperationService {
 
     @Override
     public OperationVO get(int operationId, OperationFetchOptions o) {
-        return operationRepository.get(operationId, o);
-    }
+        OperationVO operation = operationRepository.get(operationId, o);
 
+        // Fill vessel associations
+        fillVesselAssociation(operation);
+        return operation;
+    }
 
     @Override
     public int getProgramIdById(int id) {
@@ -175,7 +203,7 @@ public class OperationServiceImpl implements OperationService {
         Preconditions.checkNotNull(source.getId());
 
         // TODO: enable this, after testing!
-        //Preconditions.checkArgument(source.getValidationDate() == null);
+        // Preconditions.checkArgument(source.getValidationDate() == null);
 
         return operationRepository.control(source);
     }
@@ -194,8 +222,8 @@ public class OperationServiceImpl implements OperationService {
         // Construct the event data
         // (should be done before deletion, to be able to get the VO)
         OperationVO eventData = enableTrash
-            ? get(id, OperationFetchOptions.FULL_GRAPH)
-            : null;
+                ? get(id, OperationFetchOptions.FULL_GRAPH)
+                : null;
 
         // Apply deletion
         operationRepository.deleteById(id);
@@ -222,7 +250,6 @@ public class OperationServiceImpl implements OperationService {
         Preconditions.checkNotNull(source.getEndDateTime(), "Missing endDateTime");
         Preconditions.checkNotNull(source.getRecorderDepartment(), "Missing recorderDepartment");
         Preconditions.checkNotNull(source.getRecorderDepartment().getId(), "Missing recorderDepartment.id");
-
 
         // Reset control date
         source.setControlDate(null);
@@ -290,7 +317,8 @@ public class OperationServiceImpl implements OperationService {
             List<BatchVO> batches = getAllBatches(source);
             batches = batchService.saveAllByOperationId(source.getId(), batches);
 
-            // Transform saved batches into flat list (e.g. to be used as graphQL query response)
+            // Transform saved batches into flat list (e.g. to be used as graphQL query
+            // response)
             batches.forEach(batch -> {
                 // Set parentId (instead of parent object)
                 if (batch.getParentId() == null && batch.getParent() != null) {
@@ -311,10 +339,19 @@ public class OperationServiceImpl implements OperationService {
             fishingAreaService.saveAllByOperationId(source.getId(), source.getFishingAreas());
         }
 
+        // Save Vessel associations
+        if (source.getOperationVesselAssociations() != null) {
+            source.getOperationVesselAssociations()
+                    .forEach(vesselAssociation -> fillDefaultProperties(source, vesselAssociation));
+            operationRepository.saveVesselAssociationsByOperationId(source.getId(),
+                    source.getOperationVesselAssociations());
+        }
+
     }
 
     protected void fillDefaultProperties(OperationVO parent, VesselPositionVO position) {
-        if (position == null) return;
+        if (position == null)
+            return;
 
         // Copy recorder department from the parent
         if (position.getRecorderDepartment() == null || position.getRecorderDepartment().getId() == null) {
@@ -324,8 +361,10 @@ public class OperationServiceImpl implements OperationService {
         position.setOperationId(parent.getId());
     }
 
-    protected void fillDefaultProperties(OperationVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
-        if (measurement == null) return;
+    protected void fillDefaultProperties(OperationVO parent, MeasurementVO measurement,
+            Class<? extends IMeasurementEntity> entityClass) {
+        if (measurement == null)
+            return;
 
         // Copy recorder department from the parent
         if (measurement.getRecorderDepartment() == null || measurement.getRecorderDepartment().getId() == null) {
@@ -336,7 +375,8 @@ public class OperationServiceImpl implements OperationService {
     }
 
     protected void fillDefaultProperties(OperationVO parent, BatchVO batch) {
-        if (batch == null) return;
+        if (batch == null)
+            return;
 
         // Copy recorder department from the parent
         if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
@@ -347,7 +387,8 @@ public class OperationServiceImpl implements OperationService {
     }
 
     protected void fillDefaultProperties(BatchVO parent, BatchVO batch) {
-        if (batch == null) return;
+        if (batch == null)
+            return;
 
         // Copy recorder department from the parent
         if (batch.getRecorderDepartment() == null || batch.getRecorderDepartment().getId() == null) {
@@ -364,7 +405,8 @@ public class OperationServiceImpl implements OperationService {
     }
 
     protected void fillDefaultProperties(OperationVO parent, SampleVO sample) {
-        if (sample == null) return;
+        if (sample == null)
+            return;
 
         // Copy recorder department from the parent
         if (sample.getRecorderDepartment() == null || sample.getRecorderDepartment().getId() == null) {
@@ -380,7 +422,8 @@ public class OperationServiceImpl implements OperationService {
 
         // Fill sample (use operation end date time)
         if (sample.getSampleDate() == null) {
-            Date sampleDate = parent.getEndDateTime() != null ? parent.getEndDateTime() : parent.getFishingEndDateTime();
+            Date sampleDate = parent.getEndDateTime() != null ? parent.getEndDateTime()
+                    : parent.getFishingEndDateTime();
             sample.setSampleDate(sampleDate);
         }
 
@@ -389,6 +432,10 @@ public class OperationServiceImpl implements OperationService {
 
     protected void fillDefaultProperties(OperationVO parent, FishingAreaVO fishingArea) {
         fishingArea.setOperationId(parent.getId());
+    }
+
+    protected void fillDefaultProperties(OperationVO parent, OperationVesselAssociationVO vesselAssociation) {
+        vesselAssociation.setOperationId(parent.getId());
     }
 
     protected List<BatchVO> getAllBatches(OperationVO operation) {
@@ -400,10 +447,12 @@ public class OperationServiceImpl implements OperationService {
     }
 
     protected void addAllBatchesToList(final BatchVO batch, final List<BatchVO> result) {
-        if (batch == null) return;
+        if (batch == null)
+            return;
 
         // Add the batch itself
-        if (!result.contains(batch)) result.add(batch);
+        if (!result.contains(batch))
+            result.add(batch);
 
         // Process children
         if (CollectionUtils.isNotEmpty(batch.getChildren())) {

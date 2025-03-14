@@ -158,6 +158,9 @@ public class Operation implements IDataEntity<Integer>,
     @OrderBy(FishingArea.Fields.ID + " ASC") // Keep save order
     private List<FishingArea> fishingAreas = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.LAZY, targetEntity = OperationVesselAssociation.class, mappedBy = OperationVesselAssociation.Fields.OPERATION, cascade = CascadeType.REMOVE)
+    private List<OperationVesselAssociation> operationVesselAssociations;
+
     @OneToOne(fetch = FetchType.LAZY, targetEntity = Operation.class, cascade = CascadeType.DETACH)
     @JoinColumn(name = "operation_fk", unique = true)
     @ToString.Exclude
