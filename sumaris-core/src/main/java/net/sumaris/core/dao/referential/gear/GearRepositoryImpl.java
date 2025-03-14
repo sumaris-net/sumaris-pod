@@ -10,12 +10,12 @@ package net.sumaris.core.dao.referential.gear;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -40,7 +40,7 @@ import javax.persistence.EntityManager;
  */
 @Slf4j
 public class GearRepositoryImpl
-        extends ReferentialRepositoryImpl<Integer, Gear, GearVO, ReferentialFilterVO, ReferentialFetchOptions> {
+    extends ReferentialRepositoryImpl<Integer, Gear, GearVO, ReferentialFilterVO, ReferentialFetchOptions> {
 
     public GearRepositoryImpl(EntityManager entityManager) {
         super(Gear.class, GearVO.class, entityManager);
@@ -54,12 +54,12 @@ public class GearRepositoryImpl
 
     protected void toVO(Gear source, GearVO target, ReferentialFetchOptions fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
-        target.setEntityName(Gear.ENTITY_NAME);
         target.setStatusId(source.getStatus().getId());
         target.setLevelId(source.getGearClassification().getId());
         target.setProperties(ImmutableMap.<String, Object>builder()
-                .put(Gear.Fields.IS_TOWED, source.getIsTowed())
-                .put(Gear.Fields.IS_ACTIVE, source.getIsActive())
-                .build());
+            .put(Gear.Fields.IS_TOWED, source.getIsTowed())
+            .put(Gear.Fields.IS_ACTIVE, source.getIsActive())
+            .build());
+        target.setEntityName(Gear.ENTITY_NAME);
     }
 }

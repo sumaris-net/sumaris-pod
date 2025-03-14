@@ -50,6 +50,7 @@ import net.sumaris.core.model.referential.pmfm.*;
 import net.sumaris.core.model.referential.spatial.ExpertiseArea;
 import net.sumaris.core.model.referential.taxon.TaxonGroup;
 import net.sumaris.core.util.Beans;
+import net.sumaris.core.util.MapUtils;
 import net.sumaris.core.vo.filter.IReferentialFilter;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.referential.IReferentialVO;
@@ -57,7 +58,6 @@ import net.sumaris.core.vo.referential.ReferentialFetchOptions;
 import net.sumaris.core.vo.referential.ReferentialTypeVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuiton.i18n.I18n;
@@ -101,12 +101,12 @@ public class ReferentialDaoImpl
     }
 
 
-    protected  <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
-                                                                       IReferentialFilter filter,
-                                                                       int offset,
-                                                                       int size,
-                                                                       String sortAttribute,
-                                                                       SortDirection sortDirection) {
+    protected <T extends IReferentialEntity> Stream<T> streamByFilter(final Class<T> entityClass,
+                                                                      IReferentialFilter filter,
+                                                                      int offset,
+                                                                      int size,
+                                                                      String sortAttribute,
+                                                                      SortDirection sortDirection) {
         Preconditions.checkNotNull(entityClass, "Missing 'entityClass' argument");
         Preconditions.checkNotNull(filter, "Missing 'filter' argument");
 
@@ -231,11 +231,11 @@ public class ReferentialDaoImpl
     public List<ReferentialVO> getAllLevels(final String entityName) {
 
         return ReferentialEntities.getLevelProperty(entityName)
-                .map(levelDescriptor -> {
-                    String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
-                    return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 1000, IItemReferentialEntity.Fields.NAME, SortDirection.ASC, null);
-                })
-                .orElseGet(ImmutableList::of);
+            .map(levelDescriptor -> {
+                String levelEntityName = levelDescriptor.getPropertyType().getSimpleName();
+                return findByFilter(levelEntityName, ReferentialFilterVO.builder().build(), 0, 1000, IItemReferentialEntity.Fields.NAME, SortDirection.ASC, null);
+            })
+            .orElseGet(ImmutableList::of);
     }
 
     @Override
@@ -243,7 +243,7 @@ public class ReferentialDaoImpl
         Preconditions.checkNotNull(entityName, "Missing entityName argument");
 
         PropertyDescriptor levelDescriptor = ReferentialEntities.getLevelProperty(entityName)
-                .orElseThrow(() -> new DataRetrievalFailureException("Unable to find level with id=" + levelId + " for entityName=" + entityName));
+            .orElseThrow(() -> new DataRetrievalFailureException("Unable to find level with id=" + levelId + " for entityName=" + entityName));
 
         Class<?> levelClass = levelDescriptor.getPropertyType();
         if (!IReferentialEntity.class.isAssignableFrom(levelClass)) {
@@ -277,8 +277,7 @@ public class ReferentialDaoImpl
             return Optional.of(target);
         } catch (SumarisTechnicalException e) {
             throw e;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new SumarisTechnicalException(e.getMessage(), e);
         }
     }
@@ -452,7 +451,7 @@ public class ReferentialDaoImpl
             @CacheEvict(cacheNames = CacheConfiguration.Names.PMFM_HAS_PARAMETER_GROUP, allEntries = true, condition = "#source.entityName == 'Pmfm'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, key = "#source.id", condition = "#source.entityName == 'Program'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'Program'"),
-            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID,  key = "#source.id", condition = "#source.entityName == 'ProgramPrivilege'"),
+            @CacheEvict(cacheNames = CacheConfiguration.Names.PROGRAM_PRIVILEGE_BY_ID, key = "#source.id", condition = "#source.entityName == 'ProgramPrivilege'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_LEVEL_BY_LABEL, key = "#source.label", condition = "#source.entityName == 'LocationLevel'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATION_BY_ID, key = "#source.id", condition = "#source.entityName == 'Location'"),
             @CacheEvict(cacheNames = CacheConfiguration.Names.LOCATIONS_BY_FILTER, allEntries = true, condition = "#source.entityName == 'Location'"),
@@ -529,11 +528,10 @@ public class ReferentialDaoImpl
 
             String hql = String.format("SELECT max(%s) FROM %s",
                 IUpdateDateEntity.Fields.UPDATE_DATE,
-                    entityClass.getSimpleName());
+                entityClass.getSimpleName());
 
-            return (Timestamp)getEntityManager().createQuery(hql).getSingleResult();
-        }
-        catch (Exception e) {
+            return (Timestamp) getEntityManager().createQuery(hql).getSingleResult();
+        } catch (Exception e) {
             log.error("Error while getting max(updateDate) from " + entityName, e);
             return null;
         }
@@ -580,7 +578,7 @@ public class ReferentialDaoImpl
         type.setId(entityName);
 
         ReferentialEntities.getLevelProperty(entityName).ifPresent(levelProperty ->
-                type.setLevel(levelProperty.getPropertyType().getSimpleName()));
+            type.setLevel(levelProperty.getPropertyType().getSimpleName()));
 
         return type;
     }
@@ -666,10 +664,10 @@ public class ReferentialDaoImpl
         return null; // TODO
     }
 
-    protected  <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
-                                             IReferentialFilter filter,
-                                             String sortAttribute,
-                                             SortDirection sortDirection) {
+    protected <T> TypedQuery<T> createFindQuery(Class<T> entityClass,
+                                                IReferentialFilter filter,
+                                                String sortAttribute,
+                                                SortDirection sortDirection) {
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
@@ -678,26 +676,26 @@ public class ReferentialDaoImpl
 
         addSorting(query, builder, entityRoot, sortAttribute, sortDirection);
 
-        return createFilteredQuery(builder, entityClass, query, entityRoot, filter );
+        return createFilteredQuery(builder, entityClass, query, entityRoot, filter);
     }
 
-    protected  <R, T> TypedQuery<R> createFindQuery(Class<R> resultClass,
-                                                    Class<T> entityClass,
-                                                    IReferentialFilter filter,
-                                                    String sortAttribute,
-                                                    SortDirection sortDirection) {
+    protected <R, T> TypedQuery<R> createFindQuery(Class<R> resultClass,
+                                                   Class<T> entityClass,
+                                                   IReferentialFilter filter,
+                                                   String sortAttribute,
+                                                   SortDirection sortDirection) {
 
         CriteriaBuilder builder = getEntityManager().getCriteriaBuilder();
         CriteriaQuery<R> query = builder.createQuery(resultClass);
         Root<T> entityRoot = query.from(entityClass);
         if (resultClass == entityClass) {
-            query.select((Root<R>)entityRoot);
+            query.select((Root<R>) entityRoot);
         }
         query.distinct(true);
 
         addSorting(query, builder, entityRoot, sortAttribute, sortDirection);
 
-        return createFilteredQuery(builder, entityClass, query, entityRoot, filter );
+        return createFilteredQuery(builder, entityClass, query, entityRoot, filter);
     }
 
     /**
@@ -736,7 +734,7 @@ public class ReferentialDaoImpl
         return createFilteredQuery(builder, entityClass, query, root, filter);
     }
 
-    protected <R,T> TypedQuery<R> createFilteredQuery(CriteriaBuilder cb,
+    protected <R, T> TypedQuery<R> createFilteredQuery(CriteriaBuilder cb,
                                                        Class<T> entityClass,
                                                        CriteriaQuery<R> query,
                                                        Root<? extends T> root,
@@ -987,8 +985,7 @@ public class ReferentialDaoImpl
                 if (parentId != null) {
                     IReferentialEntity<?> parent = getReference(target.getClass(), parentId);
                     ((ITreeNodeEntity<?, IReferentialEntity<?>>) target).setParent(parent);
-                }
-                else {
+                } else {
                     ((ITreeNodeEntity<?, ?>) target).setParent(null);
                 }
             }
@@ -1019,9 +1016,7 @@ public class ReferentialDaoImpl
                         key,
                         value), e);
                 }
-                else {
-                    // Continue
-                }
+                // Continue
             }
         });
     }
@@ -1042,7 +1037,7 @@ public class ReferentialDaoImpl
                 .collect(Beans.getPropertyCollector(targetClass, key)));
         }
         // Resolve single entity
-        else if (value instanceof LinkedHashMap<?,?> mapValue
+        else if (value instanceof LinkedHashMap<?, ?> mapValue
             && mapValue.containsKey(ReferentialVO.Fields.ENTITY_NAME)
             && mapValue.containsKey(ReferentialVO.Fields.ID)) {
             String entityName = mapValue.get(ReferentialVO.Fields.ENTITY_NAME).toString();
@@ -1057,44 +1052,43 @@ public class ReferentialDaoImpl
     }
 
 
-
     protected void copyProperties(final IReferentialEntity source, ReferentialVO target) {
 
         switch (source.getClass().getSimpleName()) {
             case Pmfm.ENTITY_NAME -> {
-                target.setProperties(ImmutableMap.<String, Object>builder()
-                    .put(Pmfm.Fields.PARAMETER, toVO(Parameter.ENTITY_NAME, ((Pmfm)source).getParameter()))
-                    .put(Pmfm.Fields.MATRIX, toVO(Matrix.ENTITY_NAME, ((Pmfm)source).getMatrix()))
-                    .put(Pmfm.Fields.FRACTION, toVO(Fraction.ENTITY_NAME, ((Pmfm)source).getFraction()))
-                    .put(Pmfm.Fields.METHOD, toVO(Method.ENTITY_NAME, ((Pmfm)source).getMethod()))
-                    .put(Pmfm.Fields.UNIT, toVO(Unit.ENTITY_NAME, ((Pmfm)source).getUnit()))
-                    .build()
+                target.setProperties(MapUtils.of(
+                        Pmfm.Fields.PARAMETER, toVO(Parameter.ENTITY_NAME, ((Pmfm) source).getParameter()),
+                        Pmfm.Fields.MATRIX, toVO(Matrix.ENTITY_NAME, ((Pmfm) source).getMatrix()),
+                        Pmfm.Fields.FRACTION, toVO(Fraction.ENTITY_NAME, ((Pmfm) source).getFraction()),
+                        Pmfm.Fields.METHOD, toVO(Method.ENTITY_NAME, ((Pmfm) source).getMethod()),
+                        Pmfm.Fields.UNIT, toVO(Unit.ENTITY_NAME, ((Pmfm) source).getUnit())
+                    )
                 );
             }
             case Method.ENTITY_NAME -> {
-                target.setProperties(ImmutableMap.<String, Object>builder()
-                        .put(Method.Fields.IS_CALCULATED, ((Method)source).getIsCalculated())
-                        .put(Method.Fields.IS_ESTIMATED, ((Method)source).getIsEstimated())
-                        .build()
+                target.setProperties(MapUtils.of(
+                        Method.Fields.IS_CALCULATED, ((Method) source).getIsCalculated(),
+                        Method.Fields.IS_ESTIMATED, ((Method) source).getIsEstimated()
+                    )
                 );
             }
             case Metier.ENTITY_NAME -> {
-                target.setProperties(ImmutableMap.<String, Object>builder()
-                    .put(Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier)source).getTaxonGroup()))
-                    .put(Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier)source).getGear()))
-                    .build()
+                target.setProperties(MapUtils.of(
+                        Metier.Fields.TAXON_GROUP, toVO(TaxonGroup.ENTITY_NAME, ((Metier) source).getTaxonGroup()),
+                        Metier.Fields.GEAR, toVO(Gear.ENTITY_NAME, ((Metier) source).getGear())
+                    )
                 );
             }
             case Gear.ENTITY_NAME -> {
-                target.setProperties(ImmutableMap.<String, Object>builder()
-                    .put(Gear.Fields.IS_TOWED, ((Gear)source).getIsTowed())
-                    .put(Gear.Fields.IS_ACTIVE, ((Gear)source).getIsActive())
-                    .build()
+                target.setProperties(MapUtils.of(
+                        Gear.Fields.IS_TOWED, ((Gear) source).getIsTowed(),
+                        Gear.Fields.IS_ACTIVE, ((Gear) source).getIsActive()
+                    )
                 );
             }
             case DenormalizedSamplingStrata.ENTITY_NAME -> {
                 target.setProperties(ImmutableMap.<String, Object>builder()
-                    .put(DenormalizedSamplingStrata.Fields.SAMPLING_SCHEME_LABEL, ((DenormalizedSamplingStrata)source).getSamplingSchemeLabel())
+                    .put(DenormalizedSamplingStrata.Fields.SAMPLING_SCHEME_LABEL, ((DenormalizedSamplingStrata) source).getSamplingSchemeLabel())
                     .build()
                 );
             }
@@ -1108,12 +1102,12 @@ public class ReferentialDaoImpl
 
                 target.setProperties(ImmutableMap.<String, Object>builder()
                     // Locations
-                    .put(ExpertiseArea.Fields.LOCATIONS, Beans.getStream(((ExpertiseArea)source).getLocations())
+                    .put(ExpertiseArea.Fields.LOCATIONS, Beans.getStream(((ExpertiseArea) source).getLocations())
                         .map(location -> this.toVO(Location.ENTITY_NAME, location, locationFetchOptions))
                         .toList()
                     )
                     // Location Levels
-                    .put(ExpertiseArea.Fields.LOCATION_LEVELS, Beans.getStream(((ExpertiseArea)source).getLocationLevels())
+                    .put(ExpertiseArea.Fields.LOCATION_LEVELS, Beans.getStream(((ExpertiseArea) source).getLocationLevels())
                         .map(locationLevel -> this.toVO(LocationLevel.ENTITY_NAME, locationLevel, locationFetchOptions))
                         .toList()
                     )
@@ -1137,6 +1131,7 @@ public class ReferentialDaoImpl
         return getEntityManager().createQuery(query)
             .setParameter(labelParam, label);
     }
+
     private synchronized void loadAcquisitionLevels() {
         acquisitionLevelIdByLabel.clear();
         acquisitionLevelLabelById.clear();

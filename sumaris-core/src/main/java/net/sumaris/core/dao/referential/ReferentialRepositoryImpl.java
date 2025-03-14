@@ -119,13 +119,13 @@ public abstract class ReferentialRepositoryImpl<
 
     @Override
     public Page<V> findAll(int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(Pageables.create((long)offset, size, sortDirection, sortAttribute))
+        return findAll(Pageables.create((long) offset, size, sortDirection, sortAttribute))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
     @Override
     public Page<V> findAll(F filter, int offset, int size, String sortAttribute, SortDirection sortDirection, O fetchOptions) {
-        return findAll(toSpecification(filter), Pageables.create((long)offset, size, sortDirection, sortAttribute))
+        return findAll(toSpecification(filter), Pageables.create((long) offset, size, sortDirection, sortAttribute))
             .map(e -> this.toVO(e, fetchOptions));
     }
 
@@ -253,7 +253,7 @@ public abstract class ReferentialRepositoryImpl<
 
     @Override
     public void toVO(E source, V target, boolean copyIfNull) {
-        toVO(source, target, (O)null, copyIfNull);
+        toVO(source, target, null, copyIfNull);
     }
 
     protected V toVO(E source, O fetchOptions) {
@@ -265,7 +265,17 @@ public abstract class ReferentialRepositoryImpl<
 
     protected void toVO(E source, V target, O fetchOptions, boolean copyIfNull) {
         Beans.copyProperties(source, target);
-        target.setStatusId(source.getStatus().getId());
+
+        // Status
+        if (source.getStatus() != null || copyIfNull) {
+            if (source.getStatus() != null) {
+                target.setStatusId(source.getStatus().getId());
+            } else {
+                target.setStatusId(null);
+            }
+        }
+
+        // EntityName (as metadata)
         target.setEntityName(entityName);
     }
 
@@ -298,8 +308,8 @@ public abstract class ReferentialRepositoryImpl<
             .and(inLevelLabels(clazz, concat(filter.getLevelLabel(), filter.getLevelLabels(), String[].class)))
             .and(searchOrJoinSearchText(filter))
             .and(inSearchJoinLevelIds(filter.getSearchJoin(), filter.getSearchJoinLevelIds()))
-            .and(includedIds((ID[])filter.getIncludedIds()))
-            .and(excludedIds((ID[])filter.getExcludedIds()));
+            .and(includedIds((ID[]) filter.getIncludedIds()))
+            .and(excludedIds((ID[]) filter.getExcludedIds()));
     }
 
     protected void configureQuery(TypedQuery<E> query, @Nullable net.sumaris.core.dao.technical.Page page, @Nullable O fetchOptions) {

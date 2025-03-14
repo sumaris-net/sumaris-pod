@@ -712,22 +712,13 @@ public class StrategyRepositoryImpl
         // Gears
         if (fetchOptions.isWithGears() && CollectionUtils.isNotEmpty(source.getGears())) {
             // Set Gears
-            List<ReferentialVO> refGears = source.getGears()
-                    .stream()
-                    .map(referentialDao::toVO)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            target.setGears(refGears);
-
-            // Set FulGears
             List<GearVO> gears = source.getGears()
                 .stream()
                 .map(gearRepository::toVO)
                 .filter(Objects::nonNull)
                 .toList();
             target.setFullGears(gears);
-
-
+            target.setGears(Lists.transform(gears, GearVO::toReferentialVO));
         }
 
         // Taxon groups
@@ -1031,8 +1022,8 @@ public class StrategyRepositoryImpl
             // WARN: database can stored many values for the same keys.
             // Only the first existing instance will be reused. Duplicate properties will be removed
             ListMultimap<String, StrategyProperty> existingPropertiesMap = Beans.splitByNotUniqueProperty(
-                    Beans.getList(parent.getProperties()),
-                    StrategyProperty.Fields.LABEL);
+                Beans.getList(parent.getProperties()),
+                StrategyProperty.Fields.LABEL);
             List<StrategyProperty> existingValues = Beans.getList(existingPropertiesMap.values());
             final Status enableStatus = em.getReference(Status.class, StatusEnum.ENABLE.getId());
             if (parent.getProperties() == null) {
@@ -1043,28 +1034,28 @@ public class StrategyRepositoryImpl
 
             // Transform each entry into StrategyProperty
             source.keySet().stream()
-                    .map(key -> {
-                        StrategyProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
-                        boolean isNew = (prop == null);
-                        if (isNew) {
-                            prop = new StrategyProperty();
-                            prop.setLabel(key);
-                            prop.setStrategy(parent);
-                            prop.setCreationDate(updateDate);
-                        } else {
-                            existingValues.remove(prop);
-                        }
-                        prop.setName(source.get(key));
-                        prop.setStatus(enableStatus);
-                        prop.setUpdateDate(updateDate);
-                        if (isNew) {
-                            em.persist(prop);
-                        } else {
-                            prop = em.merge(prop);
-                        }
-                        return prop;
-                    })
-                    .forEach(targetProperties::add);
+                .map(key -> {
+                    StrategyProperty prop = existingPropertiesMap.containsKey(key) ? existingPropertiesMap.get(key).get(0) : null;
+                    boolean isNew = (prop == null);
+                    if (isNew) {
+                        prop = new StrategyProperty();
+                        prop.setLabel(key);
+                        prop.setStrategy(parent);
+                        prop.setCreationDate(updateDate);
+                    } else {
+                        existingValues.remove(prop);
+                    }
+                    prop.setName(source.get(key));
+                    prop.setStatus(enableStatus);
+                    prop.setUpdateDate(updateDate);
+                    if (isNew) {
+                        em.persist(prop);
+                    } else {
+                        prop = em.merge(prop);
+                    }
+                    return prop;
+                })
+                .forEach(targetProperties::add);
 
             // Remove old properties
             if (CollectionUtils.isNotEmpty(existingValues)) {
