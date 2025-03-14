@@ -206,7 +206,8 @@ public class ProgramGraphQLService {
 
     @GraphQLQuery(name = "locationClassifications", description = "Get program's location classifications")
     public List<ReferentialVO> getProgramLocationClassifications(@GraphQLContext ProgramVO program) {
-        if (CollectionUtils.isNotEmpty(program.getLocationClassifications())) return program.getLocationClassifications();
+        if (CollectionUtils.isNotEmpty(program.getLocationClassifications()))
+            return program.getLocationClassifications();
         if (CollectionUtils.isEmpty(program.getLocationClassificationIds())) return null;
 
         Integer[] locationClassificationIds = program.getLocationClassificationIds().toArray(new Integer[0]);
@@ -220,11 +221,11 @@ public class ProgramGraphQLService {
     public List<String> getProgramUserPrivileges(@GraphQLContext ProgramVO program) {
         // TODO add department privileges
         return authService.getAuthenticatedUser()
-                .map(user -> programService.getAllPrivilegesByUserId(program.getId(), user.getId())
-                    .stream().map(ProgramPrivilegeEnum::name)
-                    .toList()
-                )
-                .orElseGet(ArrayList::new);
+            .map(user -> programService.getAllPrivilegesByUserId(program.getId(), user.getId())
+                .stream().map(ProgramPrivilegeEnum::name)
+                .toList()
+            )
+            .orElseGet(ArrayList::new);
     }
 
     @GraphQLQuery(name = "strategies", description = "Get program's strategies")
@@ -248,8 +249,7 @@ public class ProgramGraphQLService {
         long now = TimeLog.getTime();
         try {
             return strategyService.findByFilter(filter, null, getStrategyFetchOptions(GraphQLUtils.fields(env)));
-        }
-        finally {
+        } finally {
             timeLog.log(now, "getStrategiesByProgram");
         }
     }
@@ -315,9 +315,9 @@ public class ProgramGraphQLService {
             return pmfmStrategy.getPmfm();
         } else if (pmfmStrategy.getPmfmId() != null) {
             return pmfmService.get(pmfmStrategy.getPmfmId(), PmfmFetchOptions.builder()
-                    .withInheritance(false)
-                    .withQualitativeValue(true)
-                    .build());
+                .withInheritance(false)
+                .withQualitativeValue(true)
+                .build());
         }
         return null;
     }
@@ -455,10 +455,10 @@ public class ProgramGraphQLService {
     @GraphQLSubscription(name = "lastStrategiesUpdateDate", description = "Subscribe to last strategies update date")
     @IsUser
     public Publisher<Date> lastStrategiesUpdateDate(@GraphQLNonNull @GraphQLArgument(name = "filter") StrategyFilterVO filter,
-                                                   @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to check, in seconds.") Integer intervalInSeconds
+                                                    @GraphQLArgument(name = "interval", defaultValue = "30", description = "Minimum interval to check, in seconds.") Integer intervalInSeconds
     ) {
         Preconditions.checkArgument(filter != null && ArrayUtils.isNotEmpty(filter.getProgramIds()),
-            String.format("Required 'filter.programIds' to listen for strategies changes"));
+            "Required 'filter.programIds' to listen for strategies changes");
 
         if (intervalInSeconds != null && intervalInSeconds < MIN_WATCH_INTERVAL_IN_SECONDS) {
             intervalInSeconds = MIN_WATCH_INTERVAL_IN_SECONDS;
@@ -533,27 +533,27 @@ public class ProgramGraphQLService {
         });
 
         return entityWatchService.watchEntities(Program.class,
-            // Call program ids loader
-            () -> programIdsLoader.call()
-                // Then convert to VO
-                .map(programIds -> {
-                    // User has no programs:
-                    if (CollectionUtils.isEmpty(programIds)) {
-                        // return an empty list (because findByFilter will return full list)
-                        return ImmutableList.of();
-                    }
+                // Call program ids loader
+                () -> programIdsLoader.call()
+                    // Then convert to VO
+                    .map(programIds -> {
+                        // User has no programs:
+                        if (CollectionUtils.isEmpty(programIds)) {
+                            // return an empty list (because findByFilter will return full list)
+                            return ImmutableList.of();
+                        }
 
-                    // Fetch VO, by ids
-                    log.debug("Fetching {} programs for Person#{}...", programIds.size(), personId);
-                    return programService.findByFilter(
-                        ProgramFilterVO.builder()
-                            .includedIds(programIds.toArray(new Integer[0]))
-                            .build(),
-                        Page.builder()
-                            .sortBy(IEntity.Fields.ID).sortDirection(SortDirection.ASC)
-                            .build(),
-                        fetchOptions);
-                }),
+                        // Fetch VO, by ids
+                        log.debug("Fetching {} programs for Person#{}...", programIds.size(), personId);
+                        return programService.findByFilter(
+                            ProgramFilterVO.builder()
+                                .includedIds(programIds.toArray(new Integer[0]))
+                                .build(),
+                            Page.builder()
+                                .sortBy(IEntity.Fields.ID).sortDirection(SortDirection.ASC)
+                                .build(),
+                            fetchOptions);
+                    }),
                 intervalInSeconds,
                 startWithActualValue)
             .toFlowable(BackpressureStrategy.LATEST);
@@ -582,7 +582,7 @@ public class ProgramGraphQLService {
             )
             .withAcquisitionLevels(
                 fields.contains(StringUtils.slashing(ProgramVO.Fields.ACQUISITION_LEVELS, ReferentialVO.Fields.ID))
-                || fields.contains(ProgramVO.Fields.ACQUISITION_LEVEL_LABELS)
+                    || fields.contains(ProgramVO.Fields.ACQUISITION_LEVEL_LABELS)
             )
             .build();
     }
@@ -607,13 +607,15 @@ public class ProgramGraphQLService {
             .withGears(
                 fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.ID))
                     || fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.LABEL))
+                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.FULL_GEARS, ReferentialVO.Fields.ID))
+                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.FULL_GEARS, ReferentialVO.Fields.LABEL))
             )
             .withAppliedStrategies(
-                    fields.contains(StringUtils.slashing(StrategyVO.Fields.APPLIED_STRATEGIES, AppliedStrategyVO.Fields.ID))
+                fields.contains(StringUtils.slashing(StrategyVO.Fields.APPLIED_STRATEGIES, AppliedStrategyVO.Fields.ID))
             )
             // Test if should include Pmfms
             .withPmfms(
-                    fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, PmfmStrategyVO.Fields.ID))
+                fields.contains(StringUtils.slashing(StrategyVO.Fields.PMFMS, PmfmStrategyVO.Fields.ID))
             )
             // Test if should include DenormalizedPmfms
             .withDenormalizedPmfms(
@@ -700,9 +702,9 @@ public class ProgramGraphQLService {
         // - If right by StrategyDepartment is enabled used (in program properties)
         boolean enableStrategyDepartment = noProgramFilter
             || Beans.getStream(filter.getProgramIds())
-                .anyMatch(programId -> programService.hasPropertyValueByProgramId(programId, ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString()))
+            .anyMatch(programId -> programService.hasPropertyValueByProgramId(programId, ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString()))
             || Beans.getStream(filter.getProgramLabels())
-                .anyMatch(programLabel -> programService.hasPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString()));
+            .anyMatch(programLabel -> programService.hasPropertyValueByProgramLabel(programLabel, ProgramPropertyEnum.PROGRAM_STRATEGY_DEPARTMENT_ENABLE, Boolean.TRUE.toString()));
         return fillStrategyFilter(filter, enableStrategyDepartment);
     }
 
