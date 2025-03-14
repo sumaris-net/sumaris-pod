@@ -63,8 +63,8 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class OperationRepositoryImpl
-        extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, OperationFetchOptions>
-        implements OperationSpecifications {
+    extends DataRepositoryImpl<Operation, OperationVO, OperationFilterVO, OperationFetchOptions>
+    implements OperationSpecifications {
 
     private final PhysicalGearRepository physicalGearRepository;
 
@@ -110,7 +110,7 @@ public class OperationRepositoryImpl
         // Trip
         if (source.getTrip() != null) {
             target.setTripId(source.getTrip().getId());
-            if (fetchOptions != null && fetchOptions.isWithTrip()){
+            if (fetchOptions != null && fetchOptions.isWithTrip()) {
                 // We use MINIMAL fetch, because only root attributes are usually expected by the APP
                 target.setTrip(tripRepository.toVO(source.getTrip(), TripFetchOptions.MINIMAL));
             }
@@ -120,9 +120,9 @@ public class OperationRepositoryImpl
         if (source.getPhysicalGear() != null) {
             target.setPhysicalGearId(source.getPhysicalGear().getId());
             target.setPhysicalGear(physicalGearRepository.toVO(source.getPhysicalGear(), DataFetchOptions.builder()
-                    .withRecorderDepartment(false)
-                    .withRecorderPerson(false)
-                    .build()));
+                .withRecorderDepartment(false)
+                .withRecorderPerson(false)
+                .build()));
         }
 
         // Métier
@@ -195,7 +195,7 @@ public class OperationRepositoryImpl
         }
 
         // Vessel associations
-        if (source.getOperationVesselAssociations() != null) {
+        if (fetchOptions != null && fetchOptions.isWithVesselAssociation() && source.getOperationVesselAssociations() != null) {
             List<OperationVesselAssociationVO> vesselAssociations = new ArrayList<>();
             source.getOperationVesselAssociations().forEach(association -> {
                 OperationVesselAssociationVO associationVO = new OperationVesselAssociationVO();
@@ -234,8 +234,8 @@ public class OperationRepositoryImpl
 
         // Update the parent entity
         Daos.replaceEntities(parent.getOperations(),
-                result,
-                (vo) -> getReference(Operation.class, vo.getId()));
+            result,
+            (vo) -> getReference(Operation.class, vo.getId()));
 
         return result;
     }
@@ -268,23 +268,23 @@ public class OperationRepositoryImpl
         {
             // Read physical gear id
             Integer physicalGearId = source.getPhysicalGearId() != null
-                    ? source.getPhysicalGearId()
-                    : source.getPhysicalGear() != null ? source.getPhysicalGear().getId() : null;
+                ? source.getPhysicalGearId()
+                : source.getPhysicalGear() != null ? source.getPhysicalGear().getId() : null;
 
             // If not found, try using the rankOrder
             if (physicalGearId == null && source.getPhysicalGear() != null && source.getPhysicalGear().getRankOrder() != null && target.getTrip() != null) {
                 Integer rankOrder = source.getPhysicalGear().getRankOrder();
                 physicalGearId = target.getTrip().getGears()
-                        .stream()
-                        .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
-                        .map(PhysicalGear::getId)
-                        .findFirst().orElse(null);
+                    .stream()
+                    .filter(g -> rankOrder != null && Objects.equals(g.getRankOrder(), rankOrder))
+                    .map(PhysicalGear::getId)
+                    .findFirst().orElse(null);
                 if (physicalGearId == null) {
                     throw new DataIntegrityViolationException(
-                            String.format("Operation {starDateTime: '%s'} use a unknown PhysicalGear. PhysicalGear with {rankOrder: %s} not found in gears Trip.",
-                                    Dates.toISODateTimeString(source.getStartDateTime()),
-                                    source.getPhysicalGear().getRankOrder()
-                            ));
+                        String.format("Operation {starDateTime: '%s'} use a unknown PhysicalGear. PhysicalGear with {rankOrder: %s} not found in gears Trip.",
+                            Dates.toISODateTimeString(source.getStartDateTime()),
+                            source.getPhysicalGear().getRankOrder()
+                        ));
                 }
                 source.setPhysicalGearId(physicalGearId);
                 source.setPhysicalGear(null);
@@ -363,7 +363,7 @@ public class OperationRepositoryImpl
 
         // Remember existing entities
         Map<Integer, OperationVesselAssociation> sourcesToRemove = Beans.splitByProperty(parent.getOperationVesselAssociations(),
-                OperationVesselAssociation.Fields.VESSEL + "." + IEntity.Fields.ID);
+            OperationVesselAssociation.Fields.VESSEL + "." + IEntity.Fields.ID);
 
         // Save each operation vessel association
         Beans.getList(sources).forEach(source -> {

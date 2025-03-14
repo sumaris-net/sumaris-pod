@@ -40,14 +40,17 @@ public class OperationFetchOptions implements IDataFetchOptions {
         .withChildrenEntities(true)
         .withMeasurementValues(true)
         .withParentOperation(true)
+        .withVesselAssociation(true)
         .build();
 
     public static OperationFetchOptions nullToEmpty(OperationFetchOptions options) {
         return options != null ? options : new OperationFetchOptions();
     }
+
     public static OperationFetchOptions clone(OperationFetchOptions options) {
         return options != null ? options.clone() : new OperationFetchOptions();
     }
+
     public static OperationFetchOptions copy(IDataFetchOptions source) {
         return DataFetchOptions.copy(source, OperationFetchOptions.builder().build());
     }
@@ -80,6 +83,8 @@ public class OperationFetchOptions implements IDataFetchOptions {
     private boolean withBatches = false;
 
     private boolean withSamples = false;
+
+    private boolean withVesselAssociation = false;
 
     public OperationFetchOptions clone() {
         OperationFetchOptions target = new OperationFetchOptions();

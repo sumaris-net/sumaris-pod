@@ -456,7 +456,7 @@ public class DataGraphQLService {
             .sortBy(sort)
             .sortDirection(SortDirection.fromString(direction))
             .build();
-        return physicalGearService.findAll(filter, page, getFetchOptions(GraphQLUtils.fields(env)));
+        return physicalGearService.findAll(filter, page, getDataFetchOptions(GraphQLUtils.fields(env)));
     }
 
     @GraphQLQuery(name = "gears", description = "Get operation's gears")
@@ -479,7 +479,7 @@ public class DataGraphQLService {
     public PhysicalGearVO getPhysicalGear(@GraphQLArgument(name = "id") int id,
                                           @GraphQLEnvironment() ResolutionEnvironment env) {
         Set<String> fields = GraphQLUtils.fields(env);
-        return physicalGearService.get(id, getFetchOptions(fields));
+        return physicalGearService.get(id, getDataFetchOptions(fields));
     }
 
     /* -- Metier -- */
@@ -2094,7 +2094,7 @@ public class DataGraphQLService {
         return result;
     }
 
-    protected DataFetchOptions getFetchOptions(Set<String> fields) {
+    protected DataFetchOptions getDataFetchOptions(Set<String> fields) {
         return DataFetchOptions.builder()
             .withObservers(fields.contains(StringUtils.slashing(IWithObserversEntity.Fields.OBSERVERS, IEntity.Fields.ID)))
             .withRecorderDepartment(fields.contains(StringUtils.slashing(IWithRecorderDepartmentEntity.Fields.RECORDER_DEPARTMENT, IEntity.Fields.ID)))
@@ -2160,6 +2160,10 @@ public class DataGraphQLService {
             .withTrip(fields.contains(StringUtils.slashing(IWithTripEntity.Fields.TRIP, IEntity.Fields.ID)))
             .withParentOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.PARENT_OPERATION, IEntity.Fields.ID)))
             .withChildOperation(fields.contains(StringUtils.slashing(OperationVO.Fields.CHILD_OPERATION, IEntity.Fields.ID)))
+            .withVesselAssociation(
+                fields.contains(StringUtils.slashing(OperationVO.Fields.OPERATION_VESSEL_ASSOCIATIONS, OperationVesselAssociationVO.Fields.VESSEL_ID))
+                    || fields.contains(StringUtils.slashing(OperationVO.Fields.OPERATION_VESSEL_ASSOCIATIONS, OperationVesselAssociationVO.Fields.VESSEL_SNAPSHOT, IEntity.Fields.ID))
+            )
             .build();
     }
 
