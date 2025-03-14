@@ -29,7 +29,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.SumarisConfiguration;
-import net.sumaris.core.dao.data.ImageAttachmentRepository;
 import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.batch.BatchRepository;
 import net.sumaris.core.event.config.ConfigurationReadyEvent;
@@ -73,10 +72,6 @@ public class BatchServiceImpl implements BatchService {
 
     protected boolean enableImages;
 
-    protected boolean enableDataImagesDirectory;
-
-    protected final ImageAttachmentRepository imageAttachmentRepository;
-
     protected final ImageAttachmentService imageAttachmentService;
 
     protected final SumarisConfiguration configuration;
@@ -87,7 +82,6 @@ public class BatchServiceImpl implements BatchService {
     @EventListener({ConfigurationReadyEvent.class, ConfigurationUpdatedEvent.class})
     public void onConfigurationReady() {
         this.enableImages = configuration.enableDataImages();
-        this.enableDataImagesDirectory = configuration.enableDataImagesDirectory();
     }
 
     @Override
