@@ -29,15 +29,9 @@
                   WHEN 2 THEN 'INE'
                   ELSE TO_CHAR(T.METIER_COUNT)
                 END)
-            ELSE NULL
-            END)
-        )
-    ]]>
-    </select>
-    <select type="text" alias="%suffix%_ERROR" group="agg">
-        <![CDATA[
-        MIN(TRIM(CASE T.MONTH WHEN &month%suffix% THEN T.ERROR
-            ELSE NULL
+            ELSE
+                CASE WHEN &month%suffix% < VRI.START_MONTH OR &month%suffix% > VRI.END_MONTH
+                THEN 'NA' ELSE NULL END
             END)
         )
     ]]>
