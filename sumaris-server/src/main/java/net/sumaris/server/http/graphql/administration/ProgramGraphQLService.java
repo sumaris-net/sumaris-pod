@@ -59,6 +59,7 @@ import net.sumaris.core.vo.filter.ProgramFilterVO;
 import net.sumaris.core.vo.filter.ReferentialFilterVO;
 import net.sumaris.core.vo.filter.StrategyFilterVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import net.sumaris.core.vo.referential.pmfm.PmfmFetchOptions;
 import net.sumaris.core.vo.referential.pmfm.PmfmVO;
 import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
@@ -272,7 +273,7 @@ public class ProgramGraphQLService {
     }
 
     @GraphQLQuery(name = "gears", description = "Get strategy's gears")
-    public List<ReferentialVO> getStrategyGears(@GraphQLContext StrategyVO strategy) {
+    public List<GearVO> getStrategyGears(@GraphQLContext StrategyVO strategy) {
         if (strategy.getGears() != null) return strategy.getGears();
 
         if (CollectionUtils.isEmpty(strategy.getPmfms())) return null;
@@ -605,10 +606,9 @@ public class ProgramGraphQLService {
                     || fields.contains(StringUtils.slashing(StrategyVO.Fields.DEPARTMENTS, StrategyDepartmentVO.Fields.DEPARTMENT, IEntity.Fields.ID))
             )
             .withGears(
-                fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.ID))
-                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, ReferentialVO.Fields.LABEL))
-                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.FULL_GEARS, ReferentialVO.Fields.ID))
-                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.FULL_GEARS, ReferentialVO.Fields.LABEL))
+                fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, GearVO.Fields.ID))
+                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, GearVO.Fields.LABEL))
+                    || fields.contains(StringUtils.slashing(StrategyVO.Fields.GEARS, GearVO.Fields.NAME))
             )
             .withAppliedStrategies(
                 fields.contains(StringUtils.slashing(StrategyVO.Fields.APPLIED_STRATEGIES, AppliedStrategyVO.Fields.ID))

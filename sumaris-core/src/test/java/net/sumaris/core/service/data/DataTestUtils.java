@@ -43,6 +43,7 @@ import net.sumaris.core.vo.data.activity.DailyActivityCalendarVO;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.sample.SampleVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import net.sumaris.core.vo.referential.location.LocationVO;
 import net.sumaris.core.vo.referential.metier.MetierVO;
 import net.sumaris.core.vo.referential.pmfm.PmfmVO;
@@ -87,7 +88,7 @@ public class DataTestUtils {
         vo.setRecorderDepartment(recorderDepartment);
 
         // Gear
-        ReferentialVO gear = new ReferentialVO();
+        GearVO gear = new GearVO();
         gear.setEntityName(PhysicalGear.class.getSimpleName());
         gear.setId(fixtures.getGearId(0));
 
@@ -673,5 +674,11 @@ public class DataTestUtils {
         vo.setVesselSnapshot(vessel);
 
         return vo;
+    }
+
+    public static GearVO createGear(DatabaseFixtures fixtures, int index) {
+        GearVO target = new GearVO();
+        target.setId(fixtures.getGearId(index));
+        return target;
     }
 }

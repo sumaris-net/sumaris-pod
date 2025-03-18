@@ -717,8 +717,7 @@ public class StrategyRepositoryImpl
                 .map(gearRepository::toVO)
                 .filter(Objects::nonNull)
                 .toList();
-            target.setFullGears(gears);
-            target.setGears(Lists.transform(gears, GearVO::toReferentialVO));
+            target.setGears(gears);
         }
 
         // Taxon groups

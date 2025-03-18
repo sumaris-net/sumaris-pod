@@ -10,12 +10,12 @@ package net.sumaris.core.service.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -29,7 +29,6 @@ import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.service.AbstractServiceTest;
 import net.sumaris.core.vo.data.DataFetchOptions;
 import net.sumaris.core.vo.data.PhysicalGearVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.ClassRule;
@@ -51,8 +50,8 @@ public class PhysicalGearServiceWriteTest extends AbstractServiceTest {
 
         int tripId = fixtures.getTripIdWithSubGears();
         List<PhysicalGearVO> gears = service.getAllByTripId(tripId, DataFetchOptions.builder()
-                .withChildrenEntities(true)
-                .build());
+            .withChildrenEntities(true)
+            .build());
         Assume.assumeTrue("Invalid DB state. Expected 4 gears, but get " + gears.size(), gears.size() == 4);
         PhysicalGearVO rootGear = TreeNodeEntities.listAsTree(gears, PhysicalGearVO::getParentId, true);
 
@@ -69,8 +68,8 @@ public class PhysicalGearServiceWriteTest extends AbstractServiceTest {
         // Reload
         {
             List<PhysicalGearVO> reloadGears = service.getAllByTripId(tripId, DataFetchOptions.builder()
-                    .withChildrenEntities(true)
-                    .build());
+                .withChildrenEntities(true)
+                .build());
             Assert.assertEquals(gears.size() + 1, reloadGears.size());
         }
     }
@@ -79,14 +78,8 @@ public class PhysicalGearServiceWriteTest extends AbstractServiceTest {
         PhysicalGearVO target = new PhysicalGearVO();
         target.setRankOrder(rankOrder);
         target.setMeasurementValues(ImmutableMap.of(PmfmEnum.GEAR_LABEL.getId(), label));
-        target.setGear(createGear(0));
+        target.setGear(DataTestUtils.createGear(fixtures, 0));
 
         return target;
-    }
-
-    protected ReferentialVO createGear(int index) {
-        return ReferentialVO.builder()
-                .id(fixtures.getGearId(0))
-                .build();
     }
 }

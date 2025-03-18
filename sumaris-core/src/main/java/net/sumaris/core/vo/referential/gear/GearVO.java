@@ -24,27 +24,17 @@ package net.sumaris.core.vo.referential.gear;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.referential.gear.Gear;
-import net.sumaris.core.util.Beans;
+import net.sumaris.core.vo.referential.IReferentialWithLevelVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
 
 @Data
-@FieldNameConstants
 @EqualsAndHashCode(callSuper = true)
 public class GearVO extends ReferentialVO {
 
-    public static ReferentialVO toReferentialVO(GearVO gear) {
-        return gear;
-    }
-
-    public static GearVO fromReferentialVO(ReferentialVO gear) {
-        if (gear instanceof GearVO fullGear) {
-            return fullGear;
-        }
-        GearVO target = new GearVO();
-        Beans.copyProperties(gear, target);
-        return target;
+    public interface Fields extends IReferentialWithLevelVO.Fields {
+        String IS_TOWED = "isTowed";
+        String IS_ACTIVE = "isActive";
     }
 
     private Boolean isTowed;

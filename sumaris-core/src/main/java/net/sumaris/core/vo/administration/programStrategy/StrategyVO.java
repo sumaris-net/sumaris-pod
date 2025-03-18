@@ -25,7 +25,6 @@ package net.sumaris.core.vo.administration.programStrategy;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.referential.IReferentialVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.gear.GearVO;
 
 import java.util.Date;
@@ -56,10 +55,7 @@ public class StrategyVO implements IReferentialVO<Integer> {
     private List<StrategyDepartmentVO> departments;
 
     private List<Integer> gearIds;
-
-    @Deprecated
-    private List<ReferentialVO> gears;
-    private List<GearVO> fullGears;
+    private List<GearVO> gears;
 
     private List<Integer> taxonGroupIds;
     private List<TaxonGroupStrategyVO> taxonGroups;

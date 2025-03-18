@@ -138,7 +138,6 @@ public class MetierRepositoryImpl
         if (source.getGear() != null) {
             // Set Gear
             GearVO gearVO = gearRepository.toVO(source.getGear());
-            target.setFullGear(gearVO);
             target.setGear(gearVO);
             target.setLevelId(source.getGear().getId());
         }

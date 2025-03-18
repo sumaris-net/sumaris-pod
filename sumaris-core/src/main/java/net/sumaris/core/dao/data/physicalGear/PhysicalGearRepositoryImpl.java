@@ -113,12 +113,10 @@ public class PhysicalGearRepositoryImpl
         if (copyIfNull || gear != null) {
             if (gear == null) {
                 target.setGear(null);
-                target.setFullGear(null);
                 target.setIsTowed(null);
             } else {
                 GearVO gearVO = gearRepository.toVO(gear);
                 target.setGear(gearVO);
-                target.setFullGear(gearVO);
             }
         }
 

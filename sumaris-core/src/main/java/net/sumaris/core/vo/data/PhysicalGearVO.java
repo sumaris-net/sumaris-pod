@@ -32,7 +32,6 @@ import net.sumaris.core.model.IWithFlagsValueObject;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.administration.user.PersonVO;
-import net.sumaris.core.vo.referential.ReferentialVO;
 import net.sumaris.core.vo.referential.gear.GearVO;
 
 import java.util.Date;
@@ -54,11 +53,8 @@ public class PhysicalGearVO implements IRootDataVO<Integer>,
     @ToString.Include
     private Integer rankOrder;
 
-    @Deprecated
-    private ReferentialVO gear;
-
     @ToString.Include
-    private GearVO fullGear;
+    private GearVO gear;
 
     private String comments;
     @EqualsAndHashCode.Exclude

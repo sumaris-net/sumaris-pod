@@ -213,7 +213,7 @@ public class OperationGroupRepositoryImpl
 
         // Affect date time
         target.setStartDateTime(
-            source.isUndefined()
+            source.getUndefined()
                 ? trip.getDepartureDateTime()
                 : DateUtils.addSeconds(trip.getDepartureDateTime(), 1)
         );

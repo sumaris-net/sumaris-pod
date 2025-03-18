@@ -35,8 +35,7 @@ import net.sumaris.core.vo.referential.taxon.TaxonGroupVO;
 @EqualsAndHashCode(callSuper = true)
 public class MetierVO extends ReferentialVO {
 
-    private ReferentialVO gear;
-    private GearVO fullGear;
+    private GearVO gear;
     private TaxonGroupVO taxonGroup;
 
     public MetierVO() {
