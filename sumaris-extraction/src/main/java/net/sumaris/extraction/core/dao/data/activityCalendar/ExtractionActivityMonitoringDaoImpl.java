@@ -255,6 +255,16 @@ public class ExtractionActivityMonitoringDaoImpl<C extends ExtractionActivityMon
                             target.setProgramLabel(criterion.getValue());
                         }
                         break;
+                    case ActivityMonitoringSpecification.COLUMN_INCLUDED_IDS:
+                        if (operator == ExtractionFilterOperatorEnum.EQUALS) {
+                            try {
+                                Integer id = Integer.parseInt(criterion.getValue());
+                                target.setIncludedIds(ArrayUtils.toArray(id));
+                            } catch (NumberFormatException e) {
+                                // Skip
+                            }
+                        }
+                        break;
                     case ActivityMonitoringSpecification.COLUMN_BASE_PORT_LOCATION_LABEL:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             Integer[] basePortLocationIds = Beans.collectIds(

@@ -20,65 +20,82 @@
   #L%
   -->
 <queries name="createRawMonitoringTable">
-    <query type="create" temp="false" table="&amp;rawMonitoringTableName">
-        <select alias="ID" type="number">AC.ID</select>
-        <select alias="YEAR" type="text">AC.YEAR</select>
-        <select alias="VESSEL_IDENTIFIER" type="hidden">AC.VESSEL_IDENTIFIER</select>
-        <select alias="OBSERVER_NAME">AC.OBSERVER_NAME</select>
-        <select alias="VESSEL_NAME">AC.VESSEL_NAME</select>
-        <select alias="VESSEL_LENGTH">AC.VESSEL_LENGTH</select>
-        <select alias="REGISTRATION_LOCATION_LABEL">AC.REGISTRATION_LOCATION_LABEL</select>
-        <select alias="VESSEL_REGISTRATION_CODE">AC.VESSEL_REGISTRATION_CODE</select>
-        <select alias="VESSEL_INT_REGISTRATION_CODE">AC.VESSEL_INT_REGISTRATION_CODE</select>
-        <select alias="DIRECT_SURVEY_INVESTIGATION">AC.DIRECT_SURVEY_INVESTIGATION</select>
-        <select alias="ECONOMIC_SURVEY">AC.ECONOMIC_SURVEY</select>
-        <select alias="SURVEY_QUALIFICATION">AC.SURVEY_QUALIFICATION</select>
-        <select alias="RECORDER_PERSON_NAME">AC.RECORDER_PERSON_NAME</select>
-        <select alias="RECORDER_DEPARTMENT">AC.RECORDER_DEPARTMENT</select>
-        <select alias="QUALITY_STATUS">AC.QUALITY_STATUS</select>
+  <query type="create" temp="false" table="&amp;rawMonitoringTableName">
 
-        <select alias="IS_ACTIVE" type="text">VUF.IS_ACTIVE</select>
+    <select alias="ID" type="number">AC.ID</select>
+    <select alias="YEAR" type="number">AC.YEAR</select>
+    <select alias="VESSEL_IDENTIFIER" type="hidden">AC.VESSEL_IDENTIFIER</select>
+    <select alias="OBSERVER_NAME">AC.OBSERVER_NAME</select>
+    <select alias="VESSEL_NAME">AC.VESSEL_NAME</select>
+    <select alias="VESSEL_LENGTH">AC.VESSEL_LENGTH</select>
+    <select alias="REGISTRATION_LOCATION_LABEL">AC.REGISTRATION_LOCATION_LABEL</select>
+    <select alias="VESSEL_REGISTRATION_CODE">AC.VESSEL_REGISTRATION_CODE</select>
+    <select alias="VESSEL_INT_REGISTRATION_CODE">AC.VESSEL_INT_REGISTRATION_CODE</select>
+    <select alias="DIRECT_SURVEY_INVESTIGATION">AC.DIRECT_SURVEY_INVESTIGATION</select>
+    <select alias="ECONOMIC_SURVEY">AC.ECONOMIC_SURVEY</select>
+    <select alias="SURVEY_QUALIFICATION">AC.SURVEY_QUALIFICATION</select>
+    <select alias="RECORDER_PERSON_NAME">AC.RECORDER_PERSON_NAME</select>
+    <select alias="RECORDER_DEPARTMENT">AC.RECORDER_DEPARTMENT</select>
+    <select alias="QUALITY_STATUS">AC.QUALITY_STATUS</select>
 
-        <select alias="MONTH" dbms="hsqldb,pgsql" type="text">MONTH(VUF.START_DATE)</select>
-        <select alias="MONTH" dbms="oracle" type="text">EXTRACT(MONTH FROM VUF.START_DATE)</select>
+    <select alias="IS_ACTIVE" type="text">VUF.IS_ACTIVE</select>
 
-        <select alias="METIER_COUNT" type="text" group="agg">COUNT(DISTINCT GUF.METIER_FK)</select>
-        <select alias="ERROR" type="text" group="agg">
-            MIN(TRIM(CASE
-                WHEN VUF.IS_ACTIVE IN (0,1) AND VUF.BASE_PORT_LOCATION_FK IS NULL THEN 'REQUIRED_PORT'
-                WHEN VUF.IS_ACTIVE = 0 AND GUF.METIER_FK IS NOT NULL THEN 'TOO_MANY_METIER'
-                WHEN VUF.IS_ACTIVE = 1 AND GUF.METIER_FK IS NULL THEN 'REQUIRED_METIER'
-                WHEN VUF.IS_ACTIVE = 1 AND GUF.METIER_FK IS NOT NULL AND FA.LOCATION_FK IS NULL THEN 'REQUIRED_FISHING_AREA'
-                WHEN VUF.IS_ACTIVE = 1 AND GUF.METIER_FK IS NOT NULL AND FA.LOCATION_FK IS NOT NULL AND FA.DISTANCE_TO_COAST_GRADIENT_FK IS NULL THEN 'REQUIRED_DISTANCE_TO_COAST_GRADIENT'
-                ELSE NULL
-            END))
-        </select>
+    <select alias="MONTH" dbms="hsqldb,pgsql" type="text">MONTH(VUF.START_DATE)</select>
+    <select alias="MONTH" dbms="oracle" type="text">EXTRACT(MONTH FROM VUF.START_DATE)</select>
 
+    <select alias="METIER_COUNT" type="text" group="agg">COUNT(DISTINCT GUF.METIER_FK)</select>
+    <select alias="ERROR" type="text" group="agg">
+      MIN(
+        TRIM(
+            CASE
+              WHEN VUF.IS_ACTIVE IN (0,1) AND VUF.BASE_PORT_LOCATION_FK IS NULL THEN 'REQUIRED_PORT'
+              WHEN VUF.IS_ACTIVE = 0 AND GUF.METIER_FK IS NOT NULL THEN 'TOO_MANY_METIER'
+              WHEN VUF.IS_ACTIVE = 1 AND GUF.METIER_FK IS NULL THEN 'REQUIRED_METIER'
+              WHEN VUF.IS_ACTIVE = 1 AND GUF.METIER_FK IS NOT NULL AND FA.LOCATION_FK IS NULL THEN 'REQUIRED_FISHING_AREA'
+              WHEN
+                  VUF.IS_ACTIVE = 1
+                  AND GUF.METIER_FK IS NOT NULL
+                  AND FA.LOCATION_FK IS NOT NULL
+                  AND FA.DISTANCE_TO_COAST_GRADIENT_FK IS NULL
+              THEN 'REQUIRED_DISTANCE_TO_COAST_GRADIENT'
+              ELSE NULL
+          END
+        )
+      )
+    </select>
 
-        <from alias="AC">&amp;calendarTableName</from>
+    <from alias="AC">&amp;calendarTableName</from>
 
-        <from join="true" group="!adagio">
-            LEFT OUTER JOIN	VESSEL_USE_FEATURES VUF ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
-        </from>
-        <from join="true" group="adagio">
-            LEFT OUTER JOIN	&amp;adagioSchema.VESSEL_USE_FEATURES VUF ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
-        </from>
+    <from join="true" group="!adagio">
+      LEFT OUTER JOIN VESSEL_USE_FEATURES VUF
+      ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
+    </from>
+    <from join="true" group="adagio">
+      LEFT OUTER JOIN &amp;adagioSchema.VESSEL_USE_FEATURES VUF
+      ON VUF.ACTIVITY_CALENDAR_FK = AC.ID
+    </from>
 
-        <from join="true" group="!adagio">
-            LEFT OUTER JOIN GEAR_USE_FEATURES GUF ON GUF.ACTIVITY_CALENDAR_FK = AC.ID AND GUF.START_DATE = VUF.START_DATE AND GUF.END_DATE = VUF.END_DATE
-        </from>
-        <from join="true" group="adagio">
-            LEFT OUTER JOIN &amp;adagioSchema.GEAR_USE_FEATURES GUF ON GUF.ACTIVITY_CALENDAR_FK = AC.ID AND GUF.START_DATE = VUF.START_DATE AND GUF.END_DATE = VUF.END_DATE
-        </from>
-        <from join="true" group="!adagio">
-            LEFT OUTER JOIN FISHING_AREA FA ON FA.GEAR_USE_FEATURES_FK = GUF.ID
-        </from>
-        <from join="true" group="adagio">
-            LEFT OUTER JOIN &amp;adagioSchema.FISHING_AREA FA ON FA.GEAR_USE_FEATURES_FK = GUF.ID
-        </from>
+    <from join="true" group="!adagio">
+      LEFT OUTER JOIN GEAR_USE_FEATURES GUF
+      ON GUF.ACTIVITY_CALENDAR_FK = AC.ID AND GUF.START_DATE = VUF.START_DATE
+      AND GUF.END_DATE = VUF.END_DATE
+    </from>
+    <from join="true" group="adagio">
+      LEFT OUTER JOIN &amp;adagioSchema.GEAR_USE_FEATURES GUF
+      ON GUF.ACTIVITY_CALENDAR_FK = AC.ID
+      AND GUF.START_DATE = VUF.START_DATE AND GUF.END_DATE = VUF.END_DATE
+    </from>
+    <from join="true" group="!adagio">
+      LEFT OUTER JOIN FISHING_AREA FA
+      ON FA.GEAR_USE_FEATURES_FK = GUF.ID
+    </from>
+    <from join="true" group="adagio">
+      LEFT OUTER JOIN &amp;adagioSchema.FISHING_AREA FA
+      ON FA.GEAR_USE_FEATURES_FK = GUF.ID
+    </from>
 
-        <groupby>&amp;groupByColumns</groupby>
-        <groupby dbms="oracle">VUF.START_DATE</groupby>
+    <groupby>&amp;groupByColumns</groupby>
+    <groupby dbms="oracle">VUF.START_DATE</groupby>
 
-    </query>
+  </query>
 </queries>
