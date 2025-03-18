@@ -46,6 +46,7 @@ public class ObservedLocationFetchOptions implements IDataFetchOptions, IWithObs
         .withChildrenEntities(true)
         .withMeasurementValues(true)
         .withSamplingStrata(true)
+        .withObservers(true)
         .build();
 
     public static ObservedLocationFetchOptions copy(IDataFetchOptions source) {
