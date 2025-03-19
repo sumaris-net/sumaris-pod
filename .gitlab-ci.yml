@@ -277,7 +277,7 @@ release:tags:
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - git diff --cached
-    - if git commit -am "[CI] release \"${APP_VERSION}\" performed" ; then git push ; else echo "Nothing to commit, continue" ; fi
+    - if git commit -am "[CI] release \"${APP_VERSION}\" performed" ; then git push origin ${CI_COMMIT_REF_NAME} ; else echo "Nothing to commit, continue" ; fi
   artifacts:
     paths:
     - ${ARTIFACT_WAR_FILE}
