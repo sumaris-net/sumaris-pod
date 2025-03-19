@@ -205,7 +205,7 @@
     <goals>deploy</goals>
     <arguments>-Phsqldb</arguments>
     <preparationGoals>verify</preparationGoals>
-    <gitflowPluginVersion>1.14.0</gitflowPluginVersion>
+    <gitflowPluginVersion>1.21.0</gitflowPluginVersion>
 
     <!-- Last JRE version to use -->
     <jreVersion>17.0.5</jreVersion>
