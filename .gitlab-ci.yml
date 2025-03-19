@@ -126,13 +126,13 @@ build:
     image: ${CI_BUILD_IMAGE}
     only:
       - develop
-      - /^stable\/.*/
 
 build:feature:
   extends: .build
   image: ${CI_BUILD_IMAGE}
   only:
     - /^features?\/.*/
+    - /^stable\/.*/
   when: manual
 
 # ---------------------------------------------------------------
@@ -198,7 +198,6 @@ sonarqube:
   script:
     - echo "Preparing release..."
     - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${RELEASE_VERSION:-}"
-    - if [[ "$CI_COMMIT_REF_NAME" != "develop" ]] ; then export MVN_OPTS="${MVN_OPTS} -DsameBranchName=true" ; fi
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
     - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
@@ -224,13 +223,12 @@ sonarqube:
     - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]] ; then echo "Pushing changes to upstream" ; fi
-    - if [[ "$CI_COMMIT_REF_NAME" != "develop" ]] ; then echo "Pushing changes to upstream" ; fi
+    - echo "Pushing changes to upstream"
+    - then echo "Pushing changes to upstream"
     - git diff --cached
     - git commit -am "[CI] release performed" || echo "Nothing to commit, continue"
-    - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]] ; git fetch origin master || echo "Cannot fetch origin master, but continue" ; fi
-    - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]] ; mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true ; fi
-    - if [[ "$CI_COMMIT_REF_NAME" != "develop" ]] ; mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true  -DskipReleaseMergeProdBranch=true -DskipReleaseMergeDevBranch=true; fi
+    - git fetch origin master || echo "Cannot fetch origin master, but continue"
+    - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
     - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE} ; fi
   artifacts:
     paths:
@@ -248,7 +246,6 @@ release:
   image: ${CI_BUILD_IMAGE}
   only:
     - develop
-    - /^stable\/.*/
 
 release:tags:
   <<: *git-setup
@@ -256,9 +253,9 @@ release:tags:
   stage: release
   script:
     - echo "Performing release..."
-    - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${CI_COMMIT_TAG}"
-    - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
     - APP_VERSION=${CI_COMMIT_TAG}
+    - mvn --batch-mode versions:set -DnewVersion="${APP_VERSION}"
+    - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
     - echo "-- Generated files:"
     - ls -la ${ARTIFACT_WAR_FILE} ${ARTIFACT_ZIP_FILE} ${ARTIFACT_CONFIG_FILES}
     - echo "-- Creating SHA256 file..."
@@ -279,6 +276,8 @@ release:tags:
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
+    - git diff --cached
+    - if git commit -am "[CI] release \"${APP_VERSION}\" performed" then git push ; else ; echo "Nothing to commit, continue ; fi"
   artifacts:
     paths:
     - ${ARTIFACT_WAR_FILE}
@@ -287,6 +286,7 @@ release:tags:
   allow_failure: false
   only:
     - tags
+    - /^stable\/.*/
   when: manual
 
 gitlab-release:
