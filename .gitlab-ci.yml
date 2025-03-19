@@ -126,14 +126,7 @@ build:
     image: ${CI_BUILD_IMAGE}
     only:
       - develop
-
-build:stable:
-    extends: .build
-    image: ${CI_BUILD_IMAGE}
-    only:
       - /^stable\/.*/
-    variables:
-      CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:stable
 
 build:feature:
   extends: .build
@@ -205,6 +198,7 @@ sonarqube:
   script:
     - echo "Preparing release..."
     - export MVN_OPTS="-DinstallProject=false -DpushRemote=false -DreleaseVersion=${RELEASE_VERSION:-}"
+    - if [[ "$CI_COMMIT_REF_NAME" != "develop" ]] ; then export MVN_OPTS="${MVN_OPTS} -DsameBranchName=true" ; fi
     - mvn --batch-mode gitflow:release-start ${MVN_OPTS}
     - echo "Performing release..."
     - mvn --batch-mode clean install -DskipTests -DperformRelease -Phsqldb
@@ -230,12 +224,14 @@ sonarqube:
     - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_WAR_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_WAR_MODULE}/target/${APP_WAR_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.zip -Dpackaging=zip -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
     - mvn deploy:deploy-file -q -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
-    - echo "Pushing changes to upstream"
+    - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]] ; then echo "Pushing changes to upstream" ; fi
+    - if [[ "$CI_COMMIT_REF_NAME" != "develop" ]] ; then echo "Pushing changes to upstream" ; fi
     - git diff --cached
     - git commit -am "[CI] release performed" || echo "Nothing to commit, continue"
-    - git fetch origin master || echo "Cannot fetch origin master, but continue"
-    - mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true
-    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+    - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]] ; git fetch origin master || echo "Cannot fetch origin master, but continue" ; fi
+    - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]] ; mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true ; fi
+    - if [[ "$CI_COMMIT_REF_NAME" != "develop" ]] ; mvn -B gitflow:release-finish -DskipTestProject=true -DpushRemote=true  -DskipReleaseMergeProdBranch=true -DskipReleaseMergeDevBranch=true; fi
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE} ; fi
   artifacts:
     paths:
       - ${ARTIFACT_WAR_FILE}
@@ -252,15 +248,7 @@ release:
   image: ${CI_BUILD_IMAGE}
   only:
     - develop
-
-release:stable:
-  extends: .release
-  stage: build
-  image: ${CI_BUILD_IMAGE}
-  only:
     - /^stable\/.*/
-  variables:
-    CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:stable
 
 release:tags:
   <<: *git-setup
