@@ -127,12 +127,19 @@ build:
     only:
       - develop
 
+build:stable:
+    extends: .build
+    image: ${CI_BUILD_IMAGE}
+    only:
+      - /^stable\/.*/
+    variables:
+      CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:stable
+
 build:feature:
   extends: .build
   image: ${CI_BUILD_IMAGE}
   only:
     - /^features?\/.*/
-    - /^stable\/.*/
   when: manual
 
 # ---------------------------------------------------------------
@@ -237,14 +244,23 @@ sonarqube:
       dotenv: ${ENV_FILE}
     expire_in: 60 minutes
   allow_failure: false
-  only:
-    - develop
   when: manual
 
 release:
   extends: .release
   stage: build
   image: ${CI_BUILD_IMAGE}
+  only:
+    - develop
+
+release:stable:
+  extends: .release
+  stage: build
+  image: ${CI_BUILD_IMAGE}
+  only:
+    - /^stable\/.*/
+  variables:
+    CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:stable
 
 release:tags:
   <<: *git-setup
@@ -277,8 +293,8 @@ release:tags:
     - mvn deploy:deploy-file -s ./ci_settings.xml -DgroupId=${APP_GROUP_ID} -DartifactId=${APP_DB_MODULE} -Dversion=${APP_VERSION} -Dfile=${APP_CORE_MODULE}/target/${APP_DB_MODULE}-${APP_VERSION}.sha256 -Dpackaging=sha256 -DrepositoryId=job-maven -Durl=$MAVEN_REPO_URL
   artifacts:
     paths:
-      - ${ARTIFACT_WAR_FILE}
-      - ${ARTIFACT_CONFIG_FILES}
+    - ${ARTIFACT_WAR_FILE}
+    - ${ARTIFACT_CONFIG_FILES}
     expire_in: 60 minutes
   allow_failure: false
   only:
@@ -308,7 +324,7 @@ gitlab-release:
             - name: "${APP_DB_MODULE}-${CI_COMMIT_TAG}.sha256"
               url: "${MAVEN_REPO_URL}/net/sumaris/${APP_DB_MODULE}/${CI_COMMIT_TAG}/${APP_DB_MODULE}-${CI_COMMIT_TAG}.sha256"
     only:
-        - tags
+      - tags
 
 # ---------------------------------------------------------------
 # Docker jobs
@@ -341,7 +357,6 @@ docker:feature:
     IMAGE_TAG: 'feature'
   only:
     - /^features?\/.*/
-    - /^stable\/.*/
 
 docker:develop:
     extends: .docker-build
@@ -349,7 +364,7 @@ docker:develop:
     variables:
         IMAGE_TAG: 'develop'
     only:
-        - develop
+      - develop
 
 docker:release:
     extends: .docker-build
@@ -357,7 +372,7 @@ docker:release:
     variables:
         IMAGE_TAG: ${APP_VERSION}
     only:
-        - develop
+      - develop
 
 docker:release:tags:
   extends: .docker-build
