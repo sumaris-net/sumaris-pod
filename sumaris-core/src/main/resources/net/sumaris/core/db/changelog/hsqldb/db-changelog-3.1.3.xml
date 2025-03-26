@@ -1,0 +1,83 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.12.xsd"
+                   logicalFilePath="https://github.com/sumaris-net/sumaris-pod/blob/master/sumaris-core/src/main/resources/net/sumaris/core/db/changelog/hsqldb/db-changelog-3.1.3.xml">
+
+  <!-- Add OBJECT_TYPE_FK and OBJECT_ID columns to SOFTWARE_PROPERTY -->
+  <changeSet author="jv.famy@codra.fr" id="1742923623104-001">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="software_property" columnName="object_type_fk"/></not>
+    </preConditions>
+    <addColumn tableName="software_property">
+        <column name="object_type_fk" type="INT">
+          <constraints nullable="true"/>
+        </column>
+    </addColumn>
+  </changeSet>
+  <changeSet author="jv.famy@codra.fr" id="1742923623104-002">
+    <preConditions onFail="MARK_RAN">
+      <not><columnExists tableName="software_property" columnName="object_id"/></not>
+    </preConditions>
+    <addColumn tableName="software_property">
+        <column name="object_id" type="INT">
+          <constraints nullable="true"/>
+        </column>
+    </addColumn>
+  </changeSet>
+  <changeSet author="jv.famy@codra.fr" id="1742923623104-003" failOnError="false">
+		<addForeignKeyConstraint baseColumnNames="object_type_fk" baseTableName="software_property" constraintName="software_property_object_type_fkc" deferrable="false" initiallyDeferred="false" referencedColumnNames="id" referencedTableName="object_type" />
+	</changeSet>
+
+  <!-- TODO: Ajouter les OBJECT_TYPE PROGRAM et STRATEGY ? -->
+
+  <!-- Fill SOFTWARE_PROPERTY with PROGRAM_PROPERTY -->
+  <changeSet author="jv.famy@codra.fr" id="1742923623104-004">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="PROGRAM_PROPERTY"/>
+      <tableExists tableName="SOFTWARE_PROPERTY"/>
+      <sqlCheck expectedResult="0">
+        SELECT COUNT(*) FROM SOFTWARE_PROPERTY WHERE OBJECT_TYPE_FK IS NOT NULL
+      </sqlCheck>
+    </preConditions>
+    <sql>
+        INSERT INTO SOFTWARE_PROPERTY (LABEL, NAME, CREATION_DATE, UPDATE_DATE, SOFTWARE_FK, STATUS_FK, OBJECT_TYPE_FK, OBJECT_ID)
+        SELECT
+          LABEL,
+          NAME,
+          CREATION_DATE,
+          UPDATE_DATE,
+          (SELECT ID FROM SOFTWARE WHERE LABEL = (CASE P.LABEL
+            WHEN 'SIH-OBSBIO' THEN 'IMAGINE'
+            WHEN 'SIH-OBSVENTES' THEN 'OPUS'
+            WHEN 'SIH-ACTIFLOT' THEN 'OPUS'
+            ELSE 'SUMARiS' END)),
+          STATUS_FK,
+          (SELECT ID FROM OBJECT_TYPE WHERE LABEL = 'PROGRAM'),
+          P.ID
+        FROM PROGRAM_PROPERTY PP
+        JOIN PROGRAM P ON PP.PROGRAM_FK = P.ID;
+    </sql>
+  </changeSet>
+
+
+  <!-- Update SYSTEM_VERSION -->
+  <changeSet author="jv.famy@codra.fr" id="1742923623104-300" runOnChange="true">
+    <delete tableName="SYSTEM_VERSION">
+      <where>LABEL='3.1.3'</where>
+    </delete>
+    <insert tableName="SYSTEM_VERSION">
+      <column name="ID" valueComputed="NEXT VALUE FOR SYSTEM_VERSION_SEQ"/>
+      <column name="LABEL">3.1.3</column>
+      <column name="DESCRIPTION">
+        - Add OBJECT_TYPE_FK and OBJECT_ID columns to SOFTWARE_PROPERTY table
+      </column>
+      <column name="CREATION_DATE" valueComputed="sysdate"/>
+      <column name="UPDATE_DATE" valueComputed="current_timestamp"/>
+      <column name="COMMENTS">
+        - Add OBJECT_TYPE_FK and OBJECT_ID columns to SOFTWARE_PROPERTY table
+      </column>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>
