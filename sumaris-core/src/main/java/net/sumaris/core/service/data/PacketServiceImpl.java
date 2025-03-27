@@ -227,15 +227,15 @@ public class PacketServiceImpl implements PacketService {
         // Label fixme this is SIH labels
         target.setLabel(source.getRankOrder().toString());
 
-        List<Double> sampledWeights = source.getSampledWeights().stream().filter(Objects::nonNull).collect(Collectors.toList());
+        List<Double> sampledWeights = source.getSampledWeights().stream().filter(Objects::nonNull).toList();
         int sampledPacketCount = sampledWeights.size();
         // sub group count = number of sampled packets
         target.setSubgroupCount(sampledPacketCount);
 
-        Double averagePacketWeight = Daos.roundValue(sampledWeights.stream()
+        Double averagePacketWeight = sampledWeights.stream()
             .mapToDouble(Number::doubleValue)
             .average()
-            .orElse(0d));
+            .orElse(0d);
 
         // Reference weight
         Double refWeight = sampledPacketCount * averagePacketWeight;
@@ -325,30 +325,28 @@ public class PacketServiceImpl implements PacketService {
         result.add(target);
 
         // Add composition converted to batchVO
-        result.addAll(toBatchVO(averagePacketWeight, source.getComposition(), target));
+        result.addAll(
+            source.getComposition().stream()
+            .map(composition -> toBatchVO(source, composition, target))
+            .filter(Objects::nonNull)
+            .toList()
+        );
 
         return result;
     }
 
-    private List<BatchVO> toBatchVO(Double averagePacketWeight, List<PacketCompositionVO> compositions, BatchVO parentBatch) {
-        return compositions.stream()
-            .map(composition -> toBatchVO(averagePacketWeight, composition, parentBatch))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-    }
+    private BatchVO toBatchVO(PacketVO packet, PacketCompositionVO composition, BatchVO parentBatch) {
 
-    private BatchVO toBatchVO(Double averagePacketWeight, PacketCompositionVO source, BatchVO parentBatch) {
+        Preconditions.checkNotNull(composition);
+        Preconditions.checkNotNull(composition.getRankOrder());
+        Preconditions.checkNotNull(composition.getTaxonGroup());
 
-        Preconditions.checkNotNull(source);
-        Preconditions.checkNotNull(source.getRankOrder());
-        Preconditions.checkNotNull(source.getTaxonGroup());
-
-        if (CollectionUtils.isEmpty(source.getRatios()))
+        if (CollectionUtils.isEmpty(composition.getRatios()))
             return null; // Consider the composition to be deleted later
 
         // create sorting batch
         BatchVO target = new BatchVO();
-        Beans.copyProperties(source, target);
+        Beans.copyProperties(composition, target);
 
         // Default values
         target.setExhaustiveInventory(false);
@@ -357,10 +355,10 @@ public class PacketServiceImpl implements PacketService {
         target.setParent(parentBatch);
 
         // Label fixme this is SIH labels
-        target.setLabel(String.format("%s.%s", parentBatch.getLabel(), source.getRankOrder().toString()));
+        target.setLabel(String.format("%s.%s", parentBatch.getLabel(), composition.getRankOrder().toString()));
 
         // TaxonGroup fixme maybe already affected by copyProperties
-        target.setTaxonGroup(source.getTaxonGroup());
+        target.setTaxonGroup(composition.getTaxonGroup());
 
         // Measurements
         MeasurementVO sortingMeasurement = null;
@@ -400,13 +398,27 @@ public class PacketServiceImpl implements PacketService {
         {
             List<QuantificationMeasurementVO> quantificationMeasurements = new ArrayList<>();
 
+            // Get ratios for sampled packets only
+            int nbSampledPackets = (int) packet.getSampledWeights().stream().filter(Objects::nonNull).count();
+            // add zeros on null values
+            List<Integer> ratios = composition.getRatios().stream().limit(nbSampledPackets).map(integer -> integer == null ? 0 : integer).toList();
+
             // Weight
             {
                 if (weightMeasurement == null) {
                     weightMeasurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, calculatedWeightPmfmId);
                 }
-                double averageRatio = source.getRatios().stream().filter(Objects::nonNull).mapToDouble(Number::doubleValue).average().orElse(0);
-                Double calculatedWeight = averageRatio / 100 * averagePacketWeight;
+                List<Double> weights = new ArrayList<>();
+                for (int i = 0; i < nbSampledPackets; i++) {
+                    Double sampledWeight = packet.getSampledWeights().get(i);
+                    Double ratio = Double.valueOf(ratios.get(i));
+                    if (sampledWeight != null && ratio != null) {
+                        weights.add(ratio / 100 * sampledWeight);
+                    }
+                }
+                double sampledTotalWeight = weights.stream().mapToDouble(value -> value).sum();
+                Double calculatedWeight = sampledTotalWeight / nbSampledPackets;
+
                 weightMeasurement.setNumericalValue(calculatedWeight);
                 weightMeasurement.setIsReferenceQuantification(true);
                 quantificationMeasurements.add(weightMeasurement);
@@ -416,19 +428,6 @@ public class PacketServiceImpl implements PacketService {
             {
                 if (ratioMeasurement == null) {
                     ratioMeasurement = createQuantificationMeasurement(BatchQuantificationMeasurement.class, estimatedRatioPmfmId);
-                }
-                // add zeros on null values before first non null value
-                List<Integer> ratios = source.getRatios();
-                if (ratios.stream().anyMatch(Objects::nonNull)) {
-
-                    int lastNullIndex = Beans.lastIndexOf(ratios, Objects::nonNull);
-                    if (lastNullIndex != -1) {
-                        for (int i = 0; i < lastNullIndex; i++) {
-                            if (ratios.get(i) == null) {
-                                ratios.set(i, 0);
-                            }
-                        }
-                    }
                 }
                 ratioMeasurement.setAlphanumericalValue(
                     ratios.stream().filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(RATIO_SEPARATOR))
@@ -483,7 +482,6 @@ public class PacketServiceImpl implements PacketService {
             .filter(m -> m.getIsReferenceQuantification() && m.getPmfm().getId().equals(measuredWeightPmfmId))
             .findFirst()
             .map(BatchQuantificationMeasurement::getNumericalValue)
-            .map(Daos::roundValue)
             .orElse(null);
 
         if (referenceWeight == null) {
@@ -495,12 +493,11 @@ public class PacketServiceImpl implements PacketService {
             qms.stream()
                 .filter(m -> !m.getIsReferenceQuantification() && Objects.equals(m.getPmfm().getId(), measuredWeightPmfmId) && m.getSubgroupNumber() != null)
                 .map(BatchQuantificationMeasurement::getNumericalValue)
-                .map(Daos::roundValue)
                 .collect(Collectors.toList())
         );
 
         // weight
-        target.setWeight(Daos.roundValue(computeTotalWeightFromSamplingRatio(source, referenceWeight)));
+        target.setWeight(computeTotalWeightFromSamplingRatio(source, referenceWeight));
 
         // number
         Double averageWeight = referenceWeight / target.getSampledWeights().size();

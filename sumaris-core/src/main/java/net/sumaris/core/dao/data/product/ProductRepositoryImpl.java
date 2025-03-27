@@ -31,7 +31,6 @@ import net.sumaris.core.dao.data.MeasurementDao;
 import net.sumaris.core.dao.data.landing.LandingRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
 import net.sumaris.core.dao.referential.pmfm.PmfmRepository;
-import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.data.*;
 import net.sumaris.core.model.referential.SaleType;
@@ -117,7 +116,7 @@ public class ProductRepositoryImpl
             target.setSaleType(referentialDao.toVO(source.getSaleType()));
         }
         // Weight and weight method
-        target.setWeight(Daos.roundValue(source.getWeight()));
+        target.setWeight(source.getWeight());
         if (source.getWeightMethod() != null) {
             target.setWeightCalculated(source.getWeightMethod().getId().equals(MethodEnum.CALCULATED.getId()));
         }
