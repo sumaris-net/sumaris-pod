@@ -16,7 +16,7 @@
 				<constraints nullable="false" primaryKey="true" primaryKeyName="expertise_area2loc_level_pk" />
 			</column>
 		</createTable>
-		<addForeignKeyConstraint baseTableName="expertise_area2location_level" baseColumnNames="expertise_area_fk" constraintName="exp_area2loc_lev_exp_area_fkc" referencedTableName="expertise_areajj" referencedColumnNames="id" />
+		<addForeignKeyConstraint baseTableName="expertise_area2location_level" baseColumnNames="expertise_area_fk" constraintName="exp_area2loc_lev_exp_area_fkc" referencedTableName="expertise_area" referencedColumnNames="id" />
 		<addForeignKeyConstraint baseTableName="expertise_area2location_level" baseColumnNames="location_level_fk" constraintName="exp_area2loc_level_loc_lev_fkc" referencedTableName="location_level" referencedColumnNames="id" />
 	</changeSet>
 
