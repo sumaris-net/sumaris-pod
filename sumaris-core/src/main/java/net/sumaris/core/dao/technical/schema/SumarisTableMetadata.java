@@ -358,7 +358,7 @@ public class SumarisTableMetadata {
 	protected Set<String> initPrimaryKeys(DatabaseMetaData jdbcDbMeta) throws SQLException {
 
 		Set<String> result = Sets.newHashSet();
-		ResultSet rs = jdbcDbMeta.getPrimaryKeys(getCatalog(), getSchema(), getName().toUpperCase());
+		ResultSet rs = jdbcDbMeta.getPrimaryKeys(getCatalog(), getSchema(), getName());
 		try {
 			while (rs.next()) {
 				result.add(rs.getString("COLUMN_NAME").toLowerCase());

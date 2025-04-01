@@ -586,7 +586,11 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
             sql = Daos.sqlReplaceColumnNames(sql, context.getColumnNamesMapping(), false);
         }
 
-        return queryUpdate(sql);
+        int count = queryUpdate(sql);
+        // needed for postgresql to get metadata
+        Daos.commitIfHsqldbOrPgsql(getDataSource());
+        return count;
+
     }
 
     protected int execute(C context, String sql) {

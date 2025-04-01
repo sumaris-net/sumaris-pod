@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.config.CacheConfiguration;
 import net.sumaris.core.config.SumarisConfiguration;
 import net.sumaris.core.dao.technical.Daos;
+import net.sumaris.core.dao.technical.hibernate.spatial.dialect.PostgisPG10Dialect;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
@@ -114,6 +115,10 @@ public class SumarisDatabaseMetadata {
 
 	@Cacheable(cacheNames = CacheConfiguration.Names.TABLE_META_BY_NAME, key = "#name.toLowerCase()", unless = "#result == null")
 	public SumarisTableMetadata getTable(String name) throws HibernateException {
+		if (dialect instanceof PostgisPG10Dialect) {
+			// postgresql use only lowercase tablenames
+			name = name.toLowerCase();
+		}
 		return getTable(name, defaultSchemaName, defaultCatalogName);
 	}
 
