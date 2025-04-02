@@ -10,12 +10,12 @@ package net.sumaris.core.dao.administration.programStrategy;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -46,7 +46,7 @@ public interface ProgramSpecifications {
 
     String PROPERTY_LABEL_PARAM = "propertyLabel";
     String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
-    String ACQUISITION_LEVELS_PARAM = "acquisitionLevels";
+    String INCLUDED_ACQUISITION_LEVELS_PARAM = "includedAcquisitionLevels";
     String EXCLUDED_ACQUISITION_LEVELS_PARAM = "excludedAcquisitionLevels";
 
     default Specification<Program> hasProperty(String propertyLabel) {
@@ -70,7 +70,7 @@ public interface ProgramSpecifications {
     default Specification<Program> includedAcquisitionLevel(String... acquisitionLevels) {
         if (ArrayUtils.isEmpty(acquisitionLevels)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<Collection> param = cb.parameter(Collection.class, ACQUISITION_LEVELS_PARAM);
+                ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_ACQUISITION_LEVELS_PARAM);
 
                 // Avoid duplication, because of inner join
                 query.distinct(true);
@@ -80,36 +80,16 @@ public interface ProgramSpecifications {
 
                 return cb.in(acquisitionLevelJoin.get(AcquisitionLevel.Fields.LABEL)).value(param);
             })
-            .addBind(ACQUISITION_LEVELS_PARAM, Arrays.asList(acquisitionLevels));
+            .addBind(INCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(acquisitionLevels));
     }
 
-    //    default Specification<Program> excludedAcquisitionLevel(String... excludedAcquisitionLevels) {
-//        if (ArrayUtils.isEmpty(excludedAcquisitionLevels)) return null;
-//
-//        return BindableSpecification.where((root, query, cb) -> {
-//            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_ACQUISITION_LEVELS_PARAM);
-//
-//            // Éviter les doublons avec DISTINCT
-//            query.distinct(true);
-//            Subquery<AcquisitionLevel> subQuery = query.subquery(AcquisitionLevel.class);
-//            Root<AcquisitionLevel> subRoot = subQuery.from(AcquisitionLevel.class);
-//
-//            subQuery.select(subRoot)
-//                    .where(
-//                            cb.not(cb.in(subRoot.get(AcquisitionLevel.Fields.LABEL)).value(param))
-//                    )
-//            ;
-//            return cb.exists(subQuery);
-//
-//        }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
-//    }
     default Specification<Program> excludedAcquisitionLevel(String... excludedAcquisitionLevels) {
         if (ArrayUtils.isEmpty(excludedAcquisitionLevels)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_ACQUISITION_LEVELS_PARAM);
 
-            // Éviter les doublons
+            // Avoid duplication
             query.distinct(true);
 
             Subquery<Integer> subQuery = query.subquery(Integer.class);
@@ -131,7 +111,7 @@ public interface ProgramSpecifications {
                             )
                     );
 
-            // Retourner les programmes qui n'ont PAS de correspondance dans la sous-requête
+            // Return the programs that have no correspondence in the sub-query
             return cb.not(cb.exists(subQuery));
         }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
     }
