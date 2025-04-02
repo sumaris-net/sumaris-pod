@@ -116,6 +116,59 @@ public interface ProgramSpecifications {
         }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
     }
 
+    //    default Specification<Program> excludedAcquisitionLevel(String... excludedAcquisitionLevels) {
+//        if (ArrayUtils.isEmpty(excludedAcquisitionLevels)) return null;
+//
+//        return BindableSpecification.where((root, query, cb) -> {
+//            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_ACQUISITION_LEVELS_PARAM);
+//
+//            // Éviter les doublons avec DISTINCT
+//            query.distinct(true);
+//            Subquery<AcquisitionLevel> subQuery = query.subquery(AcquisitionLevel.class);
+//            Root<AcquisitionLevel> subRoot = subQuery.from(AcquisitionLevel.class);
+//
+//            subQuery.select(subRoot)
+//                    .where(
+//                            cb.not(cb.in(subRoot.get(AcquisitionLevel.Fields.LABEL)).value(param))
+//                    )
+//            ;
+//            return cb.exists(subQuery);
+//
+//        }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
+//    }
+    default Specification<Program> excludedAcquisitionLevel(String... excludedAcquisitionLevels) {
+        if (ArrayUtils.isEmpty(excludedAcquisitionLevels)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_ACQUISITION_LEVELS_PARAM);
+
+            // Éviter les doublons
+            query.distinct(true);
+
+            Subquery<Integer> subQuery = query.subquery(Integer.class);
+            Root<Program> subRoot = subQuery.from(Program.class);
+            ListJoin<Program, PmfmStrategy> subPmfmStrategiesJoin = Daos.composeJoinList(
+                    subRoot,
+                    StringUtils.doting(Program.Fields.STRATEGIES, Strategy.Fields.PMFMS),
+                    JoinType.LEFT);
+            Join<PmfmStrategy, AcquisitionLevel> subAcquisitionLevelJoin = Daos.composeJoin(
+                    subPmfmStrategiesJoin,
+                    PmfmStrategy.Fields.ACQUISITION_LEVEL,
+                    JoinType.LEFT);
+
+            subQuery.select(subRoot.get("id"))
+                    .where(
+                            cb.and(
+                                    cb.equal(subRoot, root),
+                                    cb.in(subAcquisitionLevelJoin.get(AcquisitionLevel.Fields.LABEL)).value(param)
+                            )
+                    );
+
+            // Retourner les programmes qui n'ont PAS de correspondance dans la sous-requête
+            return cb.not(cb.exists(subQuery));
+        }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
+    }
+
     Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions);
 
     ProgramVO toVO(Program source, ProgramFetchOptions fetchOptions);
