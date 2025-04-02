@@ -42,10 +42,7 @@ public interface FishingAreaRepository
         BindableSpecification<FishingArea> specification = BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, FishingAreaVO.Fields.OPERATION_ID);
 
-            return cb.or(
-                    cb.isNull(param),
-                    cb.equal(root.get(FishingArea.Fields.OPERATION).get(IEntity.Fields.ID), param)
-            );
+            return cb.equal(root.get(FishingArea.Fields.OPERATION).get(IEntity.Fields.ID), param);
         });
         specification.addBind(FishingAreaVO.Fields.OPERATION_ID, operationId);
         return specification;
@@ -55,11 +52,7 @@ public interface FishingAreaRepository
         if (saleId == null) return null;
         BindableSpecification<FishingArea> specification = BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Integer> param = cb.parameter(Integer.class, FishingAreaVO.Fields.SALE_ID);
-
-            return cb.or(
-                    cb.isNull(param),
-                    cb.equal(root.get(FishingArea.Fields.SALE).get(IEntity.Fields.ID), param)
-            );
+            return cb.equal(root.get(FishingArea.Fields.SALE).get(IEntity.Fields.ID), param);
         });
         specification.addBind(FishingAreaVO.Fields.SALE_ID, saleId);
         return specification;
