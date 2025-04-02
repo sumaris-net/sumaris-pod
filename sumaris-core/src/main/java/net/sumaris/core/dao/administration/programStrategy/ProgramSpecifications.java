@@ -36,10 +36,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.ListJoin;
-import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.*;
 import java.util.*;
 
 /**
@@ -50,6 +47,7 @@ public interface ProgramSpecifications {
     String PROPERTY_LABEL_PARAM = "propertyLabel";
     String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
     String ACQUISITION_LEVELS_PARAM = "acquisitionLevels";
+    String EXCLUDED_ACQUISITION_LEVELS_PARAM = "excludedAcquisitionLevels";
 
     default Specification<Program> hasProperty(String propertyLabel) {
         if (propertyLabel == null) return null;
@@ -69,7 +67,7 @@ public interface ProgramSpecifications {
         .addBind(MIN_UPDATE_DATE_PARAM, minUpdateDate);
     }
 
-    default Specification<Program> hasAcquisitionLevelLabels(String... acquisitionLevels) {
+    default Specification<Program> includedAcquisitionLevel(String... acquisitionLevels) {
         if (ArrayUtils.isEmpty(acquisitionLevels)) return null;
         return BindableSpecification.where((root, query, cb) -> {
                 ParameterExpression<Collection> param = cb.parameter(Collection.class, ACQUISITION_LEVELS_PARAM);
@@ -83,6 +81,59 @@ public interface ProgramSpecifications {
                 return cb.in(acquisitionLevelJoin.get(AcquisitionLevel.Fields.LABEL)).value(param);
             })
             .addBind(ACQUISITION_LEVELS_PARAM, Arrays.asList(acquisitionLevels));
+    }
+
+    //    default Specification<Program> excludedAcquisitionLevel(String... excludedAcquisitionLevels) {
+//        if (ArrayUtils.isEmpty(excludedAcquisitionLevels)) return null;
+//
+//        return BindableSpecification.where((root, query, cb) -> {
+//            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_ACQUISITION_LEVELS_PARAM);
+//
+//            // Éviter les doublons avec DISTINCT
+//            query.distinct(true);
+//            Subquery<AcquisitionLevel> subQuery = query.subquery(AcquisitionLevel.class);
+//            Root<AcquisitionLevel> subRoot = subQuery.from(AcquisitionLevel.class);
+//
+//            subQuery.select(subRoot)
+//                    .where(
+//                            cb.not(cb.in(subRoot.get(AcquisitionLevel.Fields.LABEL)).value(param))
+//                    )
+//            ;
+//            return cb.exists(subQuery);
+//
+//        }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
+//    }
+    default Specification<Program> excludedAcquisitionLevel(String... excludedAcquisitionLevels) {
+        if (ArrayUtils.isEmpty(excludedAcquisitionLevels)) return null;
+
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_ACQUISITION_LEVELS_PARAM);
+
+            // Éviter les doublons
+            query.distinct(true);
+
+            Subquery<Integer> subQuery = query.subquery(Integer.class);
+            Root<Program> subRoot = subQuery.from(Program.class);
+            ListJoin<Program, PmfmStrategy> subPmfmStrategiesJoin = Daos.composeJoinList(
+                    subRoot,
+                    StringUtils.doting(Program.Fields.STRATEGIES, Strategy.Fields.PMFMS),
+                    JoinType.LEFT);
+            Join<PmfmStrategy, AcquisitionLevel> subAcquisitionLevelJoin = Daos.composeJoin(
+                    subPmfmStrategiesJoin,
+                    PmfmStrategy.Fields.ACQUISITION_LEVEL,
+                    JoinType.LEFT);
+
+            subQuery.select(subRoot.get("id"))
+                    .where(
+                            cb.and(
+                                    cb.equal(subRoot, root),
+                                    cb.in(subAcquisitionLevelJoin.get(AcquisitionLevel.Fields.LABEL)).value(param)
+                            )
+                    );
+
+            // Retourner les programmes qui n'ont PAS de correspondance dans la sous-requête
+            return cb.not(cb.exists(subQuery));
+        }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
     }
 
     Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions);

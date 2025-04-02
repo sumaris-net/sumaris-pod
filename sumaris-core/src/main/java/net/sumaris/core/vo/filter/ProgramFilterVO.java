@@ -67,6 +67,7 @@ public class ProgramFilterVO implements IReferentialFilter {
 
     private String withProperty;
     private Date minUpdateDate;
-    private String[] acquisitionLevelLabels;
+    private String[] includedAcquisitionLevelLabels;
+    private String[] excludedAcquisitionLevelLabels;
 
 }

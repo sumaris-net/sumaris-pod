@@ -350,7 +350,7 @@
     <select type="text" alias="STATUS" group="agg" dbms="oracle">
       <![CDATA[
         TRIM(
-          CASE 
+          CASE
             WHEN VRM.NB_MONTH = 0 THEN 'EMPTY'
             WHEN VRM.NB_MONTH <= (SELECT COUNT(MONTH) FROM DISTINCT_MONTH_COUNT WHERE ID = T.ID) THEN (
               CASE (SELECT COUNT(ERROR) FROM DISTINCT_MONTH_COUNT WHERE ID = T.ID)
@@ -367,7 +367,7 @@
       <![CDATA[
         MIN(
           TRIM(
-            CASE 
+            CASE
               WHEN VRM.NB_MONTH = 0 THEN 'EMPTY'
               WHEN VRM.NB_MONTH <= (SELECT COUNT(MONTH) FROM DISTINCT_MONTH_COUNT WHERE ID = T.ID) THEN (
                 CASE (SELECT COUNT(ERROR) FROM DISTINCT_MONTH_COUNT WHERE ID = T.ID)
@@ -396,10 +396,11 @@
 			INNER JOIN VRP V ON V.VESSEL_IDENTIFIER = T.VESSEL_IDENTIFIER
 		</from>
     <from join="true" group="!adagio">
-			INNER JOIN VRP V ON V.VESSEL_FK = T.VESSEL_IDENTIFIER
+			INNER JOIN V V ON V.VESSEL_FK = T.VESSEL_IDENTIFIER
 		</from>
 
     <groupby>&amp;groupByColumns</groupby>
   </query>
 
 </queries>
+        RP
