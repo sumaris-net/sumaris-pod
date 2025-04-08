@@ -45,6 +45,7 @@ public class ExtractionObservedLocationContextVO extends ExtractionContextVO {
     String catchTableName; // C
     String catchIndividualTableName; // CI
     String catchLotTableName; // CL
+    String tripTableName; // T
 
     // Sheet names
     String observedLocationSheetName; // OL
@@ -52,6 +53,7 @@ public class ExtractionObservedLocationContextVO extends ExtractionContextVO {
     String catchSheetName; // C
     String catchIndividualSheetName; // CI
     String catchLotSheetName; // CL
+    String tripSheetName; // T
 
     ExtractionObservedLocationFilterVO observedLocationFilter;
 

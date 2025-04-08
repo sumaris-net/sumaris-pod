@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="createTripTable">
+    <query type="create" temp="false" table="&amp;tripTableName">
+
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="ID_OBSERVATION">L.OBSERVED_LOCATION_FK</select>
+
+        <select type="text" alias="ANNEE">to_char(L.LANDING_DATE_TIME, 'YYYY')</select>
+        <select type="text" alias="TRIMESTRE">to_char(L.LANDING_DATE_TIME, 'Q')</select>
+        <select type="text" alias="MOIS">to_char(L.LANDING_DATE_TIME, 'MM')</select>
+
+        <select type="number" alias="PROGRAMME">FT.PROGRAM_FK</select>
+        <select type="text" alias="NAVIRE">FT.VESSEL_FK</select>
+
+        <select type="text" alias="IMMATRICULATION">vrp.REGISTRATION_CODE</select>
+        <select type="text" alias="TYPE_NAVIRE">vessel_type_qv.NAME</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="date" alias="DATE_DEBARQ">L.LANDING_DATE_TIME</select>
+
+        <select type="number" alias="PORTDEP_TYP">LOCDEP.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="PORTDEP_COD">LOCDEP.LABEL</select>
+        <select type="text" alias="PORTDEP_LIB">LOCDEP.NAME</select>
+
+        <select type="number" alias="PORTRET_TYP">LOCRET.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="PORTRET_COD">LOCRET.LABEL</select>
+        <select type="text" alias="PORTRET_LIB">LOCRET.NAME</select>
+
+        <select type="number" alias="PORTDEB_TYP">LOCDEB.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="PORTDEB_COD">LOCDEB.LABEL</select>
+        <select type="text" alias="PORTDEB_LIB">LOCDEB.name</select>
+
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+
+        <select type="text" alias="DUREE_MAREE_JOUR">round((FT.RETURN_DATE_TIME - FT.DEPARTURE_DATE_TIME), 3)
+        </select>
+
+        <select type="text" alias="DUREE_MAREE_HEURE">round((FT.RETURN_DATE_TIME - FT.DEPARTURE_DATE_TIME) *
+            24,3)
+        </select>
+        <select type="text" alias="NB_HOMME">
+            (
+            SELECT
+            VM_NBH.NUMERICAL_VALUE
+            FROM
+            &amp;adagioSchema.vessel_use_measurement VM_NBH
+            WHERE
+            1 = 1
+            AND VM_NBH.VESSEL_USE_FEATURES_FK = VUF.ID
+            AND VM_NBH.PMFM_FK = &amp;crewSizePmfm
+            )
+        </select>
+        <select type="text" alias="TIME_FISHING">
+            (
+            CASE
+            WHEN FT.PROGRAM_FK IN (&amp;progLabels)
+            THEN round(
+            (FT.RETURN_DATE_TIME - FT.DEPARTURE_DATE_TIME) * 24,
+            3
+            )
+            ELSE (
+            SELECT
+            CASE
+            WHEN VM_TIME.NUMERICAL_VALUE = 23.9997215 THEN NULL
+            ELSE VM_TIME.NUMERICAL_VALUE
+            END
+            FROM
+            &amp;adagioSchema.VESSEL_USE_MEASUREMENT VM_TIME
+            WHERE
+            1 = 1
+            AND VM_TIME.VESSEL_USE_FEATURES_FK = VUF2.ID
+            AND VM_TIME.PMFM_FK = &amp;durationAtSeaPmfm
+            )
+            END
+            )
+        </select>
+        <select type="text" alias="NB_GEAR">
+            (
+            COALESCE(
+            (
+            SELECT
+            VM_NB_GEAR.NUMERICAL_VALUE
+            FROM
+            GEAR_PHYSICAL_MEASUREMENT VM_NB_GEAR
+            WHERE
+            1 = 1
+            AND VM_NB_GEAR.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
+            AND VM_NB_GEAR.PMFM_FK = &amp;gearPhysicalGearNumber
+            ),
+            (
+            SELECT
+            GUM_NB_GEAR.NUMERICAL_VALUE
+            FROM
+            &amp;adagioSchema.GEAR_USE_MEASUREMENT GUM_NB_GEAR
+            WHERE
+            GUM_NB_GEAR.GEAR_USE_FEATURES_FK = GUF.ID
+            AND GUM_NB_GEAR.PMFM_FK = &amp;gearPhysicalGearNumber
+            )
+            )
+            )
+        </select>
+        <select type="number" alias="NB_HOOK">
+            (
+            SELECT
+            VM_NB_HOOK.NUMERICAL_VALUE
+            FROM
+            &amp;adagioSchema.GEAR_PHYSICAL_MEASUREMENT VM_NB_HOOK
+            WHERE
+            1 = 1
+            AND VM_NB_HOOK.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
+            AND VM_NB_HOOK.PMFM_FK = &amp;gearPhysicalHookNumber
+            )
+        </select>
+        <select type="text" alias="DOC_DECL">
+            (
+            SELECT
+            QV.NAME
+            FROM
+            &amp;adagioSchema.vessel_use_measurement VM_DOCDECL,
+            QUALITATIVE_VALUE QV
+            WHERE
+            1 = 1
+            AND VM_DOCDECL.VESSEL_USE_FEATURES_FK = VUF.ID
+            AND VM_DOCDECL.PMFM_FK = &amp;declarationDocumentPmfm
+            AND QV.ID = VM_DOCDECL.QUALITATIVE_VALUE_FK
+            )
+        </select>
+        <select type="text" alias="ETAT_MER">
+            (
+            SELECT
+            QV.NAME || '-' || QV.DESCRIPTION
+            FROM
+            &amp;adagioSchema.vessel_use_measurement VM_MER,
+            QUALITATIVE_VALUE QV
+            WHERE
+            1 = 1
+            AND VM_MER.VESSEL_USE_FEATURES_FK = VUF.ID
+            AND VM_MER.PMFM_FK = &amp;seaStatePmfm
+            AND QV.ID = VM_MER.QUALITATIVE_VALUE_FK
+            )
+        </select>
+
+        <select type="text" alias="METIER_COD_M">M.LABEL</select>
+        <select type="text" alias="METIER_LIB_M">M.NAME</select>
+        <select type="text" alias="ENGIN_COD_M">MG.LABEL</select>
+        <select type="text" alias="ESP_CIBLE_COD_M">MTG.LABEL</select>
+
+        <select type="text" alias="SECTEUR_COD_M">LOCFA.LABEL</select>
+        <select type="text" alias="SECTEUR_LIB_M">LOCFA.LABEL</select>
+        <select type="number" alias="GRAD_DIST_ID_M">DTCG.ID</select>
+        <select type="text" alias="GRAD_DIST_LIB_M">DTCG.NAME</select>
+        <select type="number" alias="GRAD_DIST_ORD_M">DTCG.RANK_ORDER</select>
+        <select type="text" alias="GRAD_PROF_LIB_M">DG.NAME</select>
+        <select type="number" alias="GRAD_PROF_ORD_M">DG.RANK_ORDER</select>
+        <select type="number" alias="GRAD_PROX_ID_M">NSA.ID</select>
+        <select type="text" alias="GRAD_PROX_LIB_M">NSA.NAME</select>
+        <select type="text" alias="GRAD_PROX_DESC_M">NSA.DESCRIPTION</select>
+        <select type="text" alias="COMMENTAIRES">FT.COMMENTS</select>
+        <select type="text" alias="SAISISSEUR_COD">P.EMPLOYEE_NUMBER</select>
+        <select type="text" alias="SAISISSEUR_LIB">P.LASTNAME || ' ' || P.FIRSTNAME</select>
+        <select type="date" alias="DATE_SAISIE">FT.CREATION_DATE</select>
+        <select type="text" alias="ENQ_QUALIF_LIB">
+            (
+            SELECT
+            QV.NAME
+            FROM
+            &amp;adagioSchema.SURVEY_MEASUREMENT SM,
+            QUALITATIVE_VALUE QV
+            WHERE
+            QV.ID = SM.QUALITATIVE_VALUE_FK
+            AND SM.FISHING_TRIP_FK = FT.ID
+            AND SM.PMFM_FK = &amp;surveyQualificationPmfm
+            )
+        </select>
+        <select type="text" alias="ENQ_ORIG_COD">
+            (
+            CASE
+            FT.PROGRAM_FK
+            WHEN '&amp;programObsdeb'
+            THEN 'O'
+            WHEN '&amp;programOprdeb'
+            THEN 'E'
+            ELSE 'Z'
+            END
+            )
+        </select>
+        <select type="text" alias="ENQ_ORIG_LIB">
+            (
+            CASE
+            FT.PROGRAM_FK
+            WHEN '&amp;programObsdeb'
+            THEN 'Observation'
+            WHEN '&amp;programOprdeb'
+            THEN 'Enquête de terrain'
+            ELSE 'Ancien programme SFA'
+            END
+            )
+        </select>
+        <select type="text" alias="MARCAPT">
+            (
+            CASE
+            O.HAS_CATCH
+            WHEN 1 THEN 'true'
+            ELSE 'false'
+            END
+            )
+        </select>
+
+        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LANDING L ON L.FISHING_TRIP_FK = FT.ID
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCDEP ON LOCDEP.ID = FT.DEPARTURE_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCRET ON LOCRET.ID = FT.RETURN_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCDEB ON LOCDEB.ID = L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ ON LOCHQ.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCQ ON LOCQ.ID = LOCHQ.PARENT_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION_HIERARCHY LOCHR ON LOCHR.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCR ON LOCR.ID = LOCHR.PARENT_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.OPERATION O ON O.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.OPERATION O2 ON O2.FISHING_TRIP_FK = FT.ID AND
+            O2.IS_MAIN_OPERATION =
+            0
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.GEAR_USE_FEATURES GUF ON GUF.OPERATION_FK = O.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.GEAR_USE_FEATURES GUF2 ON GUF2.OPERATION_FK = O2.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.FISHING_AREA FA ON FA.GEAR_USE_FEATURES_FK = GUF.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.LOCATION LOCFA ON LOCFA.ID = FA.LOCATION_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.DISTANCE_TO_COAST_GRADIENT DTCG ON DTCG.ID =
+            FA.DISTANCE_TO_COAST_GRADIENT_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.DEPTH_GRADIENT DG ON DG.ID = FA.DEPTH_GRADIENT_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.NEARBY_SPECIFIC_AREA NSA ON NSA.ID =
+            FA.NEARBY_SPECIFIC_AREA_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.VESSEL_USE_FEATURES VUF ON VUF.FISHING_TRIP_FK =
+            FT.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.VESSEL_USE_FEATURES VUF2 ON VUF2.OPERATION_FK =
+            O2.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.METIER M ON M.ID = GUF2.METIER_FK OR M.ID =
+            GUF.METIER_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.GEAR MG ON M.GEAR_FK = MG.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.TAXON_GROUP MTG ON M.TAXON_GROUP_FK = MTG.ID
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.GEAR_PHYSICAL_FEATURES GPF ON GPF.FISHING_TRIP_FK =
+            FT.ID
+            AND GPF.GEAR_FK = MG.ID
+            AND (
+            GPF.METIER_FK IS NULL
+            OR GPF.METIER_FK = M.ID
+            )
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.PERSON P ON P.ID = FT.RECORDER_PERSON_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.VESSEL_REGISTRATION_PERIOD vrp ON vrp.VESSEL_FK =
+            FT.VESSEL_FK
+            AND vrp.END_DATE_TIME IS NULL
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.VESSEL_USE_MEASUREMENT vum ON
+            vum.VESSEL_USE_FEATURES_FK = vuf.id
+            AND vum.PMFM_FK = 230
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.QUALITATIVE_VALUE vessel_type_qv ON
+            vum.QUALITATIVE_VALUE_FK =
+            vessel_type_qv.ID
+        </from>
+
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
+        <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
+        <where group="programFilter" operator="AND">
+            <in field="L.PROGRAM_FK">
+                &amp;progLabels
+            </in>
+        </where>
+        <where group="yearFilter" operator="AND">
+            <in field="extract(year from L.LANDING_DATE_TIME)">&amp;year</in>
+        </where>
+        <orderby direction="DESC">DATE_DEBARQ</orderby>
+    </query>
+</queries>

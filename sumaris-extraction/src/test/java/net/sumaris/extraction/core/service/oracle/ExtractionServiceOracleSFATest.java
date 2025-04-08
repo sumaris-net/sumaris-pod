@@ -246,6 +246,12 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     }
 
     @Test
+    public void executeObservedTrip() throws IOException {
+        super.executeObservedTripTest(null);
+    }
+
+
+    @Test
     public void executeObservedLocation() throws IOException, ParseException {
         super.executeObservedLocationTest(null);
     }
