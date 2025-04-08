@@ -60,6 +60,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -720,7 +721,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-                .sheetName(ObservedLocationSpecification.OL_SHEET_NAME)
+                .sheetNames(Collections.singleton(ObservedLocationSpecification.OL_SHEET_NAME))
                 .criteria(criteria)
                 .build();
 
@@ -739,6 +740,132 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
+
+    public void executeObservedCatchIndividualTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+        IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
+        if (CollectionUtils.isEmpty(criteria)) {
+            criteria = new ArrayList<>();
+            criteria.add(
+                    // Program
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_PROJECT)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value(ProgramEnum.SIH_OBSDEB.getLabel())
+                            .build());
+            criteria.add(
+                    // Year
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_YEAR)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value("2023")
+                            .build()
+            );
+        }
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .sheetNames(Collections.singleton(ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME))
+                .criteria(criteria)
+                .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, null);
+            Assert.assertTrue(outputFile.exists());
+
+            File root = unpack(outputFile, type);
+
+            // CI.csv
+            File monitoringFile = new File(root, ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+
+        } catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
+
+    }
+
+    public void executeObservedCatchLotTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+        IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
+        if (CollectionUtils.isEmpty(criteria)) {
+            criteria = new ArrayList<>();
+            criteria.add(
+                    // Program
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_PROJECT)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value(ProgramEnum.SIH_OBSDEB.getLabel())
+                            .build());
+            criteria.add(
+                    // Year
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_YEAR)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value("2023")
+                            .build()
+            );
+        }
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .sheetNames(Collections.singleton(ObservedLocationSpecification.CATCH_LOT_SHEET_NAME))
+                .criteria(criteria)
+                .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, null);
+            Assert.assertTrue(outputFile.exists());
+
+            File root = unpack(outputFile, type);
+
+            // CL.csv
+            File monitoringFile = new File(root, ObservedLocationSpecification.CATCH_LOT_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+
+        } catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
+
+    }
+
+    public void executeObservedCatchTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+        IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
+        if (CollectionUtils.isEmpty(criteria)) {
+            criteria = new ArrayList<>();
+            criteria.add(
+                    // Program
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_PROJECT)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value(ProgramEnum.SIH_OBSDEB.getLabel())
+                            .build());
+            criteria.add(
+                    // Year
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_YEAR)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value("2023")
+                            .build()
+            );
+        }
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .sheetNames(Collections.singleton(ObservedLocationSpecification.CATCH_SHEET_NAME))
+                .criteria(criteria)
+                .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, null);
+            Assert.assertTrue(outputFile.exists());
+
+            File root = unpack(outputFile, type);
+
+            // S.csv
+            File monitoringFile = new File(root, ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+
+        } catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
+
+    }
 
     public void executeAndReadAggSurvivalTest() {
 

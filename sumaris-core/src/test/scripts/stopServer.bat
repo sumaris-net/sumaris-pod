@@ -1,6 +1,6 @@
 @echo off
 
-SET HSQLDB_VERSION=2.5.0
+SET HSQLDB_VERSION=2.4.1
 SET M2_REPO=%HOMEDRIVE%%HOMEPATH%\.m2\repository\
 set CLASSPATH=%M2_REPO%\org\hsqldb\hsqldb\%HSQLDB_VERSION%\hsqldb-%HSQLDB_VERSION%.jar
 set CLASSPATH=%CLASSPATH%;%M2_REPO%\org\hsqldb\sqltool\%HSQLDB_VERSION%\sqltool-%HSQLDB_VERSION%.jar

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="selectCostVariable">
+    <query type="select">
+
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="ID_VUF">VUF.ID</select>
+        <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
+        <select type="text" alias="IMMATRICULATION">VRP.REGISTRATION_CODE</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="date" alias="DATE_DEBARQ">L.LANDING_DATE_TIME</select>
+        <select type="number" alias="PORTDEB_TYP">LOCDEB.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="PORTDEB_COD">LOCDEB.LABEL</select>
+        <select type="text" alias="PORTDEB_LIB">LOCDEB.NAME</select>
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+        <select type="text" alias="COUT_VAR_COD">PA.CODE</select>
+        <select type="text" alias="COUT_VAR_LIB">PA.CODE</select>
+        <select type="number" alias="COUT_VAR_VAL">coalesce(cast(round(VUM.NUMERICAL_VALUE,2) as VARCHAR(50)), (select
+            QV.NAME from QUALITATIVE_VALUE QV where QV.ID = VUM.QUALITATIVE_VALUE_FK))
+        </select>
+
+        <select type="number" alias="COUT_VAR_TOT">
+            round(
+            ((
+            select coalesce(sum(VUM_1.NUMERICAL_VALUE),0)
+            FROM
+            VESSEL_USE_FEATURES VUF_1,
+            VESSEL_USE_MEASUREMENT VUM_1
+            WHERE 1=1
+            AND VUF_1.FISHING_TRIP_FK = FT.ID
+            AND VUM_1.VESSEL_USE_FEATURES_FK = VUF_1.ID
+            AND VUM_1.PMFM_FK in (46,44,29,35,51,254) --("+context.p03_obsdeb_cost_list+")
+            )+(
+            select sum(coalesce(FUEL_TOT.NUMERICAL_VALUE,FUEL_VOL.NUMERICAL_VALUE*FUEL_PU.NUMERICAL_VALUE,0)
+            + coalesce(OIL_TOT.NUMERICAL_VALUE,OIL_VOL.NUMERICAL_VALUE*OIL_PU.NUMERICAL_VALUE,0)
+            + coalesce(HYDR_TOT.NUMERICAL_VALUE,HYDR_VOL.NUMERICAL_VALUE*HYDR_PU.NUMERICAL_VALUE,0))
+            from VESSEL_USE_FEATURES VUF_1
+            left outer join VESSEL_USE_MEASUREMENT FUEL_VOL on FUEL_VOL.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            FUEL_VOL.PMFM_FK = 40 --"+context.PMFM_FUEL_VOLUME+"
+            left outer join VESSEL_USE_MEASUREMENT FUEL_PU on FUEL_PU.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            FUEL_PU.PMFM_FK = 244 --"+context.PMFM_FUEL_UNIT_PRICE+"
+            left outer join VESSEL_USE_MEASUREMENT FUEL_TOT on FUEL_TOT.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            FUEL_TOT.PMFM_FK = 242 --"+context.PMFM_FUEL_COST+"
+            left outer join VESSEL_USE_MEASUREMENT OIL_VOL on OIL_VOL.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            OIL_VOL.PMFM_FK = 34 --"+context.PMFM_ENGINE_OIL_VOLUME+"
+            left outer join VESSEL_USE_MEASUREMENT OIL_PU on OIL_PU.VESSEL_USE_FEATURES_FK = VUF_1.ID and OIL_PU.PMFM_FK
+            = 33 --"+context.PMFM_ENGINE_OIL_UNIT_PRICE+"
+            left outer join VESSEL_USE_MEASUREMENT OIL_TOT on OIL_TOT.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            OIL_TOT.PMFM_FK = 32 --"+context.PMFM_ENGINE_OIL_COST+"
+            left outer join VESSEL_USE_MEASUREMENT HYDR_VOL on HYDR_VOL.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            HYDR_VOL.PMFM_FK = 43 --"+context.PMFM_HYDRAULIC_OIL_VOLUME+"
+            left outer join VESSEL_USE_MEASUREMENT HYDR_PU on HYDR_PU.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            HYDR_PU.PMFM_FK = 42 --"+context.PMFM_HYDRAULIC_OIL_UNIT_PRICE+"
+            left outer join VESSEL_USE_MEASUREMENT HYDR_TOT on HYDR_TOT.VESSEL_USE_FEATURES_FK = VUF_1.ID and
+            HYDR_TOT.PMFM_FK = 41 --"+context.PMFM_HYDRAULIC_OIL_COST+"
+            where VUF_1.FISHING_TRIP_FK = FT.ID
+            )),2)
+        </select>
+
+        <form alias="FT">FISHING_TRIP</form>
+        <from join="true">inner join VESSEL_REGISTRATION_PERIOD vrp on vrp.VESSEL_FK = FT.VESSEL_FK and
+            vrp.END_DATE_TIME is null
+        </from>
+        <from join="true">inner join LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">inner join LOCATION LOCDEB on LOCDEB.ID = L.LANDING_LOCATION_FK</from>
+        <from join="true">inner join LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK = L.LANDING_LOCATION_FK</from>
+        <from join="true">inner join LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK</from>
+        <from join="true">inner join LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK = L.LANDING_LOCATION_FK</from>
+        <from join="true">inner join LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK</from>
+        <from join="true">inner join VESSEL_USE_FEATURES VUF on VUF.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">inner join VESSEL_USE_MEASUREMENT VUM on VUM.VESSEL_USE_FEATURES_FK = VUF.ID</from>
+        <from join="true">inner join PMFM P on P.ID = VUM.PMFM_FK</from>
+        <from join="true">inner join PARAMETER PA on PA.CODE = P.PARAMETER_FK</from>
+
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = 32 --"+context.LOCATION_LEVEL_QUARTER+"</where>
+        <where operator="AND">LOCR.LOCATION_LEVEL_FK = 31 --"+context.LOCATION_LEVEL_REGION+"</where>
+        <where operator="AND">VUM.PMFM_FK in (46,44,29,35,51,254,--p03_obsdeb_cost_list
+            30,241,300,303,344,246,45, --p03_obsdeb_cost_detail
+            31/*PMFM_COST*/,
+            37/*PMFM_FUEL_TYPE*/,
+            40/*PMFM_FUEL_VOLUME*/,
+            244/*PMFM_FUEL_UNIT_PRICE*/,
+            242/*PMFM_FUEL_COST todo*/,
+            34/*PMFM_ENGINE_OIL_VOLUME*/,
+            33/*PMFM_ENGINE_OIL_UNIT_PRICE*/,
+            32/*PMFM_ENGINE_OIL_COST todo*/,
+            43/*PMFM_HYDRAULIC_OIL_VOLUME*/,
+            42/*PMFM_HYDRAULIC_OIL_UNIT_PRICE*/,
+            41/*PMFM_HYDRAULIC_OIL_COST todo*/
+            )
+        </where>
+        <where operator="AND">L.PROGRAM_FK in ('SIH-OBSDEB', 'SIH-TELDEB', 'SIH-OPRDEB', 'ARTFISH','SCHOONER','WHALER')
+            --('"+context.PROGRAM_OBSDEB+"','"+context.PROGRAM_TELDEB+"','"+context.PROGRAM_OPRDEB+"',"+context.p03_obsdeb_sfa_programs+")
+        </where>
+        <orderby direction="desc">FT.ID</orderby>
+    </query>
+</queries>

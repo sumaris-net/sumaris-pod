@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="selectCalendar">
+    <query type="select">
+        <select type="number" alias="ID_CALENDRIER">ID_CALENDRIER</select>
+        <select type="number" alias="ID_OBSERVATION">AC.OBSERVED_LOCATION_FK</select>
+        <select type="number" alias="PROGRAMME">AC.PROGRAM_FK</select>
+        <select type="text" alias="ENQ_ORIG_COD">case AC.PROGRAM_FK
+            when '"+context.PROGRAM_OBSDEB+"' then 'O'
+            when '"+context.PROGRAM_TELDEB+"' then 'T'
+            when '"+context.PROGRAM_OPRDEB+"' then 'E'
+            else 'Z'
+            end
+        </select>
+        <select type="text" alias="ENQ_ORIG_LIB">case AC.PROGRAM_FK
+            when '"+context.PROGRAM_OBSDEB+"' then 'Observation'
+            when '"+context.PROGRAM_TELDEB+"' then 'Enquête téléphonique'
+            when '"+context.PROGRAM_OPRDEB+"' then 'Enquête de terrain'
+            else 'Ancien programme SFA'
+            end
+        </select>
+        <select type="number" alias="NAVIRE">AC.VESSEL_FK</select>
+        <select type="text" alias="ANNEE">to_char(AC.START_DATE, 'YYYY')</select>
+        <select type="text" alias="TRIMESTRE">to_char(AC.START_DATE, 'Q')</select>
+        <select type="text" alias="MOIS">to_char(AC.START_DATE, 'MM'),</select>
+        <select type="date" alias="DATE_DEBUT">AC.START_DATE</select>
+        <select type="date" alias="DATE_FIN">AC.END_DATE</select>
+        <select type="text" alias="PORTOBS_COD">LOCOBS.LABEL</select>
+        <select type="text" alias="PORTOBS_LIB">LOCOBS.NAME</select>
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+        <select type="text" alias="AGGREGATE">case when VUM.NUMERICAL_VALUE is null then 'false' else 'true' end
+        </select>
+        <select type="text" alias="NB_JOUR_ACT">coalesce(VUM.NUMERICAL_VALUE, (select count(distinct START_DATE) from
+            GEAR_USE_FEATURES where DAILY_ACTIVITY_CALENDAR_FK = AC.ID))
+        </select>
+        <select type="text" alias="METIER_COD_M">M.LABEL</select>
+        <select type="text" alias="METIER_LIB_M">M.NAME</select>
+        <select type="text" alias="ACTIF">case when VUF.IS_ACTIVE = 1 then 'true' else 'false' end</select>
+        <select type="number" alias="NB_JOUR">coalesce(GUM.NUMERICAL_VALUE, (select count(*) from GEAR_USE_FEATURES
+            where DAILY_ACTIVITY_CALENDAR_FK = AC.ID and METIER_FK = GUF.METIER_FK))
+        </select>
+        <select type="text" alias="DATE_ACT">case when VUM.NUMERICAL_VALUE is null then VUF.START_DATE else null end
+        </select>
+
+        <from alias="AC">DAILY_ACTIVITY_CALENDAR</from>
+        <from join="true">inner join VESSEL_USE_FEATURES VUF on VUF.DAILY_ACTIVITY_CALENDAR_FK = AC.ID
+        </from>
+        <from join="true">left outer join VESSEL_USE_MEASUREMENT VUM on VUM.VESSEL_USE_FEATURES_FK = VUF.ID and
+            VUM.PMFM_FK = "+context.PMFM_ACTIVE_DAYS_NUMBER+"
+        </from>
+        <from join="true">left outer join GEAR_USE_FEATURES GUF on GUF.DAILY_ACTIVITY_CALENDAR_FK = AC.ID and
+            GUF.START_DATE = VUF.START_DATE
+        </from>
+        <from join="true">left outer join GEAR_USE_MEASUREMENT GUM on GUM.GEAR_USE_FEATURES_FK = GUF.ID and GUM.PMFM_FK
+            = "+context.PMFM_ACTIVE_DAYS_NUMBER+"
+        </from>
+        <from join="true">inner join OBSERVED_LOCATION OL on OL.ID = AC.OBSERVED_LOCATION_FK
+        </from>
+        <from join="true">inner join LOCATION LOCOBS on LOCOBS.ID = OL.LOCATION_FK
+        </from>
+        <from join="true">inner join LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK = OL.LOCATION_FK
+        </from>
+        <from join="true">inner join LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK
+        </from>
+        <from join="true">inner join LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK = OL.LOCATION_FK
+        </from>
+        <from join="true">inner join LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK
+        </from>
+        <from join="true">left outer join METIER M on M.ID = GUF.METIER_FK
+        </from>
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = "+context.LOCATION_LEVEL_QUARTER+"</where>
+        <where operator="AND">LOCR.LOCATION_LEVEL_FK = "+context.LOCATION_LEVEL_REGION+"</where>
+        <where operator="AND">AC.PROGRAM_FK in
+            ('"+context.PROGRAM_OBSDEB+"','"+context.PROGRAM_TELDEB+"','"+context.PROGRAM_OPRDEB+"',"+context.p03_obsdeb_sfa_programs+")
+        </where>
+        <where operator="AND">AC.PROGRAM_FK in
+            ('"+context.PROGRAM_OBSDEB+"','"+context.PROGRAM_TELDEB+"','"+context.PROGRAM_OPRDEB+"',"+context.p03_obsdeb_sfa_programs+")
+        </where>
+    </query>
+</queries>

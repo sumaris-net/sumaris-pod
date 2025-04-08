@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="selectVessel">
+    <query type="select">
+        <select type="text" alias="NAVIRE">DISTINCT vrp.REGISTRATION_CODE</select>
+        <select type="text" alias="VESSEL_TYPE">VT.NAME</select>
+
+        <from alias="V">VESSEL</from>
+        <from join="true">INNER JOIN VESSEL_REGISTRATION_PERIOD vrp ON vrp.VESSEL_FK = v.CODE</from>
+        <from join="true">INNER JOIN VESSEL_TYPE vt ON vt.ID = v.VESSEL_TYPE_FK</from>
+        <from join="true">LEFT OUTER JOIN LANDING l ON l.VESSEL_FK = v.code</from>
+
+        <where>1=1</where>
+        <where operator="AND">vrp.REGISTRATION_CODE LIKE 'SZ%'</where>
+        <where operator="AND">vrp.REGISTRATION_CODE NOT LIKE 'SZ %'</where>
+        <where operator="AND">vrp.REGISTRATION_CODE NOT LIKE 'SZ0%'</where>
+        <where operator="AND">vt.ID != 3</where>
+        <where operator="AND">EXTRACT(
+            YEAR
+            FROM
+            L.LANDING_DATE_TIME
+            ) IN (2018)
+        </where>
+        <orderby>vrp.REGISTRATION_CODE</orderby>
+    </query>
+</queries>

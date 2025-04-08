@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="selectOperation">
+    <query type="select">
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="ID_OPERATION">O.ID</select>
+        <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="date" alias="DATE_DEPART">L.LANDING_DATE_TIME</select>
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+        <select type="date" alias="DATE_PECHE">O.START_DATE_TIME</select>
+        <select type="text" alias="METIER_COD_O">M.LABEL</select>
+        <select type="text" alias="METIER_LIB_O">M.NAME</select>
+        <select type="text" alias="ENGIN_COD_O">SUBSTR(M.LABEL, 1, LENGTH(M.LABEL)-3)</select>
+        <select type="text" alias="ESP_CIBLE_COD_O">SUBSTR(M.LABEL, LENGTH(M.LABEL)-2, LENGTH(M.LABEL))</select>
+        <select type="text" alias="ENG_MAILLAGE">SELECT GPM_MAILLLAGE.NUMERICAL_VALUE MAILLLAGE
+            FROM gear_physical_measurement GPM_MAILLLAGE
+            WHERE 1=1
+            AND GPM_MAILLLAGE.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
+            AND GPM_MAILLLAGE.PMFM_FK = 66 -- or 84 in v4.2 --"+context.PMFM_GEAR_MESH_SIZE+"
+        </select>
+        <select type="text" alias="ENG_DIMENSION">SELECT GPM_DIMENSION.NUMERICAL_VALUE DIMENSION
+            FROM gear_physical_measurement GPM_DIMENSION
+            WHERE 1=1
+            AND GPM_DIMENSION.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
+            and GPM_DIMENSION.PMFM_FK = 253 --"+context.PMFM_GEAR_DIMENSION+"
+        </select>
+        <select type="text" alias="SECTEUR_TYP_O">LOCFA.LOCATION_LEVEL_FK || '-' || LOCLFA.NAME</select>
+        <select type="text" alias="SECTEUR_COD_O">LOCFA.LABEL</select>
+        <select type="text" alias="SECTEUR_LIB_O">LOCFA.NAME</select>
+        <select type="text" alias="SECTEUR_PERE_TYP">LOCPFA.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="SECTEUR_PERE_COD">LOCPFA.LABEL</select>
+        <select type="text" alias="SECTEUR_PERE_LIB">LOCPFA.NAME</select>
+        <select type="text" alias="GRAD_DIST_ID_O">DTCG.ID</select>
+        <select type="text" alias="GRAD_DIST_LIB_O">DTCG.NAME</select>
+        <select type="text" alias="GRAD_DIST_ORD_O">DTCG.RANK_ORDER</select>
+        <select type="text" alias="GRAD_PROF_ID_O">DG.ID</select>
+        <select type="text" alias="GRAD_PROF_LIB_O">DG.NAME</select>
+        <select type="text" alias="GRAD_PROF_ORD_O">DG.RANK_ORDER</select>
+        <select type="text" alias="GRAD_PROX_ID_O">NSA.ID</select>
+        <select type="text" alias="GRAD_PROX_LIB_O">NSA.NAME</select>
+        <select type="text" alias="GRAD_PROX_DESC_O">NSA.DESCRIPTION</select>
+        <select type="text" alias="SONDE">SELECT VM_SONDE.NUMERICAL_VALUE SONDE
+            FROM vessel_use_measurement VM_SONDE
+            WHERE 1=1
+            AND VM_SONDE.VESSEL_USE_FEATURES_FK = VUF.ID
+            AND VM_SONDE.PMFM_FK = 0 --"+context.PMFM_MAIN_WATER_DEPTH+"
+        </select>
+        <select type="text" alias="T_PECHE_NAVIRE">round((O.END_DATE_TIME - O.START_DATE_TIME)*24,2)</select>
+        <select type="text" alias="T_PECHE_ENGIN">case when FT.PROGRAM_FK in ('ARTFISH','SCHOONER','WHALER') /*
+            ("+context.p03_obsdeb_sfa_programs+")*/
+            then case when O.FISHING_END_DATE_TIME is null then null else round((O.FISHING_END_DATE_TIME -
+            O.FISHING_START_DATE_TIME)*24,2) end
+            else
+            (
+            SELECT case when VM_TIME.NUMERICAL_VALUE = 23.9997215 then null else VM_TIME.NUMERICAL_VALUE end
+            FROM VESSEL_USE_MEASUREMENT VM_TIME
+            WHERE 1=1
+            AND VM_TIME.VESSEL_USE_FEATURES_FK = VUF.ID
+            AND VM_TIME.PMFM_FK = 6 --"+context.PMFM_DURATION_AT_SEA+"
+            ) end
+        </select>
+        <select type="text" alias="INDEX_OPERATION">O.RANK_ORDER_ON_PERIOD</select>
+        <select type="text" alias="SEQCAPT"> case O.HAS_CATCH when 1 then 'true' else 'false'</select>
+
+        <from alias="FT">FISHING_TRIP</from>
+        <from join="true">  inner join LANDING L on L.FISHING_TRIP_FK = FT.ID
+        </from>
+        <from join="true">  inner join LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK = L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">  inner join LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK
+        </from>
+        <from join="true">  inner join LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK = L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">  inner join LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK
+        </from>
+        <from join="true">  inner join OPERATION O on O.FISHING_TRIP_FK = FT.ID
+        </from>
+        <from join="true">  left outer join GEAR_USE_FEATURES GUF on GUF.OPERATION_FK = O.ID
+        </from>
+        <from join="true">  left outer join FISHING_AREA FA on FA.GEAR_USE_FEATURES_FK = GUF.ID
+        </from>
+        <from join="true">  left outer join LOCATION LOCFA on LOCFA.ID = FA.LOCATION_FK
+        </from>
+        <from join="true">  left outer join LOCATION_LEVEL LOCLFA on LOCLFA.ID = LOCFA.LOCATION_LEVEL_FK
+        </from>
+        <from join="true">  left outer join LOCATION_HIERARCHY LOCHFA on LOCHFA.CHILD_LOCATION_FK = FA.LOCATION_FK
+        </from>
+        <from join="true">  left outer join LOCATION LOCPFA on LOCPFA.ID = LOCHFA.PARENT_LOCATION_FK
+        </from>
+        <from join="true">  left outer join DISTANCE_TO_COAST_GRADIENT DTCG on DTCG.ID = FA.DISTANCE_TO_COAST_GRADIENT_FK
+        </from>
+        <from join="true">  left outer join DEPTH_GRADIENT DG on DG.ID = FA.DEPTH_GRADIENT_FK
+        </from>
+        <from join="true">  left outer join NEARBY_SPECIFIC_AREA NSA on NSA.ID = FA.NEARBY_SPECIFIC_AREA_FK
+        </from>
+        <from join="true">  left outer join VESSEL_USE_FEATURES VUF on VUF.OPERATION_FK = O.ID
+        </from>
+        <from join="true">  left outer join GEAR_PHYSICAL_FEATURES GPF on GPF.FISHING_TRIP_FK = FT.ID and GPF.ID = O.GEAR_PHYSICAL_FEATURES_FK
+        </from>
+        <from join="true">  left outer join METIER M on M.ID = GUF.METIER_FK
+        </from>
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = 32 --"+context.LOCATION_LEVEL_QUARTER+"</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = 32 --"+context.LOCATION_LEVEL_QUARTER+"</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = 32 --"+context.LOCATION_LEVEL_QUARTER+"</where>
+        <where operator="AND">L.PROGRAM_FK in ('SIH-OBSDEB', 'SIH-TELDEB', 'SIH-OPRDEB', 'ARTFISH','SCHOONER','WHALER')</where>
+        <where operator="AND">extract(year from L.LANDING_DATE_TIME) in (2018)</where>
+    </query>
+</queries>

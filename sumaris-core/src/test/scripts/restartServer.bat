@@ -14,7 +14,7 @@ if not errorlevel 0 goto error
 echo [93mGenerating new test DB... (log at: %PROJECT_DIR%\target\build.log)[0m
 cd %PROJECT_DIR%
 rmdir /S /Q target\db 2>nul
-call mvn -Prun,hsqldb -DskipTests --quiet
+call mvn -Prun,hsqldb -DskipTests
 if not errorlevel 0 goto error
 
 echo [93mStopping DB server...[0m

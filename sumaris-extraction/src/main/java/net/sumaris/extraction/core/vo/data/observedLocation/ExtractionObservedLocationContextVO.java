@@ -42,10 +42,16 @@ public class ExtractionObservedLocationContextVO extends ExtractionContextVO {
     // Table names
     String observedLocationTableName;
     String vesselTableName;
+    String catchTableName; // C
+    String catchIndividualTableName; // CI
+    String catchLotTableName; // CL
 
     // Sheet names
     String observedLocationSheetName; // OL
     String vesselSheetName; // OL_VES
+    String catchSheetName; // C
+    String catchIndividualSheetName; // CI
+    String catchLotSheetName; // CL
 
     ExtractionObservedLocationFilterVO observedLocationFilter;
 

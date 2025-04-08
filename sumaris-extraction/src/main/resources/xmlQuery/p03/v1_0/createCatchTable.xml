@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="createCatchTable">
+    <query type="create" temp="false" table="&amp;catchTableName" option="distinct">
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="ID_OPERATION">O.ID</select>
+
+        <select type="text" alias="ANNEE">TO_CHAR(L.LANDING_DATE_TIME, 'YYYY')</select>
+        <select type="text" alias="TRIMESTRE">TO_CHAR(L.LANDING_DATE_TIME, 'Q')</select>
+        <select type="text" alias="MOIS">TO_CHAR(L.LANDING_DATE_TIME, 'MM')</select>
+
+        <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="date" alias="DATE_DEBARQ">L.LANDING_DATE_TIME</select>
+
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+
+        <select type="date" alias="DATE_PECHE">O.START_DATE_TIME</select>
+        <select type="date" alias="INDEX_OPERATION">O.RANK_ORDER_ON_PERIOD</select>
+
+        <select type="text" alias="METIER_COD_O">M.LABEL</select>
+        <select type="text" alias="METIER_LIB_O">M.NAME</select>
+
+        <select type="number" alias="ENG_MAILLAGE">(SELECT GPM_MAILLAGE.NUMERICAL_VALUE MAILLAGE
+            FROM &amp;adagioSchema.gear_physical_measurement GPM_MAILLAGE
+            WHERE 1=1
+            AND GPM_MAILLAGE.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
+            AND GPM_MAILLAGE.PMFM_FK = &amp;gearPhysicalHookNumber)
+        </select>
+        <select type="number" alias="ENG_DIMENSION">(SELECT GPM_DIMENSION.NUMERICAL_VALUE DIMENSION
+            FROM &amp;adagioSchema.gear_physical_measurement GPM_DIMENSION
+            WHERE 1=1
+            AND GPM_DIMENSION.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
+            AND GPM_DIMENSION.PMFM_FK = &amp;gearPhysicalGearNumber)
+        </select>
+
+        <select type="text" alias="SECTEUR_TYP_O">LOCFA.LOCATION_LEVEL_FK || '-' || LOCLFA.NAME</select>
+        <select type="text" alias="SECTEUR_COD_O">LOCFA.LABEL</select>
+        <select type="text" alias="SECTEUR_LIB_O">LOCFA.NAME</select>
+
+        <select type="number" alias="GRAD_DIST_ID_O">DTCG.ID</select>
+        <select type="text" alias="GRAD_DIST_LIB_O">DTCG.NAME</select>
+        <select type="number" alias="GRAD_DIST_ORD_O">DTCG.RANK_ORDER</select>
+
+        <select type="number" alias="GRAD_PROF_ID_O">DG.ID</select>
+        <select type="text" alias="GRAD_PROF_LIB_O">DG.NAME</select>
+        <select type="number" alias="GRAD_PROF_ORD_O">DG.RANK_ORDER</select>
+
+        <select type="number" alias="GRAD_PROX_ID_O">NSA.ID</select>
+        <select type="text" alias="GRAD_PROX_LIB_O">NSA.NAME</select>
+        <select type="number" alias="GRAD_PROX_DESC_O">NSA.DESCRIPTION</select>
+
+        <select type="text" alias="ESP_COD_FAO">TG.LABEL</select>
+        <select type="text" alias="ESP_LIB_FAO">TG.NAME</select>
+
+        <select type="number" alias="QUANTITE_CAP">P.WEIGHT</select>
+
+        <select type="number" alias="QUANTITE_CAP_VIF">COALESCE(P.WEIGHT * RWC.CONVERSION_COEFFICIENT, P.WEIGHT)
+        </select>
+
+        <select type="text" alias="EVAL_QUANTITE">'WEIGHT-' || MW.NAME</select>
+        <select type="number" alias="NG_INDIVIDUS">P.INDIVIDUAL_COUNT</select>
+        <select type="text" alias="EVAL_NB_INDIVIDUS">null</select>
+
+        <select type="text" alias="CONDITIONNEMENT">
+            case when QV_COND.NAME is null then null else QV_COND.NAME || '-' || QV_COND.DESCRIPTION end
+        </select>
+        <select type="text" alias="ETAT">
+            case when QV_ETAT.NAME is null then null else QV_ETAT.NAME || '-' || QV_ETAT.DESCRIPTION end
+        </select>
+        <select type="text" alias="PRESENTATION">
+            case when QV_PRES.NAME is null then null else QV_PRES.NAME || '-' || QV_PRES.DESCRIPTION end
+        </select>
+        <select type="text" alias="CATEGORIE_LOCALE">
+            case when QV_CAT.NAME is null then null else QV_CAT.NAME || '-' || QV_CAT.DESCRIPTION end
+        </select>
+
+        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+
+        <from join="true">INNER JOIN &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
+
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK</from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK</from>
+        <from join="true">INNER JOIN &amp;adagioSchema.OPERATION O on O.FISHING_TRIP_FK = FT.ID</from>
+
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.GEAR_USE_FEATURES GUF on GUF.OPERATION_FK = O.ID</from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.FISHING_AREA FA on FA.GEAR_USE_FEATURES_FK = GUF.ID</from>
+
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.LOCATION LOCFA on LOCFA.ID = FA.LOCATION_FK</from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.LOCATION_LEVEL LOCLFA on LOCLFA.ID =
+            LOCFA.LOCATION_LEVEL_FK
+        </from>
+
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.DISTANCE_TO_COAST_GRADIENT DTCG on DTCG.ID =
+            FA.DISTANCE_TO_COAST_GRADIENT_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.DEPTH_GRADIENT DG on DG.ID = FA.DEPTH_GRADIENT_FK</from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.NEARBY_SPECIFIC_AREA NSA on NSA.ID =
+            FA.NEARBY_SPECIFIC_AREA_FK
+        </from>
+
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.GEAR_PHYSICAL_FEATURES GPF on GPF.FISHING_TRIP_FK = FT.ID
+            and GPF.ID = O.GEAR_PHYSICAL_FEATURES_FK
+        </from>
+
+        <from join="true">inner join &amp;adagioSchema.PRODUCE P on P.FISHING_OPERATION_FK = O.ID</from>
+
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.METHOD MW on MW.ID = P.WEIGHT_METHOD_FK</from>
+
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.SORTING_MEASUREMENT_P SM_COND on SM_COND.PRODUCE_FK = P.ID
+            and SM_COND.PMFM_FK = &amp;conditionnementPmfm
+        </from>
+
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.QUALITATIVE_VALUE QV_COND on QV_COND.ID =
+            SM_COND.QUALITATIVE_VALUE_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.QUALITATIVE_VALUE QV_ETAT on QV_ETAT.ID =
+            P.PRESERVATION_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.QUALITATIVE_VALUE QV_PRES on QV_PRES.ID = P.DRESSING_FK
+        </from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.QUALITATIVE_VALUE QV_CAT on QV_CAT.ID = P.SIZE_CATEGORY_FK
+        </from>
+
+        <from join="true"><![CDATA[ LEFT OUTER JOIN &adagioSchema.ROUND_WEIGHT_CONVERSION RWC
+            on RWC.TAXON_GROUP_FK = P.TAXON_GROUP_FK
+            and RWC.PRESERVING_FK = P.PRESERVATION_FK
+            and RWC.DRESSING_FK = P.DRESSING_FK
+            and RWC.LOCATION_FK = &locationFilter
+            and RWC.START_DATE <= L.LANDING_DATE_TIME
+            and (RWC.END_DATE is null or RWC.END_DATE >= L.LANDING_DATE_TIME)]]></from>
+
+        <from join="true">INNER JOIN &amp;adagioSchema.TAXON_GROUP TG on TG.ID = P.TAXON_GROUP_FK</from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.GEAR G on G.ID = GUF.GEAR_FK</from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.METIER M on M.ID = GUF.METIER_FK</from>
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter
+        </where>
+        <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion
+        </where>
+        <where group="programFilter" operator="AND">
+            <in field="L.PROGRAM_FK">
+                &amp;progLabels
+            </in>
+        </where>
+        <where group="yearFilter" operator="AND">
+            <in field="extract(year from L.LANDING_DATE_TIME)">&amp;year</in>
+        </where>
+    </query>
+</queries>

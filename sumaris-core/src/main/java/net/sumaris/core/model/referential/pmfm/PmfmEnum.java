@@ -117,6 +117,13 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
 
     HULL_MATERIAL(440, "HULL_MATERIAL"), // Adagio HULL_MATERIAL (id=145)
 
+    // P03 SFA
+    GEAR_PHYSICAL_HOOK_NUMBER(84, "GEAR_PHYSICAL_HOOK_NUMBER"), // ID from sih_adagio
+    GEAR_PHYSICAL_GEAR_NUMBER(253, "GEAR_PHYSICAL_GEAR_NUMBER"), // ID from sih_adagio
+
+    BIOLOGICAL_WEIGHT(164, "BIOLOGICAL_WEIGHT"), // ID from sih_adagio
+    BIOLOGICAL_LENGTH(349, "BIOLOGICAL_LENGTH"), // ID from sih_adagio
+
     @Deprecated
     /**
      * @deprecated Use CONTRACT_CODE instead

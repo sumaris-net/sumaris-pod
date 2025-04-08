@@ -25,8 +25,8 @@ package net.sumaris.extraction.core.type;
 import lombok.NonNull;
 import net.sumaris.core.exception.SumarisTechnicalException;
 import net.sumaris.core.model.technical.extraction.IExtractionType;
-import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.specification.administration.StratSpecification;
+import net.sumaris.extraction.core.specification.data.activityCalendar.ActivityMonitoringSpecification;
 import net.sumaris.extraction.core.specification.data.observedLocation.ObservedLocationSpecification;
 import net.sumaris.extraction.core.specification.data.trip.*;
 import net.sumaris.extraction.core.specification.vessel.VesselSpecification;
@@ -60,7 +60,7 @@ public enum LiveExtractionTypeEnum implements IExtractionType {
     ACTIVITY_MONITORING(ActivityMonitoringSpecification.FORMAT, ActivityMonitoringSpecification.SHEET_NAMES, ActivityMonitoringSpecification.VERSION),
 
     // ObservedLocation
-    OBSERVED_LOCATION(ObservedLocationSpecification.FORMAT, ObservedLocationSpecification.SHEET_NAMES, ObservedLocationSpecification.VERSION)
+    OBSERVED_LOCATION(ObservedLocationSpecification.FORMAT, ObservedLocationSpecification.SHEET_NAMES, ObservedLocationSpecification.VERSION),
     ;
 
     private Integer id;

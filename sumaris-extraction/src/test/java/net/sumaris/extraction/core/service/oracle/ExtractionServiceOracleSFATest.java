@@ -33,7 +33,10 @@ import net.sumaris.extraction.core.service.ExtractionServiceTest;
 import net.sumaris.extraction.core.specification.data.trip.PmfmTripSpecification;
 import net.sumaris.extraction.core.type.LiveExtractionTypeEnum;
 import net.sumaris.extraction.core.vo.trip.ExtractionTripFilterVO;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -228,10 +231,24 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     }
 
     @Test
+    public void executeObservedCatchIndividual() throws IOException, ParseException {
+        super.executeObservedCatchIndividualTest(null);
+    }
+
+    @Test
+    public void executeObservedCatchLot() throws IOException, ParseException {
+        super.executeObservedCatchLotTest(null);
+    }
+
+    @Test
+    public void executeObservedCatch() throws IOException, ParseException {
+        super.executeObservedCatchTest(null);
+    }
+
+    @Test
     public void executeObservedLocation() throws IOException, ParseException {
         super.executeObservedLocationTest(null);
     }
-
 
     /* -- protected methods -- */
 
