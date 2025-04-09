@@ -80,8 +80,8 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Slf4j
 public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocationContextVO, F extends ExtractionFilterVO>
-    extends ExtractionBaseDaoImpl<C, F>
-    implements ExtractionObservedLocationDao<C, F> {
+        extends ExtractionBaseDaoImpl<C, F>
+        implements ExtractionObservedLocationDao<C, F> {
 
     private static final String OL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.OL_SHEET_NAME + "_%s";
     private static final String VESSEL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.VESSEL_SHEET_NAME + "_%s";
@@ -90,6 +90,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
     private static final String CATCH_INDIVIDUAL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME + "_%s";
     private static final String TRIP_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_SHEET_NAME + "_%s";
     private static final String TRIP_CALENDAR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME + "_%s";
+    private static final String OBSERVER_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.OBSERVER_SHEET_NAME + "_%s";
 
     private final LocationRepository locationRepository;
     private final VesselSnapshotRepository vesselSnapshotRepository;
@@ -104,12 +105,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         // Read some config options
         String adagioSchema = this.configuration.getAdagioSchema();
         boolean enableAdagioOptimization = StringUtils.isNotBlank(adagioSchema)
-                                           && this.configuration.enableAdagioOptimization()
-                                           && this.databaseType == DatabaseType.oracle;
+                && this.configuration.enableAdagioOptimization()
+                && this.databaseType == DatabaseType.oracle;
 
         // Check if there is some changes
         boolean hasChanges = !Objects.equals(this.adagioSchema, adagioSchema)
-                             || this.enableAdagioOptimization != enableAdagioOptimization;
+                || this.enableAdagioOptimization != enableAdagioOptimization;
 
         // Apply changes if need
         if (hasChanges) {
@@ -190,15 +191,13 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.VESSEL_SHEET_NAME)) {
+            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.VESSEL_SHEET_NAME) && rowCount > 0) {
                 // Vessel table
-                if (rowCount > 0) {
-                    t = System.currentTimeMillis();
-                    rowCount = createVesselTable(context);
-                    if (log.isDebugEnabled())
-                        log.debug("{} created with {} in {}", context.getVesselTableName(), rowCount, TimeUtils.printDurationFrom(t));
-                    if (sheetName != null && context.hasSheet(sheetName)) return context;
-                }
+                t = System.currentTimeMillis();
+                rowCount = createVesselTable(context);
+                if (log.isDebugEnabled())
+                    log.debug("{} created with {} in {}", context.getVesselTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
             if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.CATCH_SHEET_NAME)) {
@@ -241,6 +240,15 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
+
+            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.OBSERVER_SHEET_NAME)) {
+                t = System.currentTimeMillis();
+                rowCount = createObserverTable(context);
+                if (log.isDebugEnabled())
+                    log.debug("{} created with {} in {}", context.getObserverTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
+
             return context;
         } catch (PersistenceException | ParseException e) {
             // If error,clean created tables first, then rethrow the exception
@@ -258,7 +266,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
 
     protected ExtractionObservedLocationFilterVO toObservedLocationFilterVO(@Nullable ExtractionFilterVO source) {
         ExtractionObservedLocationFilterVO
-            target = new ExtractionObservedLocationFilterVO();
+                target = new ExtractionObservedLocationFilterVO();
         if (source == null) {
             return target;
         }
@@ -284,13 +292,13 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                     case ObservedLocationSpecification.COLUMN_LOCATION_LABEL:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setLocationIds(
-                                Stream.of(
-                                        locationRepository.findByLabel(criterion.getValue())
-                                            .map(ReferentialVO::getId)
-                                            .orElse(null)
-                                    )
-                                    .filter(Objects::nonNull)
-                                    .toArray(Integer[]::new)
+                                    Stream.of(
+                                                    locationRepository.findByLabel(criterion.getValue())
+                                                            .map(ReferentialVO::getId)
+                                                            .orElse(null)
+                                            )
+                                            .filter(Objects::nonNull)
+                                            .toArray(Integer[]::new)
                             );
                         }
                         break;
@@ -302,34 +310,34 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                     case ObservedLocationSpecification.COLUMN_VESSEL_CODE:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             vesselSnapshotRepository.findAll(
-                                    VesselFilterVO.builder()
-                                        .searchText(criterion.getValue())
-                                        .build(),
-                                    VesselFetchOptions.builder()
-                                        .withVesselFeatures(false)
-                                        .withVesselRegistrationPeriod(false)
-                                        .build()
-                                ).stream()
-                                .findFirst()
-                                .map(VesselSnapshotVO::getVesselId)
-                                .ifPresent(vesselId -> {
-                                    target.setVesselIds(ArrayUtils.toArray(vesselId));
-                                    // Clean the criterion (to avoid clean to exclude too many data)
-                                    criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
-                                    criterion.setValue(null);
-                                });
+                                            VesselFilterVO.builder()
+                                                    .searchText(criterion.getValue())
+                                                    .build(),
+                                            VesselFetchOptions.builder()
+                                                    .withVesselFeatures(false)
+                                                    .withVesselRegistrationPeriod(false)
+                                                    .build()
+                                    ).stream()
+                                    .findFirst()
+                                    .map(VesselSnapshotVO::getVesselId)
+                                    .ifPresent(vesselId -> {
+                                        target.setVesselIds(ArrayUtils.toArray(vesselId));
+                                        // Clean the criterion (to avoid clean to exclude too many data)
+                                        criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
+                                        criterion.setValue(null);
+                                    });
                         }
                         break;
                     case ObservedLocationSpecification.COLUMN_OBSERVER_NAME:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setObserverPersonIds(
-                                Stream.of(
-                                        personRepository.findByFullName(criterion.getValue())
-                                            .map(PersonVO::getId)
-                                            .orElse(null)
-                                    )
-                                    .filter(Objects::nonNull)
-                                    .toArray(Integer[]::new)
+                                    Stream.of(
+                                                    personRepository.findByFullName(criterion.getValue())
+                                                            .map(PersonVO::getId)
+                                                            .orElse(null)
+                                            )
+                                            .filter(Objects::nonNull)
+                                            .toArray(Integer[]::new)
                             );
                             // Clean the criterion (to avoid clean to exclude too many data)
                             criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
@@ -347,7 +355,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                     case ObservedLocationSpecification.COLUMN_RECORDER_NAME:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setRecorderPersonId(
-                                        personRepository.findByFullName(criterion.getValue())
+                                    personRepository.findByFullName(criterion.getValue())
                                             .map(PersonVO::getId)
                                             .orElse(null)
                             );
@@ -375,11 +383,11 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                         break;
                     case ObservedLocationSpecification.COLUMN_LOCATION_LABEL:
                         target.setLocationIds(
-                            Arrays.stream(criterion.getValues()).map(
-                                    label -> locationRepository.findByLabel(label).map(ReferentialVO::getId).orElse(null)
-                                )
-                                .filter(Objects::nonNull)
-                                .toArray(Integer[]::new)
+                                Arrays.stream(criterion.getValues()).map(
+                                                label -> locationRepository.findByLabel(label).map(ReferentialVO::getId).orElse(null)
+                                        )
+                                        .filter(Objects::nonNull)
+                                        .toArray(Integer[]::new)
                         );
                         break;
                     case ObservedLocationSpecification.COLUMN_LOCATION_ID:
@@ -387,22 +395,22 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                         break;
                     case ObservedLocationSpecification.COLUMN_VESSEL_CODE:
                         target.setVesselIds(
-                            Arrays.stream(criterion.getValues()).flatMap(
-                                    code -> vesselSnapshotRepository.findAll(
-                                            VesselFilterVO.builder()
-                                                .searchText(code)
-                                                .build(),
-                                            VesselFetchOptions.builder()
-                                                .withVesselFeatures(false)
-                                                .withVesselRegistrationPeriod(false)
-                                                .build()
+                                Arrays.stream(criterion.getValues()).flatMap(
+                                                code -> vesselSnapshotRepository.findAll(
+                                                                VesselFilterVO.builder()
+                                                                        .searchText(code)
+                                                                        .build(),
+                                                                VesselFetchOptions.builder()
+                                                                        .withVesselFeatures(false)
+                                                                        .withVesselRegistrationPeriod(false)
+                                                                        .build()
+                                                        )
+                                                        .stream()
                                         )
-                                        .stream()
-                                )
-                                .map(VesselSnapshotVO::getVesselId)
-                                .filter(Objects::nonNull)
-                                .distinct()
-                                .toArray(Integer[]::new)
+                                        .map(VesselSnapshotVO::getVesselId)
+                                        .filter(Objects::nonNull)
+                                        .distinct()
+                                        .toArray(Integer[]::new)
                         );
                         // Clean the criterion (to avoid clean to exclude too many data)
                         criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
@@ -410,13 +418,13 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                         break;
                     case ObservedLocationSpecification.COLUMN_OBSERVER_NAME:
                         target.setObserverPersonIds(
-                            Arrays.stream(criterion.getValues()).flatMap(
-                                    s -> personRepository.findByFullName(s).stream()
-                                )
-                                .map(PersonVO::getId)
-                                .filter(Objects::nonNull)
-                                .distinct()
-                                .toArray(Integer[]::new)
+                                Arrays.stream(criterion.getValues()).flatMap(
+                                                s -> personRepository.findByFullName(s).stream()
+                                        )
+                                        .map(PersonVO::getId)
+                                        .filter(Objects::nonNull)
+                                        .distinct()
+                                        .toArray(Integer[]::new)
                         );
                         // Clean the criterion (to avoid clean to exclude too many data)
                         criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
@@ -424,7 +432,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                         break;
                     case ObservedLocationSpecification.COLUMN_OBSERVER_ID:
                         target.setObserverPersonIds(
-                            Arrays.stream(criterion.getValues()).map(Integer::valueOf).toArray(Integer[]::new)
+                                Arrays.stream(criterion.getValues()).map(Integer::valueOf).toArray(Integer[]::new)
                         );
                         // Clean the criterion (to avoid clean to exclude too many data)
                         criterion.setOperator(ExtractionFilterOperatorEnum.NOT_NULL.getSymbol());
@@ -494,6 +502,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setCatchIndividualTableName(formatTableName(CATCH_INDIVIDUAL_TABLE_NAME_PATTERN, context.getId()));
         context.setTripTableName(formatTableName(TRIP_TABLE_NAME_PATTERN, context.getId()));
         context.setTripCalendarTableName(formatTableName(TRIP_CALENDAR_TABLE_NAME_PATTERN, context.getId()));
+        context.setObserverTableName(formatTableName(OBSERVER_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet name
         context.setObservedLocationSheetName(ObservedLocationSpecification.OL_SHEET_NAME);
@@ -503,6 +512,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setCatchIndividualSheetName(ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME);
         context.setTripSheetName(ObservedLocationSpecification.TRIP_SHEET_NAME);
         context.setTripCalendarSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
+        context.setObserverSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
 
     }
 
@@ -520,9 +530,9 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         }
 
         context.addTableName(tableName,
-            context.getObservedLocationSheetName(),
-            xmlQuery.getHiddenColumnNames(),
-            xmlQuery.hasDistinctOption());
+                context.getObservedLocationSheetName(),
+                xmlQuery.getHiddenColumnNames(),
+                xmlQuery.hasDistinctOption());
 
         return count;
     }
@@ -543,9 +553,9 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         if (count > 0) {
             // Add result table to context
             context.addTableName(tableName,
-                context.getVesselSheetName(),
-                xmlQuery.getHiddenColumnNames(),
-                xmlQuery.hasDistinctOption());
+                    context.getVesselSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
             log.debug("Monitoring table: {} rows inserted", count);
         } else {
             context.addRawTableName(tableName);
@@ -677,6 +687,32 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug("Trip table: {} rows inserted", count);
+        } else {
+            context.addRawTableName(tableName);
+        }
+
+        return count;
+    }
+
+    protected long createObserverTable(C context) throws PersistenceException, ParseException {
+        String tableName = context.getObserverTableName();
+
+        XMLQuery xmlQuery = createObserverQuery(context);
+        execute(context, xmlQuery);
+
+        // Count row
+        long count = countFrom(tableName);
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getObserverSheetName());
+        }
+
+        if (count > 0) {
+            // Add result table to context
+            context.addTableName(tableName,
+                    context.getObserverSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug("ObserverTable: {} rows inserted", count);
         } else {
             context.addRawTableName(tableName);
         }
@@ -1096,6 +1132,58 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             boolean enableFilter = CollectionUtils.isNotEmpty(extractId);
             xmlQuery.setGroup("extractsFilter", enableFilter);
             if (enableFilter) xmlQuery.bind("extractIds", Daos.getSqlInNumbers(extractId));
+        }
+
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
+        return xmlQuery;
+    }
+
+    protected XMLQuery createObserverQuery(C context) throws PersistenceException {
+
+        Integer year = context.getYear();
+        context.setStartDate(Dates.getFirstDayOfYear(year));
+        context.setEndDate(Dates.getLastSecondOfYear(year));
+
+        XMLQuery xmlQuery = createXMLQuery(context, "createObserverTable");
+        xmlQuery.bind("observerTableName", context.getObserverTableName());
+
+        // Pmfms
+        {
+            xmlQuery.bind("surveyQualification", PmfmEnum.SURVEY_QUALIFICATION.getId());
+        }
+
+        {
+            xmlQuery.bind("programObsdeb", ProgramEnum.SIH_OBSDEB.getLabel());
+            xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
+        }
+
+        // LocationLevelQuarter filter
+        {
+            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+        }
+
+        // LocationLevelRegion filter
+        {
+            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
+        }
+
+        // Program filter
+        {
+            List<String> programLabels = context.getProgramLabels();
+            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
+            xmlQuery.setGroup("programFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        }
+
+        // Year filter
+        if (year != null) {
+            xmlQuery.setGroup("yearFilter", true);
+            xmlQuery.bind("year", year);
+        } else {
+            xmlQuery.setGroup("filterYear", false);
         }
 
         xmlQuery.setGroup("adagio", this.enableAdagioOptimization);

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="createObserverTable">
+    <query type="create" temp="false" table="&amp;observerTableName">
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="date" alias="DATE_DEBARQ">L.LANDING_DATE_TIME</select>
+        <select type="text" alias="PORTDEB_TYP">LOCDEB.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="PORTDEB_COD">LOCDEB.LABEL</select>
+        <select type="text" alias="PORTDEB_LIB">LOCDEB.NAME</select>
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+        <select type="text" alias="OBSERVATEUR_COD">P.EMPLOYEE_NUMBER</select>
+        <select type="text" alias="OBSERVATEUR_LIB">P.LASTNAME || ' ' || P.FIRSTNAME</select>
+        <select type="text" alias="ENQ_QUALIF_LIB">
+            ( SELECT QV.NAME
+            FROM &amp;adagioSchema.SURVEY_MEASUREMENT SM, QUALITATIVE_VALUE QV
+            WHERE QV.ID = SM.QUALITATIVE_VALUE_FK
+            AND SM.FISHING_TRIP_FK = FT.ID
+            AND SM.PMFM_FK = &amp;surveyQualification)
+        </select>
+        <select type="text" alias="ENQ_ORIG_COD">
+            (case FT.PROGRAM_FK
+            when '&amp;programObsdeb' then 'O'
+            when '&amp;programOprdeb' then 'E'
+            else 'Z'
+            end)
+        </select>
+        <select type="text" alias="ENQ_ORIG_LIB">
+            (case FT.PROGRAM_FK
+            when '&amp;programObsdeb' then 'Observation'
+            when '&amp;programOprdeb' then 'Enquête de terrain'
+            else 'Ancien programme SFA'
+            end)
+        </select>
+        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCDEB on LOCDEB.ID = L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.FISHING_TRIP2OBSERVER_PERSON FTOP on FTOP.FISHING_TRIP_FK = FT.ID
+        </from>
+        <from join="true">inner join &amp;adagioSchema.PERSON P on P.ID = FTOP.PERSON_FK
+        </from>
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
+        <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
+        <where group="programFilter" operator="AND">
+            <in field="L.PROGRAM_FK">
+                (&amp;progLabels)
+            </in>
+        </where>
+        <where group="yearFilter" operator="AND">
+            <in field="extract(year from L.LANDING_DATE_TIME)">(&amp;year)</in>
+        </where>
+    </query>
+</queries>

@@ -36,6 +36,8 @@ public interface ObservedLocationSpecification {
     String TRIP_SHEET_NAME = "T";
     String TRIP_CALENDAR_SHEET_NAME = "TC";
 
+    String OBSERVER_SHEET_NAME = "O";
+
     String COLUMN_PROJECT = "project";
 
     String COLUMN_YEAR = "year";
