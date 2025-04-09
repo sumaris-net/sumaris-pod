@@ -551,7 +551,7 @@ public class PacketServiceImpl implements PacketService {
             totalWeight = referenceWeight / sb.getSamplingRatio();
         }
 
-        return totalWeight;
+        return Daos.roundValue(totalWeight);
     }
 
     protected void fillDefaultProperties(BatchVO parent, MeasurementVO measurement, Class<? extends IMeasurementEntity> entityClass) {
