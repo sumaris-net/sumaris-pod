@@ -10,12 +10,12 @@ package net.sumaris.core.dao.referential;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -122,6 +122,7 @@ public class ReferentialEntities {
         I18n.n("sumaris.persistence.table.originItemType");
         I18n.n("sumaris.persistence.table.strategy");
         I18n.n("sumaris.persistence.table.processingFrequency");
+        I18n.n("sumaris.persistence.table.programPrivilege");
         // Conversion
         I18n.n("sumaris.persistence.table.weightLengthConversion");
         I18n.n("sumaris.persistence.table.roundWeightConversion");
@@ -150,79 +151,79 @@ public class ReferentialEntities {
     }
 
     public static final List<Class<? extends IReferentialEntity>> ROOT_CLASSES = ImmutableList.of(
-                Status.class,
-                Department.class,
-                Location.class,
-                LocationLevel.class,
-                LocationClassification.class,
-                Gear.class,
-                GearClassification.class,
-                UserProfile.class,
-                ExpertiseArea.class,
-                SaleType.class,
-                VesselType.class,
-                ObjectType.class,
-                // Taxon group
-                TaxonGroupType.class,
-                TaxonGroup.class,
-                // Taxon
-                TaxonomicLevel.class,
-                TaxonName.class,
-                // Métier
-                Metier.class,
-                // Pmfm
-                Pmfm.class,
-                Parameter.class,
-                Matrix.class,
-                Fraction.class,
-                Method.class,
-                Unit.class,
-                ParameterGroup.class,
-                QualitativeValue.class,
-                // Quality
-                QualityFlag.class,
-                // Program/strategy
-                Program.class,
-                Strategy.class,
-                AcquisitionLevel.class,
-                // Transcribing
-                TranscribingSystem.class,
-                TranscribingItemType.class,
-                TranscribingItem.class,
-                // Grouping
-                GroupingClassification.class,
-                GroupingLevel.class,
-                Grouping.class,
-                // Fishing Area
-                DistanceToCoastGradient.class,
-                DepthGradient.class,
-                NearbySpecificArea.class,
-                // Product
-                ExtractionProduct.class,
-                ExtractionProductTable.class,
-                // Software
-                Software.class,
-                // Program
-                ProgramPrivilege.class,
-                // Corpus
-                CorpusType.class,
-                Corpus.class,
-                Fishery.class,
-                // Sampling scheme
-                SamplingScheme.class,
-                SamplingStrata.class,
-                DenormalizedSamplingStrata.class,
+        Status.class,
+        Department.class,
+        Location.class,
+        LocationLevel.class,
+        LocationClassification.class,
+        Gear.class,
+        GearClassification.class,
+        UserProfile.class,
+        ExpertiseArea.class,
+        SaleType.class,
+        VesselType.class,
+        ObjectType.class,
+        // Taxon group
+        TaxonGroupType.class,
+        TaxonGroup.class,
+        // Taxon
+        TaxonomicLevel.class,
+        TaxonName.class,
+        // Métier
+        Metier.class,
+        // Pmfm
+        Pmfm.class,
+        Parameter.class,
+        Matrix.class,
+        Fraction.class,
+        Method.class,
+        Unit.class,
+        ParameterGroup.class,
+        QualitativeValue.class,
+        // Quality
+        QualityFlag.class,
+        // Program/strategy
+        Program.class,
+        Strategy.class,
+        AcquisitionLevel.class,
+        // Transcribing
+        TranscribingSystem.class,
+        TranscribingItemType.class,
+        TranscribingItem.class,
+        // Grouping
+        GroupingClassification.class,
+        GroupingLevel.class,
+        Grouping.class,
+        // Fishing Area
+        DistanceToCoastGradient.class,
+        DepthGradient.class,
+        NearbySpecificArea.class,
+        // Product
+        ExtractionProduct.class,
+        ExtractionProductTable.class,
+        // Software
+        Software.class,
+        // Program
+        ProgramPrivilege.class,
+        // Corpus
+        CorpusType.class,
+        Corpus.class,
+        Fishery.class,
+        // Sampling scheme
+        SamplingScheme.class,
+        SamplingStrata.class,
+        DenormalizedSamplingStrata.class,
 
-                // Spatial
-                SpatialItemType.class,
+        // Spatial
+        SpatialItemType.class,
 
-                // Technical
-                SystemVersion.class,
-                OriginItemType.class,
-                ProcessingFrequency.class,
-                ProcessingType.class,
-                ProcessingStatus.class
-        );
+        // Technical
+        SystemVersion.class,
+        OriginItemType.class,
+        ProcessingFrequency.class,
+        ProcessingType.class,
+        ProcessingStatus.class
+    );
 
     public static final List<Class<? extends IReferentialEntity<?>>> SUB_CLASSES = ImmutableList.of(
         WeightLengthConversion.class,
@@ -231,9 +232,9 @@ public class ReferentialEntities {
     );
 
     public static final List<Class<? extends Serializable>> CLASSES = ImmutableList.<Class<? extends Serializable>>builder()
-            .addAll(ROOT_CLASSES)
-            .addAll(SUB_CLASSES)
-            .build();
+        .addAll(ROOT_CLASSES)
+        .addAll(SUB_CLASSES)
+        .build();
 
     public static final Map<String, Class<? extends Serializable>> CLASSES_BY_NAME = Maps.uniqueIndex(
         CLASSES,
@@ -269,8 +270,8 @@ public class ReferentialEntities {
             ROOT_CLASSES.stream(),
             SUB_CLASSES.stream()
         ).filter(c -> !LAST_UPDATE_DATE_CLASSES_EXCLUDES.contains(c))
-            .map(Class::getSimpleName)
-            .collect(Collectors.toList());
+        .map(Class::getSimpleName)
+        .collect(Collectors.toList());
 
     public static final Map<String, PropertyDescriptor> LEVEL_PROPERTY_BY_CLASS_NAME = createLevelPropertyNameMap(ROOT_CLASSES);
 
@@ -281,9 +282,9 @@ public class ReferentialEntities {
         classes.forEach((clazz) -> {
             PropertyDescriptor[] pds = BeanUtils.getPropertyDescriptors(clazz);
             Arrays.stream(pds)
-                    .filter(propertyDescriptor -> propertyDescriptor.getName().matches("^.*[Ll]evel([A−Z].*)?$"))
-                    .findFirst()
-                    .ifPresent(propertyDescriptor -> result.put(clazz.getSimpleName(), propertyDescriptor));
+                .filter(propertyDescriptor -> propertyDescriptor.getName().matches("^.*[Ll]evel([A−Z].*)?$"))
+                .findFirst()
+                .ifPresent(propertyDescriptor -> result.put(clazz.getSimpleName(), propertyDescriptor));
         });
 
         // Other level (not having "level" in id)
@@ -324,7 +325,7 @@ public class ReferentialEntities {
 
     public static Optional<String> getLevelPropertyName(String entityName) {
         return getLevelPropertyByClass(getEntityClass(entityName))
-                .map(PropertyDescriptor::getName);
+            .map(PropertyDescriptor::getName);
     }
 
     public static <T extends Serializable> Class<T> getEntityClass(String entityName) {
