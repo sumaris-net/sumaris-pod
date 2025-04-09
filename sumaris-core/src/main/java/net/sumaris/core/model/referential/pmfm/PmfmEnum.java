@@ -126,6 +126,14 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     CREW_SIZE(350, "CREW_SIZE"), // ID from sih_adagio
     DECLARATIVE_DOCUMENT(351, "CREW_SIZE"), // ID from sih_adagio
     INACTIVITY_REASON(352, "INACTIVITY_REASON"), // ID from sih_adagio
+    SALE_AMOUNT(353, "SALE_AMOUNT"), // ID from sih_adagio
+    CONDITIONNEMENT(354, "CONDITIONNEMENT"), // ID from sih_adagio
+    PRODUCT_AVG_PRICE(359, "PRODUCT_AVG_PRICE"), // ID from sih_adagio
+    PRODUCT_AVG_PRICE_UNIT(355, "PRODUCT_AVG_PRICE_UNIT"), // ID from sih_adagio
+    PRODUCT_AVG_PRICE_VOLUME(356, "PRODUCT_AVG_PRICE_VOLUME"), // ID from sih_adagio
+    PRODUCT_AVG_PRICE_DOZEN(357, "PRODUCT_AVG_PRICE_DOZEN"), // ID from sih_adagio
+    PRODUCT_AVG_PRICE_HUNDRED(358, "PRODUCT_AVG_PRICE_HUNDRED"), // ID from sih_adagio
+    PRODUCT_AVG_PRICE_PIECE(359, "PRODUCT_AVG_PRICE_PIECE"), // ID from sih_adagio
 
     @Deprecated
     /**

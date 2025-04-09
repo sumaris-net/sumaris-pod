@@ -91,6 +91,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
     private static final String TRIP_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_SHEET_NAME + "_%s";
     private static final String TRIP_CALENDAR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME + "_%s";
     private static final String OBSERVER_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.OBSERVER_SHEET_NAME + "_%s";
+    private static final String SELL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SELL_SHEET_NAME + "_%s";
 
     private final LocationRepository locationRepository;
     private final VesselSnapshotRepository vesselSnapshotRepository;
@@ -240,12 +241,19 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-
             if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.OBSERVER_SHEET_NAME)) {
                 t = System.currentTimeMillis();
                 rowCount = createObserverTable(context);
                 if (log.isDebugEnabled())
                     log.debug("{} created with {} in {}", context.getObserverTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
+
+            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.SELL_SHEET_NAME)) {
+                t = System.currentTimeMillis();
+                rowCount = createSellTable(context);
+                if (log.isDebugEnabled())
+                    log.debug("{} created with {} in {}", context.getSellTableName(), rowCount, TimeUtils.printDurationFrom(t));
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
@@ -503,6 +511,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setTripTableName(formatTableName(TRIP_TABLE_NAME_PATTERN, context.getId()));
         context.setTripCalendarTableName(formatTableName(TRIP_CALENDAR_TABLE_NAME_PATTERN, context.getId()));
         context.setObserverTableName(formatTableName(OBSERVER_TABLE_NAME_PATTERN, context.getId()));
+        context.setSellTableName(formatTableName(SELL_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet name
         context.setObservedLocationSheetName(ObservedLocationSpecification.OL_SHEET_NAME);
@@ -512,7 +521,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setCatchIndividualSheetName(ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME);
         context.setTripSheetName(ObservedLocationSpecification.TRIP_SHEET_NAME);
         context.setTripCalendarSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
-        context.setObserverSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
+        context.setSellSheetName(ObservedLocationSpecification.SELL_SHEET_NAME);
 
     }
 
@@ -713,6 +722,32 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug("ObserverTable: {} rows inserted", count);
+        } else {
+            context.addRawTableName(tableName);
+        }
+
+        return count;
+    }
+
+    protected long createSellTable(C context) throws PersistenceException, ParseException {
+        String tableName = context.getSellTableName();
+
+        XMLQuery xmlQuery = createSellQuery(context);
+        execute(context, xmlQuery);
+
+        // Count row
+        long count = countFrom(tableName);
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getSellSheetName());
+        }
+
+        if (count > 0) {
+            // Add result table to context
+            context.addTableName(tableName,
+                    context.getSellSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug("SellTable: {} rows inserted", count);
         } else {
             context.addRawTableName(tableName);
         }
@@ -1153,6 +1188,65 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         // Pmfms
         {
             xmlQuery.bind("surveyQualification", PmfmEnum.SURVEY_QUALIFICATION.getId());
+        }
+
+        {
+            xmlQuery.bind("programObsdeb", ProgramEnum.SIH_OBSDEB.getLabel());
+            xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
+        }
+
+        // LocationLevelQuarter filter
+        {
+            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+        }
+
+        // LocationLevelRegion filter
+        {
+            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
+        }
+
+        // Program filter
+        {
+            List<String> programLabels = context.getProgramLabels();
+            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
+            xmlQuery.setGroup("programFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        }
+
+        // Year filter
+        if (year != null) {
+            xmlQuery.setGroup("yearFilter", true);
+            xmlQuery.bind("year", year);
+        } else {
+            xmlQuery.setGroup("filterYear", false);
+        }
+
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
+        return xmlQuery;
+    }
+
+    protected XMLQuery createSellQuery(C context) throws PersistenceException {
+
+        Integer year = context.getYear();
+        context.setStartDate(Dates.getFirstDayOfYear(year));
+        context.setEndDate(Dates.getLastSecondOfYear(year));
+
+        XMLQuery xmlQuery = createXMLQuery(context, "createSellTable");
+        xmlQuery.bind("sellTableName", context.getSellTableName());
+
+        // Pmfms
+        {
+            xmlQuery.bind("saleAmountPmfm", PmfmEnum.SALE_AMOUNT.getId());
+            xmlQuery.bind("conditionnementPmfm", PmfmEnum.CONDITIONNEMENT.getId());
+            xmlQuery.bind("productAvgPriceUnitPmfm", PmfmEnum.PRODUCT_AVG_PRICE_UNIT.getId());
+            xmlQuery.bind("productAvgPriceVolumePmfm", PmfmEnum.PRODUCT_AVG_PRICE_VOLUME.getId());
+            xmlQuery.bind("productAvgPriceDozenPmfm", PmfmEnum.PRODUCT_AVG_PRICE_DOZEN.getId());
+            xmlQuery.bind("productAvgPriceHundredPmfm", PmfmEnum.PRODUCT_AVG_PRICE_HUNDRED.getId());
+            xmlQuery.bind("productAvgPricePiecePmfm", PmfmEnum.PRODUCT_AVG_PRICE_PIECE.getId());
+            xmlQuery.bind("productAvgPricePmfm", PmfmEnum.PRODUCT_AVG_PRICE.getId());
         }
 
         {
