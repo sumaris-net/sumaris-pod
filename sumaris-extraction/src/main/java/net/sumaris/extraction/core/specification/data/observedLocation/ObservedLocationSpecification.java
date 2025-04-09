@@ -39,6 +39,7 @@ public interface ObservedLocationSpecification {
     String OBSERVER_SHEET_NAME = "O";
     String SALE_SHEET_NAME = "S";
     String SALE_PB_PACKET_SHEET_NAME = "SPP";
+    String VARIABLE_COST_SHEET_NAME = "VC";
 
     String COLUMN_PROJECT = "project";
 

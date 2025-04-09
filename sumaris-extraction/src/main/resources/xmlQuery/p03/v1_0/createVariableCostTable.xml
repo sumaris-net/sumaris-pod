@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="createVariableCost">
+    <query type="create" temp="false" table="&amp;variableCostTableName">
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="ID_VUF">VUF.ID</select>
+        <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
+        <select type="text" alias="IMMATRICULATION">VRP.REGISTRATION_CODE</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="date" alias="DATE_DEBARQ">L.LANDING_DATE_TIME</select>
+        <select type="number" alias="PORTDEB_TYP">LOCDEB.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="PORTDEB_COD">LOCDEB.LABEL</select>
+        <select type="text" alias="PORTDEB_LIB">LOCDEB.NAME</select>
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+        <select type="text" alias="COUT_VAR_COD">PA.CODE</select>
+        <select type="text" alias="COUT_VAR_LIB">PA.CODE</select>
+        <select type="number" alias="COUT_VAR_VAL">(coalesce(cast(round(VUM.NUMERICAL_VALUE,2) as VARCHAR(50)), (select
+            QV.NAME from &amp;adagioSchema.QUALITATIVE_VALUE QV where QV.ID = VUM.QUALITATIVE_VALUE_FK)))
+        </select>
+
+        <select type="number" alias="COUT_VAR_TOT">
+            (round(
+            (select coalesce(sum(VUM_1.NUMERICAL_VALUE), 0)
+            FROM
+            &amp;adagioSchema.VESSEL_USE_FEATURES VUF_1,
+            &amp;adagioSchema.VESSEL_USE_MEASUREMENT VUM_1
+            WHERE 1=1
+            AND VUF_1.FISHING_TRIP_FK = FT.ID
+            AND VUM_1.VESSEL_USE_FEATURES_FK = VUF_1.ID
+            AND VUM_1.PMFM_FK in (&amp;obsdebCostList)
+            )+(
+            select sum(coalesce (FUEL_TOT.NUMERICAL_VALUE,FUEL_VOL.NUMERICAL_VALUE*FUEL_PU.NUMERICAL_VALUE,0)
+            + coalesce (OIL_TOT.NUMERICAL_VALUE,OIL_VOL.NUMERICAL_VALUE*OIL_PU.NUMERICAL_VALUE,0)
+            + coalesce (HYDR_TOT.NUMERICAL_VALUE,HYDR_VOL.NUMERICAL_VALUE*HYDR_PU.NUMERICAL_VALUE,0))
+            from &amp;adagioSchema.VESSEL_USE_FEATURES VUF_1
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT FUEL_VOL on FUEL_VOL.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            FUEL_VOL.PMFM_FK = &amp;fuelVolumePmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT FUEL_PU on FUEL_PU.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            FUEL_PU.PMFM_FK = &amp;fuelUnitPricePmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT FUEL_TOT on FUEL_TOT.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            FUEL_TOT.PMFM_FK = &amp;fuelCostPmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT OIL_VOL on OIL_VOL.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            OIL_VOL.PMFM_FK = &amp;engineOilVolumePmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT OIL_PU on OIL_PU.VESSEL_USE_FEATURES_FK = VUF_1.ID
+            and OIL_PU.PMFM_FK
+            = &amp;engineOilUnitPricePmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT OIL_TOT on OIL_TOT.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            OIL_TOT.PMFM_FK = &amp;engineOilCostPmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT HYDR_VOL on HYDR_VOL.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            HYDR_VOL.PMFM_FK = &amp;hydraulicOilVolumePmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT HYDR_PU on HYDR_PU.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            HYDR_PU.PMFM_FK = &amp;hydraulicOilUnitPricePmfm
+            left outer join &amp;adagioSchema.VESSEL_USE_MEASUREMENT HYDR_TOT on HYDR_TOT.VESSEL_USE_FEATURES_FK =
+            VUF_1.ID and
+            HYDR_TOT.PMFM_FK = &amp;hydraulicOilCostPmfm
+            where VUF_1.FISHING_TRIP_FK = FT.ID)
+            , 2))
+        </select>
+
+        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+        <from join="true">inner join &amp;adagioSchema.VESSEL_REGISTRATION_PERIOD vrp on vrp.VESSEL_FK = FT.VESSEL_FK
+            and
+            vrp.END_DATE_TIME is null
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCDEB on LOCDEB.ID = L.LANDING_LOCATION_FK</from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK</from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK</from>
+        <from join="true">inner join &amp;adagioSchema.VESSEL_USE_FEATURES VUF on VUF.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">inner join &amp;adagioSchema.VESSEL_USE_MEASUREMENT VUM on VUM.VESSEL_USE_FEATURES_FK =
+            VUF.ID
+        </from>
+        <from join="true">inner join &amp;adagioSchema.PMFM P on P.ID = VUM.PMFM_FK</from>
+        <from join="true">inner join &amp;adagioSchema.PARAMETER PA on PA.CODE = P.PARAMETER_FK</from>
+
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
+        <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
+        <where operator="AND">VUM.PMFM_FK in (&amp;vesselUseMeasurementPmfms)
+        </where>
+        <where group="programFilter" operator="AND">
+            <in field="L.PROGRAM_FK">
+                &amp;progLabels
+            </in>
+        </where>
+        <orderby direction="DESC">FT.ID</orderby>
+    </query>
+</queries>

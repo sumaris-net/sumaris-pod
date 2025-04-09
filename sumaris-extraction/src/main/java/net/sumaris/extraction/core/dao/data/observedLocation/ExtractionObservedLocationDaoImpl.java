@@ -93,6 +93,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
     private static final String OBSERVER_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.OBSERVER_SHEET_NAME + "_%s";
     private static final String SALE_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SALE_SHEET_NAME + "_%s";
     private static final String SALE_PB_PACKET_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME + "_%s";
+    private static final String VARIABLE_COST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME + "_%s";
 
     private final LocationRepository locationRepository;
     private final VesselSnapshotRepository vesselSnapshotRepository;
@@ -263,6 +264,14 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 rowCount = createSellPbPacketTable(context);
                 if (log.isDebugEnabled())
                     log.debug("{} created with {} in {}", context.getSaleTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
+
+            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME)) {
+                t = System.currentTimeMillis();
+                rowCount = createVariableCostQueryTable(context);
+                if (log.isDebugEnabled())
+                    log.debug("{} created with {} in {}", context.getVariableCostTableName(), rowCount, TimeUtils.printDurationFrom(t));
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
@@ -522,6 +531,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setObserverTableName(formatTableName(OBSERVER_TABLE_NAME_PATTERN, context.getId()));
         context.setSaleTableName(formatTableName(SALE_TABLE_NAME_PATTERN, context.getId()));
         context.setSalePbPacketTableName(formatTableName(SALE_PB_PACKET_TABLE_NAME_PATTERN, context.getId()));
+        context.setVariableCostTableName(formatTableName(VARIABLE_COST_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet name
         context.setObservedLocationSheetName(ObservedLocationSpecification.OL_SHEET_NAME);
@@ -533,6 +543,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setTripCalendarSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
         context.setSaleSheetName(ObservedLocationSpecification.SALE_SHEET_NAME);
         context.setSalePbPacketSheetName(ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME);
+        context.setSalePbPacketSheetName(ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME);
 
     }
 
@@ -782,6 +793,32 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             // Add result table to context
             context.addTableName(tableName,
                     context.getSalePbPacketSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug("SalePacketTable: {} rows inserted", count);
+        } else {
+            context.addRawTableName(tableName);
+        }
+
+        return count;
+    }
+
+    protected long createVariableCostQueryTable(C context) throws PersistenceException, ParseException {
+        String tableName = context.getVariableCostTableName();
+
+        XMLQuery xmlQuery = createVariableCostQuery(context);
+        execute(context, xmlQuery);
+
+        // Count row
+        long count = countFrom(tableName);
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getVariableCostSheetName());
+        }
+
+        if (count > 0) {
+            // Add result table to context
+            context.addTableName(tableName,
+                    context.getVariableCostSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug("SalePacketTable: {} rows inserted", count);
@@ -1383,6 +1420,111 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         return xmlQuery;
     }
 
+    protected XMLQuery createVariableCostQuery(C context) throws PersistenceException {
+
+        Integer year = context.getYear();
+        context.setStartDate(Dates.getFirstDayOfYear(year));
+        context.setEndDate(Dates.getLastSecondOfYear(year));
+
+        XMLQuery xmlQuery = createXMLQuery(context, "createVariableCostTable");
+        xmlQuery.bind("variableCostTableName", context.getVariableCostTableName());
+
+        // Pmfms
+        {
+            xmlQuery.bind("obsdebCostList", Daos.getSqlInNumbers(get0bsdebCostPmfmIds()));
+            xmlQuery.bind("vesselUseMeasurementPmfms", Daos.getSqlInNumbers(getVesselUseMeasurementPmfmIds()));
+            xmlQuery.bind("fuelVolumePmfm", PmfmEnum.FUEL_VOLUME.getId());
+            xmlQuery.bind("fuelUnitPricePmfm", PmfmEnum.FUEL_UNIT_PRICE.getId());
+            xmlQuery.bind("fuelCostPmfm", PmfmEnum.FUEL_COST.getId());
+            xmlQuery.bind("engineOilVolumePmfm", PmfmEnum.ENGINE_OIL_VOLUME.getId());
+            xmlQuery.bind("engineOilUnitPricePmfm", PmfmEnum.ENGINE_OIL_UNIT_PRICE.getId());
+            xmlQuery.bind("engineOilCostPmfm", PmfmEnum.ENGINE_OIL_COST.getId());
+            xmlQuery.bind("hydraulicOilVolumePmfm", PmfmEnum.HYDRAULIC_OIL_VOLUME.getId());
+            xmlQuery.bind("hydraulicOilUnitPricePmfm", PmfmEnum.HYDRAULIC_OIL_UNIT_PRICE.getId());
+            xmlQuery.bind("hydraulicOilCostPmfm", PmfmEnum.HYDRAULIC_OIL_UNIT_PRICE.getId());
+        }
+
+        {
+            xmlQuery.bind("programObsdeb", ProgramEnum.SIH_OBSDEB.getLabel());
+            xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
+        }
+
+        // LocationLevelQuarter filter
+        {
+            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+        }
+
+        // LocationLevelRegion filter
+        {
+            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
+        }
+
+        // Program filter
+        {
+            List<String> programLabels = context.getProgramLabels();
+            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
+            xmlQuery.setGroup("programFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        }
+
+        // Year filter
+        if (year != null) {
+            xmlQuery.setGroup("yearFilter", true);
+            xmlQuery.bind("year", year);
+        } else {
+            xmlQuery.setGroup("filterYear", false);
+        }
+
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
+        return xmlQuery;
+    }
+
+
+    protected Set<Integer> get0bsdebCostPmfmIds() {
+        return ImmutableSet.<Integer>builder()
+                .add(
+                        PmfmEnum.LANDING_COST.getId(),
+                        PmfmEnum.ICE_COST.getId(),
+                        PmfmEnum.BAIT_COST.getId(),
+                        PmfmEnum.FOOD_COST.getId(),
+                        PmfmEnum.GEAR_LOST_COST.getId(),
+                        PmfmEnum.OTHER_COST.getId()
+                )
+                .build();
+    }
+
+    protected Set<Integer> getVesselUseMeasurementPmfmIds() {
+        return ImmutableSet.<Integer>builder()
+                .add(
+                        PmfmEnum.LANDING_COST.getId(),
+                        PmfmEnum.ICE_COST.getId(),
+                        PmfmEnum.BAIT_COST.getId(),
+                        PmfmEnum.FOOD_COST.getId(),
+                        PmfmEnum.GEAR_LOST_COST.getId(),
+                        PmfmEnum.OTHER_COST.getId(),
+                        PmfmEnum.BAIT_TYPE.getId(),
+                        PmfmEnum.BAIT_WEIGHT.getId(),
+                        PmfmEnum.BAIT_PACKET_COUNT.getId(),
+                        PmfmEnum.BAIT_BAG_COUNT.getId(),
+                        PmfmEnum.BAIT_UNIT_COUNT.getId(),
+                        PmfmEnum.ICE_WEIGHT.getId(),
+                        PmfmEnum.ICE_BAG_COUNT.getId(),
+                        PmfmEnum.TOTAL_COST.getId(),
+                        PmfmEnum.FUEL_TYPE.getId(),
+                        PmfmEnum.FUEL_VOLUME.getId(),
+                        PmfmEnum.FUEL_COST.getId(),
+                        PmfmEnum.ENGINE_OIL_VOLUME.getId(),
+                        PmfmEnum.ENGINE_OIL_UNIT_PRICE.getId(),
+                        PmfmEnum.ENGINE_OIL_COST.getId(),
+                        PmfmEnum.HYDRAULIC_OIL_VOLUME.getId(),
+                        PmfmEnum.HYDRAULIC_OIL_UNIT_PRICE.getId(),
+                        PmfmEnum.HYDRAULIC_OIL_COST.getId()
+                )
+                .build();
+    }
 
 }
 

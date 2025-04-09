@@ -270,6 +270,11 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
         super.executeSalePbPacketTest(null);
     }
 
+    @Test
+    public void executeVariableCost() throws IOException {
+        super.executeVariableCostTest(null);
+    }
+
 
     @Test
     public void executeObservedLocation() throws IOException, ParseException {
