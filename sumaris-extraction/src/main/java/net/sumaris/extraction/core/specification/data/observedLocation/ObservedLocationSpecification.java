@@ -34,6 +34,7 @@ public interface ObservedLocationSpecification {
     String CATCH_LOT_SHEET_NAME = "CL";
 
     String TRIP_SHEET_NAME = "T";
+    String TRIP_CALENDAR_SHEET_NAME = "TC";
 
     String COLUMN_PROJECT = "project";
 

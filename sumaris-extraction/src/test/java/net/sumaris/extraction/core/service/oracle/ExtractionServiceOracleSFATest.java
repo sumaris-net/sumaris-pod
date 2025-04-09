@@ -250,6 +250,10 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
         super.executeObservedTripTest(null);
     }
 
+    @Test
+    public void executeObservedTripCalendar() throws IOException {
+        super.executeObservedTripCalendarTest(null);
+    }
 
     @Test
     public void executeObservedLocation() throws IOException, ParseException {

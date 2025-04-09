@@ -125,6 +125,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     BIOLOGICAL_LENGTH(349, "BIOLOGICAL_LENGTH"), // ID from sih_adagio
     CREW_SIZE(350, "CREW_SIZE"), // ID from sih_adagio
     DECLARATIVE_DOCUMENT(351, "CREW_SIZE"), // ID from sih_adagio
+    INACTIVITY_REASON(352, "INACTIVITY_REASON"), // ID from sih_adagio
 
     @Deprecated
     /**

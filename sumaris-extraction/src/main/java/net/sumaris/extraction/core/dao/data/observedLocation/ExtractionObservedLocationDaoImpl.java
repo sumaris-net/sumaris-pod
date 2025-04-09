@@ -89,6 +89,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
     private static final String CATCH_LOT_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.CATCH_LOT_SHEET_NAME + "_%s";
     private static final String CATCH_INDIVIDUAL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME + "_%s";
     private static final String TRIP_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_SHEET_NAME + "_%s";
+    private static final String TRIP_CALENDAR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME + "_%s";
 
     private final LocationRepository locationRepository;
     private final VesselSnapshotRepository vesselSnapshotRepository;
@@ -228,7 +229,15 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 t = System.currentTimeMillis();
                 rowCount = createTripTable(context);
                 if (log.isDebugEnabled())
-                    log.debug("{} created with {} in {}", context.getCatchIndividualTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                    log.debug("{} created with {} in {}", context.getTripTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
+
+            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME)) {
+                t = System.currentTimeMillis();
+                rowCount = createTripCalendarTable(context);
+                if (log.isDebugEnabled())
+                    log.debug("{} created with {} in {}", context.getTripCalendarTableName(), rowCount, TimeUtils.printDurationFrom(t));
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
@@ -484,6 +493,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setCatchLotTableName(formatTableName(CATCH_LOT_TABLE_NAME_PATTERN, context.getId()));
         context.setCatchIndividualTableName(formatTableName(CATCH_INDIVIDUAL_TABLE_NAME_PATTERN, context.getId()));
         context.setTripTableName(formatTableName(TRIP_TABLE_NAME_PATTERN, context.getId()));
+        context.setTripCalendarTableName(formatTableName(TRIP_CALENDAR_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet name
         context.setObservedLocationSheetName(ObservedLocationSpecification.OL_SHEET_NAME);
@@ -492,6 +502,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setCatchLotSheetName(ObservedLocationSpecification.CATCH_LOT_SHEET_NAME);
         context.setCatchIndividualSheetName(ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME);
         context.setTripSheetName(ObservedLocationSpecification.TRIP_SHEET_NAME);
+        context.setTripCalendarSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
 
     }
 
@@ -637,6 +648,32 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             // Add result table to context
             context.addTableName(tableName,
                     context.getTripSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug("Trip table: {} rows inserted", count);
+        } else {
+            context.addRawTableName(tableName);
+        }
+
+        return count;
+    }
+
+    protected long createTripCalendarTable(C context) throws PersistenceException, ParseException {
+        String tableName = context.getTripCalendarTableName();
+
+        XMLQuery xmlQuery = createTripCalendarQuery(context);
+        execute(context, xmlQuery);
+
+        // Count row
+        long count = countFrom(tableName);
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getTripCalendarSheetName());
+        }
+
+        if (count > 0) {
+            // Add result table to context
+            context.addTableName(tableName,
+                    context.getTripCalendarSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug("Trip table: {} rows inserted", count);
@@ -959,6 +996,67 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("declarationDocumentPmfm", PmfmEnum.DECLARATIVE_DOCUMENT.getId());
             xmlQuery.bind("seaStatePmfm", PmfmEnum.SEA_STATE.getId());
             xmlQuery.bind("surveyQualificationPmfm", PmfmEnum.SURVEY_QUALIFICATION.getId());
+        }
+
+        {
+            xmlQuery.bind("programObsdeb", ProgramEnum.SIH_OBSDEB.getLabel());
+            xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
+        }
+
+        // LocationLevelQuarter filter
+        {
+            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+        }
+
+        // LocationLevelRegion filter
+        {
+            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
+        }
+
+        // Program filter
+        {
+            List<String> programLabels = context.getProgramLabels();
+            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
+            xmlQuery.setGroup("programFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        }
+
+        // Year filter
+        if (year != null) {
+            xmlQuery.setGroup("yearFilter", true);
+            xmlQuery.bind("year", year);
+        } else {
+            xmlQuery.setGroup("filterYear", false);
+        }
+
+        // Ids
+        {
+            List<Integer> extractId = context.getIncludedIds();
+            boolean enableFilter = CollectionUtils.isNotEmpty(extractId);
+            xmlQuery.setGroup("extractsFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("extractIds", Daos.getSqlInNumbers(extractId));
+        }
+
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
+        return xmlQuery;
+    }
+
+    protected XMLQuery createTripCalendarQuery(C context) throws PersistenceException {
+
+        Integer year = context.getYear();
+        context.setStartDate(Dates.getFirstDayOfYear(year));
+        context.setEndDate(Dates.getLastSecondOfYear(year));
+
+        XMLQuery xmlQuery = createXMLQuery(context, "createTripCalendarTable");
+        xmlQuery.bind("tripCalendarTableName", context.getTripCalendarTableName());
+
+        // Pmfms
+        {
+            xmlQuery.bind("inactivityReasonPmfm", PmfmEnum.INACTIVITY_REASON.getId());
+            xmlQuery.bind("crewSizePmfm", PmfmEnum.CREW_SIZE.getId());
         }
 
         {
