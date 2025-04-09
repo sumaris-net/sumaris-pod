@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="createSalePbPacket">
+    <query type="create" temp="false" table="&amp;salePbPacketTableName">
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="ID_DEBARQUEMENT">L.ID</select>
+        <select type="number" alias="ID_VENTE">S.ID</select>
+
+        <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
+        <select type="text" alias="IMMATRICULATION">VRP.REGISTRATION_CODE</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="date" alias="DATE_DEBARQ">L.LANDING_DATE_TIME</select>
+        <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
+        <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+        <select type="number" alias="PORTVEN_TYP">LOCVEN.LOCATION_LEVEL_FK</select>
+        <select type="text" alias="PORTVEN_COD">LOCVEN.LABEL</select>
+        <select type="text" alias="PORTVEN_LIB">LOCVEN.NAME</select>
+        <select type="number" alias="VENTE_TOTAL_ESTIME">
+            (
+            SELECT SUM(SM.NUMERICAL_VALUE)
+            FROM &amp;adagioSchema.SALE_MEASUREMENT SM
+            WHERE SM.EXPECTED_SALE_FK = S.ID
+            AND SM.PMFM_FK = &amp;saleAmountPmfm
+            )
+        </select>
+        <select type="text" alias="VENTE_TYPE">ST.NAME</select>
+        <select type="text" alias="ESP_COD_FAO">TG.LABEL</select>
+        <select type="text" alias="ESP_LIB_FAO">TG.NAME</select>
+        <select type="number" alias="QUANTITE_VENTE">round(P.WEIGHT,2)</select>
+        <select type="number" alias="QUANTITE_INDIV_VENTE">P.INDIVIDUAL_COUNT</select>
+        <select type="text" alias="PACKAGING">
+            (
+            select QV.NAME
+            from &amp;adagioSchema.SORTING_MEASUREMENT_P SMP
+            inner join &amp;adagioSchema.QUALITATIVE_VALUE QV on SMP.QUALITATIVE_VALUE_FK = QV.ID
+            where SMP.PRODUCE_FK = P.ID
+            and SMP.PMFM_FK = &amp;conditionnemntPmfm
+            )
+        </select>
+        <select type="number" alias="AVG_PACKAGING_PRICE">(round(
+            coalesce(
+            (
+            select S.NUMERICAL_VALUE
+            from &amp;adagioSchema.SORTING_MEASUREMENT_P S
+            where S.PRODUCE_FK = P.ID
+            and S.PMFM_FK = &amp;productAvgPriceUnitPmfm
+            ),
+            (
+            select S.NUMERICAL_VALUE
+            from &amp;adagioSchema.SORTING_MEASUREMENT_P S
+            where S.PRODUCE_FK = P.ID
+            and S.PMFM_FK = &amp;productAvgPriceVolumePmfm
+            ),
+            (
+            select S.NUMERICAL_VALUE
+            from &amp;adagioSchema.SORTING_MEASUREMENT_P S
+            where S.PRODUCE_FK = P.ID
+            and S.PMFM_FK = &amp;productAvgPriceDozenPmfm
+            ),
+            (
+            select S.NUMERICAL_VALUE
+            from &amp;adagioSchema.SORTING_MEASUREMENT_P S
+            where S.PRODUCE_FK = P.ID
+            and S.PMFM_FK = &amp;productAvgPriceHundredPmfm
+            ),
+            (
+            select S.NUMERICAL_VALUE
+            from &amp;adagioSchema.SORTING_MEASUREMENT_P S
+            where S.PRODUCE_FK = P.ID
+            and S.PMFM_FK = &amp;productAvgPricePiecePmfm
+            )
+            )
+            ,2))
+        </select>
+        <select type="number" alias="AVG_WEIGHT_PRICE">
+            round(
+            (
+            select S.NUMERICAL_VALUE
+            from &amp;adagioSchema.SORTING_MEASUREMENT_P S
+            where S.PRODUCE_FK = P.ID
+            and S.PMFM_FK = &amp;productAvgPricePmfm
+            )
+            ,2)
+        </select>
+        <select type="number" alias="TOTAL_PRICE">round(P.COST, 2)</select>
+        <select type="number" alias="ID_PACKET">P.BATCH_FK</select>
+
+        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+        <from join="true">inner join &amp;adagioSchema.VESSEL_REGISTRATION_PERIOD vrp on vrp.VESSEL_FK = FT.VESSEL_FK
+            and vrp.END_DATE_TIME is null
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">inner join &amp;adagioSchema.EXPECTED_SALE S on S.OBSERVED_LANDING_FK = L.ID or
+            S.FISHING_TRIP_FK = FT.ID
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCVEN on LOCVEN.ID = S.SALE_LOCATION_FK</from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK</from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK =
+            L.LANDING_LOCATION_FK
+        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK</from>
+        <from join="true">inner join &amp;adagioSchema.PRODUCE P on P.EXPECTED_SALE_FK = S.ID</from>
+        <from join="true">inner join &amp;adagioSchema.TAXON_GROUP TG on P.TAXON_GROUP_FK = TG.ID</from>
+        <from join="true">inner join &amp;adagioSchema.SALE_TYPE ST on ST.ID = P.SALE_TYPE_FK</from>
+
+        <where>1=1</where>
+        <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter
+        </where>
+        <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion
+        </where>
+        <where group="programFilter" operator="AND">
+            <in field="L.PROGRAM_FK">
+                &amp;progLabels
+            </in>
+        </where>
+        <where group="yearFilter" operator="AND">
+            <in field="extract(year from L.LANDING_DATE_TIME)">&amp;year</in>
+        </where>
+    </query>
+</queries>

@@ -91,7 +91,8 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
     private static final String TRIP_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_SHEET_NAME + "_%s";
     private static final String TRIP_CALENDAR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME + "_%s";
     private static final String OBSERVER_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.OBSERVER_SHEET_NAME + "_%s";
-    private static final String SELL_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SELL_SHEET_NAME + "_%s";
+    private static final String SALE_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SALE_SHEET_NAME + "_%s";
+    private static final String SALE_PB_PACKET_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME + "_%s";
 
     private final LocationRepository locationRepository;
     private final VesselSnapshotRepository vesselSnapshotRepository;
@@ -249,11 +250,19 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.SELL_SHEET_NAME)) {
+            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.SALE_SHEET_NAME)) {
                 t = System.currentTimeMillis();
                 rowCount = createSellTable(context);
                 if (log.isDebugEnabled())
-                    log.debug("{} created with {} in {}", context.getSellTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                    log.debug("{} created with {} in {}", context.getSaleTableName(), rowCount, TimeUtils.printDurationFrom(t));
+                if (sheetName != null && context.hasSheet(sheetName)) return context;
+            }
+
+            if (filter != null && filter.getSheetNames().contains(ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME)) {
+                t = System.currentTimeMillis();
+                rowCount = createSellPbPacketTable(context);
+                if (log.isDebugEnabled())
+                    log.debug("{} created with {} in {}", context.getSaleTableName(), rowCount, TimeUtils.printDurationFrom(t));
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
@@ -511,7 +520,8 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setTripTableName(formatTableName(TRIP_TABLE_NAME_PATTERN, context.getId()));
         context.setTripCalendarTableName(formatTableName(TRIP_CALENDAR_TABLE_NAME_PATTERN, context.getId()));
         context.setObserverTableName(formatTableName(OBSERVER_TABLE_NAME_PATTERN, context.getId()));
-        context.setSellTableName(formatTableName(SELL_TABLE_NAME_PATTERN, context.getId()));
+        context.setSaleTableName(formatTableName(SALE_TABLE_NAME_PATTERN, context.getId()));
+        context.setSalePbPacketTableName(formatTableName(SALE_PB_PACKET_TABLE_NAME_PATTERN, context.getId()));
 
         // Set sheet name
         context.setObservedLocationSheetName(ObservedLocationSpecification.OL_SHEET_NAME);
@@ -521,7 +531,8 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setCatchIndividualSheetName(ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME);
         context.setTripSheetName(ObservedLocationSpecification.TRIP_SHEET_NAME);
         context.setTripCalendarSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
-        context.setSellSheetName(ObservedLocationSpecification.SELL_SHEET_NAME);
+        context.setSaleSheetName(ObservedLocationSpecification.SALE_SHEET_NAME);
+        context.setSalePbPacketSheetName(ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME);
 
     }
 
@@ -730,24 +741,50 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
     }
 
     protected long createSellTable(C context) throws PersistenceException, ParseException {
-        String tableName = context.getSellTableName();
+        String tableName = context.getSaleTableName();
 
-        XMLQuery xmlQuery = createSellQuery(context);
+        XMLQuery xmlQuery = createSaleQuery(context);
         execute(context, xmlQuery);
 
         // Count row
         long count = countFrom(tableName);
         if (count > 0) {
-            count -= cleanRow(tableName, context.getFilter(), context.getSellSheetName());
+            count -= cleanRow(tableName, context.getFilter(), context.getSaleSheetName());
         }
 
         if (count > 0) {
             // Add result table to context
             context.addTableName(tableName,
-                    context.getSellSheetName(),
+                    context.getSaleSheetName(),
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
-            log.debug("SellTable: {} rows inserted", count);
+            log.debug("SaleTable: {} rows inserted", count);
+        } else {
+            context.addRawTableName(tableName);
+        }
+
+        return count;
+    }
+
+    protected long createSellPbPacketTable(C context) throws PersistenceException, ParseException {
+        String tableName = context.getSalePbPacketTableName();
+
+        XMLQuery xmlQuery = createSalePbPacketQuery(context);
+        execute(context, xmlQuery);
+
+        // Count row
+        long count = countFrom(tableName);
+        if (count > 0) {
+            count -= cleanRow(tableName, context.getFilter(), context.getSalePbPacketSheetName());
+        }
+
+        if (count > 0) {
+            // Add result table to context
+            context.addTableName(tableName,
+                    context.getSalePbPacketSheetName(),
+                    xmlQuery.getHiddenColumnNames(),
+                    xmlQuery.hasDistinctOption());
+            log.debug("SalePacketTable: {} rows inserted", count);
         } else {
             context.addRawTableName(tableName);
         }
@@ -1228,19 +1265,78 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         return xmlQuery;
     }
 
-    protected XMLQuery createSellQuery(C context) throws PersistenceException {
+    protected XMLQuery createSaleQuery(C context) throws PersistenceException {
 
         Integer year = context.getYear();
         context.setStartDate(Dates.getFirstDayOfYear(year));
         context.setEndDate(Dates.getLastSecondOfYear(year));
 
-        XMLQuery xmlQuery = createXMLQuery(context, "createSellTable");
-        xmlQuery.bind("sellTableName", context.getSellTableName());
+        XMLQuery xmlQuery = createXMLQuery(context, "createSaleTable");
+        xmlQuery.bind("saleTableName", context.getSaleTableName());
 
         // Pmfms
         {
             xmlQuery.bind("saleAmountPmfm", PmfmEnum.SALE_AMOUNT.getId());
             xmlQuery.bind("conditionnementPmfm", PmfmEnum.CONDITIONNEMENT.getId());
+            xmlQuery.bind("productAvgPriceUnitPmfm", PmfmEnum.PRODUCT_AVG_PRICE_UNIT.getId());
+            xmlQuery.bind("productAvgPriceVolumePmfm", PmfmEnum.PRODUCT_AVG_PRICE_VOLUME.getId());
+            xmlQuery.bind("productAvgPriceDozenPmfm", PmfmEnum.PRODUCT_AVG_PRICE_DOZEN.getId());
+            xmlQuery.bind("productAvgPriceHundredPmfm", PmfmEnum.PRODUCT_AVG_PRICE_HUNDRED.getId());
+            xmlQuery.bind("productAvgPricePiecePmfm", PmfmEnum.PRODUCT_AVG_PRICE_PIECE.getId());
+            xmlQuery.bind("productAvgPricePmfm", PmfmEnum.PRODUCT_AVG_PRICE.getId());
+        }
+
+        {
+            xmlQuery.bind("programObsdeb", ProgramEnum.SIH_OBSDEB.getLabel());
+            xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
+        }
+
+        // LocationLevelQuarter filter
+        {
+            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+        }
+
+        // LocationLevelRegion filter
+        {
+            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
+        }
+
+        // Program filter
+        {
+            List<String> programLabels = context.getProgramLabels();
+            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
+            xmlQuery.setGroup("programFilter", enableFilter);
+            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
+        }
+
+        // Year filter
+        if (year != null) {
+            xmlQuery.setGroup("yearFilter", true);
+            xmlQuery.bind("year", year);
+        } else {
+            xmlQuery.setGroup("filterYear", false);
+        }
+
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+
+        return xmlQuery;
+    }
+
+    protected XMLQuery createSalePbPacketQuery(C context) throws PersistenceException {
+
+        Integer year = context.getYear();
+        context.setStartDate(Dates.getFirstDayOfYear(year));
+        context.setEndDate(Dates.getLastSecondOfYear(year));
+
+        XMLQuery xmlQuery = createXMLQuery(context, "createSalePbPacketTable");
+        xmlQuery.bind("salePbPacketTableName", context.getSalePbPacketTableName());
+
+        // Pmfms
+        {
+            xmlQuery.bind("saleAmountPmfm", PmfmEnum.SALE_AMOUNT.getId());
+            xmlQuery.bind("conditionnemntPmfm", PmfmEnum.CONDITIONNEMENT.getId());
             xmlQuery.bind("productAvgPriceUnitPmfm", PmfmEnum.PRODUCT_AVG_PRICE_UNIT.getId());
             xmlQuery.bind("productAvgPriceVolumePmfm", PmfmEnum.PRODUCT_AVG_PRICE_VOLUME.getId());
             xmlQuery.bind("productAvgPriceDozenPmfm", PmfmEnum.PRODUCT_AVG_PRICE_DOZEN.getId());

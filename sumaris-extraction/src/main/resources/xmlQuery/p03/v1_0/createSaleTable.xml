@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <queries name="createSell">
-    <query type="create" temp="false" table="&amp;sellTableName">
+    <query type="create" temp="false" table="&amp;saleTableName">
         <select type="number" alias="ID_MAREE">FT.ID</select>
         <select type="number" alias="ID_DEBARQUEMENT">L.ID</select>
         <select type="number" alias="ID_VENTE">S.ID</select>
