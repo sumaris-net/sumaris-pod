@@ -230,6 +230,12 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     }
 
     @Test
+    public void executeP03Full() throws IOException {
+        super.executeP03FullTest(null);
+    }
+
+
+    @Test
     public void executeCatchIndividual() throws IOException {
         super.executeCatchIndividualTest(null);
     }

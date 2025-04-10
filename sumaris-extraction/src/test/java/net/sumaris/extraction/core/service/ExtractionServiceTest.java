@@ -62,6 +62,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Benoit LAVENIER <benoit.lavenier@e-is.pro>
@@ -697,6 +698,61 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
         return 0;
     }
+
+    public void executeP03FullTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+        IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
+
+        if (CollectionUtils.isEmpty(criteria)) {
+            criteria = new ArrayList<>();
+            criteria.add(
+                    // Program
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_PROJECT)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value(ProgramEnum.SIH_OBSDEB.getLabel())
+                            .build());
+            criteria.add(
+                    // Year
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_YEAR)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value("2023")
+                            .build()
+            );
+        }
+        Set<String> sheetNames = Set.of(
+                ObservedLocationSpecification.OL_SHEET_NAME,
+                ObservedLocationSpecification.VESSEL_SHEET_NAME,
+                ObservedLocationSpecification.CATCH_SHEET_NAME,
+                ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME,
+                ObservedLocationSpecification.CATCH_LOT_SHEET_NAME,
+                ObservedLocationSpecification.TRIP_SHEET_NAME,
+                ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME,
+                ObservedLocationSpecification.OBSERVER_SHEET_NAME,
+                ObservedLocationSpecification.SALE_SHEET_NAME,
+                ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME,
+                ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME,
+                ObservedLocationSpecification.OPERATION_SHEET_NAME);
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .sheetNames(sheetNames)
+                .criteria(criteria)
+                .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, null);
+            Assert.assertTrue(outputFile.exists());
+
+            File root = unpack(outputFile, type);
+
+            // AM.csv
+            File monitoringFile = new File(root, ObservedLocationSpecification.OL_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+
+        } catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
+    }
+
 
     public void executeObservedLocationTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
         IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;

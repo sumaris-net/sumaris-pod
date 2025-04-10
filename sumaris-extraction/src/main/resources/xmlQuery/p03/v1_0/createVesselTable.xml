@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <queries name="createVesselTable">
-    <query type="create" temp="false" table="&amp;createVesselTableName">
+    <query type="create" temp="false" table="&amp;vesselTableName">
         <select type="text" alias="NAVIRE">DISTINCT vrp.REGISTRATION_CODE</select>
         <select type="text" alias="VESSEL_TYPE">VT.NAME</select>
 

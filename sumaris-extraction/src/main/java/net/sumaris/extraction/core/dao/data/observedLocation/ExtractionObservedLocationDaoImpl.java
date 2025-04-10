@@ -555,6 +555,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setSalePbPacketSheetName(ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME);
         context.setVariableCostSheetName(ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME);
         context.setOperationSheetName(ObservedLocationSpecification.OPERATION_SHEET_NAME);
+        context.setObserverSheetName(ObservedLocationSpecification.OBSERVER_SHEET_NAME);
     }
 
     protected long createObservedLocationTable(C context) throws PersistenceException, ParseException {
