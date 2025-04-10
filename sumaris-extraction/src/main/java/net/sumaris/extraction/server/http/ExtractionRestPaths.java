@@ -41,14 +41,12 @@ public interface ExtractionRestPaths {
     // Get documentation paths
     String DOC_BASE_PATH = BASE_PATH + "/doc";
     String DOC_PATH = DOC_BASE_PATH + "/{label:[a-zA-Z0-9-_]+}";
-    String DOC_WITH_VERSION_PATH = DOC_PATH + "/{version}";
-
+    String DOC_WITH_VERSION_PATH = DOC_PATH + "/{version:[0-9.]+}";
 
     // Product paths
     String PRODUCT_BASE_PATH = ExtractionRestPaths.BASE_PATH + "/product";
     String GEOJSON_LABEL_PATH = PRODUCT_BASE_PATH + "/{label:[a-zA-Z0-9-_]+}";
     String GEOJSON_LABEL_WITH_SPACE_PATH = GEOJSON_LABEL_PATH + "/{space}";
-
 
 
 }
