@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<queries name="createTripCalendar">
+<queries name="createTripCalendarTable">
     <query type="create" temp="false" table="&amp;tripCalendarTableName">
-        <select type="number" alias="ID_MAREE">cast(NULL as int)</select>
-        <select type="number" alias="ID_CALENDRIER">AC.ID</select>
-        <select type="number" alias="ID_OBSERVATION">AC.OBSERVED_LOCATION_FK</select>
 
-        <select type="text" alias="ANNEE">to_char(AC.START_DATE, 'YYYY')</select>
-        <select type="text" alias="TRIMESTRE">to_char(AC.START_DATE, 'Q')</select>
-        <select type="text" alias="MOIS">to_char(AC.START_DATE, 'MM')</select>
+        <select type="number" alias="ID_MAREE">FT.ID</select>
+        <select type="number" alias="ID_CALENDRIER">null</select>
+        <select type="number" alias="ID_OBSERVATION">L.OBSERVED_LOCATION_FK</select>
 
-        <select type="number" alias="PROGRAMME">AC.PROGRAM_FK</select>
-        <select type="number" alias="NAVIRE">AC.VESSEL_FK</select>
-        <select type="date" alias="DATE_DEPART">AC.START_DATE</select>
-        <select type="date" alias="DATE_RETOUR">AC.END_DATE</select>
+        <select type="text" alias="ANNEE">to_char(FT.DEPARTURE_DATE_TIME, 'YYYY')</select>
+        <select type="text" alias="TRIMESTRE">to_char(FT.DEPARTURE_DATE_TIME, 'Q')</select>
+        <select type="text" alias="MOIS">to_char(FT.DEPARTURE_DATE_TIME, 'MM')</select>
 
-        <select type="number" alias="NB_MAREE">(case when FA.ID is null then 0 else 1 end)</select>
+        <select type="number" alias="PROGRAMME">FT.PROGRAM_FK</select>
+        <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
+        <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
+        <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
+        <select type="number" alias="NB_MAREE">case when FA.ID is null then 0 else 1 end as</select>
 
         <select type="text" alias="ENQ_ORIG_COD">
             (
-            case AC.PROGRAM_FK
+            case FT.PROGRAM_FK
             when '&amp;programObsdeb' then 'O'
             when '&amp;programOprdeb' then 'E'
             else 'Z'
@@ -27,7 +27,7 @@
         </select>
         <select type="text" alias="ENQ_ORIG_LIB">
             (
-            case AC.PROGRAM_FK
+            case FT.PROGRAM_FK
             when '&amp;programObsdeb' then 'Observation'
             when '&amp;programOprdeb' then 'Enquête de terrain'
             else 'Ancien programme SFA'
@@ -37,17 +37,13 @@
         <select type="number" alias="PORTEX_TYP">LOCEX.LOCATION_LEVEL_FK</select>
         <select type="text" alias="PORTEX_COD">LOCEX.LABEL</select>
         <select type="text" alias="PORTEX_LIB">LOCEX.NAME</select>
-
         <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
         <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
-        <select type="text" alias="ATELIER_COD">LOCR.LABEL</select>
-        <select type="text" alias="ATELIER_LIB">LOCR.NAME</select>
+        <select type="text" alias="ATELIER_COD">LOCEX.LABEL</select>
+        <select type="text" alias="ATELIER_LIB">LOCEX.NAME</select>
 
-        <select type="text" alias="ACTIF">
-            (case when VUF.IS_ACTIVE = 1 then 'true' else 'false' end)
-        </select>
-
-        <select type="text" alias="INACTIVITE_RAISON">
+        <select type="text" alias="ACTIF">case when FA.ID is null then 'false' else 'true' end</select>
+        <select type="text" alias="INAC_RAISON">
             (
             SELECT QV.NAME || '-' || QV.DESCRIPTION
             FROM &amp;adagioSchema.vessel_use_measurement VM_INACTIVITE, &amp;adagioSchema.QUALITATIVE_VALUE QV
@@ -57,9 +53,11 @@
             AND QV.ID = VM_INACTIVITE.QUALITATIVE_VALUE_FK
             )
         </select>
-
-        <select type="text" alias="DUREE_MAREE_JOUR">null</select>
-        <select type="text" alias="DUREE_MAREE_HEURE">null</select>
+        <select type="number" alias="DUREE_MAREE_JOUR">round((FT.RETURN_DATE_TIME - FT.DEPARTURE_DATE_TIME), 3)
+        </select>
+        <select type="number" alias="DUREE_MAREE_HEURE">round((FT.RETURN_DATE_TIME - FT.DEPARTURE_DATE_TIME)*24,
+            3)
+        </select>
 
         <select type="number" alias="NB_HOMME">
             (
@@ -70,14 +68,13 @@
             AND VM_NBH.PMFM_FK = &amp;crewSizePmfm
             )
         </select>
-
         <select type="text" alias="METIER_COD_M">M.LABEL</select>
         <select type="text" alias="METIER_LIB_M">M.NAME</select>
         <select type="text" alias="SECTEUR_COD_M">LOCFA.LABEL</select>
         <select type="text" alias="SECTEUR_LIB_M">LOCFA.NAME</select>
         <select type="number" alias="GRAD_DIST_ID_M">DTCG.ID</select>
         <select type="text" alias="GRAD_DIST_LIB_M">DTCG.NAME</select>
-        <select type="number" alias="GRAD_DIST_ORD_M">DTCG.RANK_ORDER</select>
+        <select type="text" alias="GRAD_DIST_ORD_M">DTCG.RANK_ORDER</select>
         <select type="number" alias="GRAD_PROF_ID_M">DG.ID</select>
         <select type="text" alias="GRAD_PROF_LIB_M">DG.NAME</select>
         <select type="number" alias="GRAD_PROF_ORD_M">DG.RANK_ORDER</select>
@@ -86,18 +83,17 @@
         <select type="text" alias="GRAD_PROX_DESC_M">NSA.DESCRIPTION</select>
         <select type="text" alias="SAISISSEUR_COD">P.EMPLOYEE_NUMBER</select>
         <select type="text" alias="SAISISSEUR_LIB">P.LASTNAME || ' ' || P.FIRSTNAME</select>
-        <select type="date" alias="DATE_SAISIE">AC.CREATION_DATE</select>
+        <select type="date" alias="DATE_SAISIE">FT.CREATION_DATE</select>
 
-        <from alias="AC">&amp;adagioSchema.DAILY_ACTIVITY_CALENDAR</from>
-        <from join="true">inner join &amp;adagioSchema.VESSEL_USE_FEATURES VUF on VUF.DAILY_ACTIVITY_CALENDAR_FK = AC.ID
+        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">inner join &amp;adagioSchema.OPERATION O on O.FISHING_TRIP_FK = FT.ID</from>
+        <from join="true">inner join &amp;adagioSchema.VESSEL_USE_FEATURES VUF on VUF.FISHING_TRIP_FK = FT.ID
         </from>
-        <from join="true">left outer join &amp;adagioSchema.GEAR_USE_FEATURES GUF on GUF.DAILY_ACTIVITY_CALENDAR_FK =
-            AC.ID
+        <from join="true">inner join &amp;adagioSchema.GEAR_USE_FEATURES GUF on GUF.OPERATION_FK = O.ID</from>
+        <from join="true">inner join &amp;adagioSchema.FISHING_AREA FA on FA.GEAR_USE_FEATURES_FK = GUF.ID
         </from>
-        <from join="true">left outer join &amp;adagioSchema.FISHING_AREA FA on FA.VESSEL_USE_FEATURES_FK = VUF.ID
-        </from>
-        <from join="true">left outer join &amp;adagioSchema.LOCATION LOCFA on LOCFA.ID = FA.LOCATION_FK
-        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCFA on LOCFA.ID = FA.LOCATION_FK</from>
         <from join="true">left outer join &amp;adagioSchema.DISTANCE_TO_COAST_GRADIENT DTCG on DTCG.ID =
             FA.DISTANCE_TO_COAST_GRADIENT_FK
         </from>
@@ -106,160 +102,30 @@
         <from join="true">left outer join &amp;adagioSchema.NEARBY_SPECIFIC_AREA NSA on NSA.ID =
             FA.NEARBY_SPECIFIC_AREA_FK
         </from>
-        <from join="true">inner join &amp;adagioSchema.OBSERVED_LOCATION OL on OL.ID = AC.OBSERVED_LOCATION_FK
-        </from>
-        <from join="true">inner join &amp;adagioSchema.LOCATION LOCEX on LOCEX.ID = OL.LOCATION_FK
-        </from>
+        <from join="true">inner join &amp;adagioSchema.LOCATION LOCEX on LOCEX.ID = FT.RETURN_LOCATION_FK</from>
         <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
-            OL.LOCATION_FK
+            FT.RETURN_LOCATION_FK
         </from>
         <from join="true">inner join &amp;adagioSchema.LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK
         </from>
         <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK =
-            OL.LOCATION_FK
+            FT.RETURN_LOCATION_FK
         </from>
         <from join="true">inner join &amp;adagioSchema.LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK
         </from>
-        <from join="true">left outer join &amp;adagioSchema.METIER M on M.ID = GUF.METIER_FK
-        </from>
-        <from join="true">left outer join &amp;adagioSchema.PERSON P on P.ID = AC.RECORDER_PERSON_FK
-        </from>
+        <from join="true">left outer join &amp;adagioSchema.METIER M on M.ID = GUF.METIER_FK</from>
+        <from join="true">left outer join &amp;adagioSchema.PERSON P on P.ID = FT.RECORDER_PERSON_FK</from>
         <where>1=1</where>
         <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
         <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
-        <where operator="AND">
-            <in field="AC.PROGRAM_FK">
+        <where operator="AND">O.IS_MAIN_OPERATION = 1</where>
+        <where group="programFilter" operator="AND">
+            <in field="L.PROGRAM_FK">
                 (&amp;progLabels)
             </in>
         </where>
-        <union>
-            <subquery>
-                <select type="number" alias="ID_MAREE">FT.ID</select>
-                <select type="number" alias="ID_CALENDRIER">null</select>
-                <select type="number" alias="ID_OBSERVATION">L.OBSERVED_LOCATION_FK</select>
-
-                <select type="text" alias="ANNEE">to_char(FT.DEPARTURE_DATE_TIME, 'YYYY')</select>
-                <select type="text" alias="TRIMESTRE">to_char(FT.DEPARTURE_DATE_TIME, 'Q')</select>
-                <select type="text" alias="MOIS">to_char(FT.DEPARTURE_DATE_TIME, 'MM')</select>
-
-                <select type="number" alias="PROGRAMME">FT.PROGRAM_FK</select>
-                <select type="number" alias="NAVIRE">FT.VESSEL_FK</select>
-                <select type="date" alias="DATE_DEPART">FT.DEPARTURE_DATE_TIME</select>
-                <select type="date" alias="DATE_RETOUR">FT.RETURN_DATE_TIME</select>
-                <select type="number" alias="NB_MAREE">case when FA.ID is null then 0 else 1 end as</select>
-
-                <select type="text" alias="ENQ_ORIG_COD">
-                    (
-                    case FT.PROGRAM_FK
-                    when '&amp;programObsdeb' then 'O'
-                    when '&amp;programOprdeb' then 'E'
-                    else 'Z'
-                    end
-                    )
-                </select>
-                <select type="text" alias="ENQ_ORIG_LIB">
-                    (
-                    case FT.PROGRAM_FK
-                    when '&amp;programObsdeb' then 'Observation'
-                    when '&amp;programOprdeb' then 'Enquête de terrain'
-                    else 'Ancien programme SFA'
-                    end
-                    )
-                </select>
-                <select type="number" alias="PORTEX_TYP">LOCEX.LOCATION_LEVEL_FK</select>
-                <select type="text" alias="PORTEX_COD">LOCEX.LABEL</select>
-                <select type="text" alias="PORTEX_LIB">LOCEX.NAME</select>
-                <select type="text" alias="QUARTIER_COD">LOCQ.LABEL</select>
-                <select type="text" alias="QUARTIER_LIB">LOCQ.NAME</select>
-                <select type="text" alias="ATELIER_COD">LOCEX.LABEL</select>
-                <select type="text" alias="ATELIER_LIB">LOCEX.NAME</select>
-
-                <select type="text" alias="ACTIF">case when FA.ID is null then 'false' else 'true' end</select>
-                <select type="text" alias="INAC_RAISON">
-                    (
-                    SELECT QV.NAME || '-' || QV.DESCRIPTION
-                    FROM &amp;adagioSchema.vessel_use_measurement VM_INACTIVITE, &amp;adagioSchema.QUALITATIVE_VALUE QV
-                    WHERE 1=1
-                    AND VM_INACTIVITE.VESSEL_USE_FEATURES_FK = VUF.ID
-                    AND VM_INACTIVITE.PMFM_FK = &amp;inactivityReasonPmfm
-                    AND QV.ID = VM_INACTIVITE.QUALITATIVE_VALUE_FK
-                    )
-                </select>
-                <select type="number" alias="DUREE_MAREE_JOUR">round((FT.RETURN_DATE_TIME - FT.DEPARTURE_DATE_TIME), 3)
-                </select>
-                <select type="number" alias="DUREE_MAREE_HEURE">round((FT.RETURN_DATE_TIME - FT.DEPARTURE_DATE_TIME)*24,
-                    3)
-                </select>
-
-                <select type="number" alias="NB_HOMME">
-                    (
-                    SELECT VM_NBH.NUMERICAL_VALUE NBH
-                    FROM &amp;adagioSchema.vessel_use_measurement VM_NBH
-                    WHERE 1=1
-                    AND VM_NBH.VESSEL_USE_FEATURES_FK = VUF.ID
-                    AND VM_NBH.PMFM_FK = &amp;crewSizePmfm
-                    )
-                </select>
-                <select type="text" alias="METIER_COD_M">M.LABEL</select>
-                <select type="text" alias="METIER_LIB_M">M.NAME</select>
-                <select type="text" alias="SECTEUR_COD_M">LOCFA.LABEL</select>
-                <select type="text" alias="SECTEUR_LIB_M">LOCFA.NAME</select>
-                <select type="number" alias="GRAD_DIST_ID_M">DTCG.ID</select>
-                <select type="text" alias="GRAD_DIST_LIB_M">DTCG.NAME</select>
-                <select type="text" alias="GRAD_DIST_ORD_M">DTCG.RANK_ORDER</select>
-                <select type="number" alias="GRAD_PROF_ID_M">DG.ID</select>
-                <select type="text" alias="GRAD_PROF_LIB_M">DG.NAME</select>
-                <select type="number" alias="GRAD_PROF_ORD_M">DG.RANK_ORDER</select>
-                <select type="number" alias="GRAD_PROX_ID_M">NSA.ID</select>
-                <select type="text" alias="GRAD_PROX_LIB_M">NSA.NAME</select>
-                <select type="text" alias="GRAD_PROX_DESC_M">NSA.DESCRIPTION</select>
-                <select type="text" alias="SAISISSEUR_COD">P.EMPLOYEE_NUMBER</select>
-                <select type="text" alias="SAISISSEUR_LIB">P.LASTNAME || ' ' || P.FIRSTNAME</select>
-                <select type="date" alias="DATE_SAISIE">FT.CREATION_DATE</select>
-
-                <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
-                <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
-                <from join="true">inner join &amp;adagioSchema.OPERATION O on O.FISHING_TRIP_FK = FT.ID</from>
-                <from join="true">inner join &amp;adagioSchema.VESSEL_USE_FEATURES VUF on VUF.FISHING_TRIP_FK = FT.ID
-                </from>
-                <from join="true">inner join &amp;adagioSchema.GEAR_USE_FEATURES GUF on GUF.OPERATION_FK = O.ID</from>
-                <from join="true">inner join &amp;adagioSchema.FISHING_AREA FA on FA.GEAR_USE_FEATURES_FK = GUF.ID
-                </from>
-                <from join="true">inner join &amp;adagioSchema.LOCATION LOCFA on LOCFA.ID = FA.LOCATION_FK</from>
-                <from join="true">left outer join &amp;adagioSchema.DISTANCE_TO_COAST_GRADIENT DTCG on DTCG.ID =
-                    FA.DISTANCE_TO_COAST_GRADIENT_FK
-                </from>
-                <from join="true">left outer join &amp;adagioSchema.DEPTH_GRADIENT DG on DG.ID = FA.DEPTH_GRADIENT_FK
-                </from>
-                <from join="true">left outer join &amp;adagioSchema.NEARBY_SPECIFIC_AREA NSA on NSA.ID =
-                    FA.NEARBY_SPECIFIC_AREA_FK
-                </from>
-                <from join="true">inner join &amp;adagioSchema.LOCATION LOCEX on LOCEX.ID = FT.RETURN_LOCATION_FK</from>
-                <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
-                    FT.RETURN_LOCATION_FK
-                </from>
-                <from join="true">inner join &amp;adagioSchema.LOCATION LOCQ on LOCQ.ID = LOCHQ.PARENT_LOCATION_FK
-                </from>
-                <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHR on LOCHR.CHILD_LOCATION_FK =
-                    FT.RETURN_LOCATION_FK
-                </from>
-                <from join="true">inner join &amp;adagioSchema.LOCATION LOCR on LOCR.ID = LOCHR.PARENT_LOCATION_FK
-                </from>
-                <from join="true">left outer join &amp;adagioSchema.METIER M on M.ID = GUF.METIER_FK</from>
-                <from join="true">left outer join &amp;adagioSchema.PERSON P on P.ID = FT.RECORDER_PERSON_FK</from>
-                <where>1=1</where>
-                <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
-                <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
-                <where operator="AND">O.IS_MAIN_OPERATION = 1</where>
-                <where group="programFilter" operator="AND">
-                    <in field="L.PROGRAM_FK">
-                        (&amp;progLabels)
-                    </in>
-                </where>
-                <where group="yearFilter" operator="AND">
-                    <in field="extract(year from L.LANDING_DATE_TIME)">(&amp;year)</in>
-                </where>
-            </subquery>
-        </union>
+        <where group="yearFilter" operator="AND">
+            <in field="extract(year from L.LANDING_DATE_TIME)">(&amp;year)</in>
+        </where>
     </query>
 </queries>
