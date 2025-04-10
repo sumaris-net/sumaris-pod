@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<queries name="createVesselTable">
+    <query type="create" temp="false" table="&amp;createVesselTableName">
+        <select type="text" alias="NAVIRE">DISTINCT vrp.REGISTRATION_CODE</select>
+        <select type="text" alias="VESSEL_TYPE">VT.NAME</select>
+
+        <from alias="V">&amp;adagioSchema.VESSEL</from>
+        <from join="true">INNER JOIN &amp;adagioSchema.VESSEL_REGISTRATION_PERIOD vrp ON vrp.VESSEL_FK = v.CODE</from>
+        <from join="true">INNER JOIN &amp;adagioSchema.VESSEL_TYPE vt ON vt.ID = v.VESSEL_TYPE_FK</from>
+        <from join="true">LEFT OUTER JOIN &amp;adagioSchema.LANDING l ON l.VESSEL_FK = v.code</from>
+
+        <where>1=1</where>
+        <where operator="AND">vrp.REGISTRATION_CODE LIKE 'SZ%'</where>
+        <where operator="AND">vrp.REGISTRATION_CODE NOT LIKE 'SZ %'</where>
+        <where operator="AND">vrp.REGISTRATION_CODE NOT LIKE 'SZ0%'</where>
+        <where operator="AND">vt.ID != 3</where>
+        <where group="yearFilter" operator="AND">
+            <in field="extract(year from L.LANDING_DATE_TIME)">&amp;year</in>
+        </where>
+        <orderby>vrp.REGISTRATION_CODE</orderby>
+    </query>
+</queries>

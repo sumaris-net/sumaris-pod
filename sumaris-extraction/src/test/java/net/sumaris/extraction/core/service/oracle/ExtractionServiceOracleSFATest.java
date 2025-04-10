@@ -231,28 +231,28 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     }
 
     @Test
-    public void executeObservedCatchIndividual() throws IOException, ParseException {
-        super.executeObservedCatchIndividualTest(null);
+    public void executeCatchIndividual() throws IOException, ParseException {
+        super.executeCatchIndividualTest(null);
     }
 
     @Test
-    public void executeObservedCatchLot() throws IOException, ParseException {
-        super.executeObservedCatchLotTest(null);
+    public void executeCatchLot() throws IOException, ParseException {
+        super.executeCatchLotTest(null);
     }
 
     @Test
-    public void executeObservedCatch() throws IOException, ParseException {
-        super.executeObservedCatchTest(null);
+    public void executeCatch() throws IOException, ParseException {
+        super.executeCatchTest(null);
     }
 
     @Test
-    public void executeObservedTrip() throws IOException {
-        super.executeObservedTripTest(null);
+    public void executeTrip() throws IOException {
+        super.executeTripTest(null);
     }
 
     @Test
-    public void executeObservedTripCalendar() throws IOException {
-        super.executeObservedTripCalendarTest(null);
+    public void executeTripCalendar() throws IOException {
+        super.executeTripCalendarTest(null);
     }
 
     @Test

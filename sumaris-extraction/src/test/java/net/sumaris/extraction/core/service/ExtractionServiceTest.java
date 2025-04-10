@@ -698,7 +698,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         return 0;
     }
 
-    public void executeObservedLocationTest(List<ExtractionFilterCriterionVO> criteria) throws IOException, ParseException {
+    public void executeObservedLocationTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
         IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
 
         if (CollectionUtils.isEmpty(criteria)) {
@@ -740,8 +740,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
     }
 
-
-    public void executeObservedCatchIndividualTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+    public void executeCatchIndividualTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
         IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
         if (CollectionUtils.isEmpty(criteria)) {
             criteria = new ArrayList<>();
@@ -783,7 +782,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     }
 
-    public void executeObservedCatchLotTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+    public void executeCatchLotTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
         IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
         if (CollectionUtils.isEmpty(criteria)) {
             criteria = new ArrayList<>();
@@ -825,7 +824,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     }
 
-    public void executeObservedCatchTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+    public void executeCatchTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
         IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
         if (CollectionUtils.isEmpty(criteria)) {
             criteria = new ArrayList<>();
@@ -867,7 +866,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     }
 
-    public void executeObservedTripTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+    public void executeTripTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
         IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
         if (CollectionUtils.isEmpty(criteria)) {
             criteria = new ArrayList<>();
@@ -909,7 +908,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     }
 
-    public void executeObservedTripCalendarTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+    public void executeTripCalendarTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
         IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
         if (CollectionUtils.isEmpty(criteria)) {
             criteria = new ArrayList<>();
@@ -1160,7 +1159,6 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         }
 
     }
-
 
     public void executeAndReadAggSurvivalTest() {
 
