@@ -40,6 +40,7 @@ public interface ObservedLocationSpecification {
     String SALE_SHEET_NAME = "S";
     String SALE_PB_PACKET_SHEET_NAME = "SPP";
     String VARIABLE_COST_SHEET_NAME = "VC";
+    String OPERATION_SHEET_NAME = "OP";
 
     String COLUMN_PROJECT = "project";
 

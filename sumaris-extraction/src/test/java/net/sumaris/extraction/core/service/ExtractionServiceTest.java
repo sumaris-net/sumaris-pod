@@ -1119,6 +1119,48 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     }
 
+    public void executeOperationTest(List<ExtractionFilterCriterionVO> criteria) throws IOException {
+        IExtractionType type = LiveExtractionTypeEnum.OBSERVED_LOCATION;
+        if (CollectionUtils.isEmpty(criteria)) {
+            criteria = new ArrayList<>();
+            criteria.add(
+                    // Program
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_PROJECT)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value(ProgramEnum.SIH_OBSDEB.getLabel())
+                            .build());
+            criteria.add(
+                    // Year
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_YEAR)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value("2023")
+                            .build()
+            );
+        }
+
+        ExtractionFilterVO filter = ExtractionFilterVO.builder()
+                .sheetNames(Collections.singleton(ObservedLocationSpecification.OPERATION_SHEET_NAME))
+                .criteria(criteria)
+                .build();
+
+        try {
+            File outputFile = service.executeAndDump(type, filter, null);
+            Assert.assertTrue(outputFile.exists());
+
+            File root = unpack(outputFile, type);
+
+            // T.csv
+            File monitoringFile = new File(root, ObservedLocationSpecification.OPERATION_SHEET_NAME + ".csv");
+            Assert.assertTrue(countLineInCsvFile(monitoringFile) > 1);
+
+        } catch (DataNotFoundException e) {
+            Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
+        }
+
+    }
+
 
     public void executeAndReadAggSurvivalTest() {
 

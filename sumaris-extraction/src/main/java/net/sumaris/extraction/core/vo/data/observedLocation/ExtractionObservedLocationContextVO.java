@@ -51,6 +51,7 @@ public class ExtractionObservedLocationContextVO extends ExtractionContextVO {
     String saleTableName; // S
     String salePbPacketTableName; // SPP
     String variableCostTableName; // VC
+    String operationTableName; // OP
 
     // Sheet names
     String observedLocationSheetName; // OL
@@ -64,6 +65,7 @@ public class ExtractionObservedLocationContextVO extends ExtractionContextVO {
     String saleSheetName; // S
     String salePbPacketSheetName; // SPP
     String variableCostSheetName; // VC
+    String operationSheetName; // OP
 
 
     ExtractionObservedLocationFilterVO observedLocationFilter;
