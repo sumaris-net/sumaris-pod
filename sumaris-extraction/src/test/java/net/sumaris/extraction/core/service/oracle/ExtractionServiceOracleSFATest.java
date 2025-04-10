@@ -43,7 +43,6 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 
 /**
  * @author peck7 on 17/12/2018.
@@ -231,17 +230,17 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     }
 
     @Test
-    public void executeCatchIndividual() throws IOException, ParseException {
+    public void executeCatchIndividual() throws IOException {
         super.executeCatchIndividualTest(null);
     }
 
     @Test
-    public void executeCatchLot() throws IOException, ParseException {
+    public void executeCatchLot() throws IOException {
         super.executeCatchLotTest(null);
     }
 
     @Test
-    public void executeCatch() throws IOException, ParseException {
+    public void executeCatch() throws IOException {
         super.executeCatchTest(null);
     }
 
@@ -281,7 +280,7 @@ public class ExtractionServiceOracleSFATest extends ExtractionServiceTest {
     }
 
     @Test
-    public void executeObservedLocation() throws IOException, ParseException {
+    public void executeObservedLocation() throws IOException {
         super.executeObservedLocationTest(null);
     }
 

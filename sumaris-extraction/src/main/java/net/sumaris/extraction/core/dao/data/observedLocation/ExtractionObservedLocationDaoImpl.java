@@ -940,11 +940,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             if (enableFilter) xmlQuery.bind("recorderPersonIds", Daos.getSqlInNumbers(recorderPersonIds));
         }
 
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createVesselQuery(C context) throws PersistenceException {
@@ -982,11 +978,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             if (enableFilter) xmlQuery.bind("includedIds", Daos.getSqlInNumbers(includedIds));
         }
 
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createCatchQuery(C context) throws PersistenceException {
@@ -999,50 +991,19 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         xmlQuery.bind("catchTableName", context.getCatchTableName());
 
         // Pmfms
-        xmlQuery.bind("gearPhysicalHookNumber", PmfmEnum.GEAR_PHYSICAL_HOOK_NUMBER.getId());
-        xmlQuery.bind("gearPhysicalGearNumber", PmfmEnum.GEAR_PHYSICAL_GEAR_NUMBER.getId());
-        xmlQuery.bind("conditionnementPmfm", PmfmEnum.AVERAGE_PIECES_PRICE.getId());
-        xmlQuery.bind("locationFilter", LocationLevelEnum.COUNTRY.getId());
-
-        // LocationLevelQuarter filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery.bind("gearPhysicalHookNumber", PmfmEnum.GEAR_PHYSICAL_HOOK_NUMBER.getId());
+            xmlQuery.bind("gearPhysicalGearNumber", PmfmEnum.GEAR_PHYSICAL_GEAR_NUMBER.getId());
+            xmlQuery.bind("conditionnementPmfm", PmfmEnum.AVERAGE_PIECES_PRICE.getId());
+            xmlQuery.bind("locationFilter", LocationLevelEnum.COUNTRY.getId());
         }
 
-        // LocationLevelRegion filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        // Ids
-        {
-            List<Integer> extractId = context.getIncludedIds();
-            boolean enableFilter = CollectionUtils.isNotEmpty(extractId);
-            xmlQuery.setGroup("extractsFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("extractIds", Daos.getSqlInNumbers(extractId));
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createCatchLotQuery(C context) throws PersistenceException {
@@ -1055,48 +1016,17 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         xmlQuery.bind("catchLotTableName", context.getCatchLotTableName());
 
         // Pmfms
-        xmlQuery.bind("gearPhysicalHookNumber", PmfmEnum.GEAR_PHYSICAL_HOOK_NUMBER.getId());
-        xmlQuery.bind("gearPhysicalGearNumber", PmfmEnum.GEAR_PHYSICAL_GEAR_NUMBER.getId());
-
-        // LocationLevelQuarter filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery.bind("gearPhysicalHookNumber", PmfmEnum.GEAR_PHYSICAL_HOOK_NUMBER.getId());
+            xmlQuery.bind("gearPhysicalGearNumber", PmfmEnum.GEAR_PHYSICAL_GEAR_NUMBER.getId());
         }
 
-        // LocationLevelRegion filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        // Ids
-        {
-            List<Integer> extractId = context.getIncludedIds();
-            boolean enableFilter = CollectionUtils.isNotEmpty(extractId);
-            xmlQuery.setGroup("extractsFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("extractIds", Daos.getSqlInNumbers(extractId));
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createCatchIndividualQuery(C context) throws PersistenceException {
@@ -1118,45 +1048,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("locationFilter", LocationLevelEnum.COUNTRY.getId());
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
-        {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
-        }
-
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        // Ids
-        {
-            List<Integer> extractId = context.getIncludedIds();
-            boolean enableFilter = CollectionUtils.isNotEmpty(extractId);
-            xmlQuery.setGroup("extractsFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("extractIds", Daos.getSqlInNumbers(extractId));
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createTripQuery(C context) throws PersistenceException {
@@ -1184,45 +1081,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
-        {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
-        }
-
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        // Ids
-        {
-            List<Integer> extractId = context.getIncludedIds();
-            boolean enableFilter = CollectionUtils.isNotEmpty(extractId);
-            xmlQuery.setGroup("extractsFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("extractIds", Daos.getSqlInNumbers(extractId));
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createTripCalendarQuery(C context) throws PersistenceException {
@@ -1245,45 +1109,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
-        {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
-        }
-
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        // Ids
-        {
-            List<Integer> extractId = context.getIncludedIds();
-            boolean enableFilter = CollectionUtils.isNotEmpty(extractId);
-            xmlQuery.setGroup("extractsFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("extractIds", Daos.getSqlInNumbers(extractId));
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createObserverQuery(C context) throws PersistenceException {
@@ -1305,37 +1136,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
-        {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
-        }
-
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createSaleQuery(C context) throws PersistenceException {
@@ -1364,37 +1170,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
-        {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
-        }
-
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createSalePbPacketQuery(C context) throws PersistenceException {
@@ -1423,37 +1204,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
-        {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
-        }
-
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createVariableCostQuery(C context) throws PersistenceException {
@@ -1485,37 +1241,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
-        {
-            xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
-        }
-
-        // Program filter
-        {
-            List<String> programLabels = context.getProgramLabels();
-            boolean enableFilter = CollectionUtils.isNotEmpty(programLabels);
-            xmlQuery.setGroup("programFilter", enableFilter);
-            if (enableFilter) xmlQuery.bind("progLabels", Daos.getSqlInEscapedStrings(context.getProgramLabels()));
-        }
-
-        // Year filter
-        if (year != null) {
-            xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
-        } else {
-            xmlQuery.setGroup("filterYear", false);
-        }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
-        return xmlQuery;
+        return bindXMLQueryAdagioSchema(xmlQuery);
     }
 
     protected XMLQuery createOperationQuery(C context) throws PersistenceException {
@@ -1541,13 +1272,20 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
             xmlQuery.bind("sfaPrograms", Daos.getSqlInEscapedStrings(getObsdebProgramLabels()));
         }
 
-        // LocationLevelQuarter filter
+        // Filter
         {
-            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
         }
 
-        // LocationLevelRegion filter
+        return bindXMLQueryAdagioSchema(xmlQuery);
+    }
+
+
+    private XMLQuery bindXMLQueryFilter(XMLQuery xmlQuery, C context) {
+        // LocationLevel filter
         {
+            xmlQuery.bind("locationLevelQuarter", LocationLevelEnum.DISTRICT.getId());
+
             xmlQuery.bind("locationLevelRegion", LocationLevelEnum.REGION.getId());
         }
 
@@ -1560,22 +1298,23 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         }
 
         // Year filter
-        if (year != null) {
+        if (context.getYear() != null) {
             xmlQuery.setGroup("yearFilter", true);
-            xmlQuery.bind("year", year);
+            xmlQuery.bind("year", context.getYear());
         } else {
             xmlQuery.setGroup("filterYear", false);
         }
-
-        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
-        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
-        xmlQuery.bind("adagioSchema", this.adagioSchema);
-
         return xmlQuery;
     }
 
+    private XMLQuery bindXMLQueryAdagioSchema(XMLQuery xmlQuery) {
+        xmlQuery.setGroup("adagio", this.enableAdagioOptimization);
+        xmlQuery.setGroup("!adagio", !this.enableAdagioOptimization);
+        xmlQuery.bind("adagioSchema", this.adagioSchema);
+        return xmlQuery;
+    }
 
-    protected Set<String> getObsdebProgramLabels() {
+    private Set<String> getObsdebProgramLabels() {
         return ImmutableSet.<String>builder()
                 .add(
                         ProgramEnum.SIH_OBSDEB.getLabel(),
@@ -1584,7 +1323,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 .build();
     }
 
-    protected Set<Integer> get0bsdebCostPmfmIds() {
+    private Set<Integer> get0bsdebCostPmfmIds() {
         return ImmutableSet.<Integer>builder()
                 .add(
                         PmfmEnum.LANDING_COST.getId(),
@@ -1597,7 +1336,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 .build();
     }
 
-    protected Set<Integer> getVesselUseMeasurementPmfmIds() {
+    private Set<Integer> getVesselUseMeasurementPmfmIds() {
         return ImmutableSet.<Integer>builder()
                 .add(
                         PmfmEnum.LANDING_COST.getId(),
