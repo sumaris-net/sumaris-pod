@@ -10,12 +10,12 @@ package net.sumaris.extraction.core.service;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
@@ -100,7 +101,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         List<String> programLabels = ImmutableList.of("SUMARiS", "ADAP-MER");
         List<LiveExtractionTypeEnum> formats = ImmutableList.of(LiveExtractionTypeEnum.RDB, LiveExtractionTypeEnum.COST, LiveExtractionTypeEnum.PMFM_TRIP);
 
-        for (String programLabel: programLabels) {
+        for (String programLabel : programLabels) {
             for (LiveExtractionTypeEnum format : formats) {
                 log.info("--- Testing extraction {}/{} ... ---", format.getLabel(), programLabel);
 
@@ -270,18 +271,18 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
     }
 
 
-    public void executeSurvivalTest() throws IOException  {
+    public void executeSurvivalTest() throws IOException {
 
         // Test Survival test format
         File outputFile = service.executeAndDumpTrips(LiveExtractionTypeEnum.SURVIVAL_TEST, null);
         File root = unpack(outputFile, LiveExtractionTypeEnum.SURVIVAL_TEST);
 
         // RL (release)
-        File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME+".csv");
+        File releaseFile = new File(root, SurvivalTestSpecification.RL_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(releaseFile) > 1);
 
         // ST (Survival test)
-        File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME+".csv");
+        File stFile = new File(root, SurvivalTestSpecification.ST_SHEET_NAME + ".csv");
         Assert.assertTrue(countLineInCsvFile(stFile) > 1);
     }
 
@@ -440,8 +441,8 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
     public void executeVessel() throws IOException {
         VesselFilterVO filter = VesselFilterVO.builder()
-            .programLabel(getProgramLabelForVessel())
-            .build();
+                .programLabel(getProgramLabelForVessel())
+                .build();
 
         // Test the VESSEL format
         File outputFile = service.executeAndDumpVessels(LiveExtractionTypeEnum.VESSEL, filter);
@@ -482,19 +483,19 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         ExtractionProductVO product = createAggProduct(AggExtractionTypeEnum.AGG_RDB, parent);
 
         AggregationStrataVO strata = AggregationStrataVO.builder()
-            .spatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE)
-            .timeColumnName(ProductRdbStation.COLUMN_YEAR)
-            .build();
+                .spatialColumnName(ProductRdbStation.COLUMN_STATISTICAL_RECTANGLE)
+                .timeColumnName(ProductRdbStation.COLUMN_YEAR)
+                .build();
 
         // Prepare a filter on year
         ExtractionFilterVO filter = new ExtractionFilterVO();
         {
             ExtractionFilterCriterionVO yearCriterion = ExtractionFilterCriterionVO.builder()
-                .sheetName(RdbSpecification.TR_SHEET_NAME)
-                .name(RdbSpecification.COLUMN_YEAR)
-                .operator("=")
-                .value(String.valueOf(fixtures.getYearRdbProduct()))
-                .build();
+                    .sheetName(RdbSpecification.TR_SHEET_NAME)
+                    .name(RdbSpecification.COLUMN_YEAR)
+                    .operator("=")
+                    .value(String.valueOf(fixtures.getYearRdbProduct()))
+                    .build();
             filter.setCriteria(ImmutableList.of(yearCriterion));
         }
 
@@ -546,16 +547,16 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         strata.setTimeColumnName(AggRdbSpecification.COLUMN_QUARTER);
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-            .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
-            .criteria(ImmutableList.of(
-                ExtractionFilterCriterionVO.builder()
-                    .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
-                    .name(ProductRdbStation.COLUMN_YEAR)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value(""+fixtures.getYearRawData())
-                    .build()
-            ))
-            .build();
+                .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                .criteria(ImmutableList.of(
+                        ExtractionFilterCriterionVO.builder()
+                                .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                                .name(ProductRdbStation.COLUMN_YEAR)
+                                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                                .value("" + fixtures.getYearRawData())
+                                .build()
+                ))
+                .build();
 
         File outputFile = service.executeAndDump(source, filter, strata);
         Assert.assertTrue(outputFile.exists());
@@ -584,16 +585,16 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         strata.setTimeColumnName(AggRdbSpecification.COLUMN_QUARTER);
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-            .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
-            .criteria(ImmutableList.of(
-                ExtractionFilterCriterionVO.builder()
-                    .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
-                    .name(ProductRdbStation.COLUMN_YEAR)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value(""+fixtures.getYearRawData())
-                    .build()
-            ))
-            .build();
+                .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                .criteria(ImmutableList.of(
+                        ExtractionFilterCriterionVO.builder()
+                                .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                                .name(ProductRdbStation.COLUMN_YEAR)
+                                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                                .value("" + fixtures.getYearRawData())
+                                .build()
+                ))
+                .build();
 
         File outputFile = service.executeAndDump(source, filter, strata);
         Assert.assertTrue(outputFile.exists());
@@ -622,15 +623,15 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         strata.setTimeColumnName(ProductRdbStation.COLUMN_YEAR);
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-            .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
-            .criteria(ImmutableList.of(
-                ExtractionFilterCriterionVO.builder()
-                    .name(ProductRdbStation.COLUMN_PROJECT)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value("ADAP-MER")
-                    .build()
-            ))
-            .build();
+                .sheetName(AggRjbTripSpecification.HH_SHEET_NAME)
+                .criteria(ImmutableList.of(
+                        ExtractionFilterCriterionVO.builder()
+                                .name(ProductRdbStation.COLUMN_PROJECT)
+                                .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                                .value("ADAP-MER")
+                                .build()
+                ))
+                .build();
 
         try {
             File outputFile = service.executeAndDump(type, filter, strata);
@@ -648,8 +649,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             // HL.csv
             File speciesLengthFile = new File(root, AggRjbTripSpecification.HL_SHEET_NAME + ".csv");
             Assert.assertTrue(countLineInCsvFile(speciesLengthFile) > 1);
-        }
-        catch (DataNotFoundException e) {
+        } catch (DataNotFoundException e) {
             Assume.assumeNoException("No RJB data found (Add RBJ into BATCH table - with individualCount and no weight)", e);
         }
     }
@@ -660,19 +660,19 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         if (CollectionUtils.isEmpty(criteria)) {
             criteria = new ArrayList<>();
             criteria.add(
-                // Program
-                ExtractionFilterCriterionVO.builder()
-                    .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
-                    .build());
+                    // Program
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ActivityMonitoringSpecification.COLUMN_PROJECT)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value(ProgramEnum.SIH_ACTIFLOT.getLabel())
+                            .build());
             criteria.add(
-                // Year
-                ExtractionFilterCriterionVO.builder()
-                    .name(ActivityMonitoringSpecification.COLUMN_YEAR)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value("2023")
-                    .build()
+                    // Year
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ActivityMonitoringSpecification.COLUMN_YEAR)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value("2023")
+                            .build()
             );
         }
 
@@ -720,19 +720,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
                             .build()
             );
         }
-        Set<String> sheetNames = Set.of(
-                ObservedLocationSpecification.OL_SHEET_NAME,
-                ObservedLocationSpecification.VESSEL_SHEET_NAME,
-                ObservedLocationSpecification.CATCH_SHEET_NAME,
-                ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME,
-                ObservedLocationSpecification.CATCH_LOT_SHEET_NAME,
-                ObservedLocationSpecification.TRIP_SHEET_NAME,
-                ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME,
-                ObservedLocationSpecification.OBSERVER_SHEET_NAME,
-                ObservedLocationSpecification.SALE_SHEET_NAME,
-                ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME,
-                ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME,
-                ObservedLocationSpecification.OPERATION_SHEET_NAME);
+        Set<String> sheetNames = ImmutableSet.copyOf(ObservedLocationSpecification.SHEET_NAMES);
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
                 .sheetNames(sheetNames)
                 .criteria(criteria)
@@ -760,19 +748,19 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         if (CollectionUtils.isEmpty(criteria)) {
             criteria = new ArrayList<>();
             criteria.add(
-                // Program
-                ExtractionFilterCriterionVO.builder()
-                    .name(ObservedLocationSpecification.COLUMN_PROJECT)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value(ProgramEnum.SIH_OBSDEB.getLabel())
-                    .build());
+                    // Program
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_PROJECT)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value(ProgramEnum.SIH_OBSDEB.getLabel())
+                            .build());
             criteria.add(
-                // Year
-                ExtractionFilterCriterionVO.builder()
-                    .name(ObservedLocationSpecification.COLUMN_YEAR)
-                    .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
-                    .value("2023")
-                    .build()
+                    // Year
+                    ExtractionFilterCriterionVO.builder()
+                            .name(ObservedLocationSpecification.COLUMN_YEAR)
+                            .operator(ExtractionFilterOperatorEnum.EQUALS.getSymbol())
+                            .value("2023")
+                            .build()
             );
         }
 
@@ -1221,32 +1209,32 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
         IExtractionType type = AggExtractionTypeEnum.AGG_SURVIVAL_TEST;
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-            .sheetName(AggRdbSpecification.SL_SHEET_NAME)
-            .build();
+                .sheetName(AggRdbSpecification.SL_SHEET_NAME)
+                .build();
 
         filter.setCriteria(ImmutableList.of(ExtractionFilterCriterionVO.builder()
                 .sheetName(AggRdbSpecification.HH_SHEET_NAME)
                 .name(AggRdbSpecification.COLUMN_YEAR)
                 .operator("=")
-                .value(""+fixtures.getYearRawData())
-            .build()));
+                .value("" + fixtures.getYearRawData())
+                .build()));
 
         AggregationStrataVO strata = AggregationStrataVO.builder()
-            .sheetName(AggRdbSpecification.SL_SHEET_NAME)
-            .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
-            .timeColumnName(AggRdbSpecification.COLUMN_MONTH)
-            .build();
+                .sheetName(AggRdbSpecification.SL_SHEET_NAME)
+                .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
+                .timeColumnName(AggRdbSpecification.COLUMN_MONTH)
+                .build();
 
         ExtractionResultVO result = service.executeAndRead(
-            type,
-            filter, strata, Page.builder().size(100).build(), null);
+                type,
+                filter, strata, Page.builder().size(100).build(), null);
 
         Assert.assertNotNull(result);
         Assert.assertNotNull(result.getRows());
         Assert.assertTrue(result.getRows().size() > 0);
 
         Preconditions.checkArgument(result instanceof AggregationResultVO);
-        AggregationResultVO aggResult = (AggregationResultVO)result;
+        AggregationResultVO aggResult = (AggregationResultVO) result;
         Assert.assertNotNull(aggResult.getSpaceStrata());
         Assert.assertTrue(aggResult.getSpaceStrata().size() > 0);
         Assert.assertTrue(aggResult.getSpaceStrata().contains(AggRdbSpecification.COLUMN_AREA));
@@ -1267,27 +1255,26 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             savedProduct = service.executeAndSave(type, null, null);
             Assume.assumeNotNull(savedProduct);
             Assume.assumeNotNull(savedProduct.getId());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assume.assumeNoException(String.format("Error during aggregating: %s", type), e);
             return;
         }
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-            .sheetName(AggRdbSpecification.HH_SHEET_NAME)
-            .criteria(ImmutableList.of(
-                    ExtractionFilterCriterionVO.builder()
-                        .sheetName(AggRdbSpecification.HH_SHEET_NAME)
-                        .name(AggRdbSpecification.COLUMN_YEAR)
-                        .operator("=")
-                        .value(""+fixtures.getYearRawData())
-                        .build()
-                )
-            ).build();
+                .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                .criteria(ImmutableList.of(
+                                ExtractionFilterCriterionVO.builder()
+                                        .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                                        .name(AggRdbSpecification.COLUMN_YEAR)
+                                        .operator("=")
+                                        .value("" + fixtures.getYearRawData())
+                                        .build()
+                        )
+                ).build();
 
         AggregationStrataVO strata = AggregationStrataVO.builder()
-            .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
-            .build();
+                .spatialColumnName(AggRdbSpecification.COLUMN_AREA)
+                .build();
 
         ExtractionResultVO result = service.read(savedProduct, filter, strata, Page.builder().size(1000).build(), null);
 
@@ -1306,30 +1293,29 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             savedProduct = service.executeAndSave(type, null, null);
             Assume.assumeNotNull(savedProduct);
             Assume.assumeNotNull(savedProduct.getId());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assume.assumeNoException(String.format("Error during aggregating: %s", type), e);
             return;
         }
 
         AggregationStrataVO strata = AggregationStrataVO.builder()
-            .sheetName(AggRdbSpecification.HH_SHEET_NAME)
-            .aggColumnName(AggRdbSpecification.COLUMN_FISHING_TIME)
-            .spatialColumnName(AggRdbSpecification.COLUMN_SQUARE)
-            .techColumnName(AggRdbSpecification.COLUMN_GEAR_TYPE)
-            .timeColumnName(AggRdbSpecification.COLUMN_YEAR)
-            .build();
+                .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                .aggColumnName(AggRdbSpecification.COLUMN_FISHING_TIME)
+                .spatialColumnName(AggRdbSpecification.COLUMN_SQUARE)
+                .techColumnName(AggRdbSpecification.COLUMN_GEAR_TYPE)
+                .timeColumnName(AggRdbSpecification.COLUMN_YEAR)
+                .build();
 
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-            .sheetName(RdbSpecification.HH_SHEET_NAME)
-            .build();
+                .sheetName(RdbSpecification.HH_SHEET_NAME)
+                .build();
 
         filter.setCriteria(ImmutableList.of(ExtractionFilterCriterionVO.builder()
                 .sheetName(AggRdbSpecification.HH_SHEET_NAME)
                 .name(AggRdbSpecification.COLUMN_YEAR)
                 .operator("=")
-                .value(""+fixtures.getYearRawData())
-            .build()));
+                .value("" + fixtures.getYearRawData())
+                .build()));
 
         // 2. Access to tech aggregation
         AggregationTechResultVO result = service.readByTech(savedProduct, filter, strata, null, null);
@@ -1348,18 +1334,18 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             ExtractionFilterVO filter = new ExtractionFilterVO();
             {
                 ExtractionFilterCriterionVO projectCriterion = ExtractionFilterCriterionVO.builder()
-                    .sheetName(PmfmTripSpecification.TR_SHEET_NAME)
-                    .name(PmfmTripSpecification.COLUMN_PROJECT)
-                    .operator("=")
-                    .value(fixtures.getProgramLabelForExtraction(0))
-                    .build();
+                        .sheetName(PmfmTripSpecification.TR_SHEET_NAME)
+                        .name(PmfmTripSpecification.COLUMN_PROJECT)
+                        .operator("=")
+                        .value(fixtures.getProgramLabelForExtraction(0))
+                        .build();
 
                 ExtractionFilterCriterionVO yearCriterion = ExtractionFilterCriterionVO.builder()
-                    .sheetName(PmfmTripSpecification.TR_SHEET_NAME)
-                    .name(PmfmTripSpecification.COLUMN_YEAR)
-                    .operator("=")
-                    .value("" + fixtures.getYearRawData())
-                    .build();
+                        .sheetName(PmfmTripSpecification.TR_SHEET_NAME)
+                        .name(PmfmTripSpecification.COLUMN_YEAR)
+                        .operator("=")
+                        .value("" + fixtures.getYearRawData())
+                        .build();
 
                 filter.setCriteria(ImmutableList.of(projectCriterion, yearCriterion));
             }
@@ -1370,8 +1356,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             Assume.assumeNotNull(savedProduct.getId());
             Assume.assumeNotNull(type.getFormat(), savedProduct.getFormat());
             Assume.assumeNotNull(type.getVersion(), savedProduct.getVersion());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assume.assumeNoException(e);
             return;
         }
@@ -1393,23 +1378,23 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
             // Prepare a filter on year
             ExtractionFilterVO filter = ExtractionFilterVO.builder()
-                .criteria(ImmutableList.of(ExtractionFilterCriterionVO.builder()
-                    .sheetName(RdbSpecification.TR_SHEET_NAME)
-                    .name(RdbSpecification.COLUMN_YEAR)
-                    .operator("=")
-                    .value("" + fixtures.getYearRdbProduct())
-                    .build()))
-                .build();
+                    .criteria(ImmutableList.of(ExtractionFilterCriterionVO.builder()
+                            .sheetName(RdbSpecification.TR_SHEET_NAME)
+                            .name(RdbSpecification.COLUMN_YEAR)
+                            .operator("=")
+                            .value("" + fixtures.getYearRdbProduct())
+                            .build()))
+                    .build();
             product.setFilterContent(objectMapper.writeValueAsString(filter));
 
             // Prepare strata
             product.setStratum(ImmutableList.of(AggregationStrataVO.builder()
-                .sheetName(AggRdbSpecification.HH_SHEET_NAME)
-                .spatialColumnName(AggRjbTripSpecification.COLUMN_STATISTICAL_RECTANGLE)
-                .timeColumnName(AggRjbTripSpecification.COLUMN_YEAR)
-                .aggColumnName(AggRdbSpecification.COLUMN_FISHING_TIME)
-                .techColumnName(AggRdbSpecification.COLUMN_GEAR_TYPE)
-                .build()));
+                    .sheetName(AggRdbSpecification.HH_SHEET_NAME)
+                    .spatialColumnName(AggRjbTripSpecification.COLUMN_STATISTICAL_RECTANGLE)
+                    .timeColumnName(AggRjbTripSpecification.COLUMN_YEAR)
+                    .aggColumnName(AggRdbSpecification.COLUMN_FISHING_TIME)
+                    .techColumnName(AggRdbSpecification.COLUMN_GEAR_TYPE)
+                    .build()));
 
             // First execution
             savedProduct = productService.save(product, ExtractionProductSaveOptions.WITH_TABLES_AND_STRATUM);
@@ -1501,9 +1486,9 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
 
         // Validate some trips
         List<TripVO> trips =
-            tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
-                .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
-                .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
+                tripService.findAll(TripFilterVO.builder().programLabel(programLabel)
+                        .dataQualityStatus(new DataQualityStatusEnum[]{DataQualityStatusEnum.MODIFIED, DataQualityStatusEnum.CONTROLLED})
+                        .build(), Page.builder().build(), TripFetchOptions.MINIMAL);
         trips.forEach(trip -> {
             if (trip.getControlDate() == null) {
                 tripService.control(trip);
