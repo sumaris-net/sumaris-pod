@@ -258,6 +258,14 @@ public class ConfigurationGraphQLService {
                     dbTimeZone);
             }
 
+            // Add parameter label length
+            String parameterLabelLength = configuration.getApplicationConfig().getOption(SumarisConfigurationOption.PARAMETER_LABEL_LENGTH.getKey());
+            if (StringUtils.isNotBlank(parameterLabelLength)) {
+                properties.put(
+                    SumarisConfigurationOption.PARAMETER_LABEL_LENGTH.getKey(),
+                    parameterLabelLength);
+            }
+
             // Trash enable ?
             properties.computeIfAbsent(
                 SumarisConfigurationOption.ENABLE_ENTITY_TRASH.getKey(),
