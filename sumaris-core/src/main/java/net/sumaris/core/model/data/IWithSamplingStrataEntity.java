@@ -1,10 +1,8 @@
-package net.sumaris.core.dao.data;
-
-/*-
+/*
  * #%L
- * SUMARiS:: Core
+ * SUMARiS
  * %%
- * Copyright (C) 2018 - 2020 SUMARiS Consortium
+ * Copyright (C) 2019 SUMARiS Consortium
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -22,14 +20,25 @@ package net.sumaris.core.dao.data;
  * #L%
  */
 
-import net.sumaris.core.model.data.IRootDataEntity;
+package net.sumaris.core.model.data;
+
+import net.sumaris.core.model.IEntity;
+
+import java.io.Serializable;
 
 /**
- * @author peck7 on 28/08/2020.
+ * An entity with a sampling strata
+ *
+ * @author Benoit Lavenier <benoit.lavenier@e-is.pro>
+ * @since 2.10.0
  */
-public interface RootDataSpecifications<E extends IRootDataEntity<Integer>>
-    extends IValidatableDataSpecifications<Integer, E>,
-    IWithProgramSpecifications<Integer, E>,
-    IWithRecorderPersonSpecifications<Integer, E> {
+public interface IWithSamplingStrataEntity<ID extends Serializable, ST extends IEntity<Integer>> extends IEntity<ID> {
 
+    interface Fields extends IEntity.Fields {
+        String SAMPLING_STRATA = "samplingStrata";
+    }
+
+    ST getSamplingStrata();
+
+    void setSamplingStrata(ST samplingStrata);
 }

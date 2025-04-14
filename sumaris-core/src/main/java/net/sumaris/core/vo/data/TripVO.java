@@ -10,12 +10,12 @@ package net.sumaris.core.vo.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -28,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.data.IWithObserversEntity;
+import net.sumaris.core.model.data.IWithSamplingStrataEntity;
 import net.sumaris.core.model.data.IWithVesselSnapshotEntity;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
@@ -45,8 +46,9 @@ import java.util.Set;
 @FieldNameConstants
 @EqualsAndHashCode
 public class TripVO implements IRootDataVO<Integer>,
-        IWithObserversEntity<Integer, PersonVO>,
-        IWithVesselSnapshotEntity<Integer, VesselSnapshotVO> {
+    IWithObserversEntity<Integer, PersonVO>,
+    IWithVesselSnapshotEntity<Integer, VesselSnapshotVO>,
+    IWithSamplingStrataEntity<Integer, ReferentialVO> {
 
     public static final String TYPENAME = "TripVO";
 

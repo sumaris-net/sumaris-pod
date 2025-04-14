@@ -23,13 +23,13 @@ package net.sumaris.core.dao.data.trip;
  */
 
 import net.sumaris.core.dao.data.IWithObserversSpecifications;
+import net.sumaris.core.dao.data.IWithSamplingStrataSpecifications;
 import net.sumaris.core.dao.data.IWithVesselSpecifications;
 import net.sumaris.core.dao.data.RootDataSpecifications;
 import net.sumaris.core.dao.technical.Daos;
 import net.sumaris.core.dao.technical.jpa.BindableSpecification;
 import net.sumaris.core.model.IEntity;
 import net.sumaris.core.model.data.*;
-import net.sumaris.core.model.data.ScientificCruise;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -40,13 +40,11 @@ import java.util.Date;
 
 public interface TripSpecifications extends RootDataSpecifications<Trip>,
     IWithVesselSpecifications<Integer, Trip>,
-    IWithObserversSpecifications<Trip> {
+    IWithObserversSpecifications<Trip>,
+    IWithSamplingStrataSpecifications<Integer, Trip> {
 
-    String LOCATION_ID_PARAM = "locationId";
     String LOCATION_IDS_PARAM = "locationIds";
-
     String OBSERVED_LOCATION_ID_PARAM = "observedLocationId";
-
     String OPERATION_IDS_PARAM = "operationIds";
 
 
@@ -58,17 +56,6 @@ public interface TripSpecifications extends RootDataSpecifications<Trip>,
     default <T> ListJoin<Vessel, VesselFeatures> composeVfJoin(Root<T> root, CriteriaBuilder cb) {
         Join<T, Vessel> vessel = composeVesselJoin(root);
         return composeVfJoin(vessel, cb, root.get(Trip.Fields.DEPARTURE_DATE_TIME));
-    }
-
-    default Specification<Trip> hasLocationId(Integer locationId) {
-        if (locationId == null) return null;
-        return BindableSpecification.where((root, query, cb) -> {
-            ParameterExpression<Integer> param = cb.parameter(Integer.class, LOCATION_ID_PARAM);
-            return cb.or(
-                cb.equal(root.get(Trip.Fields.DEPARTURE_LOCATION).get(IEntity.Fields.ID), param),
-                cb.equal(root.get(Trip.Fields.RETURN_LOCATION).get(IEntity.Fields.ID), param)
-            );
-        }).addBind(LOCATION_ID_PARAM, locationId);
     }
 
     default Specification<Trip> hasLocationIds(Integer[] locationIds) {
@@ -98,8 +85,7 @@ public interface TripSpecifications extends RootDataSpecifications<Trip>,
                 query.distinct(true);
                 ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.INNER);
                 return cb.isNotNull(landingJoin.get(Landing.Fields.OBSERVED_LOCATION));
-            }
-            else {
+            } else {
                 ListJoin<Trip, Landing> landingJoin = Daos.composeJoinList(root, Trip.Fields.LANDINGS, JoinType.LEFT);
                 return cb.isNull(landingJoin.get(Landing.Fields.OBSERVED_LOCATION));
             }
@@ -112,8 +98,7 @@ public interface TripSpecifications extends RootDataSpecifications<Trip>,
             if (hasScientificCruise) {
                 Join<Trip, ScientificCruise> cruiseJoin = Daos.composeJoin(root, Trip.Fields.SCIENTIFIC_CRUISE, JoinType.INNER);
                 return cb.isNotNull(cruiseJoin);
-            }
-            else {
+            } else {
                 Join<Trip, ScientificCruise> cruiseJoin = Daos.composeJoin(root, Trip.Fields.SCIENTIFIC_CRUISE, JoinType.LEFT);
                 return cb.isNull(cruiseJoin);
             }
@@ -144,7 +129,7 @@ public interface TripSpecifications extends RootDataSpecifications<Trip>,
     }
 
 
-    default  Specification<Trip> withOperationIds(Integer[] operationIds) {
+    default Specification<Trip> withOperationIds(Integer[] operationIds) {
         if (ArrayUtils.isEmpty(operationIds)) return null;
 
         return BindableSpecification.where((root, query, cb) -> {

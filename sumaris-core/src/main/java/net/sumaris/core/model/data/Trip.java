@@ -10,12 +10,12 @@ package net.sumaris.core.model.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,14 +23,16 @@ package net.sumaris.core.model.data;
  */
 
 import com.google.common.collect.Sets;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
 import net.sumaris.core.model.administration.user.Department;
 import net.sumaris.core.model.administration.user.Person;
-import net.sumaris.core.model.referential.location.Location;
 import net.sumaris.core.model.referential.QualityFlag;
+import net.sumaris.core.model.referential.location.Location;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.hibernate.annotations.Cascade;
 import org.nuiton.i18n.I18n;
@@ -52,10 +54,11 @@ import java.util.*;
     }
 )
 public class Trip implements IRootDataEntity<Integer>,
-        IWithObserversEntity<Integer, Person>,
-        IWithVesselEntity<Integer, Vessel>,
-        IWithGearsEntity<Integer, PhysicalGear>,
-        IWithSalesEntity<Integer, Sale> {
+    IWithObserversEntity<Integer, Person>,
+    IWithVesselEntity<Integer, Vessel>,
+    IWithGearsEntity<Integer, PhysicalGear>,
+    IWithSalesEntity<Integer, Sale>,
+    IWithSamplingStrataEntity<Integer, SamplingStrata> {
 
     static {
         I18n.n("sumaris.persistence.table.trip");
@@ -65,7 +68,7 @@ public class Trip implements IRootDataEntity<Integer>,
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "TRIP_SEQ")
-    @SequenceGenerator(name = "TRIP_SEQ", sequenceName="TRIP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "TRIP_SEQ", sequenceName = "TRIP_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -88,19 +91,19 @@ public class Trip implements IRootDataEntity<Integer>,
     @Column(length = 2000)
     private String comments;
 
-    @Column(name="control_date")
+    @Column(name = "control_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name="validation_date")
+    @Column(name = "validation_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date validationDate;
 
-    @Column(name="qualification_date")
+    @Column(name = "qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
+    @Column(name = "qualification_comments", length = LENGTH_COMMENTS)
     private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
@@ -156,9 +159,9 @@ public class Trip implements IRootDataEntity<Integer>,
 
     @ManyToMany(fetch = FetchType.EAGER, targetEntity = Person.class)
     @JoinTable(name = "trip2observer_person", joinColumns = {
-            @JoinColumn(name = "trip_fk", nullable = false, updatable = false) },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
+        @JoinColumn(name = "trip_fk", nullable = false, updatable = false)},
+        inverseJoinColumns = {
+            @JoinColumn(name = "person_fk", nullable = false, updatable = false)})
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     private Set<Person> observers = Sets.newHashSet();
 
@@ -183,7 +186,7 @@ public class Trip implements IRootDataEntity<Integer>,
         Trip that = (Trip) o;
 
         return new EqualsBuilder()
-                .append(id, that.id)
-                .isEquals();
+            .append(id, that.id)
+            .isEquals();
     }
 }

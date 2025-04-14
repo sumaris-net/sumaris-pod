@@ -60,8 +60,8 @@ import java.util.Objects;
 
 @Slf4j
 public class TripRepositoryImpl
-        extends RootDataRepositoryImpl<Trip, TripVO, TripFilterVO, TripFetchOptions>
-        implements TripSpecifications {
+    extends RootDataRepositoryImpl<Trip, TripVO, TripFilterVO, TripFetchOptions>
+    implements TripSpecifications {
 
     private final LocationRepository locationRepository;
     private final LandingRepository landingRepository;
@@ -100,6 +100,7 @@ public class TripRepositoryImpl
             .and(hasObservedLocationId(filter.getObservedLocationId()))
             .and(hasVesselTypeIds(concat(filter.getVesselTypeId(), filter.getVesselTypeIds())))
             .and(hasVesselIds(concat(filter.getVesselId(), filter.getVesselIds())))
+            .and(hasSamplingStrataIds(concat(filter.getSamplingStrataId(), filter.getSamplingStrataIds())))
             .and(hasObserverPersonIds(filter.getObserverPersonIds()))
             .and(inQualityFlagIds(filter.getQualityFlagIds()))
             .and(inDataQualityStatus(filter.getDataQualityStatus()))
@@ -142,9 +143,9 @@ public class TripRepositoryImpl
             target.setSamplingStrataId(source.getSamplingStrata().getId());
             if (fetchOptions != null && fetchOptions.isWithSamplingStrata()) {
                 ReferentialVO samplingStrata = referentialDao.get(DenormalizedSamplingStrata.class, source.getSamplingStrata().getId(),
-                        ReferentialFetchOptions.builder()
-                                .withProperties(true) // Load sampling sheme label
-                                .build());
+                    ReferentialFetchOptions.builder()
+                        .withProperties(true) // Load sampling sheme label
+                        .build());
                 target.setSamplingStrata(samplingStrata);
             }
         }
@@ -233,7 +234,7 @@ public class TripRepositoryImpl
             // Natural sort on exterior marking
             if (enableVesselRegistrationNaturalOrder && property.endsWith(VesselFeatures.Fields.EXTERIOR_MARKING)) {
                 expression = Daos.naturalSort(cb, expression);
-            };
+            }
         }
 
         return (expression != null) ? ImmutableList.of(expression) : super.toSortExpressions(query, root, cb, property);

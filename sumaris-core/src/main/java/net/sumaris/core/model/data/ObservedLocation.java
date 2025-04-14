@@ -10,12 +10,12 @@ package net.sumaris.core.model.data;
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -23,8 +23,9 @@ package net.sumaris.core.model.data;
  */
 
 import com.google.common.collect.Sets;
-import lombok.*;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.model.administration.programStrategy.Program;
 import net.sumaris.core.model.administration.samplingScheme.SamplingStrata;
@@ -43,18 +44,18 @@ import javax.persistence.*;
 import java.util.*;
 
 @FetchProfiles({
-        @FetchProfile(name = "with-location",
-            fetchOverrides = {
-                @FetchProfile.FetchOverride(association = "location", entity = ObservedLocation.class, mode = FetchMode.JOIN),
-                @FetchProfile.FetchOverride(association = "recorderDepartment", entity = ObservedLocation.class, mode = FetchMode.JOIN)
-            })
+    @FetchProfile(name = "with-location",
+        fetchOverrides = {
+            @FetchProfile.FetchOverride(association = "location", entity = ObservedLocation.class, mode = FetchMode.JOIN),
+            @FetchProfile.FetchOverride(association = "recorderDepartment", entity = ObservedLocation.class, mode = FetchMode.JOIN)
+        })
 })
 @Getter
 @Setter
 
 @FieldNameConstants
 @Entity
-@Table(name="observed_location")
+@Table(name = "observed_location")
 @NamedEntityGraph(
     name = ObservedLocation.GRAPH_LOCATION_AND_PROGRAM,
     attributeNodes = {
@@ -62,16 +63,19 @@ import java.util.*;
         @NamedAttributeNode(ObservedLocation.Fields.PROGRAM)
     }
 )
-public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserversEntity<Integer, Person> {
+public class ObservedLocation implements IRootDataEntity<Integer>,
+    IWithObserversEntity<Integer, Person>,
+    IWithSamplingStrataEntity<Integer, SamplingStrata> {
 
     public static final String GRAPH_LOCATION_AND_PROGRAM = "ObservedLocation.locationWithProgram";
+
     static {
         I18n.n("sumaris.persistence.table.observedLocation");
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "OBSERVED_LOCATION_SEQ")
-    @SequenceGenerator(name = "OBSERVED_LOCATION_SEQ", sequenceName="OBSERVED_LOCATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
+    @SequenceGenerator(name = "OBSERVED_LOCATION_SEQ", sequenceName = "OBSERVED_LOCATION_SEQ", allocationSize = SEQUENCE_ALLOCATION_SIZE)
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -94,19 +98,19 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     @Column(length = 2000)
     private String comments;
 
-    @Column(name="control_date")
+    @Column(name = "control_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date controlDate;
 
-    @Column(name="validation_date")
+    @Column(name = "validation_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date validationDate;
 
-    @Column(name="qualification_date")
+    @Column(name = "qualification_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date qualificationDate;
 
-    @Column(name="qualification_comments", length = LENGTH_COMMENTS)
+    @Column(name = "qualification_comments", length = LENGTH_COMMENTS)
     private String qualificationComments;
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = QualityFlag.class)
@@ -139,9 +143,9 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
     @ManyToMany(fetch = FetchType.EAGER, targetEntity = Person.class)
     @Cascade(org.hibernate.annotations.CascadeType.DETACH)
     @JoinTable(name = "observed_location2person", joinColumns = {
-            @JoinColumn(name = "observed_location_fk", nullable = false, updatable = false) },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "person_fk", nullable = false, updatable = false) })
+        @JoinColumn(name = "observed_location_fk", nullable = false, updatable = false)},
+        inverseJoinColumns = {
+            @JoinColumn(name = "person_fk", nullable = false, updatable = false)})
     private Set<Person> observers = Sets.newHashSet();
 
     @ManyToOne(fetch = FetchType.LAZY, targetEntity = SamplingStrata.class)
@@ -161,7 +165,7 @@ public class ObservedLocation implements IRootDataEntity<Integer>, IWithObserver
         ObservedLocation that = (ObservedLocation) o;
 
         return new EqualsBuilder()
-                .append(id, that.id)
-                .isEquals();
+            .append(id, that.id)
+            .isEquals();
     }
 }
