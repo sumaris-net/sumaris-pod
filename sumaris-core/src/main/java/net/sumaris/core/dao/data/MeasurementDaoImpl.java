@@ -42,6 +42,7 @@ import net.sumaris.core.model.referential.pmfm.QualitativeValue;
 import net.sumaris.core.util.Beans;
 import net.sumaris.core.util.Dates;
 import net.sumaris.core.util.StringUtils;
+import net.sumaris.core.util.type.ContentAwareHashMap;
 import net.sumaris.core.vo.administration.user.DepartmentVO;
 import net.sumaris.core.vo.data.MeasurementVO;
 import net.sumaris.core.vo.data.QuantificationMeasurementVO;
@@ -1292,7 +1293,8 @@ public class MeasurementDaoImpl extends HibernateDaoSupport implements Measureme
                 .collect(Collectors.toMap(
                     Map.Entry::getKey,
                     Map.Entry::getValue,
-                    this::concatMeasurementMapValues
+                    this::concatMeasurementMapValues,
+                    ContentAwareHashMap::new
                 ));
     }
 
