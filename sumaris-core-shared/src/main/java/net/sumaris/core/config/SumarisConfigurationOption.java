@@ -269,6 +269,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         "${sumaris.data.directory}/photos",
         File.class),
 
+    PARAMETER_LABEL_LENGTH(
+         "sumaris.list.parameter.length.labels",
+            n("sumaris.config.option.list.parameter.length.labels.description"),
+            null,
+            String.class,
+            false),
+
     DATA_IMAGES_DIRECTORY_ENABLE("sumaris.data.images.directory.enable",
         n("sumaris.config.option.data.images.directory.enable.description"),
         Boolean.FALSE.toString(),
