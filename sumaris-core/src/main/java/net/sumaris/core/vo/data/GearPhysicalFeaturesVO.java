@@ -30,6 +30,7 @@ import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
 import net.sumaris.core.vo.administration.programStrategy.ProgramVO;
 import net.sumaris.core.vo.referential.ReferentialVO;
+import net.sumaris.core.vo.referential.gear.GearVO;
 import net.sumaris.core.vo.referential.metier.MetierVO;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -54,8 +55,8 @@ public class GearPhysicalFeaturesVO implements IUseFeaturesVO {
 
     private Short rankOrder;
     private MetierVO metier;
-    private ReferentialVO gear;
-    private ReferentialVO otherGear;
+    private GearVO gear;
+    private GearVO otherGear;
     private Map<Integer, String> measurementValues;
     private List<DataOriginVO> dataOrigins;
 

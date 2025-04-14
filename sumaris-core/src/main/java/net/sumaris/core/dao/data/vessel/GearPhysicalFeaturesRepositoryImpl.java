@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.administration.programStrategy.ProgramRepository;
 import net.sumaris.core.dao.data.trip.TripRepository;
 import net.sumaris.core.dao.referential.ReferentialDao;
+import net.sumaris.core.dao.referential.gear.GearRepository;
 import net.sumaris.core.dao.referential.metier.MetierRepository;
 import net.sumaris.core.model.administration.programStrategy.AcquisitionLevel;
 import net.sumaris.core.model.administration.programStrategy.Program;
@@ -59,6 +60,9 @@ public class GearPhysicalFeaturesRepositoryImpl
 
     @Autowired
     private ReferentialDao referentialDao;
+
+    @Autowired
+    private GearRepository gearRepository;
 
     @Autowired
     private ProgramRepository programRepository;
@@ -110,12 +114,12 @@ public class GearPhysicalFeaturesRepositoryImpl
 
         // Gear
         if (source.getGear() != null) {
-            target.setGear(referentialDao.toVO(source.getGear()));
+            target.setGear(gearRepository.toVO(source.getGear()));
         }
 
         // Other Gear
         if (source.getOtherGear() != null) {
-            target.setOtherGear(referentialDao.toVO(source.getOtherGear()));
+            target.setOtherGear(gearRepository.toVO(source.getOtherGear()));
         }
 
         // Measurements
