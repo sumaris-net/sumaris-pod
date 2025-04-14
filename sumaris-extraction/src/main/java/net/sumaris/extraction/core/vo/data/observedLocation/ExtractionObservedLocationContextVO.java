@@ -49,7 +49,6 @@ public class ExtractionObservedLocationContextVO extends ExtractionContextVO {
     String tripCalendarTableName; // TC
     String observerTableName; // O
     String saleTableName; // S
-    String salePbPacketTableName; // SPP
     String variableCostTableName; // VC
     String operationTableName; // OP
 
@@ -63,7 +62,6 @@ public class ExtractionObservedLocationContextVO extends ExtractionContextVO {
     String tripCalendarSheetName; // TC
     String observerSheetName; // O
     String saleSheetName; // S
-    String salePbPacketSheetName; // SPP
     String variableCostSheetName; // VC
     String operationSheetName; // OP
 

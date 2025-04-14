@@ -92,7 +92,6 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
     private static final String TRIP_CALENDAR_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME + "_%s";
     private static final String OBSERVER_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.OBSERVER_SHEET_NAME + "_%s";
     private static final String SALE_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SALE_SHEET_NAME + "_%s";
-    private static final String SALE_PB_PACKET_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME + "_%s";
     private static final String VARIABLE_COST_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME + "_%s";
     private static final String OPERATION_TABLE_NAME_PATTERN = TABLE_NAME_PREFIX + ObservedLocationSpecification.OPERATION_SHEET_NAME + "_%s";
 
@@ -261,14 +260,6 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (sheetNames.contains(ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME)) {
-                t = System.currentTimeMillis();
-                rowCount = createSellPbPacketTable(context);
-                if (log.isDebugEnabled())
-                    log.debug("{} created with {} in {}", context.getSaleTableName(), rowCount, TimeUtils.printDurationFrom(t));
-                if (sheetName != null && context.hasSheet(sheetName)) return context;
-            }
-
             if (sheetNames.contains(ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME)) {
                 t = System.currentTimeMillis();
                 rowCount = createVariableCostTable(context);
@@ -320,6 +311,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                             target.setYear(Integer.valueOf(criterion.getValue()));
                         }
                         break;
+                    case ObservedLocationSpecification.COLUMN_PROGRAM:
                     case ObservedLocationSpecification.COLUMN_PROJECT:
                         if (operator == ExtractionFilterOperatorEnum.EQUALS) {
                             target.setProgramLabel(criterion.getValue());
@@ -540,7 +532,6 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setTripCalendarTableName(formatTableName(TRIP_CALENDAR_TABLE_NAME_PATTERN, context.getId()));
         context.setObserverTableName(formatTableName(OBSERVER_TABLE_NAME_PATTERN, context.getId()));
         context.setSaleTableName(formatTableName(SALE_TABLE_NAME_PATTERN, context.getId()));
-        context.setSalePbPacketTableName(formatTableName(SALE_PB_PACKET_TABLE_NAME_PATTERN, context.getId()));
         context.setVariableCostTableName(formatTableName(VARIABLE_COST_TABLE_NAME_PATTERN, context.getId()));
         context.setOperationTableName(formatTableName(OPERATION_TABLE_NAME_PATTERN, context.getId()));
 
@@ -553,7 +544,6 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         context.setTripSheetName(ObservedLocationSpecification.TRIP_SHEET_NAME);
         context.setTripCalendarSheetName(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME);
         context.setSaleSheetName(ObservedLocationSpecification.SALE_SHEET_NAME);
-        context.setSalePbPacketSheetName(ObservedLocationSpecification.SALE_PB_PACKET_SHEET_NAME);
         context.setVariableCostSheetName(ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME);
         context.setOperationSheetName(ObservedLocationSpecification.OPERATION_SHEET_NAME);
         context.setObserverSheetName(ObservedLocationSpecification.OBSERVER_SHEET_NAME);
@@ -782,32 +772,6 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                     xmlQuery.getHiddenColumnNames(),
                     xmlQuery.hasDistinctOption());
             log.debug("SaleTable: {} rows inserted", count);
-        } else {
-            context.addRawTableName(tableName);
-        }
-
-        return count;
-    }
-
-    protected long createSellPbPacketTable(C context) throws PersistenceException, ParseException {
-        String tableName = context.getSalePbPacketTableName();
-
-        XMLQuery xmlQuery = createSalePbPacketQuery(context);
-        execute(context, xmlQuery);
-
-        // Count row
-        long count = countFrom(tableName);
-        if (count > 0) {
-            count -= cleanRow(tableName, context.getFilter(), context.getSalePbPacketSheetName());
-        }
-
-        if (count > 0) {
-            // Add result table to context
-            context.addTableName(tableName,
-                    context.getSalePbPacketSheetName(),
-                    xmlQuery.getHiddenColumnNames(),
-                    xmlQuery.hasDistinctOption());
-            log.debug("SalePacketTable: {} rows inserted", count);
         } else {
             context.addRawTableName(tableName);
         }
@@ -1159,40 +1123,6 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         {
             xmlQuery.bind("saleAmountPmfm", PmfmEnum.SALE_AMOUNT.getId());
             xmlQuery.bind("conditionnementPmfm", PmfmEnum.CONDITIONNEMENT.getId());
-            xmlQuery.bind("productAvgPriceUnitPmfm", PmfmEnum.PRODUCT_AVG_PRICE_UNIT.getId());
-            xmlQuery.bind("productAvgPriceVolumePmfm", PmfmEnum.PRODUCT_AVG_PRICE_VOLUME.getId());
-            xmlQuery.bind("productAvgPriceDozenPmfm", PmfmEnum.PRODUCT_AVG_PRICE_DOZEN.getId());
-            xmlQuery.bind("productAvgPriceHundredPmfm", PmfmEnum.PRODUCT_AVG_PRICE_HUNDRED.getId());
-            xmlQuery.bind("productAvgPricePiecePmfm", PmfmEnum.PRODUCT_AVG_PRICE_PIECE.getId());
-            xmlQuery.bind("productAvgPricePmfm", PmfmEnum.PRODUCT_AVG_PRICE.getId());
-        }
-
-        {
-            xmlQuery.bind("programObsdeb", ProgramEnum.SIH_OBSDEB.getLabel());
-            xmlQuery.bind("programOprdeb", ProgramEnum.SIH_OPRDEB.getLabel());
-        }
-
-        // Filter
-        {
-            xmlQuery = bindXMLQueryFilter(xmlQuery, context);
-        }
-
-        return bindXMLQueryAdagioSchema(xmlQuery);
-    }
-
-    protected XMLQuery createSalePbPacketQuery(C context) throws PersistenceException {
-
-        Integer year = context.getYear();
-        context.setStartDate(Dates.getFirstDayOfYear(year));
-        context.setEndDate(Dates.getLastSecondOfYear(year));
-
-        XMLQuery xmlQuery = createXMLQuery(context, "createSalePbPacketTable");
-        xmlQuery.bind("salePbPacketTableName", context.getSalePbPacketTableName());
-
-        // Pmfms
-        {
-            xmlQuery.bind("saleAmountPmfm", PmfmEnum.SALE_AMOUNT.getId());
-            xmlQuery.bind("conditionnemntPmfm", PmfmEnum.CONDITIONNEMENT.getId());
             xmlQuery.bind("productAvgPriceUnitPmfm", PmfmEnum.PRODUCT_AVG_PRICE_UNIT.getId());
             xmlQuery.bind("productAvgPriceVolumePmfm", PmfmEnum.PRODUCT_AVG_PRICE_VOLUME.getId());
             xmlQuery.bind("productAvgPriceDozenPmfm", PmfmEnum.PRODUCT_AVG_PRICE_DOZEN.getId());

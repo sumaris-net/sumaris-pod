@@ -178,7 +178,7 @@ public abstract class ExtractionBaseDaoImpl<C extends ExtractionContextVO, F ext
     public <C extends ExtractionContextVO> void clean(C context) {
         // DEBUG
         //log.warn("TODO: drop table after an extraction - uncomment code here !!");
-//        dropTables(context);
+        dropTables(context);
     }
 
     protected ExtractionResultVO read(@NonNull String tableName, ExtractionFilterVO filter, Page page) {
