@@ -25,6 +25,7 @@ package net.sumaris.extraction.core.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.sumaris.core.dao.technical.Page;
@@ -718,7 +719,7 @@ public abstract class ExtractionServiceTest extends AbstractServiceTest {
             );
         }
         ExtractionFilterVO filter = ExtractionFilterVO.builder()
-                .sheetName(null)
+                .sheetNames(ImmutableSet.copyOf(ObservedLocationSpecification.SHEET_NAMES))
                 .preview(true)
                 .criteria(criteria)
                 .build();

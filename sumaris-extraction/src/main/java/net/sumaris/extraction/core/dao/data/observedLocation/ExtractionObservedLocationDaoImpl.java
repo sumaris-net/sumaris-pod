@@ -179,7 +179,9 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
 
         // Expected sheet name
         String sheetName = filter != null && filter.isPreview() ? filter.getSheetName() : null;
-        Set<String> sheetNames = filter != null && filter.isPreview() && CollectionUtils.isNotEmpty(filter.getSheetNames()) ? ImmutableSet.copyOf(filter.getSheetNames()) : (sheetName != null ? ImmutableSet.of(sheetName) : ImmutableSet.copyOf(ObservedLocationSpecification.SHEET_NAMES));
+        Set<String> sheetNames = filter != null && filter.isPreview() && CollectionUtils.isNotEmpty(filter.getSheetNames())
+                ? ImmutableSet.copyOf(filter.getSheetNames())
+                : (sheetName != null ? ImmutableSet.of(sheetName) : ImmutableSet.copyOf(ObservedLocationSpecification.SHEET_NAMES));
 
         // -- Execute the extraction --
         try {
@@ -192,7 +194,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 log.debug("{} created with {} rows in {}", context.getObservedLocationTableName(), rowCount, TimeUtils.printDurationFrom(t));
             if (sheetName != null && context.hasSheet(sheetName)) return context;
 
-            if (rowCount > 0 && ObservedLocationSpecification.VESSEL_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.VESSEL_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.VESSEL_SHEET_NAME))) {
                 // Vessel table
                 t = System.currentTimeMillis();
                 rowCount = createVesselTable(context);
@@ -200,7 +202,8 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                     log.debug("{} created with {} in {}", context.getVesselTableName(), rowCount, TimeUtils.printDurationFrom(t));
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
-            if (rowCount > 0 && ObservedLocationSpecification.TRIP_SHEET_NAME.equals(sheetName)) {
+
+            if (rowCount > 0 && (ObservedLocationSpecification.TRIP_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.TRIP_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createTripTable(context);
                 if (log.isDebugEnabled())
@@ -208,7 +211,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (rowCount > 0 && ObservedLocationSpecification.OBSERVER_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.OBSERVER_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.OBSERVER_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createObserverTable(context);
                 if (log.isDebugEnabled())
@@ -216,7 +219,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (rowCount > 0 && ObservedLocationSpecification.OPERATION_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.OPERATION_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.OPERATION_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createOperationTable(context);
                 if (log.isDebugEnabled())
@@ -224,7 +227,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (rowCount > 0 && ObservedLocationSpecification.CATCH_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.CATCH_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.CATCH_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createCatchTable(context);
                 if (log.isDebugEnabled())
@@ -232,7 +235,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (rowCount > 0 && ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.CATCH_INDIVIDUAL_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createCatchIndividualTable(context);
                 if (log.isDebugEnabled())
@@ -240,7 +243,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (rowCount > 0 && ObservedLocationSpecification.CATCH_LOT_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.CATCH_LOT_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.CATCH_LOT_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createCatchLotTable(context);
                 if (log.isDebugEnabled())
@@ -248,7 +251,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (rowCount > 0 && ObservedLocationSpecification.SALE_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.SALE_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.SALE_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createSellTable(context);
                 if (log.isDebugEnabled())
@@ -256,14 +259,15 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
 
-            if (rowCount > 0 && ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME.equals(sheetName)) {
+            if (rowCount > 0 && (ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.VARIABLE_COST_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createVariableCostTable(context);
                 if (log.isDebugEnabled())
                     log.debug("{} created with {} in {}", context.getVariableCostTableName(), rowCount, TimeUtils.printDurationFrom(t));
                 if (sheetName != null && context.hasSheet(sheetName)) return context;
             }
-            if (rowCount > 0 && ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME.equals(sheetName)) {
+
+            if (rowCount > 0 && (ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME.equals(sheetName) || sheetNames.contains(ObservedLocationSpecification.TRIP_CALENDAR_SHEET_NAME))) {
                 t = System.currentTimeMillis();
                 rowCount = createTripCalendarTable(context);
                 if (log.isDebugEnabled())
