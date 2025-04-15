@@ -94,11 +94,6 @@
         <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
         <where operator="AND">VUM.PMFM_FK in (&amp;vesselUseMeasurementPmfms)
         </where>
-        <where group="programFilter" operator="AND">
-            <in field="L.PROGRAM_FK">
-                &amp;progLabels
-            </in>
-        </where>
         <orderby direction="DESC">FT.ID</orderby>
     </query>
 </queries>

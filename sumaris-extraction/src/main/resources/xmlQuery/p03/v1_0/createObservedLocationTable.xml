@@ -38,6 +38,7 @@
 		<from join="true">left outer join &amp;adagioSchema.PERSON O on O.ID = OL2P.OBSERVER_PERSON_FK</from>
 
 		<where>1=1</where>
+		<!--		<where operator="AND">OL.ID = 104761</where>-->
 		<where operator="AND">
 			LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelDistrict
 		</where>
@@ -46,9 +47,6 @@
 		</where>
 		<where operator="AND" group="programFilter">
 			<in field="OL.PROGRAM_FK">&amp;programLabels</in>
-		</where>
-		<where operator="AND" group="yearFilter">
-			extract(year from OL.START_DATE_TIME) = &amp;year
 		</where>
 		<where operator="AND" group="includedIds">
 			<in field="OL.ID">&amp;includedIds</in>
@@ -62,7 +60,17 @@
 		<where operator="AND" group="observersFilter">
 			<in field="OL2P.OBSERVER_PERSON_FK">&amp;observerPersonIds</in>
 		</where>
-
+		<where operator="AND" group="startDateFilter">
+			<![CDATA[
+			NVL(OL.END_DATE_TIME, to_date('01-01-2100','DD-MM-YYYY')) >= &startDate
+			]]>
+		</where>
+		<where operator="AND" group="endDateFilter">
+			<![CDATA[
+           	OL.START_DATE_TIME <= &endDate
+        ]]>
+		</where>
+		<orderby direction="DESC">OL.ID</orderby>
 	</query>
 
 </queries>

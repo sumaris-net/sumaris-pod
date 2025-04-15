@@ -85,7 +85,10 @@
         <select type="text" alias="SAISISSEUR_LIB">P.LASTNAME || ' ' || P.FIRSTNAME</select>
         <select type="date" alias="DATE_SAISIE">FT.CREATION_DATE</select>
 
-        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+        <from alias="OL">&amp;observedLocationTableName</from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.OBSERVED_LOCATION_FK = OL.ID_OBSERVATION</from>
+        <from join="true">inner join &amp;adagioSchema.FISHING_TRIP FT on FT.ID = L.FISHING_TRIP_FK
+        </from>
         <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
         <from join="true">inner join &amp;adagioSchema.OPERATION O on O.FISHING_TRIP_FK = FT.ID</from>
         <from join="true">inner join &amp;adagioSchema.VESSEL_USE_FEATURES VUF on VUF.FISHING_TRIP_FK = FT.ID
@@ -119,13 +122,5 @@
         <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
         <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
         <where operator="AND">O.IS_MAIN_OPERATION = 1</where>
-        <where group="programFilter" operator="AND">
-            <in field="L.PROGRAM_FK">
-                (&amp;progLabels)
-            </in>
-        </where>
-        <where group="yearFilter" operator="AND">
-            <in field="extract(year from L.LANDING_DATE_TIME)">(&amp;year)</in>
-        </where>
     </query>
 </queries>

@@ -51,8 +51,10 @@
             SMT.ALPHANUMERICAL_VALUE)
         </select>
 
-        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
-
+        <from alias="OL">&amp;observedLocationTableName</from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.OBSERVED_LOCATION_FK = OL.ID_OBSERVATION</from>
+        <from join="true">inner join &amp;adagioSchema.FISHING_TRIP FT on FT.ID = L.FISHING_TRIP_FK
+        </from>
         <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID</from>
 
         <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
@@ -96,14 +98,6 @@
         <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter
         </where>
         <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion
-        </where>
-        <where group="programFilter" operator="AND">
-            <in field="L.PROGRAM_FK">
-                &amp;progLabels
-            </in>
-        </where>
-        <where group="yearFilter" operator="AND">
-            <in field="extract(year from L.LANDING_DATE_TIME)">&amp;year</in>
         </where>
     </query>
 </queries>

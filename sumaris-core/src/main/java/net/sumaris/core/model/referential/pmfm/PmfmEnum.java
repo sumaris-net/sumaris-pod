@@ -168,6 +168,7 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     TOTAL_COST(31, "TOTAL_COST"),
 
     MAIN_WATER_DEPTH(0, "MAIN_WATER_DEPTH"),
+    BOAT_TYPE(230, "BOAT_TYPE"),
     @Deprecated
     /**
      * @deprecated Use CONTRACT_CODE instead

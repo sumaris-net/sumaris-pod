@@ -86,7 +86,10 @@
         <select type="text" alias="ID_PACKET">P.BATCH_FK</select>
         <select type="text" alias="PACKET_NUMBER">round(P.SUBGROUP_COUNT)</select>
 
-        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
+        <from alias="OL">&amp;observedLocationTableName</from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.OBSERVED_LOCATION_FK = OL.ID_OBSERVATION</from>
+        <from join="true">inner join &amp;adagioSchema.FISHING_TRIP FT on FT.ID = L.FISHING_TRIP_FK
+        </from>
         <from join="true">inner join &amp;adagioSchema.VESSEL_REGISTRATION_PERIOD vrp on vrp.VESSEL_FK = FT.VESSEL_FK
             and
             vrp.END_DATE_TIME is null
@@ -117,13 +120,5 @@
         <where>1=1</where>
         <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
         <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
-        <where group="programFilter" operator="AND">
-            <in field="L.PROGRAM_FK">
-                (&amp;progLabels)
-            </in>
-        </where>
-        <where group="yearFilter" operator="AND">
-            <in field="extract(year from L.LANDING_DATE_TIME)">(&amp;year)</in>
-        </where>
     </query>
 </queries>

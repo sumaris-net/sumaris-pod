@@ -210,8 +210,9 @@
             )
         </select>
 
-        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
-        <from join="true">INNER JOIN &amp;adagioSchema.LANDING L ON L.FISHING_TRIP_FK = FT.ID
+        <from alias="OL">&amp;observedLocationTableName</from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.OBSERVED_LOCATION_FK = OL.ID_OBSERVATION</from>
+        <from join="true">inner join &amp;adagioSchema.FISHING_TRIP FT on FT.ID = L.FISHING_TRIP_FK
         </from>
         <from join="true">INNER JOIN &amp;adagioSchema.LOCATION LOCDEP ON LOCDEP.ID = FT.DEPARTURE_LOCATION_FK
         </from>
@@ -279,24 +280,15 @@
         </from>
         <from join="true">LEFT OUTER JOIN &amp;adagioSchema.VESSEL_USE_MEASUREMENT vum ON
             vum.VESSEL_USE_FEATURES_FK = vuf.id
-            AND vum.PMFM_FK = 230
+            AND vum.PMFM_FK = &amp;boatTypePmfm
         </from>
         <from join="true">LEFT OUTER JOIN &amp;adagioSchema.QUALITATIVE_VALUE vessel_type_qv ON
-            vum.QUALITATIVE_VALUE_FK =
-            vessel_type_qv.ID
+            vum.QUALITATIVE_VALUE_FK = vessel_type_qv.ID
         </from>
 
         <where>1=1</where>
         <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
         <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
-        <where group="programFilter" operator="AND">
-            <in field="L.PROGRAM_FK">
-                &amp;progLabels
-            </in>
-        </where>
-        <where group="yearFilter" operator="AND">
-            <in field="extract(year from L.LANDING_DATE_TIME)">&amp;year</in>
-        </where>
         <orderby direction="DESC">DATE_DEBARQ</orderby>
     </query>
 </queries>

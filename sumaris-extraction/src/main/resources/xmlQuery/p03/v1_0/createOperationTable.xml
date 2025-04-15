@@ -19,7 +19,7 @@
         <select type="number" alias="ENG_MAILLAGE">
             (
             SELECT GPM_MAILLAGE.NUMERICAL_VALUE MAILLAGE
-            FROM &amp;adagioSchema.gear_physical_measurement GPM_MAILLAGE
+            FROM &amp;adagioSchema.GEAR_PHYSICAL_MEASUREMENT GPM_MAILLAGE
             WHERE 1=1
             AND GPM_MAILLAGE.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
             AND GPM_MAILLAGE.PMFM_FK = &amp;gearPhysicalHookNumber
@@ -28,7 +28,7 @@
         <select type="number" alias="ENG_DIMENSION">
             (
             SELECT GPM_DIMENSION.NUMERICAL_VALUE DIMENSION
-            FROM &amp;adagioSchema.gear_physical_measurement GPM_DIMENSION
+            FROM &amp;adagioSchema.GEAR_PHYSICAL_MEASUREMENT GPM_DIMENSION
             WHERE 1=1
             AND GPM_DIMENSION.GEAR_PHYSICAL_FEATURES_FK = GPF.ID
             AND GPM_DIMENSION.PMFM_FK = &amp;gearPhysicalGearNumber
@@ -52,7 +52,7 @@
         <select type="text" alias="SONDE">
             (
             SELECT VM_SONDE.NUMERICAL_VALUE SONDE
-            FROM &amp;adagioSchema.vessel_use_measurement VM_SONDE
+            FROM &amp;adagioSchema.VESSEL_USE_MEASUREMENT VM_SONDE
             WHERE 1=1
             AND VM_SONDE.VESSEL_USE_FEATURES_FK = VUF.ID
             AND VM_SONDE.PMFM_FK = &amp;mainWaterDepthPmfm
@@ -77,8 +77,9 @@
         <select type="text" alias="INDEX_OPERATION">O.RANK_ORDER_ON_PERIOD</select>
         <select type="text" alias="SEQCAPT">case O.HAS_CATCH when 1 then 'true' else 'false' end</select>
 
-        <from alias="FT">&amp;adagioSchema.FISHING_TRIP</from>
-        <from join="true">inner join &amp;adagioSchema.LANDING L on L.FISHING_TRIP_FK = FT.ID
+        <from alias="OL">&amp;observedLocationTableName</from>
+        <from join="true">inner join &amp;adagioSchema.LANDING L on L.OBSERVED_LOCATION_FK = OL.ID_OBSERVATION</from>
+        <from join="true">inner join &amp;adagioSchema.FISHING_TRIP FT on FT.ID = L.FISHING_TRIP_FK
         </from>
         <from join="true">inner join &amp;adagioSchema.LOCATION_HIERARCHY LOCHQ on LOCHQ.CHILD_LOCATION_FK =
             L.LANDING_LOCATION_FK
@@ -123,13 +124,5 @@
         <where>1=1</where>
         <where operator="AND">LOCQ.LOCATION_LEVEL_FK = &amp;locationLevelQuarter</where>
         <where operator="AND">LOCR.LOCATION_LEVEL_FK = &amp;locationLevelRegion</where>
-        <where group="programFilter" operator="AND">
-            <in field="L.PROGRAM_FK">
-                (&amp;progLabels)
-            </in>
-        </where>
-        <where group="yearFilter" operator="AND">
-            <in field="extract(year from L.LANDING_DATE_TIME)">(&amp;year)</in>
-        </where>
     </query>
 </queries>
