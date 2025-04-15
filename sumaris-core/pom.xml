@@ -204,6 +204,12 @@
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>com.exasol</groupId>
+      <artifactId>parquet-io-java</artifactId>
+      <version>2.0.13</version>
+    </dependency>
+
   </dependencies>
 
   <build>

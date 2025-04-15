@@ -38,6 +38,7 @@ import net.sumaris.core.model.social.UserEvent;
 import net.sumaris.core.model.technical.history.ProcessingHistory;
 import net.sumaris.core.model.technical.job.JobTypeEnum;
 import net.sumaris.core.service.data.vessel.VesselSnapshotJob;
+import net.sumaris.core.service.data.wao.WaoImportJob;
 import net.sumaris.core.service.referential.LocationHierarchyJob;
 import net.sumaris.core.service.referential.taxon.TaxonGroupHierarchiesJob;
 import net.sumaris.core.service.technical.JobExecutionService;
@@ -85,6 +86,8 @@ public class JobGraphQLService {
 
     private final LocationHierarchyJob locationHierarchyJob;
     private final TaxonGroupHierarchiesJob taxonGroupHierarchiesJob;
+
+    private final WaoImportJob waoImportJob;
 
     @GraphQLQuery(name = "jobs", description = "Search in jobs")
     @IsUser
@@ -243,6 +246,8 @@ public class JobGraphQLService {
                 String dateStr = MapUtils.getString(params, "minUpdateDate", null);
                 Date minUpdateDate = StringUtils.isNotBlank(dateStr) ? Dates.fromISODateTimeString(dateStr) : null;
                 return vesselSnapshotJob.start(issuer, minUpdateDate);
+            case WAO_IMPORTATION:
+                return waoImportJob.start(issuer);
             default:
                 throw new SumarisTechnicalException("Unknown job type: " + type);
         }

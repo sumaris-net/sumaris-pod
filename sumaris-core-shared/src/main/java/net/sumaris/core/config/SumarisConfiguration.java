@@ -1032,6 +1032,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOption(SumarisConfigurationOption.DB_ADAGIO_SCHEMA.getKey());
     }
 
+    public boolean enableWaoUpdate()  {
+        return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.ENABLE_WAO_IMPORT.getKey());
+    }
+
 
     /**
      * Prefer ProgramEnum.SIH.getLabel()
@@ -1124,6 +1128,10 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
 
     public boolean enableReferentialDefaultCache() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.REFERENTIAL_DEFAULT_CACHE_ENABLE.getKey());
+    }
+
+    public File getWaoDirectory() {
+        return applicationConfig.getOptionAsFile(SumarisConfigurationOption.WAO_IMPORT_DIRECTORY.getKey());
     }
 
     /* -- protected methods -- */

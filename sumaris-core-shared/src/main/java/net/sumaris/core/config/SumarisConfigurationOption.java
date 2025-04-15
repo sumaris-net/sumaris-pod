@@ -672,6 +672,19 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         Boolean.class,
         false),
 
+    ENABLE_WAO_IMPORT(
+            "sumaris.persistence.wao.importation",
+            n("sumaris.config.option.persistence.wao.importation.description"),
+            Boolean.FALSE.toString(),
+            Boolean.class,
+            false),
+
+    WAO_IMPORT_DIRECTORY(
+            "sumaris.data.wao.directory",
+            n("sumaris.config.option.data.wao.directory.description"),
+            "${sumaris.data.directory}/wao_files",
+            File.class),
+
     ENABLE_BATCH_HASH_OPTIMIZATION(
         "sumaris.persistence.batch.hashOptimization",
         n("sumaris.config.option.persistence.batch.hashOptimization.description"),
