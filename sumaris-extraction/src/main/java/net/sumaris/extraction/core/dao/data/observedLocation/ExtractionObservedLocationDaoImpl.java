@@ -1229,6 +1229,7 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                         PmfmEnum.BAIT_COST.getId(),
                         PmfmEnum.FOOD_COST.getId(),
                         PmfmEnum.GEAR_LOST_COST.getId(),
+                        PmfmEnum.GEAR_COST.getId(),
                         PmfmEnum.OTHER_COST.getId()
                 )
                 .build();
@@ -1259,7 +1260,10 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
                         PmfmEnum.ENGINE_OIL_COST.getId(),
                         PmfmEnum.HYDRAULIC_OIL_VOLUME.getId(),
                         PmfmEnum.HYDRAULIC_OIL_UNIT_PRICE.getId(),
-                        PmfmEnum.HYDRAULIC_OIL_COST.getId()
+                        PmfmEnum.HYDRAULIC_OIL_COST.getId(),
+                        PmfmEnum.GEAR_TYPE.getId(),
+                        PmfmEnum.GEAR_COUNT.getId(),
+                        PmfmEnum.GEAR_COST.getId()
                 )
                 .build();
     }

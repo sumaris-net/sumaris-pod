@@ -165,6 +165,10 @@ public enum PmfmEnum implements IEntityEnum, Serializable {
     ICE_WEIGHT(246, "ICE_WEIGHT"),
     ICE_BAG_COUNT(45, "ICE_BAG_COUNT"),
 
+    GEAR_TYPE(515, "GEAR_TYPE"),
+    GEAR_COUNT(516, "GEAR_COUNT"),
+    GEAR_COST(517, "GEAR_COST"),
+
     TOTAL_COST(31, "TOTAL_COST"),
 
     MAIN_WATER_DEPTH(0, "MAIN_WATER_DEPTH"),
