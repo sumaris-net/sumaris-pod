@@ -867,6 +867,12 @@ public class ExtractionObservedLocationDaoImpl<C extends ExtractionObservedLocat
         }
         // Date filter
         {
+            if (context.getObservedLocationFilter().getStartDate() == null && context.getObservedLocationFilter().getEndDate() == null) {
+                int year = Dates.getYear(new Date()) - 1;
+                context.getObservedLocationFilter().setStartDate(Dates.getFirstDayOfYear(year));
+                context.getObservedLocationFilter().setEndDate(Dates.getLastSecondOfYear(year));
+            }
+
             if (context.getObservedLocationFilter().getStartDate() != null) {
                 xmlQuery.bind("startDate", Daos.getSqlToDate(context.getObservedLocationFilter().getStartDate()));
                 xmlQuery.setGroup("startDateFilter", true);
