@@ -46,7 +46,7 @@ public interface ProgramSpecifications {
 
     String PROPERTY_LABEL_PARAM = "propertyLabel";
     String MIN_UPDATE_DATE_PARAM = "minUpdateDate";
-    String INCLUDED_ACQUISITION_LEVELS_PARAM = "includedAcquisitionLevels";
+    String ACQUISITION_LEVELS_PARAM = "acquisitionLevels";
     String EXCLUDED_ACQUISITION_LEVELS_PARAM = "excludedAcquisitionLevels";
 
     default Specification<Program> hasProperty(String propertyLabel) {
@@ -67,10 +67,10 @@ public interface ProgramSpecifications {
         .addBind(MIN_UPDATE_DATE_PARAM, minUpdateDate);
     }
 
-    default Specification<Program> includedAcquisitionLevel(String... acquisitionLevels) {
+    default Specification<Program> acquisitionLevel(String... acquisitionLevels) {
         if (ArrayUtils.isEmpty(acquisitionLevels)) return null;
         return BindableSpecification.where((root, query, cb) -> {
-                ParameterExpression<Collection> param = cb.parameter(Collection.class, INCLUDED_ACQUISITION_LEVELS_PARAM);
+                    ParameterExpression<Collection> param = cb.parameter(Collection.class, ACQUISITION_LEVELS_PARAM);
 
                 // Avoid duplication, because of inner join
                 query.distinct(true);
@@ -80,7 +80,7 @@ public interface ProgramSpecifications {
 
                 return cb.in(acquisitionLevelJoin.get(AcquisitionLevel.Fields.LABEL)).value(param);
             })
-            .addBind(INCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(acquisitionLevels));
+                .addBind(ACQUISITION_LEVELS_PARAM, Arrays.asList(acquisitionLevels));
     }
 
     default Specification<Program> excludedAcquisitionLevel(String... excludedAcquisitionLevels) {
@@ -89,7 +89,7 @@ public interface ProgramSpecifications {
         return BindableSpecification.where((root, query, cb) -> {
             ParameterExpression<Collection> param = cb.parameter(Collection.class, EXCLUDED_ACQUISITION_LEVELS_PARAM);
 
-            // Avoid duplication
+            // Éviter les doublons
             query.distinct(true);
 
             Subquery<Integer> subQuery = query.subquery(Integer.class);
@@ -111,7 +111,7 @@ public interface ProgramSpecifications {
                             )
                     );
 
-            // Return the programs that have no correspondence in the sub-query
+            // Retourner les programmes qui n'ont PAS de correspondance dans la sous-requête
             return cb.not(cb.exists(subQuery));
         }).addBind(EXCLUDED_ACQUISITION_LEVELS_PARAM, Arrays.asList(excludedAcquisitionLevels));
     }

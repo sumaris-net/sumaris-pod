@@ -185,7 +185,7 @@ public class ProgramRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))
                 .and(excludedAcquisitionLevel(filter.getExcludedAcquisitionLevelLabels()))
-                .and(includedAcquisitionLevel(filter.getIncludedAcquisitionLevelLabels()))
+                .and(acquisitionLevel(filter.getAcquisitionLevelLabels()))
             .and(hasProperty(filter.getWithProperty()));
     }
 

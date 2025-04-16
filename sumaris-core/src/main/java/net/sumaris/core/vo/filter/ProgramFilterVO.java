@@ -22,7 +22,10 @@ package net.sumaris.core.vo.filter;
  * #L%
  */
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Date;
@@ -67,7 +70,7 @@ public class ProgramFilterVO implements IReferentialFilter {
 
     private String withProperty;
     private Date minUpdateDate;
-    private String[] includedAcquisitionLevelLabels;
+    private String[] acquisitionLevelLabels;
     private String[] excludedAcquisitionLevelLabels;
 
 }
