@@ -54,6 +54,7 @@ public class VesselUseFeaturesVO implements IUseFeaturesVO {
 
     private Integer isActive; // See enumeration
     private LocationVO basePortLocation;
+
     private Map<Integer, String> measurementValues;
     private List<DataOriginVO> dataOrigins;
 

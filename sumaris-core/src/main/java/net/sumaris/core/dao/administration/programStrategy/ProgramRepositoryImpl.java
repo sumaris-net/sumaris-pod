@@ -141,17 +141,17 @@ public class ProgramRepositoryImpl
     @Override
     public Optional<ProgramVO> findIfNewerById(int id, Date updateDate, ProgramFetchOptions fetchOptions) {
         try (Stream<Program> stream = streamAll(
-                BindableSpecification.where(hasId(id))
-                    .and(newerThan(updateDate)),
-                Sort.by(Program.Fields.ID)
-            )) {
+            BindableSpecification.where(hasId(id))
+                .and(newerThan(updateDate)),
+            Sort.by(Program.Fields.ID)
+        )) {
             return stream.findFirst()
                 .map(source -> toVO(source, fetchOptions));
         }
     }
 
     @Override
-    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, unless="#result == null")
+    @Cacheable(cacheNames = CacheConfiguration.Names.PROGRAM_BY_ID, unless = "#result == null")
     public Optional<ProgramVO> findVOById(Integer id) {
         return super.findVOById(id);
     }
@@ -185,6 +185,7 @@ public class ProgramRepositoryImpl
         return super.toSpecification(filter, fetchOptions)
             .and(newerThan(filter.getMinUpdateDate()))
             .and(hasAcquisitionLevelLabels(filter.getAcquisitionLevelLabels()))
+            .and(excludedAcquisitionLevelLabels(filter.getExcludedAcquisitionLevelLabels()))
             .and(hasProperty(filter.getWithProperty()));
     }
 
@@ -402,8 +403,8 @@ public class ProgramRepositoryImpl
         query.orderBy(builder.asc(root.get(TaxonGroup.Fields.LABEL)));
 
         try (Stream<TaxonGroup> stream = getEntityManager().createQuery(query)
-                .setParameter(programIdParam, programId)
-                .getResultStream()) {
+            .setParameter(programIdParam, programId)
+            .getResultStream()) {
             return stream.map(taxonGroupRepository::toVO).toList();
         }
     }
