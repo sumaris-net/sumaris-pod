@@ -258,9 +258,9 @@ public class ConfigurationGraphQLService {
                     dbTimeZone);
             }
 
-            // Add parameter label length
+            // Add parameter label length, only if inherited=true
             String parameterLabelLength = configuration.getApplicationConfig().getOption(SumarisConfigurationOption.PARAMETER_LABEL_LENGTH.getKey());
-            if (StringUtils.isNotBlank(parameterLabelLength)) {
+            if (StringUtils.isNotBlank(parameterLabelLength) && withInherited) {
                 properties.put(
                     SumarisConfigurationOption.PARAMETER_LABEL_LENGTH.getKey(),
                     parameterLabelLength);
