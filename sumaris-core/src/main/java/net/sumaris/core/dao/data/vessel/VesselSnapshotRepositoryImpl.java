@@ -322,6 +322,10 @@ public class VesselSnapshotRepositoryImpl
         // Registration period
         if (fetchOptions.isWithVesselRegistrationPeriod() || fetchOptions.isWithCountryRegistration()) {
             if (registrationPeriod != null) {
+                target.setRegistrationId(registrationPeriod.getId());
+                target.setRegistrationStartDate(registrationPeriod.getStartDate());
+                target.setRegistrationEndDate(registrationPeriod.getEndDate());
+
                 // Registration code
                 target.setRegistrationCode(registrationPeriod.getRegistrationCode());
 
