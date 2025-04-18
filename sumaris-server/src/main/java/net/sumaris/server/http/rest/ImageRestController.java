@@ -87,7 +87,7 @@ public class ImageRestController implements ResourceLoaderAware {
         produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getPersonAvatar(@PathVariable(name = "pubkey") String pubkey) throws IOException {
         return personService.findAvatarByPubkey(pubkey)
-            .map(image -> this.getImageResponse(image, Images.ImageType.THUMBNAIL))
+            .map(image -> this.getImageResponse(image, Images.ImageSize.SMALL))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -96,7 +96,7 @@ public class ImageRestController implements ResourceLoaderAware {
         produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getDepartmentLogo(@PathVariable(name = "label") String label) throws IOException {
         return departmentService.findLogoByLabel(label)
-            .map(image -> this.getImageResponse(image, Images.ImageType.THUMBNAIL))
+            .map(image -> this.getImageResponse(image, Images.ImageSize.SMALL))
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -105,7 +105,7 @@ public class ImageRestController implements ResourceLoaderAware {
         method = RequestMethod.GET, produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
     public ResponseEntity<?> getImage(@PathVariable(name = "id", required = false) Integer id,
                                       @PathVariable(name = "filename", required = false) String filename,
-                                      @RequestParam(name = "resolution", required = false) String resolution
+                                      @RequestParam(name = "size", required = false) String imageSize
     ) {
         try {
             // Convert filename into id
@@ -114,12 +114,12 @@ public class ImageRestController implements ResourceLoaderAware {
                 filename = null;
             }
 
-            Images.ImageType imageType = Images.ImageType.find(resolution).orElse(Images.ImageType.DIAPO);
+            Images.ImageSize size = Images.ImageSize.find(imageSize).orElse(Images.ImageSize.MEDIUM);
             if (StringUtils.isNotBlank(filename)) {
-                return getImageResponse(filename, imageType);
+                return getImageResponse(filename, size);
             }
             ImageAttachmentVO image = imageService.find(id, ImageAttachmentFetchOptions.WITH_CONTENT);
-            return getImageResponse(image, imageType);
+            return getImageResponse(image, size);
         } catch (Exception e) {
             log.error("Error while fetching image #{}: {}", id, e.getMessage());
             return ResponseEntity.notFound().build();
@@ -143,7 +143,7 @@ public class ImageRestController implements ResourceLoaderAware {
         // Parse URI like 'image:<ID>'
         if (favicon.startsWith(ImageService.URI_IMAGE_SUFFIX)) {
             String imageId = favicon.substring(ImageService.URI_IMAGE_SUFFIX.length());
-            return getImage(Integer.parseInt(imageId), null, Images.ImageType.THUMBNAIL.getSuffix());
+            return getImage(Integer.parseInt(imageId), null, Images.ImageSize.SMALL.getSuffix());
         }
 
         // Redirect to the URL
@@ -173,14 +173,14 @@ public class ImageRestController implements ResourceLoaderAware {
 
     }
 
-    protected ResponseEntity<?> getImageResponse(ImageAttachmentVO image, Images.ImageType imageType) {
+    protected ResponseEntity<?> getImageResponse(ImageAttachmentVO image, Images.ImageSize imageSize) {
         if (image == null) {
             return ResponseEntity.notFound().build();
         }
 
         // Read the file
         if (StringUtils.isNotBlank(image.getPath())) {
-            return getImageResponse(image.getPath(), imageType);
+            return getImageResponse(image.getPath(), imageSize);
         }
 
         if (image.getContent() == null) {
@@ -196,7 +196,7 @@ public class ImageRestController implements ResourceLoaderAware {
             .body(bytes);
     }
 
-    protected ResponseEntity<?> getImageResponse(@NonNull String filename, Images.ImageType imageType) {
+    protected ResponseEntity<?> getImageResponse(@NonNull String filename, Images.ImageSize imageSize) {
 
         if (StringUtils.isBlank(filename)) ResponseEntity.notFound().build();
 
@@ -214,8 +214,8 @@ public class ImageRestController implements ResourceLoaderAware {
 
         File file = new File(configuration.getImagesDirectory(), filename);
 
-        if (imageType != null && imageType != Images.ImageType.BASE) {
-            file = Images.getImageFile(file, imageType);
+        if (imageSize != null && imageSize != Images.ImageSize.FULL) {
+            file = Images.getImageFile(file, imageSize);
         }
 
         if (!file.exists()) {

@@ -26,6 +26,7 @@ package net.sumaris.core.config;
 
 import net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect;
 import net.sumaris.core.util.Geometries;
+import net.sumaris.core.util.Images;
 import org.nuiton.config.ConfigOptionDef;
 import org.nuiton.version.Version;
 
@@ -273,6 +274,24 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         n("sumaris.config.option.data.images.directory.enable.description"),
         Boolean.FALSE.toString(),
         boolean.class,
+        false),
+
+    DATA_IMAGE_SIZE_SMALL("sumaris.data.images.size.small",
+        n("sumaris.config.option.data.images.size.small.description"),
+        Images.ImageSize.SMALL.getMaxSize().toString(),
+        Integer.class,
+        false),
+
+    DATA_IMAGE_SIZE_MEDIUM("sumaris.data.images.size.medium",
+        n("sumaris.config.option.data.images.size.medium.description"),
+        Images.ImageSize.MEDIUM.getMaxSize().toString(),
+        Integer.class,
+        false),
+
+    DATA_IMAGE_SIZE_LARGE("sumaris.data.images.size.large",
+        n("sumaris.config.option.data.images.size.large.description"),
+        Images.ImageSize.LARGE.getMaxSize().toString(),
+        Integer.class,
         false),
 
     IMPORT_NB_YEARS_DATA_HISTORY(

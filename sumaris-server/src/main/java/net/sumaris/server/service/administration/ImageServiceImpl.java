@@ -81,6 +81,12 @@ public class ImageServiceImpl implements ImageService {
             + RestPaths.IMAGE_PATH.replaceAll("\\{(\\w+):[^}]+\\}", "{$1}");
 
         enableImagesDirectory = configuration.enableDataImagesDirectory() && Files.exists(configuration.getImagesDirectory());
+
+        // Override image size enumerations
+        Images.ImageSize.SMALL.setMaxSize(configuration.getImageSizeSmall());
+        Images.ImageSize.MEDIUM.setMaxSize(configuration.getImageSizeMedium());
+        Images.ImageSize.LARGE.setMaxSize(configuration.getImageSizeLarge());
+
     }
 
     @Override

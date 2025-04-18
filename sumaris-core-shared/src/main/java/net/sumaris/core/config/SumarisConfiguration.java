@@ -1109,6 +1109,19 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.DATA_IMAGES_DIRECTORY_ENABLE.getKey());
     }
 
+    public int getImageSizeSmall() {
+        return getImageSize(SumarisConfigurationOption.DATA_IMAGE_SIZE_SMALL);
+    }
+
+    public int getImageSizeMedium() {
+        return getImageSize(SumarisConfigurationOption.DATA_IMAGE_SIZE_MEDIUM);
+    }
+
+    public int getImageSizeLarge() {
+        return getImageSize(SumarisConfigurationOption.DATA_IMAGE_SIZE_LARGE);
+    }
+
+
     public boolean enableReferentialDefaultCache() {
         return applicationConfig.getOptionAsBoolean(SumarisConfigurationOption.REFERENTIAL_DEFAULT_CACHE_ENABLE.getKey());
     }
@@ -1198,5 +1211,11 @@ public class SumarisConfiguration extends PropertyPlaceholderConfigurer {
             complexOptionsCache.put(optionKey, result);
         }
         return result;
+    }
+
+    protected int getImageSize(SumarisConfigurationOption optionDef) {
+        int optionValue = applicationConfig.getOptionAsInt(optionDef.getKey());
+        if (optionValue <= 0) return Integer.parseInt(optionDef.getDefaultValue());
+        return optionValue;
     }
 }

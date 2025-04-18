@@ -57,7 +57,7 @@ public class Images {
         .collect(Collectors.toMap(extension -> String.format("image/%s", extension), Function.identity()));
     public static final String AVAILABLE_EXTENSIONS = String.join("|", AVAILABLE_EXTENSION_LIST);
     public static final String AVAILABLE_CONTENT_TYPES = String.join("|", AVAILABLE_EXTENSION_BY_CONTENT_TYPE.values());
-    public static final List<String> AVAILABLE_FILE_SUFFIX_LIST = ImmutableList.of(ImageType.DIAPO.suffix, ImageType.THUMBNAIL.suffix);
+    public static final List<String> AVAILABLE_FILE_SUFFIX_LIST = ImmutableList.of(ImageSize.MEDIUM.suffix, ImageSize.SMALL.suffix);
     public static final String AVAILABLE_FILE_SUFFIXES = String.join("|", AVAILABLE_FILE_SUFFIX_LIST);
 
     // Regexp to parse an image
@@ -89,11 +89,15 @@ public class Images {
             // original size
             ImageIO.write(bigImage, fileExtension, file);
 
-            // resize to medium
-            ImageIO.write(Scalr.resize(bigImage, ImageType.DIAPO.getMaxSize()), fileExtension, getImageFile(file, ImageType.DIAPO));
-
             // resize to small
-            ImageIO.write(Scalr.resize(bigImage, ImageType.THUMBNAIL.getMaxSize()), fileExtension, getImageFile(file, ImageType.THUMBNAIL));
+            ImageIO.write(Scalr.resize(bigImage, ImageSize.SMALL.getMaxSize()), fileExtension, getImageFile(file, ImageSize.SMALL));
+
+            // resize to medium
+            ImageIO.write(Scalr.resize(bigImage, ImageSize.MEDIUM.getMaxSize()), fileExtension, getImageFile(file, ImageSize.MEDIUM));
+
+            // resize to large
+            ImageIO.write(Scalr.resize(bigImage, ImageSize.LARGE.getMaxSize()), fileExtension, getImageFile(file, ImageSize.LARGE));
+
         } catch (IOException ioe) {
             throw new SumarisTechnicalException("Error while saving image", ioe);
         }
@@ -105,22 +109,24 @@ public class Images {
     public static List<File> getAllImageFiles(File baseFile) {
         return Stream.of(
             baseFile,
-            getImageFile(baseFile, ImageType.DIAPO),
-            getImageFile(baseFile, ImageType.THUMBNAIL)
+            getImageFile(baseFile, ImageSize.SMALL),
+            getImageFile(baseFile, ImageSize.MEDIUM),
+            getImageFile(baseFile, ImageSize.LARGE)
         ).toList();
     }
 
     public static List<File> getAllImageFiles(File baseFile, Predicate<File> predicate) {
         return Stream.of(
             baseFile,
-            getImageFile(baseFile, ImageType.DIAPO),
-            getImageFile(baseFile, ImageType.THUMBNAIL)
+            getImageFile(baseFile, ImageSize.SMALL),
+            getImageFile(baseFile, ImageSize.MEDIUM),
+            getImageFile(baseFile, ImageSize.LARGE)
         ).filter(predicate).toList();
     }
 
-    public static File getImageFile(File baseImageFile, ImageType imageType) {
+    public static File getImageFile(File baseImageFile, ImageSize imageSize) {
         return new File(baseImageFile.getParentFile(),
-            String.format("%s%s.%s", FilenameUtils.getBaseName(baseImageFile.getName()), imageType.getSuffix(), getImageFileExtension(baseImageFile)));
+            String.format("%s%s.%s", FilenameUtils.getBaseName(baseImageFile.getName()), imageSize.getSuffix(), getImageFileExtension(baseImageFile)));
     }
 
     private static String getImageFileExtensionByContentType(String contentType) {
@@ -179,30 +185,39 @@ public class Images {
     }
 
     public static void deleteOtherImage(File inputFile) {
-        FileUtils.deleteQuietly(getImageFile(inputFile, ImageType.DIAPO));
-        FileUtils.deleteQuietly(getImageFile(inputFile, ImageType.THUMBNAIL));
+        FileUtils.deleteQuietly(getImageFile(inputFile, ImageSize.SMALL));
+        FileUtils.deleteQuietly(getImageFile(inputFile, ImageSize.MEDIUM));
+        FileUtils.deleteQuietly(getImageFile(inputFile, ImageSize.LARGE));
     }
 
     @Getter
-    public enum ImageType {
-        BASE("", null),
-        DIAPO("$MID", 500),
-        THUMBNAIL("$LOW", 200);
+    public enum ImageSize {
+        SMALL("$LOW", 200),
+        MEDIUM("$MID", 800),
+        LARGE("$LRG", 2024),
+        FULL("", null);
 
         private final String suffix;
-        private final Integer maxSize;
+        private Integer maxSize;
 
-        ImageType(String suffix, Integer maxSize) {
+        ImageSize(String suffix, Integer maxSize) {
             this.suffix = suffix;
             this.maxSize = maxSize;
         }
 
-        public static Optional<ImageType> find(String type) {
+        public void setMaxSize(int maxSize) {
+            if (StringUtils.isBlank(this.suffix))
+                throw new IllegalArgumentException("Cannot override the ImageSize.FULL maxSize value");
+            this.maxSize = maxSize;
+        }
+
+        public static Optional<ImageSize> find(String type) {
             if (type == null) return Optional.empty();
             return switch (type.toUpperCase()) {
-                case "FULL", "$FULL" -> Optional.of(BASE);
-                case "MID", "$MID", "MEDIUM" -> Optional.of(DIAPO);
-                case "LOW", "$LOW" -> Optional.of(THUMBNAIL);
+                case "SMALL", "LOW", "$LOW" -> Optional.of(SMALL);
+                case "MEDIUM", "MID", "$MID" -> Optional.of(MEDIUM);
+                case "LARGE", "LRG", "$LRG" -> Optional.of(LARGE);
+                case "ORIG", "FULL", "$FULL" -> Optional.of(FULL);
                 default -> Optional.empty();
             };
         }
