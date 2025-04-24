@@ -25,325 +25,330 @@
 
   <!-- SIH-OBSMER Program -->
   <PROGRAM ID="90" LABEL="SIH-OBSMER" NAME="Observation des captures en mer"
-    DESCRIPTION="Observation des captures en mer" STATUS_FK="1" CREATION_DATE="2019-02-15"
-    UPDATE_DATE="2019-02-15" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2" />
-  <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="90" LOCATION_CLASSIFICATION_FK="1" />
+           DESCRIPTION="Observation des captures en mer" STATUS_FK="1" CREATION_DATE="2019-02-15"
+           UPDATE_DATE="2019-02-15" GEAR_CLASSIFICATION_FK="1" TAXON_GROUP_TYPE_FK="2"/>
+  <PROGRAM2LOCATION_CLASSIF PROGRAM_FK="90" LOCATION_CLASSIFICATION_FK="1"/>
 
   <PROGRAM2PERSON ID="90" PROGRAM_FK="90" PERSON_FK="3" PROGRAM_PRIVILEGE_FK="1"
-    UPDATE_DATE="2023-11-07" />
+                  UPDATE_DATE="2023-11-07"/>
   <PROGRAM2PERSON ID="91" PROGRAM_FK="90" PERSON_FK="2" PROGRAM_PRIVILEGE_FK="2"
-    UPDATE_DATE="2023-11-07" />
+                  UPDATE_DATE="2023-11-07"/>
   <PROGRAM2PERSON ID="92" PROGRAM_FK="90" PERSON_FK="7" PROGRAM_PRIVILEGE_FK="4"
-    UPDATE_DATE="2023-11-22" /> <!-- viewer -->
+                  UPDATE_DATE="2023-11-22"/> <!-- viewer -->
   <PROGRAM2PERSON ID="93" PROGRAM_FK="90" PERSON_FK="8" PROGRAM_PRIVILEGE_FK="4"
-    UPDATE_DATE="2023-11-22" /> <!-- validator -->
+                  UPDATE_DATE="2023-11-22"/> <!-- validator -->
   <PROGRAM2PERSON ID="94" PROGRAM_FK="90" PERSON_FK="9" PROGRAM_PRIVILEGE_FK="4"
-    UPDATE_DATE="2023-11-22" /> <!-- qualifier -->
+                  UPDATE_DATE="2023-11-22"/> <!-- qualifier -->
 
   <PROGRAM2DEPARTMENT ID="91" PROGRAM_FK="90" DEPARTMENT_FK="13" PROGRAM_PRIVILEGE_FK="1"
-    UPDATE_DATE="2023-11-07" />
+                      UPDATE_DATE="2023-11-07"/>
   <PROGRAM2DEPARTMENT ID="92" PROGRAM_FK="90" DEPARTMENT_FK="3" PROGRAM_PRIVILEGE_FK="3"
-    UPDATE_DATE="2023-11-07" /> <!-- Ifremer as Observers -->
+                      UPDATE_DATE="2023-11-07"/> <!-- Ifremer as Observers -->
 
   <PROGRAM_PROPERTY ID="400" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.gear.rankOrder.enable" NAME="false" />
+                    LABEL="sumaris.trip.gear.rankOrder.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="401" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.observers.enable" NAME="true" />
+                    LABEL="sumaris.trip.observers.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="402" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.sale.enable" NAME="true" />
+                    LABEL="sumaris.trip.sale.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="403" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.map.enable" NAME="true" />
+                    LABEL="sumaris.trip.map.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="404" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.metiers.enable" NAME="false" />
+                    LABEL="sumaris.trip.metiers.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="405" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.location.filter.searchText.minLength" NAME="2" />
+                    LABEL="sumaris.trip.location.filter.searchText.minLength" NAME="2"/>
   <PROGRAM_PROPERTY ID="406" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.metier.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.metier.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="407" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.allowParent" NAME="false" />
+                    LABEL="sumaris.trip.operation.allowParent" NAME="false"/>
   <PROGRAM_PROPERTY ID="408" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.distanceMaxError" NAME="200" />
+                    LABEL="sumaris.trip.operation.distanceMaxError" NAME="200"/>
   <PROGRAM_PROPERTY ID="409" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.distanceMaxWarning" NAME="150" />
+                    LABEL="sumaris.trip.operation.distanceMaxWarning" NAME="150"/>
   <PROGRAM_PROPERTY ID="410" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.latitude.defaultSign" NAME="+" />
+                    LABEL="sumaris.trip.operation.latitude.defaultSign" NAME="+"/>
   <PROGRAM_PROPERTY ID="411" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-" />
+                    LABEL="sumaris.trip.operation.longitude.defaultSign" NAME="-"/>
   <PROGRAM_PROPERTY ID="412" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.batch.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.batch.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="413" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.sample.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.sample.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="414" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.sample.dateTime.enable" NAME="false" />
+                    LABEL="sumaris.trip.operation.sample.dateTime.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="415" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.sample.taxonName.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.sample.taxonName.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="416" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.sample.taxonGroup.enable" NAME="false" />
+                    LABEL="sumaris.trip.operation.sample.taxonGroup.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="417" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.sample.images.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.sample.images.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="418" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.maxShootingDurationInHours" NAME="12" /><!-- 12 hours -->
+                    LABEL="sumaris.trip.operation.maxShootingDurationInHours" NAME="12"/><!-- 12 hours -->
   <PROGRAM_PROPERTY ID="419" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.maxTotalDurationInHours" NAME="2400" /><!-- 100 days -->
+                    LABEL="sumaris.trip.operation.maxTotalDurationInHours" NAME="2400"/><!-- 100 days -->
   <PROGRAM_PROPERTY ID="420" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.fishingStartDateEnable" NAME="false" />
+                    LABEL="sumaris.trip.operation.fishingStartDateEnable" NAME="false"/>
   <PROGRAM_PROPERTY ID="421" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.fishingEndDateEnable" NAME="false" />
+                    LABEL="sumaris.trip.operation.fishingEndDateEnable" NAME="false"/>
   <PROGRAM_PROPERTY ID="422" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.endDateEnable" NAME="true" />
+                    LABEL="sumaris.trip.operation.endDateEnable" NAME="true"/>
   <PROGRAM_PROPERTY ID="423" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.extraction.formats" NAME="PMFM_TRIP,VESSEL" />
+                    LABEL="sumaris.extraction.formats" NAME="PMFM_TRIP,VESSEL"/>
   <PROGRAM_PROPERTY ID="424" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.data.strategy.resolution" NAME="spatio-temporal" />
+                    LABEL="sumaris.data.strategy.resolution" NAME="spatio-temporal"/>
   <PROGRAM_PROPERTY ID="425" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.operation.editor" NAME="advanced" />
+                    LABEL="sumaris.operation.editor" NAME="advanced"/>
   <PROGRAM_PROPERTY ID="426" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.report.enable" NAME="true" />
+                    LABEL="sumaris.trip.report.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="427" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.report.type" NAME="form" />
+                    LABEL="sumaris.trip.report.type" NAME="form"/>
   <PROGRAM_PROPERTY ID="428" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false" />
+                    LABEL="sumaris.trip.operation.batch.taxonName.enable" NAME="false"/>
   <PROGRAM_PROPERTY ID="429" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.batch.samplingRatio.format" NAME="1/w" />
+                    LABEL="sumaris.trip.operation.batch.samplingRatio.format" NAME="1/w"/>
   <PROGRAM_PROPERTY ID="430" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.operation.batch.exhaustiveInventory.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.batch.exhaustiveInventory.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="431" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.i18nSuffix" NAME="OBSERVED_TRIP." />
+                    LABEL="sumaris.i18nSuffix" NAME="OBSERVED_TRIP."/>
   <PROGRAM_PROPERTY ID="432" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-03-08"
-    LABEL="sumaris.trip.samplingStrata.enable" NAME="true" />
+                    LABEL="sumaris.trip.samplingStrata.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="433" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-03-08"
-    LABEL="sumaris.trip.operation.metier.taxonGroupType.ids" NAME="4" /><!-- National metier -->
+                    LABEL="sumaris.trip.operation.metier.taxonGroupType.ids" NAME="4"/><!-- National metier -->
   <PROGRAM_PROPERTY ID="434" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.report.form.subtitle" NAME="Formulaire ObsMer - Programme 2024 - 2027" />
+                    LABEL="sumaris.trip.report.form.subtitle" NAME="Formulaire ObsMer - Programme 2024 - 2027"/>
   <PROGRAM_PROPERTY ID="435" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.report.form.footer"
-    NAME="OBSMER Forms V1-2023 by SIH IFREMER is licensed under a CC-BY-SA 4.0 International License" />
+                    LABEL="sumaris.trip.report.form.footer"
+                    NAME="OBSMER Forms V1-2023 by SIH IFREMER is licensed under a CC-BY-SA 4.0 International License"/>
   <PROGRAM_PROPERTY ID="436" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-sih-black.png" />
+                    LABEL="sumaris.trip.report.form.header.left.logo.url" NAME="/assets/img/logo/logo-sih-black.png"/>
   <PROGRAM_PROPERTY ID="437" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.report.form.header.right.logo.url"
-    NAME="/assets/img/logo/logo-sih-obsmer.png" />
+                    LABEL="sumaris.trip.report.form.header.right.logo.url"
+                    NAME="/assets/img/logo/logo-sih-obsmer.png"/>
   <PROGRAM_PROPERTY ID="438" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.gears.columns.pmfmIds" NAME="3" /> <!-- always show SMALLER_MESH_GAUGE -->
+                    LABEL="sumaris.trip.gears.columns.pmfmIds" NAME="3"/> <!-- always show SMALLER_MESH_GAUGE -->
   <PROGRAM_PROPERTY ID="439" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.trip.gears.columns.pmfm.hideIfEmpty" NAME="true" />
+                    LABEL="sumaris.trip.gears.columns.pmfm.hideIfEmpty" NAME="true"/>
   <PROGRAM_PROPERTY ID="440" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-05-03"
-    LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1" />
+                    LABEL="sumaris.trip.operation.batch.roundWeightConversion.country.id" NAME="1"/>
   <PROGRAM_PROPERTY ID="441" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-05-03"
-    LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.batch.lengthWeightConversion.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="442" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2023-11-07"
-    LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-obsmer-square.png" />
+                    LABEL="sumaris.program.logo" NAME="/assets/img/logo/logo-sih-obsmer-square.png"/>
   <PROGRAM_PROPERTY ID="443" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2024-12-11"
-    LABEL="sumaris.trip.operation.batch.ichthyometer.enable" NAME="true" />
+                    LABEL="sumaris.trip.operation.batch.ichthyometer.enable" NAME="true"/>
   <PROGRAM_PROPERTY ID="444" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2025-02-20"
-    LABEL="sumaris.trip.report.operation.comment.help.text"
-    NAME="(Préciser si possible le temps de traitement de la capture pour les OP échantillonnées)" />
+                    LABEL="sumaris.trip.report.operation.comment.help.text"
+                    NAME="(Préciser si possible le temps de traitement de la capture pour les OP échantillonnées)"/>
   <PROGRAM_PROPERTY ID="445" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2025-02-12"
-    LABEL="sumaris.trip.operation.vesselAssociation.gear.ids" NAME="2,5" />
+                    LABEL="sumaris.trip.operation.vesselAssociation.gear.ids" NAME="2,5"/>
+  <PROGRAM_PROPERTY ID="446" STATUS_FK="1" PROGRAM_FK="90" CREATION_DATE="2025-04-24"
+                    LABEL="sumaris.data.favorites.enable" NAME="true"/>
 
   <!-- strategies -->
   <STRATEGY ID="90" PROGRAM_FK="90" LABEL="OBSMER-2023" NAME="OBSMER démarrage le 01/11/2023"
-    STATUS_FK="1" CREATION_DATE="2023-11-07" UPDATE_DATE="2023-11-07" />
+            STATUS_FK="1" CREATION_DATE="2023-11-07" UPDATE_DATE="2023-11-07"/>
 
-  <APPLIED_STRATEGY ID="90" STRATEGY_FK="90" LOCATION_FK="1" />
-  <APPLIED_PERIOD APPLIED_STRATEGY_FK="90" START_DATE="2023-11-01" END_DATE="2024-11-01" />
+  <APPLIED_STRATEGY ID="90" STRATEGY_FK="90" LOCATION_FK="1"/>
+  <APPLIED_PERIOD APPLIED_STRATEGY_FK="90" START_DATE="2023-11-01" END_DATE="2024-11-01"/>
 
-  <STRATEGY2GEAR STRATEGY_FK="90" GEAR_FK="6" />
-  <STRATEGY2GEAR STRATEGY_FK="90" GEAR_FK="7" />
+  <STRATEGY2GEAR STRATEGY_FK="90" GEAR_FK="6"/>
+  <STRATEGY2GEAR STRATEGY_FK="90" GEAR_FK="7"/>
 
   <!-- PmfmStrategy / Trip -->
   <PMFM_STRATEGY ID="1080" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="1" PMFM_FK="21" RANK_ORDER="1"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- Nb fishermen -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- Nb fishermen -->
 
   <!-- PmfmStrategy / Physical gear / Trawl -->
   <PMFM_STRATEGY ID="2090" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="2" PMFM_FK="8" RANK_ORDER="1"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- Trawl type -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- Trawl type -->
   <PMFM_STRATEGY ID="2091" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="2" PMFM_FK="12" RANK_ORDER="2"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- Cumulative length of headline -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- Cumulative length of headline -->
   <PMFM_STRATEGY ID="2092" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="2" PMFM_FK="3" RANK_ORDER="3"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- Smaller mesh gauge -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- Smaller mesh gauge -->
   <PMFM_STRATEGY ID="2093" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="2" PMFM_FK="10" RANK_ORDER="4"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- Form of wing line -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- Form of wing line -->
   <PMFM_STRATEGY ID="2094" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="2" PMFM_FK="11" RANK_ORDER="5"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- Type of rig -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- Type of rig -->
   <PMFM_STRATEGY ID="2096" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="2" PMFM_FK="4" RANK_ORDER="6"
-    ACQUISITION_NUMBER="3" IS_MANDATORY="0" /> <!-- Selective device -->
+                 ACQUISITION_NUMBER="3" IS_MANDATORY="0"/> <!-- Selective device -->
 
   <!-- PmfmStrategy / Operation -->
   <PMFM_STRATEGY ID="2100" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="9" RANK_ORDER="4"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- GEAR_SPEED -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- GEAR_SPEED -->
   <PMFM_STRATEGY ID="2101" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="36" RANK_ORDER="5"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- GEAR_DEPTH -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- GEAR_DEPTH -->
   <PMFM_STRATEGY ID="2102" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="33" RANK_ORDER="6"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- SEA_STATE -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- SEA_STATE -->
   <PMFM_STRATEGY ID="2103" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="414" RANK_ORDER="7"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- WIND_FORCE_BEAUFORT -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- WIND_FORCE_BEAUFORT -->
   <PMFM_STRATEGY ID="2104" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="420" RANK_ORDER="8"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- WIND_CARDINAL_DIRECTION -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- WIND_CARDINAL_DIRECTION -->
   <PMFM_STRATEGY ID="2105" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="34" RANK_ORDER="9"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /><!-- TRIP_PROGRESS -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/><!-- TRIP_PROGRESS -->
   <PMFM_STRATEGY ID="2106" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="416" RANK_ORDER="10"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- RECTILINEAR_OPERATION -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- RECTILINEAR_OPERATION -->
   <PMFM_STRATEGY ID="2107" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="417" RANK_ORDER="11"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /><!-- DIURNAL_OPERATION -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/><!-- DIURNAL_OPERATION -->
   <PMFM_STRATEGY ID="2108" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="415" RANK_ORDER="12"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- SEABED_FEATURES -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- SEABED_FEATURES -->
   <PMFM_STRATEGY ID="2109" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="3" PMFM_FK="121" RANK_ORDER="13"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /><!-- HAS_INDIVIDUAL_MEASURE -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/><!-- HAS_INDIVIDUAL_MEASURE -->
 
   <!-- PmfmStrategy / Sample -->
   <PMFM_STRATEGY ID="2120" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="12" PMFM_FK="94" RANK_ORDER="1"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /><!-- Is Dead ? -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/><!-- Is Dead ? -->
   <!--PMFM_STRATEGY
   ID="2121" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="12" PMFM_FK="397" RANK_ORDER="2"
   ACQUISITION_NUMBER="1" IS_MANDATORY="1"/--><!-- individual on deck ? -->
   <PMFM_STRATEGY ID="2122" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="12" PMFM_FK="80" RANK_ORDER="3"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- SEX -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- SEX -->
   <PMFM_STRATEGY ID="2123" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="12" PMFM_FK="81" RANK_ORDER="4"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /><!-- LENGTH_TOTAL_CM -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/><!-- LENGTH_TOTAL_CM -->
   <PMFM_STRATEGY ID="2124" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="12" PMFM_FK="82" RANK_ORDER="5"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /><!-- Tag ID -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/><!-- Tag ID -->
 
   <!-- PmfmStrategy / Individual release / Sample -->
   <PMFM_STRATEGY ID="2125" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="9" PMFM_FK="82" RANK_ORDER="1"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" />
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
   <PMFM_STRATEGY ID="2126" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="9" PMFM_FK="103" RANK_ORDER="2"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" />
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
   <PMFM_STRATEGY ID="2127" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="9" PMFM_FK="110" RANK_ORDER="3"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" />
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
   <PMFM_STRATEGY ID="2128" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="9" PMFM_FK="111" RANK_ORDER="4"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" />
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/>
 
   <!-- PmfmStrategy / Sorting batch -->
   <PMFM_STRATEGY ID="2130" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="57" RANK_ORDER="1"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- CATCH_WEIGHT -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- CATCH_WEIGHT -->
   <PMFM_STRATEGY ID="2131" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="90" RANK_ORDER="2"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- DISCARD_OR_LANDING -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- DISCARD_OR_LANDING -->
   <PMFM_STRATEGY ID="2132" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="436" RANK_ORDER="3"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- LANDING_CATEGORY -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- LANDING_CATEGORY -->
   <PMFM_STRATEGY ID="2133" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="176" RANK_ORDER="4"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- SORTING_BATCH (Vrac / HV) -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- SORTING_BATCH (Vrac / HV) -->
   <PMFM_STRATEGY ID="2134" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="409" RANK_ORDER="5"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- IS_SAMPLING (Détaillé, Non détaillé) -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- IS_SAMPLING (Détaillé, Non détaillé) -->
   <PMFM_STRATEGY ID="2135" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="408" RANK_ORDER="6"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- DISCARD_TYPE (Animaux, Inerte, Macro déchets) -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- DISCARD_TYPE (Animaux, Inerte, Macro déchets) -->
   <PMFM_STRATEGY ID="2136" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="151" RANK_ORDER="7"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" DEFAULT_VALUE="362" /> <!-- DRESSING -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0" DEFAULT_VALUE="362"/> <!-- DRESSING -->
   <PMFM_STRATEGY ID="2137" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="150" RANK_ORDER="8"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" DEFAULT_VALUE="332" /> <!-- PRESERVATION -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0" DEFAULT_VALUE="332"/> <!-- PRESERVATION -->
   <PMFM_STRATEGY ID="2138" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="437" RANK_ORDER="9"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- EMV_CATEGORY -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- EMV_CATEGORY -->
   <PMFM_STRATEGY ID="2139" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="91" RANK_ORDER="10"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- BATCH_MEASURED_WEIGHT -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- BATCH_MEASURED_WEIGHT -->
   <PMFM_STRATEGY ID="2140" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="92" RANK_ORDER="11"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- BATCH_ESTIMATED_WEIGHT -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- BATCH_ESTIMATED_WEIGHT -->
   <PMFM_STRATEGY ID="2141" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="93" RANK_ORDER="12"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- BATCH_CALCULATED_WEIGHT -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- BATCH_CALCULATED_WEIGHT -->
   <PMFM_STRATEGY ID="2142" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="5" PMFM_FK="123" RANK_ORDER="13"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- BATCH_CALCULATED_WEIGHT_LENGTH_SUM -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- BATCH_CALCULATED_WEIGHT_LENGTH_SUM -->
 
   <!-- PmfmStrategy / Sorting batch / individual -->
   <PMFM_STRATEGY ID="2150" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="6" PMFM_FK="81" RANK_ORDER="1"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- LENGTH_TOTAL_CM -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- LENGTH_TOTAL_CM -->
   <PMFM_STRATEGY ID="2151" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="6" PMFM_FK="85" RANK_ORDER="2"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- LENGTH_CARAPACE_MM -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- LENGTH_CARAPACE_MM -->
   <PMFM_STRATEGY ID="2152" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="6" PMFM_FK="87" RANK_ORDER="3"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="1" /> <!-- LENGTH_MANTLE_CM -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="1"/> <!-- LENGTH_MANTLE_CM -->
   <PMFM_STRATEGY ID="2153" STRATEGY_FK="90" ACQUISITION_LEVEL_FK="6" PMFM_FK="122" RANK_ORDER="4"
-    ACQUISITION_NUMBER="1" IS_MANDATORY="0" /> <!-- BATCH_CALCULATED_WEIGHT_LENGTH -->
+                 ACQUISITION_NUMBER="1" IS_MANDATORY="0"/> <!-- BATCH_CALCULATED_WEIGHT_LENGTH -->
 
   <!-- MNZ - Baudroie -->
-  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2150" TAXON_GROUP_FK="1122" /> <!-- LENGTH_TOTAL_CM -->
+  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2150" TAXON_GROUP_FK="1122"/> <!-- LENGTH_TOTAL_CM -->
 
   <!-- HAD - Eglefin -->
-  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2150" TAXON_GROUP_FK="1152" /> <!-- LENGTH_TOTAL_CM -->
+  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2150" TAXON_GROUP_FK="1152"/> <!-- LENGTH_TOTAL_CM -->
 
   <!-- COD - Cabillaud -->
-  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2150" TAXON_GROUP_FK="1161" /> <!-- LENGTH_TOTAL_CM -->
+  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2150" TAXON_GROUP_FK="1161"/> <!-- LENGTH_TOTAL_CM -->
 
   <!-- NEP - Langoustine -->
-  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2151" TAXON_GROUP_FK="1131" /> <!-- LENGTH_CARAPACE_MM -->
+  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2151" TAXON_GROUP_FK="1131"/> <!-- LENGTH_CARAPACE_MM -->
 
   <!-- CTC - Seiche commune -->
-  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2152" TAXON_GROUP_FK="1716" /> <!-- LENGTH_MANTLE_CM -->
+  <PMFM_STRATEGY2TAXON_GROUP PMFM_STRATEGY_FK="2152" TAXON_GROUP_FK="1716"/> <!-- LENGTH_MANTLE_CM -->
 
   <!-- Sampling strata -->
   <SAMPLING_SCHEME ID="1" LABEL="DPMA_21_23_Lot1" NAME="DPMA_21_23_Lot1" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_SCHEME ID="2" LABEL="DPMA_21_23_Lot2" NAME="DPMA_21_23_Lot2" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_SCHEME ID="3" LABEL="DPMA_21_23_Lot3" NAME="DPMA_21_23_Lot3" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_SCHEME ID="4" LABEL="DPMA_21_23_Lot4" NAME="DPMA_21_23_Lot4" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
 
   <SAMPLING_SCHEME ID="5" LABEL="DPMA_24_26_Lot1" NAME="DPMA_24_26_Lot1" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_SCHEME ID="6" LABEL="DPMA_24_26_Lot2" NAME="DPMA_24_26_Lot2" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_SCHEME ID="7" LABEL="DPMA_24_26_Lot3" NAME="DPMA_24_26_Lot3" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_SCHEME ID="8" LABEL="DPMA_24_26_Lot4" NAME="DPMA_24_26_Lot4" PROGRAM_FK="90"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
 
   <SAMPLING_STRATA ID="1" LABEL="2023_M0351" NAME="2023_M0351" DESCRIPTION="Fileyage"
-    SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14"
-    OBSERVATION_LOCATION_FK="44" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" /> <!--
+                   SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14"
+                   OBSERVATION_LOCATION_FK="44" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/> <!--
   Mer Celtique;Manche Ouest -->
   <SAMPLING_STRATA ID="2" LABEL="2023_M0352" NAME="2023_M0352"
-    DESCRIPTION="Chalutage de fond hauturier" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
-    END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="41" STATUS_FK="1"
-    CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" /> <!-- Sud Mer du Nord;Manche Est -->
+                   DESCRIPTION="Chalutage de fond hauturier" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
+                   END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="41" STATUS_FK="1"
+                   CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/> <!-- Sud Mer du Nord;Manche Est -->
   <SAMPLING_STRATA ID="3" LABEL="2023_M0353" NAME="2023_M0353"
-    DESCRIPTION="Chalutage de fond côtier" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
-    END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="44" STATUS_FK="1"
-    CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" /> <!-- Boulogne -->
+                   DESCRIPTION="Chalutage de fond côtier" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
+                   END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="44" STATUS_FK="1"
+                   CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/> <!-- Boulogne -->
   <SAMPLING_STRATA ID="4" LABEL="2023_M0354" NAME="2023_M0354"
-    DESCRIPTION="Drague à coquilles St-Jacques" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
-    END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="44" STATUS_FK="1"
-    CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" /> <!-- Boulogne -->
+                   DESCRIPTION="Drague à coquilles St-Jacques" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
+                   END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="44" STATUS_FK="1"
+                   CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/> <!-- Boulogne -->
   <SAMPLING_STRATA ID="5" LABEL="2023_M0356" NAME="2023_M0356"
-    DESCRIPTION="Chalutage de fond hauturier" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
-    END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="44" STATUS_FK="1"
-    CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" /> <!-- Boulogne -->
+                   DESCRIPTION="Chalutage de fond hauturier" SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01"
+                   END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="44" STATUS_FK="1"
+                   CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/> <!-- Boulogne -->
   <SAMPLING_STRATA ID="6" LABEL="2023_M0506" NAME="2023_M0506" DESCRIPTION="Fileyage"
-    SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14"
-    OBSERVATION_LOCATION_FK="41" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" /> <!--
+                   SAMPLING_SCHEME_FK="1" START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14"
+                   OBSERVATION_LOCATION_FK="41" STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/> <!--
   Concarneau -->
 
   <SAMPLING_STRATA ID="10" LABEL="2024_M0036" NAME="2024_M0036" DESCRIPTION="LOT4_S36_XMT"
-    SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_STRATA ID="11" LABEL="2024_M0037" NAME="2024_M0037" DESCRIPTION="LOT4_S37_XPV"
-    SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_STRATA ID="12" LABEL="2024_M0038" NAME="2024_M0038" DESCRIPTION="LOT4_S38_GPV_Courte"
-    SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_STRATA ID="13" LABEL="2024_M0058" NAME="2024_M0058" DESCRIPTION="LOT4_S58_GPV_Classique"
-    SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_STRATA ID="14" LABEL="2024_M0042" NAME="2024_M0042" DESCRIPTION="LOT4_S42_QST"
-    SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
   <SAMPLING_STRATA ID="15" LABEL="2024_M0043" NAME="2024_M0043" DESCRIPTION="LOT4_S43_EMT"
-    SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14" />
+                   SAMPLING_SCHEME_FK="8" START_DATE="2023-12-01" END_DATE="2024-12-31" DEPARTMENT_FK="15"
+                   STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"/>
 
   <DENORMALIZED_SAMPLING_STRATA ID="1" LABEL="2023_M0351" NAME="2023_M0351" DESCRIPTION="Fileyage"
-    START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="44"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"
-    SAMPLING_SCHEME_LABEL="DPMA_21_23_Lot1" SAMPLING_SCHEME_NAME="DPMA_21_23_Lot1"
-    METIER="GTR_CRU;GTR_DEF;GNS_CRU;GNS_DEF"
-    AREA_NAME="Mer Celtique;Manche Ouest" SUB_AREA_LOCATION_IDS="4239;4237;4240;4238"
-    PROGRAM_FK="90" />
+                                START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14"
+                                OBSERVATION_LOCATION_FK="44"
+                                STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"
+                                SAMPLING_SCHEME_LABEL="DPMA_21_23_Lot1" SAMPLING_SCHEME_NAME="DPMA_21_23_Lot1"
+                                METIER="GTR_CRU;GTR_DEF;GNS_CRU;GNS_DEF"
+                                AREA_NAME="Mer Celtique;Manche Ouest" SUB_AREA_LOCATION_IDS="4239;4237;4240;4238"
+                                PROGRAM_FK="90"/>
 
   <DENORMALIZED_SAMPLING_STRATA ID="2" LABEL="2023_M0352" NAME="2023_M0352"
-    DESCRIPTION="Chalutage de fond hauturier"
-    START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14" OBSERVATION_LOCATION_FK="41"
-    STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"
-    SAMPLING_SCHEME_LABEL="DPMA_21_23_Lot1" SAMPLING_SCHEME_NAME="DPMA_21_23_Lot1"
-    METIER="OTB_MOL;OTB_DEF;OTT_DEF"
-    AREA_NAME="Sud Mer du Nord;Manche Est" SUB_AREA_LOCATION_IDS="4228;4236" PROGRAM_FK="90" />
+                                DESCRIPTION="Chalutage de fond hauturier"
+                                START_DATE="2023-01-01" END_DATE="2023-12-01" DEPARTMENT_FK="14"
+                                OBSERVATION_LOCATION_FK="41"
+                                STATUS_FK="1" CREATION_DATE="2023-12-14" UPDATE_DATE="2023-12-14"
+                                SAMPLING_SCHEME_LABEL="DPMA_21_23_Lot1" SAMPLING_SCHEME_NAME="DPMA_21_23_Lot1"
+                                METIER="OTB_MOL;OTB_DEF;OTT_DEF"
+                                AREA_NAME="Sud Mer du Nord;Manche Est" SUB_AREA_LOCATION_IDS="4228;4236"
+                                PROGRAM_FK="90"/>
 
 </dataset>
