@@ -1,4 +1,4 @@
-#/bin/bash -e
+#!/bin/bash -e
 
 SCRIPT_DIR=$(dirname "$(readlink "$BASH_SOURCE" || echo "$BASH_SOURCE")")
 PROJECT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd -P)
