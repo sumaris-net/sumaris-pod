@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>2.9.37-beta1-SNAPSHOT</version>
+    <version>2.9.37-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-server</artifactId>
@@ -20,7 +21,8 @@
 
     <!-- bundle configuration -->
     <bundlePrefix>sumarie-server-${project.version}</bundlePrefix>
-    <bundle.jvmArgs>-server -Xms512m -Xmx1g -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=50
+    <bundle.jvmArgs>-server -Xms512m -Xmx1g -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled
+      -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=50
       -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark
     </bundle.jvmArgs>
 
@@ -36,7 +38,8 @@
     <server.address>localhost</server.address>
     <server.port>8080</server.port>
     <server.url>http://${server.address}:${server.port}</server.url>
-    <server.account.register.confirm.url>${server.url}/api/confirmEmail/?email={email}&amp;code={code}</server.account.register.confirm.url>
+    <server.account.register.confirm.url>${server.url}/api/confirmEmail/?email={email}&amp;code={code}
+    </server.account.register.confirm.url>
     <admin.email>admin@locahost</admin.email>
 
     <maven.jar.main.class>net.sumaris.server.Application</maven.jar.main.class>
@@ -174,10 +177,10 @@
       <groupId>de.grundid.opendatalab</groupId>
       <artifactId>geojson-jackson</artifactId>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>org.glassfish.jaxb</groupId>-->
-<!--      <artifactId>jaxb-runtime</artifactId>-->
-<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>org.glassfish.jaxb</groupId>-->
+    <!--      <artifactId>jaxb-runtime</artifactId>-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>

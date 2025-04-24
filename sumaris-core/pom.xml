@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>net.sumaris</groupId>
     <artifactId>sumaris-pod</artifactId>
-    <version>2.9.37-beta1-SNAPSHOT</version>
+    <version>2.9.37-SNAPSHOT</version>
   </parent>
 
   <artifactId>sumaris-core</artifactId>
@@ -21,7 +22,8 @@
       ${project.build.directory}/generated-sources/resources
     </hibernate.generated.cfg.dir>
     <hibernate.generated.cfg.path>${hibernate.generated.cfg.dir}/hibernate.cfg.xml</hibernate.generated.cfg.path>
-    <hibernate.generated.properties.path>${hibernate.generated.cfg.dir}/hibernate.properties</hibernate.generated.properties.path>
+    <hibernate.generated.properties.path>${hibernate.generated.cfg.dir}/hibernate.properties
+    </hibernate.generated.properties.path>
 
     <persistence.xml.generated.dir>
       ${project.build.directory}/generated-sources/resources/META-INF
@@ -30,8 +32,10 @@
 
     <hibernate.entities.package>net.sumaris.core.model</hibernate.entities.package>
     <hibernate.vo.package>net.sumaris.core.vo</hibernate.vo.package>
-    <hibernate.physical_naming_strategy>net.sumaris.core.dao.technical.hibernate.HibernatePhysicalNamingStrategy</hibernate.physical_naming_strategy>
-    <hibernate.implicit_naming_strategy>net.sumaris.core.dao.technical.hibernate.HibernateImplicitNamingStrategy</hibernate.implicit_naming_strategy>
+    <hibernate.physical_naming_strategy>net.sumaris.core.dao.technical.hibernate.HibernatePhysicalNamingStrategy
+    </hibernate.physical_naming_strategy>
+    <hibernate.implicit_naming_strategy>net.sumaris.core.dao.technical.hibernate.HibernateImplicitNamingStrategy
+    </hibernate.implicit_naming_strategy>
 
     <test>AllTests</test>
 
@@ -349,14 +353,16 @@
             <configuration>
               <target>
                 <taskdef resource="net/sf/antcontrib/antlib.xml">
-                  <classpath refid="maven.plugin.classpath" />
+                  <classpath refid="maven.plugin.classpath"/>
                 </taskdef>
 
                 <echo level="info">Generate Hibernate files [hibernate.cfg.xml] and [hibernate.properties]</echo>
-                <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-hibernate-cfg" inheritRefs="true" />
+                <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-hibernate-cfg"
+                     inheritRefs="true"/>
 
                 <echo level="info">Generate JPA file [persistence.xml]</echo>
-                <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-persistence-xml" inheritRefs="true" />
+                <ant antfile="${project.basedir}/src/main/ant/hibernate.xml" target="generate-persistence-xml"
+                     inheritRefs="true"/>
               </target>
             </configuration>
           </execution>
@@ -419,13 +425,15 @@
         <sumaris.persistence.db.directory>target/db</sumaris.persistence.db.directory>
         <sumaris.persistence.db.name>sumaris</sumaris.persistence.db.name>
         <jdbc.url>jdbc:hsqldb:file:${sumaris.persistence.db.directory}/${sumaris.persistence.db.name}</jdbc.url>
-        <jdbc.driver.jar>${settings.localRepository}/org/hsqldb/hsqldb/${hsqldb.version}/hsqldb-${hsqldb.version}.jar</jdbc.driver.jar>
+        <jdbc.driver.jar>${settings.localRepository}/org/hsqldb/hsqldb/${hsqldb.version}/hsqldb-${hsqldb.version}.jar
+        </jdbc.driver.jar>
         <jdbc.username>sa</jdbc.username>
-        <jdbc.password />
+        <jdbc.password/>
         <jdbc.driver>org.hsqldb.jdbc.JDBCDriver</jdbc.driver>
         <jdbc.schema>PUBLIC</jdbc.schema>
         <spring.sql.init.platform>hsqldb</spring.sql.init.platform>
-        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect</hibernate.dialect>
+        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.HSQLSpatialDialect
+        </hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 
@@ -448,13 +456,16 @@
 
       <properties>
         <jdbc.url>jdbc:oracle:thin:@192.168.0.6:1521:ORCL</jdbc.url>
-        <jdbc.driver.jar>${settings.localRepository}/com/oracle/ojdbc11/${ojdbc11.version}/ojdbc11-${ojdbc11.version}.jar</jdbc.driver.jar>
+        <jdbc.driver.jar>
+          ${settings.localRepository}/com/oracle/ojdbc11/${ojdbc11.version}/ojdbc11-${ojdbc11.version}.jar
+        </jdbc.driver.jar>
         <jdbc.username>SUMARIS_TU</jdbc.username>
         <jdbc.password>SUMARIS_TU</jdbc.password>
         <jdbc.schema>SUMARIS_TU</jdbc.schema>
         <jdbc.driver>oracle.jdbc.driver.OracleDriver</jdbc.driver>
         <spring.sql.init.platform>oracle</spring.sql.init.platform>
-        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.OracleSpatial10gDialect</hibernate.dialect>
+        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.OracleSpatial10gDialect
+        </hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 
@@ -477,13 +488,16 @@
 
       <properties>
         <jdbc.url>jdbc:postgresql://localhost:5432/sumaris-test</jdbc.url>
-        <jdbc.driver.jar>${settings.localRepository}/org/postgresql/postgresql/${pgsql.version}/postgresql-${pgsql.version}.jar</jdbc.driver.jar>
+        <jdbc.driver.jar>
+          ${settings.localRepository}/org/postgresql/postgresql/${pgsql.version}/postgresql-${pgsql.version}.jar
+        </jdbc.driver.jar>
         <jdbc.username>sumaris</jdbc.username>
         <jdbc.password>sumaris</jdbc.password>
         <jdbc.schema>public</jdbc.schema>
         <jdbc.driver>org.postgresql.Driver</jdbc.driver>
         <spring.sql.init.platform>pgsql</spring.sql.init.platform>
-        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.PostgreSQL10Dialect</hibernate.dialect>
+        <hibernate.dialect>net.sumaris.core.dao.technical.hibernate.spatial.dialect.PostgreSQL10Dialect
+        </hibernate.dialect>
         <hibernate.jdbcBatchSize>15</hibernate.jdbcBatchSize>
       </properties>
 
@@ -612,12 +626,14 @@
                 <configuration>
                   <target>
                     <taskdef name="hibernatetool" classname="org.hibernate.tool.ant.HibernateToolTask">
-                      <classpath refid="maven.plugin.classpath" />
+                      <classpath refid="maven.plugin.classpath"/>
                     </taskdef>
 
                     <!-- workaround (when no jdbc schema defined)-->
-                    <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.reporting.schema}&lt;" flags="g" byline="false">
-                      <fileset file="${hibernate.generated.cfg.path}" />
+                    <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;"
+                                   replace="hibernate.default_schema&quot;&gt;${jdbc.reporting.schema}&lt;" flags="g"
+                                   byline="false">
+                      <fileset file="${hibernate.generated.cfg.path}"/>
                     </replaceregexp>
 
                     <hibernatetool destdir="${project.reporting.outputDirectory}/hibernate">
@@ -625,7 +641,7 @@
                         <path location="${project.build.outputDirectory}"/>
                       </classpath>
 
-                      <jpaconfiguration persistenceunit="sumaris" />
+                      <jpaconfiguration persistenceunit="sumaris"/>
 
                       <hbm2doc>
                         <property key="jdk5" value="false"/>
@@ -633,8 +649,10 @@
                     </hibernatetool>
 
                     <!-- restore the hibernate.cfg.xml -->
-                    <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;" replace="hibernate.default_schema&quot;&gt;${jdbc.schema}&lt;" flags="g" byline="false">
-                      <fileset file="${hibernate.generated.cfg.path}" />
+                    <replaceregexp match="hibernate.default_schema&quot;&gt;[^&lt;]*&lt;"
+                                   replace="hibernate.default_schema&quot;&gt;${jdbc.schema}&lt;" flags="g"
+                                   byline="false">
+                      <fileset file="${hibernate.generated.cfg.path}"/>
                     </replaceregexp>
                   </target>
                 </configuration>

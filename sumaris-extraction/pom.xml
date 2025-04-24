@@ -1,107 +1,108 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>net.sumaris</groupId>
-		<artifactId>sumaris-pod</artifactId>
-		<version>2.9.37-beta1-SNAPSHOT</version>
-	</parent>
+  <parent>
+    <groupId>net.sumaris</groupId>
+    <artifactId>sumaris-pod</artifactId>
+    <version>2.9.37-SNAPSHOT</version>
+  </parent>
 
-	<artifactId>sumaris-extraction</artifactId>
-	<name>SUMARiS:: Extraction</name>
-	<description>SUMARiS extraction library</description>
+  <artifactId>sumaris-extraction</artifactId>
+  <name>SUMARiS:: Extraction</name>
+  <description>SUMARiS extraction library</description>
 
-	<properties>
-		<!-- i18n configuration -->
-		<i18n.bundleOutputName>sumaris-extraction-i18n</i18n.bundleOutputName>
-		<i18n.bundleCsvFile>${i18n.bundleOutputName}.csv</i18n.bundleCsvFile>
-		<config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
+  <properties>
+    <!-- i18n configuration -->
+    <i18n.bundleOutputName>sumaris-extraction-i18n</i18n.bundleOutputName>
+    <i18n.bundleCsvFile>${i18n.bundleOutputName}.csv</i18n.bundleCsvFile>
+    <config.i18nBundleName>${i18n.bundleOutputName}</config.i18nBundleName>
 
-	</properties>
+  </properties>
 
-	<dependencies>
+  <dependencies>
 
-		<!-- Project dependency -->
-		<dependency>
-			<groupId>net.sumaris</groupId>
-			<artifactId>sumaris-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sumaris</groupId>
-			<artifactId>sumaris-xml-query</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.grundid.opendatalab</groupId>
-			<artifactId>geojson-jackson</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-		</dependency>
+    <!-- Project dependency -->
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-xml-query</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.grundid.opendatalab</groupId>
+      <artifactId>geojson-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
 
-		<!-- OpenCSV for extraction result -->
-		<dependency>
-			<groupId>net.sf.opencsv</groupId>
-			<artifactId>opencsv</artifactId>
-		</dependency>
+    <!-- OpenCSV for extraction result -->
+    <dependency>
+      <groupId>net.sf.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+    </dependency>
 
-		<!-- Gdal (SIG utilities) -->
-		<dependency>
-			<groupId>org.gdal</groupId>
-			<artifactId>gdal</artifactId>
-			<version>3.0.0</version>
-		</dependency>
+    <!-- Gdal (SIG utilities) -->
+    <dependency>
+      <groupId>org.gdal</groupId>
+      <artifactId>gdal</artifactId>
+      <version>3.0.0</version>
+    </dependency>
 
-		<!-- Unit test -->
-		<dependency>
-			<groupId>net.sumaris</groupId>
-			<artifactId>sumaris-test-shared</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.dbunit</groupId>
-			<artifactId>dbunit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.mattbertolini</groupId>
-			<artifactId>liquibase-slf4j</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.oracle.database.jdbc</groupId>
-			<artifactId>ojdbc11</artifactId>
-			<scope>test</scope>
-		</dependency>
+    <!-- Unit test -->
+    <dependency>
+      <groupId>net.sumaris</groupId>
+      <artifactId>sumaris-test-shared</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.dbunit</groupId>
+      <artifactId>dbunit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.mattbertolini</groupId>
+      <artifactId>liquibase-slf4j</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc11</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-kahadb-store</artifactId>
@@ -109,50 +110,50 @@
 
   </dependencies>
 
-	<build>
+  <build>
 
-		<plugins>
+    <plugins>
 
-			<plugin>
-				<groupId>org.nuiton.i18n</groupId>
-				<artifactId>i18n-maven-plugin</artifactId>
+      <plugin>
+        <groupId>org.nuiton.i18n</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
 
-				<executions>
-					<execution>
-						<id>scan-sources</id>
-						<configuration>
-							<entries>
-								<entry>
-									<specificGoal>parserValidation</specificGoal>
-									<basedir>${maven.src.dir}/main/java/</basedir>
-									<includes>
-										<param>**/**-validation.xml</param>
-									</includes>
-								</entry>
-							</entries>
-						</configuration>
-						<goals>
-							<goal>parserJava</goal>
-							<goal>parserValidation</goal>
-							<goal>gen</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>make-bundle</id>
-						<goals>
-							<goal>bundle</goal>
-							<goal>generate-csv-bundle</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+        <executions>
+          <execution>
+            <id>scan-sources</id>
+            <configuration>
+              <entries>
+                <entry>
+                  <specificGoal>parserValidation</specificGoal>
+                  <basedir>${maven.src.dir}/main/java/</basedir>
+                  <includes>
+                    <param>**/**-validation.xml</param>
+                  </includes>
+                </entry>
+              </entries>
+            </configuration>
+            <goals>
+              <goal>parserJava</goal>
+              <goal>parserValidation</goal>
+              <goal>gen</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>make-bundle</id>
+            <goals>
+              <goal>bundle</goal>
+              <goal>generate-csv-bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-			</plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
 
-		</plugins>
+    </plugins>
 
-	</build>
+  </build>
 
 </project>
