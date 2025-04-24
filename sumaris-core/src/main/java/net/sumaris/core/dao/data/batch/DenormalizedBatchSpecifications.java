@@ -32,12 +32,15 @@ import net.sumaris.core.util.StringUtils;
 import net.sumaris.core.vo.data.batch.BatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchVO;
 import net.sumaris.core.vo.data.batch.DenormalizedBatchesFilterVO;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nonnull;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V extends DenormalizedBatchVO> {
@@ -90,6 +93,15 @@ public interface DenormalizedBatchSpecifications<E extends DenormalizedBatch, V 
         specification.addBind(DenormalizedBatchVO.Fields.SALE_ID, saleId);
         return specification;
     }
+
+    default Specification<E> hasSaleIds(Integer[] saleIds) {
+        if (ArrayUtils.isEmpty(saleIds)) return null;
+        return BindableSpecification.where((root, query, cb) -> {
+            ParameterExpression<Collection> param = cb.parameter(Collection.class, DenormalizedBatch.Fields.SALE);
+            return Daos.composePath(root, StringUtils.doting(DenormalizedBatch.Fields.SALE, IEntity.Fields.ID)).in(param);
+        }).addBind(DenormalizedBatch.Fields.SALE, Arrays.asList(saleIds));
+    }
+
 
     default Specification<E> isLanding(Boolean isLanding) {
         if (isLanding == null) return null;

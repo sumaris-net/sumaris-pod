@@ -39,6 +39,7 @@ import net.sumaris.core.model.data.Operation;
 import net.sumaris.core.model.data.Sale;
 import net.sumaris.core.model.referential.QualityFlag;
 import net.sumaris.core.model.referential.QualityFlagEnum;
+import net.sumaris.core.model.referential.pmfm.Method;
 import net.sumaris.core.model.referential.pmfm.PmfmEnum;
 import net.sumaris.core.model.referential.pmfm.QualitativeValueEnum;
 import net.sumaris.core.model.referential.pmfm.UnitEnum;
@@ -151,13 +152,27 @@ public class DenormalizedBatchRepositoryImpl
         // Quality flag
         target.setQualityFlagId(source.getQualityFlag().getId());
 
+        target.setWeightMethodId(Optional.ofNullable(source.getWeightMethod()).map(Method::getId).orElse(null));
+
         if (source.getTaxonGroup() != null) {
             target.setTaxonGroup(referentialDao.toVO(source.getTaxonGroup()));
+        }
+
+        if (source.getInheritedTaxonGroup() != null) {
+            target.setInheritedTaxonGroup(referentialDao.toVO(source.getInheritedTaxonGroup()));
+        }
+
+        if (source.getCalculatedTaxonGroup() != null) {
+            target.setCalculatedTaxonGroup(referentialDao.toVO(source.getCalculatedTaxonGroup()));
         }
 
         // Taxon name (from reference)
         if (source.getReferenceTaxon() != null && source.getReferenceTaxon().getId() != null) {
             target.setTaxonName(taxonNameRepository.findReferentByReferenceTaxonId(source.getReferenceTaxon().getId()).orElse(null));
+        }
+
+        if (source.getInheritedReferenceTaxon() != null && source.getInheritedReferenceTaxon().getId() != null) {
+            target.setInheritedTaxonName(taxonNameRepository.findReferentByReferenceTaxonId(source.getInheritedReferenceTaxon().getId()).orElse(null));
         }
 
         // Sorting values
@@ -441,6 +456,7 @@ public class DenormalizedBatchRepositoryImpl
                 .where(hasTripId(filter.getTripId()))
                 .and(hasOperationId(filter.getOperationId()))
                 .and(hasSaleId(filter.getSaleId()))
+                .and(hasSaleIds(filter.getSaleIds()))
                 .and(isLanding(filter.getIsLanding()))
                 .and(isDiscard(filter.getIsDiscard()));
     }

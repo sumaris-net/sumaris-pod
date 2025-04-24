@@ -53,11 +53,6 @@ public class DenormalizedObservedLocationServiceImpl implements DenormalizedObse
         // Load denormalized options
         int programId = observedLocationService.getProgramIdById(observedLocationId);
         DenormalizedBatchOptions programOptions = denormalizedBatchService.createOptionsByProgramId(programId);
-        // /!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\
-        // TODO : -> REMOVE ME <- this is a stub to force fishingAreaLocationIds to have value
-        Integer [] stubLocationIds = {115, 125, 127, 128, 136, 131, 135};
-        programOptions.setFishingAreaLocationIds(stubLocationIds);
-        // /!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\/!\
 
         // Create operation filter, for this observedLocation
         LandingFilterVO landingFilter = LandingFilterVO.builder()

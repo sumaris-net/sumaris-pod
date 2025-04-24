@@ -44,6 +44,7 @@ public class DenormalizedBatchesFilterVO implements IDataFilter {
     private Integer operationId;
     private Integer observedLocationId;
     private Integer saleId;
+    private Integer[] saleIds;
     private Integer recorderDepartmentId;
 
     private  Boolean isLanding;
