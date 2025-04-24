@@ -247,6 +247,13 @@ public enum SumarisConfigurationOption implements ConfigOptionDef {
         boolean.class,
         false),
 
+    PARAMETER_LABEL_LENGTH(
+        "sumaris.list.parameter.length.labels",
+        n("sumaris.config.option.list.parameter.length.labels.description"),
+        null,
+        String.class,
+        false),
+
     IMPORT_NB_YEARS_DATA_HISTORY(
         "sumaris.synchro.import.nbYearDataHistory",
         n("sumaris.config.option.synchro.import.nbYearDataHistory.description"),

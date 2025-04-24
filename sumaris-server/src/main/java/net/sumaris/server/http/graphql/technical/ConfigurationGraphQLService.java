@@ -90,6 +90,7 @@ public class ConfigurationGraphQLService {
     public ConfigurationVO getConfiguration(
         @GraphQLArgument(name = "id") Integer id, // /!\ Deprecated !
         @GraphQLArgument(name = "label") String label, // /!\ Deprecated !
+        @GraphQLArgument(name = "inherited", defaultValue = "true", description = "Should included all enumerations values in properties ?") boolean withInherited,
         @GraphQLEnvironment Set<String> fields
     ) {
         if (id != null || label != null) {
@@ -99,7 +100,7 @@ public class ConfigurationGraphQLService {
         SoftwareVO software = configurationService.getCurrentSoftware();
 
         // Transform to configuration (fill images, etc.)
-        ConfigurationVO configuration = toConfiguration(software, fields);
+        ConfigurationVO configuration = toConfiguration(software, fields, withInherited);
 
         if (authService.isAdmin()) return configuration;
 
@@ -115,12 +116,12 @@ public class ConfigurationGraphQLService {
 
         SoftwareVO software = softwareService.save(configuration);
 
-        return toConfiguration(software, fields);
+        return toConfiguration(software, fields, false);
     }
 
     /* -- protected methods -- */
 
-    protected ConfigurationVO toConfiguration(SoftwareVO software, Set<String> fields) {
+    protected ConfigurationVO toConfiguration(SoftwareVO software, Set<String> fields, boolean withInherited) {
         if (software == null) return null;
         ConfigurationVO result = new ConfigurationVO(software);
 
@@ -174,6 +175,14 @@ public class ConfigurationGraphQLService {
                 result.getProperties().put(
                     SumarisConfigurationOption.DB_TIMEZONE.getKey(),
                     dbTimeZone);
+            }
+
+            // Add parameter label length, only if inherited=true
+            String parameterLabelLength = configuration.getApplicationConfig().getOption(SumarisConfigurationOption.PARAMETER_LABEL_LENGTH.getKey());
+            if (StringUtils.isNotBlank(parameterLabelLength) && withInherited) {
+                result.getProperties().put(
+                        SumarisConfigurationOption.PARAMETER_LABEL_LENGTH.getKey(),
+                        parameterLabelLength);
             }
 
             // Trash enable ?
