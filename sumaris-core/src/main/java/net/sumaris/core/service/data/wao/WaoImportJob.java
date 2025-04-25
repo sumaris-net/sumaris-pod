@@ -126,8 +126,6 @@ public class WaoImportJob {
 	@Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
 	public Future<UpdateVesselSnapshotsResultVO> asyncExecute(@Nullable IProgressionModel progression) {
 
-		this.enable = false;	// TODO: remove this line
-
 		if (progression == null) {
 			ProgressionModel progressionModel = new ProgressionModel();
 			progressionModel.addPropertyChangeListener(ProgressionModel.Fields.MESSAGE, (event) -> {
@@ -141,7 +139,6 @@ public class WaoImportJob {
 		progression.setMessage(I18n.t("sumaris.wao.job.start"));
 
 		// Run import
-		//final org.apache.hadoop.fs.Path path = new Path("C:\\Projets\\IMAGINE\\sumaris-pod\\sumaris-core\\src\\main\\resources\\parquet-input\\CONTACTS.parquet");
 		final org.apache.hadoop.fs.Path path = new Path(configuration.getWaoDirectory().getAbsolutePath(), "CONTACTS.parquet");
 		final Configuration conf = new Configuration();
 		try (final ParquetReader<Row> reader = RowParquetReader.builder(HadoopInputFile.fromPath(path, conf)).build()) {
@@ -156,6 +153,18 @@ public class WaoImportJob {
 			if (samplingStrataIndex == -1) {
 				throw new Exception("Field 'PLAN_CODE' not found");
 			}
+			final int debutObservationIndex = row.getFieldNames().indexOf("DEBUT_OBSERVATION");
+			if (debutObservationIndex == -1) {
+				throw new Exception("Field 'DEBUT_OBSERVATION' not found");
+			}
+			final int finObservationIndex = row.getFieldNames().indexOf("FIN_OBSERVATION");
+			if (finObservationIndex == -1) {
+				throw new Exception("Field 'FIN_OBSERVATION' not found");
+			}
+			final int locationIndex = row.getFieldNames().indexOf("CRIEE_NOM");
+			if (locationIndex == -1) {
+				throw new Exception("Field 'CRIEE_NOM' not found");
+			}
 
 			while (row != null) {
 				//List<Object> values = row.getValues();
@@ -166,7 +175,7 @@ public class WaoImportJob {
 					row = reader.read();
 					continue;
 				}
-				String speciesToObserveStr = (String) speciesToObserveObj;	// TODO: Change to "Species to observe"
+				String speciesToObserveStr = (String) speciesToObserveObj;
 				Stream<String> speciesToObserve = Arrays.stream(speciesToObserveStr.split(",")).distinct();
 				long countSpeciesToObserve = Arrays.stream(speciesToObserveStr.split(",")).distinct().count();
 
@@ -182,20 +191,40 @@ public class WaoImportJob {
 						.map(Optional::get)
 						.toArray(TaxonGroupVO[]::new);
 
-
-				log.info("input {} - output {}", countSpeciesToObserve, taxonGroups.length);
-				if (taxonGroups.length - countSpeciesToObserve > 0) {
+				if (countSpeciesToObserve - taxonGroups.length  > 0) {
 					log.warn("Some species were not found.");
 				}
 
 				// Retrieve sampling strata
 				Object samplingStrataObj = row.getValue(samplingStrataIndex);
+				DenormalizedSamplingStrataVO samplingStrata = null;
 				if (samplingStrataObj == null) {
-					row = reader.read();
-					continue;
+					log.warn("Sampling strata is null for the current row.");
+				} else {
+					String samplingStrataStr = (String) samplingStrataObj;
+					List<DenormalizedSamplingStrataVO> samplingStratas = denormalizedSamplingStrataService.findByFilter(
+							SamplingStrataFilterVO.builder().label(samplingStrataStr).build(),
+							null, null);
+
+					if (samplingStratas.size() == 1) {
+						samplingStrata = samplingStratas.get(0);
+					} else {
+						log.warn("Expected exactly one sampling strata for label '{}', but found {}.", samplingStrataStr, samplingStratas.size());
+					}
 				}
-				String samplingStrataStr = (String) samplingStrataObj;
-				// TODO: List<DenormalizedSamplingStrataVO> samplingStratas = denormalizedSamplingStrataService.findByFilter(SamplingStrataFilterVO.builder().label(samplingStrataStr).build())
+
+				// Retrieve observation dates
+				Object debutObservationObj = row.getValue(debutObservationIndex);
+				Object finObservationObj = row.getValue(finObservationIndex);
+
+				 // Retrieve location
+				Object locationObj = row.getValue(locationIndex);
+				String location = null;
+				if (locationObj != null) {
+					location = (String) locationObj;
+				}
+
+				// TODO: Process the extracted data (taxonGroups, samplingStrata, debutObservationObj, finObservationObj, location)
 
 				// Next line
 				row = reader.read();

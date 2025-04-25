@@ -59,6 +59,6 @@ public class DenormalizedSamplingStrataRepositoryImpl
 
     @Override
     public List<DenormalizedSamplingStrataVO> findAll(SamplingStrataFilterVO filter, Page page, DenormalizedSamplingStrataFetchOptions fetchOptions) {
-        return null;
+        return super.findAll(filter, page, fetchOptions);
     }
 }
