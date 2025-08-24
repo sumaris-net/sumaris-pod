@@ -106,7 +106,7 @@
     <geojson-jackson.version>1.14</geojson-jackson.version>
     <stringtemplate.version>4.1</stringtemplate.version><!-- TODO try 4.3.4 -->
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
-    <commonBeanutilsVersion>1.9.4</commonBeanutilsVersion>
+    <commonBeanutilsVersion>1.11.0</commonBeanutilsVersion>
     <commons-net.version>3.11.1</commons-net.version>
     <opencsv.version>2.4.3</opencsv.version>
     <httpcomponents-httpclient.version>4.5.14</httpcomponents-httpclient.version>
