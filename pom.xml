@@ -140,7 +140,7 @@
     <ozimov-email.version>0.6.3</ozimov-email.version>
     <reflections.version>0.9.12</reflections.version>
     <rxjava3.version>3.1.5</rxjava3.version>
-    <activemq.version>5.17.3</activemq.version>
+    <activemq.version>5.19.6</activemq.version>
     <jakarta-jms.version>2.0.3</jakarta-jms.version>
     <groovy.version>4.0.6</groovy.version>
 
