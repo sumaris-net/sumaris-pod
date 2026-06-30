@@ -102,7 +102,7 @@
     <jaxb.version>2.3.1</jaxb.version><!-- 4.0.1 -->
     <elasticsearch.version>7.17.13</elasticsearch.version>
     <jna.version>5.9.0</jna.version>
-    <jackson.version>2.14.1</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
+    <jackson.version>2.22.0</jackson.version><!-- /!\ 2.9.8 import kotlin error -->
     <geojson-jackson.version>1.14</geojson-jackson.version>
     <stringtemplate.version>4.1</stringtemplate.version><!-- TODO try 4.3.4 -->
     <jTextUtilsVersion>0.3.3</jTextUtilsVersion>
